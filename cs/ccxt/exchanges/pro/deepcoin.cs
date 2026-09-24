@@ -496,7 +496,7 @@ public partial class deepcoin : ccxt.deepcoin
         if ((data != null))
         {
             Dictionary<string, object> trade = this.parseWsTrade(data, market);
-            callDynamically(strored, "append", new object[] {trade});
+            strored.append(trade);
         }
         string messageHash = (("trades" + "::") + symbol);
         client.resolve(strored, messageHash);
@@ -699,7 +699,7 @@ public partial class deepcoin : ccxt.deepcoin
         if ((data != null))
         {
             List<object> ohlcv = this.parseWsOHLCV(data, market);
-            callDynamically(stored, "append", new object[] {ohlcv});
+            stored.append(ohlcv);
         }
         string messageHash = (((("ohlcv" + "::") + symbol) + "::") + timeframe);
         client.resolve(stored, messageHash);
@@ -1034,7 +1034,7 @@ public partial class deepcoin : ccxt.deepcoin
             }
             ccxt.pro.ArrayCache stored = this.myTrades;
             Dictionary<string, object> parsed = this.parseWsTrade(data, market);
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
             client.resolve(stored, messageHash);
             client.resolve(stored, symbolMessageHash);
         }
@@ -1122,7 +1122,7 @@ public partial class deepcoin : ccxt.deepcoin
                 this.orders = new ArrayCacheBySymbolById(limit);
             }
             Dictionary<string, object> parsed = this.parseWsOrder(data, market);
-            callDynamically(this.orders, "append", new object[] {parsed});
+            this.orders.append(parsed);
             client.resolve(this.orders, messageHash);
             client.resolve(this.orders, symbolMessageHash);
         }

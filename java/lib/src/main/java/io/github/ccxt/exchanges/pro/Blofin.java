@@ -221,7 +221,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                 stored = new ArrayCache(((Number)limit).intValue());
                 Helpers.addElementToObject(this.trades, symbol, stored);
             }
-            Helpers.callDynamically(stored, "append", new Object[]{trade});
+            stored.append(trade);
             String messageHash = Helpers.add((channelName + ":"), symbol);
             client.resolve(stored, messageHash);
         }
@@ -361,7 +361,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         {
             Map<String, Object> orderBookSnapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp);
             ((Map<String, Object>)orderBookSnapshot).put("nonce", this.safeInteger(data, "seqId"));
-            Helpers.callDynamically(orderbook, "reset", new Object[]{orderBookSnapshot});
+            orderbook.reset(orderBookSnapshot);
         } else
         {
             List<Object> asks = (List<Object>) this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
@@ -720,7 +720,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         {
             Object candle = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             List<Object> parsed = (List<Object>) this.parseOHLCV(candle, market);
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
         }
         List<Object> resolveData = new ArrayList<Object>(Arrays.asList(symbol, unifiedTimeframe, stored));
         String messageHash = ((("candle" + interval) + ":") + symbol);

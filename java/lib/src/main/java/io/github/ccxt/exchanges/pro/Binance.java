@@ -1053,7 +1053,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "params", finalParameters );
             }};
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watchMultiple((String) (url), messageHashes, this.extend(request, parameters), messageHashes, subscription)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -1354,7 +1354,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     return null;
                 }
                 io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
-                Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+                orderbook.reset(snapshot);
                 // unroll the accumulated deltas
                 Object messages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));
                 Helpers.addElementToObject(orderbook, "cache", new ArrayList<Object>(Arrays.asList()));
@@ -2201,7 +2201,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCache(((Number)limit).intValue());
         }
-        Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
+        tradesArray.append(trade);
         Helpers.addElementToObject(this.trades, symbol, tradesArray);
         client.resolve(tradesArray, messageHash);
     }
@@ -2671,7 +2671,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), unifiedTimeframe, stored);
             }
         }
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        stored.append(parsed);
         List<Object> resolveData = new ArrayList<Object>(Arrays.asList(symbol, unifiedTimeframe, stored));
         client.resolve(resolveData, messageHash);
     }
@@ -6168,7 +6168,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
             Object limit = limit3;
             Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
@@ -6221,7 +6221,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
                 messageHash = (messageHash + (":" + symbol));
             }
             String type = null;
@@ -6231,7 +6231,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             subType = ((List<Object>) typesubTypeparametersVariable).get(1);
             parameters = ((List<Object>) typesubTypeparametersVariable).get(2);
             final String finalType = type;
-            final Object finalSymbol = symbol;
+            final String finalSymbol = symbol;
             final Object finalSubType = subType;
             parameters = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "type", finalType );

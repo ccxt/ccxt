@@ -579,7 +579,7 @@ public partial class weex : ccxt.weex
         for (int j = 0; j < (sorted?.Count ?? 0); j++)
         {
             object sortedTrade = sorted[j];
-            callDynamically(tradesArray, "append", new object[] {sortedTrade});
+            tradesArray.append(sortedTrade);
         }
         ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
         client.resolve(tradesArray, messageHash);
@@ -856,7 +856,7 @@ public partial class weex : ccxt.weex
         {
             IDictionary<string, object> entry = this.safeDict(data, i, new Dictionary<string, object>() {});
             List<object> parsed = this.parseWsOHLCV(entry);
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
         }
         string messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
         List<object> resolveData = new List<object>() {symbol, timeframe, stored};
@@ -1379,7 +1379,7 @@ public partial class weex : ccxt.weex
             {
                 symbols[(string)symbol] = true;
             }
-            callDynamically(trades, "append", new object[] {parsed});
+            trades.append(parsed);
         }
         string messageHash = "myTrades";
         List<object> symbolKeys = new List<object>(((IDictionary<string,object>)symbols).Keys);
@@ -1617,7 +1617,7 @@ public partial class weex : ccxt.weex
         {
             IDictionary<string, object> rawOrder = this.safeDict(data, i, new Dictionary<string, object>() {});
             Dictionary<string, object> parsed = this.parseWsOrder(rawOrder);
-            callDynamically(orders, "append", new object[] {parsed});
+            orders.append(parsed);
             string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
             if ((symbol != null))
             {
@@ -2045,7 +2045,7 @@ public partial class weex : ccxt.weex
         for (int i = 0; i < (positions?.Count ?? 0); i++)
         {
             IDictionary<string, object> position = ((IDictionary<string, object>)positions[i]);
-            callDynamically(cache, "append", new object[] {position});
+            cache.append(position);
         }
         // don't remove the future from the .futures cache
         Future future = ((Future)getValue(client.futures, messageHash));
@@ -2133,7 +2133,7 @@ public partial class weex : ccxt.weex
         {
             IDictionary<string, object> rawPosition = this.safeDict(data, i, new Dictionary<string, object>() {});
             Dictionary<string, object> position = this.parseWsPosition(rawPosition);
-            callDynamically(cache, "append", new object[] {position});
+            cache.append(position);
             newPositions.Add(position);
         }
         List<object> messageHashes = this.findMessageHashes(client, "positions::");

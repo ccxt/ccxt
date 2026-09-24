@@ -274,7 +274,7 @@ public partial class bitrue : ccxt.bitrue
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache orders = this.orders;
-        callDynamically(orders, "append", new object[] {parsed});
+        orders.append(parsed);
         string messageHash = "orders";
         client.resolve(this.orders, messageHash);
     }
@@ -602,7 +602,7 @@ public partial class bitrue : ccxt.bitrue
                 ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
             }
             Dictionary<string, object> trade = this.parseWsTrade(data[i], market);
-            callDynamically(stored, "append", new object[] {trade});
+            stored.append(trade);
             appended = true;
         }
         if (appended)
@@ -742,7 +742,7 @@ public partial class bitrue : ccxt.bitrue
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = new ArrayCacheByTimestamp(limit);
         }
         ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue(getValue(this.ohlcvs, symbol), timeframe));
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         string messageHash = ((("ohlcv:" + (symbol)) + ":") + timeframe);
         client.resolve(stored, messageHash);
     }

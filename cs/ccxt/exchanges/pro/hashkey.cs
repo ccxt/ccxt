@@ -160,7 +160,7 @@ public partial class hashkey : ccxt.hashkey
         {
             IDictionary<string, object> candle = this.safeDict(data, i, new Dictionary<string, object>() {});
             List<object> parsed = this.parseWsOHLCV(candle, market);
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
         }
         string messageHash = ((("ohlcv:" + symbol) + ":") + timeframe);
         client.resolve(stored, messageHash);
@@ -322,7 +322,7 @@ public partial class hashkey : ccxt.hashkey
             {
                 IDictionary<string, object> trade = this.safeDict(data, i);
                 Dictionary<string, object> parsed = this.parseWsTrade(trade, market);
-                callDynamically(stored, "append", new object[] {parsed});
+                stored.append(parsed);
             }
         }
         string messageHash = (("trades" + ":") + symbol);
@@ -482,7 +482,7 @@ public partial class hashkey : ccxt.hashkey
         }
         Dictionary<string, object> parsed = this.parseWsOrder(message);
         ccxt.pro.ArrayCache orders = this.orders;
-        callDynamically(orders, "append", new object[] {parsed});
+        orders.append(parsed);
         string messageHash = "orders";
         client.resolve(orders, messageHash);
         string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
@@ -604,7 +604,7 @@ public partial class hashkey : ccxt.hashkey
         }
         ccxt.pro.ArrayCache tradesArray = this.myTrades;
         Dictionary<string, object> parsed = this.parseWsTrade(message);
-        callDynamically(tradesArray, "append", new object[] {parsed});
+        tradesArray.append(parsed);
         this.myTrades = tradesArray;
         string messageHash = "myTrades";
         client.resolve(tradesArray, messageHash);
@@ -748,7 +748,7 @@ public partial class hashkey : ccxt.hashkey
         }
         ccxt.pro.ArrayCache positions = ((ccxt.pro.ArrayCache)this.positions);
         Dictionary<string, object> parsed = this.parseWsPosition(message);
-        callDynamically(positions, "append", new object[] {parsed});
+        positions.append(parsed);
         string messageHash = "positions";
         client.resolve(parsed, messageHash);
         string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));

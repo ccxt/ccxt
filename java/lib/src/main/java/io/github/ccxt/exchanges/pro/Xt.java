@@ -1611,7 +1611,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
                 Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
             }
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
             String eventVar = this.safeString(message, "event");
             String messageHash = ((eventVar + "::") + tradeType);
             client.resolve(stored, messageHash);
@@ -1672,7 +1672,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 tradesArray = new ArrayCache(((Number)tradesLimit).intValue());
                 Helpers.addElementToObject(this.trades, symbol, tradesArray);
             }
-            Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
+            tradesArray.append(trade);
             String messageHash = ((eventVar + "::") + tradeType);
             client.resolve(tradesArray, messageHash);
         }

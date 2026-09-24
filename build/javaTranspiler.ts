@@ -96,6 +96,78 @@ function splitTopLevelArgs(s: string): string[] {
     return out;
 }
 
+// `Helpers.callDynamically(x, "<m>", new Object[]{...})` on a local whose declaration (the last one in
+// the same member) names a hand-written ws class binds the method that class declares:
+// ws/ArrayCache.java `void append(Object)`, ws/WsOrderBook.java `void reset(Object)` / `WsOrderBook limit()`.
+const JAVA_WS_NATIVE_METHODS: { [cls: string]: { [method: string]: { argc: number, value: boolean } } } = {
+    'io.github.ccxt.ws.ArrayCache': { 'append': { argc: 1, value: false } },
+    'io.github.ccxt.ws.WsOrderBook': { 'reset': { argc: 1, value: false }, 'limit': { argc: 0, value: true } },
+};
+const JAVA_MEMBER_START_RE = /^    (?:public|private|protected)\b/;
+
+function javaDeclaredClassOf (lines: string[], lineIndex: number, receiver: string): string | undefined {
+    const declaration = new RegExp('^\\s*(?:final\\s+)?([A-Za-z_][\\w.<>]*)\\s+' + receiver + '\\s*(?:=|;)');
+    for (let i = lineIndex; i >= 0; i--) {
+        const m = declaration.exec(lines[i]);
+        if (m) {
+            return m[1];
+        }
+        if (JAVA_MEMBER_START_RE.test(lines[i])) {
+            return undefined;
+        }
+    }
+    return undefined;
+}
+
+export function nativeJavaWsCacheCalls (content: string): string {
+    const lines = content.split('\n');
+    const call = /Helpers\.callDynamically\((\w+), "(\w+)", new Object\[\]\{/g;
+    let changed = false;
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (!line.includes('Helpers.callDynamically(')) {
+            continue;
+        }
+        let out = '';
+        let cursor = 0;
+        call.lastIndex = 0;
+        let m;
+        while ((m = call.exec(line)) !== null) {
+            const cls = javaDeclaredClassOf(lines, i, m[1]);
+            const spec = cls !== undefined ? JAVA_WS_NATIVE_METHODS[cls]?.[m[2]] : undefined;
+            if (spec === undefined) {
+                continue;
+            }
+            const argsAt = m.index + m[0].length;
+            let depth = 1;
+            let j = argsAt;
+            while (j < line.length && depth > 0) {
+                if (line[j] === '{' || line[j] === '(') depth++;
+                if (line[j] === '}' || line[j] === ')') depth--;
+                j++;
+            }
+            if (depth !== 0 || line[j] !== ')') {
+                continue;
+            }
+            const args = line.slice(argsAt, j - 1).trim();
+            const argc = args === '' ? 0 : splitTopLevelArgs(args).length;
+            // void methods only in statement position: the helper's Object result is unused there
+            const statement = /^\s*$/.test(line.slice(0, m.index)) && /^\s*;/.test(line.slice(j + 1));
+            if (argc !== spec.argc || (!spec.value && !statement)) {
+                continue;
+            }
+            out += line.slice(cursor, m.index) + m[1] + '.' + m[2] + '(' + args + ')';
+            cursor = j + 1;
+            call.lastIndex = cursor;
+        }
+        if (cursor > 0) {
+            lines[i] = out + line.slice(cursor);
+            changed = true;
+        }
+    }
+    return changed ? lines.join('\n') : content;
+}
+
 // Find a System.out.println(...) call starting at `from` in `src` and
 // return the start, end-of-call (one past the closing paren), and the raw
 // argument string. Walks paren depth and respects string literals.
@@ -286,11 +358,16 @@ function retypeCodeOnly (line: string): string {
     return out;
 }
 
+// a mention of local NAME: member accesses (`x.NAME()`) and method calls are other symbols
+function retypeMentionRegex (name: string, flags = ''): RegExp {
+    return new RegExp (`(?<![\\w$.])${name}\\b(?!\\s*\\()`, flags);
+}
+
 // every occurrence of the name must sit in a proven cast-free context: an argument of an
 // Object-parameter callee, an operand of a native `+` chain carrying a string literal (the
 // printer only emits a native `+` for a proven string concatenation, and JLS 15.18.1 keeps the
 function retypeMentionContextsOk (code: string, name: string, token: string | undefined, line: string): boolean {
-    const re = new RegExp (`\\b${name}\\b`, 'g');
+    const re = retypeMentionRegex (name, 'g');
     let m: RegExpExecArray | null;
     while ((m = re.exec (code)) !== null) {
         const pre = code.slice (0, m.index);
@@ -413,7 +490,7 @@ function retypeCopyUseIsAudited (lines: string[], j: number, from: number, name:
     const code = retypeCodeOnly (lines[j]);
     let prefix = '';
     for (let k = Math.max (from, j - 12); k < j; k++) prefix += retypeCodeOnly (lines[k]);
-    const re = new RegExp (`\\b${name}\\b`, 'g');
+    const re = retypeMentionRegex (name, 'g');
     let m: RegExpExecArray | null;
     while ((m = re.exec (code)) !== null) {
         const pre = prefix + code.slice (0, m.index);
@@ -455,7 +532,7 @@ function retypeDeclaresName (code: string, name: string): boolean {
 function retypeUseIsAudited (line: string, name: string, token?: string): boolean {
     const code = retypeCodeOnly (line);
     if (retypeDeclaresName (code, name)) return true;
-    if (!new RegExp (`\\b${name}\\b`).test (code)) return true;   // no mention outside literals
+    if (!retypeMentionRegex (name).test (code)) return true;   // no mention outside literals
     for (const shape of RETYPE_AUDITED_USE_SHAPES) {
         if (new RegExp (shape.source.replace (/NAME/g, name)).test (line)) return true;
     }
@@ -3304,6 +3381,9 @@ class NewTranspiler {
             // ast-transpiler already handles).
             content = this.regexAll (content, this.getJavaWsRegexes());
             content = this.postProcessWsJava(content, name, true, true);
+        }
+        if (ws || prediction) {
+            content = nativeJavaWsCacheCalls(content);
         }
         content = this.addDeprecatedAnnotations(content);
 

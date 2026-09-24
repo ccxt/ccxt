@@ -489,7 +489,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        Helpers.callDynamically(stored, "append", new Object[]{trade});
+        stored.append(trade);
         String messageHash = ("trade:" + symbol);
         client.resolve(stored, messageHash);
     }

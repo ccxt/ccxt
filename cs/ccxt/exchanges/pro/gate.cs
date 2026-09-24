@@ -1201,7 +1201,7 @@ public partial class gate : ccxt.gate
                     ((IDictionary<string,object>)this.trades)[(string)symbol] = cachedTrades;
                 }
             }
-            callDynamically(cachedTrades, "append", new object[] {trade});
+            cachedTrades.append(trade);
             string hash = ("trades:" + symbol);
             client.resolve(cachedTrades, hash);
         }
@@ -1304,7 +1304,7 @@ public partial class gate : ccxt.gate
                     ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
                 }
             }
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
             marketIds[(string)symbol] = timeframe;
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
@@ -1422,7 +1422,7 @@ public partial class gate : ccxt.gate
         for (int i = 0; i < (parsed?.Count ?? 0); i++)
         {
             IDictionary<string, object> trade = ((IDictionary<string, object>)parsed[i]);
-            callDynamically(cachedTrades, "append", new object[] {trade});
+            cachedTrades.append(trade);
             string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
             if ((symbol != null))
             {
@@ -1689,7 +1689,7 @@ public partial class gate : ccxt.gate
             double? contracts = this.safeNumber(position, "contracts", 0);
             if (((contracts != null)) && (isGreaterThan(contracts, 0)))
             {
-                callDynamically(cache, "append", new object[] {position});
+                cache.append(position);
             }
         }
         // don't remove the future from the .futures cache
@@ -1751,26 +1751,26 @@ public partial class gate : ccxt.gate
                 {
                     position["side"] = GetValue(prevLongPosition, "side");
                     newPositions.Add(position);
-                    callDynamically(cache, "append", new object[] {position});
+                    cache.append(position);
                 }
                 IDictionary<string, object> prevShortPosition = this.safeDict(cache, add(symbol, "short"));
                 if ((prevShortPosition != null))
                 {
                     position["side"] = GetValue(prevShortPosition, "side");
                     newPositions.Add(position);
-                    callDynamically(cache, "append", new object[] {position});
+                    cache.append(position);
                 }
                 // if no prev position is found, default to long
                 if ((prevLongPosition == null) && (prevShortPosition == null))
                 {
                     position["side"] = "long";
                     newPositions.Add(position);
-                    callDynamically(cache, "append", new object[] {position});
+                    cache.append(position);
                 }
             } else
             {
                 newPositions.Add(position);
-                callDynamically(cache, "append", new object[] {position});
+                cache.append(position);
             }
         }
         List<object> messageHashes = this.findMessageHashes(client, add(type, ":positions::"));
@@ -2121,7 +2121,7 @@ public partial class gate : ccxt.gate
         {
             object rawLiquidation = rawLiquidations[i];
             Dictionary<string, object> liquidation = this.parseWsLiquidation(rawLiquidation);
-            callDynamically(cache, "append", new object[] {liquidation});
+            cache.append(liquidation);
             string? symbol = this.safeString(liquidation, "symbol");
             List<object> symbolLiquidations = this.safeList(cache, symbol, new List<object>() {});
             client.resolve(symbolLiquidations, ("myLiquidations::" + symbol));

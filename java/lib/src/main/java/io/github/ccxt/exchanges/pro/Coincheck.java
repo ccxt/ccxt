@@ -93,7 +93,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
             }};
             Map<String, Object> message = this.extend(request, parameters);
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, message, messageHash, null)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -237,7 +237,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
         {
             Object data = this.safeValue(message, i);
             Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data));
-            Helpers.callDynamically(stored, "append", new Object[]{trade});
+            stored.append(trade);
         }
         String messageHash = ("trade:" + symbol);
         client.resolve(stored, messageHash);

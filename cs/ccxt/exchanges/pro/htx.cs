@@ -365,7 +365,7 @@ public partial class htx : ccxt.htx
         for (int i = 0; i < data.Count; i++)
         {
             Dictionary<string, object> trade = this.parseTrade(data[i], market);
-            callDynamically(tradesCache, "append", new object[] {trade});
+            tradesCache.append(trade);
         }
         client.resolve(tradesCache, ch);
         return message;
@@ -481,7 +481,7 @@ public partial class htx : ccxt.htx
         }
         IDictionary<string, object> tick = ((IDictionary<string, object>)this.safeValue(message, "tick"));
         IList<object> parsed = this.parseOHLCV(tick, market);
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         client.resolve(stored, ch);
     }
 
@@ -1437,7 +1437,7 @@ public partial class htx : ccxt.htx
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache cachedOrders = this.orders;
-        callDynamically(cachedOrders, "append", new object[] {parsedOrder});
+        cachedOrders.append(parsedOrder);
         client.resolve(this.orders, messageHash);
         if ((isEqual(messageHash, "orders")) && ((marketId != null)))
         {
@@ -1970,7 +1970,7 @@ public partial class htx : ccxt.htx
             newPositions.Add(position);
             positionsByMarginMode[(string)marginMode] = this.safeList(positionsByMarginMode, marginMode, new List<object>() {});
             ((IList<object>)getValue(positionsByMarginMode, marginMode)).Add(position);
-            callDynamically(cache, "append", new object[] {position});
+            cache.append(position);
         }
         List<object> marginModes = new List<object>(((IDictionary<string,object>)positionsByMarginMode).Keys);
         for (int i = 0; i < marginModes.Count; i++)
@@ -3012,7 +3012,7 @@ public partial class htx : ccxt.htx
                         string? symbol = this.safeString(parsed, "symbol");
                         if ((symbol != null))
                         {
-                            callDynamically(cachedTrades, "append", new object[] {parsed});
+                            cachedTrades.append(parsed);
                         }
                     }
                 } else
@@ -3021,7 +3021,7 @@ public partial class htx : ccxt.htx
                     string? symbol = this.safeString(parsed, "symbol");
                     if ((symbol != null))
                     {
-                        callDynamically(cachedTrades, "append", new object[] {parsed});
+                        cachedTrades.append(parsed);
                     }
                 }
                 client.resolve(this.myTrades, messageHash);
@@ -3043,7 +3043,7 @@ public partial class htx : ccxt.htx
                     Dictionary<string, object> parsedTrade = this.parseTrade(trade, market);
                     // add extra params (side, type, ...) coming from the order
                     parsedTrade = this.extend(parsedTrade, extendParams);
-                    callDynamically(cachedTrades, "append", new object[] {parsedTrade});
+                    cachedTrades.append(parsedTrade);
                 }
                 // messageHash here is the orders one, so
                 // we have to recreate the trades messageHash = orderMessageHash + ':' + 'trade'

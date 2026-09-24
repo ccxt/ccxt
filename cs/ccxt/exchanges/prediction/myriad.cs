@@ -3946,7 +3946,7 @@ public partial class myriad : PredictionExchange
             ((IDictionary<string,object>)this.trades)[(string)sym] = new ArrayCache(tradesLimit);
         }
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(this.trades, sym));
-        callDynamically(stored, "append", new object[] {trade});
+        stored.append(trade);
         client.resolve(stored, ("trades::" + sym));
         // also surface the wallet's own fills (taker or maker leg) with their real execution prices
         string? myWallet = this.walletAddressOrUndefined();
@@ -4005,7 +4005,7 @@ public partial class myriad : PredictionExchange
                 ccxt.pro.ArrayCache myStored = this.myTrades;
                 for (int k = 0; k < myLegsLength; k++)
                 {
-                    callDynamically(myStored, "append", new object[] {getValue(myLegs, k)});
+                    myStored.append(getValue(myLegs, k));
                 }
                 client.resolve(myStored, "myTrades");
             }
@@ -4239,7 +4239,7 @@ public partial class myriad : PredictionExchange
             { "trades", null },
         });
         ccxt.pro.ArrayCache stored = this.orders;
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         client.resolve(stored, "orders");
         if ((sym != null))
         {

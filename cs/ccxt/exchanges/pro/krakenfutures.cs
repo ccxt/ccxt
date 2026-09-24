@@ -397,7 +397,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             position["timestamp"] = timestamp;
             position["datetime"] = this.iso8601(timestamp);
             newPositions.Add(position);
-            callDynamically(cache, "append", new object[] {position});
+            cache.append(position);
         }
         List<object> messageHashes = this.findMessageHashes(client, "positions::");
         for (int i = 0; i < (messageHashes?.Count ?? 0); i++)
@@ -655,12 +655,12 @@ public partial class krakenfutures : ccxt.krakenfutures
                     object index = subtract((length - 1), i); // need reverse to correct chronology
                     object item = getValue(trades, index);
                     Dictionary<string, object> trade = this.parseWsTrade(item);
-                    callDynamically(tradesArray, "append", new object[] {trade});
+                    tradesArray.append(trade);
                 }
             } else
             {
                 Dictionary<string, object> trade = this.parseWsTrade(message);
-                callDynamically(tradesArray, "append", new object[] {trade});
+                tradesArray.append(trade);
             }
             client.resolve(tradesArray, messageHash);
         }
@@ -868,7 +868,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             if (((previousOrder == null)) || ((reason == "edited_by_user")))
             {
                 Dictionary<string, object> parsed = this.parseWsOrder(order);
-                callDynamically(orders, "append", new object[] {parsed});
+                orders.append(parsed);
                 client.resolve(orders, messageHash);
                 client.resolve(orders, ((messageHash + ":") + symbol));
             } else
@@ -916,7 +916,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                     ((IDictionary<string,object>)GetValue(previousOrder, "fee"))["cost"] = Precise.stringAdd(stringOrderCost, stringTradeCost);
                 }
                 // update the newUpdates count
-                callDynamically(orders, "append", new object[] {this.safeOrder(previousOrder)});
+                orders.append(this.safeOrder(previousOrder));
                 client.resolve(orders, ((messageHash + ":") + symbol));
                 client.resolve(orders, messageHash);
             }
@@ -1033,7 +1033,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             {
                 symbols[(string)symbol] = true;
             }
-            callDynamically(cachedOrders, "append", new object[] {parsed});
+            cachedOrders.append(parsed);
         }
         int length = getArrayLength(this.orders);
         if (length > 0)
@@ -1680,7 +1680,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             {
                 tradeSymbols[(string)(parsedTrade != null && ((IDictionary<string, object>)parsedTrade).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedTrade)["symbol"] : null)] = true;
             }
-            callDynamically(stored, "append", new object[] {parsedTrade});
+            stored.append(parsedTrade);
         }
         List<object> tradeSymbolKeys = new List<object>(((IDictionary<string,object>)tradeSymbols).Keys);
         for (int i = 0; i < tradeSymbolKeys.Count; i++)

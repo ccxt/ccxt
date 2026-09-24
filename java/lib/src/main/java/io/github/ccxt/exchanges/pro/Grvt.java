@@ -527,7 +527,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         }
         Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (data));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        stored.append(parsed);
         client.resolve(stored, ("trade::" + symbol));
     }
 
@@ -692,7 +692,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe));
         Object parsed = this.parseWsOHLCV(data, market);
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        stored.append(parsed);
         List<Object> resolveData = new ArrayList<Object>(Arrays.asList(symbol, timeframe, stored));
         client.resolve(resolveData, messageHash);
     }
@@ -877,7 +877,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         if (Boolean.TRUE.equals(isSnapshotChannel) || Boolean.TRUE.equals(isSnapshotMessage))
         {
             Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size");
-            Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+            orderbook.reset(snapshot);
         } else
         {
             List<Object> asks = (List<Object>) this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));

@@ -635,7 +635,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         if (!java.util.Objects.equals(data, null))
         {
             Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data), market);
-            Helpers.callDynamically(strored, "append", new Object[]{trade});
+            strored.append(trade);
         }
         String messageHash = (("trades" + "::") + symbol);
         client.resolve(strored, messageHash);
@@ -883,7 +883,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         if (!java.util.Objects.equals(data, null))
         {
             Object ohlcv = this.parseWsOHLCV(data, market);
-            Helpers.callDynamically(stored, "append", new Object[]{ohlcv});
+            stored.append(ohlcv);
         }
         String messageHash = (((("ohlcv" + "::") + symbol) + "::") + timeframe);
         client.resolve(stored, messageHash);
@@ -1125,7 +1125,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         }
         Long timestamp = this.safeInteger(message, "mt", 0);
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderedEntries, symbol, timestamp);
-        Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+        orderbook.reset(snapshot);
         Object cachedMessages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));
         for (var j = 0; j < ((List<?>)cachedMessages).size(); j++)
         {

@@ -953,7 +953,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Map<String, Object> snapshopt = (Map<String, Object>) this.parseOrderBook(result, symbol, null, "b", "a");
             ((Map<String, Object>)snapshopt).put("nonce", this.safeInteger(result, "u"));
             ((Map<String, Object>)snapshopt).put("timestamp", this.safeInteger(result, "t"));
-            Helpers.callDynamically(orderbook, "reset", new Object[]{snapshopt});
+            orderbook.reset(snapshopt);
         } else
         {
             Long nonce = this.safeInteger(orderbook, "nonce");
@@ -1638,7 +1638,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                     Helpers.addElementToObject(this.trades, symbol, cachedTrades);
                 }
             }
-            Helpers.callDynamically(cachedTrades, "append", new Object[]{trade});
+            cachedTrades.append(trade);
             String hash = ("trades:" + symbol);
             client.resolve(cachedTrades, hash);
         }
@@ -1761,7 +1761,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                     Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
                 }
             }
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
             ((Map<String, Object>)marketIds).put((String)symbol, timeframe);
         }
         List<String> keys = new ArrayList<String>(marketIds.keySet());

@@ -291,7 +291,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
                 Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), tf, stored);
             }
         }
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        stored.append(parsed);
         String messageHash = stream;
         client.resolve(stored, messageHash);
     }

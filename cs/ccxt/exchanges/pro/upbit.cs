@@ -344,7 +344,7 @@ public partial class upbit : ccxt.upbit
             stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        callDynamically(stored, "append", new object[] {trade});
+        stored.append(trade);
         string messageHash = ("trade:" + symbol);
         client.resolve(stored, messageHash);
     }
@@ -664,7 +664,7 @@ public partial class upbit : ccxt.upbit
             myTrades = new ArrayCacheBySymbolById(limit);
         }
         Dictionary<string, object> trade = this.parseWsTrade(message);
-        callDynamically(myTrades, "append", new object[] {trade});
+        myTrades.append(trade);
         string messageHash = "myTrades";
         client.resolve(myTrades, messageHash);
         messageHash = ("myTrades:" + ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null)));
@@ -700,7 +700,7 @@ public partial class upbit : ccxt.upbit
             parsed["timestamp"] = this.safeInteger(order, "timestamp");
             parsed["datetime"] = this.safeString(order, "datetime");
         }
-        callDynamically(cachedOrders, "append", new object[] {parsed});
+        cachedOrders.append(parsed);
         string messageHash = "myOrder";
         client.resolve(this.orders, messageHash);
         messageHash = ((messageHash + ":") + symbol);

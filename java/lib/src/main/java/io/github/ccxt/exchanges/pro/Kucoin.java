@@ -1457,7 +1457,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         Boolean isContractMarket = (((String)topic).indexOf("contractMarket") >= 0);
         Integer baseVolumeIndex = ((Boolean.TRUE.equals(isContractMarket))) ? 6 : 5; // Note value 5 is incorrect and will be fixed in subsequent versions of kucoin
         List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeTimestamp(candles, 0), this.safeNumber(candles, 1), this.safeNumber(candles, 3), this.safeNumber(candles, 4), this.safeNumber(candles, 2), this.safeNumber(candles, baseVolumeIndex)));
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        stored.append(parsed);
         client.resolve(stored, messageHash);
     }
 
@@ -1498,7 +1498,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), stored);
         }
         List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeIntegerProduct(data, "O", 1000), this.safeNumber(data, "o"), this.safeNumber(data, "h"), this.safeNumber(data, "l"), this.safeNumber(data, "c"), this.safeNumber(data, "v")));
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        stored.append(parsed);
         client.resolve(stored, messageHash);
     }
 
@@ -1818,7 +1818,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Helpers.addElementToObject(this.trades, ((String)symbol), stored);
         }
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, ((String)symbol));
-        Helpers.callDynamically(cache, "append", new Object[]{trade});
+        cache.append(trade);
         client.resolve(cache, messageHash);
     }
 
@@ -1852,7 +1852,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Helpers.addElementToObject(this.trades, ((String)symbol), stored);
         }
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, ((String)symbol));
-        Helpers.callDynamically(cache, "append", new Object[]{trade});
+        cache.append(trade);
         client.resolve(cache, messageHash);
     }
 
@@ -2455,7 +2455,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         {
             Map<String, Object> parsed = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "b", "a", 0, 1);
             ((Map<String, Object>)parsed).put("nonce", this.safeInteger(data, "O"));
-            Helpers.callDynamically(orderbook, "reset", new Object[]{parsed});
+            orderbook.reset(parsed);
             Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         } else
         {

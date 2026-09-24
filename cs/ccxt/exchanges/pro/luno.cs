@@ -113,7 +113,7 @@ public partial class luno : ccxt.luno
         {
             object rawTrade = rawTrades[i];
             Dictionary<string, object> trade = this.parseTrade(rawTrade, market);
-            callDynamically(stored, "append", new object[] {trade});
+            stored.append(trade);
         }
         ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         client.resolve(getValue(this.trades, symbol), messageHash);
