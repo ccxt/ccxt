@@ -640,7 +640,7 @@ class paradex extends \ccxt\async\paradex {
             if ($errorCode !== null) {
                 $feedback = $this->id . ' ' . $this->json($error);
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], '-32600', $feedback);
-                $messageString = $this->safe_value($error, 'message');
+                $messageString = $this->safe_string($error, 'message');
                 if ($messageString !== null) {
                     $this->throw_broadly_matched_exception($this->exceptions['broad'], $messageString, $feedback);
                 }

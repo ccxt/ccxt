@@ -1356,7 +1356,7 @@ class bullish extends Exchange {
 
     private function do_safe_deterministic_call(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, ?string $timeframe = null, $params = array()) {
         $maxRetries = null;
-        list($maxRetries, $params) = $this->handle_option_and_params($params, $method, 'maxRetries', 3);
+        list($maxRetries, $params) = $this->handle_option_integer_and_params($params, $method, 'maxRetries', 3);
         if (($method !== 'fetchOHLCV') && ($method !== 'fetchFundingRateHistory') && ($method !== 'fetchTrades')) {
             throw new NotSupported($this->id . ' safeDeterministicCall() does not support the ' . $method . ' method');
         }
@@ -2366,7 +2366,7 @@ class bullish extends Exchange {
 
     private function do_load_account($params = array()) {
         $tradingAccountId = null;
-        list($tradingAccountId, $params) = $this->handle_option_and_params($params, 'loadAccount', 'tradingAccountId');
+        list($tradingAccountId, $params) = $this->handle_option_string_and_params($params, 'loadAccount', 'tradingAccountId');
         if ($tradingAccountId === null) {
             $response = Async\await($this->privateGetV1AccountsTradingAccounts($params));
             $accounts = $this->to_array($response);

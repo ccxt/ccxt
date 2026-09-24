@@ -552,7 +552,7 @@ class coinbaseinternational extends Exchange {
         $paginate = false;
         list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         $maxEntriesPerRequest = 100;
-        list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'maxEntriesPerRequest', $maxEntriesPerRequest);
+        list($maxEntriesPerRequest, $params) = $this->handle_option_integer_and_params($params, 'fetchFundingRateHistory', 'maxEntriesPerRequest', $maxEntriesPerRequest);
         $pageKey = 'ccxtPageKey';
         if ($paginate) {
             return $this->fetch_paginated_call_incremental('fetchFundingRateHistory', $symbol, $since, $limit, $params, $pageKey, $maxEntriesPerRequest);
@@ -1002,7 +1002,7 @@ class coinbaseinternational extends Exchange {
         $paginate = null;
         list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchDepositsWithdrawals', 'paginate');
         $maxEntriesPerRequest = 100;
-        list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', $maxEntriesPerRequest);
+        list($maxEntriesPerRequest, $params) = $this->handle_option_integer_and_params($params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', $maxEntriesPerRequest);
         $pageKey = 'ccxtPageKey';
         if ($paginate === true) {
             return $this->fetch_paginated_call_incremental('fetchDepositsWithdrawals', $code, $since, $limit, $params, $pageKey, $maxEntriesPerRequest);
@@ -1025,7 +1025,7 @@ class coinbaseinternational extends Exchange {
             $request['portfolios'] = $portfolios;
         }
         $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchDepositsWithdrawals', 'until');
+        list($until, $params) = $this->handle_option_integer_and_params($params, 'fetchDepositsWithdrawals', 'until');
         if ($until !== null) {
             $request['time_to'] = $this->iso8601($until);
         }
@@ -2174,7 +2174,7 @@ class coinbaseinternational extends Exchange {
         $paginate = false;
         list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOpenOrders', 'paginate', false);
         $maxEntriesPerRequest = 100;
-        list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'maxEntriesPerRequest', $maxEntriesPerRequest);
+        list($maxEntriesPerRequest, $params) = $this->handle_option_integer_and_params($params, 'fetchOpenOrders', 'maxEntriesPerRequest', $maxEntriesPerRequest);
         $pageKey = 'ccxtPageKey';
         if ($paginate) {
             return $this->fetch_paginated_call_incremental('fetchOpenOrders', $symbol, $since, $limit, $params, $pageKey, $maxEntriesPerRequest);
@@ -2259,7 +2259,7 @@ class coinbaseinternational extends Exchange {
         list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         $pageKey = 'ccxtPageKey';
         $maxEntriesPerRequest = 100;
-        list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'maxEntriesPerRequest', $maxEntriesPerRequest);
+        list($maxEntriesPerRequest, $params) = $this->handle_option_integer_and_params($params, 'fetchMyTrades', 'maxEntriesPerRequest', $maxEntriesPerRequest);
         if ($paginate) {
             return $this->fetch_paginated_call_incremental('fetchMyTrades', $symbol, $since, $limit, $params, $pageKey, $maxEntriesPerRequest);
         }

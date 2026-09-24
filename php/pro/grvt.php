@@ -186,7 +186,7 @@ class grvt extends \ccxt\async\grvt {
         $channel = null;
         list($channel, $params) = $this->handle_option_string_and_params($params, 'watchTickers', 'channel', 'v1.ticker.s');
         $interval = 500;
-        list($interval, $params) = $this->handle_option_and_params($params, 'watchTickers', 'interval', $interval);
+        list($interval, $params) = $this->handle_option_integer_and_params($params, 'watchTickers', 'interval', $interval);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -576,10 +576,10 @@ class grvt extends \ccxt\async\grvt {
             throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
         if ($limit === null) {
-            list($limit, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'limit', 100);
+            list($limit, $params) = $this->handle_option_integer_and_params($params, 'watchOrderBook', 'limit', 100);
         }
         $interval = 500;
-        list($interval, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'interval', $interval);
+        list($interval, $params) = $this->handle_option_integer_and_params($params, 'watchOrderBook', 'interval', $interval);
         $symbols = $this->market_symbols($symbols);
         $extraPart = $isSnapshot ? (string) ($interval . '-' . (string) $limit) : (string) $interval;
         $rawHashes = array();

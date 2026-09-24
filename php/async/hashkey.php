@@ -1406,7 +1406,7 @@ class hashkey extends Exchange {
             $request['endTime'] = $until;
         }
         $accountId = null;
-        list($accountId, $params) = $this->handle_option_and_params($params, $methodName, 'accountId');
+        list($accountId, $params) = $this->handle_option_string_and_params($params, $methodName, 'accountId');
         $response = null;
         if ($marketType === 'spot') {
             if ($market !== null) {
@@ -3469,7 +3469,7 @@ class hashkey extends Exchange {
         $request = array();
         $response = null;
         $accountId = null;
-        list($accountId, $params) = $this->handle_option_and_params($params, $methodName, 'accountId');
+        list($accountId, $params) = $this->handle_option_string_and_params($params, $methodName, 'accountId');
         if ($accountId !== null) {
             $request['subAccountId'] = $accountId;
             $response = Async\await($this->privateGetApiV1SpotSubAccountOpenOrders($this->extend($request, $params)));
@@ -3557,7 +3557,7 @@ class hashkey extends Exchange {
         }
         $response = null;
         $accountId = null;
-        list($accountId, $params) = $this->handle_option_and_params($params, $methodName, 'accountId');
+        list($accountId, $params) = $this->handle_option_string_and_params($params, $methodName, 'accountId');
         if ($accountId !== null) {
             $request['subAccountId'] = $accountId;
             $response = Async\await($this->privateGetApiV1FuturesSubAccountOpenOrders($this->extend($request, $params)));
@@ -3654,7 +3654,7 @@ class hashkey extends Exchange {
             $request['endTime'] = $until;
         }
         $accountId = null;
-        list($accountId, $params) = $this->handle_option_and_params($params, $methodName, 'accountId');
+        list($accountId, $params) = $this->handle_option_string_and_params($params, $methodName, 'accountId');
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);

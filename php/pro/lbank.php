@@ -519,7 +519,7 @@ class lbank extends \ccxt\async\lbank {
             $stored = new ArrayCache($limit);
             $this->trades[$symbol] = $stored;
         }
-        $rawTrade = $this->safe_value($message, 'trade');
+        $rawTrade = $this->safe_dict($message, 'trade');
         $rawTrades = $this->safe_list($message, 'trades', array( $rawTrade ));
         for ($i = 0; $i < count($rawTrades); $i++) {
             $trade = $this->parse_ws_trade($rawTrades[$i], $market);
@@ -981,11 +981,11 @@ class lbank extends \ccxt\async\lbank {
         $client->reject($error);
     }
 
-    public function handle_ping(Client $client, mixed $message) {
+    public function handle_ping(Client $client, array $message) {
         return Async\async(self::do_handle_ping(...))($client, $message);
     }
 
-    private function do_handle_ping(Client $client, mixed $message) {
+    private function do_handle_ping(Client $client, array $message) {
         //
         //  { ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping' }
         //

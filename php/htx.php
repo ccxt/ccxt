@@ -3144,7 +3144,7 @@ class htx extends Exchange {
         //         ]
         //     }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_list($response, 'data');
         return $this->parse_accounts($data);
     }
 
@@ -3407,7 +3407,7 @@ class htx extends Exchange {
         list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $subType = null;
         $isMultiAssetMode = null;
-        list($subType, $params) = $this->handle_option_and_params_2($params, 'fetchBalance', 'defaultSubType', 'subType');
+        list($subType, $params) = $this->handle_option_string_and_params_2($params, 'fetchBalance', 'defaultSubType', 'subType');
         if ($subType === null) {
             $subType = 'linear';
         }
@@ -7406,7 +7406,7 @@ class htx extends Exchange {
         $symbols = $this->market_symbols($symbols);
         $defaultSubType = 'linear';
         $subType = null;
-        list($subType, $params) = $this->handle_option_and_params($params, 'fetchFundingRates', 'subType', $defaultSubType);
+        list($subType, $params) = $this->handle_option_string_and_params($params, 'fetchFundingRates', 'subType', $defaultSubType);
         if ($symbols !== null) {
             $firstSymbol = $this->safe_string($symbols, 0);
             $market = $this->market($firstSymbol);
@@ -9138,7 +9138,7 @@ class htx extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'Data', array());
-        $loan = $this->safe_value($data, 0);
+        $loan = $this->safe_dict($data, 0);
         $transaction = $this->parse_margin_loan($loan, $currency);
         return $this->extend($transaction, array(
             'amount' => $amount,
@@ -9180,14 +9180,14 @@ class htx extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'Data', array());
-        $loan = $this->safe_value($data, 0);
+        $loan = $this->safe_dict($data, 0);
         $transaction = $this->parse_margin_loan($loan, $currency);
         return $this->extend($transaction, array(
             'amount' => $amount,
         ));
     }
 
-    public function parse_margin_loan(array $info, ?array $currency = null): array {
+    public function parse_margin_loan(?array $info, ?array $currency = null): array {
         //
         // borrowMargin cross
         //

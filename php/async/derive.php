@@ -2846,7 +2846,7 @@ class derive extends Exchange {
         throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a subaccount_id parameter inside \'params\' or exchange.options[\'subaccount_id\']=ID.');
     }
 
-    public function handle_derive_wallet_address(string $methodName, array $params) {
+    public function handle_derive_wallet_address(string $methodName, array $params): array {
         $deriveWalletAddress = null;
         list($deriveWalletAddress, $params) = $this->handle_option_string_and_params($params, $methodName, 'deriveWalletAddress');
         if (($deriveWalletAddress !== null) && ($deriveWalletAddress !== '')) {

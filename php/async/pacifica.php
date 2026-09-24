@@ -1135,7 +1135,7 @@ class pacifica extends Exchange {
         }
         $market = $this->market($symbol);
         $aggLevel = null;
-        list($aggLevel, $params) = $this->handle_option_and_params($params, 'fetchOrderBook', 'aggLevel', 1);
+        list($aggLevel, $params) = $this->handle_option_integer_and_params($params, 'fetchOrderBook', 'aggLevel', 1);
         $request = array(
             'symbol' => $market['id'],
             'agg_level' => $aggLevel,
@@ -3552,7 +3552,7 @@ class pacifica extends Exchange {
         $timestamp = null;
         list($timestamp, $params) = $this->handle_param_integer($params, 'timestamp', $this->milliseconds());
         $expiryWindow = null;
-        list($expiryWindow, $params) = $this->handle_option_and_params_2($params, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000);
+        list($expiryWindow, $params) = $this->handle_option_integer_and_params_2($params, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000);
         $subaccountSignatureHeader = array(
             'timestamp' => $timestamp,
             'expiry_window' => $expiryWindow,
@@ -3829,7 +3829,7 @@ class pacifica extends Exchange {
             }
         }
         $expiryWindow = null;
-        list($expiryWindow, $params) = $this->handle_option_and_params_2($params, 'postActionRequest', 'expiryWindow', 'expiry_window', 5000);
+        list($expiryWindow, $params) = $this->handle_option_integer_and_params_2($params, 'postActionRequest', 'expiryWindow', 'expiry_window', 5000);
         $timestamp = $this->safe_integer($params, 'timestamp', $this->milliseconds());
         $signatureHeader = array(
             'timestamp' => $timestamp,

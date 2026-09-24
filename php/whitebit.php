@@ -1546,7 +1546,7 @@ class whitebit extends Exchange {
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', null, $params);
         $method = null;
-        list($method, $params) = $this->handle_option_and_params($params, 'fetchTickers', 'method', $method);
+        list($method, $params) = $this->handle_option_string_and_params($params, 'fetchTickers', 'method', $method);
         if ($method === null) {
             // if the user did not specify a method, choose it based on market type and symbols
             if ($onlyContractSymbols || ($marketType === 'swap')) {

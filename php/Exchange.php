@@ -5840,7 +5840,7 @@ class BaseExchange {
         throw new NotSupported($this->id . ' watchOHLCV() is not supported yet');
     }
 
-    public function convert_trading_view_to_ohlcv(array $ohlcvs, $timestamp = 't', $open = 'o', $high = 'h', $low = 'l', $close = 'c', $volume = 'v', $ms = false) {
+    public function convert_trading_view_to_ohlcv(?array $ohlcvs, $timestamp = 't', $open = 'o', $high = 'h', $low = 'l', $close = 'c', $volume = 'v', $ms = false) {
         $result = array();
         $timestamps = $this->safe_list($ohlcvs, $timestamp, array());
         $opens = $this->safe_list($ohlcvs, $open, array());
@@ -6461,7 +6461,7 @@ class BaseExchange {
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
-    public function parse_accounts(array $accounts, $params = array()) {
+    public function parse_accounts(?array $accounts, $params = array()) {
         $accountsArray = $this->to_array($accounts);
         $result = array();
         for ($i = 0; $i < count($accountsArray); $i++) {
@@ -6752,9 +6752,9 @@ class BaseExchange {
             $this->throttle($cost);
         }
         $retries = 0;
-        list($retries, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailure', $retries);
+        list($retries, $params) = $this->handle_option_integer_and_params($params, $path, 'maxRetriesOnFailure', $retries);
         $retryDelay = 0;
-        list($retryDelay, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailureDelay', $retryDelay);
+        list($retryDelay, $params) = $this->handle_option_integer_and_params($params, $path, 'maxRetriesOnFailureDelay', $retryDelay);
         $fetchDataCacheEnabled = $this->fetchHistoryCacheSize > 0;
         for ($i = 0; $i < $retries + 1; $i++) {
             $fetchData = null;
@@ -8609,7 +8609,7 @@ class BaseExchange {
 
     public function handle_max_entries_per_request_and_params(string $method, ?int $maxEntriesPerRequest = null, $params = array()) {
         $newMaxEntriesPerRequest = null;
-        list($newMaxEntriesPerRequest, $params) = $this->handle_option_and_params($params, $method, 'maxEntriesPerRequest');
+        list($newMaxEntriesPerRequest, $params) = $this->handle_option_integer_and_params($params, $method, 'maxEntriesPerRequest');
         if (($newMaxEntriesPerRequest !== null) && ($newMaxEntriesPerRequest !== $maxEntriesPerRequest)) {
             $maxEntriesPerRequest = $newMaxEntriesPerRequest;
         }
@@ -8621,9 +8621,9 @@ class BaseExchange {
 
     public function fetch_paginated_call_dynamic(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array(), ?int $maxEntriesPerRequest = null, $removeRepeated = true) {
         $maxCalls = 10;
-        list($maxCalls, $params) = $this->handle_option_and_params($params, $method, 'paginationCalls', $maxCalls);
+        list($maxCalls, $params) = $this->handle_option_integer_and_params($params, $method, 'paginationCalls', $maxCalls);
         $maxRetries = 3;
-        list($maxRetries, $params) = $this->handle_option_and_params($params, $method, 'maxRetries', $maxRetries);
+        list($maxRetries, $params) = $this->handle_option_integer_and_params($params, $method, 'maxRetries', $maxRetries);
         $paginationDirection = null;
         list($paginationDirection, $params) = $this->handle_option_and_params($params, $method, 'paginationDirection', 'backward');
         $paginationTimestamp = null;
@@ -8716,7 +8716,7 @@ class BaseExchange {
 
     public function safe_deterministic_call(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, ?string $timeframe = null, $params = array()) {
         $maxRetries = 3;
-        list($maxRetries, $params) = $this->handle_option_and_params($params, $method, 'maxRetries', $maxRetries);
+        list($maxRetries, $params) = $this->handle_option_integer_and_params($params, $method, 'maxRetries', $maxRetries);
         $errors = 0;
         while ($errors <= $maxRetries) {
             try {
@@ -8740,7 +8740,7 @@ class BaseExchange {
 
     public function fetch_paginated_call_deterministic(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, ?string $timeframe = null, $params = array(), ?int $maxEntriesPerRequest = null) {
         $maxCalls = 10;
-        list($maxCalls, $params) = $this->handle_option_and_params($params, $method, 'paginationCalls', $maxCalls);
+        list($maxCalls, $params) = $this->handle_option_integer_and_params($params, $method, 'paginationCalls', $maxCalls);
         list($maxEntriesPerRequest, $params) = $this->handle_max_entries_per_request_and_params($method, $maxEntriesPerRequest, $params);
         // paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
         // pagination always walks forward internally, so strip it here to avoid leaking an
@@ -8797,9 +8797,9 @@ class BaseExchange {
 
     public function fetch_paginated_call_cursor(string $method, mixed $symbol = null, ?int $since = null, ?int $limit = null, $params = array(), ?string $cursorReceived = null, ?string $cursorSent = null, ?int $cursorIncrement = null, ?int $maxEntriesPerRequest = null) {
         $maxCalls = 10;
-        list($maxCalls, $params) = $this->handle_option_and_params($params, $method, 'paginationCalls', $maxCalls);
+        list($maxCalls, $params) = $this->handle_option_integer_and_params($params, $method, 'paginationCalls', $maxCalls);
         $maxRetries = 3;
-        list($maxRetries, $params) = $this->handle_option_and_params($params, $method, 'maxRetries', $maxRetries);
+        list($maxRetries, $params) = $this->handle_option_integer_and_params($params, $method, 'maxRetries', $maxRetries);
         list($maxEntriesPerRequest, $params) = $this->handle_max_entries_per_request_and_params($method, $maxEntriesPerRequest, $params);
         $cursorValue = null;
         $i = 0;
@@ -8887,9 +8887,9 @@ class BaseExchange {
 
     public function fetch_paginated_call_incremental(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array(), ?string $pageKey = null, ?int $maxEntriesPerRequest = null) {
         $maxCalls = 10;
-        list($maxCalls, $params) = $this->handle_option_and_params($params, $method, 'paginationCalls', $maxCalls);
+        list($maxCalls, $params) = $this->handle_option_integer_and_params($params, $method, 'paginationCalls', $maxCalls);
         $maxRetries = 3;
-        list($maxRetries, $params) = $this->handle_option_and_params($params, $method, 'maxRetries', $maxRetries);
+        list($maxRetries, $params) = $this->handle_option_integer_and_params($params, $method, 'maxRetries', $maxRetries);
         list($maxEntriesPerRequest, $params) = $this->handle_max_entries_per_request_and_params($method, $maxEntriesPerRequest, $params);
         $i = 0;
         $errors = 0;

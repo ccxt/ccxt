@@ -1286,7 +1286,7 @@ class mudrex extends Exchange {
             $market = $this->market($symbol);
         }
         $maxCalls = null;
-        list($maxCalls, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginationCalls', 10);
+        list($maxCalls, $params) = $this->handle_option_integer_and_params($params, 'fetchMyTrades', 'paginationCalls', 10);
         $pageSize = 0;
         if ($limit !== null) {
             // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
