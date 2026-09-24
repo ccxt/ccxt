@@ -258,6 +258,10 @@ export const CCXT_GO_HELPER_RETURN_TYPES = {
     // for the matching String.prototype call, e.g. `s.replace (a, b)` → `Replace(s, a, b)`
     'Replace': 'string',
     'Join': 'string',
+    // their native forms, printed when every operand is a proven non-nil Go string
+    'strings.Split': '[]string', 'strings.Replace': 'string', 'strings.ReplaceAll': 'string',
+    'strings.Join': 'string', 'strings.ToUpper': 'string', 'strings.ToLower': 'string',
+    'strings.HasPrefix': 'bool', 'strings.HasSuffix': 'bool', 'strconv.FormatInt': 'string',
     'Slice': 'string',
     'Trim': 'string',
     'PadStart': 'string',
@@ -5978,8 +5982,9 @@ const CCXT_GO_TUPLE_STRING_PRODUCERS = [
     'this.GetBybitType', 'this.HandleProductTypeAndParams', 'this.GetMarginMode',
 ];
 
-// `const [ a, b ] = Split (s, sep)`: every element of the []string is a string or absent
-const CCXT_GO_TUPLE_STRING_SPLIT = 'Split';
+// `const [ a, b ] = Split (s, sep)`: every element of the []string is a string or absent;
+// the printer emits `strings.Split(*s, sep)` when the operand is a proven non-nil string
+const CCXT_GO_TUPLE_STRING_SPLITS = [ 'Split(', 'strings.Split(' ];
 
 // callee -> argument slots below which the Go body only derefScalars / GetArgStringPtr-binds the value
 const CCXT_GO_TUPLE_STRING_SAFE_ARGS = {
@@ -6105,7 +6110,7 @@ function ccxtGoTupleStringBindingIsProducer (goTranspiler, declaration) {
     const init = holder.initializer;
     if ((init?.kind === ts.SyntaxKind.CallExpression) && (init.expression?.kind === ts.SyntaxKind.PropertyAccessExpression)
         && (init.expression.name?.escapedText === 'split')
-        && (goTranspiler.printNode (init, 0) ?? '').trim ().startsWith (CCXT_GO_TUPLE_STRING_SPLIT + '(')) {
+        && CCXT_GO_TUPLE_STRING_SPLITS.some ((head) => (goTranspiler.printNode (init, 0) ?? '').trim ().startsWith (head))) {
         return true;
     }
     const callee = ccxtGoWriteSiteCallee (goTranspiler, init);
