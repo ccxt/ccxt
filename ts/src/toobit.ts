@@ -969,6 +969,9 @@ export default class toobit extends Exchange {
         const baseIdClean = baseParts[0];
         const base = this.safeCurrencyCode (baseIdClean);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settleId = this.safeString (market, 'marginToken');
         const settle = this.safeCurrencyCode (settleId);
         const status = this.safeString (market, 'status');

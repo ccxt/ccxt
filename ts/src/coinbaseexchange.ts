@@ -673,6 +673,9 @@ export default class coinbaseexchange extends Exchange {
             // const quoteId = this.safeString (market, 'quote_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const status = this.safeString (market, 'status');
             result.push (this.extend (this.fees['trading'], {
                 'id': id,

@@ -547,6 +547,9 @@ export default class onetrading extends Exchange {
         const id = this.safeString (market, 'id');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const state = this.safeString (market, 'state');
         const type = this.safeString (market, 'type');
         const isPerp = type === 'PERP';

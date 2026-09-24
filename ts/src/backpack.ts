@@ -727,6 +727,9 @@ export default class backpack extends Exchange {
         const quoteId = this.safeString (market, 'quoteSymbol');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         let symbol = base + '/' + quote;
         const filters = this.safeDict (market, 'filters', {});
         const priceFilter = this.safeDict (filters, 'price', {});

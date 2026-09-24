@@ -521,6 +521,9 @@ export default class dydx extends Exchange {
         const baseId = this.safeString (market, 'baseId', baseName); // idk where 'baseId' comes from, but leaving as is
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settleId = 'USDC';
         const settle = this.safeCurrencyCode (settleId);
         const symbol = base + '/' + quote + ':' + settle;

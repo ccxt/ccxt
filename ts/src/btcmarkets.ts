@@ -527,6 +527,9 @@ export default class btcmarkets extends Exchange {
         const id = this.safeString (market, 'marketId');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const symbol = base + '/' + quote;
         const fees = this.safeDict (this.safeDict (this.options, 'fees', {}), quote, this.fees);
         const pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'priceDecimals')));

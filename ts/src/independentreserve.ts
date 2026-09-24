@@ -353,6 +353,9 @@ export default class independentreserve extends Exchange {
             for (let j = 0; j < quoteCurrencyIds.length; j++) {
                 const quoteId = quoteCurrencyIds[j];
                 const quote = this.safeCurrencyCode (quoteId);
+                if ((base === undefined) || (quote === undefined)) {
+                    continue;
+                }
                 const id = baseId + '/' + quoteId;
                 result.push ({
                     'id': id,
@@ -602,7 +605,9 @@ export default class independentreserve extends Exchange {
         if ((baseId !== undefined) && (quoteId !== undefined)) {
             base = this.safeCurrencyCode (baseId);
             quote = this.safeCurrencyCode (quoteId);
-            symbol = base + '/' + quote;
+            if ((base !== undefined) && (quote !== undefined)) {
+                symbol = base + '/' + quote;
+            }
         } else if (market !== undefined) {
             symbol = market['symbol'];
             base = market['base'];

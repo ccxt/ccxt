@@ -1795,6 +1795,9 @@ export default class kucoin extends Exchange {
             const [ baseId, quoteId ] = id.split ('-');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             // const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
             const ticker = this.safeDict (tickersById, id, {});
             const makerFeeRate = this.safeString (ticker, 'makerFeeRate');
@@ -1947,6 +1950,9 @@ export default class kucoin extends Exchange {
             const settleId = this.safeString (market, 'settleCurrency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const settle = this.safeCurrencyCode (settleId);
             let symbol = base + '/' + quote + ':' + settle;
             let type = 'swap';
@@ -2116,6 +2122,9 @@ export default class kucoin extends Exchange {
             const settleId = this.safeString (market, 'settlementCurrency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const settle = this.safeCurrencyCode (settleId);
             const hasMargin = this.safeString (market, 'marginMode');
             let isMarginable: Bool = false;

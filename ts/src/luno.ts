@@ -576,6 +576,9 @@ export default class luno extends Exchange {
             const quoteId = this.safeString (market, 'counter_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const status = this.safeString (market, 'trading_status');
             // Luno's published schedule is categorical, not a single pair. Entry-tier
             // rates below are read from Luno's own Help Centre fee article for the ZAR

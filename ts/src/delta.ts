@@ -879,6 +879,9 @@ export default class delta extends Exchange {
             const numericId = this.safeInteger (market, 'id');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const settle = this.safeCurrencyCode (settleId);
             const callOptions = (type === 'call_options');
             const putOptions = (type === 'put_options');

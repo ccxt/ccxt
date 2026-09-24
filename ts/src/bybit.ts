@@ -2048,6 +2048,9 @@ export default class bybit extends Exchange {
             const quoteId = this.safeString (market, 'quoteCoin');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const symbol = base + '/' + quote;
             const status = this.safeString (market, 'status');
             const active = (status === 'Trading');
@@ -2221,6 +2224,9 @@ export default class bybit extends Exchange {
             const settleId = this.safeString (market, 'settleCoin', defaultSettledId);
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             let settle: Str = undefined;
             if (linearPerpetual && (settleId === 'USD')) {
                 settle = 'USDC';
@@ -2391,6 +2397,9 @@ export default class bybit extends Exchange {
             const settleId = this.safeString (market, 'settleCoin');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const settle = this.safeCurrencyCode (settleId);
             const lotSizeFilter = this.safeDict (market, 'lotSizeFilter', {});
             const priceFilter = this.safeDict (market, 'priceFilter', {});

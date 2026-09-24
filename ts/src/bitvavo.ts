@@ -482,6 +482,9 @@ export default class bitvavo extends Exchange {
             const quoteId = this.safeString (market, 'quote');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const status = this.safeString (market, 'status');
             result.push (this.safeMarketStructure ({
                 'id': id,

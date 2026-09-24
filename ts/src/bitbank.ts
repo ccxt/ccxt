@@ -316,6 +316,9 @@ export default class bitbank extends Exchange {
         const quoteId = this.safeString (entry, 'quote_asset');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         return this.safeMarketStructure ({
             'id': id,
             'symbol': base + '/' + quote,

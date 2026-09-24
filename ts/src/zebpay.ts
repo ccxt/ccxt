@@ -1649,6 +1649,9 @@ export default class zebpay extends Exchange {
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const symbol = base + '/' + quote;
             result.push ({
                 'id': id,
@@ -1728,6 +1731,9 @@ export default class zebpay extends Exchange {
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const settle = this.safeCurrencyCode (quoteId);
             const status = this.safeString (market, 'status');
             const symbol = base + '/' + quote;

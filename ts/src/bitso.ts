@@ -503,6 +503,9 @@ export default class bitso extends Exchange {
             let quote: Str = quoteId.toUpperCase ();
             base = this.safeCurrencyCode (base);
             quote = this.safeCurrencyCode (quote);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const fees = this.safeDict (market, 'fees', {});
             const flatRate = this.safeDict (fees, 'flat_rate', {});
             const takerString = this.safeString (flatRate, 'taker');

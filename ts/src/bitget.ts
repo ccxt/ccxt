@@ -2280,6 +2280,9 @@ export default class bitget extends Exchange {
             const baseId = this.safeString (market, 'baseCoin');
             const quote = this.safeCurrencyCode (quoteId);
             const base = this.safeCurrencyCode (baseId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const supportMarginCoins = this.safeList (market, 'supportMarginCoins', []);
             let settleId: Str = undefined;
             if (this.inArray (baseId, supportMarginCoins)) {
@@ -2538,6 +2541,9 @@ export default class bitget extends Exchange {
             const baseId = this.safeString (market, 'baseCoin');
             const quote = this.safeCurrencyCode (quoteId);
             const base = this.safeCurrencyCode (baseId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             let settleId: Str = undefined;
             let settle: Str = undefined;
             if (category === 'USDT-FUTURES') {

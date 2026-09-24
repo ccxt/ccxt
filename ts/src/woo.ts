@@ -776,6 +776,9 @@ export default class woo extends Exchange {
         const quoteId = this.safeString (parts, 2);
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         let settleId: Str = undefined;
         let settle: Str = undefined;
         let symbol = base + '/' + quote;

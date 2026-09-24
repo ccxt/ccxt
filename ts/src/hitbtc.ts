@@ -836,6 +836,9 @@ export default class hitbtc extends Exchange {
             const feeCurrencyId = this.safeString (market, 'fee_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
             let settleId: Str = undefined;
             let settle: Str = undefined;
