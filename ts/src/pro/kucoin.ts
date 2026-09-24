@@ -96,7 +96,10 @@ export default class kucoin extends kucoinRest {
     }
 
     async negotiate (privateChannel: any, isFuturesMethod: boolean = false, params: Dict = {}) {
-        let connectId = (privateChannel === true) ? 'private' : 'public';
+        let connectId: Str = 'public';
+        if (privateChannel === true) {
+            connectId = 'private';
+        }
         if (isFuturesMethod) {
             connectId += 'Futures';
         }
@@ -192,7 +195,10 @@ export default class kucoin extends kucoinRest {
     async subscribePublicUta (messageHash: string, channel: string, symbol: string, params: Dict = {}, subscription: NullableDict = undefined) {
         const requestId = this.requestId ().toString ();
         const market = this.market (symbol);
-        const urlType = (market['contract'] === true) ? 'futures' : 'spot';
+        let urlType: Str = 'spot';
+        if (market['contract'] === true) {
+            urlType = 'futures';
+        }
         const tradeType = urlType.toUpperCase ();
         let action = 'subscribe';
         if (subscription !== undefined) {
@@ -485,7 +491,10 @@ export default class kucoin extends kucoinRest {
         const requestId = this.requestId ().toString ();
         const market = this.getMarketFromSymbols (symbols);
         const isContract = ((market as Dict)['contract'] === true);
-        const urlType = isContract ? 'futures' : 'spot';
+        let urlType: Str = 'spot';
+        if (isContract) {
+            urlType = 'futures';
+        }
         const tradeType = urlType.toUpperCase ();
         let action = 'subscribe';
         if (subscription !== undefined) {
@@ -1514,8 +1523,14 @@ export default class kucoin extends kucoinRest {
         const firstMarket = this.getMarketFromSymbols (symbols);
         const isFuturesMethod = ((firstMarket as Dict)['contract'] === true);
         const url = await this.negotiate (false, isFuturesMethod);
-        let method = isFuturesMethod ? '/contractMarket/level2' : '/market/level2';
-        const optionName = isFuturesMethod ? 'contractMethod' : 'spotMethod';
+        let method: Str = '/market/level2';
+        if (isFuturesMethod) {
+            method = '/contractMarket/level2';
+        }
+        let optionName: Str = 'spotMethod';
+        if (isFuturesMethod) {
+            optionName = 'contractMethod';
+        }
         [ method, params ] = this.handleOptionAndParams2 (params, 'watchOrderBook', optionName, 'method', method);
         if (method.indexOf ('Depth') < 0) {
             if ((limit === 5) || (limit === 50)) {
@@ -1572,8 +1587,14 @@ export default class kucoin extends kucoinRest {
         const firstMarket = this.getMarketFromSymbols (symbols);
         const isFuturesMethod = ((firstMarket as Dict)['contract'] === true);
         const url = await this.negotiate (false, isFuturesMethod);
-        let method = isFuturesMethod ? '/contractMarket/level2' : '/market/level2';
-        const optionName = isFuturesMethod ? 'contractMethod' : 'spotMethod';
+        let method: Str = '/market/level2';
+        if (isFuturesMethod) {
+            method = '/contractMarket/level2';
+        }
+        let optionName: Str = 'spotMethod';
+        if (isFuturesMethod) {
+            optionName = 'contractMethod';
+        }
         [ method, params ] = this.handleOptionAndParams2 (params, 'watchOrderBook', optionName, 'method', method);
         if (method.indexOf ('Depth') < 0) {
             if ((limit === 5) || (limit === 50)) {
@@ -1767,7 +1788,7 @@ export default class kucoin extends kucoinRest {
             return -1;
         }
         for (let i = 0; i < cache.length; i++) {
-            const delta = cache[i];
+            const delta = this.safeDict (cache, i);
             const deltaStart = this.safeIntegerN (delta, [ 'sequenceStart', 'sequence', 'O' ]);
             const deltaEnd = this.safeIntegerN (delta, [ 'sequenceEnd', 'sequence', 'C' ]); // todo check
             if ((deltaStart === undefined) || (deltaEnd === undefined)) {
@@ -1798,7 +1819,10 @@ export default class kucoin extends kucoinRest {
             const price = this.safeNumber (splitChange, 0);
             const side = this.safeString (splitChange, 1);
             const quantity = this.safeNumber (splitChange, 2);
-            const type = (side === 'buy') ? 'bids' : 'asks';
+            let type: Str = 'asks';
+            if (side === 'buy') {
+                type = 'bids';
+            }
             const value = [ price, quantity ];
             if (type === 'bids') {
                 storedBids.storeArray (value);
@@ -1967,7 +1991,10 @@ export default class kucoin extends kucoinRest {
             [ marketType, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
             const isFuturesMethod = ((marketType !== 'spot') && (marketType !== 'margin'));
             const url = await this.negotiate (true, isFuturesMethod);
-            let topic = (trigger === true) ? '/spotMarket/advancedOrders' : '/spotMarket/tradeOrders';
+            let topic: Str = '/spotMarket/tradeOrders';
+            if (trigger === true) {
+                topic = '/spotMarket/advancedOrders';
+            }
             if (isFuturesMethod) {
                 topic = (trigger === true) ? '/contractMarket/advancedOrders' : '/contractMarket/tradeOrders';
             }
@@ -2264,7 +2291,12 @@ export default class kucoin extends kucoinRest {
         const matchSize = this.safeString (data, 'matchSize');
         if ((rawType === 'match') && (matchPrice !== undefined) && (matchSize !== undefined)) {
             const matchCost = Precise.stringMul (matchPrice, matchSize);
-            const previousCost = (order === undefined) ? '0' : this.numberToString (this.safeNumber (order, 'cost', 0));
+            let previousCost: Str = undefined;
+            if (order === undefined) {
+                previousCost = '0';
+            } else {
+                previousCost = this.numberToString (this.safeNumber (order, 'cost', 0));
+            }
             const costString = Precise.stringAdd (previousCost, matchCost);
             parsed['cost'] = this.parseNumber (costString);
             const filledString = this.numberToString (parsed['filled']);
@@ -2385,8 +2417,14 @@ export default class kucoin extends kucoinRest {
             trades = await this.subscribePrivateUta ([ messageHash ], channel, channel, undefined, params);
         } else {
             const url = await this.negotiate (true, isFuturesMethod);
-            let topic = isFuturesMethod ? '/contractMarket/tradeOrders' : '/spotMarket/tradeOrders';
-            const optionName = isFuturesMethod ? 'contractMethod' : 'spotMethod';
+            let topic: Str = '/spotMarket/tradeOrders';
+            if (isFuturesMethod) {
+                topic = '/contractMarket/tradeOrders';
+            }
+            let optionName: Str = 'spotMethod';
+            if (isFuturesMethod) {
+                optionName = 'contractMethod';
+            }
             [ topic, params ] = this.handleOptionAndParams2 (params, 'watchMyTrades', optionName, 'method', topic);
             const request: Dict = {
                 'privateChannel': true,
@@ -2590,7 +2628,10 @@ export default class kucoin extends kucoinRest {
         }
         let uta = await this.isUTAEnabled ();
         [ uta, params ] = this.handleOptionBoolAndParams (params, 'watchBalance', 'uta', uta);
-        let defaultType = uta ? 'unified' : 'spot';
+        let defaultType: Str = 'spot';
+        if (uta) {
+            defaultType = 'unified';
+        }
         let type = defaultType;
         if (!uta) {
             defaultType = this.safeString (this.options, 'defaultType', defaultType);
@@ -2600,7 +2641,10 @@ export default class kucoin extends kucoinRest {
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const uniformType = this.safeString (accountsByType, type, type);
         const isClassicFuturesMethod = (uniformType === 'contract');
-        let subscriptionHash = isClassicFuturesMethod ? '/contractAccount/wallet' : '/account/balance';
+        let subscriptionHash: Str = '/account/balance';
+        if (isClassicFuturesMethod) {
+            subscriptionHash = '/contractAccount/wallet';
+        }
         let url: Str = undefined;
         if (uta) {
             url = await this.getUtaUrl ();
@@ -2872,7 +2916,10 @@ export default class kucoin extends kucoinRest {
         }
         let uta = await this.isUTAEnabled ();
         [ uta, params ] = this.handleOptionBoolAndParams (params, 'watchPositions', 'uta', uta);
-        const tradeType = uta ? 'UNIFIED' : 'TRADE';
+        let tradeType: Str = 'TRADE';
+        if (uta) {
+            tradeType = 'UNIFIED';
+        }
         const messageHash = 'positions';
         const messageHashes: string[] = [];
         symbols = this.marketSymbols (symbols);
@@ -3166,7 +3213,10 @@ export default class kucoin extends kucoinRest {
         const timestamp = this.safeIntegerProduct (position, 'O', 0.000001);
         const amountString = this.safeString (position, 'q');
         const size = Precise.stringAbs (amountString);
-        const side = Precise.stringGt (amountString, '0') ? 'long' : 'short';
+        let side: Str = 'short';
+        if (Precise.stringGt (amountString, '0')) {
+            side = 'long';
+        }
         return this.safePosition ({
             'info': position,
             'id': this.safeString (position, 'pi'),

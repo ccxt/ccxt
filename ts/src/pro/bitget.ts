@@ -149,8 +149,14 @@ export default class bitget extends bitgetRest {
         const args: Dict = {
             'instType': instType,
         };
-        const topicOrChannel = uta ? 'topic' : 'channel';
-        const symbolOrInstId = uta ? 'symbol' : 'instId';
+        let topicOrChannel: Str = 'channel';
+        if (uta) {
+            topicOrChannel = 'topic';
+        }
+        let symbolOrInstId: Str = 'instId';
+        if (uta) {
+            symbolOrInstId = 'symbol';
+        }
         args[topicOrChannel] = 'ticker';
         args[symbolOrInstId] = market['id'];
         return await this.watchPublic (uta, messageHash, args, params);
@@ -203,8 +209,14 @@ export default class bitget extends bitgetRest {
             const args: Dict = {
                 'instType': instType,
             };
-            const topicOrChannel = uta ? 'topic' : 'channel';
-            const symbolOrInstId = uta ? 'symbol' : 'instId';
+            let topicOrChannel: Str = 'channel';
+            if (uta) {
+                topicOrChannel = 'topic';
+            }
+            let symbolOrInstId: Str = 'instId';
+            if (uta) {
+                symbolOrInstId = 'symbol';
+            }
             args[topicOrChannel] = 'ticker';
             args[symbolOrInstId] = marketInner['id'];
             topics.push (args);
@@ -385,7 +397,10 @@ export default class bitget extends bitgetRest {
         const utaTimestamp = this.safeInteger (message, 'ts');
         const timestamp = this.safeInteger (ticker, 'ts', utaTimestamp);
         const instType = this.safeStringLower (arg, 'instType');
-        const marketType = (instType === 'spot') ? 'spot' : 'contract';
+        let marketType: Str = 'contract';
+        if (instType === 'spot') {
+            marketType = 'spot';
+        }
         const utaMarketId = this.safeString (arg, 'symbol');
         const marketId = this.safeString (ticker, 'instId', utaMarketId);
         market = this.safeMarket (marketId, market, undefined, marketType);
@@ -449,8 +464,14 @@ export default class bitget extends bitgetRest {
             const args: Dict = {
                 'instType': instType,
             };
-            const topicOrChannel = uta ? 'topic' : 'channel';
-            const symbolOrInstId = uta ? 'symbol' : 'instId';
+            let topicOrChannel: Str = 'channel';
+            if (uta) {
+                topicOrChannel = 'topic';
+            }
+            let symbolOrInstId: Str = 'instId';
+            if (uta) {
+                symbolOrInstId = 'symbol';
+            }
             args[topicOrChannel] = 'ticker';
             args[symbolOrInstId] = marketInner['id'];
             topics.push (args);
@@ -482,7 +503,10 @@ export default class bitget extends bitgetRest {
         const utaTimestamp = this.safeInteger (message, 'ts');
         const timestamp = this.safeInteger (ticker, 'ts', utaTimestamp);
         const instType = this.safeStringLower (arg, 'instType');
-        const marketType = (instType === 'spot') ? 'spot' : 'contract';
+        let marketType: Str = 'contract';
+        if (instType === 'spot') {
+            marketType = 'spot';
+        }
         const utaMarketId = this.safeString (arg, 'symbol');
         const marketId = this.safeString (ticker, 'instId', utaMarketId);
         market = this.safeMarket (marketId, market, undefined, marketType);
@@ -653,7 +677,10 @@ export default class bitget extends bitgetRest {
         //
         const arg = this.safeDict (message, 'arg', {});
         const instType = this.safeStringLower (arg, 'instType');
-        const marketType = (instType === 'spot') ? 'spot' : 'contract';
+        let marketType: Str = 'contract';
+        if (instType === 'spot') {
+            marketType = 'spot';
+        }
         const marketId = this.safeString2 (arg, 'instId', 'symbol');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
@@ -836,8 +863,14 @@ export default class bitget extends bitgetRest {
             const args: Dict = {
                 'instType': instType,
             };
-            const topicOrChannel = uta ? 'topic' : 'channel';
-            const symbolOrInstId = uta ? 'symbol' : 'instId';
+            let topicOrChannel: Str = 'channel';
+            if (uta) {
+                topicOrChannel = 'topic';
+            }
+            let symbolOrInstId: Str = 'instId';
+            if (uta) {
+                symbolOrInstId = 'symbol';
+            }
             args[topicOrChannel] = channel;
             args[symbolOrInstId] = market['id'];
             topics.push (args);
@@ -904,7 +937,10 @@ export default class bitget extends bitgetRest {
         const arg = this.safeDict (message, 'arg');
         const channel = this.safeString2 (arg, 'channel', 'topic', '');
         const instType = this.safeStringLower (arg, 'instType');
-        const marketType = (instType === 'spot') ? 'spot' : 'contract';
+        let marketType: Str = 'contract';
+        if (instType === 'spot') {
+            marketType = 'spot';
+        }
         const marketId = this.safeString2 (arg, 'instId', 'symbol');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
@@ -1051,8 +1087,14 @@ export default class bitget extends bitgetRest {
             const args: Dict = {
                 'instType': instType,
             };
-            const topicOrChannel = uta ? 'topic' : 'channel';
-            const symbolOrInstId = uta ? 'symbol' : 'instId';
+            let topicOrChannel: Str = 'channel';
+            if (uta) {
+                topicOrChannel = 'topic';
+            }
+            let symbolOrInstId: Str = 'instId';
+            if (uta) {
+                symbolOrInstId = 'symbol';
+            }
             args[topicOrChannel] = uta ? 'publicTrade' : 'trade';
             args[symbolOrInstId] = market['id'];
             topics.push (args);
@@ -1091,7 +1133,10 @@ export default class bitget extends bitgetRest {
     override async unWatchTrades (symbol: string, params = {}): Promise<any> {
         const values = this.handleOptionBoolAndParams (params, 'watchTrades', 'uta', false);
         const uta: Bool = values[0];
-        const channelTopic = uta ? 'publicTrade' : 'trade';
+        let channelTopic: Str = 'trade';
+        if (uta) {
+            channelTopic = 'publicTrade';
+        }
         return await this.unWatchChannel (symbol, channelTopic, 'trade', 'watchTrades', params);
     }
 
@@ -1132,7 +1177,10 @@ export default class bitget extends bitgetRest {
         //
         const arg = this.safeDict (message, 'arg', {});
         const instType = this.safeStringLower (arg, 'instType');
-        const marketType = (instType === 'spot') ? 'spot' : 'contract';
+        let marketType: Str = 'contract';
+        if (instType === 'spot') {
+            marketType = 'spot';
+        }
         const marketId = this.safeString2 (arg, 'instId', 'symbol');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
@@ -1327,8 +1375,14 @@ export default class bitget extends bitgetRest {
         const args: Dict = {
             'instType': instType,
         };
-        const topicOrChannel = uta ? 'topic' : 'channel';
-        const channel = uta ? 'position' : 'positions';
+        let topicOrChannel: Str = 'channel';
+        if (uta) {
+            topicOrChannel = 'topic';
+        }
+        let channel: Str = 'positions';
+        if (uta) {
+            channel = 'position';
+        }
         args[topicOrChannel] = channel;
         if (!uta) {
             args['instId'] = 'default';
@@ -1515,7 +1569,10 @@ export default class bitget extends bitgetRest {
             'isolated': 'isolated',
         });
         const hedgedId = this.safeString2 (position, 'posMode', 'holdMode');
-        const hedged = (hedgedId === 'hedge_mode') ? true : false;
+        let hedged: Bool = false;
+        if (hedgedId === 'hedge_mode') {
+            hedged = true;
+        }
         const timestamp = this.safeIntegerN (position, [ 'updatedTime', 'uTime', 'cTime', 'createdTime' ]);
         const percentageDecimal = this.safeString2 (position, 'unrealizedPLR', 'profitRate');
         const percentage = Precise.stringMul (percentageDecimal, '100');
@@ -1580,7 +1637,10 @@ export default class bitget extends bitgetRest {
         let marketId: Str = undefined;
         let isTrigger: Bool = undefined;
         [ isTrigger, params ] = this.isTriggerOrder (params);
-        let messageHash = (isTrigger === true) ? 'triggerOrder' : 'order';
+        let messageHash: Str = 'order';
+        if (isTrigger === true) {
+            messageHash = 'triggerOrder';
+        }
         let subscriptionHash = 'order:trades';
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1619,8 +1679,14 @@ export default class bitget extends bitgetRest {
         if (isTrigger === true) {
             subscriptionHash = subscriptionHash + ':stop'; // we don't want to re-use the same subscription hash for stop orders
         }
-        const instId = (type === 'spot' || type === 'margin') ? marketId : 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
-        let channel = (isTrigger === true) ? 'orders-algo' : 'orders';
+        let instId: Str = 'default';
+        if (type === 'spot' || type === 'margin') {
+            instId = marketId;
+        } // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
+        let channel: Str = 'orders';
+        if (isTrigger === true) {
+            channel = 'orders-algo';
+        }
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('watchOrders', params);
         if (marginMode !== undefined) {
@@ -1640,7 +1706,10 @@ export default class bitget extends bitgetRest {
         const args: Dict = {
             'instType': instType,
         };
-        const topicOrChannel = uta ? 'topic' : 'channel';
+        let topicOrChannel: Str = 'channel';
+        if (uta) {
+            topicOrChannel = 'topic';
+        }
         args[topicOrChannel] = channel;
         if (!uta) {
             args['instId'] = instId;
@@ -1772,7 +1841,10 @@ export default class bitget extends bitgetRest {
         }
         const isTrigger = (channel === 'orders-algo') || (channel === 'ordersAlgo');
         const stored = isTrigger ? this.triggerOrders : this.orders;
-        const messageHash = isTrigger ? 'triggerOrder' : 'order';
+        let messageHash: Str = 'order';
+        if (isTrigger) {
+            messageHash = 'triggerOrder';
+        }
         const marketSymbols: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const order = data[i];
@@ -2120,7 +2192,10 @@ export default class bitget extends bitgetRest {
         const args: Dict = {
             'instType': instType,
         };
-        const topicOrChannel = uta ? 'topic' : 'channel';
+        let topicOrChannel: Str = 'channel';
+        if (uta) {
+            topicOrChannel = 'topic';
+        }
         args[topicOrChannel] = 'fill';
         if (!uta) {
             args['instId'] = 'default';
@@ -2324,14 +2399,22 @@ export default class bitget extends bitgetRest {
         const args: Dict = {
             'instType': instType,
         };
-        const topicOrChannel = uta ? 'topic' : 'channel';
+        let topicOrChannel: Str = 'channel';
+        if (uta) {
+            topicOrChannel = 'topic';
+        }
         args[topicOrChannel] = channel;
         if (!uta) {
             args['coin'] = 'default';
         } else {
             params = this.extend (params, { 'uta': true });
         }
-        const instTypeLower = (instType === undefined) ? '' : instType.toLowerCase ();
+        let instTypeLower: Str = undefined;
+        if (instType === undefined) {
+            instTypeLower = '';
+        } else {
+            instTypeLower = instType.toLowerCase ();
+        }
         const messageHash = 'balance:' + instTypeLower;
         return await this.watchPrivate (uta, messageHash, messageHash, args, params);
     }
@@ -2433,7 +2516,7 @@ export default class bitget extends bitgetRest {
             if (instType === 'uta') {
                 const coins = this.safeList (rawBalance, 'coin', []);
                 for (let j = 0; j < coins.length; j++) {
-                    const entry = coins[j];
+                    const entry = this.safeDict (coins, j);
                     const currencyId = this.safeString (entry, 'coin');
                     const code = this.safeCurrencyCode (currencyId);
                     let account = this.account ();
@@ -2464,7 +2547,10 @@ export default class bitget extends bitgetRest {
                     const interest = this.safeString (rawBalance, 'interest');
                     account['debt'] = Precise.stringAdd (borrow, interest);
                 }
-                const freeQuery = ('maxTransferOut' in rawBalance) ? 'maxTransferOut' : 'available';
+                let freeQuery: Str = 'available';
+                if ('maxTransferOut' in rawBalance) {
+                    freeQuery = 'maxTransferOut';
+                }
                 account['free'] = this.safeString (rawBalance, freeQuery);
                 account['total'] = this.safeString (rawBalance, 'equity');
                 account['used'] = this.safeString (rawBalance, 'frozen');
@@ -2798,7 +2884,10 @@ export default class bitget extends bitgetRest {
         //
         const arg = this.safeDict (message, 'arg', {});
         const instType = this.safeStringLower (arg, 'instType');
-        const type = (instType === 'spot') ? 'spot' : 'contract';
+        let type: Str = 'contract';
+        if (instType === 'spot') {
+            type = 'spot';
+        }
         const instId = this.safeString2 (arg, 'instId', 'symbol');
         const market = this.safeMarket (instId, undefined, undefined, type);
         const symbol = market['symbol'];
@@ -2826,7 +2915,10 @@ export default class bitget extends bitgetRest {
         //
         const arg = this.safeDict (message, 'arg', {});
         const instType = this.safeStringLower (arg, 'instType');
-        const type = (instType === 'spot') ? 'spot' : 'contract';
+        let type: Str = 'contract';
+        if (instType === 'spot') {
+            type = 'spot';
+        }
         const instId = this.safeString2 (arg, 'instId', 'symbol');
         const market = this.safeMarket (instId, undefined, undefined, type);
         const symbol = market['symbol'];
@@ -2854,7 +2946,10 @@ export default class bitget extends bitgetRest {
         //
         const arg = this.safeDict (message, 'arg', {});
         const instType = this.safeStringLower (arg, 'instType');
-        const type = (instType === 'spot') ? 'spot' : 'contract';
+        let type: Str = 'contract';
+        if (instType === 'spot') {
+            type = 'spot';
+        }
         const instId = this.safeString2 (arg, 'instId', 'symbol');
         const market = this.safeMarket (instId, undefined, undefined, type);
         const symbol = market['symbol'];
@@ -2886,7 +2981,10 @@ export default class bitget extends bitgetRest {
         //
         const arg = this.safeDict (message, 'arg', {});
         const instType = this.safeStringLower (arg, 'instType');
-        const type = (instType === 'spot') ? 'spot' : 'contract';
+        let type: Str = 'contract';
+        if (instType === 'spot') {
+            type = 'spot';
+        }
         const instId = this.safeString2 (arg, 'instId', 'symbol');
         const channel = this.safeString2 (arg, 'channel', 'topic', '');
         let interval = this.safeString (arg, 'interval');
@@ -2943,7 +3041,7 @@ export default class bitget extends bitgetRest {
             argsList = [ this.safeDict (message, 'arg', {}) ];
         }
         for (let i = 0; i < argsList.length; i++) {
-            const arg = argsList[i];
+            const arg = this.safeDict (argsList, i);
             const channel = this.safeString2 (arg, 'channel', 'topic', '');
             if (channel.indexOf ('books') >= 0) {
                 // for now only unWatchOrderBook is supported

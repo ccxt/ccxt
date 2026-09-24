@@ -516,7 +516,12 @@ export default class lbank extends lbankRest {
         //    }
         //
         let timestamp = this.safeInteger (trade, 0);
-        const datetime = (timestamp !== undefined) ? (this.iso8601 (timestamp)) : (this.safeString (trade, 'TS'));
+        let datetime: Str = undefined;
+        if (timestamp !== undefined) {
+            datetime = (this.iso8601 (timestamp));
+        } else {
+            datetime = (this.safeString (trade, 'TS'));
+        }
         if (timestamp === undefined) {
             timestamp = this.parse8601 (datetime);
         }

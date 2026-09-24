@@ -804,7 +804,10 @@ export default class hashkey extends hashkeyRest {
         const data = this.safeList (message, 'B', []);
         const balanceUpdate = this.safeDict (data, 0);
         const isSpot = event === 'outboundAccountInfo';
-        const type = isSpot ? 'spot' : 'swap';
+        let type: Str = 'swap';
+        if (isSpot) {
+            type = 'spot';
+        }
         if (!(type in this.balance)) {
             this.balance[type] = {};
         }

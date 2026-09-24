@@ -1231,14 +1231,14 @@ export default class krakenfutures extends krakenfuturesRest {
             return;
         }
         for (let i = 0; i < bids.length; i++) {
-            const bid = bids[i];
+            const bid = this.safeDict (bids, i);
             const price = this.safeNumber (bid, 'price');
             const qty = this.safeNumber (bid, 'qty');
             const bidsSide = orderbook['bids'];
             bidsSide.store (price, qty);
         }
         for (let i = 0; i < asks.length; i++) {
-            const ask = asks[i];
+            const ask = this.safeDict (asks, i);
             const price = this.safeNumber (ask, 'price');
             const qty = this.safeNumber (ask, 'qty');
             const asksSide = orderbook['asks'];

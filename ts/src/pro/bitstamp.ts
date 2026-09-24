@@ -220,7 +220,7 @@ export default class bitstamp extends bitstampRest {
             return -1;
         }
         for (let i = 0; i < deltas.length; i++) {
-            const delta = deltas[i];
+            const delta = this.safeDict (deltas, i);
             const deltaNonce = this.safeInteger (delta, 'microtimestamp');
             if (deltaNonce === nonce) {
                 return i + 1;
@@ -307,7 +307,10 @@ export default class bitstamp extends bitstampRest {
         }
         const symbol = market['symbol'];
         const sideRaw = this.safeInteger (trade, 'type');
-        const side = (sideRaw === 0) ? 'buy' : 'sell';
+        let side: Str = 'sell';
+        if (sideRaw === 0) {
+            side = 'buy';
+        }
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
@@ -697,7 +700,10 @@ export default class bitstamp extends bitstampRest {
         //
         const id = this.safeString (order, 'id_str');
         const orderTypeRaw = this.safeStringLower (order, 'order_type');
-        const side = (orderTypeRaw === '1') ? 'sell' : 'buy';
+        let side: Str = 'buy';
+        if (orderTypeRaw === '1') {
+            side = 'sell';
+        }
         const orderSubTypeRaw = this.safeStringLower (order, 'order_subtype'); // https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
         let orderType: Str = undefined;
         let timeInForce: Str = undefined;
