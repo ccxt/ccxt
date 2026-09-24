@@ -4250,6 +4250,36 @@ function isHandleOrVenueTupleCallee (node) {
         || (isThisCall (current) && Object.hasOwn (HANDLE_VENUE_ELEMENT_TYPES, String (current.expression.name.escapedText)));
 }
 
+// binding element -> type its printed declaration carries (read by the dataflow joins)
+const HANDLE_TYPED_BINDINGS = new WeakMap ();
+
+// a read of a String/Boolean element binding this section already typed
+function handleTypedBindingReadType (printer, identifier) {
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getSymbolAtLocation (identifier)?.valueDeclaration;
+    } catch (e) {
+        return undefined;
+    }
+    if (declaration === undefined || !(ts.isBindingElement (declaration) || ts.isVariableDeclaration (declaration))
+        || declaration.name?.escapedText !== identifier.escapedText) {
+        return undefined;
+    }
+    let type = HANDLE_TYPED_BINDINGS.get (declaration);
+    const pattern = declaration.parent;
+    if (type === undefined && ts.isBindingElement (declaration) && ts.isArrayBindingPattern (pattern)
+        && ts.isVariableDeclaration (pattern.parent) && isHandleOrVenueTupleCallee (pattern.parent.initializer)) {
+        // a binding printed later: the same proof handleRetypeBindingPatternBlock applies
+        const t = handleElementType (printer, pattern.parent.initializer, pattern.elements.indexOf (declaration));
+        const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+        if (t !== undefined && handleTupleIsSafeToNarrow (printer, enclosingFunction (declaration), declaration.name,
+            declaration.name.escapedText, t, isProFile)) {
+            type = t;
+        }
+    }
+    return (type === 'String' || type === 'Boolean') ? type : undefined;
+}
+
 // `var <holder> = ` -> `java.util.List<Object> <holder> = (java.util.List<Object>) ` on the
 // line the reads prove; returns undefined when the line is not the expected holder
 function handleRetypeHolderLine (line, holderName) {
@@ -4305,6 +4335,7 @@ function handleRetypeBindingPatternBlock (printer, tupleTypes, declaration, prin
         }
         lines[1 + i] = `${indent}${type} ${printedNames[i]} = (${type}) ` + stripped.slice (head.length);
         tupleTypes.set (element, type);
+        HANDLE_TYPED_BINDINGS.set (element, type);
         retyped = true;
     }
     return retyped ? lines.join ('\n') : printed;
@@ -6079,7 +6110,8 @@ function dataflowValueType (printer, node, context) {
             if (node.escapedText === 'undefined') {
                 return 'null';
             }
-            return dataflowResolveRead (printer, context, node) ?? joinParameterReadType (printer, node);
+            return dataflowResolveRead (printer, context, node) ?? joinParameterReadType (printer, node)
+                ?? handleTypedBindingReadType (printer, node);
         case ts.SyntaxKind.ParenthesizedExpression:
             return dataflowValueType (printer, node.expression, context);
         case ts.SyntaxKind.AsExpression:
@@ -11430,6 +11462,9 @@ function nullScalarWriteType (printer, node) {
     if (isNullishInitializer (value)) {
         return 'null';
     }
+    if (ts.isIdentifier (value)) {
+        return handleTypedBindingReadType (printer, value); // an element binding section 4/28 typed
+    }
     const numeric = numericFamilyCallType (printer, value);
     if (numeric === 'Long' || numeric === 'Double') {
         return numeric;
@@ -11891,21 +11926,87 @@ export function patchJavaStringAccumulatorLists (transpiler) {
 }
 
 // ===== 28. element-read locals of handle* tuple holders =====
-// `const x = holder[k]` where holder is a local initialised by an audited tuple producer
-// (handleElementType) prints `((java.util.List<Object>)holder).get(k)`: the element box is proven.
+// `const x = holder[k]` (holder a const local initialised by an audited tuple producer) and
+// `const x = this.handleX (...)[k]`: handleElementType proves the element box, so the read
+// takes the checkcast. `const h = this.handleX (...)` read only as `h[<int>]` is a List.
+function javaTupleElementReadForms (list, k) {
+    return [
+        `((java.util.List<Object>)${list}).get(${k})`,
+        `((List<Object>)${list}).get(${k})`,
+        `(${list} == null || ${k} >= ((java.util.List<?>)${list}).size() ? null : ((java.util.List<?>)${list}).get(${k}))`,
+        `(${list} == null || ${k} >= ${list}.size() ? null : ${list}.get(${k}))`,
+        `Helpers.GetValue(${list}, ${k})`,
+    ];
+}
+
+// the audited base tuple producer a holder's initializer calls (every Java return is asList)
+function javaTupleHolderCall (printer, initializer) {
+    const call = unwrapParens (initializer);
+    if (!isThisCall (call) || !HANDLE_ELEMENT_1_PARAMS.has (String (call.expression.name.escapedText))) {
+        return undefined;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getResolvedSignature (call)?.declaration;
+    } catch (e) {
+        return undefined;
+    }
+    return (declaration !== undefined && HANDLE_DECLARATION_FILE.test (declaration.getSourceFile ().fileName)) ? call : undefined;
+}
+
+// a const holder whose every use is `h[<int literal>]` (no argument slot, no write)
+function javaTupleHolderLocalType (printer, declaration) {
+    if ((ts.getCombinedNodeFlags (declaration) & ts.NodeFlags.Const) === 0
+        || javaTupleHolderCall (printer, declaration.initializer) === undefined) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    const symbol = printer.getChecker ().getSymbolAtLocation (declaration.name);
+    let reads = 0;
+    for (const n of (identifierIndex (scope).get (declaration.name.escapedText) ?? [])) {
+        if (n === declaration.name || handleIsNotAUse (n)) {
+            continue;
+        }
+        if (printer.getChecker ().getSymbolAtLocation (n) !== symbol) {
+            continue;
+        }
+        const parent = n.parent;
+        if (enclosingFunction (n) !== scope || !ts.isElementAccessExpression (parent) || parent.expression !== n
+            || !ts.isNumericLiteral (parent.argumentExpression)) {
+            return undefined;
+        }
+        reads++;
+    }
+    return reads > 0 ? JAVA_ARRAY_TYPE : undefined;
+}
+
 function javaTupleHolderElementLocalType (printer, declaration) {
     const read = unwrapParens (declaration.initializer);
-    if (read === undefined || !ts.isElementAccessExpression (read) || !ts.isIdentifier (read.expression)
-        || !ts.isNumericLiteral (read.argumentExpression)) {
+    if (read === undefined || !ts.isElementAccessExpression (read) || !ts.isNumericLiteral (read.argumentExpression)) {
         return undefined;
     }
-    const holder = printer.getChecker ().getSymbolAtLocation (read.expression)?.valueDeclaration;
-    if (holder === undefined || !ts.isVariableDeclaration (holder) || !ts.isIdentifier (holder.name)
-        || holder.initializer === undefined || (ts.getCombinedNodeFlags (holder) & ts.NodeFlags.Const) === 0
-        || enclosingFunction (holder) !== enclosingFunction (declaration)) {
-        return undefined;
+    const k = read.argumentExpression.text;
+    let call;
+    let forms;
+    if (ts.isIdentifier (read.expression)) {
+        const holder = printer.getChecker ().getSymbolAtLocation (read.expression)?.valueDeclaration;
+        if (holder === undefined || !ts.isVariableDeclaration (holder) || !ts.isIdentifier (holder.name)
+            || holder.initializer === undefined || (ts.getCombinedNodeFlags (holder) & ts.NodeFlags.Const) === 0
+            || enclosingFunction (holder) !== enclosingFunction (declaration)) {
+            return undefined;
+        }
+        call = unwrapParens (holder.initializer);
+        forms = javaTupleElementReadForms (printer.printNode (read.expression, 0), k);
+    } else {
+        call = unwrapParens (read.expression);
+        if (!isThisCall (call)) {
+            return undefined;
+        }
+        const name = String (call.expression.name.escapedText);
+        forms = [ new RegExp (`^\(\((?:java\.util\.)?List<Object>\)\(?this\.${name}\(.*\)\)\.get\(${k}\)$`),
+            new RegExp (`^Helpers\.GetValue\(\(?this\.${name}\(.*\), ${k}\)$`) ];
     }
-    const type = handleElementType (printer, unwrapParens (holder.initializer), Number (read.argumentExpression.text));
+    const type = handleElementType (printer, call, Number (k));
     if (type === undefined) {
         return undefined;
     }
@@ -11914,8 +12015,7 @@ function javaTupleHolderElementLocalType (printer, declaration) {
     if (!handleTupleIsSafeToNarrow (printer, scope, declaration.name, declaration.name.escapedText, type, isProFile)) {
         return undefined;
     }
-    const list = printer.printNode (read.expression, 0);
-    return { type, rhs: `((java.util.List<Object>)${list}).get(${read.argumentExpression.text})` };
+    return { type, forms };
 }
 
 export function patchJavaTupleHolderElementLocals (transpiler) {
@@ -11933,23 +12033,35 @@ export function patchJavaTupleHolderElementLocals (transpiler) {
             || !ts.isIdentifier (declaration.name)) {
             return printed;
         }
-        let found;
-        try {
-            found = javaTupleHolderElementLocalType (printer, declaration);
-        } catch (e) {
-            return printed;
-        }
-        if (found === undefined) {
-            return printed;
-        }
         const iden = printer.getIden (identation);
         const name = printer.printNode (declaration.name, 0);
         const marker = `${iden}${printer.VAR_TOKEN} ${name} = `;
         const at = printed.lastIndexOf (marker);
-        if (at === -1 || printed.slice (at + marker.length).trim ().replace (/;$/, '') !== found.rhs) {
+        if (at === -1) {
+            return printed;
+        }
+        const rhs = printed.slice (at + marker.length).trim ().replace (/;$/, '');
+        let found;
+        let holder;
+        try {
+            found = javaTupleHolderElementLocalType (printer, declaration);
+            holder = found === undefined ? javaTupleHolderLocalType (printer, declaration) : undefined;
+        } catch (e) {
+            return printed;
+        }
+        if (holder !== undefined) {
+            if (!rhs.startsWith ('this.')) {
+                return printed;
+            }
+            retyped.set (declaration, holder);
+            return printed.slice (0, at) + `${iden}${holder} ${name} = (${holder}) ` + printed.slice (at + marker.length);
+        }
+        if (found === undefined || !found.forms.some ((f) => (typeof f === 'string' ? f === rhs : f.test (rhs)))) {
             return printed;
         }
         retyped.set (declaration, found.type);
+        HANDLE_TYPED_BINDINGS.set (declaration, found.type);
+        // every accepted form is a postfix call or a fully parenthesised conditional
         return printed.slice (0, at) + `${iden}${found.type} ${name} = (${found.type}) ` + printed.slice (at + marker.length);
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => retyped.get (declaration));
