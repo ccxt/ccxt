@@ -1659,7 +1659,9 @@ export default class xt extends xtRest {
         //
         const msg = this.safeString (message, 'msg');
         if ((msg === 'invalid_listen_key') || (msg === 'token expire')) {
-            client.subscriptions['token'] = undefined;
+            if ('token' in client.subscriptions) {
+                delete client.subscriptions['token'];
+            }
             this.getListenKey (true);
             return;
         }

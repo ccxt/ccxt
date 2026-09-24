@@ -2253,7 +2253,10 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         String msg = this.safeString(message, "msg");
         if ((java.util.Objects.equals(msg, "invalid_listen_key")) || (java.util.Objects.equals(msg, "token expire")))
         {
-            ((Map)client.subscriptions).put("token", null);
+            if (((Map<?, ?>)client.subscriptions).containsKey("token"))
+            {
+                ((Map<String,Object>)client.subscriptions).remove("token");
+            }
             this.getListenKey(true);
             return;
         }
