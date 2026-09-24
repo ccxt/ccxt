@@ -3994,6 +3994,129 @@ function installCcxtGoWriteSiteConversions (goTranspiler) {
     goTranspiler.__ccxtGoWriteSiteConversionsInstalled = true;
 }
 
+// ----------------- array-literal locals: `let x = []; if (Array.isArray (y)) { x = y; }` -----------------
+// The empty literal already prints `[]any{}`; each later write must hand back a Go list. ArrayTyped
+// keeps every slice kind IsArray admits, so a write of an IsArray-guarded name or of a list accessor
+// with a literal default reads exactly the list the box held.
+function ccxtGoArrayLiteralIsEmpty (node) {
+    return (node?.kind === ts.SyntaxKind.ArrayLiteralExpression) && (node.elements.length === 0);
+}
+
+// true when `test` is `Array.isArray (y)`, or `y !== undefined` with y typed as a list by the checker
+function ccxtGoArrayGuardAdmits (goTranspiler, test, name) {
+    const callee = test?.expression;
+    if ((test?.kind === ts.SyntaxKind.CallExpression) && (callee?.kind === ts.SyntaxKind.PropertyAccessExpression)) {
+        return (callee.expression?.escapedText === 'Array') && (callee.name?.escapedText === 'isArray')
+            && (test.arguments.length === 1) && (test.arguments[0].kind === ts.SyntaxKind.Identifier)
+            && (test.arguments[0].escapedText === name);
+    }
+    if ((test?.kind !== ts.SyntaxKind.BinaryExpression) || (test.operatorToken.kind !== ts.SyntaxKind.ExclamationEqualsEqualsToken)
+        || (test.left?.kind !== ts.SyntaxKind.Identifier) || (test.left.escapedText !== name) || !isNilLiteralExpression (test.right)) {
+        return false;
+    }
+    const checker = (typeof goTranspiler.checkerOrUndefined === 'function') ? goTranspiler.checkerOrUndefined () : undefined;
+    const type = checker?.getTypeAtLocation (test.left);
+    const parts = (type?.isUnion?. ()) ? type.types : [ type ];
+    return (type !== undefined) && !ccxtGoElementReadIsObject (checker, type)
+        && parts.every ((t) => checker.isArrayType (t) || ((t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) !== 0));
+}
+
+// true when `write` (`x = y`) sits alone in the then-branch of a list guard on y
+function ccxtGoArrayWriteIsGuarded (goTranspiler, write) {
+    const right = write.right;
+    if (right?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    let statement = write.parent;
+    if (statement?.kind !== ts.SyntaxKind.ExpressionStatement) {
+        return false;
+    }
+    let branch = statement.parent;
+    if ((branch?.kind === ts.SyntaxKind.Block) && (branch.statements.length === 1)) {
+        statement = branch;
+        branch = branch.parent;
+    }
+    if ((branch?.kind !== ts.SyntaxKind.IfStatement) || (branch.thenStatement !== statement)) {
+        return false;
+    }
+    return ccxtGoArrayGuardAdmits (goTranspiler, branch.expression, right.escapedText);
+}
+
+// the conversion a write into an array-literal local prints, or undefined when the write is not a list
+function ccxtGoArrayLiteralWriteConversion (goTranspiler, write) {
+    const right = write.right;
+    if (ccxtGoArrayWriteIsGuarded (goTranspiler, write)) {
+        return 'ArrayTyped';
+    }
+    const callee = ccxtGoWriteSiteCallee (goTranspiler, right);
+    if (((callee === 'this.SafeList') || (callee === 'this.SafeList2')) && ccxtGoArrayLiteralIsEmpty (right.arguments[right.arguments.length - 1])
+        && (right.arguments.length === ((callee === 'this.SafeList') ? 3 : 4))) {
+        return 'ArrayTyped'; // never absent: a non-list member falls back to the literal
+    }
+    return undefined;
+}
+
+function ccxtGoArrayLiteralLocalIsSafe (goTranspiler, scope, declaration, varName) {
+    if ((declaration?.kind !== ts.SyntaxKind.VariableDeclaration) || !ccxtGoArrayLiteralIsEmpty (declaration.initializer)
+        || (typeof goTranspiler.hasNodeWhere !== 'function')) {
+        return false;
+    }
+    let convertible = 0;
+    const unsafe = goTranspiler.hasNodeWhere (scope, (n) => {
+        if ((n.kind !== ts.SyntaxKind.Identifier) || (n.escapedText !== varName) || (n === declaration.name)) {
+            return false;
+        }
+        const parent = n.parent;
+        if ((parent?.kind === ts.SyntaxKind.BinaryExpression) && (parent.left === n)
+            && (parent.operatorToken?.kind === ts.SyntaxKind.EqualsToken)) {
+            if (goTranspiler.goTypeOfInitializer (parent.right, goTranspiler.printNode (parent.right, 0)) === '[]any') {
+                return false;
+            }
+            if (ccxtGoArrayLiteralWriteConversion (goTranspiler, parent) !== undefined) {
+                convertible += 1;
+                return false;
+            }
+            return true;
+        }
+        return ccxtGoWriteSiteShippedVeto (goTranspiler, n, parent, '[]any');
+    });
+    return !unsafe && (convertible > 0);
+}
+
+// the declaration a write target binds to, when that declaration is an empty array literal
+function ccxtGoArrayLiteralDeclarationOf (goTranspiler, node) {
+    const declaration = ccxtGoParamDeclarationOf (goTranspiler, node);
+    return ((declaration?.kind === ts.SyntaxKind.VariableDeclaration) && ccxtGoArrayLiteralIsEmpty (declaration.initializer))
+        ? declaration : undefined;
+}
+
+function installCcxtGoArrayLiteralWrites (goTranspiler) {
+    if ((goTranspiler === undefined) || goTranspiler.__ccxtGoArrayLiteralWritesInstalled
+        || (typeof goTranspiler.goLocalIsSafeToType !== 'function') || (typeof goTranspiler.printBinaryExpression !== 'function')
+        || (typeof goTranspiler.goDeclaredTypeOfIdentifier !== 'function')) {
+        return;
+    }
+    const shippedIsSafe = goTranspiler.goLocalIsSafeToType;
+    goTranspiler.goLocalIsSafeToType = function (scope, declaration, varName, goType) {
+        return shippedIsSafe.call (this, scope, declaration, varName, goType)
+            || ((goType === '[]any') && (scope !== undefined) && ccxtGoArrayLiteralLocalIsSafe (this, scope, declaration, varName));
+    };
+    const shippedBinary = goTranspiler.printBinaryExpression;
+    goTranspiler.printBinaryExpression = function (node, identation) {
+        if ((node?.operatorToken?.kind === ts.SyntaxKind.EqualsToken) && ts.isIdentifier (node.left)
+            && (ccxtGoArrayLiteralDeclarationOf (this, node.left) !== undefined)
+            && (this.goDeclaredTypeOfIdentifier (node.left) === '[]any')
+            && (this.goTypeOfInitializer (node.right, this.printNode (node.right, 0)) !== '[]any')) {
+            const conversion = ccxtGoArrayLiteralWriteConversion (this, node);
+            if (conversion !== undefined) {
+                return this.printNode (node.left, 0) + ' = ' + conversion + '(' + this.printNode (node.right, 0).trim () + ')';
+            }
+        }
+        return shippedBinary.call (this, node, identation);
+    };
+    goTranspiler.__ccxtGoArrayLiteralWritesInstalled = true;
+}
+
 // ----------------- identity tuple rebind: `[ request, params ] = this.handleUntilOption (k, request, params)` -----------------
 // helper -> argument slot whose map every Go return path hands back unchanged at element 0
 const CCXT_GO_IDENTITY_TUPLE_HOLDERS = { 'this.HandleUntilOption': 1, 'this.HandleUntilOptionString': 1 };
@@ -6088,6 +6211,7 @@ export function installCcxtGoLocalTypes (goTranspiler) {
     installCcxtGoCurrencyUnbox (goTranspiler);
     installCcxtGoWriteSiteConversions (goTranspiler);
     installCcxtGoIdentityTupleRebind (goTranspiler);
+    installCcxtGoArrayLiteralWrites (goTranspiler);
     // the container locals the printer's own predicate leaves out: cast-wrapped initializers,
     // non-empty (kept) defaults, the two-key accessors and the Safe* read shapes of the list family
     installCcxtGoSafeCollectionUnbox (goTranspiler);
