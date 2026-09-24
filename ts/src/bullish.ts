@@ -2268,7 +2268,7 @@ export default class bullish extends Exchange {
             const response = await this.privateGetV1AccountsTradingAccounts (params);
             const accounts = this.toArray (response);
             for (let i = 0; i < accounts.length; i++) {
-                const account = accounts[i];
+                const account = this.safeDict (accounts, i);
                 const name = this.safeString (account, 'tradingAccountName');
                 if (name === 'Primary Account') {
                     tradingAccountId = this.safeString (account, 'tradingAccountId');
@@ -2514,7 +2514,7 @@ export default class bullish extends Exchange {
             'info': response,
         };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict (response, i);
             const symbol = this.safeString (balance, 'assetSymbol');
             const code = this.safeCurrencyCode (symbol);
             const account = this.account ();

@@ -817,7 +817,7 @@ export default class extended extends Exchange {
         const data = this.safeList (response, 'data', []);
         const tickers: Dict = {};
         for (let i = 0; i < data.length; i++) {
-            const marketData = data[i];
+            const marketData = this.safeDict (data, i);
             const marketId = this.safeString (marketData, 'name');
             const market = this.safeMarket (marketId);
             const stats = this.safeDict (marketData, 'marketStats', {});
@@ -3464,7 +3464,10 @@ export default class extended extends Exchange {
             '"StarknetDomain"("name":"shortstring","version":"shortstring","chainId":"shortstring","revision":"shortstring")'
         ));
         const isTestnet = this.urls['api']['rest'].indexOf ('sepolia') >= 0;
-        const defaultChainId = isTestnet ? 'SN_SEPOLIA' : 'SN_MAIN';
+        let defaultChainId: Str = 'SN_MAIN';
+        if (isTestnet) {
+            defaultChainId = 'SN_SEPOLIA';
+        }
         const chainId = this.safeString (this.options, 'chainId', defaultChainId);
         return this.convertToBigInt (this.extendedStarknetComputePoseidonHashOnElements ([
             domainTypeHash,

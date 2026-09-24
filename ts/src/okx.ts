@@ -1633,7 +1633,7 @@ export default class okx extends Exchange {
             'info': response,
         };
         for (let i = 0; i < data.length; i++) {
-            const event = data[i];
+            const event = this.safeDict (data, i);
             const state = this.safeString (event, 'state');
             update['eta'] = this.safeInteger (event, 'end');
             update['url'] = this.safeString (event, 'href');
@@ -2895,7 +2895,7 @@ export default class okx extends Exchange {
         const timestamp = this.safeInteger (first, 'uTime');
         const details = this.safeList (first, 'details', []) as List;
         for (let i = 0; i < details.length; i++) {
-            const balance = details[i];
+            const balance = this.safeDict (details, i);
             const currencyId = this.safeString (balance, 'ccy');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -2922,7 +2922,7 @@ export default class okx extends Exchange {
         const result: Dict = { 'info': response };
         const data = this.safeList (response, 'data', []) as List;
         for (let i = 0; i < data.length; i++) {
-            const balance = data[i];
+            const balance = this.safeDict (data, i);
             const currencyId = this.safeString (balance, 'ccy');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -3585,7 +3585,7 @@ export default class okx extends Exchange {
         }
         const ordersRequests: List = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const marketId = this.safeString (rawOrder, 'symbol');
             if (marketId === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrders() requires a symbol for each order');
@@ -3992,7 +3992,7 @@ export default class okx extends Exchange {
             method = 'privatePostTradeCancelAlgos';
         }
         for (let i = 0; i < orders.length; i++) {
-            const order = orders[i];
+            const order = this.safeDict (orders, i);
             const id = this.safeString (order, 'id');
             const clientOrderId = this.safeString2 (order, 'clOrdId', 'clientOrderId');
             const symbol = this.safeString (order, 'symbol');
@@ -6090,7 +6090,7 @@ export default class okx extends Exchange {
         let longLeverage: Int = undefined;
         let shortLeverage: Int = undefined;
         for (let i = 0; i < (leverage as List).length; i++) {
-            const entry = leverage[i];
+            const entry = this.safeDict (leverage, i);
             marginMode = this.safeStringLower (entry, 'mgnMode');
             marketId = this.safeString (entry, 'instId');
             const positionSide = this.safeStringLower (entry, 'posSide');
@@ -8464,7 +8464,7 @@ export default class okx extends Exchange {
         //
         const result: List = [];
         for (let i = 0; i < settlements.length; i++) {
-            const entry = settlements[i];
+            const entry = this.safeDict (settlements, i);
             const timestamp = this.safeInteger (entry, 'ts');
             const details = this.safeList (entry, 'details', []) as List;
             for (let j = 0; j < details.length; j++) {
@@ -9306,7 +9306,7 @@ export default class okx extends Exchange {
             const feedback = this.id + ' ' + body;
             const data = this.safeList (response, 'data', []) as List;
             for (let i = 0; i < data.length; i++) {
-                const error = data[i];
+                const error = this.safeDict (data, i);
                 const errorCode = this.safeString (error, 'sCode');
                 const message = this.safeString (error, 'sMsg');
                 this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
@@ -9559,7 +9559,7 @@ export default class okx extends Exchange {
         const data = this.safeList (response, 'data', []) as List;
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
+            const entry = this.safeList (data, i);
             result.push ({
                 'timestamp': this.safeString (entry, 0),
                 'longShortRatio': this.safeString (entry, 1),

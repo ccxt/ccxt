@@ -339,7 +339,10 @@ export default class coinone extends Exchange {
         const code = this.safeCurrencyCode (id);
         const isWithdrawEnabled = this.safeString (rawCurrency, 'withdraw_status', '') === 'normal';
         const isDepositEnabled = this.safeString (rawCurrency, 'deposit_status', '') === 'normal';
-        const type = (code !== 'KRW') ? 'crypto' : 'fiat';
+        let type: Str = 'fiat';
+        if (code !== 'KRW') {
+            type = 'crypto';
+        }
         return this.safeCurrencyStructure ({
             'id': id,
             'code': code,
@@ -484,7 +487,7 @@ export default class coinone extends Exchange {
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
-            const balance = balances[currencyId];
+            const balance = this.safeDict (balances, currencyId);
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['free'] = this.safeString (balance, 'avail');
@@ -784,7 +787,12 @@ export default class coinone extends Exchange {
             feeCostString = Precise.stringAbs (feeCostString);
             let feeRateString = this.safeString (trade, 'feeRate');
             feeRateString = Precise.stringAbs (feeRateString);
-            const feeCurrencyCode = (side === 'sell') ? market['quote'] : market['base'];
+            let feeCurrencyCode: Str = undefined;
+            if (side === 'sell') {
+                feeCurrencyCode = market['quote'];
+            } else {
+                feeCurrencyCode = market['base'];
+            }
             fee = {
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,
@@ -1048,7 +1056,10 @@ export default class coinone extends Exchange {
         let fee: FeeString = undefined;
         const feeCostString = this.safeString (order, 'fee');
         if (feeCostString !== undefined) {
-            const feeCurrencyCode = (side === 'sell') ? quote : base;
+            let feeCurrencyCode: Str = base;
+            if (side === 'sell') {
+                feeCurrencyCode = quote;
+            }
             fee = {
                 'cost': feeCostString,
                 'rate': this.safeString2 (order, 'feeRate', 'fee_rate'),

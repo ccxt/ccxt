@@ -491,7 +491,10 @@ export default class gemini extends Exchange {
         const code = this.safeCurrencyCode (id);
         const fiatFlag = this.safeString (rawCurrency, 7);
         const isFiat = (fiatFlag !== undefined) && (fiatFlag !== '');
-        const type = isFiat ? 'fiat' : 'crypto';
+        let type: Str = 'crypto';
+        if (isFiat) {
+            type = 'fiat';
+        }
         const precision = this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 5)));
         const networks: Dict = {};
         const networkId = this.safeString (rawCurrency, 9);
@@ -873,7 +876,10 @@ export default class gemini extends Exchange {
             linear = true; // always linear
             inverse = false;
         }
-        const type = swap ? 'swap' : 'spot';
+        let type: Str = 'spot';
+        if (swap) {
+            type = 'swap';
+        }
         const isSpot = !swap;
         return this.safeMarketStructure ({
             'id': marketId,
@@ -1274,7 +1280,7 @@ export default class gemini extends Exchange {
     override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict (response, i);
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();

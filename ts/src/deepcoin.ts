@@ -988,7 +988,7 @@ export default class deepcoin extends Exchange {
         };
         const balances = this.safeList (response, 'data', []) as List;
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict (balances, i);
             const symbol = this.safeString (balance, 'ccy');
             const code = this.safeCurrencyCode (symbol);
             const account = this.account ();
@@ -1363,7 +1363,10 @@ export default class deepcoin extends Exchange {
         const timestamp = this.safeInteger (item, 'ts');
         const change = this.safeString (item, 'balChg');
         const amount = Precise.stringAbs (change);
-        const direction = Precise.stringLt (change, '0') ? 'out' : 'in';
+        let direction: Str = 'in';
+        if (Precise.stringLt (change, '0')) {
+            direction = 'out';
+        }
         const currencyId = this.safeString (item, 'ccy');
         currency = this.safeCurrency (currencyId, currency);
         const type = this.safeString (item, 'type');

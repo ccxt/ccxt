@@ -1105,14 +1105,14 @@ export default class btse extends Exchange {
         const frees: Dict = {};
         const useds: Dict = {};
         for (let i = 0; i < response.length; i++) {
-            const row = response[i];
+            const row = this.safeDict (response, i);
             const assets = this.safeList (row, 'assets');
             if (assets !== undefined) {
                 // futures wallet row: per-currency totals in assets, locked amounts in assetsInUse
                 // several wallet rows can report the same currency, so amounts are aggregated
                 const inUse = this.safeList (row, 'assetsInUse', []);
                 for (let j = 0; j < inUse.length; j++) {
-                    const usedRow = inUse[j];
+                    const usedRow = this.safeDict (inUse, j);
                     const usedCode = this.safeCurrencyCode (this.safeString (usedRow, 'currency'));
                     if (usedCode === undefined) {
                         continue;
@@ -1120,7 +1120,7 @@ export default class btse extends Exchange {
                     useds[usedCode] = Precise.stringAdd (this.safeString (useds, usedCode, '0'), this.safeString (usedRow, 'balance'));
                 }
                 for (let j = 0; j < assets.length; j++) {
-                    const assetRow = assets[j];
+                    const assetRow = this.safeDict (assets, j);
                     const code = this.safeCurrencyCode (this.safeString (assetRow, 'currency'));
                     if (code === undefined) {
                         continue;
@@ -1199,7 +1199,7 @@ export default class btse extends Exchange {
         }
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
+            const entry = this.safeDict (data, i);
             const marketId = this.safeString (entry, 'symbol');
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
@@ -3455,7 +3455,10 @@ export default class btse extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const positionMode = hedged ? 'HEDGE' : 'ONE_WAY';
+        let positionMode: Str = 'ONE_WAY';
+        if (hedged) {
+            positionMode = 'HEDGE';
+        }
         const request: Dict = {
             'symbol': this.futuresRequestId (market),
             'positionMode': positionMode,
@@ -3642,7 +3645,7 @@ export default class btse extends Exchange {
         let shortLeverage = undefined;
         let marginMode: Str = undefined;
         for (let i = 0; i < safeResponse.length; i++) {
-            const entrty = safeResponse[i];
+            const entrty = this.safeDict (safeResponse, i);
             const leverageValue = this.safeInteger (entrty, 'leverage');
             const positionDirection = this.safeString (entrty, 'positionDirection');
             marginMode = this.safeStringLower (entrty, 'marginMode');
@@ -3756,7 +3759,7 @@ export default class btse extends Exchange {
             rows = [ response ];
         }
         for (let i = 0; i < rows.length; i++) {
-            const row = rows[i];
+            const row = this.safeDict (rows, i);
             const status = this.safeString (row, 'status');
             if (status !== undefined) {
                 let message = this.safeString (row, 'message');

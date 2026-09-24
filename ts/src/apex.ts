@@ -521,7 +521,7 @@ export default class apex extends Exchange {
             const chain = chains[j];
             const tokens = this.safeList (chain, 'tokens', []);
             for (let f = 0; f < tokens.length; f++) {
-                const token = tokens[f];
+                const token = this.safeDict (tokens, f);
                 const tokenName = this.safeString (token, 'token');
                 if (tokenName === currencyId) {
                     const networkId = this.safeString (chain, 'chainId');
@@ -1312,7 +1312,12 @@ export default class apex extends Exchange {
 
     generateRandomClientIdOmni (_accountId: Str) {
         const hasAccountId = (_accountId !== undefined) && (_accountId !== '');
-        const accountId = hasAccountId ? _accountId : this.randNumber (12).toString ();
+        let accountId: Str = undefined;
+        if (hasAccountId) {
+            accountId = _accountId;
+        } else {
+            accountId = this.randNumber (12).toString ();
+        }
         return 'apexomni-' + accountId + '-' + this.milliseconds ().toString () + '-' + this.randNumber (6).toString ();
     }
 

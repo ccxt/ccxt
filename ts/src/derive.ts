@@ -1206,7 +1206,10 @@ export default class derive extends Exchange {
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
         ], order), keccak, 'binary');
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-        const DOMAIN_SEPARATOR = (sandboxMode === true) ? '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105' : 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b';
+        let DOMAIN_SEPARATOR: Str = 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b';
+        if (sandboxMode === true) {
+            DOMAIN_SEPARATOR = '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105';
+        }
         const binaryDomainSeparator = this.base16ToBinary (DOMAIN_SEPARATOR);
         const prefix = this.base16ToBinary ('1901');
         return this.hash (this.binaryConcat (prefix, binaryDomainSeparator, accountHash), keccak, 'hex');
@@ -1285,7 +1288,10 @@ export default class derive extends Exchange {
         const signatureExpiry = this.safeInteger (params, 'signature_expiry_sec', this.seconds () + 7776000);
         const ACTION_TYPEHASH = this.base16ToBinary ('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-        const TRADE_MODULE_ADDRESS = (sandboxMode === true) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
+        let TRADE_MODULE_ADDRESS: Str = '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
+        if (sandboxMode === true) {
+            TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be';
+        }
         const priceString = this.numberToString (price);
         let maxFee: Num = undefined;
         [ maxFee, params ] = this.handleOptionAndParams (params, 'createOrder', 'max_fee');
@@ -1477,7 +1483,10 @@ export default class derive extends Exchange {
         // TODO: subaccount id / trade module address
         const ACTION_TYPEHASH = this.base16ToBinary ('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-        const TRADE_MODULE_ADDRESS = (sandboxMode === true) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
+        let TRADE_MODULE_ADDRESS: Str = '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
+        if (sandboxMode === true) {
+            TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be';
+        }
         const priceString = this.numberToString (price) as string;
         const maxFeeString = this.safeString (params, 'max_fee', '0');
         const amountString = this.numberToString (amount);
@@ -2556,10 +2565,10 @@ export default class derive extends Exchange {
             'info': response,
         };
         for (let i = 0; i < response.length; i++) {
-            const subaccount = response[i];
+            const subaccount = this.safeDict (response, i);
             const collaterals = this.safeList (subaccount, 'collaterals', []);
             for (let j = 0; j < collaterals.length; j++) {
-                const balance = collaterals[j];
+                const balance = this.safeDict (collaterals, j);
                 const code = this.safeCurrencyCode (this.safeString (balance, 'currency'));
                 let account = this.safeDict (result, code);
                 if (account === undefined) {

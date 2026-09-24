@@ -843,7 +843,10 @@ export default class bigone extends Exchange {
         //        "openInterest": 1141372.0
         //    }
         //
-        const marketType = ('asset_pair_name' in ticker) ? 'spot' : 'swap';
+        let marketType: Str = 'swap';
+        if ('asset_pair_name' in ticker) {
+            marketType = 'spot';
+        }
         const marketId = this.safeString2 (ticker, 'asset_pair_name', 'symbol');
         const symbol = this.safeSymbol (marketId, market, '-', marketType);
         const close = this.safeString2 (ticker, 'close', 'latestPrice');
@@ -1426,7 +1429,7 @@ export default class bigone extends Exchange {
         };
         const balances = this.safeList (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict (balances, i);
             const symbol = this.safeString (balance, 'asset_symbol');
             const code = this.safeCurrencyCode (symbol);
             const account = this.account ();
@@ -1607,7 +1610,10 @@ export default class bigone extends Exchange {
         }
         const market = this.market (symbol);
         const isBuy = (side === 'buy');
-        const requestSide = isBuy ? 'BID' : 'ASK';
+        let requestSide: Str = 'ASK';
+        if (isBuy) {
+            requestSide = 'BID';
+        }
         let uppercaseType = type.toUpperCase ();
         const isLimit = uppercaseType === 'LIMIT';
         const exchangeSpecificParam = this.safeBool (params, 'post_only', false);
@@ -2129,7 +2135,10 @@ export default class bigone extends Exchange {
         const txid = this.safeString (transaction, 'txid');
         const address = this.safeString (transaction, 'target_address');
         const tag = this.safeString (transaction, 'memo');
-        const type = ('customer_id' in transaction) ? 'withdrawal' : 'deposit';
+        let type: Str = 'deposit';
+        if ('customer_id' in transaction) {
+            type = 'withdrawal';
+        }
         const internal = this.safeBool (transaction, 'is_internal');
         return {
             'info': transaction,

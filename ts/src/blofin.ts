@@ -1264,7 +1264,7 @@ export default class blofin extends Exchange {
         const timestamp = this.safeInteger (data, 'ts');
         const details = this.safeList (data, 'details', []) as List;
         for (let i = 0; i < details.length; i++) {
-            const balance = details[i];
+            const balance = this.safeDict (details, i);
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -1304,7 +1304,7 @@ export default class blofin extends Exchange {
         const result: Dict = { 'info': response };
         const data = this.safeList (response, 'data', []) as List;
         for (let i = 0; i < data.length; i++) {
-            const balance = data[i];
+            const balance = this.safeDict (data, i);
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -1391,7 +1391,10 @@ export default class blofin extends Exchange {
         if (isMarketOrder || marketIOC) {
             request['orderType'] = 'market';
         } else {
-            const key = (triggerPriceAny !== undefined) ? 'orderPrice' : 'price';
+            let key: Str = 'price';
+            if (triggerPriceAny !== undefined) {
+                key = 'orderPrice';
+            }
             request[key] = this.priceToPrecision (symbol, price);
         }
         let postOnly = false;
@@ -1757,7 +1760,7 @@ export default class blofin extends Exchange {
         }
         const ordersRequests: List = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const marketId = this.safeString (rawOrder, 'symbol');
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');

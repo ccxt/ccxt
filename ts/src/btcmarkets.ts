@@ -611,7 +611,7 @@ export default class btcmarkets extends Exchange {
     override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict (response, i);
             const currencyId = this.safeString (balance, 'assetName');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -874,7 +874,12 @@ export default class btcmarkets extends Exchange {
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         const marketId = this.safeString (trade, 'marketId');
         market = this.safeMarket (marketId, market, '-');
-        const feeCurrencyCode = (market['quote'] === 'AUD') ? market['quote'] : market['base'];
+        let feeCurrencyCode: Str = undefined;
+        if (market['quote'] === 'AUD') {
+            feeCurrencyCode = market['quote'];
+        } else {
+            feeCurrencyCode = market['base'];
+        }
         let side = this.safeString (trade, 'side');
         if (side === 'Bid') {
             side = 'buy';

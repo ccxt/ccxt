@@ -1414,7 +1414,7 @@ export default class grvt extends Exchange {
         const spotBalances = this.safeList (response, 'spot_balances', []);
         const availableBalance = this.safeString (response, 'available_balance');
         for (let i = 0; i < spotBalances.length; i++) {
-            const balance = spotBalances[i];
+            const balance = this.safeDict (spotBalances, i);
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -2423,7 +2423,10 @@ export default class grvt extends Exchange {
         const timestamp = this.safeIntegerProduct (position, 'event_time', 0.000001);
         const sizeRaw = this.safeString (position, 'size');
         const isLong = (Precise.stringGe (sizeRaw, '0'));
-        const side = isLong ? 'long' : 'short';
+        let side: Str = 'short';
+        if (isLong) {
+            side = 'long';
+        }
         return this.safePosition ({
             'info': position,
             'id': undefined,
@@ -3021,11 +3024,19 @@ export default class grvt extends Exchange {
             });
         }
         const isMarket = this.safeBool (order, 'is_market');
-        const orderType = (isMarket === true) ? 'market' : 'limit';
+        let orderType: Str = 'limit';
+        if (isMarket === true) {
+            orderType = 'market';
+        }
         const isPostOnly = this.safeBool (order, 'post_only');
         const isReduceOnly = this.safeBool (order, 'reduce_only');
         const timeInForceRaw = this.safeString (order, 'time_in_force');
-        const timeInForce = (isPostOnly === true) ? 'PO' : this.parseTimeInForce (timeInForceRaw);
+        let timeInForce: Str = undefined;
+        if (isPostOnly === true) {
+            timeInForce = 'PO';
+        } else {
+            timeInForce = this.parseTimeInForce (timeInForceRaw);
+        }
         let size: Str = undefined;
         let side: Str = undefined;
         let price: Str = undefined;
@@ -3253,7 +3264,12 @@ export default class grvt extends Exchange {
         const ethEncodedMessage = this.ethEncodeStructuredData (domainData, definitions[structureType], messageData);
         const ethEncodedMessageHashed = '0x' + this.hash (ethEncodedMessage, keccak, 'hex');
         const usesPrivKey = this.usesPrivateKey (); // py transpiler needs this line separated
-        const secretOrPrivkey = usesPrivKey ? this.privateKey : this.secret;
+        let secretOrPrivkey: Str = undefined;
+        if (usesPrivKey) {
+            secretOrPrivkey = this.privateKey;
+        } else {
+            secretOrPrivkey = this.secret;
+        }
         const privateKeyWithoutZero = this.remove0xPrefix (secretOrPrivkey);
         const signature = ecdsa (this.remove0xPrefix (ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1, undefined);
         request['signature']['r'] = this.formatSignatureRS (signature['r']);

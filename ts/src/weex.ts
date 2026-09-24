@@ -1782,7 +1782,10 @@ export default class weex extends Exchange {
         if (market === undefined) {
             const marketId = this.safeString (trade, 'symbol');
             const realizedPnl = this.safeString (trade, 'realizedPnl');
-            const marketType = (realizedPnl !== undefined) ? 'swap' : 'spot';
+            let marketType: Str = 'spot';
+            if (realizedPnl !== undefined) {
+                marketType = 'swap';
+            }
             market = this.safeMarket (marketId, undefined, undefined, marketType);
             isSpot = marketType === 'spot';
         } else {
@@ -3194,7 +3197,10 @@ export default class weex extends Exchange {
         if (market === undefined) {
             const marketId = this.fromSandboxMarketId (this.safeString (order, 'symbol'));
             const positionSide = this.safeString (order, 'positionSide');
-            const marketType = (positionSide === undefined) ? 'spot' : 'swap';
+            let marketType: Str = 'swap';
+            if (positionSide === undefined) {
+                marketType = 'spot';
+            }
             market = this.safeMarket (marketId, undefined, undefined, marketType);
         }
         const timestamp = this.safeIntegerN (order, [ 'transactTime', 'time', 'createTime' ]);
@@ -4240,7 +4246,10 @@ export default class weex extends Exchange {
         if (marginMode === undefined) {
             throw new ArgumentsRequired (this.id + ' setPositionMode() also sets marginMode, so a marginMode parameter is required');
         }
-        const separatedType = hedged ? 'SEPARATED' : 'COMBINED';
+        let separatedType: Str = 'COMBINED';
+        if (hedged) {
+            separatedType = 'SEPARATED';
+        }
         const request: Dict = {
             'symbol': market['id'],
             'marginType': this.encodeMarginMode (marginMode),
@@ -4264,7 +4273,10 @@ export default class weex extends Exchange {
             'amount': this.costToPrecision (symbol, amount),
             'type': type,
         };
-        const parsedType = (type === 1) ? 'add' : 'reduce';
+        let parsedType: Str = 'reduce';
+        if (type === 1) {
+            parsedType = 'add';
+        }
         const response = await this.contractPrivatePostCapiV3AccountPositionMargin (this.extend (request, params));
         return this.extend (this.parseMarginModification (response, market), {
             'amount': this.parseNumber (amount),
@@ -4281,7 +4293,10 @@ export default class weex extends Exchange {
         //     }
         //
         const msg = this.safeString (data, 'msg');
-        const status = (msg === 'success') ? 'ok' : 'failed';
+        let status: Str = 'failed';
+        if (msg === 'success') {
+            status = 'ok';
+        }
         const timestamp = this.safeInteger (data, 'requestTime');
         return {
             'info': data,

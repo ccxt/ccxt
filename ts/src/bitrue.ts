@@ -686,7 +686,10 @@ export default class bitrue extends Exchange {
         //
         const keys = Object.keys (response);
         const keysLength = keys.length;
-        const formattedStatus = (keysLength > 0) ? 'maintenance' : 'ok';
+        let formattedStatus: Str = 'ok';
+        if (keysLength > 0) {
+            formattedStatus = 'maintenance';
+        }
         return {
             'status': formattedStatus,
             'updated': undefined,
@@ -1094,7 +1097,7 @@ export default class bitrue extends Exchange {
         const timestamp = this.safeInteger (response, 'updateTime');
         const balances = this.safeList2 (response, 'balances', 'account', []);
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict (balances, i);
             const currencyId = this.safeString2 (balance, 'asset', 'marginCoin');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -2105,7 +2108,10 @@ export default class bitrue extends Exchange {
                     const amountString = this.numberToString (amount);
                     const priceString = this.numberToString (price);
                     const quoteAmount = Precise.stringMul (amountString, priceString);
-                    const requestAmount = (cost !== undefined) ? cost : quoteAmount;
+                    let requestAmount: Str = quoteAmount;
+                    if (cost !== undefined) {
+                        requestAmount = cost;
+                    }
                     request['amount'] = this.costToPrecision (symbol, requestAmount);
                     request['volume'] = this.costToPrecision (symbol, requestAmount);
                 }
@@ -2861,7 +2867,10 @@ export default class bitrue extends Exchange {
         const updated = this.safeInteger (transaction, 'updatedAt');
         const payAmount = ('payAmount' in transaction);
         const ctime = ('ctime' in transaction);
-        const type = (payAmount || ctime) ? 'withdrawal' : 'deposit';
+        let type: Str = 'deposit';
+        if (payAmount || ctime) {
+            type = 'withdrawal';
+        }
         const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         const amount = this.safeNumber (transaction, 'amount');
         let network: Str = undefined;
@@ -2985,7 +2994,7 @@ export default class bitrue extends Exchange {
         };
         if (chainDetailLength !== 0) {
             for (let i = 0; i < chainDetailLength; i++) {
-                const chainDetail = chainDetails[i];
+                const chainDetail = this.safeDict (chainDetails, i);
                 const networkId = this.safeString (chainDetail, 'chain');
                 const currencyCode = this.safeString (currency, 'code');
                 const networkCode = this.networkIdToCode (networkId, currencyCode);
