@@ -27,7 +27,7 @@ type ArrayCacheInterface interface {
 // ListCache carries a plain resolved list; GetLimit answers the caller's limit like NoopLimit.
 type ListCache []any
 
-func (l ListCache) ToArray() []any                     { return []any(l) }
+func (l ListCache) ToArray() []any                        { return []any(l) }
 func (l ListCache) GetLimit(symbol any, limit any) *int64 { return Int64PtrTyped(limit) }
 
 // AsArrayCache types a received ws list: caches pass through, a list becomes ListCache, absent stays nil.
