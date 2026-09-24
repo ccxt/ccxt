@@ -2103,12 +2103,12 @@ func (this *Bittrade) ParseOrder(order any, optionalArgs ...any) any {
 	var feeCost *string = this.SafeString2(order, "filled-fees", "field-fees")            // typo in their API, filled fees
 	var fee map[string]any = nil
 	if feeCost != nil {
-		var feeCurrency any = func() any {
-			if IsEqual(side, "sell") {
-				return GetValue(market, "quote")
-			}
-			return GetValue(market, "base")
-		}()
+		var feeCurrency any = nil
+		if IsEqual(side, "sell") {
+			feeCurrency = GetValue(market, "quote")
+		} else {
+			feeCurrency = GetValue(market, "base")
+		}
 		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": feeCurrency,
@@ -2168,8 +2168,8 @@ func (this *Bittrade) createMarketBuyOrderWithCostBody(ch chan any, symbol any, 
 	}
 	AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
 
-	var retRes156715 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, params))))
-	ch <- BoxAbsent(retRes156715)
+	var retRes157215 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, params))))
+	ch <- BoxAbsent(retRes157215)
 	return nil
 }
 

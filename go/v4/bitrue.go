@@ -771,12 +771,10 @@ func (this *Bitrue) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	//
 	var keys []string = ObjectKeys(response)
 	var keysLength int = len(keys)
-	var formattedStatus string = func() string {
-		if keysLength > 0 {
-			return "maintenance"
-		}
-		return "ok"
-	}()
+	var formattedStatus string = "ok"
+	if keysLength > 0 {
+		formattedStatus = "maintenance"
+	}
 
 	ch <- map[string]any{
 		"status":  formattedStatus,
@@ -1227,12 +1225,7 @@ func (this *Bitrue) ParseBalance(response any) any {
 	var timestamp *int64 = this.SafeInteger(response, "updateTime")
 	var balances []any = SafeList2Typed(response, "balances", "account")
 	for i := 0; i < len(balances); i++ {
-		var balance map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(balances) {
-				return DerefScalar(balances[i])
-			}
-			return nil
-		}())
+		var balance map[string]any = SafeMapTyped(balances, i)
 		var currencyId *string = this.SafeString2(balance, "asset", "marginCoin")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -2251,8 +2244,8 @@ func (this *Bitrue) createMarketBuyOrderWithCostBody(ch chan any, symbol any, co
 	}
 	AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
 
-	var retRes203415 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, params))))
-	ch <- BoxAbsent(retRes203415)
+	var retRes203715 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, params))))
+	ch <- BoxAbsent(retRes203715)
 	return nil
 }
 
@@ -2335,12 +2328,10 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar any, side a
 				var amountString *string = this.NumberToString(amount)
 				var priceString *string = this.NumberToString(price)
 				var quoteAmount *string = Precise.StringMul(amountString, priceString)
-				var requestAmount *string = func() *string {
-					if cost != nil {
-						return cost
-					}
-					return quoteAmount
-				}()
+				var requestAmount *string = quoteAmount
+				if cost != nil {
+					requestAmount = cost
+				}
 				request["amount"] = this.CostToPrecision(symbol, requestAmount)
 				request["volume"] = this.CostToPrecision(symbol, requestAmount)
 			}
@@ -3246,12 +3237,10 @@ func (this *Bitrue) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var updated *int64 = this.SafeInteger(transaction, "updatedAt")
 	var payAmount bool = (InOp(transaction, "payAmount"))
 	var ctime bool = (InOp(transaction, "ctime"))
-	var typeVar string = func() string {
-		if payAmount || ctime {
-			return "withdrawal"
-		}
-		return "deposit"
-	}()
+	var typeVar string = "deposit"
+	if payAmount || ctime {
+		typeVar = "withdrawal"
+	}
 	var status *string = this.ParseTransactionStatusByType(this.SafeString(transaction, "status"), typeVar)
 	var amount *float64 = this.SafeNumber(transaction, "amount")
 	var network any = nil
@@ -3394,12 +3383,7 @@ func (this *Bitrue) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	}
 	if chainDetailLength != 0 {
 		for i := 0; i < chainDetailLength; i++ {
-			var chainDetail map[string]any = MapTyped(func() any {
-				if i >= 0 && i < len(chainDetails) {
-					return DerefScalar(chainDetails[i])
-				}
-				return nil
-			}())
+			var chainDetail map[string]any = SafeMapTyped(chainDetails, i)
 			var networkId *string = this.SafeString(chainDetail, "chain")
 			var currencyCode *string = this.SafeString(currency, "code")
 			var networkCode *string = this.NetworkIdToCode(networkId, currencyCode)

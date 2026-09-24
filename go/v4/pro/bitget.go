@@ -175,18 +175,14 @@ func (this *Bitget) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	var args map[string]any = map[string]any{
 		"instType": instType,
 	}
-	var topicOrChannel string = func() string {
-		if uta == true {
-			return "topic"
-		}
-		return "channel"
-	}()
-	var symbolOrInstId string = func() string {
-		if uta == true {
-			return "symbol"
-		}
-		return "instId"
-	}()
+	var topicOrChannel string = "channel"
+	if uta == true {
+		topicOrChannel = "topic"
+	}
+	var symbolOrInstId string = "instId"
+	if uta == true {
+		symbolOrInstId = "symbol"
+	}
 	args[topicOrChannel] = "ticker"
 	args[symbolOrInstId] = market["id"]
 
@@ -268,18 +264,14 @@ func (this *Bitget) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		var args map[string]any = map[string]any{
 			"instType": instType,
 		}
-		var topicOrChannel string = func() string {
-			if uta == true {
-				return "topic"
-			}
-			return "channel"
-		}()
-		var symbolOrInstId string = func() string {
-			if uta == true {
-				return "symbol"
-			}
-			return "instId"
-		}()
+		var topicOrChannel string = "channel"
+		if uta == true {
+			topicOrChannel = "topic"
+		}
+		var symbolOrInstId string = "instId"
+		if uta == true {
+			symbolOrInstId = "symbol"
+		}
 		args[topicOrChannel] = "ticker"
 		args[symbolOrInstId] = marketInner["id"]
 		topics = append(topics, args)
@@ -461,17 +453,15 @@ func (this *Bitget) ParseWsTicker(message map[string]any, optionalArgs ...any) a
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
-	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var data []any = ccxt.SafeListTyped(message, "data")
 	var ticker map[string]any = ccxt.MapTyped(this.SafeDict(data, 0, map[string]any{}))
 	var utaTimestamp *int64 = this.SafeInteger(message, "ts")
 	var timestamp *int64 = this.SafeInteger(ticker, "ts", utaTimestamp)
 	var instType *string = this.SafeStringLower(arg, "instType")
-	var marketType string = func() string {
-		if instType != nil && *instType == "spot" {
-			return "spot"
-		}
-		return "contract"
-	}()
+	var marketType string = "contract"
+	if instType != nil && *instType == "spot" {
+		marketType = "spot"
+	}
 	var utaMarketId *string = this.SafeString(arg, "symbol")
 	var marketId *string = this.SafeString(ticker, "instId", utaMarketId)
 	market = ccxt.MapTyped(this.SafeMarket(marketId, market, nil, marketType))
@@ -551,18 +541,14 @@ func (this *Bitget) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		var args map[string]any = map[string]any{
 			"instType": instType,
 		}
-		var topicOrChannel string = func() string {
-			if uta == true {
-				return "topic"
-			}
-			return "channel"
-		}()
-		var symbolOrInstId string = func() string {
-			if uta == true {
-				return "symbol"
-			}
-			return "instId"
-		}()
+		var topicOrChannel string = "channel"
+		if uta == true {
+			topicOrChannel = "topic"
+		}
+		var symbolOrInstId string = "instId"
+		if uta == true {
+			symbolOrInstId = "symbol"
+		}
 		args[topicOrChannel] = "ticker"
 		args[symbolOrInstId] = marketInner["id"]
 		topics = append(topics, args)
@@ -595,17 +581,15 @@ func (this *Bitget) ParseWsBidAsk(message map[string]any, optionalArgs ...any) a
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
-	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var data []any = ccxt.SafeListTyped(message, "data")
 	var ticker map[string]any = ccxt.MapTyped(this.SafeDict(data, 0, map[string]any{}))
 	var utaTimestamp *int64 = this.SafeInteger(message, "ts")
 	var timestamp *int64 = this.SafeInteger(ticker, "ts", utaTimestamp)
 	var instType *string = this.SafeStringLower(arg, "instType")
-	var marketType string = func() string {
-		if instType != nil && *instType == "spot" {
-			return "spot"
-		}
-		return "contract"
-	}()
+	var marketType string = "contract"
+	if instType != nil && *instType == "spot" {
+		marketType = "spot"
+	}
 	var utaMarketId *string = this.SafeString(arg, "symbol")
 	var marketId *string = this.SafeString(ticker, "instId", utaMarketId)
 	market = ccxt.MapTyped(this.SafeMarket(marketId, market, nil, marketType))
@@ -823,12 +807,10 @@ func (this *Bitget) HandleOHLCV(client any, message any) {
 	//
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var instType *string = this.SafeStringLower(arg, "instType")
-	var marketType string = func() string {
-		if instType != nil && *instType == "spot" {
-			return "spot"
-		}
-		return "contract"
-	}()
+	var marketType string = "contract"
+	if instType != nil && *instType == "spot" {
+		marketType = "spot"
+	}
 	var marketId *string = this.SafeString2(arg, "instId", "symbol")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -1068,18 +1050,14 @@ func (this *Bitget) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 		var args map[string]any = map[string]any{
 			"instType": instType,
 		}
-		var topicOrChannel string = func() string {
-			if uta == true {
-				return "topic"
-			}
-			return "channel"
-		}()
-		var symbolOrInstId string = func() string {
-			if uta == true {
-				return "symbol"
-			}
-			return "instId"
-		}()
+		var topicOrChannel string = "channel"
+		if uta == true {
+			topicOrChannel = "topic"
+		}
+		var symbolOrInstId string = "instId"
+		if uta == true {
+			symbolOrInstId = "symbol"
+		}
 		args[topicOrChannel] = channel
 		args[symbolOrInstId] = market["id"]
 		topics = append(topics, args)
@@ -1151,12 +1129,10 @@ func (this *Bitget) HandleOrderBook(client any, message any) {
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var channel *string = this.SafeString2(arg, "channel", "topic", "")
 	var instType *string = this.SafeStringLower(arg, "instType")
-	var marketType string = func() string {
-		if instType != nil && *instType == "spot" {
-			return "spot"
-		}
-		return "contract"
-	}()
+	var marketType string = "contract"
+	if instType != nil && *instType == "spot" {
+		marketType = "spot"
+	}
 	var marketId *string = this.SafeString2(arg, "instId", "symbol")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -1342,18 +1318,14 @@ func (this *Bitget) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 		var args map[string]any = map[string]any{
 			"instType": instType,
 		}
-		var topicOrChannel string = func() string {
-			if uta == true {
-				return "topic"
-			}
-			return "channel"
-		}()
-		var symbolOrInstId string = func() string {
-			if uta == true {
-				return "symbol"
-			}
-			return "instId"
-		}()
+		var topicOrChannel string = "channel"
+		if uta == true {
+			topicOrChannel = "topic"
+		}
+		var symbolOrInstId string = "instId"
+		if uta == true {
+			symbolOrInstId = "symbol"
+		}
 		args[topicOrChannel] = func() string {
 			if uta == true {
 				return "publicTrade"
@@ -1418,12 +1390,10 @@ func (this *Bitget) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		}
 		return nil
 	}())
-	var channelTopic string = func() string {
-		if uta != nil && *uta {
-			return "publicTrade"
-		}
-		return "trade"
-	}()
+	var channelTopic string = "trade"
+	if uta != nil && *uta {
+		channelTopic = "publicTrade"
+	}
 
 	ch <- ccxt.PanicOnError((<-this.UnWatchChannelAsync(symbol, channelTopic, "trade", "watchTrades", params)))
 	return nil
@@ -1465,12 +1435,10 @@ func (this *Bitget) HandleTrades(client any, message map[string]any) {
 	//
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var instType *string = this.SafeStringLower(arg, "instType")
-	var marketType string = func() string {
-		if instType != nil && *instType == "spot" {
-			return "spot"
-		}
-		return "contract"
-	}()
+	var marketType string = "contract"
+	if instType != nil && *instType == "spot" {
+		marketType = "spot"
+	}
 	var marketId *string = this.SafeString2(arg, "instId", "symbol")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -1612,7 +1580,7 @@ func (this *Bitget) ParseWsTrade(trade any, optionalArgs ...any) any {
 		market = ccxt.MapTyped(this.SafeMarket(instId, nil, nil, defaultType))
 	}
 	var timestamp *int64 = this.SafeIntegerN(trade, []any{"uTime", "cTime", "ts", "T", "execTime"})
-	var feeDetail []any = ccxt.SafeListTypedDefault(trade, "feeDetail", []any{})
+	var feeDetail []any = ccxt.SafeListTyped(trade, "feeDetail")
 	var first map[string]any = ccxt.SafeMapTyped(feeDetail, 0)
 	var fee map[string]any = nil
 	if !ccxt.IsEqual(first, nil) {
@@ -1696,18 +1664,14 @@ func (this *Bitget) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var args map[string]any = map[string]any{
 		"instType": instType,
 	}
-	var topicOrChannel string = func() string {
-		if uta == true {
-			return "topic"
-		}
-		return "channel"
-	}()
-	var channel string = func() string {
-		if uta == true {
-			return "position"
-		}
-		return "positions"
-	}()
+	var topicOrChannel string = "channel"
+	if uta == true {
+		topicOrChannel = "topic"
+	}
+	var channel string = "positions"
+	if uta == true {
+		channel = "position"
+	}
 	args[topicOrChannel] = channel
 	if !(uta == true) {
 		args["instId"] = "default"
@@ -1912,12 +1876,10 @@ func (this *Bitget) ParseWsPosition(position any, optionalArgs ...any) any {
 		"isolated": "isolated",
 	})
 	var hedgedId *string = this.SafeString2(position, "posMode", "holdMode")
-	var hedged bool = func() bool {
-		if hedgedId != nil && *hedgedId == "hedge_mode" {
-			return true
-		}
-		return false
-	}()
+	var hedged bool = false
+	if hedgedId != nil && *hedgedId == "hedge_mode" {
+		hedged = true
+	}
 	var timestamp *int64 = this.SafeIntegerN(position, []any{"updatedTime", "uTime", "cTime", "createdTime"})
 	var percentageDecimal *string = this.SafeString2(position, "unrealizedPLR", "profitRate")
 	var percentage *string = ccxt.Precise.StringMul(percentageDecimal, "100")
@@ -2000,12 +1962,10 @@ func (this *Bitget) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	isTriggerparamsVariable := this.IsTriggerOrder(params)
 	isTrigger = ccxt.GetValue(isTriggerparamsVariable, 0)
 	params = ccxt.GetValue(isTriggerparamsVariable, 1)
-	var messageHash any = func() string {
-		if isTrigger == true {
-			return "triggerOrder"
-		}
-		return "order"
-	}()
+	var messageHash any = "order"
+	if isTrigger == true {
+		messageHash = "triggerOrder"
+	}
 	var subscriptionHash any = "order:trades"
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -2052,18 +2012,15 @@ func (this *Bitget) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if isTrigger == true {
 		subscriptionHash = ccxt.Add(subscriptionHash, ":stop") // we don't want to re-use the same subscription hash for stop orders
 	}
-	var instId any = func() any {
-		if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin") {
-			return marketId
-		}
-		return "default"
-	}() // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
-	var channel string = func() string {
-		if isTrigger == true {
-			return "orders-algo"
-		}
-		return "orders"
-	}()
+	// different from other streams here the 'rest' id is required for spot markets, contract markets require default here
+	var instId any = "default"
+	if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin") {
+		instId = marketId
+	}
+	var channel string = "orders"
+	if isTrigger == true {
+		channel = "orders-algo"
+	}
 	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("watchOrders", params)
 	marginMode = ccxt.SafeStringPtr(ccxt.GetValue(marginModeparamsVariable, 0))
@@ -2085,12 +2042,10 @@ func (this *Bitget) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var args map[string]any = map[string]any{
 		"instType": instType,
 	}
-	var topicOrChannel string = func() string {
-		if uta == true {
-			return "topic"
-		}
-		return "channel"
-	}()
+	var topicOrChannel string = "channel"
+	if uta == true {
+		topicOrChannel = "topic"
+	}
 	args[topicOrChannel] = channel
 	if !(uta == true) {
 		args["instId"] = instId
@@ -2202,7 +2157,7 @@ func (this *Bitget) HandleOrder(client any, message map[string]any) {
 	} else {
 		marketType = "contract"
 	}
-	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var data []any = ccxt.SafeListTyped(message, "data")
 	var first map[string]any = ccxt.SafeMapTyped(data, 0)
 	var category *string = this.SafeStringLower(first, "category", instType)
 	var isLinearSwap bool = (category != nil && *category == "usdt-futures")
@@ -2231,12 +2186,10 @@ func (this *Bitget) HandleOrder(client any, message map[string]any) {
 		}
 		return this.Orders
 	}()
-	var messageHash string = func() string {
-		if isTrigger {
-			return "triggerOrder"
-		}
-		return "order"
-	}()
+	var messageHash string = "order"
+	if isTrigger {
+		messageHash = "triggerOrder"
+	}
 	var marketSymbols map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
 		var order any = func() any {
@@ -2447,7 +2400,7 @@ func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger2(order, "cTime", "createdTime")
 	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var rawStatus *string = this.SafeString2(order, "status", "orderStatus")
-	var orderFee []any = ccxt.SafeListTypedDefault(order, "feeDetail", []any{})
+	var orderFee []any = ccxt.SafeListTyped(order, "feeDetail")
 	var fee map[string]any = ccxt.SafeMapTyped(orderFee, 0)
 	var feeAmount *string = this.SafeString(fee, "fee")
 	var feeObject map[string]any = nil
@@ -2614,12 +2567,10 @@ func (this *Bitget) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var args map[string]any = map[string]any{
 		"instType": instType,
 	}
-	var topicOrChannel string = func() string {
-		if uta == true {
-			return "topic"
-		}
-		return "channel"
-	}()
+	var topicOrChannel string = "channel"
+	if uta == true {
+		topicOrChannel = "topic"
+	}
 	args[topicOrChannel] = "fill"
 	if !(uta == true) {
 		args["instId"] = "default"
@@ -2849,12 +2800,10 @@ func (this *Bitget) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var args map[string]any = map[string]any{
 		"instType": instType,
 	}
-	var topicOrChannel string = func() string {
-		if uta == true {
-			return "topic"
-		}
-		return "channel"
-	}()
+	var topicOrChannel string = "channel"
+	if uta == true {
+		topicOrChannel = "topic"
+	}
 	args[topicOrChannel] = channel
 	if !(uta == true) {
 		args["coin"] = "default"
@@ -2976,12 +2925,7 @@ func (this *Bitget) HandleBalance(client any, message map[string]any) {
 		if instType != nil && *instType == "uta" {
 			var coins []any = ccxt.SafeListTyped(rawBalance, "coin")
 			for j := 0; j < len(coins); j++ {
-				var entry map[string]any = ccxt.MapTyped(func() any {
-					if j >= 0 && j < len(coins) {
-						return ccxt.DerefScalar(coins[j])
-					}
-					return nil
-				}())
+				var entry map[string]any = ccxt.SafeMapTyped(coins, j)
 				var currencyId *string = this.SafeString(entry, "coin")
 				var code *string = this.SafeCurrencyCode(currencyId)
 				var account any = this.Account()
@@ -3012,12 +2956,10 @@ func (this *Bitget) HandleBalance(client any, message map[string]any) {
 				var interest *string = this.SafeString(rawBalance, "interest")
 				ccxt.AddElementToObject(account, "debt", ccxt.Precise.StringAdd(borrow, interest))
 			}
-			var freeQuery string = func() string {
-				if ccxt.InOp(rawBalance, "maxTransferOut") {
-					return "maxTransferOut"
-				}
-				return "available"
-			}()
+			var freeQuery string = "available"
+			if ccxt.InOp(rawBalance, "maxTransferOut") {
+				freeQuery = "maxTransferOut"
+			}
 			ccxt.AddElementToObject(account, "free", this.SafeString(rawBalance, freeQuery))
 			ccxt.AddElementToObject(account, "total", this.SafeString(rawBalance, "equity"))
 			ccxt.AddElementToObject(account, "used", this.SafeString(rawBalance, "frozen"))
@@ -3357,15 +3299,17 @@ func (this *Bitget) HandleMessage(client any, message any) {
 	//         }
 	//     }
 	//
+	if ccxt.IsString(message) {
+		if ccxt.IsEqual(message, "pong") {
+			this.HandlePong(client, message)
+		}
+		return
+	}
 	if ccxt.IsEqual(this.HandleErrorMessage(client, message), true) {
 		return
 	}
 	var content *string = this.SafeString(message, "message")
 	if content != nil && *content == "pong" {
-		this.HandlePong(client, message)
-		return
-	}
-	if ccxt.IsEqual(message, "pong") {
 		this.HandlePong(client, message)
 		return
 	}
@@ -3449,12 +3393,10 @@ func (this *Bitget) HandleOrderBookUnSubscription(client any, message any) {
 	//
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var instType *string = this.SafeStringLower(arg, "instType")
-	var typeVar string = func() string {
-		if instType != nil && *instType == "spot" {
-			return "spot"
-		}
-		return "contract"
-	}()
+	var typeVar string = "contract"
+	if instType != nil && *instType == "spot" {
+		typeVar = "spot"
+	}
 	var instId *string = this.SafeString2(arg, "instId", "symbol")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(instId, nil, nil, typeVar))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -3481,12 +3423,10 @@ func (this *Bitget) HandleTradesUnSubscription(client any, message any) {
 	//
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var instType *string = this.SafeStringLower(arg, "instType")
-	var typeVar string = func() string {
-		if instType != nil && *instType == "spot" {
-			return "spot"
-		}
-		return "contract"
-	}()
+	var typeVar string = "contract"
+	if instType != nil && *instType == "spot" {
+		typeVar = "spot"
+	}
 	var instId *string = this.SafeString2(arg, "instId", "symbol")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(instId, nil, nil, typeVar))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -3513,12 +3453,10 @@ func (this *Bitget) HandleTickerUnSubscription(client any, message any) {
 	//
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var instType *string = this.SafeStringLower(arg, "instType")
-	var typeVar string = func() string {
-		if instType != nil && *instType == "spot" {
-			return "spot"
-		}
-		return "contract"
-	}()
+	var typeVar string = "contract"
+	if instType != nil && *instType == "spot" {
+		typeVar = "spot"
+	}
 	var instId *string = this.SafeString2(arg, "instId", "symbol")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(instId, nil, nil, typeVar))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -3549,12 +3487,10 @@ func (this *Bitget) HandleOHLCVUnSubscription(client any, message any) {
 	//
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var instType *string = this.SafeStringLower(arg, "instType")
-	var typeVar string = func() string {
-		if instType != nil && *instType == "spot" {
-			return "spot"
-		}
-		return "contract"
-	}()
+	var typeVar string = "contract"
+	if instType != nil && *instType == "spot" {
+		typeVar = "spot"
+	}
 	var instId *string = this.SafeString2(arg, "instId", "symbol")
 	var channel *string = this.SafeString2(arg, "channel", "topic", "")
 	var interval *string = this.SafeString(arg, "interval")
@@ -3610,7 +3546,7 @@ func (this *Bitget) HandleUnSubscriptionStatus(client any, message any) any {
 		argsList = []any{this.SafeDict(message, "arg", map[string]any{})}
 	}
 	for i := 0; i < ccxt.GetArrayLength(argsList); i++ {
-		var arg map[string]any = ccxt.MapTyped(ccxt.GetValue(argsList, i))
+		var arg map[string]any = ccxt.SafeMapTyped(argsList, i)
 		var channel *string = this.SafeString2(arg, "channel", "topic", "")
 		if func() int {
 			if channel == nil {

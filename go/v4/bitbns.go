@@ -414,12 +414,10 @@ func (this *Bitbns) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var costLimits map[string]any = SafeMapTyped(marketLimits, "cost")
 		var usdt bool = (quoteId != nil && *quoteId == "USDT")
 		// INR markets don't need a _INR prefix
-		var uppercaseId any = func() any {
-			if usdt {
-				return (Add(Add(baseId, "_"), quoteId))
-			}
-			return baseId
-		}()
+		var uppercaseId any = baseId
+		if usdt {
+			uppercaseId = (Add(Add(baseId, "_"), quoteId))
+		}
 		result = append(result, map[string]any{
 			"id":             id,
 			"uppercaseId":    uppercaseId,
@@ -730,7 +728,7 @@ func (this *Bitbns) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseBalance(response)
 	return nil
 }
-func (this *Bitbns) ParseStatus(status any) *string {
+func (this *Bitbns) ParseStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"-1": "cancelled",
 		"0":  "open",
@@ -1040,7 +1038,7 @@ func (this *Bitbns) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	//         "code":200
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var first map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 
 	ch <- this.ParseOrder(first, market)
@@ -1086,12 +1084,10 @@ func (this *Bitbns) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
 	params = MapTyped(this.Omit(params, []any{"trigger", "stop"}))
-	var quoteSide string = func() string {
-		if IsEqual(GetValue(market, "quoteId"), "USDT") {
-			return "usdtListOpen"
-		}
-		return "listOpen"
-	}()
+	var quoteSide string = "listOpen"
+	if IsEqual(GetValue(market, "quoteId"), "USDT") {
+		quoteSide = "usdtListOpen"
+	}
 	var request map[string]any = map[string]any{
 		"symbol": market["uppercaseId"],
 		"page":   0,
@@ -1479,7 +1475,7 @@ func (this *Bitbns) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseTransactions(data, currency, since, limit)
 	return nil
 }
-func (this *Bitbns) ParseTransactionStatusByType(status any, optionalArgs ...any) *string {
+func (this *Bitbns) ParseTransactionStatusByType(status *string, optionalArgs ...any) *string {
 	var typeVar *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = typeVar
 	var statusesByType map[string]any = map[string]any{

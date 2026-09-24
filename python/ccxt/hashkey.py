@@ -1098,7 +1098,11 @@ class hashkey(Exchange, ImplicitAPI):
                 minLeverage = self.parse_to_int(Precise.string_div('1', maxInitialMargin))
                 maxLeverage = self.parse_to_int(Precise.string_div('1', minInitialMargin))
         tradingFees = self.safe_dict(self.fees, 'trading')
-        fees = self.safe_dict(tradingFees, 'spot') if isSpot else self.safe_dict(tradingFees, 'swap')
+        fees = None
+        if isSpot:
+            fees = self.safe_dict(tradingFees, 'spot')
+        else:
+            fees = self.safe_dict(tradingFees, 'swap')
         return self.safe_market_structure({
             'id': marketId,
             'symbol': symbol,
@@ -1226,7 +1230,9 @@ class hashkey(Exchange, ImplicitAPI):
                     'info': network,
                 }
         rawType = self.safe_string(rawCurrency, 'tokenType')
-        type = 'fiat' if (rawType == 'REAL_MONEY') else 'crypto'
+        type = 'crypto'
+        if rawType == 'REAL_MONEY':
+            type = 'fiat'
         return self.safe_currency_structure({
             'id': currencyId,
             'code': code,
@@ -1549,7 +1555,7 @@ class hashkey(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, methodName, 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, methodName, 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1000)
         market = self.market(symbol)
@@ -1735,7 +1741,7 @@ class hashkey(Exchange, ImplicitAPI):
         #
         return self.parse_last_prices(response, symbols)
 
-    def parse_last_price(self, entry: object, market: Market = None) -> LastPrice:
+    def parse_last_price(self, entry: dict, market: Market = None) -> LastPrice:
         marketId = self.safe_string(entry, 's')
         market = self.safe_market(marketId, market)
         return {
@@ -1826,7 +1832,7 @@ class hashkey(Exchange, ImplicitAPI):
         }
         balances = self.safe_list(balance, 'balances', [])
         for i in range(0, len(balances)):
-            balanceEntry = balances[i]
+            balanceEntry = self.safe_dict(balances, i)
             currencyId = self.safe_string(balanceEntry, 'asset')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -1901,7 +1907,7 @@ class hashkey(Exchange, ImplicitAPI):
         depositAddress['network'] = networkCode
         return depositAddress
 
-    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "canDeposit": true,
@@ -2326,11 +2332,11 @@ class hashkey(Exchange, ImplicitAPI):
             request['limit'] = limit
         request['endTime'] = until
         flowType = None
-        flowType, params = self.handle_option_and_params(params, methodName, 'flowType')
+        flowType, params = self.handle_option_string_and_params(params, methodName, 'flowType')
         if flowType is not None:
             request['flowType'] = self.encode_flow_type(flowType)
         accountType = None
-        accountType, params = self.handle_option_and_params(params, methodName, 'accountType')
+        accountType, params = self.handle_option_string_and_params(params, methodName, 'accountType')
         if accountType is not None:
             request['accountType'] = self.encode_account_type(accountType)
         response = self.privateGetApiV1AccountBalanceFlow(self.extend(request, params))
@@ -2757,7 +2763,7 @@ class hashkey(Exchange, ImplicitAPI):
             self.load_markets()
         ordersRequests = []
         for i in range(0, len(orders)):
-            rawOrder = orders[i]
+            rawOrder = self.safe_dict(orders, i)
             symbol = self.safe_string(rawOrder, 'symbol')
             type = self.safe_string(rawOrder, 'type')
             side = self.safe_string(rawOrder, 'side')
@@ -2769,7 +2775,7 @@ class hashkey(Exchange, ImplicitAPI):
             if clientOrderId is None:
                 orderRequest['clientOrderId'] = self.uuid()  # both spot and swap endpoints require clientOrderId
             ordersRequests.append(orderRequest)
-        firstOrder = ordersRequests[0]
+        firstOrder = self.safe_dict(ordersRequests, 0)
         firstSymbol = self.safe_string(firstOrder, 'symbol')
         market = self.market(firstSymbol)
         request = {

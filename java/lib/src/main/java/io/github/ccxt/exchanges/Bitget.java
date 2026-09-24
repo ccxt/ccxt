@@ -3807,7 +3807,7 @@ public class Bitget extends BitgetApi
 
             Object types = null;
             Map<String, Object> fetchMarketsOptions = (Map<String, Object>) this.safeDict(this.options, "fetchMarkets");
-            List<Object> defaultMarkets = new ArrayList<Object>(Arrays.asList("spot", "swap"));
+            List<String> defaultMarkets = new ArrayList<String>(Arrays.asList("spot", "swap"));
             if (!java.util.Objects.equals(fetchMarketsOptions, null))
             {
                 types = this.safeList(fetchMarketsOptions, "types", defaultMarkets);
@@ -3823,7 +3823,7 @@ public class Bitget extends BitgetApi
                 Object type = (types == null || i < 0 || i >= ((List<?>)types).size() ? null : ((List<?>)types).get(i));
                 if ((java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future")))
                 {
-                    List<Object> subTypes = new ArrayList<Object>(Arrays.asList("USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES", "SUSDT-FUTURES", "SCOIN-FUTURES", "SUSDC-FUTURES"));
+                    List<String> subTypes = new ArrayList<String>(Arrays.asList("USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES", "SUSDT-FUTURES", "SCOIN-FUTURES", "SUSDC-FUTURES"));
                     for (var j = 0; j < ((List<?>)subTypes).size(); j++)
                     {
     final Object finalJ = j;
@@ -4128,7 +4128,7 @@ public class Bitget extends BitgetApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> subTypes = new ArrayList<Object>(Arrays.asList("SPOT", "USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES"));
+            List<String> subTypes = new ArrayList<String>(Arrays.asList("SPOT", "USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES"));
             List<Object> promises = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)subTypes).size(); i++)
             {
@@ -4492,7 +4492,7 @@ public class Bitget extends BitgetApi
         }
         for (var j = 0; Helpers.isLessThan(j, chainsLength); j++)
         {
-            Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
+            Map<String, Object> chain = (Map<String, Object>) this.safeDict(chains, j);
             String networkId = this.safeString(chain, "chain");
             Object network = this.networkIdToCode(networkId, code);
             if (java.util.Objects.equals(network, null))
@@ -4854,8 +4854,8 @@ final Object finalMinNotional = minNotional;
             uta = (Boolean) ((List<Object>) utaparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -5161,8 +5161,8 @@ final Object finalMinNotional = minNotional;
             uta = (Boolean) ((List<Object>) utaparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -5523,7 +5523,7 @@ final Object finalMinNotional = minNotional;
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseDepositAddress(data, currency);
+            return this.parseDepositAddress((Map<String, Object>) (data), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -5543,7 +5543,7 @@ final Object finalMinNotional = minNotional;
         return this.fetchDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseDepositAddress(Object depositAddress, Map<String, Object> currency)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         //
         //     {
@@ -5571,7 +5571,7 @@ final Object finalMinNotional = minNotional;
             put( "tag", Bitget.this.safeString(depositAddress, "tag") );
         }};
     }
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Object... optionalArgs)
     {
         return this.parseDepositAddress(depositAddress, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -5655,8 +5655,16 @@ final Object finalMinNotional = minNotional;
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            String bidsKey = (((java.util.Objects.equals(uta, true)))) ? "b" : "bids";
-            String asksKey = (((java.util.Objects.equals(uta, true)))) ? "a" : "asks";
+            String bidsKey = "bids";
+            if (java.util.Objects.equals(uta, true))
+            {
+                bidsKey = "b";
+            }
+            String asksKey = "asks";
+            if (java.util.Objects.equals(uta, true))
+            {
+                asksKey = "a";
+            }
             Long timestamp = this.safeInteger(data, "ts");
             return this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), timestamp, bidsKey, asksKey);
         }).thenApply(OrderBook::new);
@@ -6482,8 +6490,8 @@ final Object finalMinNotional = minNotional;
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -7063,8 +7071,8 @@ final Object finalMinNotional = minNotional;
             Boolean useHistoryEndpoint = (Boolean) this.safeBool(parameters, "useHistoryEndpoint", false);
             Boolean useHistoryEndpointForPagination = (Boolean) this.safeBool(parameters, "useHistoryEndpointForPagination", true);
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -7103,7 +7111,11 @@ final Object finalMinNotional = minNotional;
             // retrievable periods listed here:
             // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
             // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
-            String key = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? "spot" : "swap";
+            String key = "swap";
+            if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
+            {
+                key = "spot";
+            }
             Map<String, Object> ohlcOptions = (Map<String, Object>) this.safeDict(((Map<String, Object>)this.options).get("fetchOHLCV"), key, new HashMap<String, Object>() {{}});
             Map<String, Object> maxLimitPerTimeframe = (Map<String, Object>) this.safeDict(ohlcOptions, "maxLimitPerTimeframe", new HashMap<String, Object>() {{}});
             Long maxLimitForThisTimeframe = this.safeInteger(maxLimitPerTimeframe, timeframe, limit);
@@ -7524,7 +7536,7 @@ final Object finalMinNotional = minNotional;
         //
         for (var i = 0; i < ((List<?>)balance).size(); i++)
         {
-            Object entry = (balance == null || i < 0 || i >= ((List<?>)balance).size() ? null : ((List<?>)balance).get(i));
+            Map<String, Object> entry = (Map<String, Object>) this.safeDict(balance, i);
             Map<String, Object> account = (Map<String, Object>) this.account();
             String currencyId = this.safeString(entry, "coin");
             String code = this.safeCurrencyCode(currencyId);
@@ -7594,7 +7606,7 @@ final Object finalMinNotional = minNotional;
         //
         for (var i = 0; i < Helpers.getArrayLength(balance); i++)
         {
-            Object entry = Helpers.GetValue(balance, i);
+            Map<String, Object> entry = (Map<String, Object>) this.safeDict(balance, i);
             Map<String, Object> account = (Map<String, Object>) this.account();
             String currencyId = this.safeString2(entry, "marginCoin", "coin");
             String code = this.safeCurrencyCode(currencyId);
@@ -7879,7 +7891,11 @@ final Object finalMinNotional = minNotional;
         }
         String posSide = this.safeString(order, "posSide");
         Boolean isContractOrder = (!java.util.Objects.equals(posSide, null));
-        Object marketType = ((Boolean.TRUE.equals(isContractOrder))) ? "contract" : "spot";
+        Object marketType = "spot";
+        if (Boolean.TRUE.equals(isContractOrder))
+        {
+            marketType = "contract";
+        }
         if (!java.util.Objects.equals(market, null))
         {
             marketType = ((Map<String, Object>)market).get("type");
@@ -7922,7 +7938,7 @@ final Object finalMinNotional = minNotional;
                 for (var i = 0; i < ((List<?>)feeValues).size(); i++)
                 {
                     Object feeValue = (feeValues == null || i < 0 || i >= ((List<?>)feeValues).size() ? null : ((List<?>)feeValues).get(i));
-                    if (!java.util.Objects.equals(this.safeValue(feeValue, "feeCoinCode"), null))
+                    if (!java.util.Objects.equals(this.safeString(feeValue, "feeCoinCode"), null))
                     {
                         feeObject = feeValue;
                         break;
@@ -8137,7 +8153,7 @@ final Object finalMinNotional = minNotional;
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object marginParams = this.handleMarginModeAndParams("createOrder", parameters);
-            Object marginMode = ((List<Object>)marginParams).get(0);
+            String marginMode = (String) ((List<Object>)marginParams).get(0);
             Double triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
             Double stopLossTriggerPrice = this.safeNumber(parameters, "stopLossPrice");
             Double takeProfitTriggerPrice = this.safeNumber(parameters, "takeProfitPrice");
@@ -8380,13 +8396,13 @@ final Object finalMinNotional = minNotional;
             List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(exchangeSpecificTifParam, "post_only"), parameters);
             postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) postOnlyparametersVariable).get(1);
-            Object timeInForce = null;
-            List<Object> timeInForceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "timeInForce");
-            timeInForce = ((List<Object>) timeInForceparametersVariable).get(0);
+            String timeInForce = null;
+            List<Object> timeInForceparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce");
+            timeInForce = (String) ((List<Object>) timeInForceparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) timeInForceparametersVariable).get(1);
             if (!java.util.Objects.equals(timeInForce, null))
             {
-                timeInForce = ((String)timeInForce).toUpperCase();
+                timeInForce = timeInForce.toUpperCase();
             }
             if (java.util.Objects.equals(postOnly, true))
             {
@@ -8411,7 +8427,11 @@ final Object finalMinNotional = minNotional;
         {
             if ((java.util.Objects.equals(hedged, true)) || Boolean.TRUE.equals(isStopLossOrTakeProfitTrigger))
             {
-                String reduceOnlyPosSide = (((java.util.Objects.equals(side, "sell")))) ? "long" : "short";
+                String reduceOnlyPosSide = "short";
+                if (java.util.Objects.equals(side, "sell"))
+                {
+                    reduceOnlyPosSide = "long";
+                }
                 ((Map<String, Object>)request).put("posSide", reduceOnlyPosSide);
             } else if (!Boolean.TRUE.equals(isStopLossOrTakeProfitTrigger))
             {
@@ -8421,7 +8441,11 @@ final Object finalMinNotional = minNotional;
         {
             if (java.util.Objects.equals(hedged, true))
             {
-                String posSide = (((java.util.Objects.equals(side, "buy")))) ? "long" : "short";
+                String posSide = "short";
+                if (java.util.Objects.equals(side, "buy"))
+                {
+                    posSide = "long";
+                }
                 ((Map<String, Object>)request).put("posSide", posSide);
             }
         }
@@ -8509,13 +8533,13 @@ final Object finalMinNotional = minNotional;
         List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(exchangeSpecificTifParam, "post_only"), parameters);
         postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) postOnlyparametersVariable).get(1);
-        Object timeInForce = null;
-        List<Object> timeInForceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "timeInForce");
-        timeInForce = ((List<Object>) timeInForceparametersVariable).get(0);
+        String timeInForce = null;
+        List<Object> timeInForceparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce");
+        timeInForce = (String) ((List<Object>) timeInForceparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) timeInForceparametersVariable).get(1);
         if (!java.util.Objects.equals(timeInForce, null))
         {
-            timeInForce = ((String)timeInForce).toUpperCase();
+            timeInForce = timeInForce.toUpperCase();
         }
         if (java.util.Objects.equals(postOnly, true))
         {
@@ -8652,7 +8676,11 @@ final Object finalMinNotional = minNotional;
                 {
                     marginMode = "cross";
                 }
-                String marginModeRequest = (((java.util.Objects.equals(marginMode, "cross")))) ? "crossed" : "isolated";
+                String marginModeRequest = "isolated";
+                if (java.util.Objects.equals(marginMode, "cross"))
+                {
+                    marginModeRequest = "crossed";
+                }
                 ((Map<String, Object>)request).put("marginMode", marginModeRequest);
                 String requestSide = side;
                 if (java.util.Objects.equals(reduceOnly, true))
@@ -8773,7 +8801,7 @@ final Object finalMinNotional = minNotional;
             Object marginMode = null;
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i);
                 String marketId = this.safeString(rawOrder, "symbol");
                 if (java.util.Objects.equals(symbol, null))
                 {
@@ -8791,7 +8819,7 @@ final Object finalMinNotional = minNotional;
                 Double price = this.safeNumber(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Object marginResult = this.handleMarginModeAndParams("createOrders", orderParams);
-                Object currentMarginMode = ((List<Object>)marginResult).get(0);
+                String currentMarginMode = (String) ((List<Object>)marginResult).get(0);
                 if (!java.util.Objects.equals(currentMarginMode, null))
                 {
                     if (java.util.Objects.equals(marginMode, null))
@@ -8869,7 +8897,7 @@ final Object finalMinNotional = minNotional;
             Object marginMode = null;
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i);
                 String marketId = this.safeString(rawOrder, "symbol");
                 if (java.util.Objects.equals(symbol, null))
                 {
@@ -8887,7 +8915,7 @@ final Object finalMinNotional = minNotional;
                 Double price = this.safeNumber(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Object marginResult = this.handleMarginModeAndParams("createOrders", orderParams);
-                Object currentMarginMode = ((List<Object>)marginResult).get(0);
+                String currentMarginMode = (String) ((List<Object>)marginResult).get(0);
                 if (!java.util.Objects.equals(currentMarginMode, null))
                 {
                     if (java.util.Objects.equals(marginMode, null))
@@ -8916,7 +8944,11 @@ final Object finalMinNotional = minNotional;
                 {
                     marginMode = "cross";
                 }
-                String marginModeRequest = (((java.util.Objects.equals(marginMode, "cross")))) ? "crossed" : "isolated";
+                String marginModeRequest = "isolated";
+                if (java.util.Objects.equals(marginMode, "cross"))
+                {
+                    marginModeRequest = "crossed";
+                }
                 ((Map<String, Object>)request).put("marginMode", marginModeRequest);
                 ((Map<String, Object>)request).put("marginCoin", ((Map<String, Object>)market).get("settleId"));
                 String productType = null;
@@ -9141,7 +9173,11 @@ final Object finalMinNotional = minNotional;
                     {
                         String amountString = this.numberToString(amount);
                         String priceString = this.numberToString(price);
-                        String finalCost = (((java.util.Objects.equals(cost, null)))) ? (Precise.stringMul(amountString, priceString)) : cost;
+                        String finalCost = cost;
+                        if (java.util.Objects.equals(cost, null))
+                        {
+                            finalCost = (Precise.stringMul(amountString, priceString));
+                        }
                         ((Map<String, Object>)request).put("size", this.priceToPrecision(symbol, finalCost));
                     }
                 } else
@@ -10167,7 +10203,11 @@ final Object finalMinNotional = minNotional;
                 market = (Map<String, Object>) this.market(symbol);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                 String defaultType = this.safeString2(this.options, "fetchOpenOrders", "defaultType", "spot");
-                Object marketType = (((market.containsKey("type")))) ? ((Map<String, Object>)market).get("type") : defaultType;
+                Object marketType = defaultType;
+                if (market.containsKey("type"))
+                {
+                    marketType = ((Map<String, Object>)market).get("type");
+                }
                 type = this.safeString(parameters, "type", marketType);
             } else
             {
@@ -10175,8 +10215,8 @@ final Object finalMinNotional = minNotional;
                 type = this.safeString(parameters, "type", defaultType);
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -10797,8 +10837,8 @@ final Object finalMinNotional = minNotional;
             marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -11169,8 +11209,8 @@ final Object finalMinNotional = minNotional;
                 put( "category", finalProductType );
             }};
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -11342,8 +11382,8 @@ final Object finalMinNotional = minNotional;
             uta = (Boolean) ((List<Object>) utaparametersVariable).get(0);
             parameters = ((List<Object>) utaparametersVariable).get(1);
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -11891,8 +11931,8 @@ final Object finalMinNotional = minNotional;
             }
             Boolean paginate = false;
             String marginMode = null;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchMyTrades", parameters);
             marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
@@ -12292,8 +12332,8 @@ final Object finalMinNotional = minNotional;
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositions", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchPositions", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -12835,8 +12875,8 @@ final Object finalMinNotional = minNotional;
             } else
             {
                 Boolean paginate = false;
-                List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-                paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+                List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+                paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
                 if (Boolean.TRUE.equals(paginate))
                 {
@@ -13277,8 +13317,8 @@ final Object finalMinNotional = minNotional;
             uta = (Boolean) ((List<Object>) utaparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -13400,7 +13440,7 @@ final Object finalMinNotional = minNotional;
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)contracts).size(); i++)
         {
-            Object contract = (contracts == null || i < 0 || i >= ((List<?>)contracts).size() ? null : ((List<?>)contracts).get(i));
+            Map<String, Object> contract = (Map<String, Object>) this.safeDict(contracts, i);
             // for non-uta, we've set bussinessType in request payload. Not sure why this existed.
             // const business = this.safeString (contract, 'businessType');
             // if (business !== 'contract_settle_fee') {
@@ -13479,7 +13519,12 @@ final Object finalMinNotional = minNotional;
         //     }
         //
         String errorCode = this.safeString(data, "code");
-        String status = (((java.util.Objects.equals(errorCode, "00000")))) ? "ok" : "failed";
+        String status = "failed";
+        if (java.util.Objects.equals(errorCode, "00000"))
+        {
+            status = "ok";
+        }
+        final String finalStatus = status;
         return new HashMap<String, Object>() {{
             put( "info", data );
             put( "symbol", Bitget.this.safeString(market, "symbol") );
@@ -13488,7 +13533,7 @@ final Object finalMinNotional = minNotional;
             put( "amount", null );
             put( "total", null );
             put( "code", Bitget.this.safeString(market, "settle") );
-            put( "status", status );
+            put( "status", finalStatus );
             put( "timestamp", null );
             put( "datetime", null );
         }};
@@ -13660,14 +13705,24 @@ final Object finalMinNotional = minNotional;
     public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
     {
         Boolean isCrossMarginMode = java.util.Objects.equals(this.safeString(leverage, "marginMode"), "crossed");
-        String longLevKey = ((Boolean.TRUE.equals(isCrossMarginMode))) ? "crossedMarginLeverage" : "isolatedLongLever";
-        String shortLevKey = ((Boolean.TRUE.equals(isCrossMarginMode))) ? "crossedMarginLeverage" : "isolatedShortLever";
+        String longLevKey = "isolatedLongLever";
+        if (Boolean.TRUE.equals(isCrossMarginMode))
+        {
+            longLevKey = "crossedMarginLeverage";
+        }
+        String shortLevKey = "isolatedShortLever";
+        if (Boolean.TRUE.equals(isCrossMarginMode))
+        {
+            shortLevKey = "crossedMarginLeverage";
+        }
+        final String finalLongLevKey = longLevKey;
+        final String finalShortLevKey = shortLevKey;
         return new HashMap<String, Object>() {{
             put( "info", leverage );
             put( "symbol", Bitget.this.safeString(market, "symbol") );
             put( "marginMode", ((Boolean.TRUE.equals(isCrossMarginMode))) ? "cross" : "isolated" );
-            put( "longLeverage", Bitget.this.safeInteger(leverage, longLevKey) );
-            put( "shortLeverage", Bitget.this.safeInteger(leverage, shortLevKey) );
+            put( "longLeverage", Bitget.this.safeInteger(leverage, finalLongLevKey) );
+            put( "shortLeverage", Bitget.this.safeInteger(leverage, finalShortLevKey) );
         }};
     }
     public Object parseLeverage(Map<String, Object> leverage, Object... optionalArgs)
@@ -13870,7 +13925,11 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            String posMode = ((Helpers.isTrue(hedged))) ? "hedge_mode" : "one_way_mode";
+            String posMode = "one_way_mode";
+            if (Helpers.isTrue(hedged))
+            {
+                posMode = "hedge_mode";
+            }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -14321,7 +14380,7 @@ final Object finalMinNotional = minNotional;
         }};
         for (var i = 0; Helpers.isLessThan(i, chainsLength); i++)
         {
-            Object chain = (chains == null || i < 0 || i >= chains.size() ? null : chains.get(i));
+            Map<String, Object> chain = (Map<String, Object>) this.safeDict(chains, i);
             String networkId = this.safeString(chain, "chain");
             String currencyCode = this.safeString(currency, "code");
             String networkCode = this.networkIdToCode(networkId, currencyCode);
@@ -14751,8 +14810,8 @@ final Object finalMinNotional = minNotional;
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyLiquidations", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyLiquidations", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -15258,8 +15317,8 @@ final Object finalMinNotional = minNotional;
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchBorrowInterest", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchBorrowInterest", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -15357,7 +15416,7 @@ final Object finalMinNotional = minNotional;
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> rows = (List<Object>) this.safeList(data, "resultList", new ArrayList<Object>(Arrays.asList()));
-            Object interest = this.parseBorrowInterests(rows, market);
+            List<Object> interest = this.parseBorrowInterests(rows, market);
             return this.filterByCurrencySinceLimit(interest, code, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(BorrowInterest::new).collect(Collectors.toList()));
 
@@ -15413,9 +15472,14 @@ final Object finalMinNotional = minNotional;
         //
         String marketId = this.safeString(info, "symbol");
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
-        String marginMode = (((!java.util.Objects.equals(marketId, null)))) ? "isolated" : "cross";
+        String marginMode = "cross";
+        if (!java.util.Objects.equals(marketId, null))
+        {
+            marginMode = "isolated";
+        }
         Long timestamp = this.safeInteger(info, "cTime");
         final Map<String, Object> finalMarket = market;
+        final String finalMarginMode = marginMode;
         return new HashMap<String, Object>() {{
             put( "info", info );
             put( "symbol", Bitget.this.safeString(finalMarket, "symbol") );
@@ -15423,7 +15487,7 @@ final Object finalMinNotional = minNotional;
             put( "interest", Bitget.this.safeNumber(info, "interestAmount") );
             put( "interestRate", Bitget.this.safeNumber(info, "dailyInterestRate") );
             put( "amountBorrowed", null );
-            put( "marginMode", marginMode );
+            put( "marginMode", finalMarginMode );
             put( "timestamp", timestamp );
             put( "datetime", Bitget.this.iso8601(timestamp) );
         }};

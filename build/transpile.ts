@@ -1138,7 +1138,7 @@ class Transpiler {
             'DepositWithdrawFees': /-> DepositWithdrawFees:/,
             'Transaction': /-> (?:[Ll]ist\[)?Transaction/,
             'FundingRateHistory': /-> (?:[Ll]ist\[)?FundingRateHistory/,
-            'MarketInterface': /-> (?:[Ll]ist\[)?MarketInterface/,
+            'MarketInterface': /(-> (?:[Ll]ist\[)?MarketInterface|: MarketInterface\b)/,
             'TransferEntry': /-> (?:[Ll]ist\[)?TransferEntry\b/,
             'PredictionEvent': /-> (?:[Ll]ist\[)?PredictionEvent/,
             'PredictionOutcome': /: (?:[Ll]ist\[)?PredictionOutcome/,

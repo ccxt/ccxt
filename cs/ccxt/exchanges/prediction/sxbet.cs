@@ -1054,7 +1054,11 @@ public partial class sxbet : PredictionExchange
         string saltHex = ("0x" + saltHexPadded);
         Int64? defaultExpirySeconds = this.safeInteger(this.options, "defaultOrderExpirySeconds", 86400);
         Int64? expiry = this.safeInteger(parameters, "expiry", this.sum(this.seconds(), defaultExpirySeconds));
-        string defaultTif = ((type == "limit")) ? "GTC" : "IOC";
+        string defaultTif = "IOC";
+        if ((type == "limit"))
+        {
+            defaultTif = "GTC";
+        }
         object timeInForce = null;
         IList<object> timeInForceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "timeInForce", defaultTif);
         timeInForce = timeInForceparametersVariable[0];
@@ -1404,7 +1408,14 @@ public partial class sxbet : PredictionExchange
         string? orderId = this.safeString2(order, "id", "orderId");
         string marketHash = this.safeString(order, "marketHash", "");
         bool? isBettingOutcomeOne = this.safeBool(order, "isBettingOutcomeOne", true);
-        string outcomeId = isBettingOutcomeOne == true ? marketHash : ((marketHash + "-2"));
+        string? outcomeId = null;
+        if ((isBettingOutcomeOne == true))
+        {
+            outcomeId = marketHash;
+        } else
+        {
+            outcomeId = ((marketHash + "-2"));
+        }
         IDictionary<string, object> outcomeObj = this.safeOutcome(outcomeId, ((object)market));
         string oneDenom = "100000000000000000000";
         string usdcDecimals = "1000000";
@@ -1678,7 +1689,14 @@ public partial class sxbet : PredictionExchange
         //
         string marketHash = this.safeString(fill, "marketHash", "");
         bool? isBettingOutcomeOne = this.safeBool(fill, "isBettingOutcomeOne", true);
-        string outcomeId = isBettingOutcomeOne == true ? marketHash : ((marketHash + "-2"));
+        string? outcomeId = null;
+        if ((isBettingOutcomeOne == true))
+        {
+            outcomeId = marketHash;
+        } else
+        {
+            outcomeId = ((marketHash + "-2"));
+        }
         IDictionary<string, object> outcomeObj = this.safeOutcome(outcomeId, ((object)market));
         string oneDenom = "100000000000000000000";
         string usdcDecimals = "1000000";
@@ -1745,7 +1763,7 @@ public partial class sxbet : PredictionExchange
         int balancesLength = balances.Count;
         for (int i = 0; i < balancesLength; i++)
         {
-            object row = getValue(balances, i);
+            IDictionary<string, object> row = this.safeDict(balances, i);
             string? tokenAddress = this.safeStringLower(row, "tokenAddress", "");
             // every sxbet market is denominated in the active base token, surfaced under 'USDC';
             // rows of any other token keep their contract address for the code
@@ -1841,12 +1859,26 @@ public partial class sxbet : PredictionExchange
         //
         string marketHash = this.safeString(raw, "marketHash", "");
         bool? isOutcomeOneMaxWin = this.safeBool(raw, "isOutcomeOneMaxWin", true);
-        string outcomeId = isOutcomeOneMaxWin == true ? marketHash : ((marketHash + "-2"));
+        string? outcomeId = null;
+        if ((isOutcomeOneMaxWin == true))
+        {
+            outcomeId = marketHash;
+        } else
+        {
+            outcomeId = ((marketHash + "-2"));
+        }
         IDictionary<string, object> outcomeObj = this.safeOutcome(outcomeId);
         string oneDenom = "100000000000000000000";
         string usdcDecimals = "1000000";
         IDictionary<string, object> odds = this.safeDict(raw, "odds", new Dictionary<string, object>() {});
-        string? ownOdds = isOutcomeOneMaxWin == true ? this.safeString(odds, "outcomeOne") : this.safeString(odds, "outcomeTwo");
+        string? ownOdds = null;
+        if ((isOutcomeOneMaxWin == true))
+        {
+            ownOdds = this.safeString(odds, "outcomeOne");
+        } else
+        {
+            ownOdds = this.safeString(odds, "outcomeTwo");
+        }
         double? entryPrice = ((ownOdds != null)) ? this.parseNumber(Precise.stringDiv(ownOdds, oneDenom)) : null;
         string? totalStake = this.safeString(raw, "totalStake", "0");
         string? pnl = this.safeString(raw, "pnl");
@@ -1946,7 +1978,14 @@ public partial class sxbet : PredictionExchange
         //
         string marketHash = this.safeString(trade, "marketHash", "");
         bool? isBettingOutcomeOne = this.safeBool(trade, "isBettingOutcomeOne", true);
-        string outcomeId = isBettingOutcomeOne == true ? marketHash : ((marketHash + "-2"));
+        string? outcomeId = null;
+        if ((isBettingOutcomeOne == true))
+        {
+            outcomeId = marketHash;
+        } else
+        {
+            outcomeId = ((marketHash + "-2"));
+        }
         IDictionary<string, object> outcomeObj = this.safeOutcome(outcomeId, ((object)market));
         IDictionary<string, object> settlement = this.safeDict(trade, "settlement", new Dictionary<string, object>() {});
         Int64? winner = this.safeInteger(settlement, "outcome");
@@ -1969,7 +2008,11 @@ public partial class sxbet : PredictionExchange
         } else if ((winner != null))
         {
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
-            string labelKey = ((winner == 1)) ? "outcomeOneName" : "outcomeTwoName";
+            string labelKey = "outcomeTwoName";
+            if ((winner == 1))
+            {
+                labelKey = "outcomeOneName";
+            }
             resultLabel = this.safeString(info, labelKey, this.numberToString(winner));
         }
         Int64? timestamp = this.parse8601(this.safeString(settlement, "settleDate"));
@@ -2215,8 +2258,16 @@ public partial class sxbet : PredictionExchange
         bool isOutcomeOne = ((outcomeId == marketHash));
         IDictionary<string, object> outcomeOneOdds = this.safeDict(raw, "outcomeOne", new Dictionary<string, object>() {});
         IDictionary<string, object> outcomeTwoOdds = this.safeDict(raw, "outcomeTwo", new Dictionary<string, object>() {});
-        IDictionary<string, object> ownOdds = isOutcomeOne ? outcomeOneOdds : outcomeTwoOdds;
-        IDictionary<string, object> oppositeOdds = isOutcomeOne ? outcomeTwoOdds : outcomeOneOdds;
+        IDictionary<string, object> ownOdds = outcomeTwoOdds;
+        if (isOutcomeOne)
+        {
+            ownOdds = outcomeOneOdds;
+        }
+        IDictionary<string, object> oppositeOdds = outcomeOneOdds;
+        if (isOutcomeOne)
+        {
+            oppositeOdds = outcomeTwoOdds;
+        }
         // percentageOdds is the maker's own implied probability * 1e20 (sx.bet protocol format);
         // the opposite side's best resting maker mirrors into this outcome's ask via 1 - p
         string oneDenom = "100000000000000000000";
@@ -2323,7 +2374,7 @@ public partial class sxbet : PredictionExchange
         int ownLevelsLength = (ownLevels?.Count ?? 0);
         for (int i = 0; i < ownLevelsLength; i++)
         {
-            object level = getValue(ownLevels, i);
+            IDictionary<string, object> level = this.safeDict(ownLevels, i);
             string? percentageOdds = this.safeString(level, "percentageOdds");
             string? size = this.safeString(level, "size", "0");
             double? price = this.parseNumber(Precise.stringDiv(percentageOdds, oneDenom));
@@ -2334,7 +2385,7 @@ public partial class sxbet : PredictionExchange
         int oppositeLevelsLength = (oppositeLevels?.Count ?? 0);
         for (int i = 0; i < oppositeLevelsLength; i++)
         {
-            object level = getValue(oppositeLevels, i);
+            IDictionary<string, object> level = this.safeDict(oppositeLevels, i);
             string? percentageOdds = this.safeString(level, "percentageOdds");
             string? size = this.safeString(level, "size", "0");
             // the opposite side's resting stake mirrors into this outcome's ask - the price is the
@@ -2802,7 +2853,7 @@ public partial class sxbet : PredictionExchange
         int rowsLength = getArrayLength(rows);
         for (int i = 0; i < rowsLength; i++)
         {
-            object entry = getValue(rows, i);
+            IDictionary<string, object> entry = this.safeDict(rows, i);
             string? marketHash = this.safeString(entry, "marketHash");
             if ((marketHash == null))
             {
@@ -2871,7 +2922,14 @@ public partial class sxbet : PredictionExchange
     {
         string marketHash = this.safeString(trade, "marketHash", "");
         bool? isBettingOutcomeOne = this.safeBool(trade, "isBettingOutcomeOne", true);
-        string outcomeId = isBettingOutcomeOne == true ? marketHash : ((marketHash + "-2"));
+        string? outcomeId = null;
+        if ((isBettingOutcomeOne == true))
+        {
+            outcomeId = marketHash;
+        } else
+        {
+            outcomeId = ((marketHash + "-2"));
+        }
         IDictionary<string, object> outcomeObj = this.safeOutcome(outcomeId);
         string oneDenom = "100000000000000000000";
         string usdcDecimals = "1000000";

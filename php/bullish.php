@@ -970,7 +970,7 @@ class bullish extends Exchange {
         }
         $maxLimit = 100;
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchTrades', 'paginate', false);
         if ($paginate) {
             $params = $this->handle_pagination_params('fetchTrades', $since, $params);
             return $this->fetch_paginated_call_dynamic('fetchTrades', $symbol, $since, $limit, $params, $maxLimit);
@@ -1033,7 +1033,7 @@ class bullish extends Exchange {
             $response = $this->privateGetV1TradesClientOrderIdClientOrderId($this->extend($request, $params));
         } else {
             $paginate = false;
-            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+            list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
             if ($paginate) {
                 $params = $this->handle_pagination_params('fetchMyTrades', $since, $params);
                 return $this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params, 100);
@@ -1359,7 +1359,7 @@ class bullish extends Exchange {
         $market = $this->market($symbol);
         $maxLimit = 100;
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimit);
         }
@@ -1434,7 +1434,7 @@ class bullish extends Exchange {
         }
         $maxLimit = 100;
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
             $params = $this->handle_pagination_params('fetchFundingRateHistory', $since, $params);
             return $this->fetch_paginated_call_dynamic('fetchFundingRateHistory', $symbol, $since, $limit, $params, $maxLimit);
@@ -2238,7 +2238,7 @@ class bullish extends Exchange {
         );
     }
 
-    public function parse_transaction_type(mixed $type) {
+    public function parse_transaction_type(?string $type) {
         $types = array(
             'DEPOSIT' => 'deposit',
             'WITHDRAW' => 'withdrawal',
@@ -2263,7 +2263,7 @@ class bullish extends Exchange {
             $response = $this->privateGetV1AccountsTradingAccounts($params);
             $accounts = $this->to_array($response);
             for ($i = 0; $i < count($accounts); $i++) {
-                $account = $accounts[$i];
+                $account = $this->safe_dict($accounts, $i);
                 $name = $this->safe_string($account, 'tradingAccountName');
                 if ($name === 'Primary Account') {
                     $tradingAccountId = $this->safe_string($account, 'tradingAccountId');
@@ -2437,7 +2437,7 @@ class bullish extends Exchange {
         return $this->parse_deposit_address($data, $currency);
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         $id = $this->safe_string($depositAddress, 'symbol');
         $network = $this->safe_string($depositAddress, 'network');
         $code = $this->safe_currency_code($id, $currency);
@@ -2509,7 +2509,7 @@ class bullish extends Exchange {
             'info' => $response,
         );
         for ($i = 0; $i < count($response); $i++) {
-            $balance = $response[$i];
+            $balance = $this->safe_dict($response, $i);
             $symbol = $this->safe_string($balance, 'assetSymbol');
             $code = $this->safe_currency_code($symbol);
             $account = $this->account();
@@ -2647,7 +2647,7 @@ class bullish extends Exchange {
         $tradingAccountId = $this->load_account($params);
         $maxLimit = 100;
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchTransfers', 'paginate', false);
         if ($paginate) {
             $params = $this->handle_pagination_params('fetchTransfers', $since, $params);
             return $this->fetch_paginated_call_dynamic('fetchTransfers', $code, $since, $limit, $params, $maxLimit);

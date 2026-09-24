@@ -516,10 +516,10 @@ class apex(Exchange, ImplicitAPI):
         networks = {}
         chains = self.options['_temp_currencies_chains']
         for j in range(0, len(chains)):
-            chain = chains[j]
+            chain = self.safe_dict(chains, j)
             tokens = self.safe_list(chain, 'tokens', [])
             for f in range(0, len(tokens)):
-                token = tokens[f]
+                token = self.safe_dict(tokens, f)
                 tokenName = self.safe_string(token, 'token')
                 if tokenName == currencyId:
                     networkId = self.safe_string(chain, 'chainId')
@@ -1264,7 +1264,11 @@ class apex(Exchange, ImplicitAPI):
 
     def generate_random_client_id_omni(self, _accountId: Str):
         hasAccountId = (_accountId is not None) and (_accountId != '')
-        accountId = _accountId if hasAccountId else str(self.rand_number(12))
+        accountId = None
+        if hasAccountId:
+            accountId = _accountId
+        else:
+            accountId = str(self.rand_number(12))
         return 'apexomni-' + accountId + '-' + str(self.milliseconds()) + '-' + str(self.rand_number(6))
 
     def add_hyphen_before_usdt(self, symbol: str):
@@ -1766,7 +1770,7 @@ class apex(Exchange, ImplicitAPI):
         fundingValues = self.safe_list(data, 'fundingValues', [])
         return self.parse_incomes(fundingValues, market, since, limit)
 
-    def parse_income(self, income: object, market: Market = None) -> object:
+    def parse_income(self, income: dict, market: Market = None) -> object:
         #
         # {
         #     "id": "1234",

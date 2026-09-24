@@ -1474,7 +1474,7 @@ func (this *Deribit) ParseBalance(balance any) any {
 		summaries = []any{balance}
 	}
 	for i := 0; i < GetArrayLength(summaries); i++ {
-		var data map[string]any = MapTyped(GetValue(summaries, i))
+		var data map[string]any = SafeMapTyped(summaries, i)
 		var currencyId *string = this.SafeString(data, "currency")
 		var currencyCode *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -1981,7 +1981,7 @@ func (this *Deribit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -4211,7 +4211,7 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	var maxEntriesPerRequest int = 744 // seems exchange returns max 744 items per request
@@ -4273,12 +4273,7 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	var rates []any = []any{}
 	var result []any = SafeListTyped(response, "result")
 	for i := 0; i < len(result); i++ {
-		var fr any = func() any {
-			if i >= 0 && i < len(result) {
-				return DerefScalar(result[i])
-			}
-			return nil
-		}()
+		var fr map[string]any = SafeMapTyped(result, i)
 		var rate any = this.ParseFundingRate(fr, market)
 		rates = append(rates, rate)
 	}
@@ -4363,7 +4358,7 @@ func (this *Deribit) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLiquidations", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchLiquidations", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -4754,7 +4749,7 @@ func (this *Deribit) fetchOptionBody(ch chan any, symbol any, optionalArgs ...an
 	//         "testnet": false
 	//     }
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any = SafeListTyped(response, "result")
 	var chain map[string]any = MapTyped(this.SafeDict(result, 0, map[string]any{}))
 
 	ch <- this.ParseOption(chain, nil, market)
@@ -4946,7 +4941,7 @@ func (this *Deribit) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs
 	//         "testnet": true
 	//     }
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any = SafeListTyped(response, "result")
 	var data map[string]any = MapTyped(this.SafeDict(result, 0, map[string]any{}))
 
 	ch <- this.ParseOpenInterest(data, market)

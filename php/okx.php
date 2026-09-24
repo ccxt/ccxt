@@ -1627,7 +1627,7 @@ class okx extends Exchange {
             'info' => $response,
         );
         for ($i = 0; $i < count($data); $i++) {
-            $event = $data[$i];
+            $event = $this->safe_dict($data, $i);
             $state = $this->safe_string($event, 'state');
             $update['eta'] = $this->safe_integer($event, 'end');
             $update['url'] = $this->safe_string($event, 'href');
@@ -2100,7 +2100,7 @@ class okx extends Exchange {
         $type = 'crypto';
         $chainsLength = count($chains);
         for ($j = 0; $j < $chainsLength; $j++) {
-            $chain = $chains[$j];
+            $chain = $this->safe_dict($chains, $j);
             // allow empty string for rare fiat-currencies, e.g. TRY
             $networkId = $this->safe_string($chain, 'chain', ''); // USDT-BEP20, USDT-Avalance-C, etc
             if ($networkId === '') {
@@ -2174,7 +2174,7 @@ class okx extends Exchange {
             'instId' => $market['id'],
         );
         $rpi = false;
-        list($rpi, $params) = $this->handle_option_and_params($params, 'fetchOrderBook', 'rpi');
+        list($rpi, $params) = $this->handle_option_bool_and_params($params, 'fetchOrderBook', 'rpi', false);
         $method = null;
         list($method, $params) = $this->handle_option_string_and_params($params, 'fetchOrderBook', 'method', 'publicGetMarketBooks');
         if ($method === 'publicGetMarketBooksFull' && $limit === null) {
@@ -2594,7 +2594,7 @@ class okx extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchTrades', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchTrades', $symbol, $since, $limit, $params, 'tradeId', 'after', null, 100);
         }
@@ -2710,7 +2710,7 @@ class okx extends Exchange {
         }
         $market = $this->market($symbol);
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 200);
         }
@@ -2820,7 +2820,7 @@ class okx extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params, 100);
         }
@@ -2889,7 +2889,7 @@ class okx extends Exchange {
         $timestamp = $this->safe_integer($first, 'uTime');
         $details = $this->safe_list($first, 'details', array());
         for ($i = 0; $i < count($details); $i++) {
-            $balance = $details[$i];
+            $balance = $this->safe_dict($details, $i);
             $currencyId = $this->safe_string($balance, 'ccy');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -2916,7 +2916,7 @@ class okx extends Exchange {
         $result = array( 'info' => $response );
         $data = $this->safe_list($response, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
-            $balance = $data[$i];
+            $balance = $this->safe_dict($data, $i);
             $currencyId = $this->safe_string($balance, 'ccy');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -3270,12 +3270,12 @@ class okx extends Exchange {
         } elseif ($contract === true) {
             if (($market['swap'] === true) || ($market['future'] === true)) {
                 $positionSide = null;
-                list($positionSide, $params) = $this->handle_option_and_params($params, 'createOrder', 'positionSide');
+                list($positionSide, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'positionSide');
                 if ($positionSide !== null) {
                     $request['posSide'] = $positionSide;
                 } else {
                     $hedged = null;
-                    list($hedged, $params) = $this->handle_option_and_params($params, 'createOrder', 'hedged');
+                    list($hedged, $params) = $this->handle_option_bool_and_params($params, 'createOrder', 'hedged');
                     if ($hedged === true) {
                         $isBuy = ($side === 'buy');
                         $isProtective = ($takeProfitPrice !== null) || ($stopLossPrice !== null) || $isReduceOnly;
@@ -3579,7 +3579,7 @@ class okx extends Exchange {
         }
         $ordersRequests = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $marketId = $this->safe_string($rawOrder, 'symbol');
             if ($marketId === null) {
                 throw new ArgumentsRequired($this->id . ' createOrders() requires a symbol for each order');
@@ -3984,7 +3984,7 @@ class okx extends Exchange {
             $method = 'privatePostTradeCancelAlgos';
         }
         for ($i = 0; $i < count($orders); $i++) {
-            $order = $orders[$i];
+            $order = $this->safe_dict($orders, $i);
             $id = $this->safe_string($order, 'id');
             $clientOrderId = $this->safe_string_2($order, 'clOrdId', 'clientOrderId');
             $symbol = $this->safe_string($order, 'symbol');
@@ -4560,7 +4560,7 @@ class okx extends Exchange {
         }
         $maxLimit = 100;
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOpenOrders', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchOpenOrders', $symbol, $since, $limit, $params, $maxLimit);
         }
@@ -4917,7 +4917,7 @@ class okx extends Exchange {
         }
         $maxLimit = 100;
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchClosedOrders', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchClosedOrders', $symbol, $since, $limit, $params, $maxLimit);
         }
@@ -5097,7 +5097,7 @@ class okx extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params);
         }
@@ -5198,7 +5198,7 @@ class okx extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchLedger', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchLedger', $code, $since, $limit, $params);
         }
@@ -5389,7 +5389,7 @@ class okx extends Exchange {
         ), $currency);
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "addr": "okbtothemoon",
@@ -5654,7 +5654,7 @@ class okx extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchDeposits', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchDeposits', $code, $since, $limit, $params);
         }
@@ -5766,7 +5766,7 @@ class okx extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchWithdrawals', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchWithdrawals', $code, $since, $limit, $params);
         }
@@ -6080,7 +6080,7 @@ class okx extends Exchange {
         $longLeverage = null;
         $shortLeverage = null;
         for ($i = 0; $i < count($leverage); $i++) {
-            $entry = $leverage[$i];
+            $entry = $this->safe_dict($leverage, $i);
             $marginMode = $this->safe_string_lower($entry, 'mgnMode');
             $marketId = $this->safe_string($entry, 'instId');
             $positionSide = $this->safe_string_lower($entry, 'posSide');
@@ -7427,7 +7427,7 @@ class okx extends Exchange {
         //
         $borrowRateHistories = array();
         for ($i = 0; $i < count($response); $i++) {
-            $item = $response[$i];
+            $item = $this->safe_dict($response, $i);
             $code = $this->safe_currency_code($this->safe_string($item, 'ccy'));
             if (($code !== null) && ($codes === null || $this->in_array($code, $codes))) {
                 if (!(is_array($borrowRateHistories) && array_key_exists($code ?? '', $borrowRateHistories))) {
@@ -7769,7 +7769,7 @@ class okx extends Exchange {
         //
         $tiers = array();
         for ($i = 0; $i < count($info); $i++) {
-            $tier = $info[$i];
+            $tier = $this->safe_dict($info, $i);
             $marketId = $this->safe_string($tier, 'instId');
             $tiers[] = array(
                 'tier' => $this->safe_integer($tier, 'tier'),
@@ -8452,7 +8452,7 @@ class okx extends Exchange {
         //
         $result = array();
         for ($i = 0; $i < count($settlements); $i++) {
-            $entry = $settlements[$i];
+            $entry = $this->safe_dict($settlements, $i);
             $timestamp = $this->safe_integer($entry, 'ts');
             $details = $this->safe_list($entry, 'details', array());
             for ($j = 0; $j < count($details); $j++) {
@@ -9294,7 +9294,7 @@ class okx extends Exchange {
             $feedback = $this->id . ' ' . $body;
             $data = $this->safe_list($response, 'data', array());
             for ($i = 0; $i < count($data); $i++) {
-                $error = $data[$i];
+                $error = $this->safe_dict($data, $i);
                 $errorCode = $this->safe_string($error, 'sCode');
                 $message = $this->safe_string($error, 'sMsg');
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
@@ -9547,7 +9547,7 @@ class okx extends Exchange {
         $data = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
-            $entry = $data[$i];
+            $entry = $this->safe_list($data, $i);
             $result[] = array(
                 'timestamp' => $this->safe_string($entry, 0),
                 'longShortRatio' => $this->safe_string($entry, 1),

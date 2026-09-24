@@ -122,7 +122,11 @@ public partial class grvt : ccxt.grvt
             { "params", request },
             { "id", this.requestId() },
         };
-        string apiPart = isTrue(publicOrPrivate) ? "publicMarket" : "privateTrading";
+        string apiPart = "privateTrading";
+        if (isTrue(publicOrPrivate))
+        {
+            apiPart = "publicMarket";
+        }
         return await this.watchMultiple(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), apiPart), messageHashes, payload, rawHashes);
     }
 
@@ -465,7 +469,7 @@ public partial class grvt : ccxt.grvt
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbolsAndTimeframes); i++)
         {
-            object data = getValue(symbolsAndTimeframes, i);
+            List<object> data = this.safeList(symbolsAndTimeframes, i);
             string? symbolString = this.safeString(data, 0);
             Dictionary<string, object> market = this.market(symbolString);
             object marketId = (market.ContainsKey("id") ? market["id"] : null);

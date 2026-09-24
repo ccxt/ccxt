@@ -325,7 +325,7 @@ func (this *Extended) HandleBalance(client any, message any) {
 			ccxt.AddElementToObject(this.Balance, code, account)
 		}
 	}
-	var spotBalances []any = ccxt.SafeListTypedDefault(data, "spotBalances", []any{})
+	var spotBalances []any = ccxt.SafeListTyped(data, "spotBalances")
 	for i := 0; i < len(spotBalances); i++ {
 		var spotBalance map[string]any = ccxt.SafeMapTyped(spotBalances, i)
 		var currencyId *string = this.SafeString(spotBalance, "asset")
@@ -426,7 +426,7 @@ func (this *Extended) HandleMyTrades(client any, message any) {
 	}
 	var stored any = this.MyTrades
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
-	var rawTrades []any = ccxt.SafeListTypedDefault(data, "trades", []any{})
+	var rawTrades []any = ccxt.SafeListTyped(data, "trades")
 	var symbols map[string]any = map[string]any{}
 	var first map[string]any = ccxt.SafeMapTyped(rawTrades, 0)
 	if ccxt.IsEqual(first, nil) {
@@ -538,7 +538,7 @@ func (this *Extended) HandlePositions(client any, message any) {
 	}
 	var stored any = this.Positions
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
-	var rawPositions []any = ccxt.SafeListTypedDefault(data, "positions", []any{})
+	var rawPositions []any = ccxt.SafeListTyped(data, "positions")
 	var newPositions []any = []any{}
 	var first map[string]any = ccxt.SafeMapTyped(rawPositions, 0)
 	if ccxt.IsEqual(first, nil) {
@@ -872,7 +872,7 @@ func (this *Extended) HandleTrades(client any, message any) {
 	//         "seq": 2
 	//     }
 	//
-	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var data []any = ccxt.SafeListTyped(message, "data")
 	var first map[string]any = ccxt.SafeMapTyped(data, 0)
 	if ccxt.IsEqual(first, nil) {
 		return
@@ -1001,12 +1001,12 @@ func (this *Extended) HandleOHLCV(client any, message any) {
 	var symbol *string = this.SafeString(subscription, "symbol")
 	var timeframe *string = this.SafeString(subscription, "timeframe")
 	var candleType *string = this.SafeString(subscription, "candleType")
-	var cacheKey any = func() any {
-		if candleType != nil && *candleType == "trades" {
-			return timeframe
-		}
-		return ccxt.Add(ccxt.Add(timeframe, ":"), candleType)
-	}()
+	var cacheKey any = nil
+	if candleType != nil && *candleType == "trades" {
+		cacheKey = timeframe
+	} else {
+		cacheKey = ccxt.Add(ccxt.Add(timeframe, ":"), candleType)
+	}
 	var messageHash *string = this.SafeString(subscription, "messageHash")
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), cacheKey)

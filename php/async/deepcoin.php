@@ -1022,7 +1022,7 @@ class deepcoin extends Exchange {
         );
         $balances = $this->safe_list($response, 'data', array());
         for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+            $balance = $this->safe_dict($balances, $i);
             $symbol = $this->safe_string($balance, 'ccy');
             $code = $this->safe_currency_code($symbol);
             $account = $this->account();
@@ -1297,7 +1297,7 @@ class deepcoin extends Exchange {
         return $address;
     }
 
-    public function parse_deposit_address(mixed $response, ?array $currency = null): array {
+    public function parse_deposit_address(array $response, ?array $currency = null): array {
         //
         //     {
         //         "chain": "TRC20",
@@ -1417,7 +1417,10 @@ class deepcoin extends Exchange {
         $timestamp = $this->safe_integer($item, 'ts');
         $change = $this->safe_string($item, 'balChg');
         $amount = Precise::string_abs($change);
-        $direction = Precise::string_lt($change, '0') ? 'out' : 'in';
+        $direction = 'in';
+        if (Precise::string_lt($change, '0')) {
+            $direction = 'out';
+        }
         $currencyId = $this->safe_string($item, 'ccy');
         $currency = $this->safe_currency($currencyId, $currency);
         $type = $this->safe_string($item, 'type');
@@ -2031,7 +2034,7 @@ class deepcoin extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchCanceledAndClosedOrders', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchCanceledAndClosedOrders', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_dynamic('fetchCanceledAndClosedOrders', $symbol, $since, $limit, $params));
         }
@@ -3094,7 +3097,7 @@ class deepcoin extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params));
         }

@@ -853,7 +853,7 @@ class pacifica extends Exchange {
         $result['USDC'] = $usdcAccount;
         $spotBalances = $this->safe_list($data, 'spot_balances', array());
         for ($i = 0; $i < count($spotBalances); $i++) {
-            $balance = $spotBalances[$i];
+            $balance = $this->safe_dict($spotBalances, $i);
             $currencyId = $this->safe_string($balance, 'symbol');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -920,7 +920,10 @@ class pacifica extends Exchange {
         // }
         $isIsolated = $this->safe_bool($setting, 'isolated', false);
         $leverage = $this->safe_integer($setting, 'leverage');
-        $marginMode = ($isIsolated === true) ? 'isolated' : 'cross';
+        $marginMode = 'cross';
+        if ($isIsolated === true) {
+            $marginMode = 'isolated';
+        }
         return array(
             'info' => $setting,
             'symbol' => $symbol,
@@ -1055,7 +1058,10 @@ class pacifica extends Exchange {
         //
         // }
         $isIsolated = $this->safe_bool($setting, 'isolated', false);
-        $marginMode = ($isIsolated === true) ? 'isolated' : 'cross';
+        $marginMode = 'cross';
+        if ($isIsolated === true) {
+            $marginMode = 'isolated';
+        }
         return array(
             'symbol' => $symbol,
             'marginMode' => $marginMode,
@@ -1736,7 +1742,7 @@ class pacifica extends Exchange {
         $actions = array();
         $timestamp = $this->milliseconds(); // unified sequence
         for ($i = 0; $i < count($orders); $i++) {
-            $order = $orders[$i];
+            $order = $this->safe_dict($orders, $i);
             $symbol = $this->safe_string($order, 'symbol');
             $side = $this->safe_string($order, 'side');
             $price = $this->safe_string($order, 'price');
@@ -1991,7 +1997,10 @@ class pacifica extends Exchange {
         // }
         //
         $success = $this->safe_bool($response, 'success', false);
-        $status = ($success === true) ? 'canceled' : 'closed';
+        $status = 'closed';
+        if ($success === true) {
+            $status = 'canceled';
+        }
         return $this->safe_order(array( 'id' => $id, 'status' => $status, 'info' => $response, 'symbol' => $symbol ));
     }
 
@@ -3230,7 +3239,7 @@ class pacifica extends Exchange {
         return $this->parse_incomes($data, $market, $since, $limit);
     }
 
-    public function parse_income(mixed $income, ?array $market = null): array {
+    public function parse_income(array $income, ?array $market = null): array {
         //
         //     {
         //       "history_id": 2287920,
@@ -3352,7 +3361,7 @@ class pacifica extends Exchange {
          */
         $finalHeaders = array( );
         $agentAddress = null;
-        list($agentAddress, $params) = $this->handle_option_and_params($params, 'createSubAccount', 'agentAddress');
+        list($agentAddress, $params) = $this->handle_option_string_and_params($params, 'createSubAccount', 'agentAddress');
         $originAddress = null;
         list($originAddress, $params) = $this->handle_origin_and_single_address('createSubAccount', $params);
         if ($originAddress === null) {
@@ -3362,9 +3371,9 @@ class pacifica extends Exchange {
             $finalHeaders['agent_wallet'] = $agentAddress;
         }
         $subAccountAddress = null;
-        list($subAccountAddress, $params) = $this->handle_option_and_params($params, 'createSubAccount', 'subAccountAddress');
+        list($subAccountAddress, $params) = $this->handle_option_string_and_params($params, 'createSubAccount', 'subAccountAddress');
         $subAccountPrivateKey = null;
-        list($subAccountPrivateKey, $params) = $this->handle_option_and_params($params, 'createSubAccount', 'subAccountPrivateKey');
+        list($subAccountPrivateKey, $params) = $this->handle_option_string_and_params($params, 'createSubAccount', 'subAccountPrivateKey');
         if ($subAccountAddress === null) {
             throw new ArgumentsRequired($this->id . ' createSubAccount() requires a "subAccountAddress"!');
         }
@@ -3522,7 +3531,10 @@ class pacifica extends Exchange {
 
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
         $host = $this->implode_hostname($this->urls[$urlKey][$api]);
         $url = $host . '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
@@ -3630,7 +3642,7 @@ class pacifica extends Exchange {
         $signature = $this->sign_message($signatureHeader, $sigPayload, $this->privateKey);
         $finalHeaders = array( );
         $agentAddress = null;
-        list($agentAddress, $params) = $this->handle_option_and_params($params, 'postActionRequest', 'agentAddress');
+        list($agentAddress, $params) = $this->handle_option_string_and_params($params, 'postActionRequest', 'agentAddress');
         $originAddress = null;
         list($originAddress, $params) = $this->handle_origin_and_single_address('postActionRequest', $params);
         if ($originAddress === null) {

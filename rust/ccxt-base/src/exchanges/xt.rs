@@ -2515,7 +2515,7 @@ impl XtCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1139: bool = true;
             while { if !__for_first_1139 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1139 = false; i.as_f64().unwrap_or(f64::NAN) < ((filters.len() as i64) as f64) } {
-            let mut entry: Value = filters.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = self.safe_dict(filters.clone(), i.clone(), &[]);
             let mut filter: Option<String> = self.safe_string_k(entry.clone(), "filter", &[]).as_str().map(str::to_owned);
             if (filter.as_deref() == Some("QUANTITY")) {
                 minAmount = self.safe_number_k(entry.clone(), "min", &[]);
@@ -2805,7 +2805,10 @@ impl XtCore {
         //     }
         //
         let mut isInverse: Value = (match market.get("inverse") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Null });
-        let mut volumeIndex: Value = (if (isInverse.as_bool() == Some(true)) { Value::Str("v".into()) } else { Value::Str("a".into()) });
+        let mut volumeIndex: Value = Value::Str("a".into());
+        if (isInverse.as_bool() == Some(true)) {
+            volumeIndex = Value::Str("v".into());
+        }
         return Value::from(vec![self.safe_integer_k(ohlcv.clone(), "t", &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number2(ohlcv, Value::Str("q".into()), volumeIndex, &[])]);
 
     Value::Null
@@ -3219,7 +3222,10 @@ impl XtCore {
             // the spot and contract payloads share the same field names, so
             // the market type cannot be inferred from the entry itself
             let mut marketId: Value = self.safe_string_k(rawTicker.clone(), "s", &[]);
-            let mut marketType: Value = (if isContract { Value::Str("contract".into()) } else { Value::Str("spot".into()) });
+            let mut marketType: Value = Value::Str("spot".into());
+            if isContract {
+                marketType = Value::Str("contract".into());
+            }
             let mut marketInner: Value = self.safe_market(&[marketId, market.clone(), Value::Str("_".into()), marketType]);
             let mut ticker: Value = self.parse_ticker(rawTicker, &[marketInner]);
             let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -3464,7 +3470,10 @@ impl XtCore {
         }  else {
             let mut marginMode: Value = Value::Null;
             { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchMyTrades".into()), &[params.clone()]); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-            let mut marginOrSpotRequest: Value = (if (marginMode != Value::Null) { Value::Str("LEVER".into()) } else { Value::Str("SPOT".into()) });
+            let mut marginOrSpotRequest: Value = Value::Str("SPOT".into());
+            if (marginMode != Value::Null) {
+                marginOrSpotRequest = Value::Str("LEVER".into());
+            }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("bizType".into(), marginOrSpotRequest); }
             if (limit != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
@@ -3845,8 +3854,7 @@ impl XtCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1142: bool = true;
             while { if !__for_first_1142 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1142 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
-            let mut balance: Value = get_value(&response, &i);
-            let mut balance: Value = get_value(&response, &i);
+            let mut balance: Value = self.safe_dict(response.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string2(balance.clone(), Value::Str("currency".into()), Value::Str("coin".into()), &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut account: Value = self.account();
@@ -3970,7 +3978,10 @@ impl XtCore {
         let mut timeInForce: Value = Value::Null;
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[params.clone()]); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut marginOrSpotRequest: Value = (if (marginMode != Value::Null) { Value::Str("LEVER".into()) } else { Value::Str("SPOT".into()) });
+        let mut marginOrSpotRequest: Value = Value::Str("SPOT".into());
+        if (marginMode != Value::Null) {
+            marginOrSpotRequest = Value::Str("LEVER".into());
+        }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("bizType".into(), marginOrSpotRequest); }
         if (type_var.as_str() == Some("market")) {
             timeInForce = self.safe_string_upper_k(params.clone(), "timeInForce", &[Value::Str("FOK".into())]);
@@ -4060,10 +4071,16 @@ impl XtCore {
         }
         let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]);
         if (side.as_str() == Some("buy")) {
-            let mut requestType: Value = (if (reduceOnly.as_bool() == Some(true)) { Value::Str("SHORT".into()) } else { Value::Str("LONG".into()) });
+            let mut requestType: Value = Value::Str("LONG".into());
+            if (reduceOnly.as_bool() == Some(true)) {
+                requestType = Value::Str("SHORT".into());
+            }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("positionSide".into(), requestType.clone()); }
         }  else {
-            let mut requestType: Value = (if (reduceOnly.as_bool() == Some(true)) { Value::Str("LONG".into()) } else { Value::Str("SHORT".into()) });
+            let mut requestType: Value = Value::Str("SHORT".into());
+            if (reduceOnly.as_bool() == Some(true)) {
+                requestType = Value::Str("LONG".into());
+            }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("positionSide".into(), requestType); }
         }
         let mut response: Value = Value::Map({
@@ -4120,7 +4137,10 @@ impl XtCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("triggerPriceType".into(), self.safe_string_k(params.clone(), "triggerPriceType", &[Value::Str("LATEST_PRICE".into())])); }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderSide".into(), to_upper(&side)); }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopPrice".into(), self.price_to_precision(symbol.clone(), triggerPrice)); }
-            let mut entrustType: Value = (if (type_var.as_str() == Some("market")) { Value::Str("STOP_MARKET".into()) } else { Value::Str("STOP".into()) });
+            let mut entrustType: Value = Value::Str("STOP".into());
+            if (type_var.as_str() == Some("market")) {
+                entrustType = Value::Str("STOP_MARKET".into());
+            }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("entrustType".into(), entrustType); }
             params = self.omit(params.clone(), Value::Str("triggerPrice".into()), &[]);
             if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
@@ -4462,7 +4482,10 @@ impl XtCore {
         }  else {
             let mut marginMode: Value = Value::Null;
             { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchOrders".into()), &[params.clone()]); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-            let mut marginOrSpotRequest: Value = (if (marginMode != Value::Null) { Value::Str("LEVER".into()) } else { Value::Str("SPOT".into()) });
+            let mut marginOrSpotRequest: Value = Value::Str("SPOT".into());
+            if (marginMode != Value::Null) {
+                marginOrSpotRequest = Value::Str("LEVER".into());
+            }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("bizType".into(), marginOrSpotRequest); }
             let __ws_arg_45 = self.extend(request, &[params]);
             response = self.private_spot_get_history_order(&[__ws_arg_45]).await;
@@ -4707,7 +4730,10 @@ impl XtCore {
         }  else {
             let mut marginMode: Value = Value::Null;
             { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchOrdersByStatus".into()), &[params.clone()]); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-            let mut marginOrSpotRequest: Value = (if (marginMode != Value::Null) { Value::Str("LEVER".into()) } else { Value::Str("SPOT".into()) });
+            let mut marginOrSpotRequest: Value = Value::Str("SPOT".into());
+            if (marginMode != Value::Null) {
+                marginOrSpotRequest = Value::Str("LEVER".into());
+            }
             add_element_to_object(&mut request, &Value::Str("bizType".into()), marginOrSpotRequest);
             if (status.as_str() != Some("open")) {
                 if (since != Value::Null) {
@@ -5224,7 +5250,10 @@ impl XtCore {
         }  else {
             let mut marginMode: Value = Value::Null;
             { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("cancelAllOrders".into()), &[params.clone()]); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-            let mut marginOrSpotRequest: Value = (if (marginMode != Value::Null) { Value::Str("LEVER".into()) } else { Value::Str("SPOT".into()) });
+            let mut marginOrSpotRequest: Value = Value::Str("SPOT".into());
+            if (marginMode != Value::Null) {
+                marginOrSpotRequest = Value::Str("LEVER".into());
+            }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("bizType".into(), marginOrSpotRequest); }
             let __ws_arg_75 = self.extend(request, &[params]);
             response = self.private_spot_delete_open_order(&[__ws_arg_75]).await;
@@ -5596,7 +5625,10 @@ impl XtCore {
         //     }
         //
         let mut side: Option<String> = self.safe_string_k(item.clone(), "side", &[]).as_str().map(str::to_owned);
-        let mut direction: Value = (if (side.as_deref() == Some("ADD")) { Value::Str("in".into()) } else { Value::Str("out".into()) });
+        let mut direction: Value = Value::Str("out".into());
+        if (side.as_deref() == Some("ADD")) {
+            direction = Value::Str("in".into());
+        }
         let mut currencyId: Value = self.safe_string_k(item.clone(), "coin", &[]);
         currency = self.safe_currency(currencyId.clone(), &[currency.clone()]);
         let mut timestamp: Value = self.safe_integer_k(item.clone(), "createdTime", &[]);
@@ -6135,7 +6167,10 @@ impl XtCore {
     m
 }));
         let mut positionSide: Value = self.safe_string_k(params.clone(), "positionSide", &[]);
-        let mut methodName: Value = (if (addOrReduce.as_str() == Some("ADD")) { Value::Str("addMargin".into()) } else { Value::Str("reduceMargin".into()) });
+        let mut methodName: Value = Value::Str("reduceMargin".into());
+        if (addOrReduce.as_str() == Some("ADD")) {
+            methodName = Value::Str("addMargin".into());
+        }
         self.check_required_argument(methodName, positionSide.clone(), Value::Str("positionSide".into()), &[Value::from(vec![Value::Str("LONG".into()), Value::Str("SHORT".into())])]);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -6269,8 +6304,7 @@ impl XtCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1143: bool = true;
             while { if !__for_first_1143 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1143 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&response, &i);
-            let mut entry: Value = get_value(&response, &i);
+            let mut entry: Value = self.safe_dict(response.clone(), i.clone(), &[]);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("_".into()), Value::Str("contract".into())]);
             let mut symbol: Value = self.safe_symbol(marketId, &[market.clone()]);
@@ -6377,7 +6411,7 @@ impl XtCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1144: bool = true;
             while { if !__for_first_1144 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1144 = false; i.as_f64().unwrap_or(f64::NAN) < ((brackets.len() as i64) as f64) } {
-            let mut tier: Value = brackets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut tier: Value = self.safe_dict(brackets.clone(), i.clone(), &[]);
             let mut marketId: Value = self.safe_string_k(info.clone(), "symbol", &[]);
             market = self.safe_market(&[marketId.clone(), market.clone(), Value::Str("_".into()), Value::Str("contract".into())]);
             let mut minNotional: Value = self.safe_number(get_value(&brackets, &(match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), Value::Str("maxNominalValue".into()), &[Value::Int(0)]);
@@ -6427,7 +6461,7 @@ impl XtCore {
             self.load_markets(&[]).await;
         }
         let mut paginate: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_bool_and_params(params.clone(), Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&paginate) {
             return self.fetch_paginated_call_cursor(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), params.clone(), Value::Str("id".into()), Value::Str("id".into()), Value::Int(1), Value::Int(200)]).await;
         }
@@ -6915,7 +6949,7 @@ impl XtCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1147: bool = true;
             while { if !__for_first_1147 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1147 = false; i.as_f64().unwrap_or(f64::NAN) < ((items.len() as i64) as f64) } {
-            let mut entry: Value = items.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = self.safe_dict(items.clone(), i.clone(), &[]);
             append_to_array(&mut result, self.parse_funding_history(entry, &[market.clone()]));
         }
         }
@@ -7365,7 +7399,10 @@ impl XtCore {
         // "ISOLATED"/"CROSSED" on position/list, 1 = cross / 2 = isolated on position/list-history
         let mut positionType: Option<String> = self.safe_string_k(position.clone(), "positionType", &[]).as_str().map(str::to_owned);
         let mut isCross: bool = (positionType.as_deref() == Some("CROSSED")) || (positionType.as_deref() == Some("1"));
-        let mut marginMode: Value = (if (isCross) { Value::Str("cross".into()) } else { Value::Str("isolated".into()) });
+        let mut marginMode: Value = Value::Str("isolated".into());
+        if isCross {
+            marginMode = Value::Str("cross".into());
+        }
         let mut collateral: Value = self.safe_number_k(position.clone(), "isolatedMargin", &[]);
         // history entries carry the liquidation price in forceMarkPrice when force is true
         let mut liquidationPriceString: Value = self.omit_zero(self.safe_string2(position.clone(), Value::Str("breakPrice".into()), Value::Str("forceMarkPrice".into()), &[]));

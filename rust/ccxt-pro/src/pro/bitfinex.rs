@@ -867,7 +867,10 @@ impl BitfinexCore {
         //
         let mut numFields: Value = get_array_length(&trade);
         let mut isPublic: bool = numFields.as_f64().unwrap_or(f64::NAN) <= ((8i64) as f64);
-        let mut marketId: Value = (if (!isPublic) { self.safe_string(trade.clone(), Value::Int(1), &[]) } else { Value::Null });
+        let mut marketId: Value = Value::Null;
+        if !isPublic {
+            marketId = self.safe_string(trade.clone(), Value::Int(1), &[]);
+        }
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut createdKey: Value = (if isPublic { Value::Int(1) } else { Value::Int(2) });
         let mut priceKey: Value = (if isPublic { Value::Int(3) } else { Value::Int(5) });
@@ -881,7 +884,10 @@ impl BitfinexCore {
                 type_var = Value::Str("market".into());
             }
         }
-        let mut orderId: Value = (if (!isPublic) { self.safe_string(trade.clone(), Value::Int(3), &[]) } else { Value::Null });
+        let mut orderId: Value = Value::Null;
+        if !isPublic {
+            orderId = self.safe_string(trade.clone(), Value::Int(3), &[]);
+        }
         let mut id: Value = self.safe_string(trade.clone(), Value::Int(0), &[]);
         let mut timestamp: Value = self.safe_integer(trade.clone(), createdKey, &[]);
         let mut price: Value = self.safe_string(trade.clone(), priceKey, &[]);
@@ -1124,8 +1130,7 @@ impl BitfinexCore {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_104: bool = true;
                     while { if !__for_first_104 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_104 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&deltas).as_f64().unwrap_or(f64::NAN) } {
-                    let mut delta: Value = get_value(&deltas, &i);
-                    let mut delta: Value = get_value(&deltas, &i);
+                    let mut delta: Value = self.safe_list(deltas.clone(), i.clone(), &[]);
                     let mut amount: Value = self.safe_number(delta.clone(), Value::Int(2), &[]);
                     if (amount == Value::Null) {
                         continue;

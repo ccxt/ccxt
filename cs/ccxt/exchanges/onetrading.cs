@@ -838,7 +838,7 @@ public partial class onetrading : Exchange
         List<object> makerFees = new List<object>() {};
         for (int i = 0; i < getArrayLength(feeTiers); i++)
         {
-            object tier = getValue(feeTiers, i);
+            IDictionary<string, object> tier = this.safeDict(feeTiers, i);
             double? volume = this.safeNumber(tier, "volume");
             string? taker = this.safeString(tier, "taker_fee");
             string? maker = this.safeString(tier, "maker_fee");
@@ -1288,7 +1288,7 @@ public partial class onetrading : Exchange
         };
         for (int i = 0; i < balances.Count; i++)
         {
-            object balance = balances[i];
+            IDictionary<string, object> balance = this.safeDict(balances, i);
             string? currencyId = this.safeString(balance, "currency_code");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();

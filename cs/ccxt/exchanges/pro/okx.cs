@@ -102,7 +102,11 @@ public partial class okx : ccxt.okx
             throw new ArgumentsRequired ((this.id + " getUrl() requires a channel argument")) ;
         }
         object isSandbox = (this.options.ContainsKey("sandboxMode") ? this.options["sandboxMode"] : null);
-        string sandboxSuffix = (isEqual(isSandbox, true)) ? "?brokerId=9999" : "";
+        string sandboxSuffix = "";
+        if (isEqual(isSandbox, true))
+        {
+            sandboxSuffix = "?brokerId=9999";
+        }
         bool isBusiness = (isEqual(access, "business"));
         bool isPublic = (isEqual(access, "public"));
         object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
@@ -484,7 +488,7 @@ public partial class okx : ccxt.okx
         List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            object rawfr = data[i];
+            IDictionary<string, object> rawfr = this.safeDict(data, i);
             Dictionary<string, object> fundingRate = this.parseFundingRate(rawfr);
             string? symbol = ((string)(fundingRate != null && ((IDictionary<string, object>)fundingRate).ContainsKey("symbol") ? ((IDictionary<string, object>)fundingRate)["symbol"] : null));
             if ((symbol != null))
@@ -990,7 +994,11 @@ public partial class okx : ccxt.okx
         }
         bool? isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        string accessType = ((isTrigger == true)) ? "business" : "private";
+        string accessType = "private";
+        if ((isTrigger == true))
+        {
+            accessType = "business";
+        }
         await this.authenticate(new Dictionary<string, object>() {
             { "access", accessType },
         });
@@ -2015,11 +2023,19 @@ public partial class okx : ccxt.okx
         {
             await this.loadMarkets();
         }
-        string access = ((isTrigger == true)) ? "business" : "private";
+        string access = "private";
+        if ((isTrigger == true))
+        {
+            access = "business";
+        }
         await this.authenticate(new Dictionary<string, object>() {
             { "access", access },
         });
-        string channel = ((isTrigger == true)) ? "orders-algo" : "orders";
+        string channel = "orders";
+        if ((isTrigger == true))
+        {
+            channel = "orders-algo";
+        }
         object messageHash = (channel + "::myTrades");
         IDictionary<string, object> market = null;
         if ((symbolVar != null))
@@ -2242,7 +2258,11 @@ public partial class okx : ccxt.okx
         {
             await this.loadMarkets();
         }
-        string accessType = ((isTrigger == true)) ? "business" : "private";
+        string accessType = "private";
+        if ((isTrigger == true))
+        {
+            accessType = "business";
+        }
         await this.authenticate(new Dictionary<string, object>() {
             { "access", accessType },
         });
@@ -2276,7 +2296,11 @@ public partial class okx : ccxt.okx
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instType", uppercaseType },
         };
-        string channel = ((isTrigger == true)) ? "orders-algo" : "orders";
+        string channel = "orders";
+        if ((isTrigger == true))
+        {
+            channel = "orders-algo";
+        }
         object orders = await this.subscribe("private", channel, channel, symbolVar, this.extend(request, parameters));
         if (this.newUpdates)
         {
@@ -2834,7 +2858,7 @@ public partial class okx : ccxt.okx
                     List<object> data = this.safeList(message, "data", new List<object>() {});
                     for (int i = 0; i < (data?.Count ?? 0); i++)
                     {
-                        object d = data[i];
+                        IDictionary<string, object> d = this.safeDict(data, i);
                         errorCode = this.safeString(d, "sCode");
                         if ((errorCode != null))
                         {
@@ -2921,9 +2945,12 @@ public partial class okx : ccxt.okx
         //
         //
         //
-        if (isEqual(message, "pong"))
+        if ((message is string))
         {
-            this.handlePong(client, message);
+            if (isEqual(message, "pong"))
+            {
+                this.handlePong(client, message);
+            }
             return;
         }
         // const table = this.safeString (message, 'table');

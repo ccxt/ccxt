@@ -128,7 +128,12 @@ class luno extends \ccxt\async\luno {
         //       "order_id": "BXEEU4S2BWF5WRB"
         //     }
         //
-        $symbol = ($market === null) ? null : $market['symbol'];
+        $symbol = null;
+        if ($market === null) {
+            $symbol = null;
+        } else {
+            $symbol = $market['symbol'];
+        }
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => null,
@@ -221,7 +226,7 @@ class luno extends \ccxt\async\luno {
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->indexed_order_book(array());
         }
-        $asks = $this->safe_value($message, 'asks');
+        $asks = $this->safe_list($message, 'asks');
         if ($asks !== null) {
             $snapshot = $this->custom_parse_order_book($message, $symbol, $timestamp, 'bids', 'asks', 'price', 'volume', 'id');
             $this->orderbooks[$symbol] = $this->indexed_order_book($snapshot);
@@ -314,7 +319,7 @@ class luno extends \ccxt\async\luno {
         //         "timestamp": 1660598775360
         //     }
         //
-        $createUpdate = $this->safe_value($message, 'create_update');
+        $createUpdate = $this->safe_dict($message, 'create_update');
         $asksOrderSide = $orderbook['asks'];
         $bidsOrderSide = $orderbook['bids'];
         if ($createUpdate !== null) {
@@ -326,7 +331,7 @@ class luno extends \ccxt\async\luno {
                 $bidsOrderSide->storeArray($bidAskArray);
             }
         }
-        $deleteUpdate = $this->safe_value($message, 'delete_update');
+        $deleteUpdate = $this->safe_dict($message, 'delete_update');
         if ($deleteUpdate !== null) {
             $orderId = $this->safe_string($deleteUpdate, 'order_id');
             $asksOrderSide->storeArray(array( 0, 0, $orderId ));

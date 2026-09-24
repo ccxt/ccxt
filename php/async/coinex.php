@@ -977,7 +977,10 @@ class coinex extends Exchange {
             $quoteId = $this->safe_string($entry, 'quote_ccy');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $settleId = ($subType === 'linear') ? 'USDT' : $baseId;
+            $settleId = $baseId;
+            if ($subType === 'linear') {
+                $settleId = 'USDT';
+            }
             $settle = $this->safe_currency_code($settleId);
             $symbol = $base . '/' . $quote . ':' . $settle;
             $leveragesLength = count($leverages);
@@ -1796,7 +1799,7 @@ class coinex extends Exchange {
         $result = array( 'info' => $response );
         $balances = $this->safe_list($response, 'data', array());
         for ($i = 0; $i < count($balances); $i++) {
-            $entry = $balances[$i];
+            $entry = $this->safe_dict($balances, $i);
             $free = $this->safe_dict($entry, 'available', array());
             $used = $this->safe_dict($entry, 'frozen', array());
             $loan = $this->safe_dict($entry, 'repaid', array());
@@ -1841,7 +1844,7 @@ class coinex extends Exchange {
         $result = array( 'info' => $response );
         $balances = $this->safe_list($response, 'data', array());
         for ($i = 0; $i < count($balances); $i++) {
-            $entry = $balances[$i];
+            $entry = $this->safe_dict($balances, $i);
             $currencyId = $this->safe_string($entry, 'ccy');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -1882,7 +1885,7 @@ class coinex extends Exchange {
         $result = array( 'info' => $response );
         $balances = $this->safe_list($response, 'data', array());
         for ($i = 0; $i < count($balances); $i++) {
-            $entry = $balances[$i];
+            $entry = $this->safe_dict($balances, $i);
             $currencyId = $this->safe_string($entry, 'ccy');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -1920,7 +1923,7 @@ class coinex extends Exchange {
         $result = array( 'info' => $response );
         $balances = $this->safe_list($response, 'data', array());
         for ($i = 0; $i < count($balances); $i++) {
-            $entry = $balances[$i];
+            $entry = $this->safe_dict($balances, $i);
             $currencyId = $this->safe_string($entry, 'ccy');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -2198,7 +2201,10 @@ class coinex extends Exchange {
         if ($orderType === 'futures') {
             $orderType = 'swap';
         }
-        $marketType = ($orderType === 'swap') ? 'swap' : 'spot';
+        $marketType = 'spot';
+        if ($orderType === 'swap') {
+            $marketType = 'swap';
+        }
         $market = $this->safe_market($marketId, $market, null, $marketType);
         $feeCurrencyId = $this->safe_string($order, 'fee_ccy');
         $feeCurrency = $this->safe_currency_code($feeCurrencyId);
@@ -2655,7 +2661,7 @@ class coinex extends Exchange {
         $isTriggerOrder = false;
         $isStopLossOrTakeProfitTrigger = false;
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $marketId = $this->safe_string($rawOrder, 'symbol');
             if ($symbol === null) {
                 $symbol = $marketId;
@@ -3016,7 +3022,7 @@ class coinex extends Exchange {
         $data = $this->safe_list($response, 'data', array());
         $results = array();
         for ($i = 0; $i < count($data); $i++) {
-            $entry = $data[$i];
+            $entry = $this->safe_dict($data, $i);
             $item = $this->safe_dict($entry, 'data', array());
             $order = $this->parse_order($item, $market);
             $results[] = $order;
@@ -3195,7 +3201,7 @@ class coinex extends Exchange {
         $ordersRequests = array();
         $orderSymbols = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $marketId = $this->safe_string($rawOrder, 'symbol');
             $market = $this->market($marketId);
             if ($marketId !== null) {
@@ -3241,7 +3247,7 @@ class coinex extends Exchange {
         $data = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
-            $entry = $data[$i];
+            $entry = $this->safe_dict($data, $i);
             $code = $this->safe_string($entry, 'code');
             $message = $this->safe_string($entry, 'message', '');
             if (($code !== '0') || (($message !== 'Success') && ($message !== 'Succeeded') && (strtolower($message) !== 'ok') && ($data === null))) {
@@ -4166,7 +4172,7 @@ class coinex extends Exchange {
         return $this->parse_deposit_address($data, $currency);
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "address": "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
@@ -4694,7 +4700,12 @@ class coinex extends Exchange {
             $marketId = $this->safe_string($info, 'market');
             $market = $this->safe_market($marketId, $market, null, 'swap');
             $maxNotional = $this->safe_number($tier, 'amount');
-            $curr = ($market['linear'] === true) ? $market['base'] : $market['quote'];
+            $curr = null;
+            if ($market['linear'] === true) {
+                $curr = $market['base'];
+            } else {
+                $curr = $market['quote'];
+            }
             $notional = $minNotional;
             $tiers[] = array(
                 'tier' => $this->sum($i, 1),
@@ -4771,7 +4782,10 @@ class coinex extends Exchange {
         //
         $data = $this->safe_dict($response, 'data', array());
         $status = $this->safe_string_lower($response, 'message');
-        $type = ($addOrReduce === 'reduce') ? 'reduce' : 'add';
+        $type = 'add';
+        if ($addOrReduce === 'reduce') {
+            $type = 'reduce';
+        }
         return $this->extend($this->parse_margin_modification($data, $market), array(
             'type' => $type,
             'amount' => $this->parse_number($amount),
@@ -5242,7 +5256,7 @@ class coinex extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params, 1000));
         }
@@ -5361,7 +5375,10 @@ class coinex extends Exchange {
         $currencyId = $this->safe_string($transaction, 'ccy');
         $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = $this->safe_integer($transaction, 'created_at');
-        $type = (is_array($transaction) && array_key_exists('withdraw_id' ?? '', $transaction)) ? 'withdrawal' : 'deposit';
+        $type = 'deposit';
+        if (is_array($transaction) && array_key_exists('withdraw_id' ?? '', $transaction)) {
+            $type = 'withdrawal';
+        }
         $networkId = $this->safe_string($transaction, 'chain');
         $feeCost = $this->safe_string($transaction, 'tx_fee');
         $transferMethod = $this->safe_string_lower_2($transaction, 'withdraw_method', 'deposit_method');
@@ -6095,7 +6112,7 @@ class coinex extends Exchange {
         $data = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
-            $item = $data[$i];
+            $item = $this->safe_dict($data, $i);
             $asset = $this->safe_dict($item, 'asset', array());
             $currencyId = $this->safe_string($asset, 'ccy');
             if ($currencyId === null) {
@@ -6156,7 +6173,7 @@ class coinex extends Exchange {
         $chains = $this->safe_list($fee, 'chains', array());
         $asset = $this->safe_dict($fee, 'asset', array());
         for ($i = 0; $i < count($chains); $i++) {
-            $entry = $chains[$i];
+            $entry = $this->safe_dict($chains, $i);
             $isWithdrawEnabled = $this->safe_bool($entry, 'withdraw_enabled');
             if ($isWithdrawEnabled === true) {
                 $result['withdraw']['fee'] = $this->safe_number($entry, 'withdrawal_fee');

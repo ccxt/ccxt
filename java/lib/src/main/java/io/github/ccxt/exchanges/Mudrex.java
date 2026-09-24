@@ -2079,7 +2079,7 @@ public class Mudrex extends MudrexApi
             }
             // a REBATE row is a partial refund of one fill's TRANSACTION fee, matched by symbol, time and notional - each rebate is consumed once, so equal fills sharing a key net exactly one refund apiece
             List<Object> rebateKeys = new ArrayList<Object>(Arrays.asList());
-            List<Object> rebateAmounts = new ArrayList<Object>(Arrays.asList());
+            List<String> rebateAmounts = new ArrayList<String>(Arrays.asList());
             List<Object> transactions = new ArrayList<Object>(Arrays.asList());
             List<Object> transactionKeys = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)allRows).size(); i++)
@@ -2094,7 +2094,7 @@ public class Mudrex extends MudrexApi
                 } else if (java.util.Objects.equals(feeType, "REBATE"))
                 {
                     ((List<Object>)rebateKeys).add(pairKey);
-                    ((List<Object>)rebateAmounts).add(this.safeString(entry, "fee_amount", "0"));
+                    rebateAmounts.add(this.safeString(entry, "fee_amount", "0"));
                 }
             }
             List<Object> rows = new ArrayList<Object>(Arrays.asList());

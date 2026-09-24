@@ -1369,7 +1369,7 @@ class xt extends Exchange {
         $maxPrice = null;
         $amountPrecision = null;
         for ($i = 0; $i < count($filters); $i++) {
-            $entry = $filters[$i];
+            $entry = $this->safe_dict($filters, $i);
             $filter = $this->safe_string($entry, 'filter');
             if ($filter === 'QUANTITY') {
                 $minAmount = $this->safe_number($entry, 'min');
@@ -1629,7 +1629,10 @@ class xt extends Exchange {
         //     }
         //
         $isInverse = $this->safe_bool($market, 'inverse');
-        $volumeIndex = ($isInverse === true) ? 'v' : 'a';
+        $volumeIndex = 'a';
+        if ($isInverse === true) {
+            $volumeIndex = 'v';
+        }
         return array(
             $this->safe_integer($ohlcv, 't'),
             $this->safe_number($ohlcv, 'o'),
@@ -2001,7 +2004,10 @@ class xt extends Exchange {
             // the spot and contract payloads share the same field names, so
             // the market type cannot be inferred from the entry itself
             $marketId = $this->safe_string($rawTicker, 's');
-            $marketType = $isContract ? 'contract' : 'spot';
+            $marketType = 'spot';
+            if ($isContract) {
+                $marketType = 'contract';
+            }
             $marketInner = $this->safe_market($marketId, $market, '_', $marketType);
             $ticker = $this->parse_ticker($rawTicker, $marketInner);
             $symbol = $ticker['symbol'];
@@ -2221,7 +2227,10 @@ class xt extends Exchange {
         } else {
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchMyTrades', $params);
-            $marginOrSpotRequest = ($marginMode !== null) ? 'LEVER' : 'SPOT';
+            $marginOrSpotRequest = 'SPOT';
+            if ($marginMode !== null) {
+                $marginOrSpotRequest = 'LEVER';
+            }
             $request['bizType'] = $marginOrSpotRequest;
             if ($limit !== null) {
                 $request['limit'] = $limit;
@@ -2577,7 +2586,7 @@ class xt extends Exchange {
         //
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
-            $balance = $response[$i];
+            $balance = $this->safe_dict($response, $i);
             $currencyId = $this->safe_string_2($balance, 'currency', 'coin');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -2691,7 +2700,10 @@ class xt extends Exchange {
         $timeInForce = null;
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
-        $marginOrSpotRequest = ($marginMode !== null) ? 'LEVER' : 'SPOT';
+        $marginOrSpotRequest = 'SPOT';
+        if ($marginMode !== null) {
+            $marginOrSpotRequest = 'LEVER';
+        }
         $request['bizType'] = $marginOrSpotRequest;
         if ($type === 'market') {
             $timeInForce = $this->safe_string_upper($params, 'timeInForce', 'FOK');
@@ -2772,10 +2784,16 @@ class xt extends Exchange {
         }
         $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
         if ($side === 'buy') {
-            $requestType = ($reduceOnly === true) ? 'SHORT' : 'LONG';
+            $requestType = 'LONG';
+            if ($reduceOnly === true) {
+                $requestType = 'SHORT';
+            }
             $request['positionSide'] = $requestType;
         } else {
-            $requestType = ($reduceOnly === true) ? 'LONG' : 'SHORT';
+            $requestType = 'SHORT';
+            if ($reduceOnly === true) {
+                $requestType = 'LONG';
+            }
             $request['positionSide'] = $requestType;
         }
         $response = array();
@@ -2828,7 +2846,10 @@ class xt extends Exchange {
             $request['triggerPriceType'] = $this->safe_string($params, 'triggerPriceType', 'LATEST_PRICE');
             $request['orderSide'] = strtoupper($side);
             $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-            $entrustType = ($type === 'market') ? 'STOP_MARKET' : 'STOP';
+            $entrustType = 'STOP';
+            if ($type === 'market') {
+                $entrustType = 'STOP_MARKET';
+            }
             $request['entrustType'] = $entrustType;
             $params = $this->omit($params, 'triggerPrice');
             if ($market['linear'] === true) {
@@ -3140,7 +3161,10 @@ class xt extends Exchange {
         } else {
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOrders', $params);
-            $marginOrSpotRequest = ($marginMode !== null) ? 'LEVER' : 'SPOT';
+            $marginOrSpotRequest = 'SPOT';
+            if ($marginMode !== null) {
+                $marginOrSpotRequest = 'LEVER';
+            }
             $request['bizType'] = $marginOrSpotRequest;
             $response = Async\await($this->privateSpotGetHistoryOrder($this->extend($request, $params)));
         }
@@ -3363,7 +3387,10 @@ class xt extends Exchange {
         } else {
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOrdersByStatus', $params);
-            $marginOrSpotRequest = ($marginMode !== null) ? 'LEVER' : 'SPOT';
+            $marginOrSpotRequest = 'SPOT';
+            if ($marginMode !== null) {
+                $marginOrSpotRequest = 'LEVER';
+            }
             $request['bizType'] = $marginOrSpotRequest;
             if ($status !== 'open') {
                 if ($since !== null) {
@@ -3831,7 +3858,10 @@ class xt extends Exchange {
         } else {
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelAllOrders', $params);
-            $marginOrSpotRequest = ($marginMode !== null) ? 'LEVER' : 'SPOT';
+            $marginOrSpotRequest = 'SPOT';
+            if ($marginMode !== null) {
+                $marginOrSpotRequest = 'LEVER';
+            }
             $request['bizType'] = $marginOrSpotRequest;
             $response = Async\await($this->privateSpotDeleteOpenOrder($this->extend($request, $params)));
         }
@@ -4202,7 +4232,10 @@ class xt extends Exchange {
         //     }
         //
         $side = $this->safe_string($item, 'side');
-        $direction = ($side === 'ADD') ? 'in' : 'out';
+        $direction = 'out';
+        if ($side === 'ADD') {
+            $direction = 'in';
+        }
         $currencyId = $this->safe_string($item, 'coin');
         $currency = $this->safe_currency($currencyId, $currency);
         $timestamp = $this->safe_integer($item, 'createdTime');
@@ -4228,7 +4261,7 @@ class xt extends Exchange {
         ), $currency);
     }
 
-    public function parse_ledger_entry_type(mixed $type) {
+    public function parse_ledger_entry_type(?string $type) {
         $ledgerType = array(
             'EXCHANGE' => 'transfer',
             'CLOSE_POSITION' => 'trade',
@@ -4285,7 +4318,7 @@ class xt extends Exchange {
         return $this->parse_deposit_address($result, $currency);
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "address": "0x7f7173cf29d3846d20ca5a3aec1120b93dbd157a",
@@ -4667,7 +4700,10 @@ class xt extends Exchange {
 
     private function do_modify_margin_helper(string $symbol, mixed $amount, mixed $addOrReduce, $params = array()) {
         $positionSide = $this->safe_string($params, 'positionSide');
-        $methodName = ($addOrReduce === 'ADD') ? 'addMargin' : 'reduceMargin';
+        $methodName = 'reduceMargin';
+        if ($addOrReduce === 'ADD') {
+            $methodName = 'addMargin';
+        }
         $this->check_required_argument($methodName, $positionSide, 'positionSide', array( 'LONG', 'SHORT' ));
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -4787,7 +4823,7 @@ class xt extends Exchange {
         //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
-            $entry = $response[$i];
+            $entry = $this->safe_dict($response, $i);
             $marketId = $this->safe_string($entry, 'symbol');
             $market = $this->safe_market($marketId, null, '_', 'contract');
             $symbol = $this->safe_symbol($marketId, $market);
@@ -4878,7 +4914,7 @@ class xt extends Exchange {
         $tiers = array();
         $brackets = $this->safe_list($info, 'leverageBrackets', array());
         for ($i = 0; $i < count($brackets); $i++) {
-            $tier = $brackets[$i];
+            $tier = $this->safe_dict($brackets, $i);
             $marketId = $this->safe_string($info, 'symbol');
             $market = $this->safe_market($marketId, $market, '_', 'contract');
             $minNotional = $this->safe_number($brackets[$i - 1], 'maxNominalValue', 0);
@@ -4920,7 +4956,7 @@ class xt extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchFundingRateHistory', $symbol, $since, $limit, $params, 'id', 'id', 1, 200));
         }
@@ -5328,14 +5364,14 @@ class xt extends Exchange {
         $items = $this->safe_list($data, 'items', array());
         $result = array();
         for ($i = 0; $i < count($items); $i++) {
-            $entry = $items[$i];
+            $entry = $this->safe_dict($items, $i);
             $result[] = $this->parse_funding_history($entry, $market);
         }
         $sorted = $this->sort_by($result, 'timestamp');
         return $this->filter_by_since_limit($sorted, $since, $limit);
     }
 
-    public function parse_funding_history(mixed $contract, ?array $market = null) {
+    public function parse_funding_history(?array $contract, ?array $market = null) {
         //
         //     {
         //         "id": "210804044057280512",
@@ -5716,7 +5752,10 @@ class xt extends Exchange {
         // "ISOLATED"/"CROSSED" on position/list, 1 = cross / 2 = isolated on position/list-history
         $positionType = $this->safe_string($position, 'positionType');
         $isCross = ($positionType === 'CROSSED') || ($positionType === '1');
-        $marginMode = ($isCross) ? 'cross' : 'isolated';
+        $marginMode = 'isolated';
+        if ($isCross) {
+            $marginMode = 'cross';
+        }
         $collateral = $this->safe_number($position, 'isolatedMargin');
         // history entries carry the liquidation price in forceMarkPrice when force is true
         $liquidationPriceString = $this->omit_zero($this->safe_string_2($position, 'breakPrice', 'forceMarkPrice'));

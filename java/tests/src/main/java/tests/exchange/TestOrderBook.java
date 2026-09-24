@@ -34,7 +34,7 @@ public class TestOrderBook extends BaseTest {
             put( "datetime", "2017-09-01T00:00:00" );
             put( "nonce", 134234234 );
         }};
-        List<Object> emptyAllowedFor = new ArrayList<Object>(Arrays.asList("nonce"));
+        List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("nonce"));
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, orderbook, format, emptyAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, orderbook);
         TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, orderbook, "symbol", symbol);

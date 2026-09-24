@@ -2554,12 +2554,7 @@ func (this *Okx) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 		"info": response,
 	}
 	for i := 0; i < len(data); i++ {
-		var event map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(data) {
-				return DerefScalar(data[i])
-			}
-			return nil
-		}())
+		var event map[string]any = SafeMapTyped(data, i)
 		var state *string = this.SafeString(event, "state")
 		update["eta"] = this.SafeInteger(event, "end")
 		update["url"] = this.SafeString(event, "href")
@@ -2607,7 +2602,7 @@ func (this *Okx) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	//         "msg": ""
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var first map[string]any = SafeMapTyped(data, 0)
 
 	ch <- this.SafeInteger(first, "ts")
@@ -3143,7 +3138,7 @@ func (this *Okx) ParseCurrency(currency any) any {
 	var typeVar string = "crypto"
 	var chainsLength int = GetArrayLength(chains)
 	for j := 0; j < chainsLength; j++ {
-		var chain any = GetValue(chains, j)
+		var chain map[string]any = SafeMapTyped(chains, j)
 		// allow empty string for rare fiat-currencies, e.g. TRY
 		var networkId *string = this.SafeString(chain, "chain", "") // USDT-BEP20, USDT-Avalance-C, etc
 		if networkId != nil && *networkId == "" {
@@ -3229,7 +3224,7 @@ func (this *Okx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 		"instId": market["id"],
 	}
 	var rpi any = false
-	var rpiparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrderBook", "rpi")
+	var rpiparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOrderBook", "rpi", false)
 	rpi = GetValue(rpiparamsVariable, 0)
 	params = MapTyped(GetValue(rpiparamsVariable, 1))
 	var method *string = nil
@@ -3292,7 +3287,7 @@ func (this *Okx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	// [ price, totalQty, nonRpiQty, count ] - totalQty already includes the
 	// rpi liquidity, so index 0 and 1 stay the price and the amount
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var first map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 	var timestamp *int64 = this.SafeInteger(first, "ts")
 
@@ -3440,7 +3435,7 @@ func (this *Okx) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var first map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 
 	ch <- this.ParseTicker(first, market)
@@ -3752,7 +3747,7 @@ func (this *Okx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchTrades", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -3903,7 +3898,7 @@ func (this *Okx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -4058,7 +4053,7 @@ func (this *Okx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -4135,17 +4130,12 @@ func (this *Okx) ParseTradingBalance(response any) any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var first map[string]any = SafeMapTyped(data, 0)
 	var timestamp *int64 = this.SafeInteger(first, "uTime")
 	var details []any = SafeListTyped(first, "details")
 	for i := 0; i < len(details); i++ {
-		var balance map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(details) {
-				return DerefScalar(details[i])
-			}
-			return nil
-		}())
+		var balance map[string]any = SafeMapTyped(details, i)
 		var currencyId *string = this.SafeString(balance, "ccy")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -4173,12 +4163,7 @@ func (this *Okx) ParseFundingBalance(response any) any {
 	}
 	var data []any = SafeListTyped(response, "data")
 	for i := 0; i < len(data); i++ {
-		var balance map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(data) {
-				return DerefScalar(data[i])
-			}
-			return nil
-		}())
+		var balance map[string]any = SafeMapTyped(data, i)
 		var currencyId *string = this.SafeString(balance, "ccy")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -4272,7 +4257,7 @@ func (this *Okx) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...an
 	//         "msg": ""
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var first map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 
 	ch <- this.ParseTradingFee(first, market)
@@ -4575,15 +4560,15 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 		AddElementToObject(request, "tdMode", tradeMode)
 	} else if contract != nil && *contract == true {
 		if (GetValue(market, "swap") == true) || (GetValue(market, "future") == true) {
-			var positionSide any = nil
-			var positionSideparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "positionSide")
-			positionSide = GetValue(positionSideparamsVariable, 0)
+			var positionSide *string = nil
+			var positionSideparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "positionSide")
+			positionSide = SafeStringPtr(GetValue(positionSideparamsVariable, 0))
 			params = MapTyped(GetValue(positionSideparamsVariable, 1))
 			if positionSide != nil {
 				AddElementToObject(request, "posSide", positionSide)
 			} else {
 				var hedged any = nil
-				var hedgedparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "hedged")
+				var hedgedparamsVariable []any = this.HandleOptionBoolAndParams(params, "createOrder", "hedged")
 				hedged = GetValue(hedgedparamsVariable, 0)
 				params = MapTyped(GetValue(hedgedparamsVariable, 1))
 				if hedged == true {
@@ -4908,7 +4893,7 @@ func (this *Okx) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 		response = (<-this.PrivatePostTradeBatchOrders(request))
 		PanicOnError(response)
 	}
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var first map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 	var order map[string]any = MapTyped(this.ParseOrder(first, market))
 	order["type"] = typeVar
@@ -4943,7 +4928,7 @@ func (this *Okx) createOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 	}
 	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
+		var rawOrder map[string]any = SafeMapTyped(orders, i)
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		if marketId == nil {
 			panic(ArgumentsRequired(this.Id + " createOrders() requires a symbol for each order"))
@@ -5202,7 +5187,7 @@ func (this *Okx) editOrderBody(ch chan any, id any, symbol any, typeVar any, sid
 	//        "msg": ""
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var first map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 	var order map[string]any = MapTyped(this.ParseOrder(first, market))
 	order["type"] = typeVar
@@ -5269,7 +5254,7 @@ func (this *Okx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	response := (<-this.PrivatePostTradeCancelOrder(this.Extend(request, query)))
 	PanicOnError(response)
 	// {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var order map[string]any = SafeMapTyped(data, 0)
 
 	ch <- this.ParseOrder(order, market)
@@ -5458,7 +5443,7 @@ func (this *Okx) cancelOrdersForSymbolsBody(ch chan any, orders any, optionalArg
 		method = SafeStringPtr("privatePostTradeCancelAlgos")
 	}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var order map[string]any = MapTyped(GetValue(orders, i))
+		var order map[string]any = SafeMapTyped(orders, i)
 		var id *string = this.SafeString(order, "id")
 		var clientOrderId *string = this.SafeString2(order, "clOrdId", "clientOrderId")
 		var symbol *string = this.SafeString(order, "symbol")
@@ -6044,7 +6029,7 @@ func (this *Okx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var order map[string]any = SafeMapTyped(data, 0)
 
 	ch <- this.ParseOrder(order, market)
@@ -6090,7 +6075,7 @@ func (this *Okx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var maxLimit int = 100
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOpenOrders", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -6492,7 +6477,7 @@ func (this *Okx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var maxLimit int = 100
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchClosedOrders", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchClosedOrders", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -6700,7 +6685,7 @@ func (this *Okx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -6835,7 +6820,7 @@ func (this *Okx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLedger", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchLedger", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -7336,7 +7321,7 @@ func (this *Okx) withdrawBody(ch chan any, code any, amount any, address any, op
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var transaction map[string]any = SafeMapTyped(data, 0)
 
 	ch <- this.ParseTransaction(transaction, currency)
@@ -7377,7 +7362,7 @@ func (this *Okx) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchDeposits", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchDeposits", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -7526,7 +7511,7 @@ func (this *Okx) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchWithdrawals", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -7647,7 +7632,7 @@ func (this *Okx) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...any) a
 	//        "msg": ''
 	//    }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var withdrawal map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 
 	ch <- this.ParseTransaction(withdrawal)
@@ -7882,7 +7867,7 @@ func (this *Okx) ParseLeverage(leverage any, optionalArgs ...any) any {
 	var longLeverage *int64 = nil
 	var shortLeverage *int64 = nil
 	for i := 0; i < GetArrayLength(leverage); i++ {
-		var entry map[string]any = MapTyped(GetValue(leverage, i))
+		var entry map[string]any = SafeMapTyped(leverage, i)
 		marginMode = this.SafeStringLower(entry, "mgnMode")
 		marketId = DerefScalar(this.SafeString(entry, "instId"))
 		var positionSide *string = this.SafeStringLower(entry, "posSide")
@@ -7986,7 +7971,7 @@ func (this *Okx) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any)
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var position map[string]any = SafeMapTyped(data, 0)
 	if IsEqual(position, nil) {
 		panic(NullResponse(Add(this.Id+" fetchPosition() could not find a position for ", symbol)))
@@ -8378,7 +8363,7 @@ func (this *Okx) transferBody(ch chan any, code any, amount any, fromAccount any
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var rawTransfer map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 
 	ch <- this.ParseTransfer(rawTransfer, currency)
@@ -8534,7 +8519,7 @@ func (this *Okx) fetchTransferBody(ch chan any, id any, optionalArgs ...any) any
 	//         "msg": ""
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var transfer map[string]any = SafeMapTyped(data, 0)
 
 	ch <- this.ParseTransfer(transfer)
@@ -8848,7 +8833,7 @@ func (this *Okx) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...a
 	//        "msg": ""
 	//    }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var entry map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 
 	ch <- this.ParseFundingRate(entry, market)
@@ -9389,7 +9374,7 @@ func (this *Okx) fetchCrossBorrowRateBody(ch chan any, code any, optionalArgs ..
 	//        "msg": ""
 	//    }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var rate map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 
 	ch <- this.ParseBorrowRate(rate)
@@ -9431,12 +9416,7 @@ func (this *Okx) ParseBorrowRateHistories(response []any, codes any, since any, 
 	//
 	var borrowRateHistories map[string]any = map[string]any{}
 	for i := 0; i < len(response); i++ {
-		var item any = func() any {
-			if i >= 0 && i < len(response) {
-				return DerefScalar(response[i])
-			}
-			return nil
-		}()
+		var item map[string]any = SafeMapTyped(response, i)
 		var code *string = this.SafeCurrencyCode(this.SafeString(item, "ccy"))
 		if (code != nil) && ((IsEqual(codes, nil)) || this.InArray(code, codes)) {
 			if !(func() bool {
@@ -9629,7 +9609,7 @@ func (this *Okx) modifyMarginHelperBody(ch chan any, symbol any, amount any, typ
 	//       "msg": ""
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var entry map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 	var errorCode *string = this.SafeString(response, "code")
 
@@ -9892,7 +9872,7 @@ func (this *Okx) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
 	_ = market
 	var tiers []any = []any{}
 	for i := 0; i < GetArrayLength(info); i++ {
-		var tier any = GetValue(info, i)
+		var tier map[string]any = SafeMapTyped(info, i)
 		var marketId *string = this.SafeString(tier, "instId")
 		tiers = append(tiers, map[string]any{
 			"tier":                  this.SafeInteger(tier, "tier"),
@@ -10065,7 +10045,7 @@ func (this *Okx) borrowCrossMarginBody(ch chan any, code any, amount any, option
 	//         "msg": ""
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var loan map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 
 	ch <- this.ParseMarginLoan(loan, currency)
@@ -10127,7 +10107,7 @@ func (this *Okx) repayCrossMarginBody(ch chan any, code any, amount any, optiona
 	//         "msg": ""
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var loan map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 
 	ch <- this.ParseMarginLoan(loan, currency)
@@ -10731,12 +10711,7 @@ func (this *Okx) ParseSettlements(settlements []any, market map[string]any) []an
 	//
 	var result []any = []any{}
 	for i := 0; i < len(settlements); i++ {
-		var entry map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(settlements) {
-				return DerefScalar(settlements[i])
-			}
-			return nil
-		}())
+		var entry map[string]any = SafeMapTyped(settlements, i)
 		var timestamp *int64 = this.SafeInteger(entry, "ts")
 		var details []any = SafeListTyped(entry, "details")
 		for j := 0; j < len(details); j++ {
@@ -11121,7 +11096,7 @@ func (this *Okx) closePositionBody(ch chan any, symbol any, optionalArgs ...any)
 	//        "outTime": "1701877077102579"
 	//    }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var order map[string]any = SafeMapTyped(data, 0)
 
 	ch <- this.ParseOrder(order, market)
@@ -11183,7 +11158,7 @@ func (this *Okx) fetchOptionBody(ch chan any, symbol any, optionalArgs ...any) a
 	//         ]
 	//     }
 	//
-	var result []any = SafeListTypedDefault(response, "data", []any{})
+	var result []any = SafeListTyped(response, "data")
 	var chain map[string]any = MapTyped(this.SafeDict(result, 0, map[string]any{}))
 
 	ch <- this.ParseOption(chain, nil, market)
@@ -11360,7 +11335,7 @@ func (this *Okx) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any, op
 	//         "msg": ""
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var result map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 	var fromCurrencyId *string = this.SafeString(result, "baseCcy", fromCode)
 	var fromCurrency map[string]any = MapTyped(this.Currency(fromCurrencyId))
@@ -11431,7 +11406,7 @@ func (this *Okx) createConvertTradeBody(ch chan any, id any, fromCode any, toCod
 	//         "msg": ""
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var result map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 	var fromCurrencyId *string = this.SafeString(result, "baseCcy", fromCode)
 	var fromCurrency map[string]any = MapTyped(this.Currency(fromCurrencyId))
@@ -11495,7 +11470,7 @@ func (this *Okx) fetchConvertTradeBody(ch chan any, id any, optionalArgs ...any)
 	//         "msg": ""
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var result map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 	var fromCurrencyId *string = this.SafeString(result, "baseCcy")
 	var toCurrencyId *string = this.SafeString(result, "quoteCcy")
@@ -11772,12 +11747,7 @@ func (this *Okx) HandleErrors(httpCode any, reason any, url any, method any, hea
 		var feedback any = Add(this.Id+" ", body)
 		var data []any = SafeListTyped(response, "data")
 		for i := 0; i < len(data); i++ {
-			var error map[string]any = MapTyped(func() any {
-				if i >= 0 && i < len(data) {
-					return DerefScalar(data[i])
-				}
-				return nil
-			}())
+			var error map[string]any = SafeMapTyped(data, i)
 			var errorCode *string = this.SafeString(error, "sCode")
 			var message *string = this.SafeString(error, "sMsg")
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
@@ -12095,12 +12065,7 @@ func (this *Okx) fetchLongShortRatioHistoryBody(ch chan any, optionalArgs ...any
 	var data []any = SafeListTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var entry any = func() any {
-			if i >= 0 && i < len(data) {
-				return DerefScalar(data[i])
-			}
-			return nil
-		}()
+		var entry []any = SafeListTyped(data, i)
 		result = append(result, map[string]any{
 			"timestamp":      this.SafeString(entry, 0),
 			"longShortRatio": this.SafeString(entry, 1),

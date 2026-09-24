@@ -924,7 +924,7 @@ public partial class cryptocom : ccxt.cryptocom
         List<object> data = ((List<object>)this.safeValue(message, "data"));
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            object tick = data[i];
+            IDictionary<string, object> tick = this.safeDict(data, i);
             IList<object> parsed = this.parseOHLCV(tick, market);
             callDynamically(stored, "append", new object[] {parsed});
         }
@@ -1246,7 +1246,7 @@ public partial class cryptocom : ccxt.cryptocom
         ((IDictionary<string,object>)this.balance)["info"] = data;
         for (int i = 0; i < positionBalances.Count; i++)
         {
-            object balance = positionBalances[i];
+            IDictionary<string, object> balance = this.safeDict(positionBalances, i);
             string? currencyId = this.safeString(balance, "instrument_name");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();

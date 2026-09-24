@@ -1543,8 +1543,8 @@ public class Modetrade extends ModetradeApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -1623,7 +1623,7 @@ public class Modetrade extends ModetradeApi
         return this.fetchFundingRateHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseIncome(Object income, Map<String, Object> market)
+    public Object parseIncome(Map<String, Object> income, Map<String, Object> market)
     {
         //
         // {
@@ -1657,7 +1657,7 @@ public class Modetrade extends ModetradeApi
             put( "rate", rate );
         }};
     }
-    public Object parseIncome(Object income, Object... optionalArgs)
+    public Object parseIncome(Map<String, Object> income, Object... optionalArgs)
     {
         return this.parseIncome(income, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -1690,8 +1690,8 @@ public class Modetrade extends ModetradeApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -2066,7 +2066,7 @@ public class Modetrade extends ModetradeApi
         String remaining = Precise.stringSub(cost, filled);
         Double fee = this.safeNumber2(order, "total_fee", "totalFee");
         String feeCurrency = this.safeString2(order, "fee_asset", "feeAsset");
-        Object transactions = this.safeValue(order, "Transactions");
+        List<Object> transactions = (List<Object>) this.safeList(order, "Transactions");
         Double triggerPrice = this.safeNumber(order, "triggerPrice");
         Double takeProfitPrice = null;
         Double stopLossPrice = null;
@@ -2085,7 +2085,7 @@ public class Modetrade extends ModetradeApi
             }
         }
         Long lastUpdateTimestamp = (Long) this.safeInteger2(order, "updatedTime", "updated_time");
-        final Object finalStatus = status;
+        final String finalStatus = status;
         final Double finalTakeProfitPrice = takeProfitPrice;
         final Double finalStopLossPrice = stopLossPrice;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
@@ -2222,9 +2222,21 @@ public class Modetrade extends ModetradeApi
         Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
         String timeInForce = this.safeStringLower(parameters, "timeInForce");
         boolean postOnly = Helpers.isTrue(this.isPostOnly(isMarket, null, parameters));
-        String orderQtyKey = ((Boolean.TRUE.equals(isConditional))) ? "quantity" : "order_quantity";
-        String priceKey = ((Boolean.TRUE.equals(isConditional))) ? "price" : "order_price";
-        String typeKey = ((Boolean.TRUE.equals(isConditional))) ? "type" : "order_type";
+        String orderQtyKey = "order_quantity";
+        if (Boolean.TRUE.equals(isConditional))
+        {
+            orderQtyKey = "quantity";
+        }
+        String priceKey = "order_price";
+        if (Boolean.TRUE.equals(isConditional))
+        {
+            priceKey = "price";
+        }
+        String typeKey = "order_type";
+        if (Boolean.TRUE.equals(isConditional))
+        {
+            typeKey = "type";
+        }
         ((Map<String, Object>)request).put((String)typeKey, orderType); // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if (!Boolean.TRUE.equals(isConditional))
         {
@@ -2273,12 +2285,17 @@ public class Modetrade extends ModetradeApi
                 put( "child_orders", new ArrayList<Object>(Arrays.asList()) );
             }};
             Object childOrders = ((Map<String, Object>)outterOrder).get("child_orders");
-            String closeSide = (((java.util.Objects.equals(orderSide, "BUY")))) ? "SELL" : "BUY";
+            String closeSide = "BUY";
+            if (java.util.Objects.equals(orderSide, "BUY"))
+            {
+                closeSide = "SELL";
+            }
             if (Boolean.TRUE.equals(hasStopLoss))
             {
                 Double stopLossPrice = this.safeNumber2(stopLoss, "triggerPrice", "price", stopLoss);
+                final String finalCloseSide = closeSide;
                 Map<String, Object> stopLossOrder = new HashMap<String, Object>() {{
-                    put( "side", closeSide );
+                    put( "side", finalCloseSide );
                     put( "algo_type", "TP_SL" );
                     put( "trigger_price", Modetrade.this.priceToPrecision(symbol, stopLossPrice) );
                     put( "type", "LIMIT" );
@@ -2289,8 +2306,9 @@ public class Modetrade extends ModetradeApi
             if (Boolean.TRUE.equals(hasTakeProfit))
             {
                 Double takeProfitPrice = this.safeNumber2(takeProfit, "triggerPrice", "price", takeProfit);
+                final String finalCloseSide_2 = closeSide;
                 Map<String, Object> takeProfitOrder = new HashMap<String, Object>() {{
-                    put( "side", closeSide );
+                    put( "side", finalCloseSide_2 );
                     put( "algo_type", "TP_SL" );
                     put( "trigger_price", Modetrade.this.priceToPrecision(symbol, takeProfitPrice) );
                     put( "type", "LIMIT" );
@@ -2415,7 +2433,7 @@ public class Modetrade extends ModetradeApi
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i);
                 String marketId = this.safeString(rawOrder, "symbol");
                 if (java.util.Objects.equals(marketId, null))
                 {
@@ -2521,8 +2539,16 @@ public class Modetrade extends ModetradeApi
                 ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
             }
             Boolean isConditional = (!java.util.Objects.equals(triggerPrice, null)) || (!java.util.Objects.equals(this.safeValue(parameters, "childOrders"), null));
-            String orderQtyKey = ((Boolean.TRUE.equals(isConditional))) ? "quantity" : "order_quantity";
-            String priceKey = ((Boolean.TRUE.equals(isConditional))) ? "price" : "order_price";
+            String orderQtyKey = "order_quantity";
+            if (Boolean.TRUE.equals(isConditional))
+            {
+                orderQtyKey = "quantity";
+            }
+            String priceKey = "order_price";
+            if (Boolean.TRUE.equals(isConditional))
+            {
+                priceKey = "price";
+            }
             if (!java.util.Objects.equals(price, null))
             {
                 ((Map<String, Object>)request).put((String)priceKey, this.priceToPrecision(symbol, price));
@@ -3022,8 +3048,8 @@ public class Modetrade extends ModetradeApi
             Boolean paginate = false;
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
             Integer maxLimit = (((java.util.Objects.equals(isTrigger, true)))) ? 100 : 500;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -3338,8 +3364,8 @@ public class Modetrade extends ModetradeApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -3425,7 +3451,7 @@ public class Modetrade extends ModetradeApi
         List<Object> balances = (List<Object>) this.safeList(response, "holding", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i);
             String code = this.safeCurrencyCode(this.safeString(balance, "token"));
             Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("total", this.safeString(balance, "holding"));

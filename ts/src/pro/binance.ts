@@ -2346,10 +2346,7 @@ export default class binance extends binanceRest {
             firstMarket = this.market (symbols[0]);
         }
         const userDefaultType = this.safeString (this.options, 'defaultType');
-        let defaultMarket: Str = undefined;
-        if (isMarkPrice && userDefaultType !== 'option') {
-            defaultMarket = 'swap';
-        }
+        const defaultMarket = (isMarkPrice && userDefaultType !== 'option') ? 'swap' : undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, firstMarket, params, defaultMarket);
         let subType: Str = undefined;
         [ subType, params ] = this.handleSubTypeAndParams (methodName, firstMarket, params);

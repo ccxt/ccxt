@@ -481,12 +481,10 @@ func (this *Coinone) ParseCurrency(rawCurrency any) any {
 	var code *string = this.SafeCurrencyCode(id)
 	var isWithdrawEnabled bool = (this.SafeString(rawCurrency, "withdraw_status", "") != nil && *this.SafeString(rawCurrency, "withdraw_status", "") == "normal")
 	var isDepositEnabled bool = (this.SafeString(rawCurrency, "deposit_status", "") != nil && *this.SafeString(rawCurrency, "deposit_status", "") == "normal")
-	var typeVar string = func() string {
-		if code == nil || *code != "KRW" {
-			return "crypto"
-		}
-		return "fiat"
-	}()
+	var typeVar string = "fiat"
+	if code == nil || *code != "KRW" {
+		typeVar = "crypto"
+	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        id,
 		"code":      code,
@@ -568,7 +566,7 @@ func (this *Coinone) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var tickers []any = SafeListTypedDefault(response, "tickers", []any{})
+	var tickers []any = SafeListTyped(response, "tickers")
 	var result []any = []any{}
 	for i := 0; i < len(tickers); i++ {
 		var entry map[string]any = SafeMapTyped(tickers, i)
@@ -640,7 +638,7 @@ func (this *Coinone) ParseBalance(response any) any {
 	var currencyIds []string = ObjectKeys(balances)
 	for i := 0; i < len(currencyIds); i++ {
 		var currencyId string = GetValue(currencyIds, i).(string)
-		var balance map[string]any = MapTyped(balances[currencyId])
+		var balance map[string]any = SafeMapTyped(balances, currencyId)
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
 		account["free"] = this.SafeString(balance, "avail")
@@ -891,7 +889,7 @@ func (this *Coinone) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "tickers", []any{})
+	var data []any = SafeListTyped(response, "tickers")
 	var ticker map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 
 	ch <- this.ParseTicker(ticker, market)
@@ -1004,12 +1002,12 @@ func (this *Coinone) ParseTrade(trade any, optionalArgs ...any) any {
 		feeCostString = Precise.StringAbs(feeCostString)
 		var feeRateString *string = this.SafeString(trade, "feeRate")
 		feeRateString = Precise.StringAbs(feeRateString)
-		var feeCurrencyCode any = func() any {
-			if IsEqual(side, "sell") {
-				return GetValue(market, "quote")
-			}
-			return GetValue(market, "base")
-		}()
+		var feeCurrencyCode any = nil
+		if IsEqual(side, "sell") {
+			feeCurrencyCode = GetValue(market, "quote")
+		} else {
+			feeCurrencyCode = GetValue(market, "base")
+		}
 		fee = map[string]any{
 			"cost":     feeCostString,
 			"currency": feeCurrencyCode,
@@ -1320,12 +1318,10 @@ func (this *Coinone) ParseOrder(order any, optionalArgs ...any) any {
 	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(order, "fee")
 	if feeCostString != nil {
-		var feeCurrencyCode any = func() any {
-			if side != nil && *side == "sell" {
-				return quote
-			}
-			return base
-		}()
+		var feeCurrencyCode any = base
+		if side != nil && *side == "sell" {
+			feeCurrencyCode = quote
+		}
 		fee = map[string]any{
 			"cost":     feeCostString,
 			"rate":     this.SafeString2(order, "feeRate", "fee_rate"),

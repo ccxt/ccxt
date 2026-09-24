@@ -580,17 +580,17 @@ public partial class krakenfutures : ccxt.krakenfutures
         }
         string name = "balances";
         string messageHash = name;
-        object account = null;
-        IList<object> accountparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchBalance", "account");
-        account = accountparametersVariable[0];
+        string? account = null;
+        IList<object> accountparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchBalance", "account");
+        account = (string)accountparametersVariable[0];
         parameters = accountparametersVariable[1];
         if ((account != null))
         {
-            if (!isEqual(account, "futures") && !isEqual(account, "flex_futures"))
+            if (account != "futures" && account != "flex_futures")
             {
                 throw new ArgumentsRequired ((this.id + " watchBalance account must be either 'futures' or 'flex_futures'")) ;
             }
-            messageHash = messageHash + (":" + (account));
+            messageHash = messageHash + (":" + account);
         }
         return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(name, messageHash, parameters));
     }
@@ -1346,7 +1346,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         }
         for (int i = 0; i < bids.Count; i++)
         {
-            object bid = bids[i];
+            IDictionary<string, object> bid = this.safeDict(bids, i);
             double? price = this.safeNumber(bid, "price");
             double? qty = this.safeNumber(bid, "qty");
             object bidsSide = getValue(orderbook, "bids");
@@ -1354,7 +1354,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         }
         for (int i = 0; i < asks.Count; i++)
         {
-            object ask = asks[i];
+            IDictionary<string, object> ask = this.safeDict(asks, i);
             double? price = this.safeNumber(ask, "price");
             double? qty = this.safeNumber(ask, "qty");
             object asksSide = getValue(orderbook, "asks");

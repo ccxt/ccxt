@@ -519,7 +519,7 @@ public partial class luno : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int i = 0; i < getArrayLength(rawCurrency); i++)
         {
-            object networkEntry = getValue(rawCurrency, i);
+            IDictionary<string, object> networkEntry = this.safeDict(rawCurrency, i);
             string? networkId = this.safeString(networkEntry, "name");
             string? networkCode = this.networkIdToCode(networkId, code);
             if ((networkCode != null))
@@ -738,7 +738,7 @@ public partial class luno : Exchange
         };
         for (int i = 0; i < wallets.Count; i++)
         {
-            object wallet = wallets[i];
+            IDictionary<string, object> wallet = this.safeDict(wallets, i);
             string? currencyId = this.safeString(wallet, "asset");
             string? code = this.safeCurrencyCode(currencyId);
             string? reserved = this.safeString(wallet, "reserved");

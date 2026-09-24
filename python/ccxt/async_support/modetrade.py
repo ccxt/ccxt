@@ -1018,7 +1018,7 @@ class modetrade(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_incremental('fetchFundingRateHistory', symbol, since, limit, params, 'page', 25)
         request = {}
@@ -1066,7 +1066,7 @@ class modetrade(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def parse_income(self, income: object, market: Market = None) -> dict:
+    def parse_income(self, income: dict, market: Market = None) -> dict:
         #
         # {
         #         "symbol": "PERP_ETH_USDC",
@@ -1114,7 +1114,7 @@ class modetrade(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingHistory', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_incremental('fetchFundingHistory', symbol, since, limit, params, 'page', 500)
         request = {}
@@ -1380,7 +1380,7 @@ class modetrade(Exchange, ImplicitAPI):
         remaining = Precise.string_sub(cost, filled)
         fee = self.safe_number_2(order, 'total_fee', 'totalFee')
         feeCurrency = self.safe_string_2(order, 'fee_asset', 'feeAsset')
-        transactions = self.safe_value(order, 'Transactions')
+        transactions = self.safe_list(order, 'Transactions')
         triggerPrice = self.safe_number(order, 'triggerPrice')
         takeProfitPrice = None
         stopLossPrice = None
@@ -1500,9 +1500,15 @@ class modetrade(Exchange, ImplicitAPI):
         isMarket = orderType == 'MARKET'
         timeInForce = self.safe_string_lower(params, 'timeInForce')
         postOnly = self.is_post_only(isMarket, None, params)
-        orderQtyKey = 'quantity' if isConditional else 'order_quantity'
-        priceKey = 'price' if isConditional else 'order_price'
-        typeKey = 'type' if isConditional else 'order_type'
+        orderQtyKey = 'order_quantity'
+        if isConditional:
+            orderQtyKey = 'quantity'
+        priceKey = 'order_price'
+        if isConditional:
+            priceKey = 'price'
+        typeKey = 'order_type'
+        if isConditional:
+            typeKey = 'type'
         request[typeKey] = orderType  # LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if not isConditional:
             if postOnly:
@@ -1534,7 +1540,9 @@ class modetrade(Exchange, ImplicitAPI):
                 'child_orders': [],
             }
             childOrders = outterOrder['child_orders']
-            closeSide = 'SELL' if (orderSide == 'BUY') else 'BUY'
+            closeSide = 'BUY'
+            if orderSide == 'BUY':
+                closeSide = 'SELL'
             if hasStopLoss:
                 stopLossPrice = self.safe_number_2(stopLoss, 'triggerPrice', 'price', stopLoss)
                 stopLossOrder = {
@@ -1645,7 +1653,7 @@ class modetrade(Exchange, ImplicitAPI):
             await self.load_markets()
         ordersRequests = []
         for i in range(0, len(orders)):
-            rawOrder = orders[i]
+            rawOrder = self.safe_dict(orders, i)
             marketId = self.safe_string(rawOrder, 'symbol')
             if marketId is None:
                 raise ArgumentsRequired(self.id + ' createOrders() requires a symbol for each order')
@@ -1716,8 +1724,12 @@ class modetrade(Exchange, ImplicitAPI):
         if triggerPrice is not None:
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
         isConditional = (triggerPrice is not None) or (self.safe_value(params, 'childOrders') is not None)
-        orderQtyKey = 'quantity' if isConditional else 'order_quantity'
-        priceKey = 'price' if isConditional else 'order_price'
+        orderQtyKey = 'order_quantity'
+        if isConditional:
+            orderQtyKey = 'quantity'
+        priceKey = 'order_price'
+        if isConditional:
+            priceKey = 'price'
         if price is not None:
             request[priceKey] = self.price_to_precision(symbol, price)
         if amount is not None:
@@ -2012,7 +2024,7 @@ class modetrade(Exchange, ImplicitAPI):
         paginate = False
         isTrigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         maxLimit = 100 if (isTrigger is True) else 500
-        paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOrders', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_incremental('fetchOrders', symbol, since, limit, params, 'page', maxLimit)
         request = {}
@@ -2183,7 +2195,7 @@ class modetrade(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_incremental('fetchMyTrades', symbol, since, limit, params, 'page', 500)
         request = {}
@@ -2235,7 +2247,7 @@ class modetrade(Exchange, ImplicitAPI):
         }
         balances = self.safe_list(response, 'holding', [])
         for i in range(0, len(balances)):
-            balance = balances[i]
+            balance = self.safe_dict(balances, i)
             code = self.safe_currency_code(self.safe_string(balance, 'token'))
             account = self.account()
             account['total'] = self.safe_string(balance, 'holding')

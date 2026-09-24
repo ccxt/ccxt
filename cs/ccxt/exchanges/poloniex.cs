@@ -872,8 +872,16 @@ public partial class poloniex : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        string keyStart = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) ? "startTime" : "sTime";
-        string keyEnd = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) ? "endTime" : "eTime";
+        string keyStart = "sTime";
+        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        {
+            keyStart = "startTime";
+        }
+        string keyEnd = "eTime";
+        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        {
+            keyEnd = "endTime";
+        }
         if ((since != null))
         {
             request[(string)keyStart] = since;
@@ -1175,7 +1183,11 @@ public partial class poloniex : Exchange
         {
             type = "future";
         }
-        string marketType = (type == "future") ? "future" : "swap";
+        string marketType = "swap";
+        if (type == "future")
+        {
+            marketType = "future";
+        }
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -1477,7 +1489,7 @@ public partial class poloniex : Exchange
         int chainsLength = chains.Count;
         for (int j = 0; j < chainsLength; j++)
         {
-            object chain = getValue(chains, j);
+            IDictionary<string, object> chain = this.safeDict(chains, j);
             string? chainId = this.safeString(chain, "blockchain");
             string? networkCode = this.networkIdToCode(chainId, code);
             if ((networkCode != null))
@@ -1787,8 +1799,8 @@ public partial class poloniex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -1805,8 +1817,16 @@ public partial class poloniex : Exchange
         parameters = marketTypeparametersVariable[1];
         bool isContract = this.inArray(marketType, new List<object>() {"swap", "future"});
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        string startKey = isContract ? "sTime" : "startTime";
-        string endKey = isContract ? "eTime" : "endTime";
+        string startKey = "startTime";
+        if (isContract)
+        {
+            startKey = "sTime";
+        }
+        string endKey = "endTime";
+        if (isContract)
+        {
+            endKey = "eTime";
+        }
         if ((since != null))
         {
             request[(string)startKey] = since;
@@ -2443,25 +2463,45 @@ public partial class poloniex : Exchange
                 {
                     quoteAmount = this.costToPrecision(symbol, amount);
                 }
-                string amountKey = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) ? "amount" : "sz";
+                string amountKey = "sz";
+                if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+                {
+                    amountKey = "amount";
+                }
                 ((IDictionary<string,object>)request)[amountKey] = quoteAmount;
             } else
             {
-                string amountKey = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) ? "quantity" : "sz";
+                string amountKey = "sz";
+                if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+                {
+                    amountKey = "quantity";
+                }
                 ((IDictionary<string,object>)request)[amountKey] = this.amountToPrecision(symbol, amount);
             }
         } else
         {
-            string amountKey = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) ? "quantity" : "sz";
+            string amountKey = "sz";
+            if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+            {
+                amountKey = "quantity";
+            }
             ((IDictionary<string,object>)request)[amountKey] = this.amountToPrecision(symbol, amount);
-            string priceKey = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) ? "price" : "px";
+            string priceKey = "px";
+            if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+            {
+                priceKey = "price";
+            }
             ((IDictionary<string,object>)request)[priceKey] = this.priceToPrecision(symbol, price);
         }
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdId");
         if ((clientOrderId != null))
         {
             // the futures v3 api silently ignores the spot key and generates its own id
-            string clientOrderIdKey = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) ? "clientOrderId" : "clOrdId";
+            string clientOrderIdKey = "clOrdId";
+            if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+            {
+                clientOrderIdKey = "clientOrderId";
+            }
             ((IDictionary<string,object>)request)[clientOrderIdKey] = clientOrderId;
             parameters = this.omit(parameters, new List<object>() {"clientOrderId", "clOrdId"});
         }
@@ -2811,7 +2851,7 @@ public partial class poloniex : Exchange
             List<object> details = this.safeList(response, "details", new List<object>() {});
             for (int i = 0; i < details.Count; i++)
             {
-                object balance = details[i];
+                IDictionary<string, object> balance = this.safeDict(details, i);
                 string? currencyId = this.safeString(balance, "ccy");
                 string? code = this.safeCurrencyCode(currencyId);
                 Dictionary<string, object> account = this.account();
@@ -3654,7 +3694,11 @@ public partial class poloniex : Exchange
         string? status = this.safeString(transaction, "status", "pending");
         status = this.parseTransactionStatus(status);
         string? txid = this.safeString(transaction, "txid");
-        string type = (inOp(transaction, "withdrawalRequestsId")) ? "withdrawal" : "deposit";
+        string type = "deposit";
+        if (inOp(transaction, "withdrawalRequestsId"))
+        {
+            type = "withdrawal";
+        }
         string? id = this.safeString2(transaction, "withdrawalRequestsId", "depositNumber");
         string? address = this.safeString(transaction, "address");
         string? tag = this.safeString(transaction, "paymentID");
@@ -3816,7 +3860,7 @@ public partial class poloniex : Exchange
         List<object> data = this.safeList(leverage, "data", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = this.safeDict(data, i);
             marketId = this.safeString(entry, "symbol");
             // mgnMode arrives upper case; parseOrder and parsePosition read the
             // same field with safeStringLower
@@ -3885,7 +3929,11 @@ public partial class poloniex : Exchange
     public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string mode = isTrue(hedged) ? "HEDGE" : "ONE_WAY";
+        string mode = "ONE_WAY";
+        if (isTrue(hedged))
+        {
+            mode = "HEDGE";
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "posMode", mode },
         };

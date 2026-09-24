@@ -412,8 +412,11 @@ impl PacificaCore {
         let mut operationType: Value = requestoperationTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         params = self.omit(params, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("clientOrderId".into()), Value::Str("stopLimitPrice".into()), Value::Str("timeInForce".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossCloid".into()), Value::Str("stopLossPrice".into()), Value::Str("stopLossLimitPrice".into()), Value::Str("takeProfitCloid".into()), Value::Str("takeProfitPrice".into()), Value::Str("takeProfitLimitPrice".into()), Value::Str("expiryWindow".into()), Value::Str("agentAddress".into()), Value::Str("originAddress".into())]), &[]);
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
-        let mut urlKey: Value = (if is_true(&(isTestnet)) { Value::Str("test".into()) } else { Value::Str("api".into()) });
-        let mut url: Value = crate::value::get_value_k(&get_value(&self.urls, &urlKey).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
+        let mut urlKey: Value = Value::Str("api".into());
+        if is_true(&isTestnet) {
+            urlKey = Value::Str("test".into());
+        }
+        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
         let mut wsRequest: Value = self.wrap_as_post_action(operationType.clone(), request);
         let mut requestId: Value = self.safe_string_k(wsRequest.clone(), "id", &[]);
         if (operationType.as_str() == Some("create_stop_order")) {
@@ -512,8 +515,11 @@ impl PacificaCore {
         let mut request: Value = self.parent.edit_order_request(id, symbol.clone(), type_var, side, amount, price, market, &[params.clone()]);
         params = self.omit(params, Value::from(vec![Value::Str("originAddress".into()), Value::Str("agentAddress".into()), Value::Str("expiryWindow".into()), Value::Str("clientOrderId".into())]), &[]);
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
-        let mut urlKey: Value = (if is_true(&(isTestnet)) { Value::Str("test".into()) } else { Value::Str("api".into()) });
-        let mut url: Value = crate::value::get_value_k(&get_value(&self.urls, &urlKey).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
+        let mut urlKey: Value = Value::Str("api".into());
+        if is_true(&isTestnet) {
+            urlKey = Value::Str("test".into());
+        }
+        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
         let mut wsRequest: Value = self.wrap_as_post_action(batchOperationType, request);
         let mut requestId: Value = self.safe_string_k(wsRequest.clone(), "id", &[]);
         let mut response: Value = self.watch(url, requestId.clone(), &[wsRequest, requestId.clone()]).await;
@@ -589,8 +595,11 @@ impl PacificaCore {
         let mut request: Value = self.parent.cancel_orders_request(ids, &[symbol, params.clone()]);
         params = self.omit(params, Value::from(vec![Value::Str("originAddress".into()), Value::Str("agentAddress".into()), Value::Str("expiryWindow".into()), Value::Str("clientOrderIds".into())]), &[]);
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
-        let mut urlKey: Value = (if is_true(&(isTestnet)) { Value::Str("test".into()) } else { Value::Str("api".into()) });
-        let mut url: Value = crate::value::get_value_k(&get_value(&self.urls, &urlKey).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
+        let mut urlKey: Value = Value::Str("api".into());
+        if is_true(&isTestnet) {
+            urlKey = Value::Str("test".into());
+        }
+        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
         let mut wsRequest: Value = self.wrap_as_post_action(batchOperationType, request);
         let mut requestId: Value = self.safe_string_k(wsRequest.clone(), "id", &[]);
         let mut response: Value = self.watch(url, requestId.clone(), &[wsRequest, requestId.clone()]).await;
@@ -627,7 +636,7 @@ impl PacificaCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_557: bool = true;
             while { if !__for_first_557 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_557 = false; i.as_f64().unwrap_or(f64::NAN) < ((results.len() as i64) as f64) } {
-            let mut order: Value = results.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut order: Value = self.safe_dict(results.clone(), i.clone(), &[]);
             let mut error: Option<String> = self.safe_string_k(order.clone(), "error", &[]).as_str().map(str::to_owned);
             let mut success: Value = self.safe_bool_k(order.clone(), "success", &[Value::Bool(false)]);
             let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
@@ -687,8 +696,11 @@ impl PacificaCore {
         let mut request: Value = self.parent.cancel_order_request(id, &[symbol.clone(), params.clone()]);
         params = self.omit(params, Value::from(vec![Value::Str("originAddress".into()), Value::Str("agentAddress".into()), Value::Str("expiryWindow".into()), Value::Str("trigger".into()), Value::Str("stop".into()), Value::Str("clientOrderId".into())]), &[]);
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
-        let mut urlKey: Value = (if is_true(&(isTestnet)) { Value::Str("test".into()) } else { Value::Str("api".into()) });
-        let mut url: Value = crate::value::get_value_k(&get_value(&self.urls, &urlKey).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
+        let mut urlKey: Value = Value::Str("api".into());
+        if is_true(&isTestnet) {
+            urlKey = Value::Str("test".into());
+        }
+        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
         let mut wsRequest: Value = self.wrap_as_post_action(operationType, request);
         let mut requestId: Value = self.safe_string_k(wsRequest.clone(), "id", &[]);
         let mut response: Value = self.watch(url, requestId.clone(), &[wsRequest, requestId.clone()]).await;
@@ -761,8 +773,11 @@ impl PacificaCore {
         let mut request: Value = self.parent.cancel_all_orders_request(symbol, &[params.clone()]);
         params = self.omit(params, Value::from(vec![Value::Str("excludeReduceOnly".into()), Value::Str("agentAddress".into()), Value::Str("originAddress".into()), Value::Str("expiryWindow".into())]), &[]);
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
-        let mut urlKey: Value = (if is_true(&(isTestnet)) { Value::Str("test".into()) } else { Value::Str("api".into()) });
-        let mut url: Value = crate::value::get_value_k(&get_value(&self.urls, &urlKey).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
+        let mut urlKey: Value = Value::Str("api".into());
+        if is_true(&isTestnet) {
+            urlKey = Value::Str("test".into());
+        }
+        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
         let mut wsRequest: Value = self.wrap_as_post_action(operationType, request);
         let mut requestId: Value = self.safe_string_k(wsRequest.clone(), "id", &[]);
         let mut response: Value = self.watch(url, requestId.clone(), &[wsRequest, requestId.clone()]).await;
@@ -801,8 +816,11 @@ impl PacificaCore {
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchOrderBook".into()), Value::Str("aggLevel".into()), &[Value::Int(1)]); aggLevel = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
-        let mut urlKey: Value = (if is_true(&(isTestnet)) { Value::Str("test".into()) } else { Value::Str("api".into()) });
-        let mut url: Value = crate::value::get_value_k(&get_value(&self.urls, &urlKey).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
+        let mut urlKey: Value = Value::Str("api".into());
+        if is_true(&isTestnet) {
+            urlKey = Value::Str("test".into());
+        }
+        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
@@ -846,8 +864,11 @@ impl PacificaCore {
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into());
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
-        let mut urlKey: Value = (if is_true(&(isTestnet)) { Value::Str("test".into()) } else { Value::Str("api".into()) });
-        let mut url: Value = crate::value::get_value_k(&get_value(&self.urls, &urlKey).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
+        let mut urlKey: Value = Value::Str("api".into());
+        if is_true(&isTestnet) {
+            urlKey = Value::Str("test".into());
+        }
+        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
@@ -974,8 +995,11 @@ impl PacificaCore {
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true)]);
         let mut messageHash: Value = Value::Str("tickers".into());
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
-        let mut urlKey: Value = (if is_true(&(isTestnet)) { Value::Str("test".into()) } else { Value::Str("api".into()) });
-        let mut url: Value = crate::value::get_value_k(&get_value(&self.urls, &urlKey).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
+        let mut urlKey: Value = Value::Str("api".into());
+        if is_true(&isTestnet) {
+            urlKey = Value::Str("test".into());
+        }
+        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
@@ -1018,8 +1042,11 @@ impl PacificaCore {
         let mut subMessageHash: Value = Value::Str("tickers".into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into());
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
-        let mut urlKey: Value = (if is_true(&(isTestnet)) { Value::Str("test".into()) } else { Value::Str("api".into()) });
-        let mut url: Value = crate::value::get_value_k(&get_value(&self.urls, &urlKey).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
+        let mut urlKey: Value = Value::Str("api".into());
+        if is_true(&isTestnet) {
+            urlKey = Value::Str("test".into());
+        }
+        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
@@ -1067,8 +1094,11 @@ impl PacificaCore {
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), symbol).into())).into());
         }
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
-        let mut urlKey: Value = (if is_true(&(isTestnet)) { Value::Str("test".into()) } else { Value::Str("api".into()) });
-        let mut url: Value = crate::value::get_value_k(&get_value(&self.urls, &urlKey).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
+        let mut urlKey: Value = Value::Str("api".into());
+        if is_true(&isTestnet) {
+            urlKey = Value::Str("test".into());
+        }
+        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
@@ -1116,8 +1146,11 @@ impl PacificaCore {
         { let __destr_tmp = self.parent.handle_origin_and_single_address(Value::Str("unWatchMyTrades".into()), params.clone()); userAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut messageHash: Value = Value::Str("unsubscribe:myTrades".into());
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
-        let mut urlKey: Value = (if is_true(&(isTestnet)) { Value::Str("test".into()) } else { Value::Str("api".into()) });
-        let mut url: Value = crate::value::get_value_k(&get_value(&self.urls, &urlKey).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
+        let mut urlKey: Value = Value::Str("api".into());
+        if is_true(&isTestnet) {
+            urlKey = Value::Str("test".into());
+        }
+        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
@@ -1280,8 +1313,11 @@ impl PacificaCore {
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".into()), symbol).into());
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
-        let mut urlKey: Value = (if is_true(&(isTestnet)) { Value::Str("test".into()) } else { Value::Str("api".into()) });
-        let mut url: Value = crate::value::get_value_k(&get_value(&self.urls, &urlKey).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
+        let mut urlKey: Value = Value::Str("api".into());
+        if is_true(&isTestnet) {
+            urlKey = Value::Str("test".into());
+        }
+        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
@@ -1325,8 +1361,11 @@ impl PacificaCore {
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".into()), symbol).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into());
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
-        let mut urlKey: Value = (if is_true(&(isTestnet)) { Value::Str("test".into()) } else { Value::Str("api".into()) });
-        let mut url: Value = crate::value::get_value_k(&get_value(&self.urls, &urlKey).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
+        let mut urlKey: Value = Value::Str("api".into());
+        if is_true(&isTestnet) {
+            urlKey = Value::Str("test".into());
+        }
+        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
@@ -1511,8 +1550,11 @@ impl PacificaCore {
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
         let mut parsedTf: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
-        let mut urlKey: Value = (if is_true(&(isTestnet)) { Value::Str("test".into()) } else { Value::Str("api".into()) });
-        let mut url: Value = crate::value::get_value_k(&get_value(&self.urls, &urlKey).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
+        let mut urlKey: Value = Value::Str("api".into());
+        if is_true(&isTestnet) {
+            urlKey = Value::Str("test".into());
+        }
+        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
@@ -1558,8 +1600,11 @@ impl PacificaCore {
         let mut market: Value = self.market(symbol.clone());
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
-        let mut urlKey: Value = (if is_true(&(isTestnet)) { Value::Str("test".into()) } else { Value::Str("api".into()) });
-        let mut url: Value = crate::value::get_value_k(&get_value(&self.urls, &urlKey).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
+        let mut urlKey: Value = Value::Str("api".into());
+        if is_true(&isTestnet) {
+            urlKey = Value::Str("test".into());
+        }
+        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
@@ -1666,8 +1711,11 @@ impl PacificaCore {
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol).into());
         }
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
-        let mut urlKey: Value = (if is_true(&(isTestnet)) { Value::Str("test".into()) } else { Value::Str("api".into()) });
-        let mut url: Value = crate::value::get_value_k(&get_value(&self.urls, &urlKey).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
+        let mut urlKey: Value = Value::Str("api".into());
+        if is_true(&isTestnet) {
+            urlKey = Value::Str("test".into());
+        }
+        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
@@ -1713,8 +1761,11 @@ impl PacificaCore {
         }
         let mut messageHash: Value = Value::Str("unsubscribe:order".into());
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
-        let mut urlKey: Value = (if is_true(&(isTestnet)) { Value::Str("test".into()) } else { Value::Str("api".into()) });
-        let mut url: Value = crate::value::get_value_k(&get_value(&self.urls, &urlKey).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
+        let mut urlKey: Value = Value::Str("api".into());
+        if is_true(&isTestnet) {
+            urlKey = Value::Str("test".into());
+        }
+        let mut url: Value = crate::value::get_value_k(&crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), "public");
         let mut userAddress: Value = Value::Null;
         { let __destr_tmp = self.parent.handle_origin_and_single_address(Value::Str("unWatchOrders".into()), params.clone()); userAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut request: Value = Value::Map({

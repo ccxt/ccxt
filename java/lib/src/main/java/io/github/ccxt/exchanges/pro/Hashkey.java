@@ -1120,7 +1120,11 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         List<Object> data = (List<Object>) this.safeList(message, "B", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> balanceUpdate = (Map<String, Object>) this.safeDict(data, 0);
         Boolean isSpot = java.util.Objects.equals(eventVar, "outboundAccountInfo");
-        String type = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "swap";
+        String type = "swap";
+        if (Boolean.TRUE.equals(isSpot))
+        {
+            type = "spot";
+        }
         if (!(((Map<?, ?>)this.balance).containsKey(type)))
         {
             Helpers.addElementToObject(this.balance, type, new HashMap<String, Object>() {{}});

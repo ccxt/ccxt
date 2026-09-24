@@ -226,7 +226,7 @@ public partial class bitstamp : ccxt.bitstamp
     public override object getCacheIndex(object orderbook, object deltas)
     {
         // we will consider it a fail
-        object firstElement = getValue(deltas, 0);
+        IDictionary<string, object> firstElement = this.safeDict(deltas, 0);
         Int64? firstElementNonce = this.safeInteger(firstElement, "microtimestamp");
         if ((firstElementNonce == null))
         {
@@ -239,7 +239,7 @@ public partial class bitstamp : ccxt.bitstamp
         }
         for (int i = 0; i < getArrayLength(deltas); i++)
         {
-            object delta = getValue(deltas, i);
+            IDictionary<string, object> delta = this.safeDict(deltas, i);
             Int64? deltaNonce = this.safeInteger(delta, "microtimestamp");
             if ((deltaNonce == nonce))
             {
@@ -339,7 +339,11 @@ public partial class bitstamp : ccxt.bitstamp
         }
         string? symbol = ((string)getValue(market, "symbol"));
         Int64? sideRaw = this.safeInteger(trade, "type");
-        string side = ((sideRaw == 0)) ? "buy" : "sell";
+        string side = "sell";
+        if ((sideRaw == 0))
+        {
+            side = "buy";
+        }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "timestamp", timestamp },
@@ -771,7 +775,11 @@ public partial class bitstamp : ccxt.bitstamp
         //
         string? id = this.safeString(order, "id_str");
         string? orderTypeRaw = this.safeStringLower(order, "order_type");
-        string side = (orderTypeRaw == "1") ? "sell" : "buy";
+        string side = "buy";
+        if (orderTypeRaw == "1")
+        {
+            side = "sell";
+        }
         string? orderSubTypeRaw = this.safeStringLower(order, "order_subtype"); // https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
         string? orderType = null;
         string? timeInForce = null;

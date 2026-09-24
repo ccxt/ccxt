@@ -276,7 +276,10 @@ class kalshi extends Exchange {
                 $parsed = $this->parse_binary_market_to_outcomes($raw);
                 $eventTicker = $this->safe_string($raw, 'event_ticker');
                 $eventTitle = $this->safe_string($raw, 'title', $eventTicker);
-                $eventKey = ($eventTitle !== null && $eventTitle !== '') ? $this->shorten_slug($eventTitle) : null;
+                $eventKey = null;
+                if ($eventTitle !== null && $eventTitle !== '') {
+                    $eventKey = $this->shorten_slug($eventTitle);
+                }
                 for ($j = 0; $j < count($parsed); $j++) {
                     $m = $parsed[$j];
                     $flatMarkets[] = $m;
@@ -344,7 +347,10 @@ class kalshi extends Exchange {
             $symbolLength = $this->parse_to_int(strlen($outcomeSymbol));
             $suffix = mb_substr($outcomeSymbol, $symbolLength - 3);
             $isNo = ($suffix === '-NO');
-            $baseTicker = $isNo ? mb_substr($outcomeSymbol, 0, $symbolLength - 3 - 0) : $outcomeSymbol;
+            $baseTicker = $outcomeSymbol;
+            if ($isNo) {
+                $baseTicker = mb_substr($outcomeSymbol, 0, $symbolLength - 3 - 0);
+            }
             $response = null;
             try {
                 $response = Async\await($this->kalshiPublicGetMarketsTicker(array( 'ticker' => $baseTicker )));
@@ -425,7 +431,10 @@ class kalshi extends Exchange {
             // parseToInt-wrapped .length — see the fetchOutcome comment (php count()/python slice traps)
             $symbolLength = $this->parse_to_int(strlen($outcomeSymbol));
             $suffix = mb_substr($outcomeSymbol, $symbolLength - 3);
-            $baseTicker = ($suffix === '-NO') ? mb_substr($outcomeSymbol, 0, $symbolLength - 3 - 0) : $outcomeSymbol;
+            $baseTicker = $outcomeSymbol;
+            if ($suffix === '-NO') {
+                $baseTicker = mb_substr($outcomeSymbol, 0, $symbolLength - 3 - 0);
+            }
             if (!(is_array($seen) && array_key_exists($baseTicker ?? '', $seen))) {
                 $seen[$baseTicker] = true;
                 $tickers[] = $baseTicker;
@@ -588,7 +597,10 @@ class kalshi extends Exchange {
             $seriesTicker = implode('-', $seriesParts);
         }
         // market symbol (no outcome suffix)
-        $subtitleOrTicker = ($subtitle !== null) ? $subtitle : $ticker;
+        $subtitleOrTicker = $ticker;
+        if ($subtitle !== null) {
+            $subtitleOrTicker = $subtitle;
+        }
         $marketSymbol = $this->slug_to_market_symbol($eventTicker, $subtitleOrTicker);
         // kalshi exposes the per-market price tick via price_ranges[].step (a dollar value,
         // e.g. "0.0010" for deci-cent markets, "0.0100" for cent markets); older responses
@@ -939,8 +951,18 @@ class kalshi extends Exchange {
             $close = $last;
         }
         // the book is quoted in the yes token, the no side mirrors with sizes swapped
-        $bidSizeString = ($isNo) ? $this->safe_string($raw, 'yes_ask_size_fp') : $this->safe_string($raw, 'yes_bid_size_fp');
-        $askSizeString = ($isNo) ? $this->safe_string($raw, 'yes_bid_size_fp') : $this->safe_string($raw, 'yes_ask_size_fp');
+        $bidSizeString = null;
+        if ($isNo) {
+            $bidSizeString = $this->safe_string($raw, 'yes_ask_size_fp');
+        } else {
+            $bidSizeString = $this->safe_string($raw, 'yes_bid_size_fp');
+        }
+        $askSizeString = null;
+        if ($isNo) {
+            $askSizeString = $this->safe_string($raw, 'yes_bid_size_fp');
+        } else {
+            $askSizeString = $this->safe_string($raw, 'yes_ask_size_fp');
+        }
         // kalshi occasionally reports a negative size for settling/closed markets; a size
         // can't be negative, so drop it rather than emit an invalid volume
         $bidVolume = null;
@@ -1487,7 +1509,10 @@ class kalshi extends Exchange {
         $ts = $this->parse8601($this->safe_string($fill, 'created_time'));
         // action is the order side (buy/sell) of the held leg
         $action = $this->safe_string_lower($fill, 'action');
-        $side = ($action === 'sell') ? 'sell' : 'buy';
+        $side = 'buy';
+        if ($action === 'sell') {
+            $side = 'sell';
+        }
         // price is the price of the leg held; kalshi reports dollars in V2, cents otherwise
         $price = null;
         if ($sideLeg === 'no') {
@@ -1513,7 +1538,10 @@ class kalshi extends Exchange {
             $cost = $price * $amount;
         }
         $isTaker = $this->safe_bool($fill, 'is_taker', true);
-        $takerOrMaker = ($isTaker === true) ? 'taker' : 'maker';
+        $takerOrMaker = 'maker';
+        if ($isTaker === true) {
+            $takerOrMaker = 'taker';
+        }
         $feeCost = $this->safe_number($fill, 'fee_cost');
         $fee = null;
         if ($feeCost !== null) {
@@ -1689,10 +1717,18 @@ class kalshi extends Exchange {
         $yesCount = $this->safe_number_2($settlement, 'yes_count_fp', 'yes_count', 0);
         $noCount = $this->safe_number_2($settlement, 'no_count_fp', 'no_count', 0);
         $heldYes = ($yesCount >= $noCount);
-        $heldLabel = ($heldYes) ? 'YES' : 'NO';
+        $heldLabel = 'NO';
+        if ($heldYes) {
+            $heldLabel = 'YES';
+        }
         $tickerMissing = ($ticker === null);
         $useHeldYesTicker = ($heldYes || $tickerMissing);
-        $heldTicker = ($useHeldYesTicker) ? $ticker : ($ticker . '-NO');
+        $heldTicker = null;
+        if ($useHeldYesTicker) {
+            $heldTicker = $ticker;
+        } else {
+            $heldTicker = ($ticker . '-NO');
+        }
         $mkt = $this->safe_outcome($heldTicker, $market);
         // which leg won; market_result is yes or no
         $marketResult = $this->safe_string_upper($settlement, 'market_result');
@@ -1705,8 +1741,14 @@ class kalshi extends Exchange {
                 $payout = $revenueCents / 100;
             }
         }
-        $costKey = ($heldYes) ? 'yes_total_cost' : 'no_total_cost';
-        $costDollarsKey = ($heldYes) ? 'yes_total_cost_dollars' : 'no_total_cost_dollars';
+        $costKey = 'no_total_cost';
+        if ($heldYes) {
+            $costKey = 'yes_total_cost';
+        }
+        $costDollarsKey = 'no_total_cost_dollars';
+        if ($heldYes) {
+            $costDollarsKey = 'yes_total_cost_dollars';
+        }
         $cost = $this->safe_number($settlement, $costDollarsKey);
         if ($cost === null) {
             $costCents = $this->safe_number($settlement, $costKey);
@@ -1939,8 +1981,14 @@ class kalshi extends Exchange {
         // price in the outcome's own leg: V2 returns *_price_dollars (already dollars),
         // legacy returned yes_price/no_price in cents
         $labelIsNo = ($this->safe_string_upper($mkt, 'label') === 'NO');
-        $dollarsKey = ($labelIsNo) ? 'no_price_dollars' : 'yes_price_dollars';
-        $centsKey = ($labelIsNo) ? 'no_price' : 'yes_price';
+        $dollarsKey = 'yes_price_dollars';
+        if ($labelIsNo) {
+            $dollarsKey = 'no_price_dollars';
+        }
+        $centsKey = 'yes_price';
+        if ($labelIsNo) {
+            $centsKey = 'no_price';
+        }
         $price = $this->safe_number($order, $dollarsKey);
         if ($price === null) {
             $priceCents = $this->safe_number($order, $centsKey);
@@ -2031,7 +2079,10 @@ class kalshi extends Exchange {
         // kalshi V2 (/portfolio/events/orders) quotes the YES leg only: side 'bid' = buy YES,
         // 'ask' = sell YES, price in dollars. a NO order maps to the complementary YES order
         // buy NO @ q == sell YES @ 1-q - flip the book side and the price
-        $bookSide = ($isBuy) ? 'bid' : 'ask';
+        $bookSide = 'ask';
+        if ($isBuy) {
+            $bookSide = 'bid';
+        }
         $yesPrice = $price;
         if ($isNo) {
             $bookSide = ($isBuy) ? 'ask' : 'bid';
@@ -2044,7 +2095,10 @@ class kalshi extends Exchange {
         // `time_in_force` param (handled below) still overrides
         $unifiedTif = $this->safe_string_upper($params, 'timeInForce');
         $params = $this->omit($params, 'timeInForce');
-        $defaultTif = ($isMarket) ? 'immediate_or_cancel' : 'good_till_canceled';
+        $defaultTif = 'good_till_canceled';
+        if ($isMarket) {
+            $defaultTif = 'immediate_or_cancel';
+        }
         // kalshi has BOTH immediate_or_cancel (partial ok) and fill_or_kill (all-or-nothing);
         // map the unified tokens to the matching primitive rather than collapsing FOK into IOC
         if ($unifiedTif === 'IOC') {
@@ -2057,7 +2111,7 @@ class kalshi extends Exchange {
         $timeInForce = null;
         list($timeInForce, $params) = $this->handle_option_and_params($params, 'createOrder', 'time_in_force', $defaultTif);
         $stp = null;
-        list($stp, $params) = $this->handle_option_and_params($params, 'createOrder', 'self_trade_prevention_type', 'taker_at_cross');
+        list($stp, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'self_trade_prevention_type', 'taker_at_cross');
         $request = array(
             'ticker' => $ticker,
             'side' => $bookSide,
@@ -2648,7 +2702,10 @@ class kalshi extends Exchange {
         $ticker = $this->safe_string($rawEvent, 'event_ticker');
         $title = $this->safe_string($rawEvent, 'title');
         $hasTitle = ($title !== null) && ($title !== '');
-        $eventSlug = $hasTitle ? $this->shorten_slug($title) : null;
+        $eventSlug = null;
+        if ($hasTitle) {
+            $eventSlug = $this->shorten_slug($title);
+        }
         $created = $this->parse8601($this->safe_string($rawEvent, 'created_date_iso'));
         if ($created === null) {
             $created = $earliestCreated;

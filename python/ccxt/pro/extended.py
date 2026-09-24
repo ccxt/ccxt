@@ -739,7 +739,11 @@ class extended(ccxt.async_support.extended):
         symbol = self.safe_string(subscription, 'symbol')
         timeframe = self.safe_string(subscription, 'timeframe')
         candleType = self.safe_string(subscription, 'candleType')
-        cacheKey = timeframe if (candleType == 'trades') else timeframe + ':' + candleType
+        cacheKey = None
+        if candleType == 'trades':
+            cacheKey = timeframe
+        else:
+            cacheKey = timeframe + ':' + candleType
         messageHash = self.safe_string(subscription, 'messageHash')
         self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
         stored = self.safe_value(self.ohlcvs[symbol], cacheKey)

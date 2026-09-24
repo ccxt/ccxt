@@ -966,7 +966,10 @@ class myriad extends Exchange {
         $sideStr = strtolower($side);
         $sideInt = ($sideStr === 'buy') ? 0 : 1;
         $isMarket = ($typeStr === 'market');
-        $defaultTif = $isMarket ? 'FOK' : 'GTC';
+        $defaultTif = 'GTC';
+        if ($isMarket) {
+            $defaultTif = 'FOK';
+        }
         $timeInForce = $this->safe_string_upper($params, 'timeInForce', $defaultTif);
         $priceValue = $price;
         if ($priceValue === null) {
@@ -1038,7 +1041,7 @@ class myriad extends Exchange {
         Async\await($this->load_outcomes($orderOutcomes));
         $result = array();
         for ($i = 0; $i < $ordersLength; $i++) {
-            $o = $orders[$i];
+            $o = $this->safe_dict($orders, $i);
             $outcome = $this->safe_string($o, 'outcome');
             $type = $this->safe_string($o, 'type');
             $side = $this->safe_string($o, 'side');
@@ -1343,7 +1346,10 @@ class myriad extends Exchange {
         $inner = $this->safe_dict($order, 'order', array());
         $orderHash = $this->safe_string_2($order, 'orderHash', 'hash');
         $sideInt = $this->safe_integer($inner, 'side');
-        $side = ($sideInt === 1) ? 'sell' : 'buy';
+        $side = 'buy';
+        if ($sideInt === 1) {
+            $side = 'sell';
+        }
         $amountWei = $this->safe_string($inner, 'amount');
         $priceWei = $this->safe_string($inner, 'price');
         $filledWei = $this->safe_string($order, 'filledAmount');
@@ -1356,7 +1362,12 @@ class myriad extends Exchange {
         $tif = $this->safe_string_upper($order, 'timeInForce');
         $isMarketTif = ($tif === 'FOK') || ($tif === 'FAK');
         // resolve the outcome from market/outcome ids when no market was passed (e.g. fetchOrders without a outcome)
-        $outcome = ($market === null) ? null : $this->safe_string($market, 'outcome');
+        $outcome = null;
+        if ($market === null) {
+            $outcome = null;
+        } else {
+            $outcome = $this->safe_string($market, 'outcome');
+        }
         $outcomeObj = $market;
         if ($outcome === null) {
             // the REST order has no top-level networkId; order book lives on the default network
@@ -2240,7 +2251,10 @@ class myriad extends Exchange {
             );
         }
         $marketTradingModel = $this->safe_string($raw, 'tradingModel', 'amm');
-        $marketExecutionModel = ($marketTradingModel === 'amm') ? 'amm' : 'clob';
+        $marketExecutionModel = 'clob';
+        if ($marketTradingModel === 'amm') {
+            $marketExecutionModel = 'amm';
+        }
         $outcomesLength = count($outcomes);
         // effectively-final copy for the market object literal below (reassigned in the loop)
         $marketResolvedOutcome = $resolvedOutcome;
@@ -2527,7 +2541,7 @@ class myriad extends Exchange {
         $price = null;
         $change = null;
         for ($i = 0; $i < count($outcomes); $i++) {
-            $o = $outcomes[$i];
+            $o = $this->safe_dict($outcomes, $i);
             if ($this->safe_string($o, 'outcomeId', $this->safe_string($o, 'id')) === $outcomeId) {
                 $price = $this->safe_number($o, 'price');
                 $change = $this->safe_number($o, 'priceChange24h');
@@ -2693,7 +2707,7 @@ class myriad extends Exchange {
         $outcomes = $this->safe_list($response, 'outcomes', array());
         $price = null;
         for ($i = 0; $i < count($outcomes); $i++) {
-            $o = $outcomes[$i];
+            $o = $this->safe_dict($outcomes, $i);
             if ($this->safe_string($o, 'outcomeId', $this->safe_string($o, 'id')) === $outcomeId) {
                 $price = $this->safe_number($o, 'price');
                 break;
@@ -2743,14 +2757,14 @@ class myriad extends Exchange {
         $rawAsks = $this->safe_list($response, 'asks', array());
         $bids = array();
         for ($i = 0; $i < count($rawBids); $i++) {
-            $row = $rawBids[$i];
+            $row = $this->safe_list($rawBids, $i);
             $rowPrice = Precise::string_div($this->safe_string($row, 0), '1000000000000000000');
             $rowAmount = Precise::string_div($this->safe_string($row, 1), '1000000000000000000');
             $bids[] = array( $this->parse_number($rowPrice), $this->parse_number($rowAmount) );
         }
         $asks = array();
         for ($i = 0; $i < count($rawAsks); $i++) {
-            $row = $rawAsks[$i];
+            $row = $this->safe_list($rawAsks, $i);
             $rowPrice = Precise::string_div($this->safe_string($row, 0), '1000000000000000000');
             $rowAmount = Precise::string_div($this->safe_string($row, 1), '1000000000000000000');
             $asks[] = array( $this->parse_number($rowPrice), $this->parse_number($rowAmount) );
@@ -2955,7 +2969,7 @@ class myriad extends Exchange {
         for ($i = 0; $i < count($marketKeys); $i++) {
             $key = $marketKeys[$i];
             $grouped = $outcomesByMarket[$key];
-            $firstOutcome = $grouped[0];
+            $firstOutcome = $this->safe_dict($grouped, 0);
             $info = $this->safe_dict($firstOutcome, 'info', array());
             $promises[] = $this->myriadPublicGetMarketsId($this->extend(array(
                 'id' => $this->safe_string($info, 'marketId'),
@@ -3035,7 +3049,7 @@ class myriad extends Exchange {
         $rows = ($rowsList !== null) ? $rowsList : array();
         $trades = array();
         for ($i = 0; $i < count($rows); $i++) {
-            $row = $rows[$i];
+            $row = $this->safe_dict($rows, $i);
             $action = $this->safe_string($row, 'action');
             if (($action !== 'buy') && ($action !== 'sell')) {
                 continue;
@@ -3459,7 +3473,7 @@ class myriad extends Exchange {
         $changesLength = count($changes);
         $updated = array();
         for ($i = 0; $i < $changesLength; $i++) {
-            $change = $changes[$i];
+            $change = $this->safe_dict($changes, $i);
             $outcomeId = $this->safe_string($change, 'outcome');
             $sym = $this->market_outcome_to_symbol($networkId, $marketId, $outcomeId);
             if ($sym === null) {
@@ -3932,7 +3946,7 @@ class myriad extends Exchange {
         $balances = array();
         $positionsLength = count($positions);
         for ($i = 0; $i < $positionsLength; $i++) {
-            $p = $positions[$i];
+            $p = $this->safe_dict($positions, $i);
             $id = $this->safe_string($p, 'id');
             if ($id !== null) {
                 $balances[$id] = $this->number_to_string($this->safe_number($p, 'contracts', 0));

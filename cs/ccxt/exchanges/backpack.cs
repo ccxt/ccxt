@@ -1631,7 +1631,7 @@ public partial class backpack : Exchange
         {
             string? id = ((string)balanceKeys[i]);
             string? code = this.safeCurrencyCode(id);
-            object balance = getValue(response, id);
+            IDictionary<string, object> balance = this.safeDict(response, id);
             Dictionary<string, object> account = this.account();
             string? locked = this.safeString(balance, "locked");
             string? staked = this.safeString(balance, "staked");
@@ -2029,7 +2029,7 @@ public partial class backpack : Exchange
         List<object> ordersRequests = new List<object>() {};
         for (int i = 0; i < getArrayLength(orders); i++)
         {
-            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
+            IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
             string? type = this.safeString(rawOrder, "type");
             string? side = this.safeString(rawOrder, "side");
@@ -2063,7 +2063,11 @@ public partial class backpack : Exchange
         };
         string? triggerPrice = this.safeString(parameters, "triggerPrice");
         bool isTriggerOrder = (triggerPrice != null);
-        string quantityKey = isTriggerOrder ? "triggerQuantity" : "quantity";
+        string quantityKey = "quantity";
+        if (isTriggerOrder)
+        {
+            quantityKey = "triggerQuantity";
+        }
         // handle basic limit/market order types
         if (isEqual(type, "limit"))
         {
@@ -2131,19 +2135,19 @@ public partial class backpack : Exchange
             }
             parameters = this.omit(parameters, "stopLoss");
         }
-        object selfTradePrevention = null;
-        IList<object> selfTradePreventionparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "selfTradePrevention");
-        selfTradePrevention = selfTradePreventionparametersVariable[0];
+        string? selfTradePrevention = null;
+        IList<object> selfTradePreventionparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "selfTradePrevention");
+        selfTradePrevention = (string)selfTradePreventionparametersVariable[0];
         parameters = selfTradePreventionparametersVariable[1];
         if ((selfTradePrevention != null))
         {
-            if (isEqual(selfTradePrevention, "EXPIRE_MAKER"))
+            if (selfTradePrevention == "EXPIRE_MAKER")
             {
                 request["selfTradePrevention"] = "RejectMaker";
-            } else if (isEqual(selfTradePrevention, "EXPIRE_TAKER"))
+            } else if (selfTradePrevention == "EXPIRE_TAKER")
             {
                 request["selfTradePrevention"] = "RejectTaker";
-            } else if (isEqual(selfTradePrevention, "EXPIRE_BOTH"))
+            } else if (selfTradePrevention == "EXPIRE_BOTH")
             {
                 request["selfTradePrevention"] = "RejectBoth";
             }

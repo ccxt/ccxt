@@ -465,7 +465,7 @@ class bithumb(ccxt.async_support.bithumb):
         asks = orderbook['asks']
         units = self.safe_list(message, 'orderbook_units', [])
         for i in range(0, len(units)):
-            entry = units[i]
+            entry = self.safe_dict(units, i)
             bidPrice = self.safe_number(entry, 'bid_price')
             bidSize = self.safe_number(entry, 'bid_size')
             askPrice = self.safe_number(entry, 'ask_price')
@@ -496,7 +496,9 @@ class bithumb(ccxt.async_support.bithumb):
         #    }
         #
         sideId = self.safe_string(delta, 'orderType')
-        side = 'bids' if (sideId == 'bid') else 'asks'
+        side = 'asks'
+        if sideId == 'bid':
+            side = 'bids'
         bidAsk = self.parse_order_book_bid_ask(delta, 'price', 'quantity')
         orderbookSide = orderbook[side]
         orderbookSide.storeArray(bidAsk)
@@ -753,7 +755,7 @@ class bithumb(ccxt.async_support.bithumb):
         if self.balance is None:
             self.balance = {}
         for i in range(0, len(assets)):
-            asset = assets[i]
+            asset = self.safe_dict(assets, i)
             currencyId = self.safe_string(asset, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()

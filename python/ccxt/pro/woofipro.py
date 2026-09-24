@@ -649,7 +649,9 @@ class woofipro(ccxt.async_support.woofipro):
         if self.markets is None:
             await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
-        topic = 'algoexecutionreport' if (trigger is True) else 'executionreport'
+        topic = 'executionreport'
+        if trigger is True:
+            topic = 'algoexecutionreport'
         params = self.omit(params, ['stop', 'trigger'])
         messageHash = topic
         if symbol is not None:
@@ -683,7 +685,9 @@ class woofipro(ccxt.async_support.woofipro):
         if self.markets is None:
             await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
-        topic = 'algoexecutionreport' if (trigger is True) else 'executionreport'
+        topic = 'executionreport'
+        if trigger is True:
+            topic = 'algoexecutionreport'
         params = self.omit(params, 'stop')
         messageHash = 'myTrades'
         if symbol is not None:
@@ -1180,7 +1184,7 @@ class woofipro(ccxt.async_support.woofipro):
         self.balance['datetime'] = self.iso8601(ts)
         for i in range(0, len(keys)):
             key = keys[i]
-            value = balances[key]
+            value = self.safe_dict(balances, key)
             code = self.safe_currency_code(key)
             account = self.account()
             if (code is not None) and (code in self.balance):

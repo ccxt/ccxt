@@ -344,7 +344,10 @@ class coinone extends Exchange {
         $code = $this->safe_currency_code($id);
         $isWithdrawEnabled = $this->safe_string($rawCurrency, 'withdraw_status', '') === 'normal';
         $isDepositEnabled = $this->safe_string($rawCurrency, 'deposit_status', '') === 'normal';
-        $type = ($code !== 'KRW') ? 'crypto' : 'fiat';
+        $type = 'fiat';
+        if ($code !== 'KRW') {
+            $type = 'crypto';
+        }
         return $this->safe_currency_structure(array(
             'id' => $id,
             'code' => $code,
@@ -493,7 +496,7 @@ class coinone extends Exchange {
         $currencyIds = is_array($balances) ? array_keys($balances) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
-            $balance = $balances[$currencyId];
+            $balance = $this->safe_dict($balances, $currencyId);
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'avail');
@@ -809,7 +812,12 @@ class coinone extends Exchange {
             $feeCostString = Precise::string_abs($feeCostString);
             $feeRateString = $this->safe_string($trade, 'feeRate');
             $feeRateString = Precise::string_abs($feeRateString);
-            $feeCurrencyCode = ($side === 'sell') ? $market['quote'] : $market['base'];
+            $feeCurrencyCode = null;
+            if ($side === 'sell') {
+                $feeCurrencyCode = $market['quote'];
+            } else {
+                $feeCurrencyCode = $market['base'];
+            }
             $fee = array(
                 'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
@@ -1083,7 +1091,10 @@ class coinone extends Exchange {
         $fee = null;
         $feeCostString = $this->safe_string($order, 'fee');
         if ($feeCostString !== null) {
-            $feeCurrencyCode = ($side === 'sell') ? $quote : $base;
+            $feeCurrencyCode = $base;
+            if ($side === 'sell') {
+                $feeCurrencyCode = $quote;
+            }
             $fee = array(
                 'cost' => $feeCostString,
                 'rate' => $this->safe_string_2($order, 'feeRate', 'fee_rate'),

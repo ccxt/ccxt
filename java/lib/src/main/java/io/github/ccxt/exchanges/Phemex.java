@@ -2621,7 +2621,7 @@ public class Phemex extends PhemexApi
         List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object balance = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(data, i);
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> currency = (Map<String, Object>) this.safeDict(this.currencies, code, new HashMap<String, Object>() {{}});
@@ -4533,11 +4533,11 @@ public class Phemex extends PhemexApi
             Object data = null;
             if (Boolean.TRUE.equals(isUSDTSettled))
             {
-                data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
+                data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             } else
             {
                 data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-                data = this.safeValue(data, "rows", new ArrayList<Object>(Arrays.asList()));
+                data = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             }
             return this.parseTrades(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -6032,7 +6032,7 @@ public class Phemex extends PhemexApi
         Object minNotional = 0;
         for (var i = 0; i < Helpers.getArrayLength(riskLimits); i++)
         {
-            Object tier = Helpers.GetValue(riskLimits, i);
+            Map<String, Object> tier = (Map<String, Object>) this.safeDict(riskLimits, i);
             Long maxNotional = this.safeInteger(tier, "limit");
             Object minNotionalResponse = minNotional; // java req
 final Object finalI = i;
@@ -6524,8 +6524,8 @@ final Object finalI = i;
                 throw new BadRequest((this.id + " fetchFundingRateHistory() supports swap contracts only")) ;
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {

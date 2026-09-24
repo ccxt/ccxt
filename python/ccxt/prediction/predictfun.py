@@ -661,7 +661,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             categories = self.safe_list(data, 'categories', [])
             categoriesLength = len(categories)
             for ci in range(0, categoriesLength):
-                category = categories[ci]
+                category = self.safe_dict(categories, ci)
                 categorySlug = self.safe_string(category, 'slug')
                 if categorySlug is None:
                     # nothing to key a duplicate on, keep the row rather than drop it
@@ -1082,7 +1082,9 @@ class predictfun(PredictionExchange, ImplicitAPI):
         topicSlug = self.safe_string(rawMarket, 'categorySlug')
         # the same handle parseEvent () derives for the enclosing event - stamping it here is what
         # lets every outcome-addressed structure (order, ticker, trade, position) report an event
-        eventHandle = self.shorten_slug(topicSlug) if (topicSlug is not None) else None
+        eventHandle = None
+        if topicSlug is not None:
+            eventHandle = self.shorten_slug(topicSlug)
         title = self.safe_string(rawMarket, 'title', marketId)
         topicMarkets = self.safe_list(rawTopic, 'markets', [])
         marketCount = len(topicMarkets)
@@ -1144,7 +1146,9 @@ class predictfun(PredictionExchange, ImplicitAPI):
             })
         resolvedOutcome = resolvedOutcomeRaw
         collateral = 'USDT'
-        marketType = 'categorical' if (rawOutcomesLength > 2) else 'binary'
+        marketType = 'binary'
+        if rawOutcomesLength > 2:
+            marketType = 'categorical'
         createdDatetime = self.safe_string(rawMarket, 'createdAt')
         return {
             'id': marketId,
@@ -1244,13 +1248,13 @@ class predictfun(PredictionExchange, ImplicitAPI):
             noBids = []
             noAsks = []
             for i in range(0, len(bids)):
-                bid = bids[i]
+                bid = self.safe_list(bids, i)
                 bidPrice = self.safe_string(bid, 0)
                 bidSize = self.parse_number(self.safe_string(bid, 1))
                 complementPrice = self.parse_number(Precise.string_sub('1', bidPrice))
                 noAsks.append([complementPrice, bidSize])
             for i in range(0, len(asks)):
-                ask = asks[i]
+                ask = self.safe_list(asks, i)
                 askPrice = self.safe_string(ask, 0)
                 askSize = self.parse_number(self.safe_string(ask, 1))
                 complementPrice = self.parse_number(Precise.string_sub('1', askPrice))
@@ -1524,7 +1528,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         flattenTrades = []
         dataLength = len(data)
         for i in range(0, dataLength):
-            entry = data[i]
+            entry = self.safe_dict(data, i)
             taker = self.safe_dict(entry, 'taker', {})
             takerOutcome = self.safe_dict(taker, 'outcome', {})
             takerIndexSet = self.safe_integer(takerOutcome, 'indexSet')
@@ -1808,7 +1812,9 @@ class predictfun(PredictionExchange, ImplicitAPI):
         tokenId = self.safe_string(outcomeObj, 'outcomeId')
         if tokenId is None:
             raise ArgumentsRequired(self.id + ' createOrder() could not resolve the on chain token id of ' + outcome)
-        strategy = 'MARKET' if (type == 'market') else 'LIMIT'
+        strategy = 'LIMIT'
+        if type == 'market':
+            strategy = 'MARKET'
         isMarket = (strategy == 'MARKET')
         if (not isMarket) and (price is None):
             raise ArgumentsRequired(self.id + ' createOrder() requires a "price" argument for a limit order')
@@ -1826,7 +1832,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         # reconfiguring the exchange - and so the key is taken out of params instead of riding
         # along into the request body
         warnOnMarketOrderWithoutPrice = True
-        warnOnMarketOrderWithoutPrice, params = self.handle_option_and_params(params, 'createOrder', 'warnOnMarketOrderWithoutPrice', True)
+        warnOnMarketOrderWithoutPrice, params = self.handle_option_bool_and_params(params, 'createOrder', 'warnOnMarketOrderWithoutPrice', True)
         if price is None:
             # a priceless limit order already threw above, so this is a market order
             if warnOnMarketOrderWithoutPrice:
@@ -3184,7 +3190,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         noAsks = []
         bidsLength = len(rawBids)
         for i in range(0, bidsLength):
-            bid = rawBids[i]
+            bid = self.safe_list(rawBids, i)
             bidPrice = self.safe_string(bid, 0)
             bidSize = self.parse_number(self.safe_string(bid, 1))
             yesBids.append([self.parse_number(bidPrice), bidSize])
@@ -3192,7 +3198,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             noAsks.append([self.parse_number(Precise.string_sub('1', bidPrice)), bidSize])
         asksLength = len(rawAsks)
         for i in range(0, asksLength):
-            ask = rawAsks[i]
+            ask = self.safe_list(rawAsks, i)
             askPrice = self.safe_string(ask, 0)
             askSize = self.parse_number(self.safe_string(ask, 1))
             yesAsks.append([self.parse_number(askPrice), askSize])
@@ -3200,7 +3206,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         outcomes = self.outcomes_by_market_id(marketId)
         outcomesLength = len(outcomes)
         for i in range(0, outcomesLength):
-            outcomeObj = outcomes[i]
+            outcomeObj = self.safe_dict(outcomes, i)
             outcomeInfo = self.safe_dict(outcomeObj, 'info', {})
             isYesOutcome = self.safe_integer(outcomeInfo, 'indexSet') == 1
             outcomeHandle = self.safe_string(outcomeObj, 'outcome')
@@ -3343,7 +3349,9 @@ class predictfun(PredictionExchange, ImplicitAPI):
         # undefined rather than guessed - a handle that does not match the one the rest of the api
         # reports is worse than none at all
         topicSlug = self.safe_string(details, 'categorySlug')
-        eventHandle = self.shorten_slug(topicSlug) if (topicSlug is not None) else None
+        eventHandle = None
+        if topicSlug is not None:
+            eventHandle = self.shorten_slug(topicSlug)
         label = self.strip_price_formatting(self.safe_string_upper(details, 'outcomeName'))
         return {
             'outcome': None,

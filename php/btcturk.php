@@ -320,7 +320,7 @@ class btcturk extends Exchange {
         $maxAmount = null;
         $minCost = null;
         for ($j = 0; $j < count($filters); $j++) {
-            $filter = $filters[$j];
+            $filter = $this->safe_dict($filters, $j);
             $filterType = $this->safe_string($filter, 'filterType');
             if ($filterType === 'PRICE_FILTER') {
                 $minPrice = $this->safe_number($filter, 'minPrice');
@@ -390,7 +390,7 @@ class btcturk extends Exchange {
             'datetime' => null,
         );
         for ($i = 0; $i < count($data); $i++) {
-            $entry = $data[$i];
+            $entry = $this->safe_dict($data, $i);
             $currencyId = $this->safe_string($entry, 'asset');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -1097,7 +1097,10 @@ class btcturk extends Exchange {
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         $errorCode = $this->safe_string($response, 'code', '0');
         $message = $this->safe_string($response, 'message');
-        $output = ($message === null) ? $body : $message;
+        $output = $message;
+        if ($message === null) {
+            $output = $body;
+        }
         $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $this->id . ' ' . $output);
         if (($errorCode !== '0') && ($errorCode !== 'SUCCESS')) {
             throw new ExchangeError($this->id . ' ' . $output);

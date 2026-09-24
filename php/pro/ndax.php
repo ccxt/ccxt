@@ -288,7 +288,7 @@ class ndax extends \ccxt\async\ndax {
         //
         $updates = array();
         for ($i = 0; $i < count($payload); $i++) {
-            $ohlcv = $payload[$i];
+            $ohlcv = $this->safe_list($payload, $i);
             $marketId = $this->safe_string($ohlcv, 8);
             $market = $this->safe_market($marketId);
             $symbol = $market['symbol'];
@@ -464,7 +464,7 @@ class ndax extends \ccxt\async\ndax {
         $timestamp = null;
         $nonce = null;
         for ($i = 0; $i < count($payload); $i++) {
-            $bidask = $payload[$i];
+            $bidask = $this->safe_list($payload, $i);
             if ($timestamp === null) {
                 $timestamp = $this->safe_integer($bidask, 2);
             } else {

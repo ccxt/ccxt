@@ -1100,7 +1100,7 @@ func (this *Htx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		messageHash = ccxt.DerefScalar(this.SafeString(channelAndMessageHashAndParams, 1))
 		params = this.SafeDict(channelAndMessageHashAndParams, 2, map[string]any{})
 	} else {
-		var channelAndMessageHash any = this.GetOrderChannelAndMessageHash(typeVar, subType, market, params)
+		var channelAndMessageHash []any = ccxt.ArrayTyped(this.GetOrderChannelAndMessageHash(typeVar, subType, market, params))
 		channel = ccxt.DerefScalar(this.SafeString(channelAndMessageHash, 0))
 		var orderMessageHash *string = this.SafeString(channelAndMessageHash, 1)
 		// we will take advantage of the order messageHash because already handles stuff
@@ -1137,29 +1137,25 @@ func (this *Htx) GetOrderChannelAndMessageHash(typeVar any, subType any, optiona
 	if (market != nil) && (!ccxt.IsEqual(ccxt.GetValue(market, "lowercaseId"), nil)) {
 		marketCode = ccxt.ToLower(ccxt.GetValue(market, "lowercaseId"))
 	}
-	var baseId any = func() any {
-		if market != nil {
-			return ccxt.GetValue(market, "baseId")
-		}
-		return nil
-	}()
+	var baseId any = nil
+	if market != nil {
+		baseId = ccxt.GetValue(market, "baseId")
+	}
 	var prefix *string = orderType
 	messageHash = prefix
 	if ccxt.IsEqual(subType, "linear") {
 		// USDT Margined Contracts Example: LTC/USDT:USDT
 		var marginMode *string = this.SafeString(params, "margin", "cross")
-		var marginPrefix any = func() any {
-			if marginMode != nil && *marginMode == "cross" {
-				return *prefix + "_cross"
-			}
-			return prefix
-		}()
+		var marginPrefix *string = prefix
+		if marginMode != nil && *marginMode == "cross" {
+			marginPrefix = ccxt.SafeStringPtr(*prefix + "_cross")
+		}
 		messageHash = marginPrefix
 		if marketCode != nil {
 			messageHash = ccxt.Add(messageHash, ccxt.Add(".", marketCode))
 			channel = messageHash
 		} else {
-			channel = ccxt.Add(ccxt.Add(marginPrefix, "."), "*")
+			channel = *marginPrefix + "." + "*"
 		}
 	} else if ccxt.IsEqual(typeVar, "future") {
 		// inverse futures Example: BCH/USD:BCH-220408
@@ -1185,15 +1181,15 @@ func (this *Htx) GetV5LinearChannelAndMessageHash(topic any, optionalArgs ...any
 	_ = market
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var contractCode any = func() any {
-		if market != nil {
-			return ccxt.GetValue(market, "id")
-		}
-		return this.SafeString(params, "contract_code", "*")
-	}()
+	var contractCode any = nil
+	if market != nil {
+		contractCode = ccxt.GetValue(market, "id")
+	} else {
+		contractCode = ccxt.DerefScalar(this.SafeString(params, "contract_code", "*"))
+	}
 	var channel any = topic
 	var messageHash any = topic
-	if (contractCode != nil) && (!ccxt.IsEqual(contractCode, "*")) {
+	if (!ccxt.IsEqual(contractCode, nil)) && (!ccxt.IsEqual(contractCode, "*")) {
 		messageHash = ccxt.Add(ccxt.Add(topic, "."), ccxt.ToLower(contractCode))
 	}
 	params = ccxt.MapTyped(this.Omit(params, "contract_code"))
@@ -1272,7 +1268,7 @@ func (this *Htx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		messageHash = ccxt.DerefScalar(this.SafeString(channelAndMessageHashAndParams, 1))
 		params = this.SafeDict(channelAndMessageHashAndParams, 2, map[string]any{})
 	} else {
-		var channelAndMessageHash any = this.GetOrderChannelAndMessageHash(typeVar, subType, market, params)
+		var channelAndMessageHash []any = ccxt.ArrayTyped(this.GetOrderChannelAndMessageHash(typeVar, subType, market, params))
 		channel = ccxt.DerefScalar(this.SafeString(channelAndMessageHash, 0))
 		messageHash = ccxt.DerefScalar(this.SafeString(channelAndMessageHash, 1))
 	}
@@ -1908,12 +1904,10 @@ func (this *Htx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var isLinear bool = (ccxt.IsEqual(subType, "linear"))
 	var url any = this.GetUrlByMarketType(typeVar, isLinear, true, false, isV5Linear)
 	messageHash = ccxt.Add(ccxt.Add(marginMode, ":positions"), messageHash)
-	var channel any = func() string {
-		if marginMode != nil && *marginMode == "cross" {
-			return "positions_cross.*"
-		}
-		return "positions.*"
-	}()
+	var channel any = "positions.*"
+	if marginMode != nil && *marginMode == "cross" {
+		channel = "positions_cross.*"
+	}
 	if isV5Linear {
 		var v5Market any = nil
 		if (symbols != nil) && (ccxt.GetArrayLength(symbols) == 1) {
@@ -2021,12 +2015,10 @@ func (this *Htx) HandlePositions(client any, message any) {
 	//
 	var url any = client.(ccxt.ClientInterface).GetUrl()
 	var topic *string = this.SafeString(message, "topic", "")
-	var defaultMarginMode string = func() string {
-		if topic != nil && *topic == "positions_cross" {
-			return "cross"
-		}
-		return "isolated"
-	}()
+	var defaultMarginMode string = "isolated"
+	if topic != nil && *topic == "positions_cross" {
+		defaultMarginMode = "cross"
+	}
 	if ccxt.IsEqual(this.Positions, nil) {
 		this.Positions = map[string]any{}
 	}
@@ -2074,13 +2066,13 @@ func (this *Htx) HandlePositions(client any, message any) {
 		}
 		newPositions = append(newPositions, position)
 		ccxt.AddElementToObject(positionsByMarginMode, marginMode, this.SafeList(positionsByMarginMode, marginMode, []any{}))
-		retRes176812 := func() any {
+		retRes178512 := func() any {
 			if marginMode == nil {
 				return nil
 			}
 			return positionsByMarginMode[*marginMode]
 		}()
-		ccxt.AppendToArray(&retRes176812, position)
+		ccxt.AppendToArray(&retRes178512, position)
 		cache.(ccxt.Appender).Append(position)
 	}
 	var marginModes []string = ccxt.ObjectKeys(positionsByMarginMode)
@@ -2385,12 +2377,7 @@ func (this *Htx) HandleBalance(client any, message any) {
 			var details []any = ccxt.SafeListTyped(accountData, "details")
 			var detailsLength int = len(details)
 			for i := 0; i < detailsLength; i++ {
-				var detail map[string]any = ccxt.MapTyped(func() any {
-					if i >= 0 && i < len(details) {
-						return ccxt.DerefScalar(details[i])
-					}
-					return nil
-				}())
+				var detail map[string]any = ccxt.SafeMapTyped(details, i)
 				var currencyId *string = this.SafeString(detail, "currency")
 				var code *string = this.SafeCurrencyCode(currencyId)
 				if code == nil {
@@ -2469,7 +2456,7 @@ func (this *Htx) HandleBalance(client any, message any) {
 			} else {
 				// isolated margin
 				for i := 0; i < ccxt.GetArrayLength(data); i++ {
-					var isolatedBalance map[string]any = ccxt.MapTyped(ccxt.GetValue(data, i))
+					var isolatedBalance map[string]any = ccxt.SafeMapTyped(data, i)
 					var account map[string]any = this.Account()
 					account["free"] = this.SafeString(isolatedBalance, "margin_balance", "margin_available")
 					account["used"] = this.SafeString(isolatedBalance, "margin_frozen")
@@ -2484,7 +2471,7 @@ func (this *Htx) HandleBalance(client any, message any) {
 		} else {
 			// inverse branch
 			for i := 0; i < ccxt.GetArrayLength(data); i++ {
-				var balance map[string]any = ccxt.MapTyped(ccxt.GetValue(data, i))
+				var balance map[string]any = ccxt.SafeMapTyped(data, i)
 				var currencyId *string = this.SafeString(balance, "symbol")
 				var code *string = this.SafeCurrencyCode(currencyId)
 				var account map[string]any = this.Account()

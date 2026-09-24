@@ -1161,7 +1161,10 @@ impl NdaxCore {
         let mut id: Value = self.safe_string_k(rawCurrency.clone(), "ProductId", &[]);
         let mut code: Value = self.safe_currency_code(self.safe_string_k(rawCurrency.clone(), "Product", &[]), &[]);
         let mut ProductType: Option<String> = self.safe_string_k(rawCurrency.clone(), "ProductType", &[]).as_str().map(str::to_owned);
-        let mut type_var: Value = (if (ProductType.as_deref() == Some("NationalCurrency")) { Value::Str("fiat".into()) } else { Value::Str("crypto".into()) });
+        let mut type_var: Value = Value::Str("crypto".into());
+        if (ProductType.as_deref() == Some("NationalCurrency")) {
+            type_var = Value::Str("fiat".into());
+        }
         if (ProductType.as_deref() == Some("Unknown")) {
             // such currency is just a blanket entry
             type_var = Value::Str("other".into());
@@ -1917,8 +1920,7 @@ impl NdaxCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_981: bool = true;
             while { if !__for_first_981 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_981 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
-            let mut balance: Value = get_value(&response, &i);
-            let mut balance: Value = get_value(&response, &i);
+            let mut balance: Value = self.safe_dict(response.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "ProductId", &[]);
             if (currencyId != Value::Null) && (self.currencies_by_id.clone() != Value::Null) && (in_op(&self.currencies_by_id, &currencyId)) {
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);

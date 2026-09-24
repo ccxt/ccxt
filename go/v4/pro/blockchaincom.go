@@ -131,12 +131,7 @@ func (this *Blockchaincom) HandleBalance(client any, message map[string]any) {
 	}
 	var balances []any = ccxt.SafeListTyped(message, "balances")
 	for i := 0; i < len(balances); i++ {
-		var entry map[string]any = ccxt.MapTyped(func() any {
-			if i >= 0 && i < len(balances) {
-				return ccxt.DerefScalar(balances[i])
-			}
-			return nil
-		}())
+		var entry map[string]any = ccxt.SafeMapTyped(balances, i)
 		var currencyId *string = this.SafeString(entry, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()

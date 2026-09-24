@@ -1090,7 +1090,7 @@ public partial class hibachi : Exchange
         List<object> requestOrders = new List<object>() {};
         for (int i = 0; i < getArrayLength(orders); i++)
         {
-            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
+            IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? symbol = this.safeString(rawOrder, "symbol");
             string? type = this.safeString(rawOrder, "type");
             string? side = this.safeString(rawOrder, "side");
@@ -1205,7 +1205,7 @@ public partial class hibachi : Exchange
         List<object> requestOrders = new List<object>() {};
         for (int i = 0; i < getArrayLength(orders); i++)
         {
-            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
+            IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? id = this.safeString(rawOrder, "id");
             string? symbol = this.safeString(rawOrder, "symbol");
             string? type = this.safeString(rawOrder, "type");
@@ -2125,7 +2125,7 @@ public partial class hibachi : Exchange
         };
         List<object> rawPromises = new List<object> {this.privateGetCapitalHistory(this.extend(request, parameters)), this.privateGetTradeAccountTradingHistory(this.extend(request, parameters))};
         List<object> promises = await promiseAll(rawPromises);
-        object responseCapitalHistory = getValue(promises, 0);
+        IDictionary<string, object> responseCapitalHistory = this.safeDict(promises, 0);
         //
         // {
         //     "transactions": [
@@ -2180,7 +2180,7 @@ public partial class hibachi : Exchange
         // }
         //
         List<object> rowsCapitalHistory = this.safeList(responseCapitalHistory, "transactions", new List<object>() {});
-        object responseTradingHistory = getValue(promises, 1);
+        IDictionary<string, object> responseTradingHistory = this.safeDict(promises, 1);
         //
         // {
         //     "tradingHistory": [

@@ -112,7 +112,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         result = {'info': message}
         balances = self.safe_list(message, 'balances', [])
         for i in range(0, len(balances)):
-            entry = balances[i]
+            entry = self.safe_dict(balances, i)
             currencyId = self.safe_string(entry, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()

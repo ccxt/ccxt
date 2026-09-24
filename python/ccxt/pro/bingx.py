@@ -258,7 +258,9 @@ class bingx(ccxt.async_support.bingx):
         marketId = self.safe_string(data, 's')
         # const marketId = messageHash.split('@')[0];
         isSwap = client.url.find('swap') >= 0
-        marketType = 'swap' if isSwap else 'spot'
+        marketType = 'spot'
+        if isSwap:
+            marketType = 'swap'
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         # the Coin-M stream is a distinct endpoint, so it identifies an inverse
@@ -505,7 +507,9 @@ class bingx(ccxt.async_support.bingx):
         rawHash = self.safe_string(message, 'dataType', '')
         marketId = rawHash.split('@')[0]
         isSwap = client.url.find('swap') >= 0
-        marketType = 'swap' if isSwap else 'spot'
+        marketType = 'spot'
+        if isSwap:
+            marketType = 'swap'
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         messageHash = 'trade::' + symbol
@@ -680,14 +684,16 @@ class bingx(ccxt.async_support.bingx):
         isAllEndpoint = (firstPart == 'all')
         marketId = self.safe_string(data, 'symbol', firstPart)
         isSwap = client.url.find('swap') >= 0
-        marketType = 'swap' if isSwap else 'spot'
+        marketType = 'spot'
+        if isSwap:
+            marketType = 'swap'
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         orderbook = self.safe_value(self.orderbooks, symbol)
         if orderbook is None:
             # const limit = [ 5, 10, 20, 50, 100 ]
             subscriptionHash = dataType
-            subscription = client.subscriptions[subscriptionHash]
+            subscription = self.safe_dict(client.subscriptions, subscriptionHash)
             # see handleOHLCV — subscription.limit may be missing for non-orderbook callers;
             # default to a reasonable depth instead of throwing NPE in the Java port.
             limit = self.safe_integer(subscription, 'limit', 100)
@@ -726,7 +732,9 @@ class bingx(ccxt.async_support.bingx):
         # for linear swap, (T) is the opening time
         isSpot = (self.safe_bool(market, 'spot') is True)
         isInverse = (self.safe_bool(market, 'inverse') is True)
-        timestamp = 't' if isSpot else 'T'
+        timestamp = 'T'
+        if isSpot:
+            timestamp = 't'
         if self.safe_bool(market, 'swap') is True:
             timestamp = 't' if isInverse else 'T'
         return [
@@ -809,7 +817,9 @@ class bingx(ccxt.async_support.bingx):
         firstPart = parts[0]
         isAllEndpoint = (firstPart == 'all')
         marketId = self.safe_string(message, 's', firstPart)
-        marketType = 'swap' if isSwap else 'spot'
+        marketType = 'spot'
+        if isSwap:
+            marketType = 'swap'
         market = self.safe_market(marketId, None, None, marketType)
         candles = None
         if isSwap:
@@ -828,7 +838,7 @@ class bingx(ccxt.async_support.bingx):
         unifiedTimeframe = self.find_timeframe(rawTimeframe, timeframes)
         if self.safe_value(self.ohlcvs[symbol], rawTimeframe) is None:
             subscriptionHash = dataType
-            subscription = client.subscriptions[subscriptionHash]
+            subscription = self.safe_dict(client.subscriptions, subscriptionHash)
             # subscription.limit is only set when watchOHLCV registers the subscription;
             # when handleMessage routes a non-OHLCV-originated subscription here (or the
             # subscription dict was reset on reconnect), fall back to the OHLCVLimit option.
@@ -955,10 +965,14 @@ class bingx(ccxt.async_support.bingx):
         isSpot = (type == 'spot')
         spotHash = 'spot:private'
         swapHash = 'swap:private'
-        subscriptionHash = spotHash if isSpot else swapHash
+        subscriptionHash = swapHash
+        if isSpot:
+            subscriptionHash = spotHash
         spotMessageHash = 'spot:order'
         swapMessageHash = 'swap:order'
-        messageHash = spotMessageHash if isSpot else swapMessageHash
+        messageHash = swapMessageHash
+        if isSpot:
+            messageHash = spotMessageHash
         if market is not None:
             messageHash += ':' + symbol
         uuid = self.uuid()
@@ -1013,10 +1027,14 @@ class bingx(ccxt.async_support.bingx):
         isSpot = (type == 'spot')
         spotHash = 'spot:private'
         swapHash = 'swap:private'
-        subscriptionHash = spotHash if isSpot else swapHash
+        subscriptionHash = swapHash
+        if isSpot:
+            subscriptionHash = spotHash
         spotMessageHash = 'spot:mytrades'
         swapMessageHash = 'swap:mytrades'
-        messageHash = spotMessageHash if isSpot else swapMessageHash
+        messageHash = swapMessageHash
+        if isSpot:
+            messageHash = spotMessageHash
         if market is not None:
             messageHash += ':' + symbol
         uuid = self.uuid()
@@ -1066,8 +1084,12 @@ class bingx(ccxt.async_support.bingx):
         swapSubHash = 'swap:private'
         spotMessageHash = 'spot:balance'
         swapMessageHash = 'swap:balance'
-        messageHash = spotMessageHash if isSpot else swapMessageHash
-        subscriptionHash = spotSubHash if isSpot else swapSubHash
+        messageHash = swapMessageHash
+        if isSpot:
+            messageHash = spotMessageHash
+        subscriptionHash = swapSubHash
+        if isSpot:
+            subscriptionHash = spotSubHash
         request = None
         baseUrl = None
         uuid = self.uuid()
@@ -1527,7 +1549,9 @@ class bingx(ccxt.async_support.bingx):
         symbol = parsedOrder['symbol']
         spotHash = 'spot:order'
         swapHash = 'swap:order'
-        messageHash = spotHash if (isSpot) else swapHash
+        messageHash = swapHash
+        if isSpot:
+            messageHash = spotHash
         client.resolve(stored, messageHash)
         client.resolve(stored, messageHash + ':' + symbol)
 
@@ -1595,14 +1619,18 @@ class bingx(ccxt.async_support.bingx):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             cachedTrades = ArrayCacheBySymbolById(limit)
             self.myTrades = cachedTrades
-        type = 'spot' if isSpot else 'swap'
+        type = 'swap'
+        if isSpot:
+            type = 'spot'
         marketId = self.safe_string(result, 's')
         market = self.safe_market(marketId, None, '-', type)
         parsed = self.parse_trade(result, market)
         symbol = parsed['symbol']
         spotHash = 'spot:mytrades'
         swapHash = 'swap:mytrades'
-        messageHash = spotHash if isSpot else swapHash
+        messageHash = swapHash
+        if isSpot:
+            messageHash = spotHash
         cachedTrades.append(parsed)
         client.resolve(cachedTrades, messageHash)
         client.resolve(cachedTrades, messageHash + ':' + symbol)
@@ -1649,7 +1677,9 @@ class bingx(ccxt.async_support.bingx):
         timestamp = self.safe_integer_2(message, 'T', 'E')
         spotUrl = self.safe_string(self.urls['api']['ws'], 'spot')
         isSpot = (spotUrl is not None) and (client.url.find(spotUrl) == 0)
-        type = 'spot' if isSpot else 'swap'
+        type = 'swap'
+        if isSpot:
+            type = 'spot'
         if not (type in self.balance):
             self.balance[type] = {}
         self.balance[type]['info'] = data
@@ -1669,10 +1699,15 @@ class bingx(ccxt.async_support.bingx):
         client.resolve(self.balance[type], type + ':balance')
 
     def handle_message(self, client: Client, message: object):
+        # plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them
+        if isinstance(message, str):
+            if message == 'Ping':
+                self.spawn(self.pong, client, message)
+            return
         if not self.handle_error_message(client, message):
             return
         # public subscriptions
-        if (message == 'Ping') or ('ping' in message):
+        if 'ping' in message:
             self.spawn(self.pong, client, message)
             return
         dataType = self.safe_string(message, 'dataType', '')

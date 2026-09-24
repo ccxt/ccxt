@@ -1207,7 +1207,12 @@ class bitstamp extends Exchange {
         }
         $feeCostString = $this->safe_string($trade, 'fee');
         $feeCurrency = $this->safe_string($market, 'quote');
-        $priceId = ($rawMarketId !== null) ? $rawMarketId : $this->safe_string($market, 'id');
+        $priceId = null;
+        if ($rawMarketId !== null) {
+            $priceId = $rawMarketId;
+        } else {
+            $priceId = $this->safe_string($market, 'id');
+        }
         $priceString = $this->safe_string($trade, $priceId, $priceString);
         $amountString = $this->safe_string($trade, $this->safe_string($market, 'baseId'), $amountString);
         $costString = $this->safe_string($trade, $this->safe_string($market, 'quoteId'), $costString);
@@ -1446,7 +1451,7 @@ class bitstamp extends Exchange {
             $response = array();
         }
         for ($i = 0; $i < count($response); $i++) {
-            $currencyBalance = $response[$i];
+            $currencyBalance = $this->safe_dict($response, $i);
             $currencyId = $this->safe_string($currencyBalance, 'currency');
             $currencyCode = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -1684,7 +1689,7 @@ class bitstamp extends Exchange {
         $result = $this->deposit_withdraw_fee($fee);
         $code = $this->safe_string($currency, 'code');
         for ($j = 0; $j < count($fee); $j++) {
-            $networkEntry = $fee[$j];
+            $networkEntry = $this->safe_dict($fee, $j);
             $networkId = $this->safe_string($networkEntry, 'network');
             $networkCode = $this->network_id_to_code($networkId, $code);
             $withdrawFee = $this->safe_number($networkEntry, 'fee');
@@ -2038,7 +2043,7 @@ class bitstamp extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params));
         }
@@ -2907,7 +2912,10 @@ class bitstamp extends Exchange {
                     $headers['Content-Type'] = $contentType;
                 }
             }
-            $authBody = ($body !== null && $body !== '') ? $body : '';
+            $authBody = '';
+            if ($body !== null && $body !== '') {
+                $authBody = $body;
+            }
             $auth = $xAuth . $method . str_replace('https://', '', $url) . $contentType . $xAuthNonce . $xAuthTimestamp . $xAuthVersion . $authBody;
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             $headers['X-Auth-Signature'] = $signature;

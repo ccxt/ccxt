@@ -500,7 +500,7 @@ public class Zebpay extends ZebpayApi
 
             List<Object> promisesUnresolved = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> fetchMarketsOptions = (Map<String, Object>) this.safeDict(this.options, "fetchMarkets");
-            List<Object> defaultMarkets = new ArrayList<Object>(Arrays.asList("spot", "swap"));
+            List<String> defaultMarkets = new ArrayList<String>(Arrays.asList("spot", "swap"));
             Object types = this.safeList(fetchMarketsOptions, "types", defaultMarkets);
             for (var i = 0; i < ((List<?>)types).size(); i++)
             {
@@ -2606,7 +2606,7 @@ public class Zebpay extends ZebpayApi
         List<Object> currencyList = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)currencyList).size(); i++)
         {
-            Object entry = (currencyList == null || i < 0 || i >= currencyList.size() ? null : currencyList.get(i));
+            Map<String, Object> entry = (Map<String, Object>) this.safeDict(currencyList, i);
             Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("total", this.safeString(entry, "total"));
             ((Map<String, Object>)account).put("free", this.safeString(entry, "free"));
@@ -2798,7 +2798,11 @@ public class Zebpay extends ZebpayApi
     {
         parameters = this.omit(parameters, "defaultType");
         Boolean isV1 = Helpers.isGreaterThan(Helpers.getIndexOf(path, "v1/"), -1);
-        String marketType = ((Boolean.TRUE.equals(isV1))) ? "swap" : "spot";
+        String marketType = "spot";
+        if (Boolean.TRUE.equals(isV1))
+        {
+            marketType = "swap";
+        }
         Object url = Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), marketType);
         String tail = ("/api/" + this.implodeParams(path, parameters));
         url = Helpers.add(url, tail);

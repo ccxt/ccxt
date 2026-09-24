@@ -623,12 +623,7 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 	var asks any = ccxt.GetValue(orderbook, "asks")
 	var units []any = ccxt.SafeListTyped(message, "orderbook_units")
 	for i := 0; i < len(units); i++ {
-		var entry map[string]any = ccxt.MapTyped(func() any {
-			if i >= 0 && i < len(units) {
-				return ccxt.DerefScalar(units[i])
-			}
-			return nil
-		}())
+		var entry map[string]any = ccxt.SafeMapTyped(units, i)
 		var bidPrice *float64 = this.SafeNumber(entry, "bid_price")
 		var bidSize *float64 = this.SafeNumber(entry, "bid_size")
 		var askPrice *float64 = this.SafeNumber(entry, "ask_price")
@@ -670,12 +665,10 @@ func (this *Bithumb) HandleDelta(orderbook any, delta any) {
 	//    }
 	//
 	var sideId *string = this.SafeString(delta, "orderType")
-	var side string = func() string {
-		if sideId != nil && *sideId == "bid" {
-			return "bids"
-		}
-		return "asks"
-	}()
+	var side string = "asks"
+	if sideId != nil && *sideId == "bid" {
+		side = "bids"
+	}
 	var bidAsk any = this.ParseOrderBookBidAsk(delta, "price", "quantity")
 	var orderbookSide any = ccxt.GetValue(orderbook, side)
 	orderbookSide.(ccxt.IOrderBookSide).StoreArray(bidAsk)
@@ -1021,12 +1014,7 @@ func (this *Bithumb) HandleBalance(client any, message map[string]any) {
 		this.Balance = map[string]any{}
 	}
 	for i := 0; i < len(assets); i++ {
-		var asset map[string]any = ccxt.MapTyped(func() any {
-			if i >= 0 && i < len(assets) {
-				return ccxt.DerefScalar(assets[i])
-			}
-			return nil
-		}())
+		var asset map[string]any = ccxt.SafeMapTyped(assets, i)
 		var currencyId *string = this.SafeString(asset, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()

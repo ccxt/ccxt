@@ -933,7 +933,11 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 (this.loadMarkets()).join();
             }
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
-            String topic = (((java.util.Objects.equals(trigger, true)))) ? "algoexecutionreport" : "executionreport";
+            String topic = "executionreport";
+            if (java.util.Objects.equals(trigger, true))
+            {
+                topic = "algoexecutionreport";
+            }
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             String messageHash = topic;
             if (!java.util.Objects.equals(symbol, null))
@@ -942,9 +946,10 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 symbol = (String) ((Map<String, Object>)market).get("symbol");
                 messageHash = (messageHash + (":" + symbol));
             }
+            final String finalTopic = topic;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
-                put( "topic", topic );
+                put( "topic", finalTopic );
             }};
             Object message = this.extend(request, parameters);
             Object orders = (this.watchPrivate(messageHash, (Map<String, Object>) (message))).join();
@@ -1001,7 +1006,11 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 (this.loadMarkets()).join();
             }
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
-            String topic = (((java.util.Objects.equals(trigger, true)))) ? "algoexecutionreport" : "executionreport";
+            String topic = "executionreport";
+            if (java.util.Objects.equals(trigger, true))
+            {
+                topic = "algoexecutionreport";
+            }
             parameters = (Map<String, Object>) this.omit(parameters, "stop");
             String messageHash = "myTrades";
             if (!java.util.Objects.equals(symbol, null))
@@ -1010,9 +1019,10 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 symbol = (String) ((Map<String, Object>)market).get("symbol");
                 messageHash = (messageHash + (":" + symbol));
             }
+            final String finalTopic = topic;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
-                put( "topic", topic );
+                put( "topic", finalTopic );
             }};
             Object message = this.extend(request, parameters);
             Object orders = (this.watchPrivate(messageHash, (Map<String, Object>) (message))).join();
@@ -1426,7 +1436,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             Object cache = this.positions;
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
-                Object position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
+                Position position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 String contracts = this.safeString(position, "contracts", "0");
                 if (Precise.stringGt(contracts, "0"))
                 {
@@ -1664,7 +1674,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Object value = (balances == null || key == null ? null : balances.get(key));
+            Map<String, Object> value = (Map<String, Object>) this.safeDict(balances, key);
             String code = this.safeCurrencyCode(key);
             Object account = this.account();
             if ((!java.util.Objects.equals(code, null)) && (((Map<?, ?>)this.balance).containsKey(code)))

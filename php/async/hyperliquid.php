@@ -668,7 +668,7 @@ class hyperliquid extends Exchange {
         for ($i = 0; $i < count($promises); $i++) {
             $dexName = $fetchDexesList[$i];
             $offset = $perpDexesOffset[$dexName];
-            $response = $promises[$i];
+            $response = $this->safe_list($promises, $i);
             $meta = $this->safe_dict($response, 0, array());
             $collateralToken = $this->safe_string($meta, 'collateralToken');
             $universe = $this->safe_list($meta, 'universe', array());
@@ -1050,8 +1050,14 @@ class hyperliquid extends Exchange {
         //     }
         //
         $collateralTokenCode = $this->safe_string($market, 'collateralTokenName');
-        $quoteId = ($collateralTokenCode === null) ? 'USDC' : $collateralTokenCode;
-        $settleId = ($collateralTokenCode === null) ? 'USDC' : $collateralTokenCode;
+        $quoteId = $collateralTokenCode;
+        if ($collateralTokenCode === null) {
+            $quoteId = 'USDC';
+        }
+        $settleId = $collateralTokenCode;
+        if ($collateralTokenCode === null) {
+            $settleId = 'USDC';
+        }
         $baseName = $this->safe_string($market, 'name');
         $base = $this->safe_currency_code($baseName);
         if ($base === null) {
@@ -1223,7 +1229,7 @@ class hyperliquid extends Exchange {
         if ($balances !== null) {
             $spotBalances = array( 'info' => $response );
             for ($i = 0; $i < count($balances); $i++) {
-                $balance = $balances[$i];
+                $balance = $this->safe_dict($balances, $i);
                 $unifiedCode = $this->safe_currency_code($this->safe_string($balance, 'coin'));
                 $code = ($isSpot === true) ? $this->update_spot_currency_code($unifiedCode) : $unifiedCode;
                 $account = $this->account();
@@ -2038,7 +2044,7 @@ class hyperliquid extends Exchange {
             list($userAddress, $params) = $this->handle_public_address('isUnifiedEnabled', $params);
         }
         $enableUnifiedMargin = null;
-        list($enableUnifiedMargin, $params) = $this->handle_option_and_params($params, $method, 'enableUnifiedMargin');
+        list($enableUnifiedMargin, $params) = $this->handle_option_bool_and_params($params, $method, 'enableUnifiedMargin');
         if ($enableUnifiedMargin === null || $shouldRefresh) {
             $request = array(
                 'type' => 'userAbstraction',
@@ -2261,7 +2267,7 @@ class hyperliquid extends Exchange {
         $vaultAddress = null;
         $randomize = $this->safe_bool($params, 'randomize', false);
         $params = $this->omit($params, 'randomize');
-        list($vaultAddress, $params) = $this->handle_option_and_params($params, 'createOrder', 'vaultAddress');
+        list($vaultAddress, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'vaultAddress');
         $vaultAddress = $this->format_vault_address($vaultAddress);
         $durationMins = (int) floor($duration / 1000 / 60); // convert from ms to minutes
         $orderObj = array(
@@ -2380,7 +2386,10 @@ class hyperliquid extends Exchange {
         $isBuy = ($side === 'BUY');
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_id');
         $slippage = $this->safe_string($params, 'slippage');
-        $defaultTimeInForce = ($isMarket) ? 'ioc' : 'gtc';
+        $defaultTimeInForce = 'gtc';
+        if ($isMarket) {
+            $defaultTimeInForce = 'ioc';
+        }
         $postOnly = $this->safe_bool($params, 'postOnly', false);
         if ($postOnly === true) {
             $defaultTimeInForce = 'alo';
@@ -2412,7 +2421,10 @@ class hyperliquid extends Exchange {
             } else {
                 $triggerPrice = $this->price_to_precision($symbol, $stopLossPrice);
             }
-            $tpSlType = ($isTp) ? 'tp' : 'sl';
+            $tpSlType = 'sl';
+            if ($isTp) {
+                $tpSlType = 'tp';
+            }
             $orderType['trigger'] = array(
                 'isMarket' => $isMarket,
                 'triggerPx' => $triggerPrice,
@@ -2451,7 +2463,7 @@ class hyperliquid extends Exchange {
         $defaultSlippage = $this->safe_string($params, 'slippage', $defaultSlippage);
         $hasClientOrderId = false;
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $clientOrderId = $this->safe_string_2($orderParams, 'clientOrderId', 'client_id');
             if ($clientOrderId !== null) {
@@ -2460,7 +2472,7 @@ class hyperliquid extends Exchange {
         }
         if ($hasClientOrderId) {
             for ($i = 0; $i < count($orders); $i++) {
-                $rawOrder = $orders[$i];
+                $rawOrder = $this->safe_dict($orders, $i);
                 $orderParams = $this->safe_dict($rawOrder, 'params', array());
                 $clientOrderId = $this->safe_string_2($orderParams, 'clientOrderId', 'client_id');
                 if ($clientOrderId === null) {
@@ -2473,7 +2485,7 @@ class hyperliquid extends Exchange {
         $orderReq = array();
         $grouping = 'na';
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $marketId = $this->safe_string($rawOrder, 'symbol');
             $market = $this->market($marketId);
             $symbol = $market['symbol'];
@@ -2534,7 +2546,7 @@ class hyperliquid extends Exchange {
             }
         }
         $vaultAddress = null;
-        list($vaultAddress, $params) = $this->handle_option_and_params($params, 'createOrder', 'vaultAddress');
+        list($vaultAddress, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'vaultAddress');
         $vaultAddress = $this->format_vault_address($vaultAddress);
         $orderAction = array(
             'type' => 'order',
@@ -2674,7 +2686,7 @@ class hyperliquid extends Exchange {
         }
         $market = $this->market($symbol);
         $vaultAddress = null;
-        list($vaultAddress, $params) = $this->handle_option_and_params($params, 'cancelTwapOrder', 'vaultAddress');
+        list($vaultAddress, $params) = $this->handle_option_string_and_params($params, 'cancelTwapOrder', 'vaultAddress');
         $vaultAddress = $this->format_vault_address($vaultAddress);
         $action = array(
             'type' => 'twapCancel',
@@ -2763,7 +2775,7 @@ class hyperliquid extends Exchange {
         }
         $cancelAction['cancels'] = $cancelReq;
         $vaultAddress = null;
-        list($vaultAddress, $params) = $this->handle_option_and_params_2($params, 'cancelOrders', 'vaultAddress', 'subAccountAddress');
+        list($vaultAddress, $params) = $this->handle_option_string_and_params_2($params, 'cancelOrders', 'vaultAddress', 'subAccountAddress');
         $vaultAddress = $this->format_vault_address($vaultAddress);
         $signature = $this->sign_l1_action($cancelAction, $nonce, $vaultAddress);
         $request['action'] = $cancelAction;
@@ -2809,7 +2821,7 @@ class hyperliquid extends Exchange {
         );
         $cancelByCloid = false;
         for ($i = 0; $i < count($orders); $i++) {
-            $order = $orders[$i];
+            $order = $this->safe_dict($orders, $i);
             $clientOrderId = $this->safe_string($order, 'clientOrderId');
             if ($clientOrderId !== null) {
                 $cancelByCloid = true;
@@ -2833,7 +2845,7 @@ class hyperliquid extends Exchange {
         $cancelAction['type'] = $cancelByCloid ? 'cancelByCloid' : 'cancel';
         $cancelAction['cancels'] = $cancelReq;
         $vaultAddress = null;
-        list($vaultAddress, $params) = $this->handle_option_and_params_2($params, 'cancelOrdersForSymbols', 'vaultAddress', 'subAccountAddress');
+        list($vaultAddress, $params) = $this->handle_option_string_and_params_2($params, 'cancelOrdersForSymbols', 'vaultAddress', 'subAccountAddress');
         $vaultAddress = $this->format_vault_address($vaultAddress);
         $signature = $this->sign_l1_action($cancelAction, $nonce, $vaultAddress);
         $request['action'] = $cancelAction;
@@ -2888,7 +2900,7 @@ class hyperliquid extends Exchange {
             'time' => $nonce . $timeout,
         );
         $vaultAddress = null;
-        list($vaultAddress, $params) = $this->handle_option_and_params_2($params, 'cancelAllOrdersAfter', 'vaultAddress', 'subAccountAddress');
+        list($vaultAddress, $params) = $this->handle_option_string_and_params_2($params, 'cancelAllOrdersAfter', 'vaultAddress', 'subAccountAddress');
         $vaultAddress = $this->format_vault_address($vaultAddress);
         $signature = $this->sign_l1_action($cancelAction, $nonce, $vaultAddress);
         $request['action'] = $cancelAction;
@@ -2911,7 +2923,7 @@ class hyperliquid extends Exchange {
         $this->check_required_credentials();
         $hasClientOrderId = false;
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $clientOrderId = $this->safe_string_2($orderParams, 'clientOrderId', 'client_id');
             if ($clientOrderId !== null) {
@@ -2920,7 +2932,7 @@ class hyperliquid extends Exchange {
         }
         if ($hasClientOrderId) {
             for ($i = 0; $i < count($orders); $i++) {
-                $rawOrder = $orders[$i];
+                $rawOrder = $this->safe_dict($orders, $i);
                 $orderParams = $this->safe_dict($rawOrder, 'params', array());
                 $clientOrderId = $this->safe_string_2($orderParams, 'clientOrderId', 'client_id');
                 if ($clientOrderId === null) {
@@ -2931,7 +2943,7 @@ class hyperliquid extends Exchange {
         $params = $this->omit($params, array( 'slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce' ));
         $modifies = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $id = $this->safe_string($rawOrder, 'id');
             $marketId = $this->safe_string($rawOrder, 'symbol');
             $market = $this->market($marketId);
@@ -2945,7 +2957,10 @@ class hyperliquid extends Exchange {
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $defaultSlippage = $this->safe_string($this->options, 'defaultSlippage');
             $slippage = $this->safe_string($orderParams, 'slippage', $defaultSlippage);
-            $defaultTimeInForce = ($isMarket) ? 'ioc' : 'gtc';
+            $defaultTimeInForce = 'gtc';
+            if ($isMarket) {
+                $defaultTimeInForce = 'ioc';
+            }
             $postOnly = $this->safe_bool($orderParams, 'postOnly', false);
             if ($postOnly === true) {
                 $defaultTimeInForce = 'alo';
@@ -2976,7 +2991,10 @@ class hyperliquid extends Exchange {
                 } else {
                     $triggerPrice = $this->price_to_precision($symbol, $stopLossPrice);
                 }
-                $tpSlType = ($isTp) ? 'tp' : 'sl';
+                $tpSlType = 'sl';
+                if ($isTp) {
+                    $tpSlType = 'tp';
+                }
                 $orderType['trigger'] = array(
                     'isMarket' => $isMarket,
                     'triggerPx' => $triggerPrice,
@@ -3014,7 +3032,7 @@ class hyperliquid extends Exchange {
             'modifies' => $modifies,
         );
         $vaultAddress = null;
-        list($vaultAddress, $params) = $this->handle_option_and_params($params, 'editOrder', 'vaultAddress');
+        list($vaultAddress, $params) = $this->handle_option_string_and_params($params, 'editOrder', 'vaultAddress');
         $vaultAddress = $this->format_vault_address($vaultAddress);
         $signature = $this->sign_l1_action($modifyAction, $nonce, $vaultAddress);
         $request = array(
@@ -3228,7 +3246,7 @@ class hyperliquid extends Exchange {
             $fundings = $response;
         }
         for ($i = 0; $i < count($fundings); $i++) {
-            $entry = $fundings[$i];
+            $entry = $this->safe_dict($fundings, $i);
             $timestamp = $this->safe_integer($entry, 'time');
             $result[] = array(
                 'info' => $entry,
@@ -3312,7 +3330,7 @@ class hyperliquid extends Exchange {
             $rawOrders = $response;
         }
         for ($i = 0; $i < count($rawOrders); $i++) {
-            $order = $rawOrders[$i];
+            $order = $this->safe_dict($rawOrders, $i);
             $extendOrder = array();
             if ($this->safe_string($order, 'status') === null) {
                 $extendOrder['ccxtStatus'] = 'open';
@@ -4126,7 +4144,7 @@ class hyperliquid extends Exchange {
             'leverage' => $leverage,
         );
         $vaultAddress = null;
-        list($vaultAddress, $params) = $this->handle_option_and_params_2($params, 'setMarginMode', 'vaultAddress', 'subAccountAddress');
+        list($vaultAddress, $params) = $this->handle_option_string_and_params_2($params, 'setMarginMode', 'vaultAddress', 'subAccountAddress');
         if ($vaultAddress !== null) {
             if (str_starts_with($vaultAddress, '0x')) {
                 $vaultAddress = str_replace('0x', '', $vaultAddress);
@@ -4186,7 +4204,7 @@ class hyperliquid extends Exchange {
             'leverage' => $leverage,
         );
         $vaultAddress = null;
-        list($vaultAddress, $params) = $this->handle_option_and_params_2($params, 'setLeverage', 'vaultAddress', 'subAccountAddress');
+        list($vaultAddress, $params) = $this->handle_option_string_and_params_2($params, 'setLeverage', 'vaultAddress', 'subAccountAddress');
         $vaultAddress = $this->format_vault_address($vaultAddress);
         $signature = $this->sign_l1_action($updateAction, $nonce, $vaultAddress);
         $request = array(
@@ -4273,7 +4291,7 @@ class hyperliquid extends Exchange {
             'ntli' => $sz,
         );
         $vaultAddress = null;
-        list($vaultAddress, $params) = $this->handle_option_and_params_2($params, 'modifyMargin', 'vaultAddress', 'subAccountAddress');
+        list($vaultAddress, $params) = $this->handle_option_string_and_params_2($params, 'modifyMargin', 'vaultAddress', 'subAccountAddress');
         $vaultAddress = $this->format_vault_address($vaultAddress);
         $signature = $this->sign_l1_action($updateAction, $nonce, $vaultAddress);
         $request = array(
@@ -4499,7 +4517,7 @@ class hyperliquid extends Exchange {
             }
         }
         $vaultAddress = null;
-        list($vaultAddress, $params) = $this->handle_option_and_params($params, 'withdraw', 'vaultAddress');
+        list($vaultAddress, $params) = $this->handle_option_string_and_params($params, 'withdraw', 'vaultAddress');
         $vaultAddress = $this->format_vault_address($vaultAddress);
         $params = $this->omit($params, 'vaultAddress');
         $nonce = $this->incrementing_nonce();
@@ -4862,7 +4880,7 @@ class hyperliquid extends Exchange {
         }
         $records = $this->extract_type_from_delta($depositLedger);
         $vaultAddress = null;
-        list($vaultAddress, $params) = $this->handle_option_and_params($params, 'fetchDepositsWithdrawals', 'vaultAddress');
+        list($vaultAddress, $params) = $this->handle_option_string_and_params($params, 'fetchDepositsWithdrawals', 'vaultAddress');
         $vaultAddress = $this->format_vault_address($vaultAddress);
         $deposits = array();
         if ($vaultAddress !== null) {
@@ -4934,7 +4952,7 @@ class hyperliquid extends Exchange {
         }
         $records = $this->extract_type_from_delta($withdrawalLedger);
         $vaultAddress = null;
-        list($vaultAddress, $params) = $this->handle_option_and_params($params, 'fetchDepositsWithdrawals', 'vaultAddress');
+        list($vaultAddress, $params) = $this->handle_option_string_and_params($params, 'fetchDepositsWithdrawals', 'vaultAddress');
         $vaultAddress = $this->format_vault_address($vaultAddress);
         $withdrawals = array();
         if ($vaultAddress !== null) {
@@ -5081,7 +5099,7 @@ class hyperliquid extends Exchange {
         return $this->parse_incomes($response, $market, $since, $limit);
     }
 
-    public function parse_income(mixed $income, ?array $market = null): array {
+    public function parse_income(array $income, ?array $market = null): array {
         //
         // {
         //     "time": 1734026400057,
@@ -5200,7 +5218,7 @@ class hyperliquid extends Exchange {
 
     public function handle_public_address(string $methodName, array $params): array {
         $userAux = null;
-        list($userAux, $params) = $this->handle_option_and_params_2($params, $methodName, 'user', 'subAccountAddress');
+        list($userAux, $params) = $this->handle_option_string_and_params_2($params, $methodName, 'user', 'subAccountAddress');
         $user = $userAux;
         list($user, $params) = $this->handle_option_string_and_params($params, $methodName, 'address', $userAux);
         if (($user !== null) && ($user !== '')) {
@@ -5311,7 +5329,7 @@ class hyperliquid extends Exchange {
     public function parse_create_edit_order_args(?string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         $market = $this->market($symbol);
         $vaultAddress = null;
-        list($vaultAddress, $params) = $this->handle_option_and_params_2($params, 'createOrder', 'vaultAddress', 'subAccountAddress');
+        list($vaultAddress, $params) = $this->handle_option_string_and_params_2($params, 'createOrder', 'vaultAddress', 'subAccountAddress');
         $vaultAddress = $this->format_vault_address($vaultAddress);
         $symbol = $market['symbol'];
         $order = array(

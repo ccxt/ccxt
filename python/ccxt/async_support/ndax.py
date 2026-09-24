@@ -521,7 +521,9 @@ class ndax(Exchange, ImplicitAPI):
         id = self.safe_string(rawCurrency, 'ProductId')
         code = self.safe_currency_code(self.safe_string(rawCurrency, 'Product'))
         ProductType = self.safe_string(rawCurrency, 'ProductType')
-        type = 'fiat' if (ProductType == 'NationalCurrency') else 'crypto'
+        type = 'crypto'
+        if ProductType == 'NationalCurrency':
+            type = 'fiat'
         if ProductType == 'Unknown':
             # such currency is just a blanket entry
             type = 'other'
@@ -1225,7 +1227,7 @@ class ndax(Exchange, ImplicitAPI):
             'datetime': None,
         }
         for i in range(0, len(response)):
-            balance = response[i]
+            balance = self.safe_dict(response, i)
             currencyId = self.safe_string(balance, 'ProductId')
             if (currencyId is not None) and (self.currencies_by_id is not None) and (currencyId in self.currencies_by_id):
                 code = self.safe_currency_code(currencyId)
@@ -1292,7 +1294,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def parse_ledger_entry_type(self, type: object):
+    def parse_ledger_entry_type(self, type: Str):
         types = {
             'Trade': 'trade',
             'Deposit': 'transaction',
@@ -2188,7 +2190,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         #
         # fetchDepositAddress, createDepositAddress
         #

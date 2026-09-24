@@ -904,8 +904,8 @@ public partial class btse : Exchange
         await this.loadMarkets();
         int maxLimit = 300;
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -1208,7 +1208,7 @@ public partial class btse : Exchange
         Dictionary<string, object> useds = new Dictionary<string, object>() {};
         for (int i = 0; i < getArrayLength(response); i++)
         {
-            object row = getValue(response, i);
+            IDictionary<string, object> row = this.safeDict(response, i);
             List<object> assets = this.safeList(row, "assets");
             if ((assets != null))
             {
@@ -1217,7 +1217,7 @@ public partial class btse : Exchange
                 List<object> inUse = this.safeList(row, "assetsInUse", new List<object>() {});
                 for (int j = 0; j < inUse.Count; j++)
                 {
-                    object usedRow = inUse[j];
+                    IDictionary<string, object> usedRow = this.safeDict(inUse, j);
                     string? usedCode = this.safeCurrencyCode(this.safeString(usedRow, "currency"));
                     if ((usedCode == null))
                     {
@@ -1227,7 +1227,7 @@ public partial class btse : Exchange
                 }
                 for (int j = 0; j < assets.Count; j++)
                 {
-                    object assetRow = assets[j];
+                    IDictionary<string, object> assetRow = this.safeDict(assets, j);
                     string? code = this.safeCurrencyCode(this.safeString(assetRow, "currency"));
                     if ((code == null))
                     {
@@ -1316,7 +1316,7 @@ public partial class btse : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = this.safeDict(data, i);
             string? marketId = this.safeString(entry, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -3830,7 +3830,11 @@ public partial class btse : Exchange
         }
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        string positionMode = isTrue(hedged) ? "HEDGE" : "ONE_WAY";
+        string positionMode = "ONE_WAY";
+        if (isTrue(hedged))
+        {
+            positionMode = "HEDGE";
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", this.futuresRequestId(market) },
             { "positionMode", positionMode },
@@ -4043,7 +4047,7 @@ public partial class btse : Exchange
         string? marginMode = null;
         for (int i = 0; i < (safeResponse?.Count ?? 0); i++)
         {
-            object entrty = safeResponse[i];
+            IDictionary<string, object> entrty = this.safeDict(safeResponse, i);
             Int64? leverageValue = this.safeInteger(entrty, "leverage");
             string? positionDirection = this.safeString(entrty, "positionDirection");
             marginMode = this.safeStringLower(entrty, "marginMode");
@@ -4174,7 +4178,7 @@ public partial class btse : Exchange
         }
         for (int i = 0; i < getArrayLength(rows); i++)
         {
-            object row = getValue(rows, i);
+            IDictionary<string, object> row = this.safeDict(rows, i);
             string? status = this.safeString(row, "status");
             if ((status != null))
             {

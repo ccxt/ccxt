@@ -959,7 +959,7 @@ public partial class coinbaseexchange : Exchange
         };
         for (int i = 0; i < getArrayLength(response); i++)
         {
-            object balance = getValue(response, i);
+            IDictionary<string, object> balance = this.safeDict(response, i);
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -1279,7 +1279,11 @@ public partial class coinbaseexchange : Exchange
             { "rate", feeRate },
         };
         string? id = this.safeString(trade, "trade_id");
-        string side = (isEqual(getValue(trade, "side"), "buy")) ? "sell" : "buy";
+        string side = "buy";
+        if (isEqual(getValue(trade, "side"), "buy"))
+        {
+            side = "sell";
+        }
         string? orderId = this.safeString(trade, "order_id");
         // Coinbase Pro returns inverted side to fetchMyTrades vs fetchTrades
         string? makerOrderId = this.safeString(trade, "maker_order_id");
@@ -1329,8 +1333,8 @@ public partial class coinbaseexchange : Exchange
             throw new ArgumentsRequired ((this.id + " fetchMyTrades() requires a symbol argument")) ;
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -1758,8 +1762,8 @@ public partial class coinbaseexchange : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -2350,13 +2354,13 @@ public partial class coinbaseexchange : Exchange
 
     public virtual string? parseTransactionStatus(object transaction)
     {
-        object canceled = this.safeValue(transaction, "canceled_at");
+        string? canceled = this.safeString(transaction, "canceled_at");
         if (((canceled != null)) && ((canceled != null)))
         {
             return "canceled";
         }
-        object processed = this.safeValue(transaction, "processed_at");
-        object completed = this.safeValue(transaction, "completed_at");
+        string? processed = this.safeString(transaction, "processed_at");
+        string? completed = this.safeString(transaction, "completed_at");
         if (((completed != null)) && ((completed != null)))
         {
             return "ok";

@@ -965,7 +965,7 @@ func (this *Btse) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var maxLimit int = 300
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -1296,19 +1296,14 @@ func (this *Btse) ParseBalance(response any) any {
 	var frees map[string]any = map[string]any{}
 	var useds map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var row map[string]any = MapTyped(GetValue(response, i))
+		var row map[string]any = SafeMapTyped(response, i)
 		var assets []any = SafeListTyped(row, "assets")
 		if !IsEqual(assets, nil) {
 			// futures wallet row: per-currency totals in assets, locked amounts in assetsInUse
 			// several wallet rows can report the same currency, so amounts are aggregated
 			var inUse []any = SafeListTyped(row, "assetsInUse")
 			for j := 0; j < len(inUse); j++ {
-				var usedRow map[string]any = MapTyped(func() any {
-					if j >= 0 && j < len(inUse) {
-						return DerefScalar(inUse[j])
-					}
-					return nil
-				}())
+				var usedRow map[string]any = SafeMapTyped(inUse, j)
 				var usedCode *string = this.SafeCurrencyCode(this.SafeString(usedRow, "currency"))
 				if usedCode == nil {
 					continue
@@ -1316,12 +1311,7 @@ func (this *Btse) ParseBalance(response any) any {
 				AddElementToObject(useds, usedCode, Precise.StringAdd(this.SafeString(useds, usedCode, "0"), this.SafeString(usedRow, "balance")))
 			}
 			for j := 0; j < len(assets); j++ {
-				var assetRow map[string]any = MapTyped(func() any {
-					if j >= 0 && j < len(assets) {
-						return DerefScalar(assets[j])
-					}
-					return nil
-				}())
+				var assetRow map[string]any = SafeMapTyped(assets, j)
 				var code *string = this.SafeCurrencyCode(this.SafeString(assetRow, "currency"))
 				if code == nil {
 					continue
@@ -1413,7 +1403,7 @@ func (this *Btse) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var result map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(data); i++ {
-		var entry map[string]any = MapTyped(GetValue(data, i))
+		var entry map[string]any = SafeMapTyped(data, i)
 		var marketId *string = this.SafeString(entry, "symbol")
 		var market any = this.SafeMarket(marketId)
 		var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
@@ -1593,7 +1583,7 @@ func (this *Btse) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	// a single-symbol query returns data as one object, a multi-symbol or bare query returns an array
 	var data any = this.SafeDict(response, "data")
 	if IsEqual(data, nil) {
-		var rows []any = SafeListTypedDefault(response, "data", []any{})
+		var rows []any = SafeListTyped(response, "data")
 		data = this.SafeDict(rows, 0, map[string]any{})
 	}
 
@@ -1678,7 +1668,7 @@ func (this *Btse) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ..
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1Ticker24hr(this.Extend(request, params))).Raw))
 	var interest any = this.SafeDict(response, "data")
 	if IsEqual(interest, nil) {
-		var rows []any = SafeListTypedDefault(response, "data", []any{})
+		var rows []any = SafeListTyped(response, "data")
 		interest = this.SafeDict(rows, 0, map[string]any{})
 	}
 
@@ -1781,7 +1771,7 @@ func (this *Btse) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1Ticker24hr(this.Extend(request, params))).Raw))
 	var data any = this.SafeDict(response, "data")
 	if IsEqual(data, nil) {
-		var rows []any = SafeListTypedDefault(response, "data", []any{})
+		var rows []any = SafeListTyped(response, "data")
 		data = this.SafeDict(rows, 0, map[string]any{})
 	}
 
@@ -4223,12 +4213,10 @@ func (this *Btse) setPositionModeBody(ch chan any, hedged any, optionalArgs ...a
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var positionMode string = func() string {
-		if EvalTruthy(hedged) {
-			return "HEDGE"
-		}
-		return "ONE_WAY"
-	}()
+	var positionMode string = "ONE_WAY"
+	if EvalTruthy(hedged) {
+		positionMode = "HEDGE"
+	}
 	var request map[string]any = map[string]any{
 		"symbol":       this.FuturesRequestId(market),
 		"positionMode": positionMode,
@@ -4475,7 +4463,7 @@ func (this *Btse) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any
 	var shortLeverage any = nil
 	var marginMode any = nil
 	for i := 0; i < GetArrayLength(safeResponse); i++ {
-		var entrty map[string]any = MapTyped(GetValue(safeResponse, i))
+		var entrty map[string]any = SafeMapTyped(safeResponse, i)
 		var leverageValue *int64 = this.SafeInteger(entrty, "leverage")
 		var positionDirection *string = this.SafeString(entrty, "positionDirection")
 		marginMode = this.SafeStringLower(entrty, "marginMode")
@@ -4608,7 +4596,7 @@ func (this *Btse) HandleErrors(code any, reason any, url any, method any, header
 		rows = []any{response}
 	}
 	for i := 0; i < GetArrayLength(rows); i++ {
-		var row map[string]any = MapTyped(GetValue(rows, i))
+		var row map[string]any = SafeMapTyped(rows, i)
 		var status *string = this.SafeString(row, "status")
 		if status != nil {
 			var message *string = this.SafeString(row, "message")

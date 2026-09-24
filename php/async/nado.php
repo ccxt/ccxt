@@ -456,7 +456,10 @@ class nado extends Exchange {
         if ($isStopOrder) {
             $triggerDirection = null;
             list($triggerDirection, $params) = $this->handle_trigger_direction_and_params($params);
-            $directionSuffix = ($triggerDirection === 'ascending') ? 'above' : 'below';
+            $directionSuffix = 'below';
+            if ($triggerDirection === 'ascending') {
+                $directionSuffix = 'above';
+            }
             $triggerPriceX18 = $this->convert_to_x18($triggerPrice);
             $priceRequirement = array();
             $priceRequirement['oracle_price_' . $directionSuffix] = $triggerPriceX18;
@@ -1753,7 +1756,10 @@ class nado extends Exchange {
             $pair = $this->safe_dict($pairsById, $id, array());
             $asset = $this->safe_dict($assetsById, $id, array());
             $rawType = $this->safe_string($market, 'type');
-            $type = ($rawType === 'perp') ? 'swap' : $rawType;
+            $type = $rawType;
+            if ($rawType === 'perp') {
+                $type = 'swap';
+            }
             $contract = ($type === 'swap');
             $tickerId = $this->safe_string_2($pair, 'ticker_id', 'tickerId');
             if ($tickerId === null) {
@@ -2666,7 +2672,7 @@ class nado extends Exchange {
         );
         $balances = $this->safe_list($response, 'spot_balances', array());
         for ($i = 0; $i < count($balances); $i++) {
-            $rawBalance = $balances[$i];
+            $rawBalance = $this->safe_dict($balances, $i);
             $currencyId = $this->safe_string($rawBalance, 'product_id');
             $code = $this->safe_currency_code($currencyId);
             if ($code === '0') {
@@ -3149,7 +3155,12 @@ class nado extends Exchange {
             throw new ArgumentsRequired($this->id . ' padHex() requires length');
         }
         $zeros = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
-        $padded = $left ? ($zeros . $value) : ($value . $zeros);
+        $padded = null;
+        if ($left) {
+            $padded = ($zeros . $value);
+        } else {
+            $padded = ($value . $zeros);
+        }
         if ($left) {
             $start = strlen($padded) - $length;
             return mb_substr($padded, $start, strlen($padded) - $start);

@@ -697,7 +697,10 @@ class bitrue extends Exchange {
         //
         $keys = is_array($response) ? array_keys($response) : array();
         $keysLength = count($keys);
-        $formattedStatus = ($keysLength > 0) ? 'maintenance' : 'ok';
+        $formattedStatus = 'ok';
+        if ($keysLength > 0) {
+            $formattedStatus = 'maintenance';
+        }
         return array(
             'status' => $formattedStatus,
             'updated' => null,
@@ -1115,7 +1118,7 @@ class bitrue extends Exchange {
         $timestamp = $this->safe_integer($response, 'updateTime');
         $balances = $this->safe_list_2($response, 'balances', 'account', array());
         for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+            $balance = $this->safe_dict($balances, $i);
             $currencyId = $this->safe_string_2($balance, 'asset', 'marginCoin');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -2162,7 +2165,10 @@ class bitrue extends Exchange {
                     $amountString = $this->number_to_string($amount);
                     $priceString = $this->number_to_string($price);
                     $quoteAmount = Precise::string_mul($amountString, $priceString);
-                    $requestAmount = ($cost !== null) ? $cost : $quoteAmount;
+                    $requestAmount = $quoteAmount;
+                    if ($cost !== null) {
+                        $requestAmount = $cost;
+                    }
                     $request['amount'] = $this->cost_to_precision($symbol, $requestAmount);
                     $request['volume'] = $this->cost_to_precision($symbol, $requestAmount);
                 }
@@ -2950,7 +2956,10 @@ class bitrue extends Exchange {
         $updated = $this->safe_integer($transaction, 'updatedAt');
         $payAmount = (is_array($transaction) && array_key_exists('payAmount' ?? '', $transaction));
         $ctime = (is_array($transaction) && array_key_exists('ctime' ?? '', $transaction));
-        $type = ($payAmount || $ctime) ? 'withdrawal' : 'deposit';
+        $type = 'deposit';
+        if ($payAmount || $ctime) {
+            $type = 'withdrawal';
+        }
         $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type);
         $amount = $this->safe_number($transaction, 'amount');
         $network = null;
@@ -3078,7 +3087,7 @@ class bitrue extends Exchange {
         );
         if ($chainDetailLength !== 0) {
             for ($i = 0; $i < $chainDetailLength; $i++) {
-                $chainDetail = $chainDetails[$i];
+                $chainDetail = $this->safe_dict($chainDetails, $i);
                 $networkId = $this->safe_string($chainDetail, 'chain');
                 $currencyCode = $this->safe_string($currency, 'code');
                 $networkCode = $this->network_id_to_code($networkId, $currencyCode);

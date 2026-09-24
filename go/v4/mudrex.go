@@ -307,7 +307,7 @@ func (this *Mudrex) HandleErrors(code any, reason any, url any, method any, head
 	}
 	var success *bool = this.SafeBool(response, "success", true)
 	if success == nil || *success != true {
-		var errors []any = SafeListTypedDefault(response, "errors", []any{})
+		var errors []any = SafeListTyped(response, "errors")
 		var first map[string]any = SafeMapTyped(errors, 0)
 		var text *string = this.SafeString(first, "text", this.Json(response))
 		var errCode *string = this.SafeString(first, "code")

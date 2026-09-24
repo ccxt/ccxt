@@ -680,7 +680,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         // last update always overwrites the previous state and is the latest state
         for (var i = 0; i < ((List<?>)rawBidAskChanges).size(); i++)
         {
-            Object entry = (rawBidAskChanges == null || i < 0 || i >= ((List<?>)rawBidAskChanges).size() ? null : ((List<?>)rawBidAskChanges).get(i));
+            Map<String, Object> entry = (Map<String, Object>) this.safeDict(rawBidAskChanges, i);
             String rawSide = this.safeString(entry, "side");
             Double price = this.safeNumber(entry, "price");
             String sizeString = this.safeString(entry, "remaining");
@@ -791,7 +791,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         Object asks = Helpers.GetValue(orderbook, "asks");
         for (var i = 0; i < ((List<?>)rawOrderBookChanges).size(); i++)
         {
-            Object entry = (rawOrderBookChanges == null || i < 0 || i >= ((List<?>)rawOrderBookChanges).size() ? null : ((List<?>)rawOrderBookChanges).get(i));
+            Map<String, Object> entry = (Map<String, Object>) this.safeDict(rawOrderBookChanges, i);
             Double price = this.safeNumber(entry, "price");
             Double size = this.safeNumber(entry, "remaining");
             String rawSide = this.safeString(entry, "side");
