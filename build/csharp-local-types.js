@@ -12312,6 +12312,13 @@ function element1ParamsBinding (csharp, element) {
         if (argType === undefined || (argType.flags & (ts.TypeFlags.Any | ts.TypeFlags.NonPrimitive | ts.TypeFlags.Unknown)) !== 0) {
             return false;
         }
+        // an argument that is itself an element-1 binding passes its own argument through unchanged
+        const argDeclaration = csharp.getChecker ().getSymbolAtLocation (call.arguments[0])?.valueDeclaration;
+        if (argDeclaration?.kind === ts.SyntaxKind.BindingElement && argDeclaration.parent?.elements?.indexOf (argDeclaration) === 1
+                && destructuredHandleCallName (argDeclaration.parent.parent?.initializer) !== undefined
+                && !element1ParamsBinding (csharp, argDeclaration)) {
+            return false;
+        }
     } catch (e) {
         return false;
     }

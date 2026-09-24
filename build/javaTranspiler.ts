@@ -4737,7 +4737,7 @@ class NewTranspiler {
                 // we don't support wS structs yet
 
                 content = this.regexAll(content, [
-                    [/\/\/ init array cache tests[\s\S]*/gm, '}'],
+                    [/\/\/ init array cache tests[\s\S]*?(?=\n\s*public void testSafeMethods\(\))/gm, '}'],
                 ]);
             }
 
@@ -4829,14 +4829,8 @@ class NewTranspiler {
 
     transpileMainTest(files: any) {
         log.magenta('[java] Transpiling from', files.tsFile.yellow)
-        let ts = fs.readFileSync(files.tsFile).toString();
-
-        ts = this.regexAll(ts, [
-            [/\'use strict\';?\s+/g, ''],
-        ])
-
-        const mainContent = ts;
-        const java = this.transpiler.transpileJava(mainContent);
+        // by path, so the program includes the base Exchange the `any`-typed receivers bind to
+        const java = this.transpiler.transpileJavaByPath(files.tsFile);
         // let contentIndentend = csharp.content.split('\n').map(line => line ? '    ' + line : line).join('\n');
         let contentIndentend = java.content;
 
