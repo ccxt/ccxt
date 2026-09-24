@@ -637,7 +637,7 @@ export default class binance extends Exchange {
         };
         const volume = this.safeNumber (rawMarket, 'tradeVolume');
         const liquidity = this.safeNumber (rawMarket, 'liquidity');
-        const rawOutcomes = this.safeList (rawMarket, 'outcomes', []) as any[];
+        const rawOutcomes: Dict[] = this.safeList (rawMarket, 'outcomes', []);
         const outcomes: any[] = [];
         let resolvedOutcomeRaw = undefined;
         const rawOutcomesLength = rawOutcomes.length;
@@ -929,7 +929,7 @@ export default class binance extends Exchange {
         const result: Dict = {
             'info': response,
         };
-        const balances = this.safeList (response, 'items', []);
+        const balances: Dict[] = this.safeList (response, 'items', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const accountType = this.safeString (balance, 'accountType');
@@ -1869,7 +1869,7 @@ export default class binance extends Exchange {
         //
         const canceledOrders = this.safeList (response, 'canceled', []);
         const outcomeSymbol = this.safeString (outcomeObj, 'outcome', outcome);
-        const failedOrders = this.safeList (response, 'failed', []);
+        const failedOrders: Dict[] = this.safeList (response, 'failed', []);
         const failedOrdersLength = failedOrders.length;
         if (failedOrdersLength > 0) {
             let failedDetails = '';
@@ -1884,7 +1884,7 @@ export default class binance extends Exchange {
             }
             throw new OrderNotFound (this.id + ' cancelOrders() failed for ' + failedDetails);
         }
-        const orders = [];
+        const orders: PredictionOrder[] = [];
         const canceledOrdersLength = canceledOrders.length;
         for (let i = 0; i < canceledOrdersLength; i++) {
             const status = canceledOrders[i];

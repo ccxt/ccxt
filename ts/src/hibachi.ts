@@ -623,7 +623,7 @@ export default class hibachi extends Exchange {
         //     ]
         // }
         //
-        const trades = this.safeList (response, 'trades', []);
+        const trades: Dict[] = this.safeList (response, 'trades', []);
         let tradesList: Dict[] = [];
         if (trades !== undefined) {
             tradesList = trades;

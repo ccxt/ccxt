@@ -1323,7 +1323,7 @@ export default class gate extends gateRest {
         //       ]
         //   }
         //
-        const result = this.safeList (message, 'result', []);
+        const result: Dict[] = this.safeList (message, 'result', []);
         this.balance['info'] = result;
         for (let i = 0; i < result.length; i++) {
             const rawBalance = result[i];
