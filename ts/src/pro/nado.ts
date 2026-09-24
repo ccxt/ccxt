@@ -1082,7 +1082,7 @@ export default class nado extends nadoRest {
             return authenticated;
         }
         let recvWindow: Int = undefined;
-        [ recvWindow, params ] = this.handleOptionAndParams (params, 'authenticate', 'recvWindow', 5000);
+        [ recvWindow, params ] = this.handleOptionIntegerAndParams (params, 'authenticate', 'recvWindow', 5000);
         let subaccount: Str = undefined;
         [ subaccount, params ] = this.handleOptionStringAndParams (params, 'authenticate', 'subaccount', 'default');
         const id = this.requestId ();

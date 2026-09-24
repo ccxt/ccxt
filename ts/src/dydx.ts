@@ -1339,7 +1339,7 @@ export default class dydx extends Exchange {
         }
         const orderSide = side.toUpperCase ();
         let subaccountId = 0;
-        [ subaccountId, params ] = this.handleOptionAndParams (params, 'createOrder', 'subAccountId', subaccountId);
+        [ subaccountId, params ] = this.handleOptionIntegerAndParams (params, 'createOrder', 'subAccountId', subaccountId);
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
@@ -1406,7 +1406,7 @@ export default class dydx extends Exchange {
         let goodTillBlock = this.safeInteger (params, 'goodTillBlock');
         let goodTillBlockTime: Num = undefined;
         let goodTillBlockTimeInSeconds = 2592000;
-        [ goodTillBlockTimeInSeconds, params ] = this.handleOptionAndParams (params, 'createOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
+        [ goodTillBlockTimeInSeconds, params ] = this.handleOptionIntegerAndParams (params, 'createOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
         if (orderFlag === 0) {
             if (goodTillBlock === undefined) {
                 // short term order
@@ -1594,12 +1594,12 @@ export default class dydx extends Exchange {
         }
         let goodTillBlock = this.safeInteger (params, 'goodTillBlock');
         let goodTillBlockTimeInSeconds = 2592000;
-        [ goodTillBlockTimeInSeconds, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
+        [ goodTillBlockTimeInSeconds, params ] = this.handleOptionIntegerAndParams (params, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
         let goodTillBlockTime: Num = undefined;
         const defaultOrderFlags = (isTrigger === true) ? 32 : 64;
         const orderFlags = this.safeInteger (params, 'orderFlags', defaultOrderFlags);
         let subAccountId = 0;
-        [ subAccountId, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'subAccountId', subAccountId);
+        [ subAccountId, params ] = this.handleOptionIntegerAndParams (params, 'cancelOrder', 'subAccountId', subAccountId);
         params = this.omit (params, [ 'clientOrderId', 'orderFlags', 'goodTillBlock', 'goodTillBlockTime', 'goodTillBlockTimeInSeconds', 'subaccountId', 'clientId' ]);
         if (orderFlags !== 0 && orderFlags !== 64 && orderFlags !== 32) {
             throw new InvalidOrder (this.id + ' invalid orderFlags, allowed values are (0, 64, 32).');
@@ -1684,7 +1684,7 @@ export default class dydx extends Exchange {
             throw new NotSupported (this.id + ' cancelOrders only support clientOrderIds.');
         }
         let subAccountId = 0;
-        [ subAccountId, params ] = this.handleOptionAndParams (params, 'cancelOrders', 'subAccountId', subAccountId);
+        [ subAccountId, params ] = this.handleOptionIntegerAndParams (params, 'cancelOrders', 'subAccountId', subAccountId);
         let goodTillBlock = this.safeInteger (params, 'goodTillBlock');
         if (goodTillBlock === undefined) {
             const latestBlockHeight = await this.fetchLatestBlockHeight ();
@@ -2412,7 +2412,7 @@ export default class dydx extends Exchange {
         let userAddress: Str = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('fetchBalance', params);
         let subaccountNumber: Int = undefined;
-        [ subaccountNumber, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'subaccountNumber', 0);
+        [ subaccountNumber, params ] = this.handleOptionIntegerAndParams (params, 'fetchBalance', 'subaccountNumber', 0);
         const request: Dict = {
             'address': userAddress,
             'subaccountNumber': subaccountNumber,

@@ -776,6 +776,25 @@ func (this *BaseExchange) CheckOptionBool(methodName any, optionName any, value 
 	panic(BadRequest(this.Id + " " + optionMethodLabel(methodName) + " option " + ToString(optionName) + " must be a boolean"))
 }
 
+// any JS number box (int, int64, float64) with an integral value reads as int64; fractions, strings and others panic
+func (this *BaseExchange) CheckOptionInteger(methodName any, optionName any, value any) *int64 {
+	switch v := derefScalar(value).(type) {
+	case nil:
+		return nil
+	case int64:
+		return &v
+	case int:
+		n := int64(v)
+		return &n
+	case float64:
+		if v == math.Trunc(v) && !math.IsInf(v, 0) {
+			n := int64(v)
+			return &n
+		}
+	}
+	panic(BadRequest(this.Id + " " + optionMethodLabel(methodName) + " option " + ToString(optionName) + " must be an integer"))
+}
+
 func optionMethodLabel(methodName any) string {
 	if methodName = derefScalar(methodName); methodName == nil {
 		return "exchange-wide"

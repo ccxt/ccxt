@@ -440,7 +440,7 @@ export default class pacifica extends pacificaRest {
         }
         const market = this.market (symbol);
         let aggLevel: Int = undefined;
-        [ aggLevel, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'aggLevel', 1);
+        [ aggLevel, params ] = this.handleOptionIntegerAndParams (params, 'watchOrderBook', 'aggLevel', 1);
         const messageHash = 'orderbook:' + symbol;
         const isTestnet = this.isSandboxModeEnabled;
         let urlKey: Str = 'api';
@@ -477,7 +477,7 @@ export default class pacifica extends pacificaRest {
         }
         const market = this.market (symbol);
         let aggLevel: Int = undefined;
-        [ aggLevel, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'aggLevel', 1);
+        [ aggLevel, params ] = this.handleOptionIntegerAndParams (params, 'watchOrderBook', 'aggLevel', 1);
         const subMessageHash = 'orderbook:' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
         const isTestnet = this.isSandboxModeEnabled;

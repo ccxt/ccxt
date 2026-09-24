@@ -2985,6 +2985,11 @@ class BaseExchange {
         return $value;
     }
 
+    public function check_option_integer($methodName, $optionName, $value) {
+        // the statically typed ports throw on a present value that is not an integral number; here it passes through unchanged
+        return $value;
+    }
+
     public function rand_number($size) {
         $number = '';
         for ($i = 0; $i < $size; $i++) {
@@ -7192,6 +7197,17 @@ class BaseExchange {
     public function handle_option_bool_and_params_2(array $params, string $methodName, string $optionName1, string $optionName2, ?bool $defaultValue = null) {
         list($value, $newParams) = $this->handle_option_and_params_2($params, $methodName, $optionName1, $optionName2, $defaultValue);
         return array( $this->check_option_bool($methodName, $optionName1, $value), $newParams );
+    }
+
+    public function handle_option_integer_and_params(array $params, ?string $methodName, string $optionName, ?int $defaultValue = null) {
+        // handleOptionAndParams read as an integer; the statically typed ports throw on another type
+        list($value, $newParams) = $this->handle_option_and_params($params, $methodName, $optionName, $defaultValue);
+        return array( $this->check_option_integer($methodName, $optionName, $value), $newParams );
+    }
+
+    public function handle_option_integer_and_params_2(array $params, string $methodName, string $optionName1, string $optionName2, ?int $defaultValue = null) {
+        list($value, $newParams) = $this->handle_option_and_params_2($params, $methodName, $optionName1, $optionName2, $defaultValue);
+        return array( $this->check_option_integer($methodName, $optionName1, $value), $newParams );
     }
 
     public function handle_option(string $methodName, string $optionName, mixed $defaultValue = null) {

@@ -1578,7 +1578,7 @@ export default class hibachi extends Exchange {
             request['startTime'] = since;
         }
         let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchOrdersByStatus', 'until');
+        [ until, params ] = this.handleOptionIntegerAndParams (params, 'fetchOrdersByStatus', 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
@@ -1679,7 +1679,7 @@ export default class hibachi extends Exchange {
             request['fromMs'] = since;
         }
         let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'until');
+        [ until, params ] = this.handleOptionIntegerAndParams (params, 'fetchOHLCV', 'until');
         if (until !== undefined) {
             request['toMs'] = until;
         }
@@ -2248,7 +2248,7 @@ export default class hibachi extends Exchange {
             request['limit'] = limit;
         }
         let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchMySettlementHistory', 'until');
+        [ until, params ] = this.handleOptionIntegerAndParams (params, 'fetchMySettlementHistory', 'until');
         if (until !== undefined) {
             request['endTime'] = this.parseToInt (until / 1000);
         }
