@@ -339,7 +339,7 @@ export default class umx extends umxRest {
         const symbol = this.safeString (subscription, 'symbol') as string;
         if (symbol in this.orderbooks) {
             // reset the book in place instead of replacing it, a consumer can hold a
-            // reference to it across resubscriptions, see the kraken issue 26773 class
+            // reference to it across resubscriptions
             const orderbook = this.orderbooks[symbol];
             orderbook.reset ({});
             orderbook.cache = [];
@@ -1421,7 +1421,7 @@ export default class umx extends umxRest {
         };
         const parsed = this.parseBalance (restLike);
         // merge into the existing object in place, a consumer can hold a reference to it
-        // across the updates, see the object identity issue class of ccxt#30595
+        // across the updates
         const keys = Object.keys (parsed);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -1756,9 +1756,8 @@ export default class umx extends umxRest {
         if (isAuthenticated === undefined) {
             const timestamp = this.numberToString (this.nonce ());
             // signed like the notification socket, over the same path, but the signature travels
-            // inside the body and the body is signed without it, the key order is required
-            // a closing brace followed by a quote would be read by the php transpiler as the end
-            // of an array, so it is cut out of a literal padded with a space
+            // inside the body and the body is signed without it, the key order is required, the
+            // closing brace is built as in authenticate
             const openBrace = '{';
             let closeBrace = '} ';
             closeBrace = closeBrace.slice (0, 1);

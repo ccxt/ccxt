@@ -19,19 +19,17 @@ export default class umx extends Exchange {
             'id': 'umx',
             'name': 'UMX',
             'countries': [ ],
-            'version': 'v1', // the api block carries the per-endpoint version prefix (v1 or v2)
+            'version': 'v1',
             'rateLimit': 20, // 50 requests per second on most endpoints, 800 requests per second per ip overall
             'certified': false,
             'pro': false,
             'has': {
-                // market types supported by the venue, businessType: spot | linear_perpetual | linear_futures
                 'CORS': undefined,
                 'spot': true,
                 'margin': true,
                 'swap': true,
                 'future': true,
                 'option': true,
-                // nothing is implemented yet, flags are flipped on as the methods land
                 'addMargin': false,
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
@@ -114,7 +112,7 @@ export default class umx extends Exchange {
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
-                'sandbox': false, // the venue has no testnet
+                'sandbox': false,
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': false,
@@ -152,8 +150,6 @@ export default class umx extends Exchange {
                 ],
                 'fees': 'https://www.umx.com/guide/spot-fee-rate',
             },
-            // every endpoint answers with the same json object envelope, { code, msg, data, ts },
-            // so each leaf is Endpoint<Dict> even when its data member is an array
             'api': {
                 'public': {
                     'get': {
@@ -414,10 +410,6 @@ export default class umx extends Exchange {
                     'future': 'trading',
                     'option': 'trading',
                 },
-                // every chainType the venue serves, collected live from /v2/asset/chains across
-                // the whole currency universe on 2026-09-24. the bnb chain carries evm addresses,
-                // so it is bsc and not the beacon chain, and cchainavax is the avalanche c-chain.
-                // robinhood is the venue's tokenized stock chain and has no unified name
                 'networks': {
                     'ADA': 'ada',
                     'APT': 'apt',
@@ -460,8 +452,6 @@ export default class umx extends Exchange {
                     'XRP': 'xrp',
                 },
                 'networksById': {
-                    // the base inverts options.networks into networksById on its own, so only
-                    // the ids with two aliases need pinning to their canonical unified code
                     'atom': 'ATOM',
                     'bnb': 'BEP20',
                     'eth': 'ERC20',
@@ -482,12 +472,10 @@ export default class umx extends Exchange {
                 },
             },
             'features': {
-                // keep this block in sync with the implemented methods, every entry below is
-                // filled in when the corresponding method lands and is verified against the venue
                 'default': {
-                    'sandbox': false, // the venue has no testnet
+                    'sandbox': false,
                     'fetchCurrencies': {
-                        'private': true, // /v2/asset/currencies requires an api key
+                        'private': true,
                     },
                     'createOrder': {
                         'marginMode': true,
@@ -558,7 +546,7 @@ export default class umx extends Exchange {
                         'symbolRequired': false,
                     },
                     'fetchOHLCV': {
-                        'limit': 1000, // the venue rejects a bigger limit with error 40008
+                        'limit': 1000,
                     },
                 },
                 'spot': {
@@ -679,8 +667,6 @@ export default class umx extends Exchange {
     }
 
     override nonce (): number {
-        // the exchange rejects a request whose timestamp is more than one second ahead of its own
-        // clock, and X-ACCESS-TIMESTAMP is in milliseconds, while the base nonce () is in seconds
         return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
@@ -1051,15 +1037,12 @@ export default class umx extends Exchange {
                 symbol = symbol + '-' + strikePrice + '-' + letter;
             }
         }
-        // the regex transpiler mangles the first ternary of a return statement, and every one of
-        // these reads better as a named value anyway, so they are all resolved before the literal
         const margin = (spot) ? (maxLeverage !== undefined) : undefined;
         // every instrument is quoted and settled in USDT, so there are no inverse contracts
         const linear = (contract) ? true : undefined;
         const inverse = (contract) ? false : undefined;
         // the venue quotes qty in the base currency on every contract market, so one contract is
-        // one unit of base, ctVal is the nominal face value and not an order size multiplier,
-        // verified live as fillAmount / fillQty == the base price across ctVal from 1e-4 to 1e6
+        // one unit of base, ctVal is the nominal face value and not an order size multiplier
         const contractSize = (contract) ? this.parseNumber ('1') : undefined;
         const strike = (option) ? this.parseNumber (strikePrice) : undefined;
         const fees = this.safeDict (this.fees, marketType, {});
@@ -1753,8 +1736,7 @@ export default class umx extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            // the venue documents beginId and endId cursors on the history endpoints, but the
-            // family proved broken venue side, so the pagination walks on endTime, see fetchTransfers
+            // the documented beginId and endId cursors are broken venue side, see fetchTransfers
             return await this.fetchPaginatedCallDynamic ('fetchFundingRateHistory', symbol, since, limit, params, 100) as FundingRateHistory[];
         }
         let request: Dict = {
@@ -1774,10 +1756,9 @@ export default class umx extends Exchange {
             if (until === undefined) {
                 request['endTime'] = this.milliseconds ();
             }
-            // limit keeps the newest entries of the requested range rather than the ones that
-            // follow since, so it is left out here and applied to the parsed result instead. the
-            // venue default of 1000 entries covers the widest range it serves even on the four
-            // hour funding interval, which is 552 entries over three months
+            // limit is applied to the parsed result, see fetchTransfers. the venue default of 1000
+            // entries covers the widest range it serves even on the four hour funding interval,
+            // which is 552 entries over three months
         }
         const response = await this.publicGetV1MarketFundingRateHistory (this.extend (request, params));
         //
@@ -1840,8 +1821,7 @@ export default class umx extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchSettlementHistory', 'paginate');
         if (paginate) {
-            // the venue documents beginId and endId cursors on the history endpoints, but the
-            // family proved broken venue side, so the pagination walks on endTime, see fetchTransfers
+            // the documented beginId and endId cursors are broken venue side, see fetchTransfers
             return await this.fetchPaginatedCallDynamic ('fetchSettlementHistory', symbol, since, limit, params, 100) as Dict[];
         }
         const businessTypes = this.safeDict (this.options, 'businessTypes', {});
@@ -1861,10 +1841,9 @@ export default class umx extends Exchange {
             }
         } else {
             request['beginTime'] = since;
-            // limit keeps the newest entries of the requested range rather than the ones that
-            // follow since, so it is left out here and applied to the parsed result instead. a
-            // range that settles more instruments than the venue default of 1000 entries is still
-            // answered with its newest 1000, which is as far back as one call can reach
+            // limit is applied to the parsed result, see fetchTransfers. a range that settles more
+            // instruments than the venue default of 1000 entries is still answered with its newest
+            // 1000, which is as far back as one call can reach
         }
         const response = await this.publicGetV1MarketDeliveryExerciseHistory (this.extend (request, params));
         //
@@ -2119,8 +2098,7 @@ export default class umx extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchBorrowInterest', 'paginate');
         if (paginate) {
-            // the venue documents beginId and endId cursors on the history endpoints, but the
-            // family proved broken venue side, so the pagination walks on endTime, see fetchTransfers,
+            // the documented beginId and endId cursors are broken venue side, see fetchTransfers,
             // the paginator invokes its target with four positional arguments, which the five
             // argument signature of this method cannot take, hence the paginated helper in between
             return await this.fetchPaginatedCallDynamic ('borrowInterestPaginated', code, since, limit, params, 100) as BorrowInterest[];
@@ -2138,8 +2116,7 @@ export default class umx extends Exchange {
             }
         } else {
             request['beginTime'] = since;
-            // limit keeps the newest entries of the requested range rather than the ones that
-            // follow since, so it is left out here and applied to the parsed result instead
+            // limit is applied to the parsed result, see fetchTransfers
         }
         const response = await this.privateGetV1AccountInterestHistory (this.extend (request, params));
         const data = this.safeList (response, 'data', []);
@@ -3103,8 +3080,7 @@ export default class umx extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchConvertTradeHistory', 'paginate');
         if (paginate) {
-            // the venue documents beginId and endId cursors on the history endpoints, but the
-            // family proved broken venue side, so the pagination walks on endTime, see fetchTransfers
+            // the documented beginId and endId cursors are broken venue side, see fetchTransfers
             return await this.fetchPaginatedCallDynamic ('fetchConvertTradeHistory', code, since, limit, params, 100) as Conversion[];
         }
         let request: Dict = {};
@@ -3115,8 +3091,7 @@ export default class umx extends Exchange {
             }
         } else {
             request['beginTime'] = since;
-            // limit keeps the newest entries of the requested range rather than the ones that
-            // follow since, so it is left out here and applied to the parsed result instead
+            // limit is applied to the parsed result, see fetchTransfers
         }
         const response = await this.privateGetV1AccountConvertHistoryOrders (this.extend (request, params));
         const data = this.safeList (response, 'data', []);
@@ -3198,8 +3173,7 @@ export default class umx extends Exchange {
             }
         } else {
             request['beginTime'] = since;
-            // limit keeps the newest entries of the requested range rather than the ones that
-            // follow since, so it is left out here and applied to the parsed result instead
+            // limit is applied to the parsed result, see fetchTransfers
         }
         const response = await this.privateGetV1AssetDepositRecord (this.extend (request, params));
         //
@@ -3269,13 +3243,11 @@ export default class umx extends Exchange {
             }
         } else {
             request['beginTime'] = since;
-            // limit keeps the newest entries of the requested range rather than the ones that
-            // follow since, so it is left out here and applied to the parsed result instead
+            // limit is applied to the parsed result, see fetchTransfers
         }
         const response = await this.privateGetV1AssetWithdrawalRecord (this.extend (request, params));
         //
-        // the account has made no withdrawal yet, so the row below is the venue's own docs
-        // sample, the live answer for an empty history is "data": []
+        // the row below is the venue's own docs sample, an empty history answers "data": []
         //
         //     {
         //         "code": "0",
@@ -3451,8 +3423,7 @@ export default class umx extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
         if (paginate) {
-            // the venue documents beginId and endId cursors on the history endpoints, but the
-            // family proved broken venue side, so the pagination walks on endTime, see fetchTransfers
+            // the documented beginId and endId cursors are broken venue side, see fetchTransfers
             return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params, 100) as LedgerEntry[];
         }
         let marketType: Str = undefined;
@@ -3470,8 +3441,7 @@ export default class umx extends Exchange {
             }
         } else {
             request['beginTime'] = since;
-            // limit keeps the newest entries of the requested range rather than the ones that
-            // follow since, so it is left out here and applied to the parsed result instead
+            // limit is applied to the parsed result, see fetchTransfers
         }
         let response = undefined;
         if (marketType === 'funding') {
@@ -3638,8 +3608,7 @@ export default class umx extends Exchange {
             }
         } else {
             request['beginTime'] = since;
-            // limit keeps the newest entries of the requested range rather than the ones that
-            // follow since, so it is left out here and applied to the parsed result instead
+            // limit is applied to the parsed result, see fetchTransfers
         }
         const response = await this.privateGetV1HistoryBill (this.extend (request, params));
         const data = this.safeList (response, 'data', []);
@@ -3711,8 +3680,7 @@ export default class umx extends Exchange {
             }
         } else {
             request['beginTime'] = since;
-            // limit keeps the newest entries of the requested range rather than the ones that
-            // follow since, so it is left out here and applied to the parsed result instead
+            // limit is applied to the parsed result, see fetchTransfers
         }
         const response = await this.privateGetV1HistoryBill (this.extend (request, params));
         const data = this.safeList (response, 'data', []);
@@ -4363,8 +4331,7 @@ export default class umx extends Exchange {
     override parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder and cancelOrder answer bare id acknowledgements, the fetch methods answer
-        // full rows, and the trigger rows nest their prices inside a triggerOrder object. every
-        // sample below is a live capture with the account ids masked
+        // full rows, and the trigger rows nest their prices inside a triggerOrder object
         //
         // createOrder
         //
@@ -4609,8 +4576,6 @@ export default class umx extends Exchange {
             request['orderId'] = id;
         }
         const response = await this.privateGetV2TradeOrderInfo (this.extend (request, params));
-        //
-        // the row below is a live capture, with the account ids masked
         //
         //     {
         //         "accountName": "1000000000000000000",
@@ -4951,8 +4916,7 @@ export default class umx extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'paginate');
         if (paginate) {
-            // the venue documents beginId and endId cursors, but the transfer history proved the
-            // family broken venue side, so the pagination walks on endTime, see fetchTransfers
+            // the documented beginId and endId cursors are broken venue side, see fetchTransfers
             return await this.fetchPaginatedCallDynamic ('fetchCanceledAndClosedOrders', symbol, since, limit, params, 100) as Order[];
         }
         let market: Market = undefined;
@@ -4968,8 +4932,7 @@ export default class umx extends Exchange {
             }
         } else {
             request['beginTime'] = since;
-            // limit keeps the newest entries of the requested range rather than the ones that
-            // follow since, so it is left out here and applied to the parsed result instead
+            // limit is applied to the parsed result, see fetchTransfers
         }
         let isTrigger = false;
         [ isTrigger, params ] = this.handleOptionAndParams2 (params, 'fetchCanceledAndClosedOrders', 'trigger', 'stop', false);
@@ -5038,8 +5001,7 @@ export default class umx extends Exchange {
             }
         } else {
             request['beginTime'] = since;
-            // limit keeps the newest entries of the requested range rather than the ones that
-            // follow since, so it is left out here and applied to the parsed result instead
+            // limit is applied to the parsed result, see fetchTransfers
         }
         const response = await this.privateGetV2HistoryTrades (this.extend (request, params));
         // the private rows extend the public trade shape, parseTrade carries a live sample
@@ -5221,10 +5183,9 @@ export default class umx extends Exchange {
         }
         const response = await this.privatePostV1AssetWithdrawal (this.extend (request, params));
         //
-        // the sample is the venue's own docs example, the account ids are masked. live withdraw
-        // calls are forbidden by the hard safety rules, so the shape was never verified live,
-        // and the docs contradict themselves on it, the parameter table promises an array while
-        // the example answers a single object, which is why both shapes are accepted below
+        // the sample is the venue's own docs example, and the docs contradict themselves on the
+        // shape, the parameter table promises an array while the example answers a single
+        // object, which is why both shapes are accepted below
         //
         //     {
         //         "code": "0",
