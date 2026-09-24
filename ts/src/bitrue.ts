@@ -777,7 +777,7 @@ export default class bitrue extends Exchange {
         const id = this.safeString (rawCurrency, 'coin');
         const name = this.safeString (rawCurrency, 'coinFulName');
         const code = this.safeCurrencyCode (id);
-        const networkDetails = this.safeList (rawCurrency, 'chainDetail', []);
+        const networkDetails: Dict[] = this.safeList (rawCurrency, 'chainDetail', []);
         const networks: Dict = {};
         for (let j = 0; j < networkDetails.length; j++) {
             const entry = networkDetails[j];

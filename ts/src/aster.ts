@@ -873,7 +873,7 @@ export default class aster extends Exchange {
         const sapiResult = this.safeDict (results, 0, {});
         const sapiRows = this.safeList (sapiResult, 'symbols', []);
         const fapiResult = this.safeDict (results, 1, {});
-        const fapiRows = this.safeList (fapiResult, 'symbols', []);
+        const fapiRows: Dict[] = this.safeList (fapiResult, 'symbols', []);
         //
         // example:
         //

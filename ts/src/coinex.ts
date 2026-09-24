@@ -742,7 +742,7 @@ export default class coinex extends Exchange {
     override parseCurrency (coin: Dict): CurrencyInterface {
         const asset = this.safeDict (coin, 'asset', {});
         const currencyId = this.safeString (asset, 'ccy');
-        const chains = this.safeList (coin, 'chains', []);
+        const chains: Dict[] = this.safeList (coin, 'chains', []);
         const code = this.safeCurrencyCode (currencyId);
         const networks: Dict = {};
         for (let j = 0; j < chains.length; j++) {
@@ -854,7 +854,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const markets = this.safeList (response, 'data', []);
+        const markets: Dict[] = this.safeList (response, 'data', []);
         const result: List = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -942,7 +942,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const markets = this.safeList (response, 'data', []);
+        const markets: Dict[] = this.safeList (response, 'data', []);
         const result: List = [];
         for (let i = 0; i < markets.length; i++) {
             const entry = markets[i];
@@ -2729,7 +2729,7 @@ export default class coinex extends Exchange {
                 }
             }
         }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const results: List = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -3148,7 +3148,7 @@ export default class coinex extends Exchange {
         } else {
             response = await this.v2PrivatePostFuturesBatchModifyOrder (this.extend (request, params));
         }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -4542,7 +4542,7 @@ export default class coinex extends Exchange {
 
     override parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
         const tiers: List = [];
-        const brackets = this.safeList (info, 'level', []);
+        const brackets: Dict[] = this.safeList (info, 'level', []);
         let minNotional: Num = 0;
         for (let i = 0; i < brackets.length; i++) {
             const tier = brackets[i];
@@ -4781,7 +4781,7 @@ export default class coinex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -5094,7 +5094,7 @@ export default class coinex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const rates: List = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];

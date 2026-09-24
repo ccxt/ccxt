@@ -634,7 +634,7 @@ export default class cryptocom extends Exchange {
         const id = this.safeString (currency, '_coin_id');
         const code = this.safeCurrencyCode (id);
         const networks: Dict = {};
-        const chains = this.safeList (currency, 'network_list', []);
+        const chains: Dict[] = this.safeList (currency, 'network_list', []);
         for (let j = 0; j < chains.length; j++) {
             const chain = chains[j];
             const networkId = this.safeString (chain, 'network_id');
@@ -777,7 +777,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const resultResponse = this.safeDict (response, 'result', {});
-        const data = this.safeList (resultResponse, 'data', []);
+        const data: Dict[] = this.safeList (resultResponse, 'data', []);
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -2712,7 +2712,7 @@ export default class cryptocom extends Exchange {
         //        ]
         //    }
         //
-        const networkList = this.safeList (fee, 'network_list', []);
+        const networkList: Dict[] = this.safeList (fee, 'network_list', []);
         const networkListLength = networkList.length;
         const result: Dict = {
             'info': fee,
@@ -3233,7 +3233,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const data = this.safeList (result, 'data', []);
+        const data: Dict[] = this.safeList (result, 'data', []);
         const marketId = this.safeString (result, 'instrument_name');
         const rates: FundingRateHistory[] = [];
         for (let i = 0; i < data.length; i++) {

@@ -556,7 +556,7 @@ export default class bitbank extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const pairs = this.safeList (data, 'pairs', []);
+        const pairs: Dict[] = this.safeList (data, 'pairs', []);
         const result: Dict = {};
         for (let i = 0; i < pairs.length; i++) {
             const pair = pairs[i];

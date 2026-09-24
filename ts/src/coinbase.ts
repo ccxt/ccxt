@@ -727,7 +727,7 @@ export default class coinbase extends Exchange {
      */
     async fetchPortfolios (params: Dict = {}): Promise<Account[]> {
         const response = await this.v3PrivateGetBrokeragePortfolios (params);
-        const portfolios = this.safeList (response, 'portfolios', []);
+        const portfolios: Dict[] = this.safeList (response, 'portfolios', []);
         const result: Account[] = [];
         for (let i = 0; i < portfolios.length; i++) {
             const portfolio = portfolios[i];
@@ -1404,7 +1404,7 @@ export default class coinbase extends Exchange {
         const response = await this.fetchCurrenciesFromCache (params);
         const currencies = this.safeDict (response, 'currencies', {});
         const exchangeRates = this.safeDict (response, 'exchangeRates', {});
-        const data = this.safeList (currencies, 'data', []);
+        const data: Dict[] = this.safeList (currencies, 'data', []);
         const dataById = this.indexBy (data, 'id');
         const rates = this.safeDict (this.safeDict (exchangeRates, 'data', {}), 'rates', {});
         const baseIds = Object.keys (rates);
@@ -3530,7 +3530,7 @@ export default class coinbase extends Exchange {
         //         ]
         //     }
         //
-        const orders = this.safeList (response, 'results', []);
+        const orders: Dict[] = this.safeList (response, 'results', []);
         for (let i = 0; i < orders.length; i++) {
             const success = this.safeBool (orders[i], 'success');
             if (success !== true) {

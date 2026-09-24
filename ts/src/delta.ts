@@ -851,7 +851,7 @@ export default class delta extends Exchange {
         //         "success":true
         //     }
         //
-        const markets = this.safeList (response, 'result', []);
+        const markets: Dict[] = this.safeList (response, 'result', []);
         const result: Market[] = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];

@@ -533,7 +533,7 @@ export default class bigone extends Exchange {
         const code = this.safeCurrencyCode (id);
         const name = this.safeString (rawCurrency, 'name');
         const networks: Dict = {};
-        const chains = this.safeList (rawCurrency, 'binding_gateways', []);
+        const chains: Dict[] = this.safeList (rawCurrency, 'binding_gateways', []);
         const currencyMaxPrecision = this.parsePrecision (this.safeString2 (rawCurrency, 'withdrawal_scale', 'scale'));
         for (let j = 0; j < chains.length; j++) {
             const chain = chains[j];
@@ -672,7 +672,7 @@ export default class bigone extends Exchange {
         //        ...
         //    ]
         //
-        const markets = this.safeList (response, 'data', []);
+        const markets: Dict[] = this.safeList (response, 'data', []);
         const result: Market[] = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
