@@ -608,7 +608,7 @@ Every exchange sits behind a cargo feature named after its id. Turn the defaults
 ccxt = { version = "4", default-features = false, features = ["binance", "kraken", "okx"] }
 ```
 
-Measured on the same machine, that brings a fresh build with three exchanges from 3m23s / 18.6 GB down to 29s / 2.5 GB (release: 7m49s / 50 GB down to 3m05s / 4.9 GB). The full numbers are in [rust/BUILD-BENCHMARK.md](https://github.com/ccxt/ccxt/blob/master/rust/BUILD-BENCHMARK.md).
+Measured on the same machine, that brings a fresh build with three exchanges from 3m23s / 18.6 GB down to 29s / 2.5 GB (release: 7m49s / 50 GB down to 3m05s / 4.9 GB).
 
 Things to know:
 
