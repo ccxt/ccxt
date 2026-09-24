@@ -321,7 +321,7 @@
     "as-table": "^1.0.55",
     "asciichart": "^1.5.25",
     "assert": "^2.0.0",
-    "ast-transpiler": "github:ccxt/ast-transpiler#99c470492adf82c69248cb8f912ec2be55810f2a",
+    "ast-transpiler": "github:ccxt/ast-transpiler#9d092fd6c2a9798432cc198ad929a5a7e95de4df",
     "blessed": "^0.1.81",
     "clipboardy": "^5.0.0",
     "commander": "^14.0.1",
@@ -342,7 +342,7 @@
     "rollup": "^2.70.1",
     "rollup-plugin-execute": "1.1.1",
     "tsx": "^4.22.4",
-    "typescript": "7.0.2",
+    "typescript": "7.1.0-dev.20260924.1",
     "typescript6": "npm:typescript@6.0.3"
   },
   "author": {
