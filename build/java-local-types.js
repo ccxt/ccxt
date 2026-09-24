@@ -7613,8 +7613,8 @@ const JAVA_NUMERIC_METHOD_RETURN_TYPES = {
 const NUMERIC_BASE_TIER_DECLARATION_FILE = /(^|[\\/])ts[\\/]src[\\/]base[\\/](Exchange(\.nooverloads\.\d+)?\.ts|PredictionExchange(\.nooverloads\.\d+)?\.ts|functions[\\/](type|time|misc)\.ts)$/;
 // `milliseconds = now` where `now = Date.now` (ts/src/base/functions/time.ts), so a
 // `this.milliseconds()` call resolves to the Date.now signature in whichever
-// typescript package the resolution cache nests it under.
-const NUMERIC_LIB_DTS_FILE = /(^|[\\/])node_modules[\\/](?:[^\\/]+[\\/]node_modules[\\/])?typescript6?[\\/]lib[\\/]lib\.[^\\/]*\.d\.ts$/;
+// typescript package the resolution cache nests it under (TS7: @typescript/typescript-<platform>).
+const NUMERIC_LIB_DTS_FILE = /(^|[\\/])node_modules[\\/](?:[^\\/]+[\\/]node_modules[\\/])?(?:typescript6?|@typescript[\\/]typescript-[^\\/]+)[\\/]lib[\\/]lib\.[^\\/]*\.d\.ts$/;
 
 // method names whose Java print is safe on a narrowed numeric receiver: toString ->
 // String.valueOf(x) and toFixed -> toFixed(x, d) are the only Object-taking prints;
