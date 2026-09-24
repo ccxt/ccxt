@@ -12122,9 +12122,11 @@ export function patchJavaStringListReturnLocals (transpiler) {
         }
         const iden = printer.getIden (identation);
         const name = printer.printNode (declaration.name, 0);
-        const head = `${iden}${printer.VAR_TOKEN} ${name} = `;
-        const at = printed.lastIndexOf (head);
-        if (at === -1 || !printed.slice (at + head.length).startsWith ('this.')) {
+        // an array-typed family may already print List<Object>, which cannot hold a List<String>
+        const heads = [ printer.VAR_TOKEN, 'java.util.List<Object>', 'List<Object>' ].map ((t) => `${iden}${t} ${name} = `);
+        const head = heads.find ((h) => printed.lastIndexOf (h) !== -1);
+        const at = head === undefined ? -1 : printed.lastIndexOf (head);
+        if (at === -1 || !printed.slice (at + head.length).startsWith ('this.marketIds(')) {
             return printed;
         }
         let ok = false;
@@ -12134,7 +12136,7 @@ export function patchJavaStringListReturnLocals (transpiler) {
             ok = false;
         }
         if (!ok) {
-            return printed;
+            return head === heads[0] ? printed : printed.slice (0, at) + heads[0] + printed.slice (at + head.length);
         }
         typed.set (declaration, JAVA_STRING_LIST_TYPE);
         return printed.slice (0, at) + `${iden}${JAVA_STRING_LIST_TYPE} ${name} = ` + printed.slice (at + head.length);
