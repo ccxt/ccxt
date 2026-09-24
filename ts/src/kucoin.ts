@@ -6998,7 +6998,7 @@ export default class kucoin extends Exchange {
         //    }
         //
         const data = this.safeDict (response, 'data', {});
-        const trades = this.safeList (data, 'items', []);
+        const trades: Dict[] = this.safeList (data, 'items', []);
         let tradesList: Dict[] = [];
         if (trades !== undefined) {
             tradesList = trades;
@@ -7091,7 +7091,7 @@ export default class kucoin extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const trades = this.safeList (data, 'items', []);
+        const trades: Dict[] = this.safeList (data, 'items', []);
         let tradesList: Dict[] = [];
         if (trades !== undefined) {
             tradesList = trades;

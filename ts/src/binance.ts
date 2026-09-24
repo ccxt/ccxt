@@ -3997,7 +3997,7 @@ export default class binance extends Exchange {
             }
         } else if (!isolated && ((type === 'spot') || cross)) {
             timestamp = this.safeInteger (response, 'updateTime');
-            const balances = this.safeList2 (response, 'balances', 'userAssets', []);
+            const balances: Dict[] = this.safeList2 (response, 'balances', 'userAssets', []);
             for (let i = 0; i < balances.length; i++) {
                 const balance = balances[i];
                 const currencyId = this.safeString (balance, 'asset');

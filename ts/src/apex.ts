@@ -504,7 +504,7 @@ export default class apex extends Exchange {
         //     ]
         // }
         const rows = this.safeList (spotConfig, 'assets', []);
-        const chains = this.safeList (multiChain, 'chains', []);
+        const chains: Dict[] = this.safeList (multiChain, 'chains', []);
         this.options['_temp_currencies_chains'] = chains;
         const result = this.parseCurrencies (rows);
         delete this.options['_temp_currencies_chains'];
@@ -1474,9 +1474,9 @@ export default class apex extends Exchange {
         const configResponse = await this.publicGetV3Symbols (params);
         const configData = this.safeDict (configResponse, 'data', {});
         const contractConfig = this.safeDict (configData, 'contractConfig', {});
-        const contractAssets = this.safeList (contractConfig, 'assets', []);
+        const contractAssets: Dict[] = this.safeList (contractConfig, 'assets', []);
         const spotConfig = this.safeDict (configData, 'spotConfig', {});
-        const spotAssets = this.safeList (spotConfig, 'assets', []);
+        const spotAssets: Dict[] = this.safeList (spotConfig, 'assets', []);
         const globalConfig = this.safeDict (spotConfig, 'global', {});
         const receiverAddress = this.safeString (globalConfig, 'contractAssetPoolEthAddress', '');
         const receiverZkAccountId = this.safeString (globalConfig, 'contractAssetPoolZkAccountId', '');
