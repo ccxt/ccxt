@@ -31,6 +31,7 @@ export default class umx extends umxRest {
                 'unWatchOrders': true,
                 'unWatchMyTrades': true,
                 'unWatchBalance': true,
+                'watchPosition': true,
                 'watchPositions': true,
                 'unWatchPositions': true,
                 'watchTicker': true,
@@ -1361,6 +1362,24 @@ export default class umx extends umxRest {
             this.balance[key] = parsed[key];
         }
         client.resolve (this.balance, 'balance');
+    }
+
+    /**
+     * @method
+     * @name umx#watchPosition
+     * @description watches the position of a contract market
+     * @see https://www.umx.com/docs/coin-apis/websocket-stream/private-channel/position-channel
+     * @param {string} symbol unified market symbol of a perpetual or dated futures market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    override async watchPosition (symbol: Str = undefined, params: Dict = {}): Promise<Position> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchPosition() requires a symbol argument');
+        }
+        const positions = await this.watchPositions ([ symbol ], undefined, undefined, params);
+        const positionsLength = positions.length;
+        return positions[positionsLength - 1];
     }
 
     /**
