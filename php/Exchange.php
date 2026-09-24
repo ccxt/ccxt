@@ -376,7 +376,6 @@ class BaseExchange {
         'bitflyer',
         'bitget',
         'bithumb',
-        'bitmex',
         'bitopro',
         'bitrue',
         'bitso',

@@ -17,7 +17,7 @@
 pub use indexmap::IndexMap as HashMap;
 use std::borrow::Cow;
 use std::sync::Arc;
-#[cfg(feature = "transpiled-base")]
+#[cfg(feature = "engine")]
 use crate::exchange_generated::ExchangeBase;
 
 /// A dynamic value type that mirrors the CCXT JavaScript Value semantics.
@@ -340,7 +340,7 @@ impl Value {
     /// The afterConstruct test transpiles its call sites with `exchange:
     /// Value`, so these methods have to exist on `Value` — but the logic
     /// must stay in the transpiled base, not be duplicated here.
-    #[cfg(feature = "transpiled-base")]
+    #[cfg(feature = "engine")]
     fn snapshot_as_exchange(&self) -> crate::exchange::Exchange {
         let mut ex = crate::exchange::Exchange::new(None);
         ex.options = crate::runtime::get_value(self, &Value::Str("options".into()));
@@ -351,12 +351,12 @@ impl Value {
     /// `exchange.networkCodeToId(code, currency)` on a snapshot `Value` —
     /// delegates to the transpiled `Exchange::network_code_to_id`.
     pub fn network_code_to_id(&self, code: Value, args: &[Value]) -> Value {
-        #[cfg(feature = "transpiled-base")]
+        #[cfg(feature = "engine")]
         {
             let currency = args.first().cloned().unwrap_or(Value::Null);
             return crate::exchange::BaseCore::new(self.snapshot_as_exchange()).network_code_to_id(code, &[currency]);
         }
-        #[cfg(not(feature = "transpiled-base"))]
+        #[cfg(not(feature = "engine"))]
         {
             let _ = args;
             code
@@ -366,11 +366,11 @@ impl Value {
     /// `exchange.networkIdToCode(networkId, currency)` on a snapshot `Value`
     /// — delegates to the transpiled `Exchange::network_id_to_code`.
     pub fn network_id_to_code(&self, args: &[Value]) -> Value {
-        #[cfg(feature = "transpiled-base")]
+        #[cfg(feature = "engine")]
         {
             return crate::exchange::BaseCore::new(self.snapshot_as_exchange()).network_id_to_code(args);
         }
-        #[cfg(not(feature = "transpiled-base"))]
+        #[cfg(not(feature = "engine"))]
         {
             let _ = args;
             Value::Null
@@ -382,11 +382,11 @@ impl Value {
     /// transpiled `Exchange::extend`. Used by the (prediction-aware) transpiled
     /// test harness, where `exchange` is a dynamic `Value` handle.
     pub fn extend(&self, a: Value, args: &[Value]) -> Value {
-        #[cfg(feature = "transpiled-base")]
+        #[cfg(feature = "engine")]
         {
             return self.snapshot_as_exchange().extend(a, args);
         }
-        #[cfg(not(feature = "transpiled-base"))]
+        #[cfg(not(feature = "engine"))]
         {
             let _ = args;
             a
@@ -399,7 +399,7 @@ impl Value {
     /// computed `markets`/`markets_by_id`/`symbols` back onto the `Value`
     /// handle so later `get_value(exchange, "markets")` reads see them.
     pub fn set_markets(&mut self, markets: Value) -> Value {
-        #[cfg(feature = "transpiled-base")]
+        #[cfg(feature = "engine")]
         {
             // If this snapshot is backed by a live Core (`__live_id`), route to
             // it so the Core's own `set_markets` runs — for a prediction venue
@@ -422,7 +422,7 @@ impl Value {
             crate::runtime::add_element_to_object(self, &Value::Str("symbols".into()), ex.symbols.clone());
             return result;
         }
-        #[cfg(not(feature = "transpiled-base"))]
+        #[cfg(not(feature = "engine"))]
         {
             let _ = markets;
             Value::Null
