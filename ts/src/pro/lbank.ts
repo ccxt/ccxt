@@ -987,7 +987,7 @@ export default class lbank extends lbankRest {
             // a flight is already in progress - wake when the leader settles
             // it: the subscribeKey is then in the bucket
             await client.future (messageHash);
-            return client.subscriptions['authenticated']['key'];
+            return this.safeString (this.safeDict (client.subscriptions, 'authenticated'), 'key');
         }
         const future = client.reusableFuture (messageHash);
         try {
@@ -1033,6 +1033,6 @@ export default class lbank extends lbankRest {
         // rethrows a rejected flight to the leader and attaches the handler
         // that keeps an alone leader from crashing on an unhandled rejection
         await future;
-        return client.subscriptions['authenticated']['key'];
+        return this.safeString (this.safeDict (client.subscriptions, 'authenticated'), 'key');
     }
 }
