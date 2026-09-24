@@ -1,0 +1,89 @@
+{
+    "exchange": "umx",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchTrades": [
+            {
+                "description": "a linear perpetual trade",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "url": "wss://stream.umx.com/ws/public/v1/market",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "data": [
+                            {
+                                "businessType": "linear_perpetual",
+                                "symbol": "ETH-USDT-PERP",
+                                "stream": "trade",
+                                "message": "成功",
+                                "code": 0
+                            }
+                        ],
+                        "ts": 1790250776554
+                    },
+                    {
+                        "businessType": "linear_perpetual",
+                        "symbol": "ETH-USDT-PERP",
+                        "stream": "trade",
+                        "data": [
+                            {
+                                "symbol": "ETH-USDT-PERP",
+                                "id": "12478833336",
+                                "side": "buy",
+                                "price": "2643.42",
+                                "qty": "0.025",
+                                "time": "1790250780498"
+                            }
+                        ],
+                        "ts": 1790250780501
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "data": [
+                            {
+                                "stream": "trade",
+                                "businessType": "linear_perpetual",
+                                "symbol": "ETH-USDT-PERP"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "symbol": "ETH-USDT-PERP",
+                                "id": "12478833336",
+                                "side": "buy",
+                                "price": "2643.42",
+                                "qty": "0.025",
+                                "time": "1790250780498"
+                            },
+                            "id": "12478833336",
+                            "timestamp": 1790250780498,
+                            "datetime": "2026-09-24T11:53:00.498Z",
+                            "symbol": "ETH/USDT:USDT",
+                            "order": null,
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 2643.42,
+                            "amount": 0.025,
+                            "cost": 66.0855,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ]
+                ]
+            }
+        ]
+    }
+}
