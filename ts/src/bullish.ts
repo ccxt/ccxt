@@ -2500,7 +2500,7 @@ export default class bullish extends Exchange {
         }
     }
 
-    parseBalanceForSingleCurrency (response: any, code: Str): Balances {
+    parseBalanceForSingleCurrency (response: Dict, code: Str): Balances {
         const result: Dict = { 'info': response };
         const account: Dict = this.account ();
         account['free'] = this.safeString (response, 'availableQuantity');

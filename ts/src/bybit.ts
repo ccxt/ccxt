@@ -1769,7 +1769,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const list = this.safeList (result, 'list', []);
+        const list: Dict[] = this.safeList (result, 'list', []);
         let status = 'ok';
         let eta: Int = undefined;
         let url: Str = undefined;
@@ -3654,7 +3654,7 @@ export default class bybit extends Exchange {
                 const entry = currencyList[i];
                 const accountType = this.safeString (entry, 'accountType');
                 if (accountType === 'UNIFIED' || accountType === 'CONTRACT' || accountType === 'SPOT') {
-                    const coins = this.safeList (entry, 'coin', []);
+                    const coins: Dict[] = this.safeList (entry, 'coin', []);
                     for (let j = 0; j < coins.length; j++) {
                         const account = this.account ();
                         const coinEntry = coins[j];
@@ -7927,7 +7927,7 @@ export default class bybit extends Exchange {
         });
     }
 
-    parseMarginLoan (info: any, currency: Currency = undefined): MarginLoan {
+    parseMarginLoan (info: Dict, currency: Currency = undefined): MarginLoan {
         //
         // borrowCrossMargin
         //

@@ -509,7 +509,7 @@ export default class bitso extends Exchange {
             const makerString = this.safeString (flatRate, 'maker');
             const taker = this.parseNumber (Precise.stringDiv (takerString, '100'));
             const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
-            const feeTiers = this.safeList (fees, 'structure', []);
+            const feeTiers: Dict[] = this.safeList (fees, 'structure', []);
             const fee: Dict = {
                 'taker': taker,
                 'maker': maker,
@@ -664,7 +664,7 @@ export default class bitso extends Exchange {
 
     override parseBalance (response: any): Balances {
         const payload = this.safeDict (response, 'payload', {});
-        const balances = this.safeList (payload, 'balances', []);
+        const balances: Dict[] = this.safeList (payload, 'balances', []);
         const result: Dict = {
             'info': response,
             'timestamp': undefined,

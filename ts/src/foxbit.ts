@@ -847,7 +847,7 @@ export default class foxbit extends Exchange {
         //         }
         //     ]
         // }
-        const accounts = this.safeList (response, 'data', []);
+        const accounts: Dict[] = this.safeList (response, 'data', []);
         const result: Dict = {
             'info': response,
         };

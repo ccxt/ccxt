@@ -1743,7 +1743,7 @@ export default class coinex extends Exchange {
         //     }
         //
         const result: Dict = { 'info': response };
-        const balances = this.safeList (response, 'data', []);
+        const balances: Dict[] = this.safeList (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const entry = balances[i];
             const free = this.safeDict (entry, 'available', {});
@@ -1784,7 +1784,7 @@ export default class coinex extends Exchange {
         //     }
         //
         const result: Dict = { 'info': response };
-        const balances = this.safeList (response, 'data', []);
+        const balances: Dict[] = this.safeList (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const entry = balances[i];
             const currencyId = this.safeString (entry, 'ccy');
@@ -1821,7 +1821,7 @@ export default class coinex extends Exchange {
         //     }
         //
         const result: Dict = { 'info': response };
-        const balances = this.safeList (response, 'data', []);
+        const balances: Dict[] = this.safeList (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const entry = balances[i];
             const currencyId = this.safeString (entry, 'ccy');
@@ -1855,7 +1855,7 @@ export default class coinex extends Exchange {
         //     }
         //
         const result: Dict = { 'info': response };
-        const balances = this.safeList (response, 'data', []);
+        const balances: Dict[] = this.safeList (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const entry = balances[i];
             const currencyId = this.safeString (entry, 'ccy');
@@ -5932,7 +5932,7 @@ export default class coinex extends Exchange {
             },
             'networks': {},
         };
-        const chains = this.safeList (fee, 'chains', []);
+        const chains: Dict[] = this.safeList (fee, 'chains', []);
         const asset = this.safeDict (fee, 'asset', {});
         for (let i = 0; i < chains.length; i++) {
             const entry = chains[i];

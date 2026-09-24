@@ -1110,7 +1110,7 @@ export default class btse extends Exchange {
             if (assets !== undefined) {
                 // futures wallet row: per-currency totals in assets, locked amounts in assetsInUse
                 // several wallet rows can report the same currency, so amounts are aggregated
-                const inUse = this.safeList (row, 'assetsInUse', []);
+                const inUse: Dict[] = this.safeList (row, 'assetsInUse', []);
                 for (let j = 0; j < inUse.length; j++) {
                     const usedRow = inUse[j];
                     const usedCode = this.safeCurrencyCode (this.safeString (usedRow, 'currency'));

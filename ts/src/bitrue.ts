@@ -2969,7 +2969,7 @@ export default class bitrue extends Exchange {
         //       "chainDetail": [ [Object] ]
         //   }
         //
-        const chainDetails = this.safeList (fee, 'chainDetail', []);
+        const chainDetails: Dict[] = this.safeList (fee, 'chainDetail', []);
         const chainDetailLength = chainDetails.length;
         const result: Dict = {
             'info': fee,

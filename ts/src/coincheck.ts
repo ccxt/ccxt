@@ -310,7 +310,7 @@ export default class coincheck extends Exchange {
         //         ]
         //     }
         //
-        const exchangeStatuses = this.safeList (response, 'exchange_status', []);
+        const exchangeStatuses: Dict[] = this.safeList (response, 'exchange_status', []);
         let status = 'ok';
         let updated: Int = undefined;
         for (let i = 0; i < exchangeStatuses.length; i++) {

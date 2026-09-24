@@ -867,7 +867,7 @@ export default class krakenfutures extends Exchange {
         //    }
         //
         // fees are expressed in percent, tiers are sorted by ascending usdVolume
-        const tiers = this.safeList (fee, 'tiers', []);
+        const tiers: Dict[] = this.safeList (fee, 'tiers', []);
         let makerFee: Str = undefined;
         let takerFee: Str = undefined;
         for (let i = 0; i < tiers.length; i++) {
@@ -1075,7 +1075,7 @@ export default class krakenfutures extends Exchange {
             //        "continuationToken": "QTexMDE0OTe33NTcyXy8xNDIzAjc1NjY5MwI="
             //    }
             //
-            const elements = this.safeList (response, 'elements', []);
+            const elements: Dict[] = this.safeList (response, 'elements', []);
             // we need to reverse the list to fix chronology
             rawTrades = [];
             const length = elements.length;

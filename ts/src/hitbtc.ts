@@ -3211,7 +3211,7 @@ export default class hitbtc extends Exchange {
         const marginMode = this.safeString (position, 'type');
         const leverage = this.safeNumber (position, 'leverage');
         const datetime = this.safeString (position, 'updated_at');
-        const positions = this.safeList (position, 'positions', []);
+        const positions: Dict[] = this.safeList (position, 'positions', []);
         let liquidationPrice: Num = undefined;
         let entryPrice: Num = undefined;
         let contracts: Num = undefined;
@@ -3221,7 +3221,7 @@ export default class hitbtc extends Exchange {
             entryPrice = this.safeNumber (entry, 'price_entry');
             contracts = this.safeNumber (entry, 'quantity');
         }
-        const currencies = this.safeList (position, 'currencies', []);
+        const currencies: Dict[] = this.safeList (position, 'currencies', []);
         let collateral: Num = undefined;
         for (let i = 0; i < currencies.length; i++) {
             const entry = currencies[i];

@@ -658,7 +658,7 @@ export default class bitbank extends Exchange {
             'datetime': undefined,
         };
         const data = this.safeDict (response, 'data', {});
-        const assets = this.safeList (data, 'assets', []);
+        const assets: Dict[] = this.safeList (data, 'assets', []);
         for (let i = 0; i < assets.length; i++) {
             const balance = assets[i];
             const currencyId = this.safeString (balance, 'asset');

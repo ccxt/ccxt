@@ -8637,7 +8637,7 @@ export default class htx extends Exchange {
         const currencyId = this.safeString (info, 'trade_partition');
         const marketId = this.safeString (info, 'contract_code');
         const tiers: List = [];
-        const brackets = this.safeList (info, 'list', []);
+        const brackets: Dict[] = this.safeList (info, 'list', []);
         for (let i = 0; i < brackets.length; i++) {
             const item = brackets[i];
             const leverage = this.safeString (item, 'lever_rate');
@@ -9432,7 +9432,7 @@ export default class htx extends Exchange {
         //              "instStatus": "normal"
         //          }
         //
-        const chains = this.safeList (fee, 'chains', []);
+        const chains: Dict[] = this.safeList (fee, 'chains', []);
         const code = this.safeString (currency, 'code');
         let result = this.depositWithdrawFee (fee);
         for (let j = 0; j < chains.length; j++) {
@@ -9469,7 +9469,7 @@ export default class htx extends Exchange {
         return result;
     }
 
-    parseSettlements (settlements: any, market: any) {
+    parseSettlements (settlements: any[], market: any) {
         //
         // coin-m swap, fetchSettlementHistory
         //
@@ -9543,7 +9543,7 @@ export default class htx extends Exchange {
         return result;
     }
 
-    parseSettlement (settlement: any, market: any) {
+    parseSettlement (settlement: Dict, market: any) {
         //
         // coin-m swap, fetchSettlementHistory
         //

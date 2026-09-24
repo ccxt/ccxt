@@ -1372,7 +1372,7 @@ export default class coinsph extends Exchange {
     }
 
     override parseBalance (response: any): Balances {
-        const balances = this.safeList (response, 'balances', []);
+        const balances: Dict[] = this.safeList (response, 'balances', []);
         const result: Dict = {
             'info': response,
             'timestamp': undefined,

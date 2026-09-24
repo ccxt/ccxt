@@ -3751,7 +3751,7 @@ export default class kraken extends Exchange {
                 if ('result' in response) {
                     const result = this.safeDict (response, 'result', {});
                     if ('orders' in result) {
-                        const orders = this.safeList (result, 'orders', []);
+                        const orders: Dict[] = this.safeList (result, 'orders', []);
                         for (let i = 0; i < orders.length; i++) {
                             const order = orders[i];
                             const error = this.safeString (order, 'error');

@@ -2557,7 +2557,7 @@ export default class derive extends Exchange {
         };
         for (let i = 0; i < response.length; i++) {
             const subaccount = response[i];
-            const collaterals = this.safeList (subaccount, 'collaterals', []);
+            const collaterals: Dict[] = this.safeList (subaccount, 'collaterals', []);
             for (let j = 0; j < collaterals.length; j++) {
                 const balance = collaterals[j];
                 const code = this.safeCurrencyCode (this.safeString (balance, 'currency'));
