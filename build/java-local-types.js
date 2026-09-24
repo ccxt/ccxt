@@ -5488,6 +5488,28 @@ export function installJavaLocalTypes (transpiler) {
         const mapped = javaMethodReturnType (printer, node, own);
         return mapped === undefined ? own : mapped;
     };
+    // (1b) `Market` / `Currency` (structure | undefined) returns: null prints for undefined, so the
+    // structure part decides; javaReturnSitesPrintType still proves every return site
+    if (typeof printer.javaNativeReturnTypeTarget === 'function') {
+        const upstreamTarget = printer.javaNativeReturnTypeTarget.bind (printer);
+        printer.javaNativeReturnTypeTarget = function (node) {
+            const own = upstreamTarget (node);
+            if (own !== undefined || node?.type === undefined) {
+                return own;
+            }
+            let type;
+            try {
+                type = printer.getChecker ().getTypeAtLocation (node.type);
+            } catch (e) {
+                return undefined;
+            }
+            if (!type?.isUnion?.()) {
+                return undefined;
+            }
+            const defined = type.types.filter ((t) => (t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) === 0);
+            return ((defined.length === 1) && printer.isJavaMapStructureType (defined[0])) ? JAVA_STRUCTURE_TYPE : undefined;
+        };
+    }
     // (2) the return sites the signature retype cannot type on its own (see the header)
     const upstreamReturn = printer.printReturnStatement.bind (printer);
     printer.printReturnStatement = function (node, identation) {

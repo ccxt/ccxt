@@ -5905,6 +5905,8 @@ function installCcxtGoGetArgAddArithmetic (goTranspiler) {
         return;
     }
     const shipped = goTranspiler.goGetArgPointerInHelperArithmetic;
+    // parent `+` -> printed as Add(...); a re-entrant query (printing the parent) answers false
+    const addParents = new WeakMap ();
     goTranspiler.goGetArgPointerInHelperArithmetic = function (n) {
         if (shipped.call (this, n)) {
             return true;
@@ -5913,8 +5915,14 @@ function installCcxtGoGetArgAddArithmetic (goTranspiler) {
         if ((parent?.kind !== ts.SyntaxKind.BinaryExpression) || (parent.operatorToken?.kind !== ts.SyntaxKind.PlusToken)) {
             return false;
         }
+        if (addParents.has (parent)) {
+            return addParents.get (parent);
+        }
+        addParents.set (parent, false);
         const printed = (this.printNode (parent, 0) ?? '').trim ();
-        return /^(?:\(\s*)*(?:ccxt\.)?Add\(/.test (printed);
+        const isAdd = /^(?:\(\s*)*(?:ccxt\.)?Add\(/.test (printed);
+        addParents.set (parent, isAdd);
+        return isAdd;
     };
     goTranspiler.__ccxtGoGetArgAddArithmeticInstalled = true;
 }
