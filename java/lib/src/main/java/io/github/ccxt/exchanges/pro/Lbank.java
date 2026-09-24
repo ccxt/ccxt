@@ -651,7 +651,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        Object rawTrade = this.safeValue(message, "trade");
+        Map<String, Object> rawTrade = (Map<String, Object>) this.safeDict(message, "trade");
         List<Object> rawTrades = (List<Object>) this.safeList(message, "trades", new ArrayList<Object>(Arrays.asList(rawTrade)));
         for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
         {
@@ -1221,7 +1221,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         client.reject(error);
     }
 
-    public CompletableFuture<Object> handlePing(Client client, Object message)
+    public CompletableFuture<Object> handlePing(Client client, Map<String, Object> message)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1259,7 +1259,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         String type = this.safeString2(message, "type", "action");
         if (java.util.Objects.equals(type, "ping"))
         {
-            this.spawn(() -> { try { this.handlePing(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
+            this.spawn(() -> { try { this.handlePing(client, (Map<String, Object>) (message)); } catch(Exception _e) { throw new RuntimeException(_e); } });
             return;
         }
         Map<String, Object> handlers = new HashMap<String, Object>() {{

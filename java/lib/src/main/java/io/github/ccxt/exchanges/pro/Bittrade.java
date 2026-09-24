@@ -388,7 +388,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), stored);
         }
-        Object tick = this.safeValue(message, "tick");
+        Map<String, Object> tick = (Map<String, Object>) this.safeDict(message, "tick");
         List<Object> parsed = (List<Object>) this.parseOHLCV(tick, market);
         stored.append(parsed);
         client.resolve(stored, ch);
@@ -496,7 +496,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         ((Map<String, Object>)snapshot).put("datetime", this.iso8601(timestamp));
         orderbook.reset(snapshot);
         // unroll the accumulated deltas
-        Object messages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));
+        List<Object> messages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));
         for (var i = 0; i < ((List<?>)messages).size(); i++)
         {
             this.handleOrderBookMessage(client, (Map<String, Object>) ((messages == null || i < 0 || i >= ((List<?>)messages).size() ? null : ((List<?>)messages).get(i))), orderbook);

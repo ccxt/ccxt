@@ -582,11 +582,11 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            List<Object> marketIds = this.marketIds(symbols);
+            List<String> marketIds = this.marketIds(symbols);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, symbolsLength); i++)
             {
-                Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+                String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 ((List<Object>)messageHashes).add(((name + ":") + marketId));
             }
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");

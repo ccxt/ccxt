@@ -4863,7 +4863,7 @@ public class Phemex extends PhemexApi
         //
         String id = this.safeString(transaction, "id");
         String address = this.safeString(transaction, "address");
-        Object tag = null;
+        List<String> tag = null;
         String txid = this.safeString(transaction, "txHash");
         String currencyId = this.safeString(transaction, "currency");
         currency = (Map<String, Object>) (this.safeCurrency(currencyId, currency));

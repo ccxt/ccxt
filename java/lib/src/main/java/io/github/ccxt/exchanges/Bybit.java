@@ -12369,7 +12369,7 @@ public class Bybit extends BybitApi
         //  ]
         //
         Map<String, Object> tiers = new HashMap<String, Object>() {{}};
-        List<Object> marketIds = this.marketIds(symbols);
+        List<String> marketIds = this.marketIds(symbols);
         Object idKey = (((java.util.Objects.equals(marketIdKey, null)))) ? "symbol" : marketIdKey;
         List<Object> filteredResults = (List<Object>) this.filterByArray(response, idKey, marketIds, false);
         Map<String,Object> grouped = this.groupBy(filteredResults, idKey);

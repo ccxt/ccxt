@@ -1982,9 +1982,9 @@ public class Deepcoin extends DeepcoinApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Map<String, Object> parameters = parameters3;
-            Object userId = null;
-            List<Object> userIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "transfer", "userId");
-            userId = ((List<Object>) userIdparametersVariable).get(0);
+            String userId = null;
+            List<Object> userIdparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "transfer", "userId");
+            userId = (String) ((List<Object>) userIdparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) userIdparametersVariable).get(1);
             userId = (((!java.util.Objects.equals(userId, null) && !java.util.Objects.equals(userId, "")))) ? userId : this.safeString(parameters, "uid");
             if (java.util.Objects.equals(userId, null))
@@ -1999,7 +1999,7 @@ public class Deepcoin extends DeepcoinApi
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
-            final Object finalUserId = userId;
+            final String finalUserId = userId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency_id", ((Map<String, Object>)currency).get("id") );
                 put( "amount", Deepcoin.this.currencyToPrecision((String) (code), amount) );

@@ -698,7 +698,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 }
             } else
             {
-                Object marketIds = this.marketIds(symbols);
+                List<String> marketIds = this.marketIds(symbols);
                 String symbolsTopic = ((method + ":") + String.join(",", (List<String>)marketIds));
                 tickers = (this.subscribeMultiple(url, messageHashes, symbolsTopic, topics, parameters)).join();
                 if (this.newUpdates)
@@ -1599,7 +1599,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             symbols = this.marketSymbols(symbols, null, false, true);
             Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             Object isFuturesMethod = (java.util.Objects.equals(((Map<String, Object>)firstMarket).get("contract"), true));
-            Object marketIds = this.marketIds(symbols);
+            List<String> marketIds = this.marketIds(symbols);
             Object url = (this.negotiate(false, isFuturesMethod)).join();
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> subscriptionHashes = new ArrayList<Object>(Arrays.asList());
@@ -1613,8 +1613,8 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((List<Object>)messageHashes).add(("trades:" + symbol));
-                Object marketId = (marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i));
-                ((List<Object>)subscriptionHashes).add(Helpers.add(channelName, marketId));
+                String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+                ((List<Object>)subscriptionHashes).add((channelName + marketId));
             }
             Object trades = (this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, parameters)).join();
             if (this.newUpdates)
@@ -1664,7 +1664,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false, true);
-            Object marketIds = this.marketIds(symbols);
+            List<String> marketIds = this.marketIds(symbols);
             Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             Object isFuturesMethod = (java.util.Objects.equals(((Map<String, Object>)firstMarket).get("contract"), true));
             Object url = (this.negotiate(false, isFuturesMethod)).join();
@@ -2135,7 +2135,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object marketIds = this.marketIds(symbols);
+            List<String> marketIds = this.marketIds(symbols);
             Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             Object isFuturesMethod = (java.util.Objects.equals(((Map<String, Object>)firstMarket).get("contract"), true));
             Object url = (this.negotiate(false, isFuturesMethod)).join();
@@ -2170,7 +2170,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((List<Object>)messageHashes).add(("orderbook:" + symbol));
-                Object marketId = (marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i));
+                String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 ((List<Object>)subscriptionHashes).add(((method + ":") + marketId));
             }
             Map<String, Object> subscription = new HashMap<String, Object>() {{}};
@@ -2239,7 +2239,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false, true);
-            Object marketIds = this.marketIds(symbols);
+            List<String> marketIds = this.marketIds(symbols);
             Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             Object isFuturesMethod = (java.util.Objects.equals(((Map<String, Object>)firstMarket).get("contract"), true));
             Object url = (this.negotiate(false, isFuturesMethod)).join();

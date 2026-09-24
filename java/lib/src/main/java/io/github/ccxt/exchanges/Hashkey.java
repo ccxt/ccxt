@@ -1681,9 +1681,9 @@ public class Hashkey extends HashkeyApi
             {
                 ((Map<String, Object>)request).put("endTime", until);
             }
-            Object accountId = null;
-            List<Object> accountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "accountId");
-            accountId = ((List<Object>) accountIdparametersVariable).get(0);
+            String accountId = null;
+            List<Object> accountIdparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, methodName, "accountId");
+            accountId = (String) ((List<Object>) accountIdparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) accountIdparametersVariable).get(1);
             List<Object> response = null;
             if (java.util.Objects.equals(marketType, "spot"))
@@ -4214,9 +4214,9 @@ public class Hashkey extends HashkeyApi
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             List<Object> response = null;
-            Object accountId = null;
-            List<Object> accountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "accountId");
-            accountId = ((List<Object>) accountIdparametersVariable).get(0);
+            String accountId = null;
+            List<Object> accountIdparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, methodName, "accountId");
+            accountId = (String) ((List<Object>) accountIdparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) accountIdparametersVariable).get(1);
             if (!java.util.Objects.equals(accountId, null))
             {
@@ -4314,9 +4314,9 @@ public class Hashkey extends HashkeyApi
                 ((Map<String, Object>)request).put("limit", limit);
             }
             List<Object> response = null;
-            Object accountId = null;
-            List<Object> accountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "accountId");
-            accountId = ((List<Object>) accountIdparametersVariable).get(0);
+            String accountId = null;
+            List<Object> accountIdparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, methodName, "accountId");
+            accountId = (String) ((List<Object>) accountIdparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) accountIdparametersVariable).get(1);
             if (!java.util.Objects.equals(accountId, null))
             {
@@ -4407,9 +4407,9 @@ public class Hashkey extends HashkeyApi
             {
                 ((Map<String, Object>)request).put("endTime", until);
             }
-            Object accountId = null;
-            List<Object> accountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "accountId");
-            accountId = ((List<Object>) accountIdparametersVariable).get(0);
+            String accountId = null;
+            List<Object> accountIdparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, methodName, "accountId");
+            accountId = (String) ((List<Object>) accountIdparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) accountIdparametersVariable).get(1);
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))

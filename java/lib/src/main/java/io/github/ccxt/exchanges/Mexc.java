@@ -2207,7 +2207,7 @@ public class Mexc extends MexcApi
         String orderId = null;
         Object symbol = null;
         Map<String, Object> fee = null;
-        Object type = null;
+        List<String> type = null;
         String side = null;
         String takerOrMaker = null;
         String priceString = null;
@@ -2511,7 +2511,7 @@ public class Mexc extends MexcApi
                 //         }
                 //     }
                 //
-                Object data = this.safeValue(response, "data");
+                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
                 candles = this.convertTradingViewToOHLCV(data, "time", "open", "high", "low", "close", "vol");
             }
             return this.parseOHLCVs(candles, market, timeframe, since, limit);
@@ -5205,7 +5205,7 @@ public class Mexc extends MexcApi
                     List<Object> symbols = (List<Object>) this.safeList(parameters, "symbols");
                     if (!java.util.Objects.equals(symbols, null))
                     {
-                        Object symbolIds = this.marketIds(symbols);
+                        List<String> symbolIds = this.marketIds(symbols);
                         if (!java.util.Objects.equals(symbolIds, null))
                         {
                             parsedSymbols = String.join(",", (List<String>)symbolIds);

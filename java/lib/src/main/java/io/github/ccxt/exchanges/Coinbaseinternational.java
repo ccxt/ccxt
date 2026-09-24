@@ -776,7 +776,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             Object maxEntriesPerRequest = 100;
-            List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "maxEntriesPerRequest", maxEntriesPerRequest);
+            List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchFundingRateHistory", "maxEntriesPerRequest", maxEntriesPerRequest);
             maxEntriesPerRequest = ((List<Object>) maxEntriesPerRequestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestparametersVariable).get(1);
             String pageKey = "ccxtPageKey";
@@ -1436,7 +1436,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             Object maxEntriesPerRequest = 100;
-            List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "maxEntriesPerRequest", maxEntriesPerRequest);
+            List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchDepositsWithdrawals", "maxEntriesPerRequest", maxEntriesPerRequest);
             maxEntriesPerRequest = ((List<Object>) maxEntriesPerRequestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestparametersVariable).get(1);
             String pageKey = "ccxtPageKey";
@@ -1466,9 +1466,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 ((Map<String, Object>)request).put("portfolios", portfolios);
             }
-            Object until = null;
-            List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "until");
-            until = ((List<Object>) untilparametersVariable).get(0);
+            Long until = null;
+            List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchDepositsWithdrawals", "until");
+            until = (Long) ((List<Object>) untilparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
@@ -3104,7 +3104,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             Object maxEntriesPerRequest = 100;
-            List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "maxEntriesPerRequest", maxEntriesPerRequest);
+            List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOpenOrders", "maxEntriesPerRequest", maxEntriesPerRequest);
             maxEntriesPerRequest = ((List<Object>) maxEntriesPerRequestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestparametersVariable).get(1);
             String pageKey = "ccxtPageKey";
@@ -3230,7 +3230,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             String pageKey = "ccxtPageKey";
             Object maxEntriesPerRequest = 100;
-            List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "maxEntriesPerRequest", maxEntriesPerRequest);
+            List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchMyTrades", "maxEntriesPerRequest", maxEntriesPerRequest);
             maxEntriesPerRequest = ((List<Object>) maxEntriesPerRequestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))

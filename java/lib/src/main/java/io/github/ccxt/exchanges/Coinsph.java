@@ -1734,7 +1734,7 @@ public class Coinsph extends CoinsphApi
         Long timestamp = this.safeInteger(trade, "time");
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "qty");
-        Object type = null;
+        List<String> type = null;
         Map<String, Object> fee = new HashMap<String, Object>() {{}};
         String feeCost = this.safeString(trade, "commission");
         if (!java.util.Objects.equals(feeCost, null))
@@ -2937,7 +2937,7 @@ public class Coinsph extends CoinsphApi
         String code = this.safeCurrencyCode(currencyId, currency);
         Long timestamp = null;
         timestamp = this.safeInteger2(transaction, "insertTime", "applyTime");
-        Object updated = null;
+        List<String> updated = null;
         String type = null;
         String withdrawOrderId = this.safeString(transaction, "withdrawOrderId");
         String depositOrderId = this.safeString(transaction, "depositOrderId");

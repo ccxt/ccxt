@@ -139,11 +139,11 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             symbols = this.marketSymbols(symbols);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList(methodName));
-            List<Object> args = new ArrayList<Object>(Arrays.asList());
+            List<String> args = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
-                ((List<Object>)args).add(((String)((Map<String, Object>)market).get("id")));
+                args.add(((String)((Map<String, Object>)market).get("id")));
             }
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -455,12 +455,12 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             symbols = this.marketSymbols(symbols, null, false);
             String name = "trades";
-            List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
+            List<String> marketIds = new ArrayList<String>(Arrays.asList());
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
-                ((List<Object>)marketIds).add(((String)((Map<String, Object>)market).get("id")));
+                marketIds.add(((String)((Map<String, Object>)market).get("id")));
                 ((List<Object>)messageHashes).add(((name + "@") + ((Map<String, Object>)market).get("id")));
             }
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
@@ -556,12 +556,12 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             symbols = this.marketSymbols(symbols, null, false);
             String name = "trades";
-            List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
+            List<String> marketIds = new ArrayList<String>(Arrays.asList());
             List<Object> subMessageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
-                ((List<Object>)marketIds).add(((String)((Map<String, Object>)market).get("id")));
+                marketIds.add(((String)((Map<String, Object>)market).get("id")));
                 ((List<Object>)subMessageHashes).add(((name + "@") + ((Map<String, Object>)market).get("id")));
             }
             final String finalName = name;
@@ -1001,12 +1001,12 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             symbols = this.marketSymbols(symbols, null, false);
             String name = "book";
-            List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
+            List<String> marketIds = new ArrayList<String>(Arrays.asList());
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
-                ((List<Object>)marketIds).add(((String)((Map<String, Object>)market).get("id")));
+                marketIds.add(((String)((Map<String, Object>)market).get("id")));
                 ((List<Object>)messageHashes).add(((name + "@") + ((Map<String, Object>)market).get("id")));
             }
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
@@ -1104,12 +1104,12 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             symbols = this.marketSymbols(symbols, null, false);
             String name = "book";
-            List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
+            List<String> marketIds = new ArrayList<String>(Arrays.asList());
             List<Object> subMessageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
-                ((List<Object>)marketIds).add(((String)((Map<String, Object>)market).get("id")));
+                marketIds.add(((String)((Map<String, Object>)market).get("id")));
                 ((List<Object>)subMessageHashes).add(((name + "@") + ((Map<String, Object>)market).get("id")));
             }
             final String finalName = name;
@@ -1302,7 +1302,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         ((Map<String, Object>)snapshot).put("nonce", this.safeInteger(response, "nonce"));
         orderbook.reset(snapshot);
         // unroll the accumulated deltas
-        Object messages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));
+        List<Object> messages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));
         for (var i = 0; i < Helpers.getArrayLength(messages); i++)
         {
             Object messageItem = Helpers.GetValue(messages, i);

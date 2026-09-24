@@ -1150,7 +1150,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         }
         String rawStatus = this.safeString(order, "status");
         String status = this.parseOrderStatus((String) (rawStatus));
-        Object trades = null;
+        List<String> trades = null;
         String clientOrderId = this.safeString(order, "clientOrderId");
         Double triggerPrice = this.safeNumber(order, "triggerPrice");
         final Double finalPrice = price;
@@ -1697,7 +1697,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         //
-        if (!(Helpers.inOp(message, "success")))
+        if (!(((Map<?, ?>)message).containsKey("success")))
         {
             return false;
         }

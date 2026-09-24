@@ -1931,9 +1931,9 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 }
                 return authenticated;
             }
-            Object recvWindow = null;
-            List<Object> recvWindowparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "authenticate", "recvWindow", 5000);
-            recvWindow = ((List<Object>) recvWindowparametersVariable).get(0);
+            Long recvWindow = null;
+            List<Object> recvWindowparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "authenticate", "recvWindow", 5000);
+            recvWindow = (Long) ((List<Object>) recvWindowparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) recvWindowparametersVariable).get(1);
             String subaccount = null;
             List<Object> subaccountparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "authenticate", "subaccount", "default");

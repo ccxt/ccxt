@@ -2470,10 +2470,10 @@ public class Hollaex extends HollaexApi
         Double amount = this.safeNumber(transaction, "amount");
         String address = this.safeString(transaction, "address");
         String addressTo = null;
-        Object addressFrom = null;
+        List<String> addressFrom = null;
         String tag = null;
         String tagTo = null;
-        Object tagFrom = null;
+        List<String> tagFrom = null;
         if (!java.util.Objects.equals(address, null))
         {
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)address).split(java.util.regex.Pattern.quote(":"))));

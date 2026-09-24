@@ -6817,11 +6817,11 @@ final Object finalMinNotional = minNotional;
                     }
                 } else if ((java.util.Objects.equals(marketType, "swap")) || (java.util.Objects.equals(marketType, "future")))
                 {
-                    String productType = null;
-                    List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(null, parameters);
-                    productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
-                    parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
-                    ((Map<String, Object>)request).put("category", productType);
+                    String utaProductType = null;
+                    List<Object> utaProductTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(null, parameters);
+                    utaProductType = (String) ((List<Object>) utaProductTypeparametersVariable).get(0);
+                    parameters = (Map<String, Object>) ((List<Object>) utaProductTypeparametersVariable).get(1);
+                    ((Map<String, Object>)request).put("category", utaProductType);
                 } else
                 {
                     throw new NotSupported((((this.id + " does not support ") + marketType) + " market")) ;
@@ -11463,11 +11463,11 @@ final Object finalMinNotional = minNotional;
                         }
                     } else
                     {
-                        String productType = null;
-                        List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-                        productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
-                        parameters = ((List<Object>) productTypeparametersVariable).get(1);
-                        ((Map<String, Object>)request).put("category", productType);
+                        String utaProductType = null;
+                        List<Object> utaProductTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
+                        utaProductType = (String) ((List<Object>) utaProductTypeparametersVariable).get(0);
+                        parameters = ((List<Object>) utaProductTypeparametersVariable).get(1);
+                        ((Map<String, Object>)request).put("category", utaProductType);
                     }
                     if (!java.util.Objects.equals(symbol, null))
                     {

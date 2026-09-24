@@ -606,7 +606,7 @@ public class Mercado extends MercadoApi
         Long timestamp = this.safeTimestamp2(trade, "date", "executed_timestamp");
         market = (Map<String, Object>) (this.safeMarket(null, market));
         String id = this.safeString2(trade, "tid", "operation_id");
-        Object type = null;
+        List<String> type = null;
         String side = this.safeString(trade, "type");
         String price = this.safeString(trade, "price");
         String amount = this.safeString2(trade, "amount", "quantity");
