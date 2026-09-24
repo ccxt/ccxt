@@ -1407,7 +1407,7 @@ public partial class phemex : Exchange
         double? minAmount = null;
         double? maxAmount = null;
         double? precision = null;
-        if ((valueScale != null))
+        if ((valueScaleString != null))
         {
             string? precisionString = this.parsePrecision(valueScaleString);
             precision = this.parseNumber(precisionString);

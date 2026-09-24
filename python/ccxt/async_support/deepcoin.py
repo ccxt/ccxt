@@ -1171,7 +1171,8 @@ class deepcoin(Exchange, ImplicitAPI):
         network = self.safe_string(params, 'network')
         defaultNetworks = self.safe_dict(self.options, 'defaultNetworks', {})
         defaultNetwork = self.safe_string(defaultNetworks, code)
-        network = network if (network is not None and network != '') else defaultNetwork
+        if (network is None) or (network == ''):
+            network = defaultNetwork
         if network is not None:
             params = self.omit(params, 'network')
         addressess = await self.fetch_deposit_addresses([code], params)

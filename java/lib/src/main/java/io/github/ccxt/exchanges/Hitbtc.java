@@ -5368,13 +5368,13 @@ public class Hitbtc extends HitbtcApi
         Object url = (Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/") + implodedPath);
         String getRequest = null;
         List<Object> keys = Helpers.objectKeys(query);
-        Object queryLength = ((List<?>)keys).size();
+        Integer queryLength = ((List<?>)keys).size();
         headers = new HashMap<String, Object>() {{
             put( "Content-Type", "application/json" );
         }};
         if (java.util.Objects.equals(method, "GET"))
         {
-            if ((!java.util.Objects.equals(queryLength, null)) && (!java.util.Objects.equals(queryLength, 0)))
+            if (!java.util.Objects.equals(queryLength, 0))
             {
                 getRequest = ("?" + this.urlencode(query));
                 url = (url + getRequest);

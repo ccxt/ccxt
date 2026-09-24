@@ -4302,7 +4302,7 @@ func (this *Xt) fetchOrdersByStatusBody(ch chan any, status any, optionalArgs ..
 	//
 	var orders any = []any{}
 	var resultDict map[string]any = SafeMapTyped(response, "result")
-	if !IsEqual(resultDict, nil) {
+	if resultDict != nil {
 		orders = this.SafeList(resultDict, "items", []any{})
 	} else {
 		orders = this.SafeList(response, "result", []any{})
@@ -6548,7 +6548,7 @@ func (this *Xt) MergePositionBreakInfo(entry any, breakBySymbolSide any) any {
 	var marketId *string = this.SafeString(entry, "symbol")
 	var key any = Add(Add(marketId, "_"), this.SafeString(entry, "positionSide"))
 	var breakEntry map[string]any = SafeMapTyped(breakBySymbolSide, key)
-	if IsEqual(breakEntry, nil) {
+	if breakEntry == nil {
 		return entry
 	}
 	return this.Extend(entry, map[string]any{

@@ -592,7 +592,13 @@ public class Nado extends NadoApi
                 {
                     oracleSide = ((Boolean.TRUE.equals(isStopLossOrder))) ? "below" : "above";
                 }
-                triggerPrice = ((Boolean.TRUE.equals(isStopLossOrder))) ? stopLossTriggerPrice : takeProfitTriggerPrice;
+                if (Boolean.TRUE.equals(isStopLossOrder))
+                {
+                    triggerPrice = stopLossTriggerPrice;
+                } else
+                {
+                    triggerPrice = takeProfitTriggerPrice;
+                }
                 String triggerPriceX18 = this.convertToX18(triggerPrice);
                 Map<String, Object> priceRequirement = new HashMap<String, Object>() {{}};
                 ((Map<String, Object>)priceRequirement).put((String)("oracle_price_" + oracleSide), triggerPriceX18);

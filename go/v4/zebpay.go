@@ -2532,7 +2532,7 @@ func (this *Zebpay) Sign(path any, optionalArgs ...any) any {
 	var access *string = this.SafeString(api, 0, "public")
 	if access != nil && *access == "public" {
 		if (method == "GET") || (method == "DELETE") {
-			if (!IsEqual(queryLength, nil)) && (queryLength != 0) {
+			if queryLength != 0 {
 				url = Add(url, "?"+this.Urlencode(query))
 			}
 		} else {

@@ -513,7 +513,9 @@ export default class whitebit extends Exchange {
         const id = this.safeString (market, 'name');
         const baseId = this.safeString (market, 'stock');
         let quoteId = this.safeString (market, 'money');
-        quoteId = (quoteId === 'PERP') ? 'USDT' : quoteId;
+        if (quoteId === 'PERP') {
+            quoteId = 'USDT';
+        }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const active = this.safeBool (market, 'tradesEnabled');

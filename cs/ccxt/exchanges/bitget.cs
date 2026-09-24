@@ -13909,7 +13909,10 @@ public partial class bitget : Exchange
     public override object parseMarginMode(object marginMode, IDictionary<string, object> market = null)
     {
         string? marginType = this.safeString(marginMode, "marginMode");
-        marginType = (marginType == "crossed") ? "cross" : marginType;
+        if (marginType == "crossed")
+        {
+            marginType = "cross";
+        }
         return new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", this.safeString(market, "symbol") },

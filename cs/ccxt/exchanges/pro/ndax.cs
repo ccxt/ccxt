@@ -338,7 +338,7 @@ public partial class ndax : ccxt.ndax
                         low = mathMin(((List<object>)parsed)[2], getValue(previous, 2));
                     }
                     ((List<object>)stored)[Convert.ToInt32((length - 1))] = new List<object>() {((List<object>)parsed)[0], getValue(previous, 1), high, low, ((List<object>)parsed)[4], this.sum(((List<object>)parsed)[5], getValue(previous, 5))};
-                    if (((marketId != null)) && ((timeframe != null)))
+                    if ((marketId != null))
                     {
                         ((IDictionary<string,object>)getValue(updates, marketId))[timeframe] = true;
                     }
@@ -355,7 +355,7 @@ public partial class ndax : ccxt.ndax
                         {
                             ((IList<object>)stored).First();
                         }
-                        if (((marketId != null)) && ((timeframe != null)))
+                        if ((marketId != null))
                         {
                             ((IDictionary<string,object>)getValue(updates, marketId))[timeframe] = true;
                         }

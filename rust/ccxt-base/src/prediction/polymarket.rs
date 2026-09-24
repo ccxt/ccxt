@@ -5019,11 +5019,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (raw == Value::Null) {
             return Value::Null;
         }
-        let mut n: Value = self.parse_to_int(raw);
-        if (n == Value::Null) {
-            return Value::Null;
-        }
-        return n;
+        return self.parse_to_int(raw);
 
     Value::Null
 }

@@ -1647,7 +1647,7 @@ func (this *Toobit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			market = this.Market(symbol)
 		}
 		var length int = GetArrayLength(symbols)
-		if (length == 1) && (!IsEqual(market, nil)) {
+		if (length == 1) && ((market != nil)) {
 			request["symbol"] = GetValue(market, "id")
 		}
 	}
@@ -2277,8 +2277,8 @@ func (this *Toobit) CreateContractOrderRequest(symbol any, typeVar any, side any
 	}
 	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
 	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
-	var hasStopLoss bool = (!IsEqual(stopLoss, nil))
-	var hasTakeProfit bool = (!IsEqual(takeProfit, nil))
+	var hasStopLoss bool = ((stopLoss != nil))
+	var hasTakeProfit bool = ((takeProfit != nil))
 	var triggerPriceTypes map[string]any = map[string]any{
 		"mark": "MARK_PRICE",
 		"last": "CONTRACT_PRICE",

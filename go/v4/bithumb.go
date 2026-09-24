@@ -786,7 +786,7 @@ func (this *Bithumb) ParseBalance(response any) any {
 		"info": response,
 	}
 	var balances map[string]any = SafeMapTyped(response, "data")
-	if !IsEqual(balances, nil) {
+	if balances != nil {
 		var codes []string = ObjectKeys(this.Currencies)
 		for i := 0; i < len(codes); i++ {
 			var code string = GetValue(codes, i).(string)
@@ -3982,7 +3982,7 @@ func (this *Bithumb) HandleErrors(httpCode any, reason any, url any, method any,
 	//     {"error":{"name":400,"message":"Missing request parameter error. Check the required parameters!"}}
 	//
 	var error map[string]any = SafeMapTyped(response, "error")
-	if !IsEqual(error, nil) {
+	if error != nil {
 		var errorName *string = this.SafeString(error, "name")
 		var message *string = this.SafeString(error, "message")
 		var feedback any = Add(this.Id+" ", message)

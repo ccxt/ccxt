@@ -3783,7 +3783,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         ((Map<String, Object>)account).put("free", this.safeString(data, "a"));
         ((Map<String, Object>)account).put("used", this.safeString(data, "h"));
         ((Map<String, Object>)account).put("total", this.safeString(data, "b"));
-        if ((!java.util.Objects.equals(type, null)) && (!java.util.Objects.equals(code, null)))
+        if (!java.util.Objects.equals(code, null))
         {
             Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), code, account);
         }

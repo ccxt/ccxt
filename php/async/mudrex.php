@@ -493,7 +493,7 @@ class mudrex extends Exchange {
                 $items = $this->safe_list($data, 'items', array());
                 // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                 $itemsLength = count($items);
-                if (($itemsLength === null) || ($itemsLength === 0)) {
+                if ($itemsLength === 0) {
                     $items = $this->safe_list($data, 'results', array());
                     $itemsLength = count($items);
                 }
@@ -504,7 +504,7 @@ class mudrex extends Exchange {
                 $items = $this->to_array($data);
             }
             $numItems = count($items);
-            if (($numItems === null) || ($numItems === 0)) {
+            if ($numItems === 0) {
                 $paging = false;
                 break;
             }

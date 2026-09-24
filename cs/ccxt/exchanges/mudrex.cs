@@ -578,7 +578,7 @@ public partial class mudrex : Exchange
                 items = this.safeList(data, "items", new List<object>() {});
                 // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                 int itemsLength = (items?.Count ?? 0);
-                if ((isEqual(itemsLength, null)) || ((itemsLength == 0)))
+                if ((itemsLength == 0))
                 {
                     items = this.safeList(data, "results", new List<object>() {});
                     itemsLength = (items?.Count ?? 0);
@@ -592,7 +592,7 @@ public partial class mudrex : Exchange
                 items = this.toArray(data);
             }
             int numItems = (items?.Count ?? 0);
-            if ((isEqual(numItems, null)) || ((numItems == 0)))
+            if ((numItems == 0))
             {
                 paging = false;
                 break;

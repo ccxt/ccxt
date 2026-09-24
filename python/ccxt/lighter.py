@@ -1123,7 +1123,8 @@ class lighter(Exchange, ImplicitAPI):
             market = markets[i]
             id = self.safe_string(market, 'market_id')
             type = self.safe_string(market, 'market_type')
-            type = 'swap' if (type == 'perp') else type
+            if type == 'perp':
+                type = 'swap'
             baseId = self.safe_string(market, 'symbol')
             if baseId is not None and baseId.find('/') != -1:
                 baseId = baseId.split('/')[0]

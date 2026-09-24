@@ -507,7 +507,9 @@ class whitebit extends Exchange {
         $id = $this->safe_string($market, 'name');
         $baseId = $this->safe_string($market, 'stock');
         $quoteId = $this->safe_string($market, 'money');
-        $quoteId = ($quoteId === 'PERP') ? 'USDT' : $quoteId;
+        if ($quoteId === 'PERP') {
+            $quoteId = 'USDT';
+        }
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $active = $this->safe_bool($market, 'tradesEnabled');

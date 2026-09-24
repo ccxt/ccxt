@@ -3524,10 +3524,6 @@ class polymarket extends Exchange {
         if ($raw === null) {
             return null;
         }
-        $n = $this->parse_to_int($raw);
-        if ($n === null) {
-            return null;
-        }
-        return $n;
+        return $this->parse_to_int($raw);
     }
 }

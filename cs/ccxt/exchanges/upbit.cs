@@ -2715,7 +2715,7 @@ public partial class upbit : Exchange
                 body = this.json(parameters);
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }
-            if ((!isEqual(hasQuery, null)) && ((hasQuery != 0)))
+            if ((hasQuery != 0))
             {
                 auth = this.rawencode(query);
             }

@@ -2858,7 +2858,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn hex_to_decimal_string(&self, mut hexValue: Value) -> Option<String> {
         // portable hex -> decimal string (avoids convertToBigInt, which is not uniform across languages)
         let mut stripped: Value = self.remove0x_prefix(hexValue);
-        if (stripped == Value::Null) || (stripped.as_str() == Some("")) {
+        if (stripped.as_str() == Some("")) {
             return None;
         }
         let mut chars: Value = self.string_to_chars_array(to_lower(&stripped));

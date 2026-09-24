@@ -1760,7 +1760,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 raise InvalidOrder(self.id + ' createOrder() market orders must have tif set to "IOC"')
             tif = 'IOC'
         else:
-            tif = 'GTC' if (tif is None) else tif
+            if tif is None:
+                tif = 'GTC'
         if postOnly is not None:
             request['post_only'] = postOnly
         request['tif'] = tif

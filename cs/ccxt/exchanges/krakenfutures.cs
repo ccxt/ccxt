@@ -3233,15 +3233,27 @@ public partial class krakenfutures : Exchange
         }
         if ((type == null))
         {
-            type = ((symbol == null)) ? "flex" : symbol;
+            if ((symbol == null))
+            {
+                type = "flex";
+            } else
+            {
+                type = symbol;
+            }
         }
         object accountName = this.parseAccount(type);
         IDictionary<string, object> accounts = this.safeDict(response, "accounts");
         IDictionary<string, object> account = this.safeDict(accounts, accountName);
         if ((account == null))
         {
-            type = ((type == null)) ? "" : type;
-            symbol = ((symbol == null)) ? "" : symbol;
+            if ((type == null))
+            {
+                type = "";
+            }
+            if ((symbol == null))
+            {
+                symbol = "";
+            }
             throw new BadRequest (((this.id + " fetchBalance has no account for ") + type)) ;
         }
         Dictionary<string, object> balance = this.parseBalance(account);

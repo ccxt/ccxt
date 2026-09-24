@@ -1920,7 +1920,7 @@ class bingx extends \ccxt\async\bingx {
             $account['info'] = $balance;
             $account['used'] = $this->safe_string($balance, 'lk');
             $account['free'] = $this->safe_string($balance, 'wb');
-            if (($type !== null) && ($code !== null)) {
+            if ($code !== null) {
                 $this->balance[$type][$code] = $account;
             }
         }

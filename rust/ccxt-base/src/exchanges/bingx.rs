@@ -8130,7 +8130,9 @@ impl BingxCore {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut marketId: Value = self.safe_string_k(marginMode.clone(), "symbol", &[]);
         let mut marginType: Value = self.safe_string_lower_k(marginMode.clone(), "marginType", &[]);
-        marginType = (if (marginType.as_str() == Some("crossed")) { Value::Str("cross".into()) } else { marginType.clone() });
+        if (marginType.as_str() == Some("crossed")) {
+            marginType = Value::Str("cross".into());
+        }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), marginMode);

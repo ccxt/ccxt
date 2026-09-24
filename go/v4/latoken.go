@@ -563,7 +563,7 @@ func (this *Latoken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quoteCurrency map[string]any = SafeMapTyped(currenciesById, quoteId)
 		var baseCurrencyInfo map[string]any = SafeMapTyped(baseCurrency, "info")
 		var quoteCurrencyInfo map[string]any = SafeMapTyped(quoteCurrency, "info")
-		if !IsEqual(baseCurrencyInfo, nil) && !IsEqual(quoteCurrencyInfo, nil) {
+		if (baseCurrencyInfo != nil) && (quoteCurrencyInfo != nil) {
 			var base *string = this.SafeCurrencyCode(this.SafeString(baseCurrencyInfo, "tag"))
 			var quote *string = this.SafeCurrencyCode(this.SafeString(quoteCurrencyInfo, "tag"))
 			if (base == nil) || (quote == nil) {

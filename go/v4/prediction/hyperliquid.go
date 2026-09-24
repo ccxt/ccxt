@@ -326,7 +326,7 @@ func (this *Hyperliquid) BuildOutcomeParentSymbol(desc any, outcomeId any, optio
 				}
 				var thresholdsLength int = len(thresholds)
 				var index int64 = this.ParseToInt(indexStr)
-				if (thresholdsLength > 0) && !ccxt.IsEqual(index, nil) {
+				if thresholdsLength > 0 {
 					var bucketLabel any = nil
 					if index <= 0 {
 						bucketLabel = ccxt.Add("BELOW_", func() any {
@@ -857,32 +857,32 @@ func (this *Hyperliquid) ParsePredictionTicker(raw any, optionalArgs ...any) any
 	var topBid map[string]any = ccxt.SafeMapTyped(rawBids, 0)
 	var topAsk map[string]any = ccxt.SafeMapTyped(rawAsks, 0)
 	var bid *float64 = func() *float64 {
-		if !ccxt.IsEqual(topBid, nil) {
+		if topBid != nil {
 			return this.SafeNumber(topBid, "px")
 		}
 		return nil
 	}()
 	var ask *float64 = func() *float64 {
-		if !ccxt.IsEqual(topAsk, nil) {
+		if topAsk != nil {
 			return this.SafeNumber(topAsk, "px")
 		}
 		return nil
 	}()
 	var bidVolume *float64 = func() *float64 {
-		if !ccxt.IsEqual(topBid, nil) {
+		if topBid != nil {
 			return this.SafeNumber(topBid, "sz")
 		}
 		return nil
 	}()
 	var askVolume *float64 = func() *float64 {
-		if !ccxt.IsEqual(topAsk, nil) {
+		if topAsk != nil {
 			return this.SafeNumber(topAsk, "sz")
 		}
 		return nil
 	}()
 	// Use synthetic mid if no l2Book
 	var mid any = ccxt.DerefScalar(this.SafeNumber(raw, "mid"))
-	if ccxt.IsEqual(mid, nil) && !ccxt.IsEqual(bid, nil) && !ccxt.IsEqual(ask, nil) {
+	if ccxt.IsEqual(mid, nil) && (bid != nil) && (ask != nil) {
 		mid = ccxt.Divide(this.Sum(bid, ask), 2)
 	}
 	// day volume lives on the parent market's ctx; resolve it from the outcome's parent market
@@ -892,7 +892,7 @@ func (this *Hyperliquid) ParsePredictionTicker(raw any, optionalArgs ...any) any
 		parentMarket = ccxt.MapTyped(this.SafeMarket(parentSymbol))
 	}
 	var ctx any = func() any {
-		if !ccxt.IsEqual(parentMarket, nil) {
+		if parentMarket != nil {
 			return this.SafeDict(this.SafeDict(parentMarket, "info", map[string]any{}), "ctx", map[string]any{})
 		}
 		return map[string]any{}
@@ -1420,10 +1420,8 @@ func (this *Hyperliquid) ResolveOutcomeInput(outcomeInput any) any {
 	if isNumericInput {
 		candidates = append(candidates, ccxt.Add("#", outcomeInput)) // encoding id without #
 		var numeric int64 = this.ParseToInt(outcomeInput)
-		if !ccxt.IsEqual(numeric, nil) {
-			candidates = append(candidates, this.OutcomeCoin(this.OutcomeEncoding(numeric, 0))) // raw outcome id -> YES encoding
-			candidates = append(candidates, this.OutcomeCoin(this.OutcomeEncoding(numeric, 1))) // raw outcome id -> NO encoding
-		}
+		candidates = append(candidates, this.OutcomeCoin(this.OutcomeEncoding(numeric, 0))) // raw outcome id -> YES encoding
+		candidates = append(candidates, this.OutcomeCoin(this.OutcomeEncoding(numeric, 1))) // raw outcome id -> NO encoding
 	}
 	for i := 0; i < len(candidates); i++ {
 		var key *string = ccxt.SafeStringPtr(func() any {
@@ -2398,7 +2396,7 @@ func (this *Hyperliquid) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	var marketValues []any = this.ToArray(marketsDict)
 	// Group markets by parentSymbol
 	var groupMap map[string]any = map[string]any{}
-	if ccxt.IsEqual(queries, nil) {
+	if queries == nil {
 		panic(ccxt.ExchangeError(this.Id + " fetchEvents() missing queries"))
 	}
 	var lowerQueries []any = []any{}

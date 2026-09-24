@@ -2626,7 +2626,7 @@ func (this *Foxbit) HandleErrors(httpCode any, reason any, url any, method any, 
 	var details []any = SafeListTyped(error, "details")
 	var message *string = this.SafeString(error, "message")
 	var detailsString any = ""
-	if !IsEqual(details, nil) {
+	if details != nil {
 		for i := 0; i < len(details); i++ {
 			detailsString = Add(Add(detailsString, func() any {
 				if i >= 0 && i < len(details) {
@@ -2636,7 +2636,7 @@ func (this *Foxbit) HandleErrors(httpCode any, reason any, url any, method any, 
 			}()), " ")
 		}
 	}
-	if !IsEqual(error, nil) {
+	if error != nil {
 		var feedback any = Add(Add(Add(this.Id+" ", message), " details: "), detailsString)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], detailsString, feedback)

@@ -2568,7 +2568,7 @@ class upbit extends Exchange {
                 $body = $this->json($params);
                 $headers['Content-Type'] = 'application/json';
             }
-            if (($hasQuery !== null) && ($hasQuery !== 0)) {
+            if ($hasQuery !== 0) {
                 $auth = $this->rawencode($query);
             }
             if ($auth !== null) {

@@ -6419,10 +6419,6 @@ public partial class binance : ccxt.binance
             ((IDictionary<string,object>)this.balance)[accountType] = new Dictionary<string, object>() {};
         }
         ((IDictionary<string,object>)getValue(this.balance, accountType))["info"] = message;
-        if ((accountType == null))
-        {
-            return;
-        }
         List<object> B = this.safeList(message, "B", new List<object>() {});
         for (int i = 0; i < B.Count; i++)
         {

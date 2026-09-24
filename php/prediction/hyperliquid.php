@@ -308,7 +308,7 @@ class hyperliquid extends Exchange {
                     }
                     $thresholdsLength = count($thresholds);
                     $index = $this->parse_to_int($indexStr);
-                    if ($thresholdsLength > 0 && $index !== null) {
+                    if ($thresholdsLength > 0) {
                         if ($index <= 0) {
                             $bucketLabel = 'BELOW_' . $thresholds[0];
                         } elseif ($index >= $thresholdsLength) {
@@ -1202,10 +1202,8 @@ class hyperliquid extends Exchange {
         if ($isNumericInput) {
             $candidates[] = '#' . $outcomeInput; // encoding id without #
             $numeric = $this->parse_to_int($outcomeInput);
-            if ($numeric !== null) {
-                $candidates[] = $this->outcome_coin($this->outcome_encoding($numeric, 0)); // raw outcome id -> YES encoding
-                $candidates[] = $this->outcome_coin($this->outcome_encoding($numeric, 1)); // raw outcome id -> NO encoding
-            }
+            $candidates[] = $this->outcome_coin($this->outcome_encoding($numeric, 0)); // raw outcome id -> YES encoding
+            $candidates[] = $this->outcome_coin($this->outcome_encoding($numeric, 1)); // raw outcome id -> NO encoding
         }
         for ($i = 0; $i < count($candidates); $i++) {
             $key = $candidates[$i];

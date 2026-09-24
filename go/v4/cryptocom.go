@@ -3277,7 +3277,7 @@ func (this *Cryptocom) ParseOrder(order any, optionalArgs ...any) any {
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var execInst []any = SafeListTyped(order, "exec_inst")
 	var postOnly any = nil
-	if !IsEqual(execInst, nil) {
+	if execInst != nil {
 		postOnly = false
 		for i := 0; i < len(execInst); i++ {
 			var inst any = func() any {
@@ -3495,7 +3495,7 @@ func (this *Cryptocom) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any
 		},
 		"networks": map[string]any{},
 	}
-	if !IsEqual(networkList, nil) {
+	if networkList != nil {
 		for i := 0; i < networkListLength; i++ {
 			var networkInfo map[string]any = SafeMapTyped(networkList, i)
 			var networkId *string = this.SafeString(networkInfo, "network_id")

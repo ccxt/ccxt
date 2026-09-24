@@ -5325,7 +5325,10 @@ public partial class binance : Exchange
         {
             contract = true;
             option = true;
-            settleId = ((settleId == null)) ? "USDT" : settleId;
+            if ((settleId == null))
+            {
+                settleId = "USDT";
+            }
         } else if ((expiry != null))
         {
             future = true;
@@ -13800,10 +13803,7 @@ public partial class binance : Exchange
                     string? inner = Precise.stringMul(liquidationPriceString, onePlusMaintenanceMarginPercentageString);
                     string? leftSide = Precise.stringAdd(inner, entryPriceSignString);
                     int quotePrecision = this.precisionFromString(this.safeString2(precision, "quote", "price"));
-                    if (!isEqual(quotePrecision, null))
-                    {
-                        collateralString = Precise.stringDiv(Precise.stringMul(leftSide, contractsAbs), "1", quotePrecision);
-                    }
+                    collateralString = Precise.stringDiv(Precise.stringMul(leftSide, contractsAbs), "1", quotePrecision);
                 } else
                 {
                     // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
@@ -13820,10 +13820,7 @@ public partial class binance : Exchange
                     string? leftSide = Precise.stringMul(contractsAbs, contractSizeString);
                     string? rightSide = Precise.stringSub(Precise.stringDiv("1", entryPriceSignString), Precise.stringDiv(onePlusMaintenanceMarginPercentageString, liquidationPriceString));
                     int basePrecision = this.precisionFromString(this.safeString(precision, "base"));
-                    if (!isEqual(basePrecision, null))
-                    {
-                        collateralString = Precise.stringDiv(Precise.stringMul(leftSide, rightSide), "1", basePrecision);
-                    }
+                    collateralString = Precise.stringDiv(Precise.stringMul(leftSide, rightSide), "1", basePrecision);
                 }
             }
         } else

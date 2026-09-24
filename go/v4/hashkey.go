@@ -1215,7 +1215,7 @@ func (this *Hashkey) ParseMarket(market any) any {
 		amountMinLimitString = Precise.StringDiv(amountMinLimitString, contractSizeString)
 		amountMaxLimitString = Precise.StringDiv(amountMaxLimitString, contractSizeString)
 		var riskLimits []any = SafeListTyped(market, "riskLimits")
-		if !IsEqual(riskLimits, nil) {
+		if riskLimits != nil {
 			var first map[string]any = SafeMapTyped(riskLimits, 0)
 			var arrayLength int = len(riskLimits)
 			var last map[string]any = SafeMapTyped(riskLimits, arrayLength-1)
@@ -1591,7 +1591,7 @@ func (this *Hashkey) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(accountIdparamsVariable, 1))
 	var response any = nil
 	if IsEqual(marketType, "spot") {
-		if !IsEqual(market, nil) {
+		if market != nil {
 			request["symbol"] = GetValue(market, "id")
 		}
 		if accountId != nil {
@@ -1719,7 +1719,7 @@ func (this *Hashkey) ParseTrade(trade any, optionalArgs ...any) any {
 	var feeCurrncyId *string = this.SafeString(trade, "commissionAsset")
 	var feeInfo map[string]any = SafeMapTyped(trade, "fee")
 	var fee map[string]any = nil
-	if !IsEqual(feeInfo, nil) {
+	if feeInfo != nil {
 		feeCost = this.SafeString(feeInfo, "fee")
 		feeCurrncyId = this.SafeString(feeInfo, "feeCoinId")
 	}
@@ -3418,7 +3418,7 @@ func (this *Hashkey) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		} else {
 			request["type"] = "LIMIT"
 		}
-		if !IsEqual(market, nil) {
+		if market != nil {
 			request["symbol"] = GetValue(market, "id")
 		}
 
@@ -3908,7 +3908,7 @@ func (this *Hashkey) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs 
 	params = GetValue(marketTypeparamsVariable, 1)
 	var response any = nil
 	if IsEqual(marketType, "spot") {
-		if !IsEqual(market, nil) {
+		if market != nil {
 			request["symbol"] = GetValue(market, "id")
 		}
 		if accountId != nil {

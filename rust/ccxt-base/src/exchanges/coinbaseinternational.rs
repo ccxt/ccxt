@@ -2525,7 +2525,9 @@ impl CoinbaseinternationalCore {
             }
             tif = Value::Str("IOC".into());
         }  else {
-            tif = (if (tif == Value::Null) { Value::Str("GTC".into()) } else { tif.clone() });
+            if (tif == Value::Null) {
+                tif = Value::Str("GTC".into());
+            }
         }
         if (postOnly != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("post_only".into(), postOnly); }

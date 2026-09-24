@@ -1263,7 +1263,9 @@ class lighter extends Exchange {
             $market = $markets[$i];
             $id = $this->safe_string($market, 'market_id');
             $type = $this->safe_string($market, 'market_type');
-            $type = ($type === 'perp') ? 'swap' : $type;
+            if ($type === 'perp') {
+                $type = 'swap';
+            }
             $baseId = $this->safe_string($market, 'symbol');
             if ($baseId !== null && mb_strpos($baseId, '/') !== -1) {
                 $baseId = explode('/', $baseId)[0];

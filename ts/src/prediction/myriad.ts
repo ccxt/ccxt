@@ -1995,7 +1995,7 @@ export default class myriad extends Exchange {
     hexToDecimalString (hexValue: string): Str {
         // portable hex -> decimal string (avoids convertToBigInt, which is not uniform across languages)
         const stripped = this.remove0xPrefix (hexValue);
-        if ((stripped === undefined) || (stripped === '')) {
+        if (stripped === '') {
             return undefined;
         }
         const chars = this.stringToCharsArray (stripped.toLowerCase ());

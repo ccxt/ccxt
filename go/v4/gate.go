@@ -3656,7 +3656,7 @@ func (this *Gate) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) any
 			continue
 		}
 		var withdrawFixOnChains map[string]any = SafeMapTyped(entry, "withdraw_fix_on_chains")
-		if IsEqual(withdrawFixOnChains, nil) {
+		if withdrawFixOnChains == nil {
 			withdrawFees = DerefScalar(this.SafeNumber(entry, "withdraw_fix"))
 		} else {
 			var networkIds []string = ObjectKeys(withdrawFixOnChains)
@@ -3762,7 +3762,7 @@ func (this *Gate) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 		},
 		"networks": map[string]any{},
 	}
-	if !IsEqual(withdrawFixOnChains, nil) {
+	if withdrawFixOnChains != nil {
 		var chainKeys []string = ObjectKeys(withdrawFixOnChains)
 		for i := 0; i < len(chainKeys); i++ {
 			var chainKey string = GetValue(chainKeys, i).(string)
@@ -7765,7 +7765,7 @@ func (this *Gate) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 	}
 	var typeVar *string = nil
 	var defaultSettle any = nil
-	if IsEqual(market, nil) {
+	if market == nil {
 		defaultSettle = "usdt"
 	} else {
 		defaultSettle = GetValue(market, "settle")
@@ -9200,7 +9200,7 @@ func (this *Gate) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) any 
 		response = (<-this.PrivateUnifiedGetInterestRecords(this.Extend(request, params)))
 		PanicOnError(response)
 	} else if marginMode != nil && *marginMode == "isolated" {
-		if !IsEqual(market, nil) {
+		if market != nil {
 			request["currency_pair"] = GetValue(market, "id")
 		}
 
@@ -9775,7 +9775,7 @@ func (this *Gate) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...any)
 		if since != nil {
 			AddElementToObject(request, "from", since)
 		}
-		if IsEqual(market, nil) {
+		if market == nil {
 			var underlying *string = this.SafeString(params, "underlying")
 			if underlying == nil {
 				panic(ArgumentsRequired(this.Id + " fetchMySettlementHistory() requires a symbol argument or an underlying parameter in params"))

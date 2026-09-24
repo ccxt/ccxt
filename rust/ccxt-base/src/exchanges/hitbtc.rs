@@ -4888,14 +4888,14 @@ impl HitbtcCore {
         let mut url: Value = Value::Str(format!("{}{}", add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), &Value::Str("/".into())), implodedPath).into());
         let mut getRequest: Value = Value::Null;
         let mut keys: Value = object_keys(&query);
-        let mut queryLength: Value = Value::Int(keys.len() as i64);
+        let mut queryLength: f64 = ((keys.len() as i64) as f64);
         headers = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
             m
         });
         if (method.as_str() == Some("GET")) {
-            if (queryLength != Value::Null) && (queryLength.as_f64() != Some(0.0)) {
+            if (queryLength != 0.0) {
                 getRequest = Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query, &[])).into());
                 url = Value::Str(format!("{}{}", url, getRequest).into());
             }

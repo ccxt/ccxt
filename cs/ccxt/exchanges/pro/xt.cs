@@ -1838,7 +1838,10 @@ public partial class xt : ccxt.xt
         string? msg = this.safeString(message, "msg");
         if ((msg == "invalid_listen_key") || (msg == "token expire"))
         {
-            ((IDictionary<string,object>)client.subscriptions)["token"] = null;
+            if (inOp(client.subscriptions, "token"))
+            {
+                ((IDictionary<string,object>)client.subscriptions).Remove("token");
+            }
             this.getListenKey(true);
             return;
         }

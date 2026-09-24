@@ -5055,7 +5055,7 @@ func (this *Deribit) HandleErrors(httpCode any, reason any, url any, method any,
 	//     }
 	//
 	var error map[string]any = SafeMapTyped(response, "error")
-	if !IsEqual(error, nil) {
+	if error != nil {
 		var errorCode *string = this.SafeString(error, "code")
 		var feedback any = Add(this.Id+" ", body)
 		this.ThrowExactlyMatchedException(this.Exceptions, errorCode, feedback)

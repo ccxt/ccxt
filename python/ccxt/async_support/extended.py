@@ -2647,7 +2647,10 @@ class extended(Exchange, ImplicitAPI):
                 request['type'] = 'CONDITIONAL'
                 request['trigger'] = trigger
             elif isStopLossOrder or isTakeProfitOrder:
-                triggerPriceStr = stopLossTriggerPrice if isStopLossOrder else takeProfitTriggerPrice
+                if isStopLossOrder:
+                    triggerPriceStr = stopLossTriggerPrice
+                else:
+                    triggerPriceStr = takeProfitTriggerPrice
                 trigger = {
                     'triggerPrice': self.price_to_precision(symbol, triggerPriceStr),
                 }

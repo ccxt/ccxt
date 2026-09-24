@@ -2183,7 +2183,9 @@ impl DigifinexCore {
             let mut tradeRole: Option<String> = self.safe_string_k(trade.clone(), "match_role", &[]).as_str().map(str::to_owned);
             let mut direction: Option<String> = self.safe_string_k(trade.clone(), "direction", &[]).as_str().map(str::to_owned);
             if (orderType.is_some()) {
-                type_var = (if (orderType.as_deref() == Some("0")) { Value::Str("limit".into()) } else { Value::Null });
+                if (orderType.as_deref() == Some("0")) {
+                    type_var = Value::Str("limit".into());
+                }
             }
             if (tradeRole.as_deref() == Some("1")) {
                 takerOrMaker = Value::Str("taker".into());

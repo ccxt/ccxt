@@ -287,7 +287,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                             thresholds.append(trimmed)
                     thresholdsLength = len(thresholds)
                     index = self.parse_to_int(indexStr)
-                    if thresholdsLength > 0 and index is not None:
+                    if thresholdsLength > 0:
                         bucketLabel: str
                         if index <= 0:
                             bucketLabel = 'BELOW_' + thresholds[0]
@@ -1070,9 +1070,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         if isNumericInput:
             candidates.append('#' + outcomeInput)  # encoding id without #
             numeric = self.parse_to_int(outcomeInput)
-            if numeric is not None:
-                candidates.append(self.outcome_coin(self.outcome_encoding(numeric, 0)))  # raw outcome id -> YES encoding
-                candidates.append(self.outcome_coin(self.outcome_encoding(numeric, 1)))  # raw outcome id -> NO encoding
+            candidates.append(self.outcome_coin(self.outcome_encoding(numeric, 0)))  # raw outcome id -> YES encoding
+            candidates.append(self.outcome_coin(self.outcome_encoding(numeric, 1)))  # raw outcome id -> NO encoding
         for i in range(0, len(candidates)):
             key = candidates[i]
             if key in self.outcomes:

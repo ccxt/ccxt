@@ -781,7 +781,10 @@ public partial class whitebit : Exchange
         string? id = this.safeString(market, "name");
         string? baseId = this.safeString(market, "stock");
         string? quoteId = this.safeString(market, "money");
-        quoteId = (quoteId == "PERP") ? "USDT" : quoteId;
+        if (quoteId == "PERP")
+        {
+            quoteId = "USDT";
+        }
         object bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         bool? active = this.safeBool(market, "tradesEnabled");

@@ -2210,7 +2210,7 @@ public partial class zebpay : Exchange
         {
             if (isEqual(method, "GET") || isEqual(method, "DELETE"))
             {
-                if ((!isEqual(queryLength, null)) && ((queryLength != 0)))
+                if ((queryLength != 0))
                 {
                     url = add(url, ("?" + this.urlencode(query)));
                 }

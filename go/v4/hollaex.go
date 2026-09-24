@@ -2416,7 +2416,7 @@ func (this *Hollaex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 		}
 	}
 	var withdrawalFees map[string]any = SafeMapTyped(fee, "withdrawal_fees")
-	if !IsEqual(withdrawalFees, nil) {
+	if withdrawalFees != nil {
 		var keys []string = ObjectKeys(withdrawalFees)
 		var keysLength int = len(keys)
 		for i := 0; i < keysLength; i++ {

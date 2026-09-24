@@ -1172,7 +1172,7 @@ class phemex(Exchange, ImplicitAPI):
         minAmount = None
         maxAmount = None
         precision = None
-        if valueScale is not None:
+        if valueScaleString is not None:
             precisionString = self.parse_precision(valueScaleString)
             precision = self.parse_number(precisionString)
             minAmount = self.parse_number(Precise.string_mul(minValueEv, precisionString))

@@ -2242,7 +2242,7 @@ func (this *Bingx) HandleBalance(client any, message any) {
 		account["info"] = balance
 		account["used"] = this.SafeString(balance, "lk")
 		account["free"] = this.SafeString(balance, "wb")
-		if (!ccxt.IsEqual(typeVar, nil)) && (code != nil) {
+		if code != nil {
 			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
 		}
 	}

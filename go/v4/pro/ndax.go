@@ -417,7 +417,7 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 					}
 					return nil
 				}(), ccxt.GetValue(previous, 5))})
-				if (marketId != nil) && (!ccxt.IsEqual(timeframe, nil)) {
+				if marketId != nil {
 					ccxt.AddElementToObject(ccxt.GetValue(updates, marketId), timeframe, true)
 				}
 			} else {
@@ -434,7 +434,7 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 					if ccxt.IsGreaterThanOrEqual(length, limit) {
 						ccxt.Shift(stored)
 					}
-					if (marketId != nil) && (!ccxt.IsEqual(timeframe, nil)) {
+					if marketId != nil {
 						ccxt.AddElementToObject(ccxt.GetValue(updates, marketId), timeframe, true)
 					}
 				}

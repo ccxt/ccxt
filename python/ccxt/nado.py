@@ -471,7 +471,10 @@ class nado(Exchange, ImplicitAPI):
                 oracleSide = 'above' if isStopLossOrder else 'below'
             else:
                 oracleSide = 'below' if isStopLossOrder else 'above'
-            triggerPrice = stopLossTriggerPrice if isStopLossOrder else takeProfitTriggerPrice
+            if isStopLossOrder:
+                triggerPrice = stopLossTriggerPrice
+            else:
+                triggerPrice = takeProfitTriggerPrice
             triggerPriceX18 = self.convert_to_x18(triggerPrice)
             priceRequirement = {}
             priceRequirement['oracle_price_' + oracleSide] = triggerPriceX18

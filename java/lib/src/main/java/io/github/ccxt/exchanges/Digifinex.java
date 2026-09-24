@@ -1785,7 +1785,10 @@ public class Digifinex extends DigifinexApi
             String direction = this.safeString(trade, "direction");
             if (!java.util.Objects.equals(orderType, null))
             {
-                type = (((java.util.Objects.equals(orderType, "0")))) ? "limit" : null;
+                if (java.util.Objects.equals(orderType, "0"))
+                {
+                    type = "limit";
+                }
             }
             if (java.util.Objects.equals(tradeRole, "1"))
             {

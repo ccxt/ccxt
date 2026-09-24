@@ -1552,7 +1552,7 @@ func (this *Coinbase) ParseTransaction(transaction any, optionalArgs ...any) any
 		amountAndCurrencyObject = MapTyped(this.SafeDict(transaction, "subtotal"))
 		feeObject = MapTyped(this.SafeDict(transaction, "fee", map[string]any{}))
 	}
-	if IsEqual(amountAndCurrencyObject, nil) {
+	if amountAndCurrencyObject == nil {
 		amountAndCurrencyObject = MapTyped(this.SafeDict(transaction, "amount"))
 	}
 	var amountString *string = this.SafeString(amountAndCurrencyObject, "amount")
@@ -3096,7 +3096,7 @@ func (this *Coinbase) ParseCustomBalance(response any, optionalArgs ...any) any 
 		var typeVar *string = this.SafeString(balance, "type")
 		if this.InArray(typeVar, accounts) {
 			var value map[string]any = SafeMapTyped(balance, "balance")
-			if !IsEqual(value, nil) {
+			if value != nil {
 				var currencyId *string = this.SafeString(value, "currency")
 				var code *string = this.SafeCurrencyCode(currencyId)
 				var total *string = this.SafeString(value, "amount")
@@ -3117,7 +3117,7 @@ func (this *Coinbase) ParseCustomBalance(response any, optionalArgs ...any) any 
 		} else if this.InArray(typeVar, v3Accounts) {
 			var available map[string]any = SafeMapTyped(balance, "available_balance")
 			var hold map[string]any = SafeMapTyped(balance, "hold")
-			if !IsEqual(available, nil) && !IsEqual(hold, nil) {
+			if (available != nil) && (hold != nil) {
 				var currencyId *string = this.SafeString(available, "currency")
 				var code *string = this.SafeCurrencyCode(currencyId)
 				var used *string = this.SafeString(hold, "value")
@@ -3638,7 +3638,7 @@ func (this *Coinbase) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var networkInfo map[string]any = SafeMapTyped(item, "network")
 	// txid = network['hash']; // txid does not belong to the unified ledger structure
 	var feeInfo map[string]any = SafeMapTyped(networkInfo, "transaction_fee")
-	if !IsEqual(feeInfo, nil) {
+	if feeInfo != nil {
 		var feeCurrencyId *string = this.SafeString(feeInfo, "currency")
 		var feeCurrencyCode *string = this.SafeCurrencyCode(feeCurrencyId, currency)
 		var feeAmount *float64 = this.SafeNumber(feeInfo, "amount")
@@ -4073,7 +4073,7 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar any, side
 		var errorResponse map[string]any = SafeMapTyped(response, "error_response")
 		var errorTitle *string = this.SafeString(errorResponse, "error")
 		var errorMessage *string = this.SafeString(errorResponse, "message")
-		if !IsEqual(errorResponse, nil) {
+		if errorResponse != nil {
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorTitle, errorMessage)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorTitle, errorMessage)
 			panic(ExchangeError(errorMessage))
@@ -4551,7 +4551,7 @@ func (this *Coinbase) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(market, nil) {
+	if market != nil {
 		request["product_id"] = GetValue(market, "id")
 	}
 	if limit != nil {
@@ -4647,7 +4647,7 @@ func (this *Coinbase) fetchOrdersByStatusBody(ch chan any, status any, optionalA
 	var request map[string]any = map[string]any{
 		"order_status": status,
 	}
-	if !IsEqual(market, nil) {
+	if market != nil {
 		request["product_id"] = GetValue(market, "id")
 	}
 	if limit == nil {
@@ -5106,7 +5106,7 @@ func (this *Coinbase) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(market, nil) {
+	if market != nil {
 		request["product_id"] = GetValue(market, "id")
 	}
 	if limit != nil {
@@ -6824,7 +6824,7 @@ func (this *Coinbase) HandleErrors(code any, reason any, url any, method any, he
 		panic(ExchangeError(feedback))
 	}
 	var errorResponse map[string]any = SafeMapTyped(response, "error_response")
-	if !IsEqual(errorResponse, nil) {
+	if errorResponse != nil {
 		var errorMessageInner *string = this.SafeString2(errorResponse, "preview_failure_reason", "preview_failure_reason")
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorMessageInner, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessageInner, feedback)

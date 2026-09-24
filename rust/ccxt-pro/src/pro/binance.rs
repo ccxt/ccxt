@@ -7042,9 +7042,6 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 })); }
         }
         add_element_to_object(get_value_mut(&mut self.balance, &accountType), &Value::Str("info".into()), message.clone());
-        if (accountType == Value::Null) {
-            return;
-        }
         let mut B: Value = self.safe_list_k(message.clone(), "B", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);

@@ -3942,7 +3942,11 @@ impl ExtendedCore {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("CONDITIONAL".into())); }
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("trigger".into(), trigger.clone()); }
             }  else if isStopLossOrder || isTakeProfitOrder {
-                triggerPriceStr = (if isStopLossOrder { stopLossTriggerPrice } else { takeProfitTriggerPrice });
+                if isStopLossOrder {
+                    triggerPriceStr = stopLossTriggerPrice;
+                }  else {
+                    triggerPriceStr = takeProfitTriggerPrice;
+                }
                 let mut trigger: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("triggerPrice".to_string(), self.price_to_precision(symbol, triggerPriceStr));

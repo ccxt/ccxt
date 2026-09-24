@@ -788,7 +788,7 @@ func (this *Limitless) ExpandGroupRows(rawRows any) any {
 		var raw any = ccxt.GetValue(rawRows, i)
 		var rowType *string = this.SafeString(raw, "marketType")
 		var nestedMarkets []any = ccxt.SafeListTyped(raw, "markets")
-		if (rowType != nil && *rowType == "group") && (!ccxt.IsEqual(nestedMarkets, nil)) {
+		if (rowType != nil && *rowType == "group") && ((nestedMarkets != nil)) {
 			var groupSlug *string = this.SafeString(raw, "slug")
 			var groupTitle *string = this.SafeString(raw, "title", groupSlug)
 			var nestedMarketsLength int = len(nestedMarkets)
@@ -1066,7 +1066,7 @@ func (this *Limitless) ParseEvent(event any) any {
 		// with 'symbol' kept as a legacy fallback — don't run it through parseMarket again
 		var marketSymbol *string = this.SafeString2(rawMarket, "market", "symbol")
 		var marketOutcomes []any = ccxt.SafeListTyped(rawMarket, "outcomes")
-		if (marketSymbol != nil) && !ccxt.IsEqual(marketOutcomes, nil) {
+		if (marketSymbol != nil) && (marketOutcomes != nil) {
 			markets = append(markets, rawMarket)
 		} else {
 			markets = append(markets, this.ParseMarket(rawMarket))
@@ -1301,7 +1301,7 @@ func (this *Limitless) ParsePredictionTicker(ticker any, optionalArgs ...any) an
 	var askSizeStr *string = nil
 	var lastStr any = nil
 	var midStr *string = nil
-	if !ccxt.IsEqual(book, nil) {
+	if book != nil {
 		// the book endpoint is quoted in the yes token, the no side mirrors at 1 - price
 		var rawBids []any = ccxt.SafeListTyped(book, "bids")
 		var rawAsks []any = ccxt.SafeListTyped(book, "asks")
@@ -2384,7 +2384,7 @@ func (this *Limitless) ParsePredictionOrder(order any, optionalArgs ...any) any 
 	var fee map[string]any = nil
 	var filled any = nil
 	var cost any = nil
-	if !ccxt.IsEqual(execution, nil) {
+	if execution != nil {
 		rawStatus = this.SafeString(execution, "settlementStatus")
 		var totals map[string]any = ccxt.SafeMapTyped(execution, "totalsRaw")
 		cost = ccxt.DerefScalar(this.SafeString(totals, "usdGross"))
@@ -3693,7 +3693,7 @@ func (this *Limitless) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	this.RequireEventQuery(params)
 	var queries []any = this.ParseSearchQueries(params)
-	if ccxt.IsEqual(queries, nil) {
+	if queries == nil {
 		panic(ccxt.ExchangeError(this.Id + " fetchEvents() missing queries"))
 	}
 	var queriesLength int = len(queries)
@@ -3708,7 +3708,7 @@ func (this *Limitless) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		var limit any = ccxt.MathMin(requestedLimit, 50)
 		var seen map[string]any = map[string]any{}
 		for i := 0; i < len(queries); i++ {
-			if ccxt.IsEqual(queries, nil) {
+			if queries == nil {
 				panic(ccxt.ExchangeError(this.Id + " fetchEvents() missing queries"))
 			}
 			var q *string = ccxt.SafeStringPtr(func() any {

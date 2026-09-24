@@ -5117,8 +5117,6 @@ class binance(ccxt.async_support.binance):
         if self.balance[accountType] is None:
             self.balance[accountType] = {}
         self.balance[accountType]['info'] = message
-        if accountType is None:
-            return
         B = self.safe_list(message, 'B', [])
         for i in range(0, len(B)):
             entry = self.safe_dict(B, i)

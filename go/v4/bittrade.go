@@ -2583,7 +2583,7 @@ func (this *Bittrade) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		"type": "deposit",
 		"from": 0,
 	}
-	if !IsEqual(currency, nil) {
+	if currency != nil {
 		request["currency"] = GetValue(currency, "id")
 	}
 	if limit != nil {
@@ -2639,7 +2639,7 @@ func (this *Bittrade) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 		"type": "withdraw",
 		"from": 0,
 	}
-	if !IsEqual(currency, nil) {
+	if currency != nil {
 		request["currency"] = GetValue(currency, "id")
 	}
 	if limit != nil {
