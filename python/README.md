@@ -269,13 +269,13 @@ console.log(version, Object.keys(exchanges));
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.5.83/dist/ccxt.browser.min.js
-* unpkg: https://unpkg.com/ccxt@4.5.83/dist/ccxt.browser.min.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.5.84/dist/ccxt.browser.min.js
+* unpkg: https://unpkg.com/ccxt@4.5.84/dist/ccxt.browser.min.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.5.83/dist/ccxt.browser.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.5.84/dist/ccxt.browser.min.js"></script>
 ```
 
 Creates a global `ccxt` object:
@@ -443,6 +443,16 @@ tokio = { version = "1", features = ["full"] }
 ```
 
 `ccxt` carries the REST exchanges; `ccxt-pro` adds the WebSocket (`watch*`) ones and is only needed if you stream. Both are async and expect a Tokio runtime.
+
+By default every exchange is compiled, which needs about 19 GB of RAM for a fresh debug build (50 GB in release). Each exchange is also a cargo feature named after its id, so disable the defaults and list only the ones you use — the same names on every ccxt crate:
+
+```toml
+[dependencies]
+ccxt = { version = "4.5.75", default-features = false, features = ["binance", "kraken"] }
+ccxt-pro = { version = "4.5.75", default-features = false, features = ["binance"] }
+```
+
+With three exchanges a fresh build takes ~30 s and 2.5 GB instead of minutes and tens of GB (see [rust/BUILD-BENCHMARK.md](rust/BUILD-BENCHMARK.md)). A derived exchange pulls in its parent (`binanceus` → `binance`), `ccxt-prediction` has its own list (`polymarket`, `kalshi`, …), and `from_id` only knows the exchanges compiled in.
 
 ```rust
 use ccxt::{Binance, Params};
