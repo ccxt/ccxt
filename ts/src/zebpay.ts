@@ -577,7 +577,7 @@ export default class zebpay extends Exchange {
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-order-book
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#get-order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return. Swap: 1–20; omit for the full book. Invalid values return 400.
+     * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
@@ -713,11 +713,11 @@ export default class zebpay extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch. Swap: 5–500, omit for 500
+     * @param {int} [limit] the maximum amount of candles to fetch. Swap: 1–1000, omit for 1000
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch (inclusive). Swap: requires since
      * @param {int} [params.endtime] the latest time in ms to fetch orders for
-     * @param {string} [params.priceType] *swap only* e.g. MARK_PRICE
+     * @param {string} [params.priceType] *swap only* LTP (default) or MARK_PRICE
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -730,10 +730,6 @@ export default class zebpay extends Exchange {
         };
         const until = this.safeInteger2 (params, 'until', 'endtime');
         params = this.omit (params, [ 'until', 'endtime', 'endTime', 'interval', 'startTime' ]);
-        if (until !== undefined) {
-            request['endTime'] = until;
-            params = this.omit (params, [ 'endtime', 'until' ]);
-        }
         let response = undefined;
         if (market['spot'] === true) {
             if (limit === undefined) {
@@ -749,6 +745,7 @@ export default class zebpay extends Exchange {
             if (until === undefined || since === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a both a since and until/endtime parameter for spot markets');
             }
+            params = this.omit (params, 'priceType');
             response = await this.publicSpotGetV2MarketKlines (this.extend (request, params));
         } else {
             request['timeframe'] = timeframe;
@@ -1955,6 +1952,11 @@ export default class zebpay extends Exchange {
                     url += '?' + this.urlencode (query);
                 }
             } else {
+                const priceType = this.safeString (params, 'priceType');
+                params = this.omit (params, 'priceType');
+                if (priceType !== undefined) {
+                    url += '?' + this.urlencode ({ 'priceType': priceType });
+                }
                 body = JSON.stringify (params);
                 headers = {
                     'Referrer': 'ccxt',
