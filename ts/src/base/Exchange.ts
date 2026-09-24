@@ -6005,7 +6005,7 @@ export class BaseExchange {
         return this.selectNetworkKeyFromNetworks (currencyCode, networkCode, indexedNetworkEntries, false);
     }
 
-    selectNetworkKeyFromNetworks (currencyCode: string, networkCode: any, indexedNetworkEntries: any, isIndexedByUnifiedNetworkCode = false): Str {
+    selectNetworkKeyFromNetworks (currencyCode: string, networkCode: Str, indexedNetworkEntries: any, isIndexedByUnifiedNetworkCode = false): Str {
         // this method is used against raw & unparse network entries, which are just indexed by network id
         let chosenNetworkId: Str = undefined;
         const availableNetworkIds = Object.keys (indexedNetworkEntries);
@@ -6595,8 +6595,15 @@ export class BaseExchange {
             if ((skipZeroPrices === true) && !(price > 0) && !(price < 0)) {
                 continue;
             }
-            const isFirstCandle = candle === -1;
-            if (isFirstCandle || openingTime >= this.sum (ohlcvs[candle][i_timestamp], ms)) {
+            let isNewCandle = candle === -1;
+            if (!isNewCandle) {
+                const candleTimestamp = ohlcvs[candle][i_timestamp];
+                if (candleTimestamp === undefined) {
+                    throw new ExchangeError (this.id + ' buildOHLCVC() missing candle timestamp');
+                }
+                isNewCandle = openingTime >= candleTimestamp + ms;
+            }
+            if (isNewCandle) {
                 // moved to a new timeframe -> create a new candle from opening trade
                 ohlcvs.push ([
                     openingTime, // timestamp
