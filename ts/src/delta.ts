@@ -580,7 +580,7 @@ export default class delta extends Exchange {
         const id = this.safeString (rawCurrency, 'symbol');
         const numericId = this.safeInteger (rawCurrency, 'id');
         const code = this.safeCurrencyCode (id);
-        const chains = this.safeList (rawCurrency, 'networks', []);
+        const chains: Dict[] = this.safeList (rawCurrency, 'networks', []);
         const networks: Dict = {};
         for (let j = 0; j < chains.length; j++) {
             const chain = chains[j];
@@ -851,7 +851,7 @@ export default class delta extends Exchange {
         //         "success":true
         //     }
         //
-        const markets = this.safeList (response, 'result', []);
+        const markets: Dict[] = this.safeList (response, 'result', []);
         const result: Market[] = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -1416,7 +1416,7 @@ export default class delta extends Exchange {
         //         "success":true
         //     }
         //
-        const tickers = this.safeList (response, 'result', []);
+        const tickers: Dict[] = this.safeList (response, 'result', []);
         const result: Dict = {};
         for (let i = 0; i < tickers.length; i++) {
             const rawTicker = tickers[i];
@@ -1609,7 +1609,7 @@ export default class delta extends Exchange {
         //         "success":true
         //     }
         //
-        const result = this.safeList (response, 'result', []);
+        const result: Dict[] = this.safeList (response, 'result', []);
         return this.parseTrades (result, market, since, limit);
     }
 
@@ -1697,7 +1697,7 @@ export default class delta extends Exchange {
     }
 
     override parseBalance (response: any): Balances {
-        const balances = this.safeList (response, 'result', []);
+        const balances: Dict[] = this.safeList (response, 'result', []);
         const result: Dict = { 'info': response };
         const currenciesByNumericId = this.safeDict (this.options, 'currenciesByNumericId', {});
         for (let i = 0; i < balances.length; i++) {
@@ -1811,7 +1811,7 @@ export default class delta extends Exchange {
         //         ]
         //     }
         //
-        const result = this.safeList (response, 'result', []);
+        const result: Dict[] = this.safeList (response, 'result', []);
         return this.parsePositions (result, symbols);
     }
 
@@ -2386,7 +2386,7 @@ export default class delta extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeList (response, 'result', []);
+        const result: Dict[] = this.safeList (response, 'result', []);
         return this.parseOrders (result, market, since, limit);
     }
 
@@ -2469,7 +2469,7 @@ export default class delta extends Exchange {
         //         "success":true
         //     }
         //
-        const result = this.safeList (response, 'result', []);
+        const result: Dict[] = this.safeList (response, 'result', []);
         return this.parseTrades (result, market, since, limit);
     }
 
@@ -2523,11 +2523,11 @@ export default class delta extends Exchange {
         //         "success":true
         //     }
         //
-        const result = this.safeList (response, 'result', []);
+        const result: Dict[] = this.safeList (response, 'result', []);
         return this.parseLedger (result, currency, since, limit);
     }
 
-    parseLedgerEntryType (type: any) {
+    parseLedgerEntryType (type: Str) {
         const types: Dict = {
             'pnl': 'pnl',
             'deposit': 'transaction',
@@ -2802,7 +2802,7 @@ export default class delta extends Exchange {
         //         "success":true
         //     }
         //
-        const rates = this.safeList (response, 'result', []);
+        const rates: Dict[] = this.safeList (response, 'result', []);
         return this.parseFundingRates (rates, symbols);
     }
 
@@ -3279,7 +3279,7 @@ export default class delta extends Exchange {
         //         "success": true
         //     }
         //
-        const result = this.safeList (response, 'result', []);
+        const result: Dict[] = this.safeList (response, 'result', []);
         const settlements = this.parseSettlements (result, market);
         const sorted = this.sortBy (settlements, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, this.safeString (market, 'symbol'), since, limit);

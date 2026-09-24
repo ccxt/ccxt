@@ -539,7 +539,7 @@ export default class hyperliquid extends Exchange {
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const options = this.safeDict (this.options, 'fetchMarkets', {});
-        const types = this.safeList (options, 'types', []);
+        const types: string[] = this.safeList (options, 'types', []);
         const rawPromises: Promise<any>[] = [];
         for (let i = 0; i < types.length; i++) {
             const marketType = types[i];
@@ -1908,7 +1908,7 @@ export default class hyperliquid extends Exchange {
         return await this.privatePostExchange (request);
     }
 
-    async initializeClient () {
+    async initializeClient (): Promise<boolean> {
         try {
             await Promise.all ([ this.handleBuilderFeeApproval (), this.setRef (), this.isUnifiedEnabled ('fetchBalance', undefined, false, {}) ]); // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
         } catch (e) {
@@ -1917,7 +1917,7 @@ export default class hyperliquid extends Exchange {
         return true;
     }
 
-    async handleBuilderFeeApproval () {
+    async handleBuilderFeeApproval (): Promise<boolean> {
         const buildFee = this.safeBool (this.options, 'builderFee', true);
         const approvedBuilderFee = this.safeBool (this.options, 'approvedBuilderFee', false);
         if (approvedBuilderFee === true) {
@@ -3848,7 +3848,7 @@ export default class hyperliquid extends Exchange {
         //         "withdrawable": "100.0"
         //     }
         //
-        const data = this.safeList (response, 'assetPositions', []);
+        const data: Dict[] = this.safeList (response, 'assetPositions', []);
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
             result.push (this.parsePosition (data[i]));
@@ -5064,7 +5064,7 @@ export default class hyperliquid extends Exchange {
         } else {
             const responsePayload = this.safeDict (response, 'response', {});
             const data = this.safeDict (responsePayload, 'data', {});
-            const statuses = this.safeList (data, 'statuses', []);
+            const statuses: Dict[] = this.safeList (data, 'statuses', []);
             for (let i = 0; i < statuses.length; i++) {
                 message = this.safeString (statuses[i], 'error');
                 if (message !== undefined) {

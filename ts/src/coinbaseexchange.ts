@@ -553,7 +553,7 @@ export default class coinbaseexchange extends Exchange {
         const code = this.safeCurrencyCode (id);
         const details = this.safeDict (rawCurrency, 'details', {});
         const networks: Dict = {};
-        const supportedNetworks = this.safeList (rawCurrency, 'supported_networks', []);
+        const supportedNetworks: Dict[] = this.safeList (rawCurrency, 'supported_networks', []);
         for (let j = 0; j < supportedNetworks.length; j++) {
             const network = supportedNetworks[j];
             const networkId = this.safeString (network, 'id');
@@ -2044,12 +2044,12 @@ export default class coinbaseexchange extends Exchange {
     }
 
     parseTransactionStatus (transaction: Dict): string {
-        const canceled = this.safeValue (transaction, 'canceled_at');
+        const canceled = this.safeString (transaction, 'canceled_at');
         if ((canceled !== undefined) && (canceled !== null)) {
             return 'canceled';
         }
-        const processed = this.safeValue (transaction, 'processed_at');
-        const completed = this.safeValue (transaction, 'completed_at');
+        const processed = this.safeString (transaction, 'processed_at');
+        const completed = this.safeString (transaction, 'completed_at');
         if ((completed !== undefined) && (completed !== null)) {
             return 'ok';
         } else if ((processed !== undefined) && (processed !== null)) {

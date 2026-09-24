@@ -7,7 +7,7 @@ import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
 import { ChecksumError, ArgumentsRequired, AuthenticationError, BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Balances, Bool, Dict, Int, Liquidation, List, Market, Num, FeeString, NullableList, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Dictionary, Balances, Bool, Dict, Int, Liquidation, List, Market, Num, FeeString, NullableList, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import { rsa } from '../base/functions/rsa.js';
 import { eddsa } from '../base/functions/crypto.js';
 import Client from '../base/ws/Client.js';
@@ -293,7 +293,7 @@ export default class binance extends binanceRest {
         return 'market';
     }
 
-    getPrivateWsUrl (type: Str, listenKey: Str) {
+    getPrivateWsUrl (type: Str, listenKey: Str): string {
         if (type === 'future') {
             return this.getWsUrl (type, 'private') + '?listenKey=' + listenKey;
         }
@@ -488,7 +488,7 @@ export default class binance extends binanceRest {
         client.resolve ([ liquidation ], 'liquidations::' + symbol);
     }
 
-    parseWsLiquidation (liquidation: any, market: Market = undefined) {
+    parseWsLiquidation (liquidation: Dict, market: Market = undefined) {
         //
         // future
         //    {
@@ -639,7 +639,7 @@ export default class binance extends binanceRest {
         return this.filterBySymbolsSinceLimit (this.liquidations, symbols, since, limit);
     }
 
-    handleMyLiquidation (client: Client, message: any) {
+    handleMyLiquidation (client: Client, message: Dict) {
         //
         //    {
         //        "s":"BTCUSDT",              // Symbol
@@ -1184,7 +1184,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    handleSubscriptionStatus (client: Client, message: any) {
+    handleSubscriptionStatus (client: Client, message: Dict): Dict {
         //
         //     {
         //         "result": null,
@@ -1206,8 +1206,8 @@ export default class binance extends binanceRest {
     }
 
     handleUnSubscription (client: Client, subscription: Dict) {
-        const messageHashes = this.safeList (subscription, 'messageHashes', []);
-        const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+        const messageHashes: string[] = this.safeList (subscription, 'messageHashes', []);
+        const subMessageHashes: string[] = this.safeList (subscription, 'subMessageHashes', []);
         for (let j = 0; j < messageHashes.length; j++) {
             const unsubHash = messageHashes[j];
             const subHash = subMessageHashes[j];
@@ -1591,7 +1591,7 @@ export default class binance extends binanceRest {
         });
     }
 
-    handleTrade (client: Client, message: any) {
+    handleTrade (client: Client, message: Dict) {
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
         const marketId = this.safeString (message, 's');
@@ -1665,7 +1665,7 @@ export default class binance extends binanceRest {
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
+    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dictionary<Dictionary<OHLCV[]>>> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2484,7 +2484,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    parseWsTicker (message: any, marketType: any) {
+    parseWsTicker (message: any, marketType: any): Ticker {
         // markPrice
         //   {
         //       "e": "markPriceUpdate",   // Event type
@@ -2851,7 +2851,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    handleUserDataStreamSubscribe (client: Client, message: any) {
+    handleUserDataStreamSubscribe (client: Client, message: Dict) {
         //
         //   {
         //     "id": 1,
@@ -3458,7 +3458,7 @@ export default class binance extends binanceRest {
         //
         //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeList (message, 'result', []);
+        const result: Dict[] = this.safeList (message, 'result', []);
         const positions: Position[] = [];
         for (let i = 0; i < result.length; i++) {
             const parsed = this.parsePositionRisk (result[i]);
@@ -3679,7 +3679,7 @@ export default class binance extends binanceRest {
         return [ type, subType, params ];
     }
 
-    getMarketType (method: any, market: any, params: Dict = {}) {
+    getMarketType (method: any, market: any, params: Dict = {}): string {
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams (method, market, params);
         let subType: Str = undefined;
@@ -4882,10 +4882,10 @@ export default class binance extends binanceRest {
         //         ]
         //     }
         //
-        const orders = this.safeList (message, 'o', []);
+        const orders: Dict[] = this.safeList (message, 'o', []);
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
-            const fills = this.safeList (order, 'fi', []);
+            const fills: Dict[] = this.safeList (order, 'fi', []);
             const rawQty = this.safeString (order, 'q', '0');
             let side = 'BUY';
             if (Precise.stringLt (rawQty, '0')) {
@@ -5098,7 +5098,7 @@ export default class binance extends binanceRest {
         }
         const cache = this.positions[accountType];
         const data = this.safeDict (message, 'a', {});
-        const rawPositions = this.safeList (data, 'P', []);
+        const rawPositions: Dict[] = this.safeList (data, 'P', []);
         const newPositions: Position[] = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
@@ -5123,7 +5123,7 @@ export default class binance extends binanceRest {
         client.resolve (newPositions, accountType + ':positions');
     }
 
-    parseWsPosition (position: any, market: Market = undefined) {
+    parseWsPosition (position: Dict, market: Market = undefined) {
         //
         //     {
         //         "s": "BTCUSDT", // Symbol
@@ -5444,7 +5444,7 @@ export default class binance extends binanceRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrade (client: Client, message: any) {
+    handleMyTrade (client: Client, message: Dict) {
         const messageHash = 'myTrades';
         const executionType = this.safeString (message, 'x');
         if (executionType === 'TRADE') {
@@ -5525,7 +5525,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    handleOrder (client: Client, message: any) {
+    handleOrder (client: Client, message: Dict) {
         const parsed = this.parseWsOrder (message);
         const symbol = this.safeString (parsed, 'symbol');
         const orderId = this.safeString (parsed, 'id');
@@ -5542,7 +5542,7 @@ export default class binance extends binanceRest {
                 if (fee !== undefined) {
                     parsed['fee'] = fee;
                 }
-                const fees = this.safeValue (order, 'fees');
+                const fees = this.safeList (order, 'fees');
                 if (fees !== undefined) {
                     (parsed as Dict)['fees'] = fees;
                 }
@@ -5566,7 +5566,7 @@ export default class binance extends binanceRest {
         this.handlePositions (client, message);
     }
 
-    handleOptionsAccountUpdate (client: Client, message: any) {
+    handleOptionsAccountUpdate (client: Client, message: Dict) {
         //
         // BALANCE_POSITION_UPDATE (options user data stream)
         //
@@ -5597,7 +5597,7 @@ export default class binance extends binanceRest {
         if (accountType === undefined) {
             return;
         }
-        const B = this.safeList (message, 'B', []);
+        const B: Dict[] = this.safeList (message, 'B', []);
         for (let i = 0; i < B.length; i++) {
             const entry = B[i];
             const currencyId = this.safeString (entry, 'a');
@@ -5621,7 +5621,7 @@ export default class binance extends binanceRest {
             this.positions[accountType] = new ArrayCacheBySymbolBySide ();
         }
         const cache = this.positions[accountType];
-        const P = this.safeList (message, 'P', []);
+        const P: Dict[] = this.safeList (message, 'P', []);
         const newPositions = [];
         for (let i = 0; i < P.length; i++) {
             const rawPosition = P[i];
@@ -5645,7 +5645,7 @@ export default class binance extends binanceRest {
         client.resolve (newPositions, accountType + ':positions');
     }
 
-    handleWsError (client: Client, message: any) {
+    handleWsError (client: Client, message: Dict) {
         //
         //    {
         //        "error": {
@@ -5691,7 +5691,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    handleEventStreamTerminated (client: Client, message: any) {
+    handleEventStreamTerminated (client: Client, message: Dict) {
         //
         //    {
         //        e: 'eventStreamTerminated',

@@ -2724,7 +2724,7 @@ export default class bitget extends Exchange {
         const entry = rawCurrency;
         const id = this.safeString (entry, 'coin'); // we don't use 'coinId' as it has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
         const code = this.safeCurrencyCode (id);
-        const chains = this.safeList (entry, 'chains', []);
+        const chains: Dict[] = this.safeList (entry, 'chains', []);
         const networks: Dict = {};
         let withdraw: Bool = undefined;
         let deposit: Bool = undefined;
@@ -3111,7 +3111,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const rawTransactions = this.safeList (response, 'data', []);
+        const rawTransactions: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransactions (rawTransactions, undefined, since, limit);
     }
 
@@ -3317,7 +3317,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const rawTransactions = this.safeList (response, 'data', []);
+        const rawTransactions: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransactions (rawTransactions, currency, since, limit);
     }
 
@@ -3902,7 +3902,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTicker (data[0], market);
     }
 
@@ -3932,7 +3932,7 @@ export default class bitget extends Exchange {
             request['productType'] = productType;
             response = await this.publicMixGetV2MixMarketSymbolPrice (this.extend (request, params));
         }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTicker (data[0], market);
     }
 
@@ -4103,7 +4103,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTickers (data, symbols);
     }
 
@@ -4401,7 +4401,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -4530,7 +4530,7 @@ export default class bitget extends Exchange {
             //         ]
             //     }
             //
-            const rows = this.safeList (utaResponse, 'data', []);
+            const rows: Dict[] = this.safeList (utaResponse, 'data', []);
             const utaResult: Dict = {};
             for (let i = 0; i < rows.length; i++) {
                 const entry = rows[i];
@@ -4634,7 +4634,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -6116,7 +6116,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseOrders (data, market);
     }
 
@@ -6661,7 +6661,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseOrders (data, market);
     }
 
@@ -6754,7 +6754,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const orders = this.safeList (data, 'successList', []);
+        const orders: Dict[] = this.safeList (data, 'successList', []);
         return this.parseOrders (orders, market);
     }
 
@@ -7459,11 +7459,11 @@ export default class bitget extends Exchange {
             return this.parseOrders (result, market, since, limit);
         } else if (type === 'spot') {
             if ((marginMode !== undefined) || (trigger === true)) {
-                const resultList = this.safeList (data, 'orderList', []);
+                const resultList: Dict[] = this.safeList (data, 'orderList', []);
                 return this.parseOrders (resultList, market, since, limit);
             }
         } else {
-            const result = this.safeList (data, 'entrustedList', []);
+            const result: Dict[] = this.safeList (data, 'entrustedList', []);
             return this.parseOrders (result, market, since, limit);
         }
         return this.parseOrders (data, market, since, limit);
@@ -7841,7 +7841,7 @@ export default class bitget extends Exchange {
         if (typeof response === 'string') {
             response = JSON.parse (response);
         }
-        const orders = this.safeList (response, 'data', []);
+        const orders: Dict[] = this.safeList (response, 'data', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -7969,7 +7969,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const orders = this.safeList (data, 'list', []);
+        const orders: Dict[] = this.safeList (data, 'list', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -8112,7 +8112,7 @@ export default class bitget extends Exchange {
                 //
             }
             const utaData = this.safeDict (response, 'data', {});
-            const list = this.safeList (utaData, 'list', []);
+            const list: Dict[] = this.safeList (utaData, 'list', []);
             return this.parseLedger (list, currency, since, limit);
         }
         if (marketType === 'spot') {
@@ -8172,7 +8172,7 @@ export default class bitget extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         if ((marketType === 'swap') || (marketType === 'future')) {
-            const bills = this.safeList (data, 'bills', []);
+            const bills: Dict[] = this.safeList (data, 'bills', []);
             return this.parseLedger (bills, currency, since, limit);
         }
         return this.parseLedger (data, currency, since, limit);
@@ -8690,7 +8690,7 @@ export default class bitget extends Exchange {
             const fills = this.safeList (data, 'fillList', []);
             return this.parseTrades (fills, market, since, limit);
         } else if (marginMode !== undefined) {
-            const fills = this.safeList (data, 'fills', []);
+            const fills: Dict[] = this.safeList (data, 'fills', []);
             return this.parseTrades (fills, market, since, limit);
         }
         return this.parseTrades (data, market, since, limit);
@@ -9412,7 +9412,7 @@ export default class bitget extends Exchange {
                 //
             }
         }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseFundingRate (data[0], market);
     }
 
@@ -9499,7 +9499,7 @@ export default class bitget extends Exchange {
             response = await this.publicMixGetV2MixMarketCurrentFundRate (this.extend (request, params));
         }
         symbols = this.marketSymbols (symbols);
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseFundingRates (data, symbols);
     }
 
@@ -9720,7 +9720,7 @@ export default class bitget extends Exchange {
         return this.parseFundingHistories (bills, market, since, limit);
     }
 
-    parseFundingHistory (contract: any, market: Market = undefined) {
+    parseFundingHistory (contract: Dict, market: Market = undefined) {
         //
         //     {
         //         "billId": "1111499428100472833",
@@ -10291,7 +10291,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransfers (data, currency, since, limit);
     }
 
@@ -10432,7 +10432,7 @@ export default class bitget extends Exchange {
         //         "transfer": "true""
         //     }
         //
-        const chains = this.safeList (fee, 'chains', []);
+        const chains: Dict[] = this.safeList (fee, 'chains', []);
         const chainsLength = chains.length;
         const result: Dict = {
             'info': fee,
@@ -10829,7 +10829,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const liquidations = this.safeList (data, 'resultList', []);
+        const liquidations: Dict[] = this.safeList (data, 'resultList', []);
         return this.parseLiquidations (liquidations, market, since, limit);
     }
 
@@ -11221,7 +11221,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'resultList', []);
+        const rows: Dict[] = this.safeList (data, 'resultList', []);
         const interest = this.parseBorrowInterests (rows, market);
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
@@ -11584,7 +11584,7 @@ export default class bitget extends Exchange {
             //
         }
         const data = this.safeDict (response, 'data', {});
-        const responseList = this.safeList (data, 'list', []);
+        const responseList: Dict[] = this.safeList (data, 'list', []);
         const positions = this.parsePositions (responseList, symbols, params);
         return this.filterBySinceLimit (positions, since, limit);
     }
@@ -11746,7 +11746,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const dataList = this.safeList (data, 'dataList', []);
+        const dataList: Dict[] = this.safeList (data, 'dataList', []);
         return this.parseConversions (dataList, code, 'fromCoin', 'toCoin', since, limit);
     }
 
@@ -11834,7 +11834,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const result: Dict = {};
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const id = this.safeString (entry, 'coin');

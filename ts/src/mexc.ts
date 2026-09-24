@@ -1180,7 +1180,7 @@ export default class mexc extends Exchange {
         const id = this.safeString (rawCurrency, 'coin');
         const code = this.safeCurrencyCode (id);
         const networks: Dict = {};
-        const chains = this.safeList (rawCurrency, 'networkList', []);
+        const chains: Dict[] = this.safeList (rawCurrency, 'networkList', []);
         for (let j = 0; j < chains.length; j++) {
             const chain = chains[j];
             const networkId = this.safeString2 (chain, 'netWork', 'network');
@@ -1298,7 +1298,7 @@ export default class mexc extends Exchange {
         // Notes:
         // - 'quoteAssetPrecision' & 'baseAssetPrecision' are not currency's real blockchain precision (to view currency's actual individual precision, refer to fetchCurrencies() method).
         //
-        const data = this.safeList (response, 'symbols', []);
+        const data: Dict[] = this.safeList (response, 'symbols', []);
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -1430,7 +1430,7 @@ export default class mexc extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -2523,7 +2523,7 @@ export default class mexc extends Exchange {
      * @param {int} [params.positionMode] 1:hedge, 2:one-way, default: the user's current config
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createSwapOrder (market: any, type: any, side: any, amount: any, price: Num = undefined, marginMode: Str = undefined, params = {}) {
+    async createSwapOrder (market: any, type: any, side: any, amount: any, price: Num = undefined, marginMode: Str = undefined, params = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2949,8 +2949,8 @@ export default class mexc extends Exchange {
             }
             let method = this.safeString (this.options, 'fetchOrders', 'contractPrivateGetOrderListHistoryOrders');
             method = this.safeString (query, 'method', method);
-            let ordersOfRegular = [];
-            let ordersOfTrigger = [];
+            let ordersOfRegular: List = [];
+            let ordersOfTrigger: List = [];
             if (method === 'contractPrivateGetOrderListHistoryOrders') {
                 const response = await this.contractPrivateGetOrderListHistoryOrders (this.extend (request, query));
                 //
@@ -3172,7 +3172,7 @@ export default class mexc extends Exchange {
                 request['page_size'] = 100; // max
             }
             const swapResponse = await this.contractPrivateGetOrderListOpenOrders (this.extend (request, params));
-            const data = this.safeList (swapResponse, 'data', []);
+            const data: Dict[] = this.safeList (swapResponse, 'data', []);
             return this.parseOrders (data, market, since, limit, params);
         }
     }
@@ -3457,7 +3457,7 @@ export default class mexc extends Exchange {
             //         "code": "0"
             //     }
             //
-            const data = this.safeList (response, 'data', []);
+            const data: Dict[] = this.safeList (response, 'data', []);
             return this.parseOrders (data, market);
         }
     }
@@ -3828,7 +3828,7 @@ export default class mexc extends Exchange {
             await this.loadMarkets ();
         }
         const response = await this.fetchAccountHelper (marketType, query);
-        const data = this.safeList (response, 'balances', []);
+        const data: Dict[] = this.safeList (response, 'balances', []);
         const result: Account[] = [];
         for (let i = 0; i < data.length; i++) {
             const account = data[i];
@@ -4480,7 +4480,7 @@ export default class mexc extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const resultList = this.safeList (data, 'resultList', []);
+        const resultList: Dict[] = this.safeList (data, 'resultList', []);
         const result: Dict[] = [];
         for (let i = 0; i < resultList.length; i++) {
             const entry = resultList[i];
@@ -4653,7 +4653,7 @@ export default class mexc extends Exchange {
         //    }
         //
         const data = this.safeDict (response, 'data');
-        const result = this.safeList (data, 'resultList', []);
+        const result: Dict[] = this.safeList (data, 'resultList', []);
         const rates: FundingRateHistory[] = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
@@ -5261,7 +5261,7 @@ export default class mexc extends Exchange {
         //         "data": []
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parsePositions (data);
     }
 
@@ -5330,7 +5330,7 @@ export default class mexc extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parsePositions (data, symbols);
     }
 
@@ -5909,7 +5909,7 @@ export default class mexc extends Exchange {
         return this.parseTransactionFees (response, codes);
     }
 
-    parseTransactionFees (response: any[], codes: Strings = undefined): Dict {
+    parseTransactionFees (response: Dict[], codes: Strings = undefined): Dict {
         const withdrawFees: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -5954,7 +5954,7 @@ export default class mexc extends Exchange {
         //        ]
         //    }
         //
-        const networkList = this.safeList (transaction, 'networkList', []);
+        const networkList: Dict[] = this.safeList (transaction, 'networkList', []);
         const result: Dict = {};
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
@@ -6039,7 +6039,7 @@ export default class mexc extends Exchange {
         //        ]
         //    }
         //
-        const networkList = this.safeList (fee, 'networkList', []);
+        const networkList: Dict[] = this.safeList (fee, 'networkList', []);
         const result = this.depositWithdrawFee (fee);
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
@@ -6227,7 +6227,7 @@ export default class mexc extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const positions = this.parsePositions (data, symbols, params);
         return this.filterBySinceLimit (positions, since, limit);
     }

@@ -2093,7 +2093,7 @@ export default class gate extends Exchange {
         const code = this.safeCurrencyCode (currencyId);
         // check leveraged tokens (e.g. BTC3S, ETH5L)
         const type = this.isLeveragedCurrency (currencyId) ? 'leveraged' : 'crypto';
-        const chains = this.safeList (rawCurrency, 'chains', []);
+        const chains: Dict[] = this.safeList (rawCurrency, 'chains', []);
         const networks: Dict = {};
         for (let j = 0; j < chains.length; j++) {
             const chain = chains[j];
@@ -2416,7 +2416,7 @@ export default class gate extends Exchange {
             'currency': currency['id'],
         };
         const response = await this.privateWalletGetDepositAddress (this.extend (request, params));
-        const chains = this.safeList (response, 'multichain_addresses', []);
+        const chains: Dict[] = this.safeList (response, 'multichain_addresses', []);
         const currencyId = this.safeString (response, 'currency');
         currency = this.safeCurrency (currencyId, currency);
         const parsed = this.parseDepositAddresses (chains, undefined, false);
@@ -2784,7 +2784,7 @@ export default class gate extends Exchange {
         return this.parseFundingHistories (response, symbol, since, limit);
     }
 
-    parseFundingHistories (response: any, symbol: any, since: Int, limit: Int): FundingHistory[] {
+    parseFundingHistories (response: any, symbol: Str, since: Int, limit: Int): FundingHistory[] {
         const result: FundingHistory[] = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -2795,7 +2795,7 @@ export default class gate extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    parseFundingHistory (info: any, market: Market = undefined) {
+    parseFundingHistory (info: Dict, market: Market = undefined) {
         //
         //    {
         //        "time": 1646899200,
@@ -7009,7 +7009,7 @@ export default class gate extends Exchange {
         return this.parseMarginLoan (response, currency);
     }
 
-    parseMarginLoan (info: any, currency: Currency = undefined): MarginLoan {
+    parseMarginLoan (info: NullableDict, currency: Currency = undefined): MarginLoan {
         //
         // Cross
         //
@@ -7558,7 +7558,7 @@ export default class gate extends Exchange {
             response = await this.privateOptionsGetMySettlements (this.extend (request, params));
         }
         const result = this.safeDict (response, 'result', {});
-        const data = this.safeList (result, 'list', []);
+        const data: Dict[] = this.safeList (result, 'list', []);
         const settlements = this.parseSettlements (data, market);
         const sorted = this.sortBy (settlements, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);

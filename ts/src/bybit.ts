@@ -1769,7 +1769,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const list = this.safeList (result, 'list', []);
+        const list: Dict[] = this.safeList (result, 'list', []);
         let status = 'ok';
         let eta: Int = undefined;
         let url: Str = undefined;
@@ -1875,7 +1875,7 @@ export default class bybit extends Exchange {
         const currencyId = this.safeString (currency, 'coin');
         const code = this.safeCurrencyCode (currencyId);
         const name = this.safeString (currency, 'name');
-        const chains = this.safeList (currency, 'chains', []);
+        const chains: Dict[] = this.safeList (currency, 'chains', []);
         const networks: Dict = {};
         for (let j = 0; j < chains.length; j++) {
             const chain = chains[j];
@@ -2037,7 +2037,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const responseResult = this.safeDict (response, 'result', {});
-        const markets = this.safeList (responseResult, 'list', []);
+        const markets: Dict[] = this.safeList (responseResult, 'list', []);
         const result: List = [];
         const takerFee = this.parseNumber ('0.001');
         const makerFee = this.parseNumber ('0.001');
@@ -2756,7 +2756,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const tickerList = this.safeList (result, 'list', []);
+        const tickerList: Dict[] = this.safeList (result, 'list', []);
         return this.parseTickers (tickerList, parsedSymbols);
     }
 
@@ -3054,7 +3054,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'result', {});
-        const tickerList = this.safeList (data, 'list', []);
+        const tickerList: Dict[] = this.safeList (data, 'list', []);
         const timestamp = this.safeInteger (response, 'time');
         for (let i = 0; i < tickerList.length; i++) {
             tickerList[i]['timestamp'] = timestamp; // will be removed inside the parser
@@ -3146,7 +3146,7 @@ export default class bybit extends Exchange {
         //
         const rates: List = [];
         const result = this.safeDict (response, 'result');
-        const resultList = this.safeList (result, 'list', []);
+        const resultList: Dict[] = this.safeList (result, 'list', []);
         for (let i = 0; i < resultList.length; i++) {
             const entry = resultList[i];
             const timestamp = this.safeInteger (entry, 'fundingRateTimestamp');
@@ -3457,7 +3457,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const trades = this.safeList (result, 'list', []);
+        const trades: Dict[] = this.safeList (result, 'list', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -3654,7 +3654,7 @@ export default class bybit extends Exchange {
                 const entry = currencyList[i];
                 const accountType = this.safeString (entry, 'accountType');
                 if (accountType === 'UNIFIED' || accountType === 'CONTRACT' || accountType === 'SPOT') {
-                    const coins = this.safeList (entry, 'coin', []);
+                    const coins: Dict[] = this.safeList (entry, 'coin', []);
                     for (let j = 0; j < coins.length; j++) {
                         const account = this.account ();
                         const coinEntry = coins[j];
@@ -4603,7 +4603,7 @@ export default class bybit extends Exchange {
         const result = this.safeDict (response, 'result', {});
         const data = this.safeList (result, 'list', []);
         const retInfo = this.safeDict (response, 'retExtInfo', {});
-        const codes = this.safeList (retInfo, 'list', []);
+        const codes: Dict[] = this.safeList (retInfo, 'list', []);
         // extend the error with the unsuccessful orders
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
@@ -4828,7 +4828,7 @@ export default class bybit extends Exchange {
         const result = this.safeDict (response, 'result', {});
         const data = this.safeList (result, 'list', []);
         const retInfo = this.safeDict (response, 'retExtInfo', {});
-        const codes = this.safeList (retInfo, 'list', []);
+        const codes: Dict[] = this.safeList (retInfo, 'list', []);
         // extend the error with the unsuccessful orders
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
@@ -5023,7 +5023,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const row = this.safeList (result, 'list', []);
+        const row: Dict[] = this.safeList (result, 'list', []);
         return this.parseOrders (row, market);
     }
 
@@ -6034,7 +6034,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const chains = this.safeList (result, 'chains', []);
+        const chains: Dict[] = this.safeList (result, 'chains', []);
         const coin = this.safeString (result, 'coin');
         const currencyFromResponse = this.currency (coin);
         const parsed = this.parseDepositAddresses (chains, [ currencyFromResponse['code'] ], false, {
@@ -6581,7 +6581,7 @@ export default class bybit extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type: any) {
+    parseLedgerEntryType (type: Str) {
         const types: Dict = {
             'Deposit': 'transaction',
             'Withdraw': 'transaction',
@@ -7927,7 +7927,7 @@ export default class bybit extends Exchange {
         });
     }
 
-    parseMarginLoan (info: any, currency: Currency = undefined): MarginLoan {
+    parseMarginLoan (info: Dict, currency: Currency = undefined): MarginLoan {
         //
         // borrowCrossMargin
         //
@@ -8203,7 +8203,7 @@ export default class bybit extends Exchange {
         //        ]
         //    }
         //
-        const chains = this.safeList (fee, 'chains', []);
+        const chains: Dict[] = this.safeList (fee, 'chains', []);
         const chainsLength = chains.length;
         const result: Dict = {
             'info': fee,
@@ -8341,7 +8341,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const data = this.safeList (result, 'list', []);
+        const data: Dict[] = this.safeList (result, 'list', []);
         const settlements = this.parseSettlements (data, market);
         const sorted = this.sortBy (settlements, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, this.safeString (market, 'symbol'), since, limit);
@@ -8405,7 +8405,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const data = this.safeList (result, 'list', []);
+        const data: Dict[] = this.safeList (result, 'list', []);
         const settlements = this.parseSettlements (data, market);
         const sorted = this.sortBy (settlements, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, this.safeString (market, 'symbol'), since, limit);
@@ -8600,7 +8600,7 @@ export default class bybit extends Exchange {
         //
         const timestamp = this.safeInteger (response, 'time');
         const result = this.safeDict (response, 'result', {});
-        const data = this.safeList (result, 'list', []);
+        const data: Dict[] = this.safeList (result, 'list', []);
         const greeks = this.parseGreeks (data[0], market);
         return this.extend (greeks, {
             'timestamp': timestamp,
@@ -9434,7 +9434,7 @@ export default class bybit extends Exchange {
         //
         const result: Dict = {};
         const data = this.safeDict (response, 'result', {});
-        const coins = this.safeList (data, 'coins', []);
+        const coins: Dict[] = this.safeList (data, 'coins', []);
         for (let i = 0; i < coins.length; i++) {
             const entry = coins[i];
             const id = this.safeString (entry, 'coin');
@@ -9683,7 +9683,7 @@ export default class bybit extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'result', {});
-        const dataList = this.safeList (data, 'list', []);
+        const dataList: Dict[] = this.safeList (data, 'list', []);
         return this.parseConversions (dataList, code, 'fromCoin', 'toCoin', since, limit);
     }
 

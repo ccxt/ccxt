@@ -1377,7 +1377,7 @@ export default class bitvavo extends Exchange {
         //         "limit": 25
         //     }
         //
-        const items = this.safeList (response, 'items', []);
+        const items: Dict[] = this.safeList (response, 'items', []);
         return this.parseTransfers (items, currency, since, limit);
     }
 
@@ -2142,7 +2142,7 @@ export default class bitvavo extends Exchange {
         }
         const rawTrades = this.safeList (order, 'fills', []);
         const timeInForce = this.safeString (order, 'timeInForce');
-        const postOnly = this.safeValue (order, 'postOnly');
+        const postOnly = this.safeBool (order, 'postOnly');
         // https://github.com/ccxt/ccxt/issues/8489
         return this.safeOrder ({
             'info': order,
@@ -2290,7 +2290,7 @@ export default class bitvavo extends Exchange {
         //         "maxItems": 100
         //     }
         //
-        const items = this.safeList (response, 'items', []);
+        const items: Dict[] = this.safeList (response, 'items', []);
         return this.parseLedger (items, currency, since, limit);
     }
 

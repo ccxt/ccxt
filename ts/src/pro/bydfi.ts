@@ -4,7 +4,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import bydfiRest from '../bydfi.js';
 import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
-import type { Balances, Dict, Int, Market, FeeString, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, List } from '../base/types.js';
+import type { Dictionary, Balances, Dict, Int, Market, FeeString, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, List } from '../base/types.js';
 import { ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
@@ -340,7 +340,7 @@ export default class bydfi extends bydfiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
+    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dictionary<Dictionary<OHLCV[]>>> {
         const symbolsLength = symbolsAndTimeframes.length;
         if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
             throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
@@ -978,7 +978,7 @@ export default class bydfi extends bydfiRest {
         const messageHash = 'balance';
         if (messageHash in client.futures) {
             const data = this.safeDict (message, 'a', {});
-            const balances = this.safeList (data, 'B', []);
+            const balances: Dict[] = this.safeList (data, 'B', []);
             const timestamp = this.safeInteger (message, 'T');
             const result: Dict = {
                 'info': message,

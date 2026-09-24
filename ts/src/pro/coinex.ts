@@ -155,7 +155,7 @@ export default class coinex extends coinexRest {
         //
         const defaultType = this.safeString (this.options, 'defaultType');
         const data = this.safeDict (message, 'data', {});
-        const rawTickers = this.safeList (data, 'state_list', []);
+        const rawTickers: Dict[] = this.safeList (data, 'state_list', []);
         const newTickers: Dict = {};
         for (let i = 0; i < rawTickers.length; i++) {
             const entry = rawTickers[i];
@@ -545,7 +545,7 @@ export default class coinex extends coinexRest {
         //     }
         //
         const data = this.safeDict (message, 'data', {});
-        const trades = this.safeList (data, 'deal_list', []);
+        const trades: Dict[] = this.safeList (data, 'deal_list', []);
         const marketId = this.safeString (data, 'market');
         const isSpot = client.url.indexOf ('spot') > -1;
         const defaultType = isSpot ? 'spot' : 'swap';

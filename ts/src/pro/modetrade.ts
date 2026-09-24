@@ -181,7 +181,7 @@ export default class modetrade extends modetradeRest {
         return await this.watchPublic (topic, message);
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "symbol": "PERP_BTC_USDC",
@@ -1116,7 +1116,7 @@ export default class modetrade extends modetradeRest {
         //    }
         //
         const data = this.safeDict (message, 'data', {});
-        const rawPositions = this.safeList (data, 'positions', []);
+        const rawPositions: Dict[] = this.safeList (data, 'positions', []);
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
@@ -1135,7 +1135,7 @@ export default class modetrade extends modetradeRest {
         client.resolve (newPositions, 'positions');
     }
 
-    parseWsPosition (position: any, market: Market = undefined) {
+    parseWsPosition (position: Dict, market: Market = undefined): Position {
         //
         //     {
         //         "symbol":"PERP_ETH_USDC",
@@ -1286,7 +1286,7 @@ export default class modetrade extends modetradeRest {
         client.resolve (this.balance, 'balance');
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         //

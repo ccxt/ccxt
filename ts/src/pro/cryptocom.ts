@@ -606,7 +606,7 @@ export default class cryptocom extends cryptocomRest {
         const messageHash = this.safeString (message, 'subscription');
         const marketId = this.safeString (message, 'instrument_name');
         const market = this.safeMarket (marketId);
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const ticker = data[i];
             const parsed = this.parseWsTicker (ticker, market);
@@ -717,7 +717,7 @@ export default class cryptocom extends cryptocomRest {
         client.resolve (parsedTicker, messageHash);
     }
 
-    parseWsBidAsk (ticker: any, market: Market = undefined) {
+    parseWsBidAsk (ticker: Dict, market: Market = undefined): Ticker {
         const marketId = this.safeString (ticker, 'i');
         market = this.safeMarket (marketId, market);
         const symbol = this.safeString (market, 'symbol');
@@ -804,7 +804,7 @@ export default class cryptocom extends cryptocomRest {
         const interval = this.safeString (message, 'interval');
         const timeframe = this.findTimeframe (interval);
         this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
+        let stored = this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
@@ -1011,7 +1011,7 @@ export default class cryptocom extends cryptocomRest {
         // and has exactly one subscriptionhash which is the account type
         const data = this.safeList (message, 'data', []);
         const firstData = this.safeDict (data, 0, {});
-        const rawPositions = this.safeList (firstData, 'positions', []);
+        const rawPositions: Dict[] = this.safeList (firstData, 'positions', []);
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
@@ -1098,7 +1098,7 @@ export default class cryptocom extends cryptocomRest {
         //
         const messageHash = this.safeString (message, 'subscription');
         const data = this.safeList (message, 'data', []);
-        const positionBalances = this.safeList (data[0], 'position_balances', []);
+        const positionBalances: Dict[] = this.safeList (data[0], 'position_balances', []);
         this.balance['info'] = data;
         for (let i = 0; i < positionBalances.length; i++) {
             const balance = positionBalances[i];
@@ -1330,7 +1330,7 @@ export default class cryptocom extends cryptocomRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         //
         //    {
         //        "id": 0,
@@ -1502,8 +1502,8 @@ export default class cryptocom extends cryptocomRest {
                 if (id !== subId) {
                     continue;
                 }
-                const messageHashes = this.safeList (subscription, 'messageHashes', []);
-                const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+                const messageHashes: string[] = this.safeList (subscription, 'messageHashes', []);
+                const subMessageHashes: string[] = this.safeList (subscription, 'subMessageHashes', []);
                 for (let j = 0; j < messageHashes.length; j++) {
                     const unsubHash = messageHashes[j];
                     const subHash = subMessageHashes[j];

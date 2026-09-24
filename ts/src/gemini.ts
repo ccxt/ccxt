@@ -684,7 +684,7 @@ export default class gemini extends Exchange {
         if ('test' in this.urls) {
             return []; // sandbox does not have usdt markets
         }
-        const fetchUsdtMarkets = this.safeList (this.options, 'fetchUsdtMarkets', []);
+        const fetchUsdtMarkets: string[] = this.safeList (this.options, 'fetchUsdtMarkets', []);
         const result: List = [];
         for (let i = 0; i < fetchUsdtMarkets.length; i++) {
             const marketId = fetchUsdtMarkets[i];

@@ -777,7 +777,7 @@ export default class bitrue extends Exchange {
         const id = this.safeString (rawCurrency, 'coin');
         const name = this.safeString (rawCurrency, 'coinFulName');
         const code = this.safeCurrencyCode (id);
-        const networkDetails = this.safeList (rawCurrency, 'chainDetail', []);
+        const networkDetails: Dict[] = this.safeList (rawCurrency, 'chainDetail', []);
         const networks: Dict = {};
         for (let j = 0; j < networkDetails.length; j++) {
             const entry = networkDetails[j];
@@ -2695,7 +2695,7 @@ export default class bitrue extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -2757,7 +2757,7 @@ export default class bitrue extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency);
     }
 
@@ -2969,7 +2969,7 @@ export default class bitrue extends Exchange {
         //       "chainDetail": [ [Object] ]
         //   }
         //
-        const chainDetails = this.safeList (fee, 'chainDetail', []);
+        const chainDetails: Dict[] = this.safeList (fee, 'chainDetail', []);
         const chainDetailLength = chainDetails.length;
         const result: Dict = {
             'info': fee,
@@ -3115,7 +3115,7 @@ export default class bitrue extends Exchange {
         //         }]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransfers (data, currency, since, limit);
     }
 

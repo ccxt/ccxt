@@ -181,7 +181,7 @@ export default class woofipro extends woofiproRest {
         return await this.watchPublic (topic, message);
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "symbol": "PERP_BTC_USDC",
@@ -922,7 +922,7 @@ export default class woofipro extends woofiproRest {
         }
     }
 
-    handleOrder (client: Client, message: Dict, topic: any) {
+    handleOrder (client: Client, message: Dict, topic: Str) {
         const parsed = this.parseWsOrder (message);
         const symbol = this.safeString (parsed, 'symbol');
         const orderId = this.safeString (parsed, 'id');
@@ -1117,7 +1117,7 @@ export default class woofipro extends woofiproRest {
         //    }
         //
         const data = this.safeDict (message, 'data', {});
-        const rawPositions = this.safeList (data, 'positions', []);
+        const rawPositions: Dict[] = this.safeList (data, 'positions', []);
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }

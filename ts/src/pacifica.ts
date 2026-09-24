@@ -562,7 +562,7 @@ export default class pacifica extends Exchange {
         });
     }
 
-    async initializeClient () {
+    async initializeClient (): Promise<boolean> {
         try {
             await this.handleBuilderFeeApproval ();
         } catch (e) {
@@ -571,7 +571,7 @@ export default class pacifica extends Exchange {
         return true;
     }
 
-    async handleBuilderFeeApproval () {
+    async handleBuilderFeeApproval (): Promise<boolean> {
         if (this.isSandboxModeEnabled) { // At this stage, building codes are mostly only on the mainnet.
             return false;
         }
@@ -643,7 +643,7 @@ export default class pacifica extends Exchange {
         //   "error": null,
         //   "code": null
         // }
-        const markets = this.safeList (response, 'data', []);
+        const markets: Dict[] = this.safeList (response, 'data', []);
         return this.parseMarkets (markets);
     }
 
@@ -857,7 +857,7 @@ export default class pacifica extends Exchange {
         usdcAccount['total'] = this.safeString (data, 'balance');
         usdcAccount['used'] = this.safeString (data, 'total_margin_used');
         result['USDC'] = usdcAccount;
-        const spotBalances = this.safeList (data, 'spot_balances', []);
+        const spotBalances: Dict[] = this.safeList (data, 'spot_balances', []);
         for (let i = 0; i < spotBalances.length; i++) {
             const balance = spotBalances[i];
             const currencyId = this.safeString (balance, 'symbol');
@@ -981,7 +981,7 @@ export default class pacifica extends Exchange {
         return this.parseAccountSettings (this.safeList (response, 'data', []));
     }
 
-    async loadAccountSettings (refresh: boolean = false, params: Dict = {}) {
+    async loadAccountSettings (refresh: boolean = false, params: Dict = {}): Promise<void> {
         let settings = this.handleOption ('loadAccountSettings', 'settings');
         if ((settings === undefined) || (refresh === true)) {
             this.options['settings'] = this.createSafeDictionary ();
@@ -990,7 +990,7 @@ export default class pacifica extends Exchange {
         }
     }
 
-    parseAccountSettings (settings: any[]): Dict {
+    parseAccountSettings (settings: Dict[]): Dict {
         const settingsLen = settings.length;
         if (settingsLen === 0) {
             return {};
@@ -1169,7 +1169,7 @@ export default class pacifica extends Exchange {
         //     "code": null
         //   }
         //
-        const result = this.safeList (response, 'data', []);
+        const result: Dict[] = this.safeList (response, 'data', []);
         return this.parseFundingRates (result, symbols);
     }
 
@@ -1360,7 +1360,7 @@ export default class pacifica extends Exchange {
         //   "last_order_id": 1557404170
         // }
         //
-        const recentTrades = this.safeList (response, 'data', []);
+        const recentTrades: Dict[] = this.safeList (response, 'data', []);
         return this.parseTrades (recentTrades, market, since, limit);
     }
 
@@ -1802,7 +1802,7 @@ export default class pacifica extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const results = this.safeList (data, 'results', []);
+        const results: Dict[] = this.safeList (data, 'results', []);
         const ordersToReturn: Order[] = [];
         for (let i = 0; i < results.length; i++) {
             const order = results[i];
@@ -1863,7 +1863,7 @@ export default class pacifica extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const results = this.safeList (data, 'results', []);
+        const results: Dict[] = this.safeList (data, 'results', []);
         const ordersToReturn: Order[] = [];
         for (let i = 0; i < results.length; i++) {
             const order = results[i];
@@ -2198,7 +2198,7 @@ export default class pacifica extends Exchange {
         //   "code": null
         // }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const info = data[i];
@@ -2358,7 +2358,7 @@ export default class pacifica extends Exchange {
         //   "last_order_id": 1557370337
         // }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -2433,7 +2433,7 @@ export default class pacifica extends Exchange {
     }
 
     addPaginationCursorToResult (response: Dict): any[] {
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const paginationCursor = this.safeString (response, 'next_cursor');
         const hasMore = this.safeBool (response, 'has_more', false);
         const dataLength = data.length;
@@ -3010,7 +3010,7 @@ export default class pacifica extends Exchange {
         }
         symbols = this.marketSymbols (symbols);
         const response = await this.publicGetInfoPrices (params);
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseOpenInterests (data, symbols) as OpenInterests;
     }
 
@@ -3462,7 +3462,7 @@ export default class pacifica extends Exchange {
         return await this.privatePostAccountBuilderCodesApprove (this.extend (request, params));
     }
 
-    async fetchBuilderApprovals (address: string) {
+    async fetchBuilderApprovals (address: string): Promise<Dict> {
         const request: Dict = {
             'account': address,
         };

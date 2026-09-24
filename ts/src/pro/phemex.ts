@@ -1175,7 +1175,7 @@ export default class phemex extends phemexRest {
         //    ]
         //
         let trades: List = [];
-        const parsedOrders: List = [];
+        const parsedOrders: Dict[] = [];
         if (('closed' in message) || ('fills' in message) || ('open' in message)) {
             const closed = this.safeList (message, 'closed', []);
             const open = this.safeList (message, 'open', []);

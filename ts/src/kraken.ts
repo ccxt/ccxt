@@ -1052,13 +1052,13 @@ export default class kraken extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        let orderbook = this.safeValue (result, market['id']);
+        let orderbook = this.safeDict (result, market['id']);
         // sometimes kraken returns wsname instead of market id
         // https://github.com/ccxt/ccxt/issues/8662
         const marketInfo = this.safeDict (market, 'info', {});
         const wsName = this.safeString (marketInfo, 'wsname');
         if (wsName !== undefined) {
-            orderbook = this.safeValue (result, wsName, orderbook);
+            orderbook = this.safeDict (result, wsName, orderbook);
         }
         return this.parseOrderBook (orderbook, symbol);
     }
@@ -1857,7 +1857,7 @@ export default class kraken extends Exchange {
         if (id === undefined) {
             return id;
         }
-        let market = this.safeValue (this.options['delistedMarketsById'], id);
+        let market = this.safeDict (this.options['delistedMarketsById'], id);
         if (market !== undefined) {
             return market;
         }
@@ -3085,7 +3085,7 @@ export default class kraken extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionsByType (type: any, transactions: any, code: Str = undefined, since: Int = undefined, limit: Int = undefined) {
+    parseTransactionsByType (type: string, transactions: any, code: Str = undefined, since: Int = undefined, limit: Int = undefined) {
         const result: List = [];
         for (let i = 0; i < transactions.length; i++) {
             const transaction = this.parseTransaction (this.extend ({
@@ -3580,7 +3580,7 @@ export default class kraken extends Exchange {
         });
     }
 
-    parseAccountType (account: any) {
+    parseAccountType (account: Str) {
         const accountByType: Dict = {
             'spot': 'Spot Wallet',
             'swap': 'Futures Wallet',
@@ -3751,7 +3751,7 @@ export default class kraken extends Exchange {
                 if ('result' in response) {
                     const result = this.safeDict (response, 'result', {});
                     if ('orders' in result) {
-                        const orders = this.safeList (result, 'orders', []);
+                        const orders: Dict[] = this.safeList (result, 'orders', []);
                         for (let i = 0; i < orders.length; i++) {
                             const order = orders[i];
                             const error = this.safeString (order, 'error');

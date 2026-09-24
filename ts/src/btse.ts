@@ -1004,7 +1004,7 @@ export default class btse extends Exchange {
         if (until === undefined) {
             return rates;
         }
-        const result = [];
+        const result: FundingRateHistory[] = [];
         for (let i = 0; i < rates.length; i++) {
             const rate = rates[i];
             const timestamp = this.safeInteger (rate, 'timestamp');
@@ -1110,7 +1110,7 @@ export default class btse extends Exchange {
             if (assets !== undefined) {
                 // futures wallet row: per-currency totals in assets, locked amounts in assetsInUse
                 // several wallet rows can report the same currency, so amounts are aggregated
-                const inUse = this.safeList (row, 'assetsInUse', []);
+                const inUse: Dict[] = this.safeList (row, 'assetsInUse', []);
                 for (let j = 0; j < inUse.length; j++) {
                     const usedRow = inUse[j];
                     const usedCode = this.safeCurrencyCode (this.safeString (usedRow, 'currency'));
@@ -1204,8 +1204,8 @@ export default class btse extends Exchange {
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
             if (symbols === undefined || this.inArray (symbol, symbols)) {
-                const levels = this.safeList (entry, 'riskLimits', []);
-                const tiers = [];
+                const levels: Dict[] = this.safeList (entry, 'riskLimits', []);
+                const tiers: Dict[] = [];
                 for (let j = 0; j < levels.length; j++) {
                     const level = levels[j];
                     // the endpoint only reports the notional ladder, the
@@ -1278,7 +1278,7 @@ export default class btse extends Exchange {
         // the unified endpoint serves all market types in one call, the legacy type param is accepted and ignored
         params = this.omit (params, 'type');
         const response = await this.publicGetPublicApiMarketV1Ticker24hr (params);
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTickers (data, symbols);
     }
 
@@ -1425,8 +1425,8 @@ export default class btse extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const response = await this.publicGetPublicApiMarketV1Ticker24hr (params);
-        const data = this.safeList (response, 'data', []);
-        const rows = [];
+        const data: Dict[] = this.safeList (response, 'data', []);
+        const rows: Dict[] = [];
         for (let i = 0; i < data.length; i++) {
             const row = data[i];
             // spot rows do not carry an open interest
@@ -1494,8 +1494,8 @@ export default class btse extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const response = await this.publicGetPublicApiMarketV1Ticker24hr (params);
-        const data = this.safeList (response, 'data', []);
-        const rows = [];
+        const data: Dict[] = this.safeList (response, 'data', []);
+        const rows: Dict[] = [];
         for (let i = 0; i < data.length; i++) {
             const row = data[i];
             // spot rows do not carry a funding rate
@@ -1612,12 +1612,12 @@ export default class btse extends Exchange {
         //         "time": 1786605671650
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const trades = this.parseTrades (data, market, since, limit);
         if (until === undefined) {
             return trades;
         }
-        const result = [];
+        const result: Trade[] = [];
         for (let i = 0; i < trades.length; i++) {
             const trade = trades[i];
             const timestamp = this.safeInteger (trade, 'timestamp');
@@ -2902,7 +2902,7 @@ export default class btse extends Exchange {
         //         "success": true
         //     }
         //
-        const rawRows = this.safeList (response, 'data', response as any);
+        const rawRows: Dict[] = this.safeList (response, 'data', response as any);
         // the requested types are also filtered client side over both the legacy
         // and the unified enum vocabularies as the legacy endpoint ignored the
         // filter and returned the whole mixed ledger
@@ -2912,7 +2912,7 @@ export default class btse extends Exchange {
             allowed[historyType] = true;
             allowed[this.capitalize (historyType.toLowerCase ())] = true;
         }
-        const rows = [];
+        const rows: Dict[] = [];
         for (let i = 0; i < rawRows.length; i++) {
             const entry = rawRows[i];
             const type = this.safeString (entry, 'type', '');

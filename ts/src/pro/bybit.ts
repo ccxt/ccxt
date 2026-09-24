@@ -6,7 +6,7 @@ import bybitRest from '../bybit.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, BadRequest, NotSupported } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Dict, Liquidation, Bool, Market, NullableList, NullableDict } from '../base/types.js';
+import type { Dictionary, Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Dict, Liquidation, Bool, Market, NullableList, NullableDict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -665,7 +665,7 @@ export default class bybit extends bybitRest {
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
     }
 
-    parseWsBidAsk (orderbook: any, market: Market = undefined) {
+    parseWsBidAsk (orderbook: any, market: Market = undefined): Ticker {
         const timestamp = this.safeInteger (orderbook, 'timestamp');
         const bids = this.sortBy (this.aggregate (orderbook['bids']), 0);
         const asks = this.sortBy (this.aggregate (orderbook['asks']), 0);
@@ -714,7 +714,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
+    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dictionary<Dictionary<OHLCV[]>>> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1660,7 +1660,7 @@ export default class bybit extends bybitRest {
         }
         const cache = this.positions;
         const newPositions: Position[] = [];
-        const rawPositions = this.safeList (message, 'data', []);
+        const rawPositions: Dict[] = this.safeList (message, 'data', []);
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parsePosition (rawPosition);
@@ -1782,7 +1782,7 @@ export default class bybit extends bybitRest {
         //     }
         //
         if (Array.isArray (message['data'])) {
-            const rawLiquidations = this.safeList (message, 'data', []);
+            const rawLiquidations: Dict[] = this.safeList (message, 'data', []);
             for (let i = 0; i < rawLiquidations.length; i++) {
                 const rawLiquidation = rawLiquidations[i];
                 const marketId = this.safeString (rawLiquidation, 's');
@@ -1815,7 +1815,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    parseWsLiquidation (liquidation: any, market: Market = undefined) {
+    parseWsLiquidation (liquidation: Dict, market: Market = undefined) {
         //
         //     {
         //         "price": "0.03803",
@@ -2276,7 +2276,7 @@ export default class bybit extends bybitRest {
         let account: Str = undefined;
         if (topic === 'outboundAccountInfo') {
             account = 'spot';
-            const data = this.safeList (message, 'data', []);
+            const data: Dict[] = this.safeList (message, 'data', []);
             for (let i = 0; i < data.length; i++) {
                 const B = this.safeList (data[i], 'B', []);
                 rawBalances = this.arrayConcat (rawBalances, B);
@@ -2773,7 +2773,7 @@ export default class bybit extends bybitRest {
                 if (reqId !== subId) {
                     continue;
                 }
-                const messageHashes = this.safeList (subscription, 'messageHashes', []);
+                const messageHashes: string[] = this.safeList (subscription, 'messageHashes', []);
                 const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
                 for (let j = 0; j < messageHashes.length; j++) {
                     const unsubHash = messageHashes[j];

@@ -390,7 +390,7 @@ export default class zebpay extends Exchange {
         const code = this.safeCurrencyCode (currencyId);
         const name = this.safeString (rawCurrency, 'name');
         const precision = this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'precision')));
-        const chains = this.safeList (rawCurrency, 'chains', []);
+        const chains: Dict[] = this.safeList (rawCurrency, 'chains', []);
         const networks: Dict = {};
         let minWithdrawFeeString: Str = undefined;
         let minWithdrawString: Str = undefined;
@@ -700,7 +700,7 @@ export default class zebpay extends Exchange {
         //        }
         //     ]
         //
-        const tickerList = this.safeList (response, 'data', []);
+        const tickerList: Dict[] = this.safeList (response, 'data', []);
         return this.parseTickers (tickerList, symbols);
     }
 
@@ -1526,7 +1526,7 @@ export default class zebpay extends Exchange {
         //        ],
         //    }
         //
-        const positions = this.safeList (response, 'data', []);
+        const positions: Dict[] = this.safeList (response, 'data', []);
         const result = this.parsePositions (positions);
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
@@ -1641,7 +1641,7 @@ export default class zebpay extends Exchange {
         //
         const result: List = [];
         const data = this.safeDict (response, 'data', {});
-        const markets = this.safeList (data, 'symbols', []);
+        const markets: Dict[] = this.safeList (data, 'symbols', []);
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'symbol');
@@ -1720,7 +1720,7 @@ export default class zebpay extends Exchange {
         //
         const result: List = [];
         const data = this.safeDict (response, 'data', {});
-        const markets = this.safeList (data, 'symbols', []);
+        const markets: Dict[] = this.safeList (data, 'symbols', []);
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'symbol');
@@ -1772,7 +1772,7 @@ export default class zebpay extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const currencyList = this.safeList (response, 'data', []);
+        const currencyList: Dict[] = this.safeList (response, 'data', []);
         for (let i = 0; i < currencyList.length; i++) {
             const entry = currencyList[i];
             const account = this.account ();

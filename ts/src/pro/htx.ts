@@ -320,7 +320,7 @@ export default class htx extends htxRest {
         //     }
         //
         const tick = this.safeDict (message, 'tick', {});
-        const data = this.safeList (tick, 'data', []);
+        const data: Dict[] = this.safeList (tick, 'data', []);
         const ch = this.safeString (message, 'ch');
         if (ch === undefined) {
             return message;
@@ -426,7 +426,7 @@ export default class htx extends htxRest {
         const interval = this.safeString (parts, 3);
         const timeframe = this.findTimeframe (interval);
         this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
+        let stored = this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
@@ -434,7 +434,7 @@ export default class htx extends htxRest {
                 this.ohlcvs[symbol][timeframe] = stored;
             }
         }
-        const tick = this.safeValue (message, 'tick');
+        const tick = this.safeDict (message, 'tick');
         const parsed = this.parseOHLCV (tick, market);
         stored.append (parsed);
         client.resolve (stored, ch);
@@ -614,7 +614,7 @@ export default class htx extends htxRest {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
         const timestamp = this.safeInteger (message, 'ts');
-        const params = this.safeValue (subscription, 'params');
+        const params = this.safeDict (subscription, 'params');
         const attempts = this.safeInteger (subscription, 'numAttempts', 0);
         const market = this.market (symbol);
         const url = this.getUrlByMarketType (market['type'], market['linear'], false, true);
@@ -968,7 +968,7 @@ export default class htx extends htxRest {
         return [ channel, messageHash ];
     }
 
-    getV5LinearChannelAndMessageHash (topic: Str, market: Market = undefined, params: Dict = {}) {
+    getV5LinearChannelAndMessageHash (topic: Str, market: Market = undefined, params: Dict = {}): any[] {
         const contractCode = (market !== undefined) ? market['id'] : this.safeString (params, 'contract_code', '*');
         const channel = topic;
         let messageHash = topic;
@@ -2038,7 +2038,7 @@ export default class htx extends htxRest {
             }
             if (topic === 'account') {
                 const accountData = this.safeDict (message, 'data', {});
-                const details = this.safeList (accountData, 'details', []);
+                const details: Dict[] = this.safeList (accountData, 'details', []);
                 const detailsLength = details.length;
                 for (let i = 0; i < detailsLength; i++) {
                     const detail = details[i];
@@ -2193,8 +2193,8 @@ export default class htx extends htxRest {
     }
 
     handleUnSubscription (client: Client, subscription: Dict | undefined) {
-        const messageHashes = this.safeList (subscription, 'messageHashes', []);
-        const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+        const messageHashes: string[] = this.safeList (subscription, 'messageHashes', []);
+        const subMessageHashes: string[] = this.safeList (subscription, 'subMessageHashes', []);
         for (let i = 0; i < messageHashes.length; i++) {
             const unsubHash = messageHashes[i];
             const subHash = subMessageHashes[i];
@@ -2706,7 +2706,7 @@ export default class htx extends htxRest {
             } else {
                 // this trades object is artificially created
                 // in handleOrder
-                const rawTrades = this.safeList (message, 'trades', []);
+                const rawTrades: Dict[] = this.safeList (message, 'trades', []);
                 const marketId = this.safeString (message, 'symbol');
                 const market = this.market (marketId);
                 for (let i = 0; i < rawTrades.length; i++) {

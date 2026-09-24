@@ -631,7 +631,7 @@ export default class coinsph extends Exchange {
         const id = this.safeString (rawCurrency, 'coin');
         const code = this.safeCurrencyCode (id);
         const isFiat = this.safeBool (rawCurrency, 'isLegalMoney');
-        const networkList = this.safeList (rawCurrency, 'networkList', []);
+        const networkList: Dict[] = this.safeList (rawCurrency, 'networkList', []);
         const networks: Dict = {};
         for (let j = 0; j < networkList.length; j++) {
             const networkItem = networkList[j];
@@ -809,7 +809,7 @@ export default class coinsph extends Exchange {
         //         ]
         //     }
         //
-        const markets = this.safeList (response, 'symbols', []);
+        const markets: Dict[] = this.safeList (response, 'symbols', []);
         const result: Dict[] = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -1372,7 +1372,7 @@ export default class coinsph extends Exchange {
     }
 
     override parseBalance (response: any): Balances {
-        const balances = this.safeList (response, 'balances', []);
+        const balances: Dict[] = this.safeList (response, 'balances', []);
         const result: Dict = {
             'info': response,
             'timestamp': undefined,

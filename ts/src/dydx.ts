@@ -844,7 +844,7 @@ export default class dydx extends Exchange {
         // }
         //
         const rates: List = [];
-        const rows = this.safeList (response, 'historicalFunding', []);
+        const rows: Dict[] = this.safeList (response, 'historicalFunding', []);
         for (let i = 0; i < rows.length; i++) {
             const entry = rows[i];
             const timestamp = this.parse8601 (this.safeString (entry, 'effectiveAt'));
@@ -1275,7 +1275,7 @@ export default class dydx extends Exchange {
         return credentials;
     }
 
-    async fetchDydxAccount () {
+    async fetchDydxAccount (): Promise<Dict> {
         // required in js
         await this.loadDydxProtos ();
         const dydxAccount = this.safeDict (this.options, 'dydxAccount');
@@ -1863,7 +1863,7 @@ export default class dydx extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    async estimateTxFee (message: any, memo: Str, account: any): Promise<any> {
+    async estimateTxFee (message: any, memo: Str, account: any): Promise<Dict> {
         const txBytes = this.encodeDydxTxForSimulation (message, memo, account['sequence'], account['pub_key']);
         const request: Dict = {
             'txBytes': txBytes,
@@ -2381,7 +2381,7 @@ export default class dydx extends Exchange {
         //     ]
         // }
         //
-        const rows = this.safeList (response, 'subaccounts', []);
+        const rows: Dict[] = this.safeList (response, 'subaccounts', []);
         const result: List = [];
         for (let i = 0; i < rows.length; i++) {
             const account = rows[i];

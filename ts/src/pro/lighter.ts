@@ -576,7 +576,7 @@ export default class lighter extends lighterRest {
         if (liquidationDataLength > 0) {
             this.handleLiquidation (client, message);
         }
-        const data = this.safeList (message, 'trades', []);
+        const data: Dict[] = this.safeList (message, 'trades', []);
         const channel = this.safeString (message, 'channel', '');
         const parts = channel.split (':');
         const marketId = parts[1];
@@ -729,7 +729,7 @@ export default class lighter extends lighterRest {
         }, market);
     }
 
-    handleMyTrades (client: Client, message: any): boolean {
+    handleMyTrades (client: Client, message: Dict): boolean {
         //
         //     {
         //         "channel": "account_all_trades:723310",
@@ -782,7 +782,7 @@ export default class lighter extends lighterRest {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
-            const trades = this.safeList (data, marketId, []);
+            const trades: Dict[] = this.safeList (data, marketId, []);
             const tradesLength = trades.length;
             for (let j = 0; j < tradesLength; j++) {
                 const jReversed = tradesLength - 1 - j;
@@ -949,7 +949,7 @@ export default class lighter extends lighterRest {
         //         "type": "subscribed/trade"
         //     }
         //
-        const data = this.safeList (message, 'liquidation_trades', []);
+        const data: Dict[] = this.safeList (message, 'liquidation_trades', []);
         const channel = this.safeString (message, 'channel', '');
         const parts = channel.split (':');
         const marketId = parts[1];
@@ -1023,7 +1023,7 @@ export default class lighter extends lighterRest {
         }
     }
 
-    handleBalance (client: Client, message: any): boolean {
+    handleBalance (client: Client, message: Dict): boolean {
         //
         //    spot balance
         //    {
@@ -1301,7 +1301,7 @@ export default class lighter extends lighterRest {
         client.resolve (message, 'jsonapi/sendtx:' + id);
     }
 
-    handleOrders (client: Client, message: any): boolean {
+    handleOrders (client: Client, message: Dict): boolean {
         //
         //    {
         //        "account": {ACCOUNT_INDEX},
@@ -1336,7 +1336,7 @@ export default class lighter extends lighterRest {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
-            const orders = this.safeList (data, marketId, []);
+            const orders: Dict[] = this.safeList (data, marketId, []);
             for (let j = 0; j < orders.length; j++) {
                 const order = this.parseOrder (orders[j], market);
                 stored.append (order);
@@ -1351,7 +1351,7 @@ export default class lighter extends lighterRest {
         return true;
     }
 
-    handleErrorMessage (client: Client, message: any): boolean {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         //     {
         //         "error": {

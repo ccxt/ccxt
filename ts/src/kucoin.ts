@@ -1932,7 +1932,7 @@ export default class kucoin extends Exchange {
         //    }
         //
         const result: List = [];
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const id = this.safeString (market, 'symbol');
@@ -1951,7 +1951,7 @@ export default class kucoin extends Exchange {
                 symbol = symbol + '-' + this.yymmdd (expiry, '');
                 type = 'future';
             }
-            const inverse = this.safeValue (market, 'isInverse');
+            const inverse = this.safeBool (market, 'isInverse');
             const status = this.safeString (market, 'status');
             const multiplier = this.safeString (market, 'multiplier');
             const tickSize = this.safeNumber (market, 'tickSize');
@@ -2214,7 +2214,7 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-type-spot
      * @returns {any} ignore
      */
-    async loadMigrationStatus (force: boolean = false) {
+    async loadMigrationStatus (force: boolean = false): Promise<boolean> {
         if (!('hf' in this.options) || (this.options['hf'] === undefined) || force) {
             const result: Dict = await this.privateGetHfAccountsOpened ();
             this.options['hf'] = this.safeBool (result, 'data');
@@ -2341,7 +2341,7 @@ export default class kucoin extends Exchange {
         const id = this.safeString (entry, 'currency');
         const code = this.safeCurrencyCode (id);
         const networks: Dict = {};
-        const chains = this.safeList2 (entry, 'chains', 'items', []);
+        const chains: Dict[] = this.safeList2 (entry, 'chains', 'items', []);
         const chainsLength = chains.length;
         for (let j = 0; j < chainsLength; j++) {
             const chain = chains[j];
@@ -2584,7 +2584,7 @@ export default class kucoin extends Exchange {
                 },
                 'networks': {},
             };
-            const chains = this.safeList (fee, 'chains', []);
+            const chains: Dict[] = this.safeList (fee, 'chains', []);
             for (let i = 0; i < chains.length; i++) {
                 const chain = chains[i];
                 const chainId = this.safeString (chain, 'chainId');
@@ -3803,7 +3803,7 @@ export default class kucoin extends Exchange {
             //
             this.options['versions']['private']['GET']['deposit-addresses'] = version;
         }
-        const chains = this.safeList (response, 'data', []);
+        const chains: Dict[] = this.safeList (response, 'data', []);
         const parsed = this.parseDepositAddresses (chains, [ currency['code'] ], false, {
             'currency': currency['code'],
         });
@@ -5416,7 +5416,7 @@ export default class kucoin extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const orders = this.safeList (data, 'items', []);
+        const orders: Dict[] = this.safeList (data, 'items', []);
         return this.parseOrders (orders, market, undefined, undefined, { 'status': 'canceled' });
     }
 
@@ -5616,7 +5616,7 @@ export default class kucoin extends Exchange {
             return this.parseOrders (listData, market, since, limit);
         }
         const responseData = this.safeDict (response, 'data', {});
-        const orders = this.safeList (responseData, 'items', []);
+        const orders: Dict[] = this.safeList (responseData, 'items', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -5730,7 +5730,7 @@ export default class kucoin extends Exchange {
         //     }
         //
         const responseData = this.safeDict (response, 'data', {});
-        const orders = this.safeList (responseData, 'items', []);
+        const orders: Dict[] = this.safeList (responseData, 'items', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -5854,7 +5854,7 @@ export default class kucoin extends Exchange {
             response = await this.utaPrivateGetAccountModeOrderHistory (this.extend (request, params));
         }
         const data = this.safeDict (response, 'data', {});
-        const orders = this.safeList (data, 'items', []);
+        const orders: Dict[] = this.safeList (data, 'items', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -6998,7 +6998,7 @@ export default class kucoin extends Exchange {
         //    }
         //
         const data = this.safeDict (response, 'data', {});
-        const trades = this.safeList (data, 'items', []);
+        const trades: Dict[] = this.safeList (data, 'items', []);
         let tradesList: Dict[] = [];
         if (trades !== undefined) {
             tradesList = trades;
@@ -7091,7 +7091,7 @@ export default class kucoin extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const trades = this.safeList (data, 'items', []);
+        const trades: Dict[] = this.safeList (data, 'items', []);
         let tradesList: Dict[] = [];
         if (trades !== undefined) {
             tradesList = trades;
@@ -7913,7 +7913,7 @@ export default class kucoin extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const items = this.safeList (data, 'items', []);
+        const items: Dict[] = this.safeList (data, 'items', []);
         return this.parseTransactions (items, currency, since, limit, { 'type': 'deposit' });
     }
 
@@ -7972,7 +7972,7 @@ export default class kucoin extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const responseData = this.safeList (data, 'items', []);
+        const responseData: Dict[] = this.safeList (data, 'items', []);
         return this.parseTransactions (responseData, currency, since, limit, { 'type': 'deposit' });
     }
 
@@ -8069,7 +8069,7 @@ export default class kucoin extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const items = this.safeList (data, 'items', []);
+        const items: Dict[] = this.safeList (data, 'items', []);
         return this.parseTransactions (items, currency, since, limit, { 'type': 'withdrawal' });
     }
 
@@ -8128,7 +8128,7 @@ export default class kucoin extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const responseData = this.safeList (data, 'items', []);
+        const responseData: Dict[] = this.safeList (data, 'items', []);
         return this.parseTransactions (responseData, currency, since, limit, { 'type': 'withdrawal' });
     }
 
@@ -8307,7 +8307,7 @@ export default class kucoin extends Exchange {
             }
         } else if (cross) {
             const data = this.safeDict (response, 'data', {});
-            const accounts = this.safeList (data, 'accounts', []);
+            const accounts: Dict[] = this.safeList (data, 'accounts', []);
             for (let i = 0; i < accounts.length; i++) {
                 const balance = accounts[i];
                 const currencyId = this.safeString (balance, 'currency');
@@ -8317,7 +8317,7 @@ export default class kucoin extends Exchange {
                 }
             }
         } else {
-            const data = this.safeList (response, 'data', []);
+            const data: Dict[] = this.safeList (response, 'data', []);
             for (let i = 0; i < data.length; i++) {
                 const balance = data[i];
                 const balanceType = this.safeString (balance, 'type');
@@ -8501,7 +8501,7 @@ export default class kucoin extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        const accounts = this.safeList (data, 'accounts', []);
+        const accounts: Dict[] = this.safeList (data, 'accounts', []);
         if (isIsolated) {
             for (let i = 0; i < accounts.length; i++) {
                 const entry = accounts[i];
@@ -9809,7 +9809,7 @@ export default class kucoin extends Exchange {
         return this.parseMarginLoan (data, currency);
     }
 
-    parseMarginLoan (info: any, currency: Currency = undefined): MarginLoan {
+    parseMarginLoan (info: Dict, currency: Currency = undefined): MarginLoan {
         //
         //     {
         //         "orderNo": "5da6dba0f943c0c81f5d5db5",
@@ -10139,7 +10139,7 @@ export default class kucoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const rates: List = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -10610,7 +10610,7 @@ export default class kucoin extends Exchange {
             //    }
             //
         }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parsePositions (data, symbols);
     }
 
@@ -10735,7 +10735,7 @@ export default class kucoin extends Exchange {
             response = await this.futuresPrivateGetHistoryPositions (this.extend (request, params));
         }
         const data = this.safeDict (response, 'data');
-        const items = this.safeList (data, 'items', []);
+        const items: Dict[] = this.safeList (data, 'items', []);
         return this.parsePositions (items, symbols);
     }
 
@@ -11590,7 +11590,7 @@ export default class kucoin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseOpenInterests (data, symbols) as OpenInterests;
     }
 
@@ -11881,7 +11881,7 @@ export default class kucoin extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const items = this.safeList (data, 'items', []);
+        const items: Dict[] = this.safeList (data, 'items', []);
         return this.parseTransfers (items, currency, since, limit);
     }
 

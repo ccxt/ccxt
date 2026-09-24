@@ -224,7 +224,7 @@ export default class mudrex extends mudrexRest {
     }
 
     handleTicker (client: Client, message: Dict) {
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const t = data[i];
             const s = this.safeString (t, 's');

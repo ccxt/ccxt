@@ -2112,7 +2112,7 @@ export default class bullish extends Exchange {
         //         "totalCount": 1
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -2243,7 +2243,7 @@ export default class bullish extends Exchange {
         };
     }
 
-    parseTransactionType (type: any) {
+    parseTransactionType (type: Str) {
         const types: Dict = {
             'DEPOSIT': 'deposit',
             'WITHDRAW': 'withdrawal',
@@ -2500,7 +2500,7 @@ export default class bullish extends Exchange {
         }
     }
 
-    parseBalanceForSingleCurrency (response: any, code: Str): Balances {
+    parseBalanceForSingleCurrency (response: Dict, code: Str): Balances {
         const result: Dict = { 'info': response };
         const account: Dict = this.account ();
         account['free'] = this.safeString (response, 'availableQuantity');

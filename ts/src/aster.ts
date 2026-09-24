@@ -873,7 +873,7 @@ export default class aster extends Exchange {
         const sapiResult = this.safeDict (results, 0, {});
         const sapiRows = this.safeList (sapiResult, 'symbols', []);
         const fapiResult = this.safeDict (results, 1, {});
-        const fapiRows = this.safeList (fapiResult, 'symbols', []);
+        const fapiRows: Dict[] = this.safeList (fapiResult, 'symbols', []);
         //
         // example:
         //
@@ -3808,8 +3808,8 @@ export default class aster extends Exchange {
     }
 
     parseAccountPositions (account: Dict, filterClosed: boolean = false): Position[] {
-        const positions = this.safeList (account, 'positions', []);
-        const assets = this.safeList (account, 'assets', []);
+        const positions: Dict[] = this.safeList (account, 'positions', []);
+        const assets: Dict[] = this.safeList (account, 'assets', []);
         const balances: Dict = {};
         for (let i = 0; i < assets.length; i++) {
             const entry = assets[i];
@@ -4078,7 +4078,7 @@ export default class aster extends Exchange {
                 const entry = entries[i];
                 const marketId = this.safeString (entry, 'symbol');
                 const symbol = this.safeSymbol (marketId, undefined, undefined, 'contract');
-                const brackets = this.safeList (entry, 'brackets', []);
+                const brackets: Dict[] = this.safeList (entry, 'brackets', []);
                 const result: List = [];
                 for (let j = 0; j < brackets.length; j++) {
                     const bracket = brackets[j];

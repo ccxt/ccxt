@@ -4,7 +4,7 @@
 import asterRest from '../aster.js';
 import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
-import type{ Balances, Str, Strings, Tickers, Dict, Ticker, Int, Trade, Order, OrderBook, OHLCV, Position, Market, MarketInterface, FeeString, List } from '../base/types.js';
+import type{ Dictionary, Balances, Str, Strings, Tickers, Dict, Ticker, Int, Trade, Order, OrderBook, OHLCV, Position, Market, MarketInterface, FeeString } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
@@ -1115,7 +1115,7 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
+    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dictionary<Dictionary<OHLCV[]>>> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1490,7 +1490,7 @@ export default class aster extends asterRest {
         }
         this.balance[accountType]['info'] = message;
         message = this.safeDict (message, 'a', message);
-        const B = this.safeList (message, 'B', []);
+        const B: Dict[] = this.safeList (message, 'B', []);
         const wallet = this.safeString (this.options, 'wallet', 'wb');
         for (let i = 0; i < B.length; i++) {
             const entry = B[i];
@@ -1629,8 +1629,8 @@ export default class aster extends asterRest {
         }
         const cache = this.positions;
         const data = this.safeDict (message, 'a', {});
-        const rawPositions = this.safeList (data, 'P', []);
-        const newPositions: List = [];
+        const rawPositions: Dict[] = this.safeList (data, 'P', []);
+        const newPositions: Dict[] = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parseWsPosition (rawPosition);

@@ -787,9 +787,9 @@ export default class bithumb extends Exchange {
             //
             const result = this.safeDict (response, 0, {});
             timestamp = this.safeInteger (result, 'timestamp');
-            const orderBookUnits = this.safeList (result, 'orderbook_units', []);
-            const bids = [];
-            const asks = [];
+            const orderBookUnits: Dict[] = this.safeList (result, 'orderbook_units', []);
+            const bids: Dict[] = [];
+            const asks: Dict[] = [];
             for (let i = 0; i < orderBookUnits.length; i++) {
                 const entry = orderBookUnits[i];
                 bids.push ({
@@ -1677,7 +1677,7 @@ export default class bithumb extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'batch_orders_response', []);
+        const data: Dict[] = this.safeList (response, 'batch_orders_response', []);
         return this.parseOrders (data, market);
     }
 
@@ -2371,7 +2371,7 @@ export default class bithumb extends Exchange {
             //     }
             //
         }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -2658,7 +2658,7 @@ export default class bithumb extends Exchange {
         //         "fail": []
         //     }
         //
-        const data = this.safeList (response, 'success', []);
+        const data: Dict[] = this.safeList (response, 'success', []);
         return this.parseOrders (data, market);
     }
 

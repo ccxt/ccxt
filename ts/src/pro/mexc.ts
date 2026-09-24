@@ -327,7 +327,7 @@ export default class mexc extends mexcRest {
         //         "s": "BTCUSDT"
         //     }
         //
-        const data = this.safeList2 (message, 'data', 'd', []);
+        const data: Dict[] = this.safeList2 (message, 'data', 'd', []);
         const channel = this.safeString (message, 'c', '');
         const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId);
@@ -357,7 +357,7 @@ export default class mexc extends mexcRest {
         client.resolve (result, topic);
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
         // protobuf ticker
         // "bidprice": "93387.28",  // Best bid price
         // "bidquantity": "3.73485", // Best bid quantity
@@ -2017,7 +2017,7 @@ export default class mexc extends mexcRest {
         }
     }
 
-    async authenticate (subscriptionHash: Str, params: Dict = {}) {
+    async authenticate (subscriptionHash: Str, params: Dict = {}): Promise<Str> {
         // we only need one listenKey since ccxt shares connections
         let listenKey = this.safeString (this.options, 'listenKey');
         if (listenKey !== undefined) {

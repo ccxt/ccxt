@@ -660,7 +660,7 @@ export default class modetrade extends Exchange {
         //   }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
+        const rows: Dict[] = this.safeList (data, 'rows', []);
         return this.parseMarkets (rows);
     }
 
@@ -703,7 +703,7 @@ export default class modetrade extends Exchange {
 
     override parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const currencyId = this.safeString (rawCurrency, 'token');
-        const networks = this.safeList (rawCurrency, 'chain_details', []);
+        const networks: Dict[] = this.safeList (rawCurrency, 'chain_details', []);
         const code = this.safeCurrencyCode (currencyId);
         let minPrecision: Str = undefined;
         const resultingNetworks: Dict = {};
@@ -879,7 +879,7 @@ export default class modetrade extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
+        const rows: Dict[] = this.safeList (data, 'rows', []);
         return this.parseTrades (rows, market, since, limit);
     }
 
@@ -1020,7 +1020,7 @@ export default class modetrade extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
+        const rows: Dict[] = this.safeList (data, 'rows', []);
         return this.parseFundingRates (rows, symbols);
     }
 
@@ -1077,7 +1077,7 @@ export default class modetrade extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const result = this.safeList (data, 'rows', []);
+        const result: Dict[] = this.safeList (data, 'rows', []);
         const rates: List = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
@@ -1191,7 +1191,7 @@ export default class modetrade extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
+        const rows: Dict[] = this.safeList (data, 'rows', []);
         return this.parseIncomes (rows, market, since, limit);
     }
 
@@ -1765,7 +1765,7 @@ export default class modetrade extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
+        const rows: Dict[] = this.safeList (data, 'rows', []);
         return this.parseOrders (rows);
     }
 
@@ -2190,7 +2190,7 @@ export default class modetrade extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', response);
-        const orders = this.safeList (data, 'rows', []);
+        const orders: Dict[] = this.safeList (data, 'rows', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -2290,7 +2290,7 @@ export default class modetrade extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const trades = this.safeList (data, 'rows', []);
+        const trades: Dict[] = this.safeList (data, 'rows', []);
         return this.parseTrades (trades, market, since, limit, params);
     }
 
@@ -2359,7 +2359,7 @@ export default class modetrade extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const trades = this.safeList (data, 'rows', []);
+        const trades: Dict[] = this.safeList (data, 'rows', []);
         return this.parseTrades (trades, market, since, limit, params);
     }
 
@@ -2367,7 +2367,7 @@ export default class modetrade extends Exchange {
         const result: Dict = {
             'info': response,
         };
-        const balances = this.safeList (response, 'holding', []);
+        const balances: Dict[] = this.safeList (response, 'holding', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const code = this.safeCurrencyCode (this.safeString (balance, 'token'));
@@ -2666,7 +2666,7 @@ export default class modetrade extends Exchange {
         const request: Dict = {};
         const currencyRows = await this.getAssetHistoryRows (code, since, limit, this.extend (request, params));
         const currency = this.safeValue (currencyRows, 0);
-        const rows = this.safeList (currencyRows, 1, []);
+        const rows: Dict[] = this.safeList (currencyRows, 1, []);
         //
         //     {
         //         "rows":[],
@@ -3053,7 +3053,7 @@ export default class modetrade extends Exchange {
         // }
         //
         const result = this.safeDict (response, 'data', {});
-        const positions = this.safeList (result, 'rows', []);
+        const positions: Dict[] = this.safeList (result, 'rows', []);
         return this.parsePositions (positions, symbols);
     }
 

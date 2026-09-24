@@ -647,7 +647,7 @@ export default class lighter extends Exchange {
         return this.json (decTxInfo);
     }
 
-    async handleBuilderFeeApproval (accountIndex: number, apiKeyIndex: number) {
+    async handleBuilderFeeApproval (accountIndex: number, apiKeyIndex: number): Promise<boolean> {
         const buildFee = this.safeBool (this.options, 'builderFee', true);
         if (buildFee !== true) {
             return false;
@@ -1853,11 +1853,11 @@ export default class lighter extends Exchange {
         //     }
         //
         const result: Dict = { 'info': response };
-        const accounts = this.safeList (response, 'accounts', []);
+        const accounts: Dict[] = this.safeList (response, 'accounts', []);
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];
             if (type === 'spot') {
-                const assets = this.safeList (account, 'assets', []);
+                const assets: Dict[] = this.safeList (account, 'assets', []);
                 for (let j = 0; j < assets.length; j++) {
                     const asset = assets[j];
                     const codeId = this.safeString (asset, 'symbol');
@@ -1971,7 +1971,7 @@ export default class lighter extends Exchange {
         //     }
         //
         const allPositions: List = [];
-        const accounts = this.safeList (response, 'accounts', []);
+        const accounts: Dict[] = this.safeList (response, 'accounts', []);
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];
             const positions = this.safeList (account, 'positions', []);
@@ -2101,7 +2101,7 @@ export default class lighter extends Exchange {
         //         ]
         //     }
         //
-        const accounts = this.safeList (response, 'accounts', []);
+        const accounts: Dict[] = this.safeList (response, 'accounts', []);
         return this.parseAccounts (accounts, params);
     }
 
@@ -2214,7 +2214,7 @@ export default class lighter extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'orders', []);
+        const data: Dict[] = this.safeList (response, 'orders', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -2296,7 +2296,7 @@ export default class lighter extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'orders', []);
+        const data: Dict[] = this.safeList (response, 'orders', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -2435,7 +2435,7 @@ export default class lighter extends Exchange {
         return this.safeString (statuses, (status as string), status);
     }
 
-    parseOrderType (type: any) {
+    parseOrderType (type: Str): Str {
         const types: Dict = {
             'limit': 'limit',
             'market': 'market',
@@ -2450,7 +2450,7 @@ export default class lighter extends Exchange {
         return this.safeString (types, (type as string), type);
     }
 
-    parseOrderTypeInteger (typeInteger: any) {
+    parseOrderTypeInteger (typeInteger: Int): Str {
         if (typeInteger === undefined) {
             return undefined;
         }
@@ -2468,7 +2468,7 @@ export default class lighter extends Exchange {
         return this.safeString (types, typeInteger.toString ());
     }
 
-    parseOrderTimeInForce (tif: any) {
+    parseOrderTimeInForce (tif: Str): Str {
         const timeInForces: Dict = {
             'immediate-or-cancel': 'IOC',
             'good-till-time': 'GTC',

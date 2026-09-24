@@ -573,7 +573,7 @@ export default class bitbns extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseStatus (status: any) {
+    parseStatus (status: Str) {
         const statuses: Dict = {
             '-1': 'cancelled',
             '0': 'open',
@@ -882,7 +882,7 @@ export default class bitbns extends Exchange {
         //         "code":200
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -1034,7 +1034,7 @@ export default class bitbns extends Exchange {
         //         "code": 200
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -1117,7 +1117,7 @@ export default class bitbns extends Exchange {
         //         "code":200
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -1147,7 +1147,7 @@ export default class bitbns extends Exchange {
         //
         //     ...
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 

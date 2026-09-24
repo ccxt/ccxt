@@ -271,7 +271,7 @@ export default class upbit extends upbitRest {
         orderbook['symbol'] = symbol;
         const bids = orderbook['bids'];
         const asks = orderbook['asks'];
-        const data = this.safeList (message, 'orderbook_units', []);
+        const data: Dict[] = this.safeList (message, 'orderbook_units', []);
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const ask_price = this.safeFloat (entry, 'ask_price');
@@ -624,7 +624,7 @@ export default class upbit extends upbitRest {
             if (fee !== undefined) {
                 parsed['fee'] = fee;
             }
-            const fees = this.safeValue (order, 'fees');
+            const fees = this.safeList (order, 'fees');
             if (fees !== undefined) {
                 (parsed as Dict)['fees'] = fees;
             }
@@ -673,7 +673,7 @@ export default class upbit extends upbitRest {
         //     "stream_type": "REALTIME"
         // }
         //
-        const data = this.safeList (message, 'assets', []);
+        const data: Dict[] = this.safeList (message, 'assets', []);
         const timestamp = this.safeInteger (message, 'timestamp');
         this.balance['timestamp'] = timestamp;
         this.balance['datetime'] = this.iso8601 (timestamp);
