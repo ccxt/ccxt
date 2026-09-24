@@ -1609,15 +1609,24 @@ export default class coinbase extends Exchange {
         const data = this.safeList (spot, 'products', []);
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
-            result.push (this.parseSpotMarket (data[i], feeTier));
+            const spotMarket = this.parseSpotMarket (data[i], feeTier);
+            if (spotMarket !== undefined) {
+                result.push (spotMarket);
+            }
         }
         const futureData = this.safeList (expiringFutures, 'products', []);
         for (let i = 0; i < futureData.length; i++) {
-            result.push (this.parseContractMarket (futureData[i], expiringFeeTier));
+            const futureMarket = this.parseContractMarket (futureData[i], expiringFeeTier);
+            if (futureMarket !== undefined) {
+                result.push (futureMarket);
+            }
         }
         const perpetualData = this.safeList (perpetualFutures, 'products', []);
         for (let i = 0; i < perpetualData.length; i++) {
-            result.push (this.parseContractMarket (perpetualData[i], perpetualFeeTier));
+            const perpetualMarket = this.parseContractMarket (perpetualData[i], perpetualFeeTier);
+            if (perpetualMarket !== undefined) {
+                result.push (perpetualMarket);
+            }
         }
         const newMarkets: Market[] = [];
         for (let i = 0; i < result.length; i++) {
