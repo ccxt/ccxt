@@ -1602,7 +1602,10 @@ impl HyperliquidCore {
         params = self.safe_dict(unifiedResult, Value::Int(1), &[params.clone()]);
         let mut dex: Value = self.safe_string_k(params.clone(), "dex", &[]);
         let mut isSpot: bool = ((type_var.as_str() == Some("spot")) || (isUnifiedEnabled.as_bool() == Some(true))) && (dex == Value::Null);
-        let mut topic: Value = (if (isSpot) { Value::Str("spotState".into()) } else { Value::Str("clearinghouseState".into()) });
+        let mut topic: Value = Value::Str("clearinghouseState".into());
+        if (isSpot) {
+            topic = Value::Str("spotState".into());
+        }
         let mut messageHash: Value = Value::Str(format!("{}{}", topic, Value::Str("::balance".into())).into());
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
         let mut subscription: Value = Value::Map({
@@ -1661,7 +1664,10 @@ impl HyperliquidCore {
         params = self.safe_dict(unifiedResult, Value::Int(1), &[params.clone()]);
         let mut dex: Option<String> = self.safe_string_k(params.clone(), "dex", &[]).as_str().map(str::to_owned);
         let mut isSpot: bool = ((type_var.as_str() == Some("spot")) || (isUnifiedEnabled.as_bool() == Some(true))) && (dex.is_none());
-        let mut topic: Value = (if (isSpot) { Value::Str("spotState".into()) } else { Value::Str("clearinghouseState".into()) });
+        let mut topic: Value = Value::Str("clearinghouseState".into());
+        if (isSpot) {
+            topic = Value::Str("spotState".into());
+        }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe".into()), Value::Str(":".into())).into()), topic).into());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

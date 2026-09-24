@@ -1416,13 +1416,19 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (market != Value::Null) && (market.as_map().and_then(|__m| __m.get("lowercaseId")).cloned().unwrap_or(Value::Null) != Value::Null) {
             marketCode = to_lower(&get_value(&market, &Value::Str("lowercaseId".into())));
         }
-        let mut baseId: Value = (if (market != Value::Null) { market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut baseId: Value = Value::Null;
+        if (market != Value::Null) {
+            baseId = market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null);
+        }
         let mut prefix: Value = orderType;
         messageHash = prefix.clone();
         if (subType.as_str() == Some("linear")) {
             // USDT Margined Contracts Example: LTC/USDT:USDT
             let mut marginMode: Option<String> = self.safe_string_k(params, "margin", &[Value::Str("cross".into())]).as_str().map(str::to_owned);
-            let mut marginPrefix: Value = (if (marginMode.as_deref() == Some("cross")) { Value::Str(format!("{}{}", prefix, Value::Str("_cross".into())).into()) } else { prefix.clone() });
+            let mut marginPrefix: Value = prefix.clone();
+            if (marginMode.as_deref() == Some("cross")) {
+                marginPrefix = Value::Str(format!("{}{}", prefix, Value::Str("_cross".into())).into());
+            }
             messageHash = marginPrefix.clone();
             if (marketCode != Value::Null) {
                 messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(".".into()), marketCode).into())).into());
@@ -1458,7 +1464,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut contractCode: Value = (if (market != Value::Null) { market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null) } else { self.safe_string_k(params.clone(), "contract_code", &[Value::Str("*".into())]) });
+        let mut contractCode: Value = Value::Null;
+        if (market != Value::Null) {
+            contractCode = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
+        }  else {
+            contractCode = self.safe_string_k(params.clone(), "contract_code", &[Value::Str("*".into())]);
+        }
         let mut channel: Value = topic.clone();
         let mut messageHash: Value = topic.clone();
         if (contractCode != Value::Null) && (contractCode.as_str() != Some("*")) {
@@ -2159,7 +2170,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut isLinear: Value = (Value::Bool(subType.as_str() == Some("linear")));
         let mut url: Value = self.get_url_by_market_type(type_var.clone(), &[isLinear, Value::Bool(true), Value::Bool(false), isV5Linear.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", marginMode, Value::Str(":positions".into())).into()), messageHash).into());
-        let mut channel: Value = (if (marginMode.as_str() == Some("cross")) { Value::Str("positions_cross.*".into()) } else { Value::Str("positions.*".into()) });
+        let mut channel: Value = Value::Str("positions.*".into());
+        if (marginMode.as_str() == Some("cross")) {
+            channel = Value::Str("positions_cross.*".into());
+        }
         if matches!(&isV5Linear, Value::Bool(true)) {
             let mut v5Market: Value = Value::Null;
             if (symbols != Value::Null) && (Value::Int(symbols.len() as i64).as_f64() == Some(1.0)) {
@@ -2271,7 +2285,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //
         let mut url: Value = client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null);
         let mut topic: Option<String> = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().map(str::to_owned);
-        let mut defaultMarginMode: Value = (if (topic.as_deref() == Some("positions_cross")) { Value::Str("cross".into()) } else { Value::Str("isolated".into()) });
+        let mut defaultMarginMode: Value = Value::Str("isolated".into());
+        if (topic.as_deref() == Some("positions_cross")) {
+            defaultMarginMode = Value::Str("cross".into());
+        }
         if (self.positions.clone() == Value::Null) {
             self.positions = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2625,7 +2642,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_387: bool = true;
                     while { if !__for_first_387 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_387 = false; i.as_f64().unwrap_or(f64::NAN) < detailsLength } {
-                    let mut detail: Value = details.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                    let mut detail: Value = self.safe_dict(details.clone(), i.clone(), &[]);
                     let mut currencyId: Value = self.safe_string_k(detail.clone(), "currency", &[]);
                     let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
                     if (code == Value::Null) {
@@ -2710,7 +2727,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                                 let mut i: Value = Value::Int(0);
                         let mut __for_first_388: bool = true;
                         while { if !__for_first_388 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_388 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-                        let mut isolatedBalance: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                        let mut isolatedBalance: Value = self.safe_dict(data.clone(), i.clone(), &[]);
                         let mut account: Value = self.account();
                         add_element_to_object(&mut account, &Value::Str("free".into()), self.safe_string_k(isolatedBalance.clone(), "margin_balance", &[Value::Str("margin_available".into())]));
                         add_element_to_object(&mut account, &Value::Str("used".into()), self.safe_string_k(isolatedBalance.clone(), "margin_frozen", &[]));
@@ -2728,7 +2745,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_389: bool = true;
                     while { if !__for_first_389 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_389 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-                    let mut balance: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                    let mut balance: Value = self.safe_dict(data.clone(), i.clone(), &[]);
                     let mut currencyId: Value = self.safe_string_k(balance.clone(), "symbol", &[]);
                     let mut code: Value = self.safe_currency_code(currencyId, &[]);
                     let mut account: Value = self.account();

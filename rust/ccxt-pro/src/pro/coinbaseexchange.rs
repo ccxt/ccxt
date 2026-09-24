@@ -912,7 +912,10 @@ impl CoinbaseexchangeCore {
     m
 }), currentSide.clone(), &[currentSide.clone()]));
         }
-        let mut idKey: Value = (if isMaker { Value::Str("maker_order_id".into()) } else { Value::Str("taker_order_id".into()) });
+        let mut idKey: Value = Value::Str("taker_order_id".into());
+        if isMaker {
+            idKey = Value::Str("maker_order_id".into());
+        }
         add_element_to_object(&mut parsed, &Value::Str("order".into()), self.safe_string(trade, idKey, &[]));
         market = self.market(parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         let mut feeCurrency: Value = market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
@@ -1079,8 +1082,7 @@ impl CoinbaseexchangeCore {
                                                         let mut i: Value = Value::Int(0);
                             let mut __for_first_249: bool = true;
                             while { if !__for_first_249 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_249 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&trades).as_f64().unwrap_or(f64::NAN) } {
-                            let mut tradeEntry: Value = get_value(&trades, &i);
-                            let mut tradeEntry: Value = get_value(&trades, &i);
+                            let mut tradeEntry: Value = self.safe_dict(trades.clone(), i.clone(), &[]);
                             totalCost = self.safe_string_k(tradeEntry.clone(), "cost", &[Value::Str("0".into())]);
                             totalAmount = self.safe_string_k(tradeEntry, "amount", &[Value::Str("0".into())]);
                         }
@@ -1373,7 +1375,7 @@ impl CoinbaseexchangeCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_252: bool = true;
                 while { if !__for_first_252 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_252 = false; i.as_f64().unwrap_or(f64::NAN) < ((changes.len() as i64) as f64) } {
-                let mut change: Value = changes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut change: Value = self.safe_list(changes.clone(), i.clone(), &[]);
                 let mut key: Value = self.safe_string(change.clone(), Value::Int(0), &[]);
                 let mut side: Value = self.safe_string(sides.clone(), key, &[]);
                 let mut price: Value = self.safe_number(change.clone(), Value::Int(1), &[]);
