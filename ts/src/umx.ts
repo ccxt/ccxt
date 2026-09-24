@@ -1346,6 +1346,7 @@ export default class umx extends Exchange {
      * @param {int} [limit] the maximum amount of entries to return, the venue defaults to 1000 and publishes no upper bound
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch, the venue answers an empty list when it predates the three month bound
+     * @param {boolean} [params.paginate] default false, when true fetches the entries in multiple calls, walking backwards from the newest entry
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
      */
     override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingRateHistory[]> {
@@ -1356,6 +1357,13 @@ export default class umx extends Exchange {
         const market = this.market (symbol);
         if (market['swap'] !== true) {
             throw new BadSymbol (this.id + ' fetchFundingRateHistory() supports swap markets only');
+        }
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        if (paginate) {
+            // the venue documents beginId and endId cursors on the history endpoints, but the
+            // family proved broken venue side, so the pagination walks on endTime, see fetchTransfers
+            return await this.fetchPaginatedCallDynamic ('fetchFundingRateHistory', symbol, since, limit, params, 100) as FundingRateHistory[];
         }
         let request: Dict = {
             'symbol': market['id'],
@@ -1423,6 +1431,7 @@ export default class umx extends Exchange {
      * @param {int} [limit] the maximum amount of entries to return, the venue defaults to 1000 and publishes no upper bound
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest settlement to fetch, the venue answers an empty list when it predates the three month bound
+     * @param {boolean} [params.paginate] default false, when true fetches the entries in multiple calls, walking backwards from the newest entry
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
      */
     async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dict[]> {
@@ -1435,6 +1444,13 @@ export default class umx extends Exchange {
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchSettlementHistory', market, params);
         if ((marketType !== 'future') && (marketType !== 'option')) {
             throw new NotSupported (this.id + ' fetchSettlementHistory() supports future and option markets only');
+        }
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchSettlementHistory', 'paginate');
+        if (paginate) {
+            // the venue documents beginId and endId cursors on the history endpoints, but the
+            // family proved broken venue side, so the pagination walks on endTime, see fetchTransfers
+            return await this.fetchPaginatedCallDynamic ('fetchSettlementHistory', symbol, since, limit, params, 100) as Dict[];
         }
         const businessTypes = this.safeDict (this.options, 'businessTypes', {});
         const businessType = this.safeString (businessTypes, marketType, marketType);
@@ -4070,7 +4086,7 @@ export default class umx extends Exchange {
      * @param {string} [symbol] unified market symbol to narrow the answer to a single market
      * @param {int} [since] timestamp in ms of the earliest order to fetch
      * @param {int} [limit] the maximum amount of entries the underlying history call returns before the closed ones are filtered out of it
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint, params.paginate and params.until reach the underlying fetchCanceledAndClosedOrders call
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
