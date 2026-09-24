@@ -3837,7 +3837,11 @@ export default class krakenfutures extends Exchange {
             }
             query += '?' + postData;
         }
-        const url = this.urls['api'][api] + query;
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + query;
         if (api === 'private' || access === 'private') {
             this.checkRequiredCredentials ();
             let auth = postData + '/api/';

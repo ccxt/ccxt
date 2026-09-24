@@ -2054,7 +2054,11 @@ export default class gemini extends Exchange {
                 url += '?' + this.urlencode (query);
             }
         }
-        url = this.urls['api'][api] + url;
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        url = apiUrl + url;
         if ((method === 'POST') || (method === 'DELETE')) {
             body = this.json (query);
         }
