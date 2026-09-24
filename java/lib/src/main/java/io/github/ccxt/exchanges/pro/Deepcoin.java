@@ -690,7 +690,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             }};
         }
         final Map<String, Object> finalFee = fee;
-        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Deepcoin.this.iso8601(timestamp) );
@@ -704,7 +704,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             put( "amount", Deepcoin.this.safeString(trade, "V") );
             put( "cost", Deepcoin.this.safeString(trade, "T") );
             put( "fee", finalFee );
-        }}), market));
+        }}, market));
     }
     public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
@@ -1425,7 +1425,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         String state = this.safeString(order, "Or");
         Long timestamp = this.safeTimestamp(order, "IT");
         String direction = this.safeString(order, "D");
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", Deepcoin.this.safeString(order, "OS") );
             put( "clientOrderId", null );
             put( "datetime", Deepcoin.this.iso8601(timestamp) );
@@ -1451,7 +1451,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             put( "reduceOnly", null );
             put( "postOnly", null );
             put( "info", order );
-        }}), market);
+        }}, market);
     }
     public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
@@ -1596,7 +1596,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         Long timestamp = this.safeInteger(position, "U");
         String direction = this.safeString(position, "p");
         String marginMode = this.safeString(position, "i");
-        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePosition(new HashMap<String, Object>() {{
             put( "symbol", Deepcoin.this.safeString(market, "symbol") );
             put( "id", null );
             put( "timestamp", timestamp );
@@ -1625,7 +1625,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             put( "takeProfitPrice", null );
             put( "percentage", null );
             put( "info", position );
-        }}));
+        }});
     }
     public Object parseWsPosition(Object position, Object... optionalArgs)
     {

@@ -2644,7 +2644,7 @@ func (this *Coinbase) FetchTickersAsync(optionalArgs ...any) <-chan any {
 func (this *Coinbase) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -6873,7 +6873,7 @@ func (this *Coinbase) FetchDepositAddressesAsync(optionalArgs ...any) <-chan any
 func (this *Coinbase) fetchDepositAddressesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	codes := GetArg(optionalArgs, 0, nil)
+	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = codes
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params

@@ -274,7 +274,7 @@ public class Opinion extends OpinionApi
                         String eventKey = this.safeString(eventVar, "event");
                         if ((!java.util.Objects.equals(eventKey, null)) && (!java.util.Objects.equals(eventKey, "")) && !(seenEvents.containsKey(eventKey)))
                         {
-                            ((Map<String, Object>)seenEvents).put((String)eventKey, true);
+                            seenEvents.put((String)eventKey, true);
                             ((List<Object>)eventsList).add(eventVar);
                         }
                     } else
@@ -929,7 +929,7 @@ final String finalTokenId = tokenId;
             timestamp = null; // the venue reports timestamp 0 for outcomes that have not traded yet
         }
         final Long finalTimestamp = timestamp;
-        return (Map<String, Object>) (this.safePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safePredictionTicker(new HashMap<String, Object>() {{
             put( "outcome", Opinion.this.safeString(marketAny, "outcome") );
             put( "outcomeId", Opinion.this.safeString2(marketAny, "outcomeId", "id") );
             put( "label", Opinion.this.safeString(marketAny, "label") );
@@ -951,7 +951,7 @@ final String finalTokenId = tokenId;
             put( "baseVolume", null );
             put( "quoteVolume", null );
             put( "info", ticker );
-        }}), market));
+        }}, market));
     }
     /**
      * @ignore
@@ -1015,7 +1015,7 @@ final String finalTokenId = tokenId;
                 String symbolKey = this.safeString(ticker, "outcome");
                 if (!java.util.Objects.equals(symbolKey, null))
                 {
-                    ((Map<String, Object>)result).put((String)symbolKey, ticker);
+                    result.put((String)symbolKey, ticker);
                 }
             }
             return result;
@@ -1235,7 +1235,7 @@ final String finalTokenId = tokenId;
                 String address = this.safeStringLower(entry, "quoteTokenAddress");
                 if (!java.util.Objects.equals(address, null))
                 {
-                    ((Map<String, Object>)quoteTokens).put((String)address, entry);
+                    quoteTokens.put((String)address, entry);
                 }
             }
             Helpers.addElementToObject(this.options, "quoteTokens", quoteTokens);
@@ -1540,11 +1540,11 @@ final String finalTokenId = tokenId;
             // already cancelled, or unknown; don't invent a status the venue didn't report.
             // error responses with an errno never reach this line, handleErrors throws on them
             String status = (((java.util.Objects.equals(canceled, true)))) ? "canceled" : null;
-            return this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return this.safePredictionOrder(new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "status", status );
                 put( "info", response );
-            }}));
+            }});
         }).thenApply(PredictionOrder::new);
 
     }
@@ -1621,7 +1621,7 @@ final String finalTokenId = tokenId;
         String sideEnum = this.safeStringLower(order, "sideEnum");
         String tradingMethodEnum = this.safeStringLower(order, "tradingMethodEnum");
         Long timestamp = this.safeTimestamp(order, "createdAt");
-        return this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePredictionOrder(new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
             put( "info", order );
@@ -1641,7 +1641,7 @@ final String finalTokenId = tokenId;
             put( "filled", Opinion.this.safeNumber(order, "filledShares") );
             put( "fee", null );
             put( "trades", new ArrayList<Object>(Arrays.asList()) );
-        }}), ((Object)market));
+        }}, ((Object)market));
     }
     /**
      * @method
@@ -1679,7 +1679,7 @@ final String finalTokenId = tokenId;
             {
                 outcomeObj = (this.loadOutcome((String) (outcome))).join();
                 Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-                ((Map<String, Object>)request).put("marketId", this.safeInteger(info, "marketId"));
+                request.put("marketId", this.safeInteger(info, "marketId"));
             }
             Map<String, Object> response = (this.opinionPrivateGetOrder(this.extend(request, parameters))).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
@@ -1858,7 +1858,7 @@ final String finalTokenId = tokenId;
             {
                 outcomeObj = (this.loadOutcome((String) (outcome))).join();
                 Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-                ((Map<String, Object>)request).put("marketId", this.safeInteger(info, "marketId"));
+                request.put("marketId", this.safeInteger(info, "marketId"));
             }
             Map<String, Object> response = (this.opinionPrivateGetTradeUserWalletAddress(this.extend(request, parameters))).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
@@ -1940,7 +1940,7 @@ final String finalTokenId = tokenId;
             String marketHandle = this.safeString(market, "market", "");
             Helpers.addElementToObject(this.markets, marketHandle, market);
             this.indexMarketOutcomes(market);
-            ((Map<String, Object>)cached).put((String)idStr, market);
+            cached.put((String)idStr, market);
             Helpers.addElementToObject(this.options, cacheKey, cached);
             return market;
         });
@@ -1962,7 +1962,7 @@ final String finalTokenId = tokenId;
         Map<String, Object> outcomeObj = this.safeOutcome((String) (tokenId), ((Object)market));
         Long timestamp = this.safeTimestamp(trade, "createdAt");
         String side = this.safeStringLower(trade, "side");
-        return this.safePredictionTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePredictionTrade(new HashMap<String, Object>() {{
             put( "id", Opinion.this.safeString(trade, "txHash") );
             put( "timestamp", timestamp );
             put( "side", side );
@@ -1977,7 +1977,7 @@ final String finalTokenId = tokenId;
             put( "outcomeId", Opinion.this.safeString2(outcomeObj, "outcomeId", "id") );
             put( "label", Opinion.this.safeString(outcomeObj, "label") );
             put( "market", Opinion.this.safeString2(outcomeObj, "market", "outcome") );
-        }}));
+        }});
     }
     /**
      * @ignore
@@ -2058,7 +2058,7 @@ final String finalTokenId = tokenId;
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i);
             String code = this.safeString(balance, "symbol", "USDT");
-            ((Map<String, Object>)result).put((String)code, new HashMap<String, Object>() {{
+            result.put((String)code, new HashMap<String, Object>() {{
     put( "free", Opinion.this.safeNumber(balance, "availableBalance") );
     put( "used", Opinion.this.safeNumber(balance, "frozenBalance") );
     put( "total", Opinion.this.safeNumber(balance, "totalBalance") );
@@ -2112,7 +2112,7 @@ final String finalTokenId = tokenId;
                 String tokenId = this.safeString(outcomeObj, "outcomeId");
                 if (!java.util.Objects.equals(tokenId, null))
                 {
-                    ((Map<String, Object>)wantedTokenIds).put((String)tokenId, true);
+                    wantedTokenIds.put((String)tokenId, true);
                 }
             }
             List<Object> filtered = new ArrayList<Object>(Arrays.asList());
@@ -2158,7 +2158,7 @@ final String finalTokenId = tokenId;
         String tokenId = this.safeString(position, "tokenId");
         Map<String, Object> outcomeObj = this.safeOutcome((String) (tokenId), ((Object)market));
         String outcomeSideEnum = this.safeStringLower(position, "outcomeSideEnum");
-        return this.safePredictionPosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePredictionPosition(new HashMap<String, Object>() {{
             put( "contracts", Opinion.this.safeNumber(position, "sharesOwned") );
             put( "side", outcomeSideEnum );
             put( "unrealizedPnl", Opinion.this.safeNumber(position, "unrealizedPnl") );
@@ -2168,7 +2168,7 @@ final String finalTokenId = tokenId;
             put( "label", Opinion.this.safeString(outcomeObj, "label") );
             put( "market", Opinion.this.safeString2(outcomeObj, "market", "outcome") );
             put( "info", position );
-        }}));
+        }});
     }
     /**
      * @ignore
@@ -2691,7 +2691,7 @@ final String finalTokenId = tokenId;
         }
         Double last = this.safeNumber(message, "price");
         final String finalSym = sym;
-        Object ticker = this.safePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        Object ticker = this.safePredictionTicker(new HashMap<String, Object>() {{
             put( "outcome", finalSym );
             put( "outcomeId", tokenId );
             put( "label", Opinion.this.safeString(outcomeObj, "label") );
@@ -2701,7 +2701,7 @@ final String finalTokenId = tokenId;
             put( "close", last );
             put( "last", last );
             put( "info", message );
-        }}), outcomeObj);
+        }}, outcomeObj);
         Helpers.addElementToObject(this.tickers, sym, ((Object)ticker));
         client.resolve(ticker, ("ticker::" + sym));
     }
@@ -2770,7 +2770,7 @@ final String finalTokenId = tokenId;
             return;
         }
         final String finalSym = sym;
-        Object trade = this.safePredictionTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        Object trade = this.safePredictionTrade(new HashMap<String, Object>() {{
             put( "id", null );
             put( "info", message );
             put( "timestamp", null );
@@ -2787,7 +2787,7 @@ final String finalTokenId = tokenId;
             put( "amount", Opinion.this.safeNumber(message, "shares") );
             put( "cost", Opinion.this.safeNumber(message, "amount") );
             put( "fee", null );
-        }}), outcomeObj);
+        }}, outcomeObj);
         if (java.util.Objects.equals(this.trades, null))
         {
             this.trades = this.createSafeDictionary();
@@ -2926,7 +2926,7 @@ final String finalTokenId = tokenId;
         }
         final String finalType = type;
         final String finalSide = side;
-        Object order = this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        Object order = this.safePredictionOrder(new HashMap<String, Object>() {{
             put( "id", Opinion.this.safeString(message, "orderId") );
             put( "clientOrderId", null );
             put( "info", message );
@@ -2946,7 +2946,7 @@ final String finalTokenId = tokenId;
             put( "filled", Opinion.this.safeNumber(message, "filledShares") );
             put( "fee", null );
             put( "trades", new ArrayList<Object>(Arrays.asList()) );
-        }}), outcomeObj);
+        }}, outcomeObj);
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -3031,7 +3031,7 @@ final String finalTokenId = tokenId;
         Object outcomeObj = this.opinionOutcomeByMarketIdSide(marketId, outcomeSide);
         String sym = this.safeString(outcomeObj, "outcome");
         Long timestamp = this.safeTimestamp(message, "createdAt");
-        Object trade = this.safePredictionTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        Object trade = this.safePredictionTrade(new HashMap<String, Object>() {{
             put( "id", Opinion.this.safeString(message, "tradeNo") );
             put( "info", message );
             put( "timestamp", timestamp );
@@ -3051,7 +3051,7 @@ final String finalTokenId = tokenId;
                 put( "cost", Opinion.this.safeNumber(message, "fee") );
                 put( "currency", "USDT" );
             }} );
-        }}), outcomeObj);
+        }}, outcomeObj);
         if (java.util.Objects.equals(this.myTrades, null))
         {
             Long myTradesLimit = this.safeInteger(this.options, "myTradesLimit", 1000);

@@ -360,7 +360,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         if (java.util.Objects.equals(action, "snapshot"))
         {
             Map<String, Object> orderBookSnapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp);
-            ((Map<String, Object>)orderBookSnapshot).put("nonce", this.safeInteger(data, "seqId"));
+            orderBookSnapshot.put("nonce", this.safeInteger(data, "seqId"));
             orderbook.reset(orderBookSnapshot);
         } else
         {

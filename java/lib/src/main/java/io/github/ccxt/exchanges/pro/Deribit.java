@@ -742,7 +742,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             Object trade = (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
             Helpers.callDynamically(cachedTrades, "append", new Object[]{trade});
             Object symbol = ((Map<String, Object>)trade).get("symbol");
-            ((Map<String, Object>)marketIds).put((String)((String)symbol), true);
+            marketIds.put((String)((String)symbol), true);
         }
         client.resolve(cachedTrades, channel);
     }
@@ -947,8 +947,8 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         {
             ((List<Object>)cleanedAsks).add(new ArrayList<Object>(Arrays.asList(Helpers.GetValue((asks == null || i < 0 || i >= asks.size() ? null : asks.get(i)), 1), Helpers.GetValue((asks == null || i < 0 || i >= asks.size() ? null : asks.get(i)), 2))));
         }
-        ((Map<String, Object>)data).put("bids", cleanedBids);
-        ((Map<String, Object>)data).put("asks", cleanedAsks);
+        data.put("bids", cleanedBids);
+        data.put("asks", cleanedAsks);
         return data;
     }
 

@@ -3192,7 +3192,7 @@ func (this *Grvt) FetchLeveragesAsync(optionalArgs ...any) <-chan any {
 func (this *Grvt) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3313,7 +3313,7 @@ func (this *Grvt) FetchMarginModesAsync(optionalArgs ...any) <-chan any {
 func (this *Grvt) fetchMarginModesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params

@@ -436,7 +436,7 @@ public class Revolutx extends RevolutxApi
             String region = this.safeString2(parameters, "region", "region", ((Map<String, Object>)this.options).get("region"));
             if (!java.util.Objects.equals(region, null))
             {
-                ((Map<String, Object>)request).put("region", region);
+                request.put("region", region);
             }
             Map<String, Object> response = (this.publicGet10PublicConfigurationPairs(this.extend(request, parameters))).join();
             //
@@ -548,7 +548,7 @@ public class Revolutx extends RevolutxApi
             String region = this.safeString2(parameters, "region", "region", ((Map<String, Object>)this.options).get("region"));
             if (!java.util.Objects.equals(region, null))
             {
-                ((Map<String, Object>)request).put("region", region);
+                request.put("region", region);
             }
             Map<String, Object> response = (this.publicGet10PublicConfigurationCurrencies(this.extend(request, parameters))).join();
             //
@@ -573,7 +573,7 @@ public class Revolutx extends RevolutxApi
                 {
                     continue;
                 }
-                ((Map<String, Object>)result).put((String)code, parsed);
+                result.put((String)code, parsed);
             }
             return result;
         });
@@ -695,12 +695,12 @@ public class Revolutx extends RevolutxApi
                     Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                     ((List<Object>)marketIds).add(((Map<String, Object>)market).get("id"));
                 }
-                ((Map<String, Object>)request).put("symbols", String.join(",", (List<String>)marketIds));
+                request.put("symbols", String.join(",", (List<String>)marketIds));
             }
             String region = this.safeString2(parameters, "region", "region", ((Map<String, Object>)this.options).get("region"));
             if (!java.util.Objects.equals(region, null))
             {
-                ((Map<String, Object>)request).put("region", region);
+                request.put("region", region);
             }
             Map<String, Object> response = (this.publicGet10PublicTickers(this.extend(request, parameters))).join();
             //
@@ -720,14 +720,14 @@ public class Revolutx extends RevolutxApi
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Map<String, Object> tickerData = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
-                ((Map<String, Object>)tickerData).put("timestamp", timestamp);
+                tickerData.put("timestamp", timestamp);
                 Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(tickerData);
                 String symbol = this.safeString(ticker, "symbol", "");
                 if (java.util.Objects.equals(symbol, ""))
                 {
                     continue;
                 }
-                ((Map<String, Object>)result).put((String)symbol, ticker);
+                result.put((String)symbol, ticker);
             }
             if (!java.util.Objects.equals(symbols, null))
             {
@@ -737,7 +737,7 @@ public class Revolutx extends RevolutxApi
                     String s = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                     if (result.containsKey(s))
                     {
-                        ((Map<String, Object>)filtered).put((String)s, (result == null || s == null ? null : result.get(s)));
+                        filtered.put((String)s, (result == null || s == null ? null : result.get(s)));
                     }
                 }
                 return filtered;
@@ -831,12 +831,12 @@ public class Revolutx extends RevolutxApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             String region = this.safeString2(parameters, "region", "region", ((Map<String, Object>)this.options).get("region"));
             if (!java.util.Objects.equals(region, null))
             {
-                ((Map<String, Object>)request).put("region", region);
+                request.put("region", region);
             }
             Map<String, Object> response = (this.publicGet20PublicOrderBookSymbol(this.extend(request, parameters))).join();
             //
@@ -934,20 +934,20 @@ public class Revolutx extends RevolutxApi
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("since", since);
+                request.put("since", since);
             }
             Long until = (Long) this.safeInteger2(parameters, "until", "until");
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("until", until);
+                request.put("until", until);
             } else
             {
-                ((Map<String, Object>)request).put("until", this.milliseconds());
+                request.put("until", this.milliseconds());
             }
             String region = this.safeString2(parameters, "region", "region", ((Map<String, Object>)this.options).get("region"));
             if (!java.util.Objects.equals(region, null))
             {
-                ((Map<String, Object>)request).put("region", region);
+                request.put("region", region);
             }
             Map<String, Object> response = (this.publicGet10PublicCandlesSymbol(this.extend(request, parameters))).join();
             //
@@ -1074,28 +1074,28 @@ public class Revolutx extends RevolutxApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(market, null))
             {
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_date", since);
+                request.put("start_date", since);
             }
             Long until = (Long) this.safeInteger2(parameters, "until", "until");
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("end_date", until);
+                request.put("end_date", until);
             } else if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("end_date", this.milliseconds());
+                request.put("end_date", this.milliseconds());
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1900));
+                request.put("limit", Helpers.mathMin(limit, 1900));
             }
             String cursor = this.safeString(parameters, "cursor");
             if (!java.util.Objects.equals(cursor, null))
             {
-                ((Map<String, Object>)request).put("cursor", cursor);
+                request.put("cursor", cursor);
             }
             Map<String, Object> response = (this.publicGet10PublicTradesAll(this.extend(request, parameters))).join();
             //
@@ -1174,7 +1174,7 @@ public class Revolutx extends RevolutxApi
                     continue;
                 }
                 Map<String, Object> account = (Map<String, Object>) this.account();
-                ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
+                account.put("free", this.safeString(balance, "available"));
                 String reserved = this.safeString(balance, "reserved");
                 String staked = this.safeString(balance, "staked");
                 String used = reserved;
@@ -1182,9 +1182,9 @@ public class Revolutx extends RevolutxApi
                 {
                     used = (((java.util.Objects.equals(reserved, null)))) ? staked : Precise.stringAdd(reserved, staked);
                 }
-                ((Map<String, Object>)account).put("used", used);
-                ((Map<String, Object>)account).put("total", this.safeString(balance, "total"));
-                ((Map<String, Object>)result).put((String)code, account);
+                account.put("used", used);
+                account.put("total", this.safeString(balance, "total"));
+                result.put((String)code, account);
             }
             return this.safeBalance(result);
         }).thenApply(Balances::new);
@@ -1290,7 +1290,7 @@ public class Revolutx extends RevolutxApi
         final String finalFilledValue = filledValue;
         final String finalRemainingValue = remainingValue;
         final Map<String, Object> finalFee = fee;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", orderId );
             put( "clientOrderId", clientOrderId );
             put( "symbol", symbol );
@@ -1308,7 +1308,7 @@ public class Revolutx extends RevolutxApi
             put( "lastUpdateTimestamp", updatedDate );
             put( "fee", finalFee );
             put( "info", order );
-        }}), market);
+        }}, market);
     }
     /**
      * @method
@@ -1361,21 +1361,21 @@ public class Revolutx extends RevolutxApi
                 Map<String, Object> limitConfig = new HashMap<String, Object>() {{}};
                 if (!java.util.Objects.equals(cost, null))
                 {
-                    ((Map<String, Object>)limitConfig).put("quote_size", this.costToPrecision(symbol, cost));
+                    limitConfig.put("quote_size", this.costToPrecision(symbol, cost));
                 } else
                 {
-                    ((Map<String, Object>)limitConfig).put("base_size", this.amountToPrecision(symbol, amount));
+                    limitConfig.put("base_size", this.amountToPrecision(symbol, amount));
                 }
-                ((Map<String, Object>)limitConfig).put("price", this.priceToPrecision(symbol, price));
+                limitConfig.put("price", this.priceToPrecision(symbol, price));
                 if (!java.util.Objects.equals(timeInForce, null))
                 {
-                    ((Map<String, Object>)limitConfig).put("time_in_force", timeInForce);
+                    limitConfig.put("time_in_force", timeInForce);
                 }
                 if (!java.util.Objects.equals(executionInstructions, null))
                 {
-                    ((Map<String, Object>)limitConfig).put("execution_instructions", executionInstructions);
+                    limitConfig.put("execution_instructions", executionInstructions);
                 }
-                ((Map<String, Object>)orderConfiguration).put("limit", limitConfig);
+                orderConfiguration.put("limit", limitConfig);
             } else if (java.util.Objects.equals(type, "market"))
             {
                 if (!java.util.Objects.equals(timeInForce, null))
@@ -1389,12 +1389,12 @@ public class Revolutx extends RevolutxApi
                 Map<String, Object> marketConfig = new HashMap<String, Object>() {{}};
                 if (!java.util.Objects.equals(cost, null))
                 {
-                    ((Map<String, Object>)marketConfig).put("quote_size", this.costToPrecision(symbol, cost));
+                    marketConfig.put("quote_size", this.costToPrecision(symbol, cost));
                 } else
                 {
-                    ((Map<String, Object>)marketConfig).put("base_size", this.amountToPrecision(symbol, amount));
+                    marketConfig.put("base_size", this.amountToPrecision(symbol, amount));
                 }
-                ((Map<String, Object>)orderConfiguration).put("market", marketConfig);
+                orderConfiguration.put("market", marketConfig);
             } else
             {
                 throw new InvalidOrder(((this.id + " createOrder() does not support order type ") + type)) ;
@@ -1474,11 +1474,11 @@ public class Revolutx extends RevolutxApi
                 put( "venue_order_id", id );
             }};
             Map<String, Object> response = (this.privateDelete10OrdersVenueOrderId(this.extend(request, parameters))).join();
-            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "id", id );
                 put( "status", "canceled" );
-            }}));
+            }});
         }).thenApply(Order::new);
 
     }
@@ -1625,31 +1625,31 @@ public class Revolutx extends RevolutxApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("symbols", ((Map<String, Object>)market).get("id"));
+                request.put("symbols", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             String cursor = this.safeString(parameters, "cursor");
             if (!java.util.Objects.equals(cursor, null))
             {
-                ((Map<String, Object>)request).put("cursor", cursor);
+                request.put("cursor", cursor);
             }
             Object orderStates = this.safeList2(parameters, "orderStates", "order_states");
             if (!java.util.Objects.equals(orderStates, null))
             {
-                ((Map<String, Object>)request).put("order_states", String.join(",", (List<String>)orderStates));
+                request.put("order_states", String.join(",", (List<String>)orderStates));
             }
             Object orderTypes = this.safeList2(parameters, "orderTypes", "order_types");
             if (!java.util.Objects.equals(orderTypes, null))
             {
-                ((Map<String, Object>)request).put("order_types", String.join(",", (List<String>)orderTypes));
+                request.put("order_types", String.join(",", (List<String>)orderTypes));
             }
             String side = this.safeString(parameters, "side");
             if (!java.util.Objects.equals(side, null))
             {
-                ((Map<String, Object>)request).put("side", side);
+                request.put("side", side);
             }
             Map<String, Object> response = (this.privateGet10OrdersActive(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("cursor", "orderStates", "order_states", "orderTypes", "order_types", "side")))))).join();
             //
@@ -1721,44 +1721,44 @@ public class Revolutx extends RevolutxApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("symbols", ((Map<String, Object>)market).get("id"));
+                request.put("symbols", ((Map<String, Object>)market).get("id"));
             }
             Long thirtyDays = 2592000000L;
             Long until = (Long) this.safeInteger2(parameters, "until", "until");
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_date", since);
+                request.put("start_date", since);
             } else if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("start_date", (until - thirtyDays));
+                request.put("start_date", (until - thirtyDays));
             }
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("end_date", until);
+                request.put("end_date", until);
             } else if (!java.util.Objects.equals(since, null))
             {
                 Long now = this.milliseconds();
                 Object defaultEnd = Helpers.add(since, thirtyDays);
-                ((Map<String, Object>)request).put("end_date", (((Helpers.isLessThan(defaultEnd, now)))) ? defaultEnd : now);
+                request.put("end_date", (((Helpers.isLessThan(defaultEnd, now)))) ? defaultEnd : now);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             String cursor = this.safeString(parameters, "cursor");
             if (!java.util.Objects.equals(cursor, null))
             {
-                ((Map<String, Object>)request).put("cursor", cursor);
+                request.put("cursor", cursor);
             }
             Object orderStates = this.safeList2(parameters, "orderStates", "order_states");
             if (!java.util.Objects.equals(orderStates, null))
             {
-                ((Map<String, Object>)request).put("order_states", String.join(",", (List<String>)orderStates));
+                request.put("order_states", String.join(",", (List<String>)orderStates));
             }
             Object orderTypes = this.safeList2(parameters, "orderTypes", "order_types");
             if (!java.util.Objects.equals(orderTypes, null))
             {
-                ((Map<String, Object>)request).put("order_types", String.join(",", (List<String>)orderTypes));
+                request.put("order_types", String.join(",", (List<String>)orderTypes));
             }
             Map<String, Object> response = (this.privateGet10OrdersHistorical(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "cursor", "orderStates", "order_states", "orderTypes", "order_types")))))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
@@ -1929,28 +1929,28 @@ public class Revolutx extends RevolutxApi
             Long until = (Long) this.safeInteger2(parameters, "until", "until");
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_date", since);
+                request.put("start_date", since);
             } else if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("start_date", (until - thirtyDays));
+                request.put("start_date", (until - thirtyDays));
             }
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("end_date", until);
+                request.put("end_date", until);
             } else if (!java.util.Objects.equals(since, null))
             {
                 Long now = this.milliseconds();
                 Object defaultEnd = Helpers.add(since, thirtyDays);
-                ((Map<String, Object>)request).put("end_date", (((Helpers.isLessThan(defaultEnd, now)))) ? defaultEnd : now);
+                request.put("end_date", (((Helpers.isLessThan(defaultEnd, now)))) ? defaultEnd : now);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             String cursor = this.safeString(parameters, "cursor");
             if (!java.util.Objects.equals(cursor, null))
             {
-                ((Map<String, Object>)request).put("cursor", cursor);
+                request.put("cursor", cursor);
             }
             Map<String, Object> response = (this.privateGet10TradesPrivateSymbol(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")))))).join();
             //
@@ -2033,22 +2033,22 @@ public class Revolutx extends RevolutxApi
             }};
             if (!java.util.Objects.equals(cost, null))
             {
-                ((Map<String, Object>)request).put("quote_size", this.costToPrecision(symbol, cost));
+                request.put("quote_size", this.costToPrecision(symbol, cost));
             } else if (!java.util.Objects.equals(amount, null))
             {
-                ((Map<String, Object>)request).put("base_size", this.amountToPrecision(symbol, amount));
+                request.put("base_size", this.amountToPrecision(symbol, amount));
             }
             if (!java.util.Objects.equals(price, null))
             {
-                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+                request.put("price", this.priceToPrecision(symbol, price));
             }
             if (!java.util.Objects.equals(timeInForce, null))
             {
-                ((Map<String, Object>)request).put("time_in_force", timeInForce);
+                request.put("time_in_force", timeInForce);
             }
             if (!java.util.Objects.equals(executionInstructions, null))
             {
-                ((Map<String, Object>)request).put("execution_instructions", executionInstructions);
+                request.put("execution_instructions", executionInstructions);
             }
             Map<String, Object> response = (this.privatePut10OrdersVenueOrderId(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_order_id", "cost", "quote_size", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions")))))).join();
             //

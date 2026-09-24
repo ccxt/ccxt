@@ -824,7 +824,7 @@ func (this *Krakenfutures) FetchTickersAsync(optionalArgs ...any) <-chan any {
 func (this *Krakenfutures) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3794,7 +3794,7 @@ func (this *Krakenfutures) FetchPositionsAsync(optionalArgs ...any) <-chan any {
 func (this *Krakenfutures) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3866,7 +3866,7 @@ func (this *Krakenfutures) FetchPositionsHistoryAsync(optionalArgs ...any) <-cha
 func (this *Krakenfutures) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -4086,7 +4086,7 @@ func (this *Krakenfutures) FetchLeverageTiersAsync(optionalArgs ...any) <-chan a
 func (this *Krakenfutures) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -4429,7 +4429,7 @@ func (this *Krakenfutures) FetchLeveragesAsync(optionalArgs ...any) <-chan any {
 func (this *Krakenfutures) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params

@@ -448,7 +448,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         String amountString = this.safeString(trade, "qty");
         final Map<String, Object> finalMarket = market;
         final String finalSide = side;
-        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
             put( "id", Coinone.this.safeString(trade, "id") );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -462,7 +462,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
             put( "amount", amountString );
             put( "cost", null );
             put( "fee", null );
-        }}), market));
+        }}, market));
     }
     public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {

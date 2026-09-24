@@ -641,7 +641,7 @@ public class Polymarket extends PolymarketApi
                 if ((!java.util.Objects.equals(eventSlug, null)) && (!java.util.Objects.equals(eventSlug, "")))
                 {
                     String eventKey = this.shortenSlug((String) (eventSlug));
-                    ((Map<String, Object>)eventsDict).put((String)eventKey, parsedEvent);
+                    eventsDict.put((String)eventKey, parsedEvent);
                 }
             }
             this.events = eventsDict;
@@ -724,7 +724,7 @@ public class Polymarket extends PolymarketApi
                 }};
                 if (!java.util.Objects.equals(eventsStatus, null))
                 {
-                    ((Map<String, Object>)baseRequest).put("events_status", eventsStatus);
+                    baseRequest.put("events_status", eventsStatus);
                 }
                 Map<String, Object> firstRequest = new HashMap<String, Object>() {{
                     put( "page", 1 );
@@ -789,7 +789,7 @@ public class Polymarket extends PolymarketApi
                     String eventId = this.safeString(rawEvent, "id");
                     if ((!java.util.Objects.equals(eventId, null) && !java.util.Objects.equals(eventId, "")) && !(seen.containsKey(eventId)))
                     {
-                        ((Map<String, Object>)seen).put((String)eventId, true);
+                        seen.put((String)eventId, true);
                         ((List<Object>)rawEvents).add(rawEvent);
                     }
                 }
@@ -907,7 +907,7 @@ public class Polymarket extends PolymarketApi
                 for (var ti = 0; Helpers.isLessThan(ti, requestedTagsLength); ti++)
                 {
                     Map<String, Object> singleTagParams = this.extend(new HashMap<String, Object>() {{}}, parameters);
-                    Helpers.addElementToObject(singleTagParams, "tags", new ArrayList<Object>(Arrays.asList((requestedTags == null || ti < 0 || ti >= requestedTags.size() ? null : requestedTags.get(ti)))));
+                    singleTagParams.put("tags", new ArrayList<Object>(Arrays.asList((requestedTags == null || ti < 0 || ti >= requestedTags.size() ? null : requestedTags.get(ti)))));
                     Object tagEvents = (this.fetchRawEventsList(singleTagParams)).join();
                     for (var ei = 0; ei < ((List<?>)tagEvents).size(); ei++)
                     {
@@ -915,7 +915,7 @@ public class Polymarket extends PolymarketApi
                         String eventId = this.safeString(rawEvent, "id");
                         if ((!java.util.Objects.equals(eventId, null)) && !(seen.containsKey(eventId)))
                         {
-                            ((Map<String, Object>)seen).put((String)eventId, true);
+                            seen.put((String)eventId, true);
                             ((List<Object>)unioned).add(rawEvent);
                         }
                     }
@@ -926,16 +926,16 @@ public class Polymarket extends PolymarketApi
             {
                 // gamma matches tag_slug case-insensitively but only in slug form ("fed-rates"),
                 // so human-readable labels ("Fed Rates") must be slugified first
-                ((Map<String, Object>)baseRequest).put("tag_slug", this.tagToSlug(this.safeString(requestedTags, 0)));
+                baseRequest.put("tag_slug", this.tagToSlug(this.safeString(requestedTags, 0)));
             }
             if (java.util.Objects.equals(status, "active"))
             {
-                ((Map<String, Object>)baseRequest).put("active", true);
-                ((Map<String, Object>)baseRequest).put("closed", false);
+                baseRequest.put("active", true);
+                baseRequest.put("closed", false);
             } else if ((java.util.Objects.equals(status, "closed")) || (java.util.Objects.equals(status, "inactive")))
             {
-                ((Map<String, Object>)baseRequest).put("active", false);
-                ((Map<String, Object>)baseRequest).put("closed", true);
+                baseRequest.put("active", false);
+                baseRequest.put("closed", true);
             }
             // 'all' — no active/closed filter
             // fetch page 1 first; if full, fire remaining pages in parallel
@@ -1316,9 +1316,9 @@ final Object finalClobTokenId = clobTokenId;
                     {
                         this.markets = this.createSafeDictionary();
                     }
-                    Object ccxtMarkets = this.parseEventToMarkets((Map<String, Object>) (new HashMap<String, Object>() {{
+                    Object ccxtMarkets = this.parseEventToMarkets(new HashMap<String, Object>() {{
                         put( "markets", rawMarkets );
-                    }}));
+                    }});
                     Integer ccxtMarketsLength = ((List<?>)ccxtMarkets).size();
                     for (var i = 0; Helpers.isLessThan(i, ccxtMarketsLength); i++)
                     {
@@ -1398,9 +1398,9 @@ final Object finalClobTokenId = clobTokenId;
                         put( "limit", chunkSize );
                     }})).join();
                     List<Object> rawMarkets = (((!java.util.Objects.equals(response, null)))) ? response : new ArrayList<Object>(Arrays.asList());
-                    Object ccxtMarkets = this.parseEventToMarkets((Map<String, Object>) (new HashMap<String, Object>() {{
+                    Object ccxtMarkets = this.parseEventToMarkets(new HashMap<String, Object>() {{
                         put( "markets", rawMarkets );
-                    }}));
+                    }});
                     for (var i = 0; i < ((List<?>)ccxtMarkets).size(); i++)
                     {
                         Object mkt = (ccxtMarkets == null || i < 0 || i >= ((List<?>)ccxtMarkets).size() ? null : ((List<?>)ccxtMarkets).get(i));
@@ -1548,7 +1548,7 @@ final Object finalClobTokenId = clobTokenId;
                 String tokenId = this.safeString(outcomeObj, "outcomeId");
                 if ((!java.util.Objects.equals(tokenId, null)) && !(outcomesByTokenId.containsKey(tokenId)))
                 {
-                    ((Map<String, Object>)outcomesByTokenId).put((String)tokenId, outcomeObj);
+                    outcomesByTokenId.put((String)tokenId, outcomeObj);
                     ((List<Object>)tokenIds).add(tokenId);
                 }
             }
@@ -1588,7 +1588,7 @@ final Object finalClobTokenId = clobTokenId;
                     String lastTradeTokenId = this.safeString(lastTradeEntry, "token_id");
                     if (!java.util.Objects.equals(lastTradeTokenId, null))
                     {
-                        ((Map<String, Object>)lastTradesByTokenId).put((String)lastTradeTokenId, lastTradeEntry);
+                        lastTradesByTokenId.put((String)lastTradeTokenId, lastTradeEntry);
                     }
                 }
                 Integer booksLength = ((List<?>)books).size();
@@ -1612,7 +1612,7 @@ final Object finalClobTokenId = clobTokenId;
                     }};
                     Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (tickerInput), outcomeObj);
                     String symbolKey = this.safeString(ticker, "outcome", tokenId);
-                    ((Map<String, Object>)result).put((String)symbolKey, ticker);
+                    result.put((String)symbolKey, ticker);
                 }
                 startIndex = this.sum(startIndex, chunkSize);
             }
@@ -1710,7 +1710,7 @@ final Object finalClobTokenId = clobTokenId;
         final Map<String, Object> finalMarket = market;
         final Double finalLast = last;
         final Double finalQuoteVolume = quoteVolume;
-        return (Map<String, Object>) (this.safePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safePredictionTicker(new HashMap<String, Object>() {{
             put( "outcome", outcome );
             put( "outcomeId", Polymarket.this.safeString(finalMarket, "outcomeId") );
             put( "label", Polymarket.this.safeString(finalMarket, "label") );
@@ -1734,7 +1734,7 @@ final Object finalClobTokenId = clobTokenId;
             put( "baseVolume", null );
             put( "quoteVolume", finalQuoteVolume );
             put( "info", ticker );
-        }}), market));
+        }}, market));
     }
     /**
      * @ignore
@@ -1916,7 +1916,7 @@ final Object finalClobTokenId = clobTokenId;
                 String bucketKey = String.valueOf(snappedMs);
                 if (!(buckets.containsKey(bucketKey)))
                 {
-                    ((Map<String, Object>)buckets).put((String)bucketKey, new ArrayList<Object>(Arrays.asList(snappedMs, price, price, price, price, vol)));
+                    buckets.put((String)bucketKey, new ArrayList<Object>(Arrays.asList(snappedMs, price, price, price, price, vol)));
                 } else
                 {
                     Object candle = (buckets == null || bucketKey == null ? null : buckets.get(bucketKey));
@@ -1928,7 +1928,7 @@ final Object finalClobTokenId = clobTokenId;
                         Object prevVol = ((List<Object>)candle).get(5);
                         Helpers.addElementToObject(candle, 5, (((java.util.Objects.equals(prevVol, null)))) ? vol : this.sum(prevVol, vol)); // volume
                     }
-                    ((Map<String, Object>)buckets).put((String)bucketKey, candle); // reassign after mutation, php arrays are value types
+                    buckets.put((String)bucketKey, candle); // reassign after mutation, php arrays are value types
                 }
             }
             List<String> bucketKeys = new ArrayList<String>(buckets.keySet());
@@ -2216,7 +2216,7 @@ final Object finalClobTokenId = clobTokenId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", finalConditionId );
             }};
-            ((Map<String, Object>)request).put("limit", this.safeInteger(this.options, "tradesPageSize", 500));
+            request.put("limit", this.safeInteger(this.options, "tradesPageSize", 500));
             List<Object> response = (this.dataPublicGetTrades(this.extend(request, parameters))).join();
             Object rawTrades = (((response instanceof List))) ? response : this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> filteredTrades = new ArrayList<Object>(Arrays.asList());
@@ -2273,7 +2273,7 @@ final Object finalClobTokenId = clobTokenId;
             if (!java.util.Objects.equals(outcome, null))
             {
                 outcomeObj = (this.loadOutcome((String) (outcome))).join();
-                ((Map<String, Object>)request).put("asset_id", outcomeObj.get("outcomeId"));
+                request.put("asset_id", outcomeObj.get("outcomeId"));
             }
             Map<String, Object> response = (this.clobPrivateGetDataTrades(this.extend(request, parameters))).join();
             Object rawTrades = (((response instanceof List))) ? response : this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
@@ -2415,7 +2415,7 @@ final Object finalClobTokenId = clobTokenId;
         final String finalSide = side;
         final String finalTakerOrMaker = takerOrMaker;
         final Map<String, Object> finalFee = fee;
-        return this.safePredictionTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePredictionTrade(new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
             put( "timestamp", finalTimestamp );
@@ -2432,7 +2432,7 @@ final Object finalClobTokenId = clobTokenId;
             put( "amount", amount );
             put( "cost", null );
             put( "fee", finalFee );
-        }}), mkt);
+        }}, mkt);
     }
     /**
      * @ignore
@@ -2510,7 +2510,7 @@ final Object finalClobTokenId = clobTokenId;
             total = this.parseNumber(Precise.stringDiv(raw, "1000000"));
         }
         final Double finalTotal = total;
-        ((Map<String, Object>)result).put("USDC", new HashMap<String, Object>() {{
+        result.put("USDC", new HashMap<String, Object>() {{
     put( "free", finalTotal );
     put( "used", null );
     put( "total", finalTotal );
@@ -2564,7 +2564,7 @@ final Object finalClobTokenId = clobTokenId;
             for (var i = 0; i < ((List<?>)outcomes).size(); i++)
             {
                 Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
-                ((Map<String, Object>)wantedIds).put((String)((Map<String, Object>)outcomeObj).get("outcomeId"), true);
+                wantedIds.put((String)((Map<String, Object>)outcomeObj).get("outcomeId"), true);
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)parsed).size(); i++)
@@ -2652,7 +2652,7 @@ final Object finalClobTokenId = clobTokenId;
         final Double finalSize = size;
         final Object finalNotional = notional;
         final Double finalCurPrice = curPrice;
-        return this.safePredictionPosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePredictionPosition(new HashMap<String, Object>() {{
             put( "id", Polymarket.this.safeString(position, "id") );
             put( "outcome", Polymarket.this.safeString(marketData, "outcome") );
             put( "outcomeId", Polymarket.this.safeString(marketData, "outcomeId") );
@@ -2682,7 +2682,7 @@ final Object finalClobTokenId = clobTokenId;
             put( "marginType", "cross" );
             put( "percentage", null );
             put( "info", position );
-        }}));
+        }});
     }
     /**
      * @ignore
@@ -2720,7 +2720,7 @@ final Object finalClobTokenId = clobTokenId;
             if (!java.util.Objects.equals(outcome, null))
             {
                 outcomeObj = (this.loadOutcome((String) (outcome))).join();
-                ((Map<String, Object>)request).put("asset_id", outcomeObj.get("outcomeId"));
+                request.put("asset_id", outcomeObj.get("outcomeId"));
             }
             Map<String, Object> response = (this.clobPrivateGetDataOrders(this.extend(request, parameters))).join();
             Object orders = (List<Object>)(this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())));
@@ -2816,7 +2816,7 @@ final Object finalClobTokenId = clobTokenId;
         Double amount = this.safeNumber(order, "original_size");
         Double filled = this.safeNumber(order, "size_matched", 0);
         Long ts = this.safeIntegerProduct(order, "created_at", 1000);
-        return this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePredictionOrder(new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
             put( "info", order );
@@ -2842,7 +2842,7 @@ final Object finalClobTokenId = clobTokenId;
             put( "remaining", null );
             put( "fee", null );
             put( "trades", new ArrayList<Object>(Arrays.asList()) );
-        }}), mkt);
+        }}, mkt);
     }
     /**
      * @ignore
@@ -3215,7 +3215,7 @@ final Object finalClobTokenId = clobTokenId;
         if (java.util.Objects.equals(cost, null))
         {
             // a cost-sized market buy specifies spend, not shares — leave size to the fill
-            ((Map<String, Object>)requestEcho).put("original_size", amount);
+            requestEcho.put("original_size", amount);
         }
         return new HashMap<String, Object>() {{
             put( "body", Polymarket.this.extend(rest, orderBody) );
@@ -3491,11 +3491,11 @@ final Object finalClobTokenId = clobTokenId;
                 status = "canceled";
             }
             final String finalStatus = status;
-            return this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return this.safePredictionOrder(new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "status", finalStatus );
                 put( "info", response );
-            }}));
+            }});
         }).thenApply(PredictionOrder::new);
 
     }
@@ -3537,11 +3537,11 @@ final Object finalClobTokenId = clobTokenId;
             for (var i = 0; i < ((List<?>)canceled).size(); i++)
             {
     final Object finalI = i;
-                            ((List<Object>)orders).add(this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+                            ((List<Object>)orders).add(this.safePredictionOrder(new HashMap<String, Object>() {{
                     put( "id", Polymarket.this.safeString(canceled, finalI) );
                     put( "status", "canceled" );
                     put( "info", response );
-                }})));
+                }}));
             }
             return orders;
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
@@ -3598,11 +3598,11 @@ final Object finalClobTokenId = clobTokenId;
             {
     final Object finalI = i;
                 final Map<String, Object> finalResponse = response;
-                            ((List<Object>)orders).add(this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+                            ((List<Object>)orders).add(this.safePredictionOrder(new HashMap<String, Object>() {{
                     put( "id", Polymarket.this.safeString(canceled, finalI) );
                     put( "status", "canceled" );
                     put( "info", finalResponse );
-                }})));
+                }}));
             }
             return orders;
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
@@ -3665,10 +3665,10 @@ final Object finalClobTokenId = clobTokenId;
                 Map<String, Object> lookup = new HashMap<String, Object>() {{}};
                 if (!java.util.Objects.equals(requestedEventId, null))
                 {
-                    ((Map<String, Object>)lookup).put("id", requestedEventId);
+                    lookup.put("id", requestedEventId);
                 } else
                 {
-                    ((Map<String, Object>)lookup).put("slug", requestedSlug);
+                    lookup.put("slug", requestedSlug);
                 }
                 List<Object> response = (this.gammaPublicGetEvents(lookup)).join();
                 Boolean responseIsArray = (response instanceof List);
@@ -4541,7 +4541,7 @@ final String finalOutcome = outcome;
             Helpers.callDynamically(sideRef, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(price, size))});
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);
             Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
-            ((Map<String, Object>)updated).put((String)outcome, true);
+            updated.put((String)outcome, true);
         }
         List<String> updatedSymbols = new ArrayList<String>(updated.keySet());
         for (var k = 0; k < ((List<?>)updatedSymbols).size(); k++)
@@ -4566,7 +4566,7 @@ final String finalOutcome = outcome;
         Double amount = this.safeNumber(eventVar, "size");
         Map<String, Object> market = this.safeOutcome((String) (tokenId));
         final String finalOutcome = outcome;
-        Object trade = this.safePredictionTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        Object trade = this.safePredictionTrade(new HashMap<String, Object>() {{
             put( "id", Polymarket.this.safeString(eventVar, "transaction_hash") );
             put( "info", eventVar );
             put( "timestamp", timestamp );
@@ -4583,7 +4583,7 @@ final String finalOutcome = outcome;
             put( "amount", amount );
             put( "cost", null );
             put( "fee", null );
-        }}), market);
+        }}, market);
         if (java.util.Objects.equals(this.trades, null))
         {
             this.trades = new HashMap<String, Object>() {{}};
@@ -4768,7 +4768,7 @@ final String finalOutcome = outcome;
             final Object finalBestAsk = bestAsk;
             final Object finalBestAskVolume = bestAskVolume;
             final Object finalMid = mid;
-            return this.safePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+            return this.safePredictionTicker(new HashMap<String, Object>() {{
                 put( "outcome", finalOutcome );
                 put( "outcomeId", Polymarket.this.safeString(market, "outcomeId") );
                 put( "label", Polymarket.this.safeString(market, "label") );
@@ -4792,7 +4792,7 @@ final String finalOutcome = outcome;
                 put( "baseVolume", null );
                 put( "quoteVolume", null );
                 put( "info", orderbook );
-            }}), market);
+            }}, market);
         }).thenApply(PredictionTicker::new);
 
     }

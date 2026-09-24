@@ -137,8 +137,8 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             {
                 method = "UNSUBSCRIBE";
                 parameters = (Map<String, Object>) this.omit(parameters, "unsubscribe");
-                ((Map<String, Object>)subscriptionParams).put("unsubscribe", true);
-                ((Map<String, Object>)subscriptionParams).put("messageHashes", messageHashes);
+                subscriptionParams.put("unsubscribe", true);
+                subscriptionParams.put("messageHashes", messageHashes);
             }
             final String finalMethod = method;
             Map<String, Object> message = new HashMap<String, Object>() {{
@@ -182,7 +182,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                     }} );
                 }};
                 parameters = this.deepExtend(request, parameters);
-                ((Map<String, Object>)subscription).put("id", id);
+                subscription.put("id", id);
             }
             return (this.watchMultiple(url, messageHashes, parameters, new ArrayList<Object>(Arrays.asList("private")), subscription)).join();
         });
@@ -357,7 +357,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 // all tickers and tickers for specific symbols are different channels
                 // we need to unsubscribe from all ticker channels
                 Object subHashes = this.getMessageHashesForTickersUnsubscription();
-                ((Map<String, Object>)subscription).put("subHashIsPrefix", true);
+                subscription.put("subHashIsPrefix", true);
                 for (var i = 0; i < ((List<?>)subHashes).size(); i++)
                 {
                     String subHash = this.safeString(subHashes, i);
@@ -384,7 +384,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                     ((List<Object>)messageHashes).add((messageHash + symbol));
                     ((List<Object>)channels).add((marketId + channel));
                 }
-                ((Map<String, Object>)subscription).put("symbols", symbols);
+                subscription.put("symbols", symbols);
             }
             parameters = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "unsubscribe", true );
@@ -1123,7 +1123,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         }
         final Map<String, Object> finalMarket_2 = market;
         final Map<String, Object> finalFee = fee;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Bydfi.this.safeString(order, "o") );
             put( "clientOrderId", Bydfi.this.safeString(order, "cid") );
@@ -1149,7 +1149,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             put( "trades", null );
             put( "fee", finalFee );
             put( "average", Bydfi.this.omitZero(Bydfi.this.safeString(order, "ap")) );
-        }}), market);
+        }}, market);
     }
     public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
@@ -1307,7 +1307,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         String positionMode = this.safeString(position, "pt");
         final Map<String, Object> finalMarket = market;
         final String finalPositionMode = positionMode;
-        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePosition(new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", Bydfi.this.safeString(position, "id") );
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
@@ -1334,7 +1334,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             put( "marginRatio", null );
             put( "marginMode", Bydfi.this.safeStringLower(position, "mt") );
             put( "percentage", null );
-        }}));
+        }});
     }
     public Object parseWsPosition(Map<String, Object> position, Object... optionalArgs)
     {
@@ -1488,11 +1488,11 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 String currencyId = this.safeString(balance, "a");
                 String code = this.safeCurrencyCode((String) (currencyId));
                 Map<String, Object> account = (Map<String, Object>) this.account();
-                ((Map<String, Object>)account).put("total", this.safeString(balance, "wb"));
-                ((Map<String, Object>)account).put("used", this.safeString(balance, "tfm"));
+                account.put("total", this.safeString(balance, "wb"));
+                account.put("used", this.safeString(balance, "tfm"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    ((Map<String, Object>)result).put((String)code, account);
+                    result.put((String)code, account);
                 }
             }
             Object parsedBalance = this.safeBalance(result);

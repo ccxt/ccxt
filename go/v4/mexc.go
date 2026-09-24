@@ -2741,7 +2741,7 @@ func (this *Mexc) FetchBidsAsksAsync(optionalArgs ...any) <-chan any {
 func (this *Mexc) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -6348,7 +6348,7 @@ func (this *Mexc) FetchPositionsAsync(optionalArgs ...any) <-chan any {
 func (this *Mexc) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -7054,7 +7054,7 @@ func (this *Mexc) FetchTransactionFeesAsync(optionalArgs ...any) <-chan any {
 func (this *Mexc) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	codes := GetArg(optionalArgs, 0, nil)
+	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = codes
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -7098,7 +7098,7 @@ func (this *Mexc) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) any
 	return nil
 }
 func (this *Mexc) ParseTransactionFees(response any, optionalArgs ...any) map[string]any {
-	codes := GetArg(optionalArgs, 0, nil)
+	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = codes
 	var withdrawFees map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(response); i++ {
@@ -7174,7 +7174,7 @@ func (this *Mexc) FetchDepositWithdrawFeesAsync(optionalArgs ...any) <-chan any 
 func (this *Mexc) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	codes := GetArg(optionalArgs, 0, nil)
+	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = codes
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -7410,7 +7410,7 @@ func (this *Mexc) FetchPositionsHistoryAsync(optionalArgs ...any) <-chan any {
 func (this *Mexc) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since

@@ -1516,7 +1516,7 @@ func (this *Polymarket) FetchTickersAsync(optionalArgs ...any) <-chan any {
 func (this *Polymarket) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcomes := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcomes []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = outcomes
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2470,7 +2470,7 @@ func (this *Polymarket) FetchPositionsAsync(optionalArgs ...any) <-chan any {
 func (this *Polymarket) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcomes := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcomes []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = outcomes
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params

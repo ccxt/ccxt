@@ -258,7 +258,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         if (java.util.Objects.equals(type, "subscribed/order_book"))
         {
             Map<String, Object> parsed = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size");
-            ((Map<String, Object>)parsed).put("nonce", this.safeInteger(data, "offset"));
+            parsed.put("nonce", this.safeInteger(data, "offset"));
             orderbook.reset(parsed);
         } else if (java.util.Objects.equals(type, "update/order_book"))
         {
@@ -833,7 +833,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             side = "buy";
         }
         final String finalSide = side;
-        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", tradeId );
             put( "order", null );
@@ -847,7 +847,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             put( "amount", amountString );
             put( "cost", Lighter.this.safeString(trade, "usd_amount") );
             put( "fee", null );
-        }}), market));
+        }}, market));
     }
     public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
@@ -1099,7 +1099,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         final String finalSide = side;
         final String finalTakerOrMaker = takerOrMaker;
         final Map<String, Object> finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", tradeId );
             put( "order", finalOrder );
@@ -1113,7 +1113,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             put( "amount", amountString );
             put( "cost", costString );
             put( "fee", finalFee );
-        }}), market);
+        }}, market);
     }
     public Object parseWsOrderTrade(Map<String, Object> trade, Object... optionalArgs)
     {
@@ -1364,7 +1364,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         }
         final Map<String, Object> finalMarket = market;
         final String finalSide = side;
-        return this.safeLiquidation((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeLiquidation(new HashMap<String, Object>() {{
             put( "info", liquidation );
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
             put( "contracts", contracts );
@@ -1375,7 +1375,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             put( "quoteValue", quoteValue );
             put( "timestamp", timestamp );
             put( "datetime", Lighter.this.iso8601(timestamp) );
-        }}));
+        }});
     }
     public Object parseWsLiquidation(Map<String, Object> liquidation, Object... optionalArgs)
     {
@@ -1520,11 +1520,11 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(type, "spot"))
             {
-                ((Map<String, Object>)request).put("channel", ("account_all_assets/" + this.numberToString(accountIndex)));
+                request.put("channel", ("account_all_assets/" + this.numberToString(accountIndex)));
                 return (this.subscribePrivate(messageHash, this.extend(request, parameters))).join();
             } else
             {
-                ((Map<String, Object>)request).put("channel", ("user_stats/" + this.numberToString(accountIndex)));
+                request.put("channel", ("user_stats/" + this.numberToString(accountIndex)));
                 return (this.subscribePublic(messageHash, this.extend(request, parameters))).join();
             }
         }).thenApply(Balances::new);
@@ -1618,25 +1618,25 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 String codeId = this.safeString(asset, "symbol");
                 String code = this.safeCurrencyCode((String) (codeId));
                 Map<String, Object> account = (Map<String, Object>) this.account();
-                ((Map<String, Object>)account).put("used", this.safeString(asset, "locked_balance"));
-                ((Map<String, Object>)account).put("total", this.safeString(asset, "balance"));
+                account.put("used", this.safeString(asset, "locked_balance"));
+                account.put("total", this.safeString(asset, "balance"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    ((Map<String, Object>)balance).put((String)code, account);
+                    balance.put((String)code, account);
                 }
             }
         } else
         {
             Map<String, Object> stats = (Map<String, Object>) this.safeDict(message, "stats", new HashMap<String, Object>() {{}});
             Map<String, Object> account = (Map<String, Object>) this.account();
-            ((Map<String, Object>)account).put("free", this.safeString(stats, "available_balance"));
-            ((Map<String, Object>)account).put("total", this.safeString(stats, "collateral"));
-            ((Map<String, Object>)account).put("info", stats);
-            ((Map<String, Object>)balance).put("USDC", account);
+            account.put("free", this.safeString(stats, "available_balance"));
+            account.put("total", this.safeString(stats, "collateral"));
+            account.put("info", stats);
+            balance.put("USDC", account);
         }
         Long timestamp = this.safeInteger(message, "timestamp");
-        ((Map<String, Object>)balance).put("timestamp", timestamp);
-        ((Map<String, Object>)balance).put("datetime", this.iso8601(timestamp));
+        balance.put("timestamp", timestamp);
+        balance.put("datetime", this.iso8601(timestamp));
         Helpers.addElementToObject(this.balance, type, this.safeBalance(balance));
         String messageHash = this.getMessageHash("balances", null, type);
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), messageHash);
@@ -1676,11 +1676,11 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 messageHash = this.getMessageHash("orders", ((Map<String, Object>)market).get("symbol"));
-                ((Map<String, Object>)request).put("channel", ((("account_orders/" + ((Map<String, Object>)market).get("id")) + "/") + this.numberToString(accountIndex)));
+                request.put("channel", ((("account_orders/" + ((Map<String, Object>)market).get("id")) + "/") + this.numberToString(accountIndex)));
             } else
             {
                 messageHash = this.getMessageHash("orders");
-                ((Map<String, Object>)request).put("channel", ("account_all_orders/" + this.numberToString(accountIndex)));
+                request.put("channel", ("account_all_orders/" + this.numberToString(accountIndex)));
             }
             Object orders = (this.subscribePrivate(messageHash, this.extend(request, parameters))).join();
             if (this.newUpdates)
@@ -1736,11 +1736,11 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 subMessageHash = this.getMessageHash("orders", ((Map<String, Object>)market).get("symbol"));
-                ((Map<String, Object>)request).put("channel", ((("account_orders/" + ((Map<String, Object>)market).get("id")) + "/") + this.numberToString(accountIndex)));
+                request.put("channel", ((("account_orders/" + ((Map<String, Object>)market).get("id")) + "/") + this.numberToString(accountIndex)));
             } else
             {
                 subMessageHash = this.getMessageHash("orders");
-                ((Map<String, Object>)request).put("channel", ("account_all_orders/" + this.numberToString(accountIndex)));
+                request.put("channel", ("account_all_orders/" + this.numberToString(accountIndex)));
             }
             String messageHash = ("unsubscribe:" + subMessageHash);
             return (this.unsubscribe(messageHash, this.extend(request, parameters))).join();

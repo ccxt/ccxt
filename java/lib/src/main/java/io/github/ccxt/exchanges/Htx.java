@@ -2451,7 +2451,7 @@ public class Htx extends HtxApi
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                ((Map<String, Object>)result).put((String)symbol, (this.fetchTradingLimitsById((String) (this.marketId(symbol)), parameters)).join());
+                result.put((String)symbol, (this.fetchTradingLimitsById((String) (this.marketId(symbol)), parameters)).join());
             }
             return result;
         });
@@ -2649,7 +2649,7 @@ public class Htx extends HtxApi
             {
                 if (java.util.Objects.equals(subType, "linear"))
                 {
-                    ((Map<String, Object>)request).put("business_type", "all"); // override default to fetch all linear markets
+                    request.put("business_type", "all"); // override default to fetch all linear markets
                     response = (this.contractPublicGetLinearSwapApiV1SwapContractInfo(this.extend(request, parameters))).join();
                 } else if (java.util.Objects.equals(subType, "inverse"))
                 {
@@ -3209,22 +3209,22 @@ public class Htx extends HtxApi
             Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
-                ((Map<String, Object>)request).put("contract_code", ((Map<String, Object>)market).get("id"));
+                request.put("contract_code", ((Map<String, Object>)market).get("id"));
                 response = (this.contractPublicGetLinearSwapExMarketDetailMerged(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
             {
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("future"), true))
                 {
-                    ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                    request.put("symbol", ((Map<String, Object>)market).get("id"));
                     response = (this.contractPublicGetMarketDetailMerged(this.extend(request, parameters))).join();
                 } else if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
                 {
-                    ((Map<String, Object>)request).put("contract_code", ((Map<String, Object>)market).get("id"));
+                    request.put("contract_code", ((Map<String, Object>)market).get("id"));
                     response = (this.contractPublicGetSwapExMarketDetailMerged(this.extend(request, parameters))).join();
                 }
             } else
             {
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
                 response = (this.spotPublicGetMarketDetailMerged(this.extend(request, parameters))).join();
             }
             //
@@ -3349,13 +3349,13 @@ public class Htx extends HtxApi
                     // independently of type, supports calling all linear symbols i.e. fetchTickers(undefined, {subType:'linear'})
                     if (Boolean.TRUE.equals(future))
                     {
-                        ((Map<String, Object>)request).put("business_type", "futures");
+                        request.put("business_type", "futures");
                     } else if (Boolean.TRUE.equals(swap))
                     {
-                        ((Map<String, Object>)request).put("business_type", "swap");
+                        request.put("business_type", "swap");
                     } else
                     {
-                        ((Map<String, Object>)request).put("business_type", "all");
+                        request.put("business_type", "all");
                     }
                     response = (this.contractPublicGetLinearSwapExMarketDetailBatchMerged(this.extend(request, parameters))).join();
                 } else if (Boolean.TRUE.equals(inverse))
@@ -3571,17 +3571,17 @@ public class Htx extends HtxApi
             Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
-                ((Map<String, Object>)request).put("contract_code", ((Map<String, Object>)market).get("id"));
+                request.put("contract_code", ((Map<String, Object>)market).get("id"));
                 response = (this.contractPublicGetLinearSwapExMarketDepth(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
             {
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("future"), true))
                 {
-                    ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                    request.put("symbol", ((Map<String, Object>)market).get("id"));
                     response = (this.contractPublicGetMarketDepth(this.extend(request, parameters))).join();
                 } else if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
                 {
-                    ((Map<String, Object>)request).put("contract_code", ((Map<String, Object>)market).get("id"));
+                    request.put("contract_code", ((Map<String, Object>)market).get("id"));
                     response = (this.contractPublicGetSwapExMarketDepth(this.extend(request, parameters))).join();
                 }
             } else
@@ -3598,10 +3598,10 @@ public class Htx extends HtxApi
                     // it is not accepted by the exchange if you set it explicitly
                     if (!Helpers.isEqual(limit, 150))
                     {
-                        ((Map<String, Object>)request).put("depth", limit);
+                        request.put("depth", limit);
                     }
                 }
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
                 response = (this.spotPublicGetMarketDepth(this.extend(request, parameters))).join();
             }
             //
@@ -3643,7 +3643,7 @@ public class Htx extends HtxApi
                 Map<String, Object> tick = (Map<String, Object>) this.safeDict(response, "tick");
                 Long timestamp = this.safeInteger(tick, "ts", this.safeInteger(response, "ts"));
                 Map<String, Object> result = (Map<String, Object>) this.parseOrderBook(tick, symbol, timestamp);
-                ((Map<String, Object>)result).put("nonce", this.safeInteger(tick, "version"));
+                result.put("nonce", this.safeInteger(tick, "version"));
                 return result;
             }
             throw new ExchangeError(((this.id + " fetchOrderBook() returned unrecognized response: ") + this.json(response))) ;
@@ -3839,7 +3839,7 @@ public class Htx extends HtxApi
         final String finalSide = side;
         final String finalAmountString = amountString;
         final Map<String, Object> finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", finalId );
             put( "info", trade );
             put( "order", order );
@@ -3853,7 +3853,7 @@ public class Htx extends HtxApi
             put( "amount", finalAmountString );
             put( "cost", costString );
             put( "fee", finalFee );
-        }}), market);
+        }}, market);
     }
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
@@ -4015,15 +4015,15 @@ public class Htx extends HtxApi
                 if (!java.util.Objects.equals(symbol, null))
                 {
                     market = (Map<String, Object>) this.market(symbol);
-                    ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                    request.put("symbol", ((Map<String, Object>)market).get("id"));
                 }
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    ((Map<String, Object>)request).put("size", limit); // default 100, max 500
+                    request.put("size", limit); // default 100, max 500
                 }
                 if (!java.util.Objects.equals(since, null))
                 {
-                    ((Map<String, Object>)request).put("start-time", since); // a date within 120 days from today
+                    request.put("start-time", since); // a date within 120 days from today
                 }
                 List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end-time", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
                 request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
@@ -4037,30 +4037,30 @@ public class Htx extends HtxApi
                 }
                 if (!java.util.Objects.equals(since, null))
                 {
-                    ((Map<String, Object>)request).put("start_time", since);
+                    request.put("start_time", since);
                 }
                 List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
                 request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
                 if (java.util.Objects.equals(this.safeBool(market, "linear"), true))
                 {
-                    ((Map<String, Object>)request).put("contract_code", this.safeString(market, "id"));
+                    request.put("contract_code", this.safeString(market, "id"));
                     if (!java.util.Objects.equals(limit, null))
                     {
-                        ((Map<String, Object>)request).put("limit", limit); // default 100, max 500
+                        request.put("limit", limit); // default 100, max 500
                     }
                     response = (this.contractPrivateGetV5TradeOrderDetails(this.extend(request, parameters))).join();
                 } else if (java.util.Objects.equals(this.safeBool(market, "inverse"), true))
                 {
                     if (!java.util.Objects.equals(limit, null))
                     {
-                        ((Map<String, Object>)request).put("page_size", limit); // default 100, max 500
+                        request.put("page_size", limit); // default 100, max 500
                     }
-                    ((Map<String, Object>)request).put("contract", this.safeString(market, "id"));
-                    ((Map<String, Object>)request).put("trade_type", 0); // 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
+                    request.put("contract", this.safeString(market, "id"));
+                    request.put("trade_type", 0); // 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
                     if (java.util.Objects.equals(marketType, "future"))
                     {
-                        ((Map<String, Object>)request).put("symbol", this.safeString(market, "settleId"));
+                        request.put("symbol", this.safeString(market, "settleId"));
                         response = (this.contractPrivatePostApiV3ContractMatchresultsExact(this.extend(request, parameters))).join();
                     } else if (java.util.Objects.equals(marketType, "swap"))
                     {
@@ -4225,23 +4225,23 @@ public class Htx extends HtxApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("size", Helpers.mathMin(limit, 2000)); // max 2000
+                request.put("size", Helpers.mathMin(limit, 2000)); // max 2000
             }
             Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("future"), true))
             {
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
                 {
-                    ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                    request.put("symbol", ((Map<String, Object>)market).get("id"));
                     response = (this.contractPublicGetMarketHistoryTrade(this.extend(request, parameters))).join();
                 } else if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
                 {
-                    ((Map<String, Object>)request).put("contract_code", ((Map<String, Object>)market).get("id"));
+                    request.put("contract_code", ((Map<String, Object>)market).get("id"));
                     response = (this.contractPublicGetLinearSwapExMarketHistoryTrade(this.extend(request, parameters))).join();
                 }
             } else if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
-                ((Map<String, Object>)request).put("contract_code", ((Map<String, Object>)market).get("id"));
+                request.put("contract_code", ((Map<String, Object>)market).get("id"));
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
                 {
                     response = (this.contractPublicGetSwapExMarketHistoryTrade(this.extend(request, parameters))).join();
@@ -4251,7 +4251,7 @@ public class Htx extends HtxApi
                 }
             } else
             {
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
                 response = (this.spotPublicGetMarketHistoryTrade(this.extend(request, parameters))).join();
             }
             //
@@ -4387,7 +4387,7 @@ public class Htx extends HtxApi
             {
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    ((Map<String, Object>)request).put("size", Helpers.mathMin(limit, 2000)); // when using limit: from & to are ignored
+                    request.put("size", Helpers.mathMin(limit, 2000)); // when using limit: from & to are ignored
                 } else
                 {
                     limit = 2000L; // only used for from/to calculation
@@ -4399,15 +4399,15 @@ public class Htx extends HtxApi
                     if (java.util.Objects.equals(since, null))
                     {
                         Long now = this.seconds();
-                        ((Map<String, Object>)request).put("from", Helpers.subtract(now, Helpers.multiply(duration, (Helpers.subtract(limit, 1)))));
+                        request.put("from", Helpers.subtract(now, Helpers.multiply(duration, (Helpers.subtract(limit, 1)))));
                         calcualtedEnd = now;
                     } else
                     {
                         Long start = this.parseToInt(Helpers.divide(since, 1000));
-                        ((Map<String, Object>)request).put("from", start);
+                        request.put("from", start);
                         calcualtedEnd = this.sum(start, Helpers.multiply(duration, (Helpers.subtract(limit, 1))));
                     }
-                    ((Map<String, Object>)request).put("to", (((!java.util.Objects.equals(untilSeconds, null)))) ? untilSeconds : calcualtedEnd);
+                    request.put("to", (((!java.util.Objects.equals(untilSeconds, null)))) ? untilSeconds : calcualtedEnd);
                 }
             }
             Map<String, Object> response = null;
@@ -4415,7 +4415,7 @@ public class Htx extends HtxApi
             {
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
                 {
-                    ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                    request.put("symbol", ((Map<String, Object>)market).get("id"));
                     if (java.util.Objects.equals(priceType, "mark"))
                     {
                         response = (this.contractPublicGetIndexMarketHistoryMarkPriceKline(this.extend(request, parameters))).join();
@@ -4431,7 +4431,7 @@ public class Htx extends HtxApi
                     }
                 } else if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
                 {
-                    ((Map<String, Object>)request).put("contract_code", ((Map<String, Object>)market).get("id"));
+                    request.put("contract_code", ((Map<String, Object>)market).get("id"));
                     if (java.util.Objects.equals(priceType, "mark"))
                     {
                         response = (this.contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline(this.extend(request, parameters))).join();
@@ -4448,7 +4448,7 @@ public class Htx extends HtxApi
                 }
             } else if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
-                ((Map<String, Object>)request).put("contract_code", ((Map<String, Object>)market).get("id"));
+                request.put("contract_code", ((Map<String, Object>)market).get("id"));
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
                 {
                     if (java.util.Objects.equals(priceType, "mark"))
@@ -4482,7 +4482,7 @@ public class Htx extends HtxApi
                 }
             } else
             {
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
                 Boolean useHistorical = null;
                 List<Object> useHistoricalparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "useHistoricalEndpointForSpot", true);
                 useHistorical = (Boolean) ((List<Object>) useHistoricalparametersVariable).get(0);
@@ -4491,7 +4491,7 @@ public class Htx extends HtxApi
                 {
                     if (!java.util.Objects.equals(limit, null))
                     {
-                        ((Map<String, Object>)request).put("size", Helpers.mathMin(limit, 2000)); // max 2000
+                        request.put("size", Helpers.mathMin(limit, 2000)); // max 2000
                     }
                     response = (this.spotPublicGetMarketHistoryKline(this.extend(request, parameters))).join();
                 } else
@@ -4499,15 +4499,15 @@ public class Htx extends HtxApi
                     // "from & to" only available for the this endpoint
                     if (!java.util.Objects.equals(since, null))
                     {
-                        ((Map<String, Object>)request).put("from", this.parseToInt(Helpers.divide(since, 1000)));
+                        request.put("from", this.parseToInt(Helpers.divide(since, 1000)));
                     }
                     if (!java.util.Objects.equals(untilSeconds, null))
                     {
-                        ((Map<String, Object>)request).put("to", untilSeconds);
+                        request.put("to", untilSeconds);
                     }
                     if (!java.util.Objects.equals(limit, null))
                     {
-                        ((Map<String, Object>)request).put("size", Helpers.mathMin(1000, limit)); // max 1000, otherwise default returns 150
+                        request.put("size", Helpers.mathMin(1000, limit)); // max 1000, otherwise default returns 150
                     }
                     response = (this.spotPublicGetMarketHistoryCandles(this.extend(request, parameters))).join();
                 }
@@ -4808,7 +4808,7 @@ public class Htx extends HtxApi
             {
                 final String finalUniqueChainId = uniqueChainId;
                 final String finalNetworkCode = networkCode;
-                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
+                networks.put((String)networkCode, new HashMap<String, Object>() {{
     put( "info", chainEntry );
     put( "id", finalUniqueChainId );
     put( "network", finalNetworkCode );
@@ -4832,7 +4832,7 @@ public class Htx extends HtxApi
         }
         final String finalCode = code;
         final String finalType = type;
-        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "info", rawCurrency );
             put( "code", finalCode );
             put( "id", currencyId );
@@ -4858,7 +4858,7 @@ public class Htx extends HtxApi
             }} );
             put( "precision", null );
             put( "networks", networks );
-        }}));
+        }});
     }
 
     public String networkIdToCode(String networkId, String currencyCode)
@@ -4989,7 +4989,7 @@ public class Htx extends HtxApi
                 {
                     (this.loadAccounts()).join();
                     String accountId = (this.fetchAccountIdByType(type, null, null, parameters)).join();
-                    ((Map<String, Object>)request).put("account-id", accountId);
+                    request.put("account-id", accountId);
                     response = (this.spotPrivateGetV1AccountAccountsAccountIdBalance(this.extend(request, parameters))).join();
                 }
             } else if (Boolean.TRUE.equals(inverse))
@@ -5157,8 +5157,8 @@ public class Htx extends HtxApi
                     String currencyId = this.safeString(balance, "currency");
                     String code = this.safeCurrencyCode(currencyId);
                     Map<String, Object> account = (Map<String, Object>) this.account();
-                    ((Map<String, Object>)account).put("free", this.safeString(balance, "available_margin"));
-                    ((Map<String, Object>)account).put("total", this.safeString(balance, "equity"));
+                    account.put("free", this.safeString(balance, "available_margin"));
+                    account.put("total", this.safeString(balance, "equity"));
                     if (!java.util.Objects.equals(code, null))
                     {
                         ((Map<String, Object>)result).put((String)code, account);
@@ -5181,7 +5181,7 @@ public class Htx extends HtxApi
                             String code = this.safeCurrencyCode(currencyId);
                             if (!java.util.Objects.equals(code, null))
                             {
-                                ((Map<String, Object>)subResult).put((String)code, this.parseMarginBalanceHelper((Map<String, Object>) (balance), code, (Map<String, Object>) (subResult)));
+                                subResult.put((String)code, this.parseMarginBalanceHelper((Map<String, Object>) (balance), code, (Map<String, Object>) (subResult)));
                             }
                         }
                         List<String> subCodes = new ArrayList<String>(subResult.keySet());
@@ -5215,8 +5215,8 @@ public class Htx extends HtxApi
                     String currencyId = this.safeString(balance, "symbol");
                     String code = this.safeCurrencyCode(currencyId);
                     Map<String, Object> account = (Map<String, Object>) this.account();
-                    ((Map<String, Object>)account).put("free", this.safeString(balance, "margin_available"));
-                    ((Map<String, Object>)account).put("used", this.safeString(balance, "margin_frozen"));
+                    account.put("free", this.safeString(balance, "margin_available"));
+                    account.put("used", this.safeString(balance, "margin_frozen"));
                     if (!java.util.Objects.equals(code, null))
                     {
                         ((Map<String, Object>)result).put((String)code, account);
@@ -5300,7 +5300,7 @@ public class Htx extends HtxApi
                     response = (this.spotPrivateGetV1OrderOrdersGetClientOrder(this.extend(request, parameters))).join();
                 } else
                 {
-                    ((Map<String, Object>)request).put("order-id", id);
+                    request.put("order-id", id);
                     response = (this.spotPrivateGetV1OrderOrdersOrderId(this.extend(request, parameters))).join();
                 }
             } else
@@ -5317,19 +5317,19 @@ public class Htx extends HtxApi
                 {
                     if (java.util.Objects.equals(isAlgo, true))
                     {
-                        ((Map<String, Object>)request).put("algo_id", id);
+                        request.put("algo_id", id);
                     } else
                     {
-                        ((Map<String, Object>)request).put("order_id", id);
+                        request.put("order_id", id);
                     }
                 } else
                 {
                     if (java.util.Objects.equals(isAlgo, true))
                     {
-                        ((Map<String, Object>)request).put("algo_client_order_id", clientOrderId);
+                        request.put("algo_client_order_id", clientOrderId);
                     } else
                     {
-                        ((Map<String, Object>)request).put("client_order_id", clientOrderId);
+                        request.put("client_order_id", clientOrderId);
                     }
                     parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id")));
                 }
@@ -5339,19 +5339,19 @@ public class Htx extends HtxApi
                     {
                         if (java.util.Objects.equals(trigger, true))
                         {
-                            ((Map<String, Object>)request).put("type", "trigger");
+                            request.put("type", "trigger");
                         } else if (java.util.Objects.equals(trailing, true))
                         {
-                            ((Map<String, Object>)request).put("type", "trailing_stop");
+                            request.put("type", "trailing_stop");
                         } else if (java.util.Objects.equals(stopLossTakeProfit, true))
                         {
-                            ((Map<String, Object>)request).put("type", "tpsl");
+                            request.put("type", "tpsl");
                         } else if (java.util.Objects.equals(stopLoss, true))
                         {
-                            ((Map<String, Object>)request).put("type", "sl");
+                            request.put("type", "sl");
                         } else if (java.util.Objects.equals(takeProfit, true))
                         {
-                            ((Map<String, Object>)request).put("type", "tp");
+                            request.put("type", "tp");
                         }
                         response = (this.contractPrivateGetV5AlgoOrder(this.extend(request, parameters))).join();
                     } else
@@ -5360,24 +5360,24 @@ public class Htx extends HtxApi
                         {
                             throw new ArgumentsRequired((this.id + " fetchOrder() requires a symbol argument")) ;
                         }
-                        ((Map<String, Object>)request).put("contract_code", this.safeString(market, "id"));
+                        request.put("contract_code", this.safeString(market, "id"));
                         String marginMode = null;
                         List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrder", parameters);
                         marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
                         parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
                         marginMode = (((java.util.Objects.equals(marginMode, null)))) ? "cross" : marginMode;
-                        ((Map<String, Object>)request).put("margin_mode", marginMode);
+                        request.put("margin_mode", marginMode);
                         response = (this.contractPrivateGetV5TradeOrder(this.extend(request, parameters))).join();
                     }
                 } else if (java.util.Objects.equals(this.safeBool(market, "inverse"), true))
                 {
                     if (java.util.Objects.equals(marketType, "future"))
                     {
-                        ((Map<String, Object>)request).put("symbol", this.safeString(market, "settleId"));
+                        request.put("symbol", this.safeString(market, "settleId"));
                         response = (this.contractPrivatePostApiV1ContractOrderInfo(this.extend(request, parameters))).join();
                     } else if (java.util.Objects.equals(marketType, "swap"))
                     {
-                        ((Map<String, Object>)request).put("contract_code", this.safeString(market, "id"));
+                        request.put("contract_code", this.safeString(market, "id"));
                         response = (this.contractPrivatePostSwapApiV1SwapOrderInfo(this.extend(request, parameters))).join();
                     } else
                     {
@@ -5576,19 +5576,19 @@ public class Htx extends HtxApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start-time", since); // a window of 48 hours within 180 days
-                ((Map<String, Object>)request).put("end-time", this.sum(since, (((48L * 60L) * 60L) * 1000L)));
+                request.put("start-time", since); // a window of 48 hours within 180 days
+                request.put("end-time", this.sum(since, (((48L * 60L) * 60L) * 1000L)));
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end-time", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("size", limit);
+                request.put("size", limit);
             }
             Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "spot_private_get_v1_order_orders"))
@@ -5693,7 +5693,7 @@ public class Htx extends HtxApi
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_time", since);
+                request.put("start_time", since);
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
@@ -5702,32 +5702,32 @@ public class Htx extends HtxApi
             {
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    ((Map<String, Object>)request).put("limit", limit);
+                    request.put("limit", limit);
                 }
                 String marginMode = null;
                 List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchContractOrders", parameters);
                 marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
                 marginMode = (((java.util.Objects.equals(marginMode, null)))) ? "cross" : marginMode;
-                ((Map<String, Object>)request).put("margin_mode", marginMode);
-                ((Map<String, Object>)request).put("contract_code", ((Map<String, Object>)market).get("id"));
+                request.put("margin_mode", marginMode);
+                request.put("contract_code", ((Map<String, Object>)market).get("id"));
                 if (java.util.Objects.equals(isAlgo, true))
                 {
                     if (java.util.Objects.equals(trigger, true))
                     {
-                        ((Map<String, Object>)request).put("type", "trigger");
+                        request.put("type", "trigger");
                     } else if (java.util.Objects.equals(trailing, true))
                     {
-                        ((Map<String, Object>)request).put("type", "trailing_stop");
+                        request.put("type", "trailing_stop");
                     } else if (java.util.Objects.equals(stopLossTakeProfit, true))
                     {
-                        ((Map<String, Object>)request).put("type", "tpsl");
+                        request.put("type", "tpsl");
                     } else if (java.util.Objects.equals(stopLoss, true))
                     {
-                        ((Map<String, Object>)request).put("type", "sl");
+                        request.put("type", "sl");
                     } else if (java.util.Objects.equals(takeProfit, true))
                     {
-                        ((Map<String, Object>)request).put("type", "tp");
+                        request.put("type", "tp");
                     }
                     response = (this.contractPrivateGetV5AlgoOrderHistory(this.extend(request, parameters))).join();
                 } else
@@ -5736,10 +5736,10 @@ public class Htx extends HtxApi
                 }
             } else if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
             {
-                ((Map<String, Object>)request).put("contract", ((Map<String, Object>)market).get("id"));
-                ((Map<String, Object>)request).put("type", 1); // 1:All Orders,2:Order in Finished Status
-                ((Map<String, Object>)request).put("trade_type", 0); // 0:All; 1: Open long; 2: Open short; 3: Close short; 4: Close long; 5: Liquidate long positions; 6: Liquidate short positions, 17:buy(one-way mode), 18:sell(one-way mode)
-                ((Map<String, Object>)request).put("status", "0"); // support multiple query separated by ',',such as '3,4,5', 0: all. 3. Have submitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
+                request.put("contract", ((Map<String, Object>)market).get("id"));
+                request.put("type", 1); // 1:All Orders,2:Order in Finished Status
+                request.put("trade_type", 0); // 0:All; 1: Open long; 2: Open short; 3: Close short; 4: Close long; 5: Liquidate long positions; 6: Liquidate short positions, 17:buy(one-way mode), 18:sell(one-way mode)
+                request.put("status", "0"); // support multiple query separated by ',',such as '3,4,5', 0: all. 3. Have submitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
                 {
                     if (java.util.Objects.equals(trigger, true))
@@ -5757,7 +5757,7 @@ public class Htx extends HtxApi
                     }
                 } else if (java.util.Objects.equals(((Map<String, Object>)market).get("future"), true))
                 {
-                    ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("settleId"));
+                    request.put("symbol", ((Map<String, Object>)market).get("settleId"));
                     if (java.util.Objects.equals(trigger, true))
                     {
                         response = (this.contractPrivatePostApiV1ContractTriggerHisorders(this.extend(request, parameters))).join();
@@ -5812,14 +5812,14 @@ public class Htx extends HtxApi
                 Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLoss, true)) || (java.util.Objects.equals(takeProfit, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || (java.util.Objects.equals(trailing, true)));
                 if (java.util.Objects.equals(isAlgo, true))
                 {
-                    ((Map<String, Object>)request).put("states", "effective");
+                    request.put("states", "effective");
                 } else
                 {
-                    ((Map<String, Object>)request).put("states", "filled");
+                    request.put("states", "filled");
                 }
             } else
             {
-                ((Map<String, Object>)request).put("status", "6");
+                request.put("status", "6");
             }
             return (this.fetchContractOrders(symbol, since, limit, this.extend(request, parameters))).join();
         });
@@ -5980,14 +5980,14 @@ public class Htx extends HtxApi
                     Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLoss, true)) || (java.util.Objects.equals(takeProfit, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || (java.util.Objects.equals(trailing, true)));
                     if (java.util.Objects.equals(isAlgo, true))
                     {
-                        ((Map<String, Object>)request).put("states", "canceled");
+                        request.put("states", "canceled");
                     } else
                     {
-                        ((Map<String, Object>)request).put("states", "partially_canceled,canceled");
+                        request.put("states", "partially_canceled,canceled");
                     }
                 } else
                 {
-                    ((Map<String, Object>)request).put("status", "5,7"); // comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
+                    request.put("status", "5,7"); // comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
                 }
                 return (this.fetchContractOrders(symbol, since, limit, this.extend(request, parameters))).join();
             }
@@ -6147,7 +6147,7 @@ public class Htx extends HtxApi
             {
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    ((Map<String, Object>)request).put("symbol", this.safeString(market, "id"));
+                    request.put("symbol", this.safeString(market, "id"));
                 }
                 // todo replace with fetchAccountIdByType
                 String accountId = this.safeString(parameters, "account-id");
@@ -6168,10 +6168,10 @@ public class Htx extends HtxApi
                         }
                     }
                 }
-                ((Map<String, Object>)request).put("account-id", accountId);
+                request.put("account-id", accountId);
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    ((Map<String, Object>)request).put("size", limit);
+                    request.put("size", limit);
                 }
                 parameters = (Map<String, Object>) this.omit(parameters, "account-id");
                 response = (this.spotPrivateGetV1OrderOpenOrders(this.extend(request, parameters))).join();
@@ -6180,16 +6180,16 @@ public class Htx extends HtxApi
                 if (!java.util.Objects.equals(symbol, null))
                 {
                     // throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
-                    ((Map<String, Object>)request).put("contract_code", this.safeString(market, "id"));
+                    request.put("contract_code", this.safeString(market, "id"));
                 }
                 if (!java.util.Objects.equals(limit, null))
                 {
                     if (Boolean.TRUE.equals(isLinear))
                     {
-                        ((Map<String, Object>)request).put("limit", limit);
+                        request.put("limit", limit);
                     } else
                     {
-                        ((Map<String, Object>)request).put("page_size", limit);
+                        request.put("page_size", limit);
                     }
                 }
                 Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
@@ -6204,19 +6204,19 @@ public class Htx extends HtxApi
                     {
                         if (java.util.Objects.equals(trigger, true))
                         {
-                            ((Map<String, Object>)request).put("type", "trigger");
+                            request.put("type", "trigger");
                         } else if (java.util.Objects.equals(trailing, true))
                         {
-                            ((Map<String, Object>)request).put("type", "trailing_stop");
+                            request.put("type", "trailing_stop");
                         } else if (java.util.Objects.equals(stopLossTakeProfit, true))
                         {
-                            ((Map<String, Object>)request).put("type", "tpsl");
+                            request.put("type", "tpsl");
                         } else if (java.util.Objects.equals(stopLoss, true))
                         {
-                            ((Map<String, Object>)request).put("type", "sl");
+                            request.put("type", "sl");
                         } else if (java.util.Objects.equals(takeProfit, true))
                         {
-                            ((Map<String, Object>)request).put("type", "tp");
+                            request.put("type", "tp");
                         }
                         response = (this.contractPrivateGetV5AlgoOrderOpens(this.extend(request, parameters))).join();
                     } else
@@ -6242,7 +6242,7 @@ public class Htx extends HtxApi
                         }
                     } else if (java.util.Objects.equals(marketType, "future"))
                     {
-                        ((Map<String, Object>)request).put("symbol", this.safeString(market, "settleId", "usdt"));
+                        request.put("symbol", this.safeString(market, "settleId", "usdt"));
                         if (java.util.Objects.equals(trigger, true))
                         {
                             response = (this.contractPrivatePostApiV1ContractTriggerOpenorders(this.extend(request, parameters))).join();
@@ -6879,7 +6879,7 @@ public class Htx extends HtxApi
         final String finalStatus = status;
         final Object finalReduceOnly = reduceOnly;
         final Map<String, Object> finalFee = fee;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
             put( "clientOrderId", clientOrderId );
@@ -6904,7 +6904,7 @@ public class Htx extends HtxApi
             put( "reduceOnly", finalReduceOnly );
             put( "fee", finalFee );
             put( "trades", trades );
-        }}), market);
+        }}, market);
     }
     public Object parseOrder(Object order, Object... optionalArgs)
     {
@@ -7077,8 +7077,8 @@ public class Htx extends HtxApi
                     defaultOperator = "lte";
                 }
                 String stopOperator = this.safeString(parameters, "operator", defaultOperator);
-                ((Map<String, Object>)request).put("stop-price", this.priceToPrecision(symbol, triggerPrice));
-                ((Map<String, Object>)request).put("operator", stopOperator);
+                request.put("stop-price", this.priceToPrecision(symbol, triggerPrice));
+                request.put("operator", stopOperator);
                 if ((java.util.Objects.equals(orderType, "limit")) || (java.util.Objects.equals(orderType, "limit-fok")))
                 {
                     orderType = ("stop-" + orderType);
@@ -7103,26 +7103,26 @@ public class Htx extends HtxApi
             {
                 orderType = "ioc";
             }
-            ((Map<String, Object>)request).put("type", ((side + "-") + orderType));
+            request.put("type", ((side + "-") + orderType));
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client-order-id"); // must be 64 chars max and unique within 24 hours
             if (java.util.Objects.equals(clientOrderId, null))
             {
                 Map<String, Object> broker = (Map<String, Object>) this.safeDict(this.options, "broker", new HashMap<String, Object>() {{}});
                 String brokerId = this.safeString(broker, "id");
-                ((Map<String, Object>)request).put("client-order-id", (brokerId + this.uuid()));
+                request.put("client-order-id", (brokerId + this.uuid()));
             } else
             {
-                ((Map<String, Object>)request).put("client-order-id", clientOrderId);
+                request.put("client-order-id", clientOrderId);
             }
             if (java.util.Objects.equals(marginMode, "cross"))
             {
-                ((Map<String, Object>)request).put("source", "super-margin-api");
+                request.put("source", "super-margin-api");
             } else if (java.util.Objects.equals(marginMode, "isolated"))
             {
-                ((Map<String, Object>)request).put("source", "margin-api");
+                request.put("source", "margin-api");
             } else if (java.util.Objects.equals(marginMode, "c2c"))
             {
-                ((Map<String, Object>)request).put("source", "c2c-margin-api");
+                request.put("source", "c2c-margin-api");
             }
             if ((java.util.Objects.equals(orderType, "market")) && (java.util.Objects.equals(side, "buy")))
             {
@@ -7157,15 +7157,15 @@ public class Htx extends HtxApi
                 {
                     quoteAmount = this.amountToPrecision(symbol, amount);
                 }
-                ((Map<String, Object>)request).put("amount", quoteAmount);
+                request.put("amount", quoteAmount);
             } else
             {
-                ((Map<String, Object>)request).put("amount", this.amountToPrecision(symbol, amount));
+                request.put("amount", this.amountToPrecision(symbol, amount));
             }
             Map<String, Object> limitOrderTypes = (Map<String, Object>) this.safeDict(options, "limitOrderTypes", new HashMap<String, Object>() {{}});
             if (limitOrderTypes.containsKey(orderType))
             {
-                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+                request.put("price", this.priceToPrecision(symbol, price));
             }
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop-price", "clientOrderId", "client-order-id", "operator", "timeInForce")));
             return this.extend(request, parameters);
@@ -7253,11 +7253,11 @@ public class Htx extends HtxApi
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters, "cross");
             marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
-            ((Map<String, Object>)request).put("margin_mode", marginMode);
-            ((Map<String, Object>)request).put("side", side);
+            request.put("margin_mode", marginMode);
+            request.put("side", side);
             if (!java.util.Objects.equals(timeInForce, null))
             {
-                ((Map<String, Object>)request).put("time_in_force", timeInForce.toLowerCase());
+                request.put("time_in_force", timeInForce.toLowerCase());
             }
             Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss");
             Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit");
@@ -7272,15 +7272,15 @@ public class Htx extends HtxApi
             {
                 if (!java.util.Objects.equals(stopLossTriggerPriceAttached, null))
                 {
-                    ((Map<String, Object>)request).put("sl_trigger_price", this.priceToPrecision(symbol, stopLossTriggerPriceAttached));
+                    request.put("sl_trigger_price", this.priceToPrecision(symbol, stopLossTriggerPriceAttached));
                 }
                 if (!java.util.Objects.equals(stopLossOrderPrice, null))
                 {
-                    ((Map<String, Object>)request).put("sl_order_price", this.priceToPrecision(symbol, stopLossOrderPrice));
+                    request.put("sl_order_price", this.priceToPrecision(symbol, stopLossOrderPrice));
                 }
                 if (!java.util.Objects.equals(stopLossType, null))
                 {
-                    ((Map<String, Object>)request).put("sl_type", stopLossType);
+                    request.put("sl_type", stopLossType);
                 }
                 parameters = (Map<String, Object>) (this.omit(parameters, "stopLoss"));
             }
@@ -7288,15 +7288,15 @@ public class Htx extends HtxApi
             {
                 if (!java.util.Objects.equals(takeProfitTriggerPriceAttached, null))
                 {
-                    ((Map<String, Object>)request).put("tp_trigger_price", this.priceToPrecision(symbol, takeProfitTriggerPriceAttached));
+                    request.put("tp_trigger_price", this.priceToPrecision(symbol, takeProfitTriggerPriceAttached));
                 }
                 if (!java.util.Objects.equals(takeProfitOrderPrice, null))
                 {
-                    ((Map<String, Object>)request).put("tp_order_price", this.priceToPrecision(symbol, takeProfitOrderPrice));
+                    request.put("tp_order_price", this.priceToPrecision(symbol, takeProfitOrderPrice));
                 }
                 if (!java.util.Objects.equals(takeProfitType, null))
                 {
-                    ((Map<String, Object>)request).put("tp_type", takeProfitType);
+                    request.put("tp_type", takeProfitType);
                 }
                 parameters = (Map<String, Object>) (this.omit(parameters, "takeProfit"));
             }
@@ -7306,10 +7306,10 @@ public class Htx extends HtxApi
             {
                 if (java.util.Objects.equals(reduceOnly, true))
                 {
-                    ((Map<String, Object>)request).put("offset", "close");
+                    request.put("offset", "close");
                 } else
                 {
-                    ((Map<String, Object>)request).put("offset", "open");
+                    request.put("offset", "open");
                 }
             }
             if (java.util.Objects.equals(timeInForce, "fok"))
@@ -7319,7 +7319,7 @@ public class Htx extends HtxApi
             {
                 type = "ioc";
             }
-            ((Map<String, Object>)request).put("direction", side);
+            request.put("direction", side);
         }
         Double triggerPrice = this.safeNumberN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "trigger_price")));
         Double stopLossTriggerPrice = this.safeNumber2(parameters, "stopLossPrice", "sl_trigger_price");
@@ -7335,27 +7335,27 @@ public class Htx extends HtxApi
         {
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                ((Map<String, Object>)request).put("algo_client_order_id", clientOrderId);
+                request.put("algo_client_order_id", clientOrderId);
                 parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_order_id"))));
             }
         }
         if (Boolean.TRUE.equals(isTrigger))
         {
-            ((Map<String, Object>)request).put("trigger_price", this.priceToPrecision(symbol, triggerPrice));
+            request.put("trigger_price", this.priceToPrecision(symbol, triggerPrice));
             if (Boolean.TRUE.equals(isLinear))
             {
-                ((Map<String, Object>)request).put("type", "trigger");
+                request.put("type", "trigger");
                 if (!java.util.Objects.equals(price, null))
                 {
-                    ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+                    request.put("price", this.priceToPrecision(symbol, price));
                 }
             } else
             {
                 String triggerType = this.safeString2(parameters, "triggerType", "trigger_type", "le");
-                ((Map<String, Object>)request).put("trigger_type", triggerType);
+                request.put("trigger_type", triggerType);
                 if (!java.util.Objects.equals(price, null))
                 {
-                    ((Map<String, Object>)request).put("order_price", this.priceToPrecision(symbol, price));
+                    request.put("order_price", this.priceToPrecision(symbol, price));
                 }
             }
         } else if (Boolean.TRUE.equals(isStopLossTriggerOrder) || Boolean.TRUE.equals(isTakeProfitTriggerOrder))
@@ -7364,53 +7364,53 @@ public class Htx extends HtxApi
             {
                 if (!Boolean.TRUE.equals(isLinear))
                 {
-                    ((Map<String, Object>)request).put("sl_order_price_type", type);
+                    request.put("sl_order_price_type", type);
                 } else
                 {
-                    ((Map<String, Object>)request).put("type", "sl");
+                    request.put("type", "sl");
                 }
-                ((Map<String, Object>)request).put("sl_trigger_price", this.priceToPrecision(symbol, stopLossTriggerPrice));
+                request.put("sl_trigger_price", this.priceToPrecision(symbol, stopLossTriggerPrice));
                 if (!java.util.Objects.equals(price, null))
                 {
-                    ((Map<String, Object>)request).put("sl_order_price", this.priceToPrecision(symbol, price));
+                    request.put("sl_order_price", this.priceToPrecision(symbol, price));
                 }
             } else
             {
                 if (!Boolean.TRUE.equals(isLinear))
                 {
-                    ((Map<String, Object>)request).put("tp_order_price_type", type);
+                    request.put("tp_order_price_type", type);
                 } else
                 {
-                    ((Map<String, Object>)request).put("type", "tp");
+                    request.put("type", "tp");
                 }
-                ((Map<String, Object>)request).put("tp_trigger_price", this.priceToPrecision(symbol, takeProfitTriggerPrice));
+                request.put("tp_trigger_price", this.priceToPrecision(symbol, takeProfitTriggerPrice));
                 if (!java.util.Objects.equals(price, null))
                 {
-                    ((Map<String, Object>)request).put("tp_order_price", this.priceToPrecision(symbol, price));
+                    request.put("tp_order_price", this.priceToPrecision(symbol, price));
                 }
             }
         } else if (Boolean.TRUE.equals(isTrailingPercentOrder))
         {
             String trailingPercentString = Precise.stringDiv(trailingPercent, "100");
-            ((Map<String, Object>)request).put("callback_rate", this.parseToNumeric(trailingPercentString));
-            ((Map<String, Object>)request).put("order_price_type", this.safeString(parameters, "order_price_type", "formula_price"));
-            ((Map<String, Object>)request).put("active_price", trailingTriggerPrice);
+            request.put("callback_rate", this.parseToNumeric(trailingPercentString));
+            request.put("order_price_type", this.safeString(parameters, "order_price_type", "formula_price"));
+            request.put("active_price", trailingTriggerPrice);
             if (Boolean.TRUE.equals(isLinear))
             {
-                ((Map<String, Object>)request).put("type", "trailing_stop");
+                request.put("type", "trailing_stop");
             }
         } else
         {
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                ((Map<String, Object>)request).put("client_order_id", clientOrderId);
+                request.put("client_order_id", clientOrderId);
                 parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId"))));
             }
             if (java.util.Objects.equals(type, "limit") || java.util.Objects.equals(type, "ioc") || java.util.Objects.equals(type, "fok") || java.util.Objects.equals(type, "post_only"))
             {
                 if (!java.util.Objects.equals(price, null))
                 {
-                    ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+                    request.put("price", this.priceToPrecision(symbol, price));
                 }
             }
         }
@@ -7418,26 +7418,26 @@ public class Htx extends HtxApi
         {
             if (java.util.Objects.equals(reduceOnly, true))
             {
-                ((Map<String, Object>)request).put("reduce_only", 1);
+                request.put("reduce_only", 1);
             }
             if (Boolean.TRUE.equals(isLinear))
             {
                 if (!Boolean.TRUE.equals(isTrailingPercentOrder))
                 {
-                    ((Map<String, Object>)request).put("type", type);
+                    request.put("type", type);
                 }
             } else
             {
                 if (!Boolean.TRUE.equals(isTrailingPercentOrder))
                 {
-                    ((Map<String, Object>)request).put("order_price_type", type);
+                    request.put("order_price_type", type);
                 }
-                ((Map<String, Object>)request).put("lever_rate", this.safeIntegerN(parameters, new ArrayList<Object>(Arrays.asList("leverRate", "lever_rate", "leverage")), 1));
+                request.put("lever_rate", this.safeIntegerN(parameters, new ArrayList<Object>(Arrays.asList("leverRate", "lever_rate", "leverage")), 1));
             }
         }
         Map<String, Object> broker = (Map<String, Object>) this.safeDict(this.options, "broker", new HashMap<String, Object>() {{}});
         String brokerId = this.safeString(broker, "id");
-        ((Map<String, Object>)request).put("channel_code", brokerId);
+        request.put("channel_code", brokerId);
         parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "triggerType", "leverRate", "timeInForce", "leverage", "trailingPercent", "trailingTriggerPrice", "hedged"))));
         return this.extend(request, parameters);
     }
@@ -7630,7 +7630,7 @@ public class Htx extends HtxApi
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 final Map<String, Object> finalResponse = response;
-                return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+                return this.safeOrder(new HashMap<String, Object>() {{
                     put( "info", finalResponse );
                     put( "id", Htx.this.safeString(finalResponse, "data") );
                     put( "timestamp", null );
@@ -7649,7 +7649,7 @@ public class Htx extends HtxApi
                     put( "fee", null );
                     put( "clientOrderId", null );
                     put( "average", null );
-                }}), market);
+                }}, market);
             } else if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
                 if (Boolean.TRUE.equals(isTrigger) || Boolean.TRUE.equals(isTrailingPercentOrder) || Boolean.TRUE.equals(isStopLossTriggerOrder) || Boolean.TRUE.equals(isTakeProfitTriggerOrder))
@@ -7822,7 +7822,7 @@ public class Htx extends HtxApi
                     response = (this.contractPrivatePostV5TradeBatchOrders(ordersRequests)).join();
                 } else if (java.util.Objects.equals(this.safeBool(market, "inverse"), true))
                 {
-                    ((Map<String, Object>)request).put("orders_data", ordersRequests);
+                    request.put("orders_data", ordersRequests);
                     if (java.util.Objects.equals(this.safeBool(market, "swap"), true))
                     {
                         response = (this.contractPrivatePostSwapApiV1SwapBatchorder(request)).join();
@@ -7987,11 +7987,11 @@ public class Htx extends HtxApi
                 String clientOrderId = this.safeString2(parameters, "client-order-id", "clientOrderId");
                 if (java.util.Objects.equals(clientOrderId, null))
                 {
-                    ((Map<String, Object>)request).put("order-id", id);
+                    request.put("order-id", id);
                     response = (this.spotPrivatePostV1OrderOrdersOrderIdSubmitcancel(this.extend(request, parameters))).join();
                 } else
                 {
-                    ((Map<String, Object>)request).put("client-order-id", clientOrderId);
+                    request.put("client-order-id", clientOrderId);
                     parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("client-order-id", "clientOrderId")));
                     response = (this.spotPrivatePostV1OrderOrdersSubmitCancelClientOrder(this.extend(request, parameters))).join();
                 }
@@ -8006,19 +8006,19 @@ public class Htx extends HtxApi
                 {
                     if (java.util.Objects.equals(clientOrderId, null))
                     {
-                        ((Map<String, Object>)request).put("order_id", id);
+                        request.put("order_id", id);
                     } else
                     {
-                        ((Map<String, Object>)request).put("client_order_id", clientOrderId);
+                        request.put("client_order_id", clientOrderId);
                         parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("client_order_id", "clientOrderId")));
                     }
                 }
                 if (java.util.Objects.equals(this.safeBool(market, "future"), true))
                 {
-                    ((Map<String, Object>)request).put("symbol", this.safeString(market, "settleId"));
+                    request.put("symbol", this.safeString(market, "settleId"));
                 } else
                 {
-                    ((Map<String, Object>)request).put("contract_code", this.safeString(market, "id"));
+                    request.put("contract_code", this.safeString(market, "id"));
                 }
                 if (Boolean.TRUE.equals(isLinear))
                 {
@@ -8030,11 +8030,11 @@ public class Htx extends HtxApi
                         }};
                         if (java.util.Objects.equals(clientOrderId, null))
                         {
-                            ((Map<String, Object>)requestItem).put("algo_id", id);
+                            requestItem.put("algo_id", id);
                             parameters = (Map<String, Object>) this.omit(parameters, "algo_id");
                         } else
                         {
-                            ((Map<String, Object>)requestItem).put("algo_client_order_id", clientOrderId);
+                            requestItem.put("algo_client_order_id", clientOrderId);
                             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id")));
                         }
                         List<Object> requestBody = new ArrayList<Object>(Arrays.asList(this.extend(requestItem, parameters)));
@@ -8220,19 +8220,19 @@ public class Htx extends HtxApi
                 {
                     if ((clientOrderIds instanceof String))
                     {
-                        ((Map<String, Object>)request).put("order-ids", new ArrayList<Object>(Arrays.asList(ids)));
+                        request.put("order-ids", new ArrayList<Object>(Arrays.asList(ids)));
                     } else
                     {
-                        ((Map<String, Object>)request).put("order-ids", ids);
+                        request.put("order-ids", ids);
                     }
                 } else
                 {
                     if ((clientOrderIds instanceof String))
                     {
-                        ((Map<String, Object>)request).put("client-order-ids", new ArrayList<Object>(Arrays.asList(clientOrderIds)));
+                        request.put("client-order-ids", new ArrayList<Object>(Arrays.asList(clientOrderIds)));
                     } else
                     {
-                        ((Map<String, Object>)request).put("client-order-ids", clientOrderIds);
+                        request.put("client-order-ids", clientOrderIds);
                     }
                     parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("client-order-id", "client-order-ids", "clientOrderId", "clientOrderIds")));
                 }
@@ -8250,32 +8250,32 @@ public class Htx extends HtxApi
                 {
                     if (java.util.Objects.equals(clientOrderIds, null))
                     {
-                        ((Map<String, Object>)request).put("order_id", String.join(",", (List<String>)ids));
+                        request.put("order_id", String.join(",", (List<String>)ids));
                     } else
                     {
-                        ((Map<String, Object>)request).put("client_order_id", clientOrderIds);
+                        request.put("client_order_id", clientOrderIds);
                     }
                 }
                 if (java.util.Objects.equals(this.safeBool(market, "future"), true))
                 {
-                    ((Map<String, Object>)request).put("symbol", this.safeString(market, "settleId"));
+                    request.put("symbol", this.safeString(market, "settleId"));
                 } else
                 {
-                    ((Map<String, Object>)request).put("contract_code", this.safeString(market, "id"));
+                    request.put("contract_code", this.safeString(market, "id"));
                 }
                 if (java.util.Objects.equals(this.safeBool(market, "linear"), true))
                 {
                     if (java.util.Objects.equals(clientOrderIds, null))
                     {
-                        ((Map<String, Object>)request).put("order_id", ids);
+                        request.put("order_id", ids);
                     } else
                     {
                         if ((clientOrderIds instanceof String))
                         {
-                            ((Map<String, Object>)request).put("client_order_id", new ArrayList<Object>(Arrays.asList(((String)clientOrderIds).split(java.util.regex.Pattern.quote(",")))));
+                            request.put("client_order_id", new ArrayList<Object>(Arrays.asList(((String)clientOrderIds).split(java.util.regex.Pattern.quote(",")))));
                         } else
                         {
-                            ((Map<String, Object>)request).put("client_order_id", clientOrderIds);
+                            request.put("client_order_id", clientOrderIds);
                         }
                     }
                     response = (this.contractPrivatePostV5TradeCancelBatchOrders(this.extend(request, parameters))).join();
@@ -8477,31 +8477,31 @@ public class Htx extends HtxApi
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object order = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-            ((List<Object>)result).add(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "id", Htx.this.safeString(order, "order_id") );
                 put( "status", "canceled" );
                 put( "clientOrderId", Htx.this.safeString(order, "client_order_id") );
-            }})));
+            }}));
         }
         for (var i = 0; i < ((List<?>)success).size(); i++)
         {
             Object order = (success == null || i < 0 || i >= ((List<?>)success).size() ? null : ((List<?>)success).get(i));
-            ((List<Object>)result).add(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "id", order );
                 put( "status", "canceled" );
-            }})));
+            }}));
         }
         for (var i = 0; i < ((List<?>)failed).size(); i++)
         {
             Object order = (failed == null || i < 0 || i >= failed.size() ? null : failed.get(i));
-            ((List<Object>)result).add(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "id", Htx.this.safeString2(order, "order-id", "order_id") );
                 put( "status", "failed" );
                 put( "clientOrderId", Htx.this.safeString(order, "client-order-id") );
-            }})));
+            }}));
         }
         return result;
     }
@@ -8544,7 +8544,7 @@ public class Htx extends HtxApi
             {
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    ((Map<String, Object>)request).put("symbol", this.safeString(market, "id"));
+                    request.put("symbol", this.safeString(market, "id"));
                 }
                 response = (this.spotPrivatePostV1OrderOrdersBatchCancelOpenOrders(this.extend(request, parameters))).join();
                 //
@@ -8558,9 +8558,9 @@ public class Htx extends HtxApi
                 //     }
                 //
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
-                return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+                return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", data );
-    }}))));
+    }})));
             } else
             {
                 if (java.util.Objects.equals(symbol, null))
@@ -8569,9 +8569,9 @@ public class Htx extends HtxApi
                 }
                 if (java.util.Objects.equals(this.safeBool(market, "future"), true))
                 {
-                    ((Map<String, Object>)request).put("symbol", this.safeString(market, "settleId"));
+                    request.put("symbol", this.safeString(market, "settleId"));
                 }
-                ((Map<String, Object>)request).put("contract_code", this.safeString(market, "id"));
+                request.put("contract_code", this.safeString(market, "id"));
                 Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
                 Boolean stopLossTakeProfit = (Boolean) this.safeBool(parameters, "stopLossTakeProfit");
                 Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
@@ -8928,11 +8928,11 @@ public class Htx extends HtxApi
             }};
             if (!java.util.Objects.equals(currency, null))
             {
-                ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id"));
+                request.put("currency", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("size", limit); // max 100
+                request.put("size", limit); // max 100
             }
             Map<String, Object> response = (this.spotPrivateGetV1QueryDepositWithdraw(this.extend(request, parameters))).join();
             //
@@ -9020,11 +9020,11 @@ public class Htx extends HtxApi
             }};
             if (!java.util.Objects.equals(currency, null))
             {
-                ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id"));
+                request.put("currency", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("size", limit); // max 100
+                request.put("size", limit); // max 100
             }
             Map<String, Object> response = (this.spotPrivateGetV1QueryDepositWithdraw(this.extend(request, parameters))).join();
             //
@@ -9243,7 +9243,7 @@ public class Htx extends HtxApi
             }};
             if (!java.util.Objects.equals(tag, null))
             {
-                ((Map<String, Object>)request).put("addr-tag", tag); // only for XRP?
+                request.put("addr-tag", tag); // only for XRP?
             }
             String networkCode = null;
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
@@ -9251,7 +9251,7 @@ public class Htx extends HtxApi
             parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                ((Map<String, Object>)request).put("chain", this.networkCodeToId(networkCode, code));
+                request.put("chain", this.networkCodeToId(networkCode, code));
             }
             Object amountPrecision = this.currencyToPrecision((String) (code), amount, networkCode);
             if (java.util.Objects.equals(amountPrecision, null))
@@ -9290,7 +9290,7 @@ public class Htx extends HtxApi
                 {
                     feeParsed = "0";
                 }
-                ((Map<String, Object>)request).put("fee", Helpers.parseFloat(feeParsed));
+                request.put("fee", Helpers.parseFloat(feeParsed));
                 Object amountAfterFee = this.currencyToPrecision((String) (code), amountSubtracted, networkCode);
                 if (java.util.Objects.equals(amountAfterFee, null))
                 {
@@ -9298,7 +9298,7 @@ public class Htx extends HtxApi
                 }
                 amount = Helpers.parseFloat(amountAfterFee);
             }
-            ((Map<String, Object>)request).put("amount", amount);
+            request.put("amount", amount);
             Map<String, Object> response = (this.spotPrivatePostV1DwWithdrawApiCreate(this.extend(request, parameters))).join();
             //
             //     {
@@ -9456,7 +9456,7 @@ public class Htx extends HtxApi
             {
                 Object type = Helpers.add(Helpers.add(fromAccountId, "-to-"), toAccountId);
                 type = this.safeString(parameters, "type", type);
-                ((Map<String, Object>)request).put("type", type);
+                request.put("type", type);
                 response = (this.spotPrivatePostV1FuturesTransfer(this.extend(request, parameters))).join();
             } else if (Boolean.TRUE.equals(fromSpot) && Boolean.TRUE.equals(toCross))
             {
@@ -9466,11 +9466,11 @@ public class Htx extends HtxApi
                 response = (this.privatePostCrossMarginTransferOut(this.extend(request, parameters))).join();
             } else if (Boolean.TRUE.equals(fromSpot) && Boolean.TRUE.equals(toIsolated))
             {
-                ((Map<String, Object>)request).put("symbol", toAccountId);
+                request.put("symbol", toAccountId);
                 response = (this.privatePostDwTransferInMargin(this.extend(request, parameters))).join();
             } else if (Boolean.TRUE.equals(fromIsolated) && Boolean.TRUE.equals(toSpot))
             {
-                ((Map<String, Object>)request).put("symbol", fromAccountId);
+                request.put("symbol", fromAccountId);
                 response = (this.privatePostDwTransferOutMargin(this.extend(request, parameters))).join();
             } else
             {
@@ -9489,14 +9489,14 @@ public class Htx extends HtxApi
                     if (!java.util.Objects.equals(symbol, null))
                     {
                         symbol = this.marketId(symbol);
-                        ((Map<String, Object>)request).put("margin-account", symbol);
+                        request.put("margin-account", symbol);
                     } else
                     {
-                        ((Map<String, Object>)request).put("margin-account", "USDT"); // cross-margin
+                        request.put("margin-account", "USDT"); // cross-margin
                     }
                 }
-                ((Map<String, Object>)request).put("from", ((Boolean.TRUE.equals(fromSpot))) ? "spot" : fromAccountId);
-                ((Map<String, Object>)request).put("to", ((Boolean.TRUE.equals(toSpot))) ? "spot" : toAccountId);
+                request.put("from", ((Boolean.TRUE.equals(fromSpot))) ? "spot" : fromAccountId);
+                request.put("to", ((Boolean.TRUE.equals(toSpot))) ? "spot" : toAccountId);
                 response = (this.v2PrivatePostAccountTransfer(this.extend(request, parameters))).join();
             }
             //
@@ -9576,21 +9576,21 @@ public class Htx extends HtxApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
-                ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id"));
+                request.put("currency", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_time", since);
+                request.put("start_time", since);
             }
             Long until = this.safeInteger(parameters, "until");
             if (!java.util.Objects.equals(until, null))
             {
                 parameters = (Map<String, Object>) this.omit(parameters, "until");
-                ((Map<String, Object>)request).put("end_time", until);
+                request.put("end_time", until);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.spotPrivateGetV5AccountUniversalTransferRecords(this.extend(request, parameters))).join();
             //
@@ -9801,20 +9801,20 @@ public class Htx extends HtxApi
             {
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 100)); // max 100
+                    request.put("limit", Helpers.mathMin(limit, 100)); // max 100
                 }
                 if (!java.util.Objects.equals(since, null))
                 {
-                    ((Map<String, Object>)request).put("start_time", since);
+                    request.put("start_time", since);
                 }
             } else
             {
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    ((Map<String, Object>)request).put("page_size", limit);
+                    request.put("page_size", limit);
                 } else
                 {
-                    ((Map<String, Object>)request).put("page_size", 50); // max
+                    request.put("page_size", 50); // max
                 }
             }
             Map<String, Object> response = null;
@@ -10148,11 +10148,11 @@ public class Htx extends HtxApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start-date", this.yyyymmdd(since));
+                request.put("start-date", this.yyyymmdd(since));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("size", limit);
+                request.put("size", limit);
             }
             Map<String, Object> market = null;
             Map<String, Object> response = null;
@@ -10161,7 +10161,7 @@ public class Htx extends HtxApi
                 if (!java.util.Objects.equals(symbol, null))
                 {
                     market = (Map<String, Object>) this.market(symbol);
-                    ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                    request.put("symbol", ((Map<String, Object>)market).get("id"));
                 }
                 response = (this.privateGetMarginLoanOrders(this.extend(request, parameters))).join();
             } else
@@ -10169,7 +10169,7 @@ public class Htx extends HtxApi
                 if (!java.util.Objects.equals(code, null))
                 {
                     Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
-                    ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id"));
+                    request.put("currency", ((Map<String, Object>)currency).get("id"));
                 }
                 response = (this.privateGetCrossMarginLoanOrders(this.extend(request, parameters))).join();
             }
@@ -10582,10 +10582,10 @@ public class Htx extends HtxApi
             {
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
                 {
-                    ((Map<String, Object>)request).put("start_time", since);
+                    request.put("start_time", since);
                 } else
                 {
-                    ((Map<String, Object>)request).put("start_date", since);
+                    request.put("start_date", since);
                 }
             }
             Map<String, Object> response = null;
@@ -10598,16 +10598,16 @@ public class Htx extends HtxApi
                     marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
                     parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
                     marginMode = (((java.util.Objects.equals(marginMode, null)))) ? "cross" : marginMode;
-                    ((Map<String, Object>)request).put("margin_mode", marginMode);
-                    ((Map<String, Object>)request).put("contract_code", ((Map<String, Object>)market).get("id"));
+                    request.put("margin_mode", marginMode);
+                    request.put("contract_code", ((Map<String, Object>)market).get("id"));
                     if (!java.util.Objects.equals(limit, null))
                     {
-                        ((Map<String, Object>)request).put("limit", limit);
+                        request.put("limit", limit);
                     }
                     response = (this.contractPrivateGetV5AccountBills(this.extend(request, parameters))).join();
                 } else
                 {
-                    ((Map<String, Object>)request).put("contract", ((Map<String, Object>)market).get("id"));
+                    request.put("contract", ((Map<String, Object>)market).get("id"));
                     //
                     //     {
                     //         "code": 200,
@@ -10632,7 +10632,7 @@ public class Htx extends HtxApi
                 }
             } else
             {
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
                 response = (this.contractPrivatePostApiV3ContractFinancialRecordExact(this.extend(request, parameters))).join();
             }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
@@ -10696,10 +10696,10 @@ public class Htx extends HtxApi
             }};
             if (java.util.Objects.equals(marketType, "future") && (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true)))
             {
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("settleId"));
+                request.put("symbol", ((Map<String, Object>)market).get("settleId"));
             } else
             {
-                ((Map<String, Object>)request).put("contract_code", ((Map<String, Object>)market).get("id"));
+                request.put("contract_code", ((Map<String, Object>)market).get("id"));
             }
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
@@ -10709,7 +10709,7 @@ public class Htx extends HtxApi
                 marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
                 marginMode = (((java.util.Objects.equals(marginMode, null)))) ? "cross" : marginMode;
-                ((Map<String, Object>)request).put("margin_mode", marginMode);
+                request.put("margin_mode", marginMode);
                 response = (this.contractPrivatePostV5PositionLever(this.extend(request, query))).join();
             } else
             {
@@ -10924,7 +10924,7 @@ public class Htx extends HtxApi
         final String finalMaintenanceMargin = maintenanceMargin;
         final Double finalMaintenanceMarginPercentageResult = maintenanceMarginPercentageResult;
         final String finalMarginRatio = marginRatio;
-        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePosition(new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", symbol );
@@ -10952,7 +10952,7 @@ public class Htx extends HtxApi
             put( "lastUpdateTimestamp", Htx.this.safeInteger(position, "updated_time") );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
-        }}));
+        }});
     }
     public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
@@ -11091,14 +11091,14 @@ public class Htx extends HtxApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if ((java.util.Objects.equals(((Map<String, Object>)market).get("future"), true)) && (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true)))
             {
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("settleId"));
+                request.put("symbol", ((Map<String, Object>)market).get("settleId"));
             } else
             {
                 if ((!java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)) && (java.util.Objects.equals(marginMode, "cross")))
                 {
-                    ((Map<String, Object>)request).put("margin_account", "USDT"); // only allowed value
+                    request.put("margin_account", "USDT"); // only allowed value
                 }
-                ((Map<String, Object>)request).put("contract_code", ((Map<String, Object>)market).get("id"));
+                request.put("contract_code", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
@@ -11283,15 +11283,15 @@ public class Htx extends HtxApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
-                ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id"));
+                request.put("currency", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit); // max 500
+                request.put("limit", limit); // max 500
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
@@ -11497,25 +11497,25 @@ public class Htx extends HtxApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("size", limit);
+                request.put("size", limit);
             }
             Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("future"), true))
             {
-                ((Map<String, Object>)request).put("contract_type", this.safeString(((Map<String, Object>)market).get("info"), "contract_type"));
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("baseId")); // currency code on coin-m futures
+                request.put("contract_type", this.safeString(((Map<String, Object>)market).get("info"), "contract_type"));
+                request.put("symbol", ((Map<String, Object>)market).get("baseId")); // currency code on coin-m futures
                 // coin-m futures
                 response = (this.contractPublicGetApiV1ContractHisOpenInterest(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
-                ((Map<String, Object>)request).put("contract_type", "swap");
-                ((Map<String, Object>)request).put("contract_code", ((Map<String, Object>)market).get("id"));
-                ((Map<String, Object>)request).put("contract_code", ((Map<String, Object>)market).get("id"));
+                request.put("contract_type", "swap");
+                request.put("contract_code", ((Map<String, Object>)market).get("id"));
+                request.put("contract_code", ((Map<String, Object>)market).get("id"));
                 // USDT-M
                 response = (this.contractPublicGetLinearSwapApiV1SwapHisOpenInterest(this.extend(request, parameters))).join();
             } else
             {
-                ((Map<String, Object>)request).put("contract_code", ((Map<String, Object>)market).get("id"));
+                request.put("contract_code", ((Map<String, Object>)market).get("id"));
                 // coin-m swaps
                 response = (this.contractPublicGetSwapApiV1SwapHisOpenInterest(this.extend(request, parameters))).join();
             }
@@ -11713,8 +11713,8 @@ public class Htx extends HtxApi
             Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("future"), true))
             {
-                ((Map<String, Object>)request).put("contract_type", this.safeString(((Map<String, Object>)market).get("info"), "contract_type"));
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("baseId"));
+                request.put("contract_type", this.safeString(((Map<String, Object>)market).get("info"), "contract_type"));
+                request.put("symbol", ((Map<String, Object>)market).get("baseId"));
                 // COIN-M futures
                 response = (this.contractPublicGetApiV1ContractOpenInterest(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
@@ -12202,24 +12202,24 @@ public class Htx extends HtxApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(((Map<String, Object>)market).get("future"), true))
             {
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("baseId"));
+                request.put("symbol", ((Map<String, Object>)market).get("baseId"));
             } else
             {
-                ((Map<String, Object>)request).put("contract_code", ((Map<String, Object>)market).get("id"));
+                request.put("contract_code", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
                 if ((java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)) && (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)))
                 {
-                    ((Map<String, Object>)request).put("limit", limit);
+                    request.put("limit", limit);
                 } else
                 {
-                    ((Map<String, Object>)request).put("page_size", limit);
+                    request.put("page_size", limit);
                 }
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_time", since);
+                request.put("start_time", since);
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
@@ -12655,12 +12655,12 @@ public class Htx extends HtxApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
-                ((Map<String, Object>)request).put("trade_type", tradeType);
+                request.put("trade_type", tradeType);
             }
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("trade_type", "tradeType")));
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_time", since);
+                request.put("start_time", since);
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
@@ -12670,20 +12670,20 @@ public class Htx extends HtxApi
             {
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
                 {
-                    ((Map<String, Object>)request).put("contract_code", ((Map<String, Object>)market).get("id"));
+                    request.put("contract_code", ((Map<String, Object>)market).get("id"));
                     if (!java.util.Objects.equals(limit, null))
                     {
-                        ((Map<String, Object>)request).put("limit", limit);
+                        request.put("limit", limit);
                     }
                     response = (this.contractPublicGetV5MarketLiquidationOrders(this.extend(request, parameters))).join();
                 } else
                 {
-                    ((Map<String, Object>)request).put("contract", ((Map<String, Object>)market).get("id"));
+                    request.put("contract", ((Map<String, Object>)market).get("id"));
                     response = (this.contractPublicGetSwapApiV3SwapLiquidationOrders(this.extend(request, parameters))).join();
                 }
             } else if (java.util.Objects.equals(((Map<String, Object>)market).get("future"), true))
             {
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
                 response = (this.contractPublicGetApiV3ContractLiquidationOrders(this.extend(request, parameters))).join();
             } else
             {
@@ -12771,7 +12771,7 @@ public class Htx extends HtxApi
         //
         String marketId = this.safeString(liquidation, "contract_code");
         Long timestamp = (Long) this.safeInteger2(liquidation, "created_at", "liquidation_time");
-        return this.safeLiquidation((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeLiquidation(new HashMap<String, Object>() {{
             put( "info", liquidation );
             put( "symbol", Htx.this.safeSymbol(marketId, market) );
             put( "contracts", Htx.this.safeNumber(liquidation, "volume") );
@@ -12782,7 +12782,7 @@ public class Htx extends HtxApi
             put( "quoteValue", Htx.this.safeNumber(liquidation, "trade_turnover") );
             put( "timestamp", timestamp );
             put( "datetime", Htx.this.iso8601(timestamp) );
-        }}));
+        }});
     }
     public Object parseLiquidation(Object liquidation, Object... optionalArgs)
     {
@@ -12828,7 +12828,7 @@ public class Htx extends HtxApi
             }};
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                ((Map<String, Object>)request).put("client_order_id", clientOrderId);
+                request.put("client_order_id", clientOrderId);
                 parameters = (Map<String, Object>) this.omit(parameters, "clientOrderId");
             }
             Map<String, Object> response = null;
@@ -12838,7 +12838,7 @@ public class Htx extends HtxApi
                 List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("closePosition", parameters, "cross");
                 marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
-                ((Map<String, Object>)request).put("margin_mode", marginMode);
+                request.put("margin_mode", marginMode);
                 response = (this.contractPrivatePostV5TradePosition(this.extend(request, parameters))).join();
             } else
             {
@@ -12848,8 +12848,8 @@ public class Htx extends HtxApi
                 {
                     throw new ArgumentsRequired((this.id + " closePosition () requires an extra argument params[\"amount\"] for inverse markets")) ;
                 }
-                ((Map<String, Object>)request).put("volume", this.amountToPrecision(symbol, amount));
-                ((Map<String, Object>)request).put("direction", side);
+                request.put("volume", this.amountToPrecision(symbol, amount));
+                request.put("direction", side);
                 parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("volume", "amount")));
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
                 {

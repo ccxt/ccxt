@@ -456,9 +456,9 @@ public class Btcbox extends BtcboxApi
             {
                 Map<String, Object> account = (Map<String, Object>) this.account();
                 String used = (currencyId + "_lock");
-                ((Map<String, Object>)account).put("free", this.safeString(response, free));
-                ((Map<String, Object>)account).put("used", this.safeString(response, used));
-                ((Map<String, Object>)result).put((String)code, account);
+                account.put("free", this.safeString(response, free));
+                account.put("used", this.safeString(response, used));
+                result.put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -523,7 +523,7 @@ public class Btcbox extends BtcboxApi
             Integer numSymbols = ((List<?>)this.symbols).size();
             if (Helpers.isGreaterThan(numSymbols, 1))
             {
-                ((Map<String, Object>)request).put("coin", ((Map<String, Object>)market).get("baseId"));
+                request.put("coin", ((Map<String, Object>)market).get("baseId"));
             }
             Map<String, Object> response = (this.publicGetDepth(this.extend(request, parameters))).join();
             return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"));
@@ -600,7 +600,7 @@ public class Btcbox extends BtcboxApi
             Integer numSymbols = ((List<?>)this.symbols).size();
             if (Helpers.isGreaterThan(numSymbols, 1))
             {
-                ((Map<String, Object>)request).put("coin", ((Map<String, Object>)market).get("baseId"));
+                request.put("coin", ((Map<String, Object>)market).get("baseId"));
             }
             Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
             return this.parseTicker(response, market);
@@ -677,7 +677,7 @@ public class Btcbox extends BtcboxApi
         List<String> type = null;
         String side = this.safeString(trade, "type");
         final Map<String, Object> finalMarket = market;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", id );
             put( "order", null );
@@ -691,7 +691,7 @@ public class Btcbox extends BtcboxApi
             put( "amount", amountString );
             put( "cost", null );
             put( "fee", null );
-        }}), market);
+        }}, market);
     }
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
@@ -723,7 +723,7 @@ public class Btcbox extends BtcboxApi
             Integer numSymbols = ((List<?>)this.symbols).size();
             if (Helpers.isGreaterThan(numSymbols, 1))
             {
-                ((Map<String, Object>)request).put("coin", ((Map<String, Object>)market).get("baseId"));
+                request.put("coin", ((Map<String, Object>)market).get("baseId"));
             }
             List<Object> response = (this.publicGetOrders(this.extend(request, parameters))).join();
             //
@@ -923,7 +923,7 @@ public class Btcbox extends BtcboxApi
         final Long finalTimestamp = timestamp;
         final String finalStatus = status;
         final Map<String, Object> finalMarket = market;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
             put( "timestamp", finalTimestamp );
@@ -945,7 +945,7 @@ public class Btcbox extends BtcboxApi
             put( "fee", null );
             put( "info", order );
             put( "average", null );
-        }}), market);
+        }}, market);
     }
     public Object parseOrder(Object order, Object... optionalArgs)
     {
@@ -1055,7 +1055,7 @@ public class Btcbox extends BtcboxApi
             {
                 for (var i = 0; i < ((List<?>)orders).size(); i++)
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(orders, i), "status", "open");
+                    Helpers.addElementToObject((orders == null || i < 0 || i >= orders.size() ? null : orders.get(i)), "status", "open");
                 }
             }
             return orders;
@@ -1166,7 +1166,7 @@ public class Btcbox extends BtcboxApi
             }}, parameters);
             String request = this.urlencode(query);
             Object secret = this.hash(this.encode(this.secret), md5());
-            Helpers.addElementToObject(query, "signature", this.hmac(this.encode(request), this.encode(secret), sha256()));
+            query.put("signature", this.hmac(this.encode(request), this.encode(secret), sha256()));
             body = (String) (this.urlencode(query));
             headers = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );

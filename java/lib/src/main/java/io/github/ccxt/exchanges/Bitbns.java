@@ -526,7 +526,7 @@ public class Bitbns extends BitbnsApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit); // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
+                request.put("limit", limit); // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
             }
             Map<String, Object> response = (this.wwwGetOrderFetchOrderbook(this.extend(request, parameters))).join();
             //
@@ -716,8 +716,8 @@ public class Bitbns extends BitbnsApi
                 String currencyId = this.safeString(parts, 1);
                 // note that "Money" stands for INR - the only fiat in bitbns
                 Map<String, Object> account = (Map<String, Object>) this.account();
-                ((Map<String, Object>)account).put("free", this.safeString(data, key));
-                ((Map<String, Object>)account).put("used", this.safeString(data, ("inorder" + currencyId)));
+                account.put("free", this.safeString(data, key));
+                account.put("used", this.safeString(data, ("inorder" + currencyId)));
                 if (java.util.Objects.equals(currencyId, "Money"))
                 {
                     currencyId = "INR";
@@ -725,7 +725,7 @@ public class Bitbns extends BitbnsApi
                 String code = this.safeCurrencyCode(currencyId);
                 if (!java.util.Objects.equals(code, null))
                 {
-                    ((Map<String, Object>)result).put((String)code, account);
+                    result.put((String)code, account);
                 }
             }
         }
@@ -850,7 +850,7 @@ public class Bitbns extends BitbnsApi
         }
         final String finalSide = side;
         final String finalStatus = status;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
             put( "clientOrderId", null );
@@ -875,7 +875,7 @@ public class Bitbns extends BitbnsApi
                 put( "rate", null );
             }} );
             put( "trades", null );
-        }}), market);
+        }}, market);
     }
     public Object parseOrder(Object order, Object... optionalArgs)
     {
@@ -931,22 +931,22 @@ public class Bitbns extends BitbnsApi
             }};
             if (java.util.Objects.equals(type, "limit"))
             {
-                ((Map<String, Object>)request).put("rate", this.priceToPrecision(symbol, price));
+                request.put("rate", this.priceToPrecision(symbol, price));
             } else
             {
-                ((Map<String, Object>)request).put("market", ((Map<String, Object>)market).get("quoteId"));
+                request.put("market", ((Map<String, Object>)market).get("quoteId"));
             }
             if (!java.util.Objects.equals(triggerPrice, null))
             {
-                ((Map<String, Object>)request).put("t_rate", this.priceToPrecision(symbol, triggerPrice));
+                request.put("t_rate", this.priceToPrecision(symbol, triggerPrice));
             }
             if (!java.util.Objects.equals(targetRate, null))
             {
-                ((Map<String, Object>)request).put("target_rate", this.priceToPrecision(symbol, targetRate));
+                request.put("target_rate", this.priceToPrecision(symbol, targetRate));
             }
             if (!java.util.Objects.equals(trailRate, null))
             {
-                ((Map<String, Object>)request).put("trail_rate", this.priceToPrecision(symbol, trailRate));
+                request.put("trail_rate", this.priceToPrecision(symbol, trailRate));
             }
             Object response = null;
             if (java.util.Objects.equals(type, "limit"))
@@ -1032,7 +1032,7 @@ public class Bitbns extends BitbnsApi
             String tail = (((java.util.Objects.equals(isTrigger, true)))) ? "StopLossOrder" : "Order";
             Object quoteSide = (((java.util.Objects.equals(((Map<String, Object>)market).get("quoteId"), "USDT")))) ? "usdtcancel" : "cancel";
             quoteSide = (quoteSide + tail);
-            ((Map<String, Object>)request).put("side", quoteSide);
+            request.put("side", quoteSide);
             response = (this.v2PostCancel(this.extend(request, parameters))).join();
             Object parsed = (((java.util.Objects.equals(response, null)))) ? new HashMap<String, Object>() {{}} : response;
             return this.parseOrder(parsed, market);
@@ -1300,7 +1300,7 @@ public class Bitbns extends BitbnsApi
         final String finalAmountString = amountString;
         final String finalCostString = costString;
         final Map<String, Object> finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", finalTimestamp );
             put( "datetime", Bitbns.this.iso8601(finalTimestamp) );
@@ -1314,7 +1314,7 @@ public class Bitbns extends BitbnsApi
             put( "amount", finalAmountString );
             put( "cost", finalCostString );
             put( "fee", finalFee );
-        }}), market);
+        }}, market);
     }
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
@@ -1353,7 +1353,7 @@ public class Bitbns extends BitbnsApi
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("since", this.iso8601(since));
+                request.put("since", this.iso8601(since));
             }
             Map<String, Object> response = (this.v1PostListExecutedOrdersSymbol(this.extend(request, parameters))).join();
             //

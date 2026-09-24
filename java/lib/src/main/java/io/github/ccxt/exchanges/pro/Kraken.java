@@ -1111,7 +1111,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             {
                 if (this.inArray(limit, new ArrayList<Object>(Arrays.asList(10, 25, 100, 500, 1000))))
                 {
-                    ((Map<String, Object>)requiredParams).put("depth", limit); // default 10, valid options 10, 25, 100, 500, 1000
+                    requiredParams.put("depth", limit); // default 10, valid options 10, 25, 100, 500, 1000
                 } else
                 {
                     throw new NotSupported((this.id + " watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only")) ;
@@ -1222,7 +1222,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                         Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
                         String wsName = this.safeString(info, "wsname");
-                        ((Map<String, Object>)marketsByWsName).put((String)wsName, market);
+                        marketsByWsName.put((String)wsName, market);
                     }
                 }
                 Helpers.addElementToObject(this.options, "marketsByWsName", marketsByWsName);
@@ -1242,10 +1242,10 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         if (((String)url).indexOf("v2") >= 0)
         {
-            ((Map<String, Object>)request).put("method", "ping");
+            request.put("method", "ping");
         } else
         {
-            ((Map<String, Object>)request).put("event", "ping");
+            request.put("event", "ping");
         }
         return request;
     }
@@ -1595,7 +1595,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             }};
             if (!java.util.Objects.equals(parameters, null))
             {
-                ((Map<String, Object>)subscribe).put("params", this.deepExtend(((Map<String, Object>)subscribe).get("params"), parameters));
+                subscribe.put("params", this.deepExtend(((Map<String, Object>)subscribe).get("params"), parameters));
             }
             List<Object> result = (this.<List<Object>>watch(url, messageHash, subscribe, subscriptionHash, null)).join();
             if (this.newUpdates)
@@ -1698,7 +1698,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (trade));
                 Helpers.callDynamically(stored, "append", new Object[]{parsed});
                 Object symbol = ((String)((Map<String, Object>)parsed).get("symbol"));
-                ((Map<String, Object>)symbols).put((String)symbol, true);
+                symbols.put((String)symbol, true);
             }
             String name = "myTrades";
             client.resolve(this.myTrades, name);
@@ -1892,7 +1892,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 Helpers.callDynamically(stored, "append", new Object[]{newOrder});
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    ((Map<String, Object>)symbols).put((String)symbol, true);
+                    symbols.put((String)symbol, true);
                 }
             }
             String name = "orders";
@@ -1957,7 +1957,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         }};
         String stopPrice = this.safeString(order, "stop_price");
         String datetime = this.safeString(order, "timestamp");
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", Kraken.this.safeString(order, "order_id") );
             put( "clientOrderId", Kraken.this.safeString(order, "order_userref") );
             put( "info", order );
@@ -1980,7 +1980,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             put( "remaining", null );
             put( "fee", fee );
             put( "trades", null );
-        }}));
+        }});
     }
     public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
@@ -2020,7 +2020,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 }} );
                 put( "req_id", Kraken.this.requestId() );
             }};
-            ((Map<String, Object>)request).put("params", this.deepExtend(((Map<String, Object>)request).get("params"), parameters));
+            request.put("params", this.deepExtend(((Map<String, Object>)request).get("params"), parameters));
             String url = (String)Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "publicV2");
             return (this.watchMultiple(url, messageHashes, request, messageHashes, subscriptionArgs)).join();
         });
@@ -2108,8 +2108,8 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             Object code = ((String)this.safeCurrencyCode((String) (currencyId)));
             Map<String, Object> account = (Map<String, Object>) this.account();
             String eq = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "balance");
-            ((Map<String, Object>)account).put("total", eq);
-            ((Map<String, Object>)result).put((String)code, account);
+            account.put("total", eq);
+            result.put((String)code, account);
         }
         String type = "spot";
         Object balance = this.safeBalance(result);

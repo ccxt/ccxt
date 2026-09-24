@@ -573,7 +573,7 @@ public class Luno extends LunoApi
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final String finalNetworkCode = networkCode;
-                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
+                networks.put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", finalNetworkCode );
     put( "limits", new HashMap<String, Object>() {{
@@ -595,7 +595,7 @@ public class Luno extends LunoApi
 }});
             }
         }
-        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "code", code );
             put( "precision", null );
@@ -617,7 +617,7 @@ public class Luno extends LunoApi
             }} );
             put( "networks", networks );
             put( "info", rawCurrency );
-        }}));
+        }});
     }
 
     /**
@@ -833,14 +833,14 @@ public class Luno extends LunoApi
             String balanceUnconfirmed = Precise.stringAdd(balance, unconfirmed);
             if ((!java.util.Objects.equals(code, null)) && (result.containsKey(code)))
             {
-                Helpers.addElementToObject(Helpers.GetValue(result, code), "used", Precise.stringAdd(Helpers.GetValue((result == null || code == null ? null : result.get(code)), "used"), reservedUnconfirmed));
-                Helpers.addElementToObject(Helpers.GetValue(result, code), "total", Precise.stringAdd(Helpers.GetValue((result == null || code == null ? null : result.get(code)), "total"), balanceUnconfirmed));
+                Helpers.addElementToObject((result == null || code == null ? null : result.get(code)), "used", Precise.stringAdd(Helpers.GetValue((result == null || code == null ? null : result.get(code)), "used"), reservedUnconfirmed));
+                Helpers.addElementToObject((result == null || code == null ? null : result.get(code)), "total", Precise.stringAdd(Helpers.GetValue((result == null || code == null ? null : result.get(code)), "total"), balanceUnconfirmed));
             } else if (!java.util.Objects.equals(code, null))
             {
                 Map<String, Object> account = (Map<String, Object>) this.account();
-                ((Map<String, Object>)account).put("used", reservedUnconfirmed);
-                ((Map<String, Object>)account).put("total", balanceUnconfirmed);
-                ((Map<String, Object>)result).put((String)code, account);
+                account.put("used", reservedUnconfirmed);
+                account.put("total", balanceUnconfirmed);
+                result.put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -1014,7 +1014,7 @@ public class Luno extends LunoApi
         final Map<String, Object> finalMarket_3 = market;
         final String finalSide = side;
         final Map<String, Object> finalFee = fee;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
             put( "datetime", Luno.this.iso8601(timestamp) );
@@ -1036,7 +1036,7 @@ public class Luno extends LunoApi
             put( "fee", finalFee );
             put( "info", order );
             put( "average", null );
-        }}), market);
+        }}, market);
     }
     public Object parseOrder(Object order, Object... optionalArgs)
     {
@@ -1100,12 +1100,12 @@ public class Luno extends LunoApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(state, null))
             {
-                ((Map<String, Object>)request).put("state", state);
+                request.put("state", state);
             }
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("pair", ((Map<String, Object>)market).get("id"));
+                request.put("pair", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> response = (this.privateGetListorders(this.extend(request, parameters))).join();
             List<Object> orders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
@@ -1299,7 +1299,7 @@ public class Luno extends LunoApi
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(id);
                 String symbol = (String) ((Map<String, Object>)market).get("symbol");
                 Object ticker = (tickers == null || id == null ? null : tickers.get(id));
-                ((Map<String, Object>)result).put((String)symbol, this.parseTicker(ticker, market));
+                result.put((String)symbol, this.parseTicker(ticker, market));
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
         }).thenApply(Tickers::new);
@@ -1456,7 +1456,7 @@ public class Luno extends LunoApi
         final String finalTakerOrMaker = takerOrMaker;
         final String finalFeeCost = feeCost;
         final String finalFeeCurrency = feeCurrency;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", id );
             put( "timestamp", timestamp );
@@ -1473,7 +1473,7 @@ public class Luno extends LunoApi
                 put( "cost", finalFeeCost );
                 put( "currency", finalFeeCurrency );
             }} );
-        }}), market);
+        }}, market);
     }
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
@@ -1506,7 +1506,7 @@ public class Luno extends LunoApi
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("since", since);
+                request.put("since", since);
             }
             Map<String, Object> response = (this.publicGetTrades(this.extend(request, parameters))).join();
             //
@@ -1571,11 +1571,11 @@ public class Luno extends LunoApi
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("since", this.parseToInt(since));
+                request.put("since", this.parseToInt(since));
             } else
             {
                 Long duration = ((1000L * 1000L) * ((long) this.parseTimeframe(timeframe)));
-                ((Map<String, Object>)request).put("since", (this.milliseconds() - duration));
+                request.put("since", (this.milliseconds() - duration));
             }
             Map<String, Object> response = (this.exchangePrivateGetCandles(this.extend(request, parameters))).join();
             //
@@ -1667,11 +1667,11 @@ public class Luno extends LunoApi
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("since", since);
+                request.put("since", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.privateGetListtrades(this.extend(request, parameters))).join();
             //
@@ -1807,21 +1807,21 @@ public class Luno extends LunoApi
             }
             if (java.util.Objects.equals(type, "market"))
             {
-                ((Map<String, Object>)request).put("type", ((String)side).toUpperCase());
+                request.put("type", ((String)side).toUpperCase());
                 // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
                 if (java.util.Objects.equals(side, "buy"))
                 {
-                    ((Map<String, Object>)request).put("counter_volume", this.amountToPrecision(((Map<String, Object>)market).get("symbol"), amount));
+                    request.put("counter_volume", this.amountToPrecision(((Map<String, Object>)market).get("symbol"), amount));
                 } else
                 {
-                    ((Map<String, Object>)request).put("base_volume", this.amountToPrecision(((Map<String, Object>)market).get("symbol"), amount));
+                    request.put("base_volume", this.amountToPrecision(((Map<String, Object>)market).get("symbol"), amount));
                 }
                 response = (this.privatePostMarketorder(this.extend(request, parameters))).join();
             } else
             {
-                ((Map<String, Object>)request).put("volume", this.amountToPrecision(((Map<String, Object>)market).get("symbol"), amount));
-                ((Map<String, Object>)request).put("price", this.priceToPrecision(((Map<String, Object>)market).get("symbol"), price));
-                ((Map<String, Object>)request).put("type", (((java.util.Objects.equals(side, "buy")))) ? "BID" : "ASK");
+                request.put("volume", this.amountToPrecision(((Map<String, Object>)market).get("symbol"), amount));
+                request.put("price", this.priceToPrecision(((Map<String, Object>)market).get("symbol"), price));
+                request.put("type", (((java.util.Objects.equals(side, "buy")))) ? "BID" : "ASK");
                 response = (this.privatePostPostorder(this.extend(request, parameters))).join();
             }
             if (java.util.Objects.equals(response, null))
@@ -1829,10 +1829,10 @@ public class Luno extends LunoApi
                 throw new NullResponse((this.id + " createOrder() returned empty response")) ;
             }
             final Map<String, Object> finalResponse = response;
-            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", finalResponse );
                 put( "id", ((Map<String, Object>)finalResponse).get("order_id") );
-            }}), market);
+            }}, market);
         }).thenApply(Order::new);
 
     }
@@ -1883,9 +1883,9 @@ public class Luno extends LunoApi
             //        "success": true
             //    }
             //
-            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", response );
-            }}));
+            }});
         }).thenApply(Order::new);
 
     }

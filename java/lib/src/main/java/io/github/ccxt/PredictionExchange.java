@@ -508,7 +508,7 @@ public Object describe()
             String identity = this.safeString2(eventVar, "id", "event", (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)));
             if (!(seen.containsKey(identity)))
             {
-                ((Map<String, Object>)seen).put((String)identity, true);
+                seen.put((String)identity, true);
                 ((List<Object>)result).add(eventVar);
             }
         }
@@ -798,7 +798,7 @@ public Object describe()
         {
             Object row = (marketsList == null || i < 0 || i >= marketsList.size() ? null : marketsList.get(i));
             Map<String, Object> copy = this.extend(new HashMap<String, Object>() {{}}, row);
-            Helpers.addElementToObject(copy, "symbol", this.safeString2(row, "market", "symbol"));
+            copy.put("symbol", PredictionExchange.this.safeString2(row, "market", "symbol"));
             ((List<Object>)aliased).add(copy);
         }
         Object stored = super.setMarkets((Object) (aliased), currencies);
@@ -2426,9 +2426,9 @@ public Object describe()
         // `symbol` with the `outcome` handle and attach the outcome identity fields
         // outcomeId and market - so books match the PredictionOrderBook structure.
         String fallback = this.safeString2(orderbook, "outcome", "symbol");
-        ((Map<String, Object>)orderbook).put("outcome", (((java.util.Objects.equals(outcomeObj, null)))) ? fallback : this.safeString(outcomeObj, "outcome", fallback));
-        ((Map<String, Object>)orderbook).put("outcomeId", (((java.util.Objects.equals(outcomeObj, null)))) ? this.safeString(orderbook, "outcomeId") : this.safeString(outcomeObj, "outcomeId"));
-        ((Map<String, Object>)orderbook).put("market", (((java.util.Objects.equals(outcomeObj, null)))) ? this.safeString(orderbook, "market") : this.safeString(outcomeObj, "market"));
+        orderbook.put("outcome", (((java.util.Objects.equals(outcomeObj, null)))) ? fallback : this.safeString(outcomeObj, "outcome", fallback));
+        orderbook.put("outcomeId", (((java.util.Objects.equals(outcomeObj, null)))) ? this.safeString(orderbook, "outcomeId") : this.safeString(outcomeObj, "outcomeId"));
+        orderbook.put("market", (((java.util.Objects.equals(outcomeObj, null)))) ? this.safeString(orderbook, "market") : this.safeString(outcomeObj, "market"));
         // omit (not delete) — `del dict['symbol']` raises KeyError in python/php when absent
         return this.omit(orderbook, "symbol");
     }

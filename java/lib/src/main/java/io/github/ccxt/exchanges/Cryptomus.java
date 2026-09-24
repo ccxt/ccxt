@@ -567,7 +567,7 @@ public class Cryptomus extends CryptomusApi
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final String finalNetworkCode = networkCode;
-                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
+                networks.put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", finalNetworkCode );
     put( "limits", new HashMap<String, Object>() {{
@@ -591,12 +591,12 @@ public class Cryptomus extends CryptomusApi
         }
         final String finalId = id;
         final String finalCode = code;
-        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "id", finalId );
             put( "code", finalCode );
             put( "networks", networks );
             put( "info", rawCurrency );
-        }}));
+        }});
     }
 
     /**
@@ -720,7 +720,7 @@ public class Cryptomus extends CryptomusApi
             List<Object> levelparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOrderBook", "level", level);
             level = ((List<Object>) levelparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) levelparametersVariable).get(1);
-            ((Map<String, Object>)request).put("level", level);
+            request.put("level", level);
             Map<String, Object> response = (this.publicGetV1ExchangeMarketOrderBookCurrencyPair(this.extend(request, parameters))).join();
             //
             //     {
@@ -841,7 +841,7 @@ public class Cryptomus extends CryptomusApi
         //     }
         //
         Long timestamp = this.safeTimestamp(trade, "timestamp");
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", Cryptomus.this.safeString(trade, "trade_id") );
             put( "timestamp", timestamp );
             put( "datetime", Cryptomus.this.iso8601(timestamp) );
@@ -858,7 +858,7 @@ public class Cryptomus extends CryptomusApi
                 put( "cost", null );
             }} );
             put( "info", trade );
-        }}), market);
+        }}, market);
     }
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
@@ -931,11 +931,11 @@ public class Cryptomus extends CryptomusApi
             String currencyId = this.safeString(balanceEntry, "ticker");
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
-            ((Map<String, Object>)account).put("free", this.safeString(balanceEntry, "available"));
-            ((Map<String, Object>)account).put("used", this.safeString(balanceEntry, "held"));
+            account.put("free", this.safeString(balanceEntry, "available"));
+            account.put("used", this.safeString(balanceEntry, "held"));
             if (!java.util.Objects.equals(code, null))
             {
-                ((Map<String, Object>)result).put((String)code, account);
+                result.put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -983,7 +983,7 @@ public class Cryptomus extends CryptomusApi
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 parameters = (Map<String, Object>) this.omit(parameters, "clientOrderId");
-                ((Map<String, Object>)request).put("client_order_id", clientOrderId);
+                request.put("client_order_id", clientOrderId);
             }
             Boolean sideBuy = java.util.Objects.equals(side, "buy");
             String amountToString = this.numberToString(amount);
@@ -1014,10 +1014,10 @@ public class Cryptomus extends CryptomusApi
                     {
                         cost = (((!java.util.Objects.equals(cost, null) && !java.util.Objects.equals(cost, "")))) ? cost : amountToString;
                     }
-                    ((Map<String, Object>)request).put("value", cost);
+                    request.put("value", cost);
                 } else
                 {
-                    ((Map<String, Object>)request).put("quantity", amountToString);
+                    request.put("quantity", amountToString);
                 }
                 response = (this.privatePostV2UserApiExchangeOrdersMarket(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(type, "limit"))
@@ -1026,8 +1026,8 @@ public class Cryptomus extends CryptomusApi
                 {
                     throw new ArgumentsRequired((((this.id + " createOrder() requires a price parameter for a ") + type) + " order")) ;
                 }
-                ((Map<String, Object>)request).put("quantity", amountToString);
-                ((Map<String, Object>)request).put("price", price);
+                request.put("quantity", amountToString);
+                request.put("price", price);
                 response = (this.privatePostV2UserApiExchangeOrders(this.extend(request, parameters))).join();
             } else
             {
@@ -1083,16 +1083,16 @@ public class Cryptomus extends CryptomusApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            ((Map<String, Object>)request).put("orderId", id);
+            request.put("orderId", id);
             Map<String, Object> response = (this.privateDeleteV2UserApiExchangeOrdersOrderId(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": true
             //     }
             //
-            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", response );
-            }}));
+            }});
         }).thenApply(Order::new);
 
     }
@@ -1143,11 +1143,11 @@ public class Cryptomus extends CryptomusApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("market", ((Map<String, Object>)market).get("id"));
+                request.put("market", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.privateGetV2UserApiExchangeOrdersHistory(this.extend(request, parameters))).join();
             //
@@ -1254,7 +1254,7 @@ public class Cryptomus extends CryptomusApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(market, null))
             {
-                ((Map<String, Object>)request).put("market", ((Map<String, Object>)market).get("id"));
+                request.put("market", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> response = (this.privateGetV2UserApiExchangeOrders(this.extend(request, parameters))).join();
             //
@@ -1393,7 +1393,7 @@ public class Cryptomus extends CryptomusApi
         final Map<String, Object> finalMarket = market;
         final Double finalPrice = price;
         final Map<String, Object> finalFee = fee;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", timestamp );
@@ -1416,7 +1416,7 @@ public class Cryptomus extends CryptomusApi
             put( "fee", finalFee );
             put( "trades", null );
             put( "info", order );
-        }}), market);
+        }}, market);
     }
     public Object parseOrder(Object order, Object... optionalArgs)
     {
@@ -1521,7 +1521,7 @@ public class Cryptomus extends CryptomusApi
                 Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 final String finalMakerFee = makerFee;
                 final String finalTakerFee = takerFee;
-                ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
+                result.put((String)symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
         put( "maker", Cryptomus.this.parseNumber(finalMakerFee) );

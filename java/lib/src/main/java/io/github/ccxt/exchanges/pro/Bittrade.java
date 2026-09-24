@@ -491,9 +491,9 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data");
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol);
-        ((Map<String, Object>)snapshot).put("nonce", this.safeInteger(data, "seqNum"));
-        ((Map<String, Object>)snapshot).put("timestamp", timestamp);
-        ((Map<String, Object>)snapshot).put("datetime", this.iso8601(timestamp));
+        snapshot.put("nonce", this.safeInteger(data, "seqNum"));
+        snapshot.put("timestamp", timestamp);
+        snapshot.put("datetime", this.iso8601(timestamp));
         orderbook.reset(snapshot);
         // unroll the accumulated deltas
         List<Object> messages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));

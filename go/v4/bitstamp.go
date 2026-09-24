@@ -1656,7 +1656,7 @@ func (this *Bitstamp) FetchTickersAsync(optionalArgs ...any) <-chan any {
 func (this *Bitstamp) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2294,7 +2294,7 @@ func (this *Bitstamp) fetchTransactionFeesBody(ch chan any, optionalArgs ...any)
 	return nil
 }
 func (this *Bitstamp) ParseTransactionFees(response any, optionalArgs ...any) map[string]any {
-	codes := GetArg(optionalArgs, 0, nil)
+	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = codes
 	var result map[string]any = map[string]any{}
 	var currencies map[string]any = this.IndexBy(response, "currency")
@@ -2334,7 +2334,7 @@ func (this *Bitstamp) FetchDepositWithdrawFeesAsync(optionalArgs ...any) <-chan 
 func (this *Bitstamp) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	codes := GetArg(optionalArgs, 0, nil)
+	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = codes
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params

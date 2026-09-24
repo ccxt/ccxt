@@ -160,7 +160,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             List<Object> symbolsAndTimeframes = (List<Object>) this.safeList(parameters, "symbolsAndTimeframes");
             if (!java.util.Objects.equals(symbolsAndTimeframes, null))
             {
-                ((Map<String, Object>)subscription).put("symbolsAndTimeframes", symbolsAndTimeframes);
+                subscription.put("symbolsAndTimeframes", symbolsAndTimeframes);
                 parameters = this.omit(parameters, "symbolsAndTimeframes");
             }
             return (this.watch(url, unsubHash, this.extend(message, parameters), unsubHash, subscription)).join();
@@ -222,7 +222,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             }};
             if (java.util.Objects.equals(method, "orderbookupdate"))
             {
-                ((Map<String, Object>)subscription).put("method", "handleOrderBookSubscription");
+                subscription.put("method", "handleOrderBookSubscription");
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, topic, this.extend(request, parameters), topic, subscription)).join();
             return orderbook.limit();
@@ -898,7 +898,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             {
                 continue;
             }
-            ((Map<String, Object>)ticker).put("ts", timestamp);
+            ticker.put("ts", timestamp);
             Object parsedTicker = this.parseWsBidAsk((Map<String, Object>) (ticker));
             String symbol = (String) ((Map<String, Object>)parsedTicker).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
@@ -907,7 +907,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             }
             if (!java.util.Objects.equals(symbol, null))
             {
-                ((Map<String, Object>)result).put((String)symbol, parsedTicker);
+                result.put((String)symbol, parsedTicker);
             }
         }
         client.resolve(result, topic);
@@ -1287,7 +1287,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         }
         final String finalTakerOrMaker = takerOrMaker;
         final Map<String, Object> finalFee = fee;
-        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
             put( "id", Woo.this.safeString(trade, "tradeId") );
             put( "timestamp", timestamp );
             put( "datetime", Woo.this.iso8601(timestamp) );
@@ -1301,7 +1301,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             put( "type", type );
             put( "fee", finalFee );
             put( "info", trade );
-        }}), market));
+        }}, market));
     }
     public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
@@ -1648,7 +1648,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         String triggerPrice = this.safeString(order, "triggerPrice");
         final Double finalPrice = price;
         final Double finalAvgPrice = avgPrice;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "symbol", symbol );
             put( "id", orderId );
@@ -1672,7 +1672,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             put( "status", status );
             put( "fee", fee );
             put( "trades", trades );
-        }}));
+        }});
     }
     public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {

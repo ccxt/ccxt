@@ -439,7 +439,7 @@ public class Kalshi extends KalshiApi
                 }};
                 if (!java.util.Objects.equals(cursor, null))
                 {
-                    ((Map<String, Object>)request).put("cursor", cursor);
+                    request.put("cursor", cursor);
                 }
                 Map<String, Object> response = (this.kalshiPublicGetMarkets(this.extend(request, rest))).join();
                 List<Object> rawMarkets = (List<Object>) this.safeList(response, "markets", new ArrayList<Object>(Arrays.asList()));
@@ -465,7 +465,7 @@ public class Kalshi extends KalshiApi
                             {
                                 final String finalEventKey = eventKey;
                                 final String finalEventTitle = eventTitle;
-                                ((Map<String, Object>)eventsDict).put((String)eventKey, new HashMap<String, Object>() {{
+                                eventsDict.put((String)eventKey, new HashMap<String, Object>() {{
         put( "id", eventTicker );
         put( "slug", eventTicker );
         put( "event", finalEventKey );
@@ -663,7 +663,7 @@ public class Kalshi extends KalshiApi
                 }
                 if (!(seen.containsKey(baseTicker)))
                 {
-                    ((Map<String, Object>)seen).put((String)baseTicker, true);
+                    seen.put((String)baseTicker, true);
                     ((List<Object>)tickers).add(baseTicker);
                 }
             }
@@ -1329,7 +1329,7 @@ final Object finalOi = oi;
         final Double finalAskVolume = askVolume;
         final Double finalClose = close;
         final Double finalAverage = average;
-        return (Map<String, Object>) (this.safePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safePredictionTicker(new HashMap<String, Object>() {{
             put( "outcome", outcome );
             put( "outcomeId", Kalshi.this.safeString2(outcomeObj, "outcomeId", "id") );
             put( "label", Kalshi.this.safeString(outcomeObj, "label") );
@@ -1353,7 +1353,7 @@ final Object finalOi = oi;
             put( "baseVolume", Kalshi.this.safeNumberN(raw, new ArrayList<Object>(Arrays.asList("volume_24h_fp", "volume_24h", "volume"))) );
             put( "quoteVolume", null );
             put( "info", raw );
-        }}), market));
+        }}, market));
     }
     /**
      * @ignore
@@ -1407,13 +1407,13 @@ final Object finalOi = oi;
                 }
                 if (!(outcomesByTicker.containsKey(ticker)))
                 {
-                    ((Map<String, Object>)outcomesByTicker).put((String)ticker, new ArrayList<Object>(Arrays.asList()));
+                    outcomesByTicker.put((String)ticker, new ArrayList<Object>(Arrays.asList()));
                     ((List<Object>)tickers).add(ticker);
                 }
                 // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
                 Object grouped = (outcomesByTicker == null || ticker == null ? null : outcomesByTicker.get(ticker));
                 ((List<Object>)grouped).add(outcomeObj);
-                ((Map<String, Object>)outcomesByTicker).put((String)ticker, grouped);
+                outcomesByTicker.put((String)ticker, grouped);
             }
             Long chunkSize = this.safeInteger(this.options, "fetchTickersBatchSize", 100);
             Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -1452,7 +1452,7 @@ final Object finalOi = oi;
                         String symbolKey = this.safeString(ticker, "outcome");
                         if (!java.util.Objects.equals(symbolKey, null))
                         {
-                            ((Map<String, Object>)result).put((String)symbolKey, ticker);
+                            result.put((String)symbolKey, ticker);
                         }
                     }
                 }
@@ -1637,22 +1637,22 @@ final Object finalOi = oi;
             if (!java.util.Objects.equals(since, null))
             {
                 Long sinceS = this.parseToInt(Helpers.divide(since, 1000));
-                ((Map<String, Object>)request).put("start_ts", sinceS);
+                request.put("start_ts", sinceS);
                 if (!java.util.Objects.equals(limit, null))
                 {
                     Object end = this.sum(sinceS, Helpers.multiply(limit, tf));
-                    ((Map<String, Object>)request).put("end_ts", (((Helpers.isLessThan(end, now)))) ? end : now);
+                    request.put("end_ts", (((Helpers.isLessThan(end, now)))) ? end : now);
                 } else
                 {
                     // the candlesticks endpoint requires end_ts - default to now
-                    ((Map<String, Object>)request).put("end_ts", now);
+                    request.put("end_ts", now);
                 }
             } else
             {
                 Long defaultLimit = this.safeInteger(this.options, "defaultFetchOHLCVLimit", 200);
                 Object candlesCount = (((!java.util.Objects.equals(limit, null)))) ? limit : defaultLimit;
-                ((Map<String, Object>)request).put("end_ts", now);
-                ((Map<String, Object>)request).put("start_ts", Helpers.subtract(now, (Helpers.multiply(candlesCount, tf))));
+                request.put("end_ts", now);
+                request.put("start_ts", Helpers.subtract(now, (Helpers.multiply(candlesCount, tf))));
             }
             Map<String, Object> response = (this.kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks(this.extend(request, parameters))).join();
             //
@@ -1818,7 +1818,7 @@ final Object finalOi = oi;
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000));
+                request.put("limit", Helpers.mathMin(limit, 1000));
             }
             Map<String, Object> response = (this.kalshiPublicGetMarketsTrades(this.extend(request, parameters))).join();
             List<Object> trades = (List<Object>) this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
@@ -1904,7 +1904,7 @@ final Object finalOi = oi;
         final Object finalPrice = price;
         final Double finalAmount = amount;
         final Object finalCost = cost;
-        return this.safePredictionTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePredictionTrade(new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
             put( "timestamp", ts );
@@ -1921,7 +1921,7 @@ final Object finalOi = oi;
             put( "amount", finalAmount );
             put( "cost", finalCost );
             put( "fee", null );
-        }}), market);
+        }}, market);
     }
     /**
      * @ignore
@@ -1970,11 +1970,11 @@ final Object finalOi = oi;
                 {
                     throw new ArgumentsRequired((this.id + " requires a valid outcome")) ;
                 }
-                ((Map<String, Object>)request).put("ticker", this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker"));
+                request.put("ticker", this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.kalshiPrivateGetPortfolioFills(this.extend(request, parameters))).join();
             List<Object> fills = (List<Object>) this.safeList(response, "fills", new ArrayList<Object>(Arrays.asList()));
@@ -2102,7 +2102,7 @@ final Object finalOi = oi;
         final Double finalAmount = amount;
         final Object finalCost = cost;
         final Map<String, Object> finalFee = fee;
-        return this.safePredictionTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePredictionTrade(new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", fill );
             put( "timestamp", ts );
@@ -2119,7 +2119,7 @@ final Object finalOi = oi;
             put( "amount", finalAmount );
             put( "cost", finalCost );
             put( "fee", finalFee );
-        }}), market);
+        }}, market);
     }
     /**
      * @ignore
@@ -2187,7 +2187,7 @@ final Object finalOi = oi;
             total = (((double) balanceCents) / ((double) 100));
         }
         final Object finalTotal = total;
-        ((Map<String, Object>)result).put("USD", new HashMap<String, Object>() {{
+        result.put("USD", new HashMap<String, Object>() {{
     put( "free", finalTotal );
     put( "used", 0 );
     put( "total", finalTotal );
@@ -2241,7 +2241,7 @@ final Object finalOi = oi;
                 String marketTicker = this.safeString(outcomeInfo, "ticker");
                 if (!java.util.Objects.equals(marketTicker, null))
                 {
-                    ((Map<String, Object>)wantedTickers).put((String)marketTicker, true);
+                    wantedTickers.put((String)marketTicker, true);
                 }
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
@@ -2298,7 +2298,7 @@ final Object finalOi = oi;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.kalshiPrivateGetPortfolioSettlements(this.extend(request, parameters))).join();
             List<Object> rawSettlements = (List<Object>) this.safeList(response, "settlements", new ArrayList<Object>(Arrays.asList()));
@@ -2475,7 +2475,7 @@ final Object finalOi = oi;
         }
         final Double finalContractsValue = contractsValue;
         final String finalPositionSide = positionSide;
-        return this.safePredictionPosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePredictionPosition(new HashMap<String, Object>() {{
             put( "id", null );
             put( "outcome", Kalshi.this.safeString(outcomeObj, "outcome", ticker) );
             put( "outcomeId", Kalshi.this.safeString2(outcomeObj, "outcomeId", "id") );
@@ -2504,7 +2504,7 @@ final Object finalOi = oi;
             put( "marginType", "cross" );
             put( "percentage", null );
             put( "info", position );
-        }}));
+        }});
     }
     /**
      * @ignore
@@ -2551,7 +2551,7 @@ final Object finalOi = oi;
                 {
                     throw new ArgumentsRequired((this.id + " requires a valid outcome")) ;
                 }
-                ((Map<String, Object>)request).put("ticker", this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker"));
+                request.put("ticker", this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker"));
             }
             Map<String, Object> response = (this.kalshiPrivateGetPortfolioOrders(this.extend(request, parameters))).join();
             Object orders = (List<Object>)(this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList())));
@@ -2605,7 +2605,7 @@ final Object finalOi = oi;
                 {
                     throw new ArgumentsRequired((this.id + " requires a valid outcome")) ;
                 }
-                ((Map<String, Object>)request).put("ticker", this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker"));
+                request.put("ticker", this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker"));
             }
             Map<String, Object> response = (this.kalshiPrivateGetPortfolioOrders(this.extend(request, parameters))).join();
             Object orders = (List<Object>)(this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList())));
@@ -2791,7 +2791,7 @@ final Object finalOi = oi;
         final Double finalAmount = amount;
         final Double finalFilled = filled;
         final Object finalRemaining = remaining;
-        return this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePredictionOrder(new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", Kalshi.this.safeString(order, "client_order_id") );
             put( "info", order );
@@ -2817,7 +2817,7 @@ final Object finalOi = oi;
             put( "remaining", finalRemaining );
             put( "fee", null );
             put( "trades", new ArrayList<Object>(Arrays.asList()) );
-        }}), mkt);
+        }}, mkt);
     }
     /**
      * @ignore
@@ -2948,7 +2948,7 @@ final Object finalOi = oi;
             }};
             if (!java.util.Objects.equals(yesPrice, null))
             {
-                ((Map<String, Object>)request).put("price", this.numberToString(yesPrice));
+                request.put("price", this.numberToString(yesPrice));
             }
             Map<String, Object> response = (this.kalshiPrivatePostPortfolioEventsOrders(this.extend(request, parameters))).join();
             // the V2 create response is minimal (order_id, fill_count, remaining_count), so backfill
@@ -3144,7 +3144,7 @@ final Object finalOi = oi;
             if (!java.util.Objects.equals(outcome, null))
             {
                 Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-                ((Map<String, Object>)request).put("ticker", this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker"));
+                request.put("ticker", this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker"));
             }
             Map<String, Object> restingResponse = (this.kalshiPrivateGetPortfolioOrders(request)).join();
             List<Object> restingOrders = (List<Object>) this.safeList(restingResponse, "orders", new ArrayList<Object>(Arrays.asList()));
@@ -3345,7 +3345,7 @@ final Object finalOi = oi;
                         String already = this.safeString(seen, et);
                         if (java.util.Objects.equals(already, null))
                         {
-                            ((Map<String, Object>)seen).put((String)et, et);
+                            seen.put((String)et, et);
                             ((List<Object>)eventTickers).add(et);
                         }
                     }
@@ -3581,7 +3581,7 @@ final Object finalOi = oi;
                     }};
                     if (!java.util.Objects.equals(cursor, null))
                     {
-                        ((Map<String, Object>)request).put("cursor", cursor);
+                        request.put("cursor", cursor);
                     }
                     Map<String, Object> response = (this.kalshiPublicGetEvents(this.extend(request, rest))).join();
                     List<Object> pageEvents = (List<Object>) this.safeList(response, "events", new ArrayList<Object>(Arrays.asList()));
