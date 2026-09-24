@@ -6310,7 +6310,7 @@ const CCXT_GO_TUPLE_PARAMS_PRODUCERS = {
 // Go type of element `index` of a `this.<m> (..)` tuple, read off the checker's declared return
 // (Promise unwrapped). Every same-named method in ts/src must declare the same element, or
 // only `return super.<m> (..)`, since Go dispatches to the runtime override.
-const CCXT_GO_TUPLE_ELEMENT_NATIVE = { 'Dict': 'map[string]any', 'Str': '*string', 'string': '*string' };
+const CCXT_GO_TUPLE_ELEMENT_NATIVE = { 'Dict': 'map[string]any', 'Str': '*string', 'string': '*string', 'Num': '*float64' };
 const CCXT_GO_TUPLE_OVERRIDE_CACHE = new Map ();
 
 function ccxtGoTupleAnnotationElement (typeNode, index) {
@@ -6394,7 +6394,8 @@ function ccxtGoTupleCheckerElementType (goTranspiler, init, index) {
         }
         const element = checker.getTypeArguments (returned)[index];
         const alias = element?.aliasSymbol?.escapedName;
-        const goType = CCXT_GO_TUPLE_ELEMENT_NATIVE[alias ?? ''] ?? (((element?.flags & ts.TypeFlags.String) !== 0) ? '*string' : undefined);
+        const numeric = ((element?.flags & ts.TypeFlags.Number) !== 0) ? '*float64' : undefined;
+        const goType = CCXT_GO_TUPLE_ELEMENT_NATIVE[alias ?? ''] ?? (((element?.flags & ts.TypeFlags.String) !== 0) ? '*string' : numeric);
         if ((goType === undefined) || (declaration?.kind !== ts.SyntaxKind.MethodDeclaration)
             || (ccxtGoTupleAnnotationElement (declaration.type, index) !== goType)
             || !ccxtGoTupleOverridesAgree (declaration, callee.name.escapedText, index, goType)) {
@@ -6471,6 +6472,65 @@ function ccxtGoTupleParamsElementType (goTranspiler, element) {
         (n) => !ccxtGoProducerUseRebinds (n) && (tableProven || !ccxtGoTupleDictUseTestsAbsence (n)));
 }
 
+// Num tuple element: `var p *float64 = Float64PtrTyped(GetValue(h, i))`, nil where absent. Reads:
+// absence tests (IsEqual derefs), stores into `any` containers, and callee slots that deref the value.
+const CCXT_GO_TUPLE_NUMBER_SAFE_ARGS = { 'this.PriceToPrecision': 2, 'this.AmountToPrecision': 2 };
+
+function ccxtGoTupleNumberReadIsSafe (goTranspiler, n) {
+    let current = n;
+    while (current.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        current = current.parent;
+    }
+    const parent = current.parent;
+    if ((parent?.kind === ts.SyntaxKind.BinaryExpression) && (COMPARISON_TOKENS.indexOf (parent.operatorToken.kind) >= 0)) {
+        return isUndefinedLiteral ((parent.left === current) ? parent.right : parent.left)
+            && ccxtGoClosureCompareIsHelper (goTranspiler, parent, n.escapedText);
+    }
+    if ((parent?.kind === ts.SyntaxKind.CallExpression) && (parent.expression !== current)) {
+        const slots = CCXT_GO_TUPLE_NUMBER_SAFE_ARGS[printedCalleeOfCall (goTranspiler, parent) ?? ''];
+        return (slots !== undefined) && (parent.arguments.indexOf (current) < slots);
+    }
+    return ((parent?.kind === ts.SyntaxKind.PropertyAssignment) && (parent.initializer === current))
+        || ((parent?.kind === ts.SyntaxKind.ArrayLiteralExpression) && (current === n)
+            && !((parent.parent?.kind === ts.SyntaxKind.BinaryExpression) && (parent.parent.left === parent)));
+}
+
+function ccxtGoTupleNumberElementType (goTranspiler, element) {
+    const pattern = element?.parent;
+    const holder = pattern?.parent;
+    if ((element?.kind !== ts.SyntaxKind.BindingElement) || !ts.isIdentifier (element.name)
+        || (pattern?.kind !== ts.SyntaxKind.ArrayBindingPattern)
+        || (holder?.kind !== ts.SyntaxKind.VariableDeclaration) || (holder.name !== pattern)
+        || (element.dotDotDotToken !== undefined) || (element.initializer !== undefined) || (element.propertyName !== undefined)
+        || (holder.parent?.parent?.kind !== ts.SyntaxKind.VariableStatement)
+        || (typeof goTranspiler.goDeclaredLocalTypeIfSafe !== 'function')
+        || (ccxtGoTupleCheckerElementType (goTranspiler, holder.initializer, pattern.elements.indexOf (element)) !== '*float64')) {
+        return undefined;
+    }
+    const scope = goTranspiler.goEnclosingFunction (element);
+    const name = element.name.escapedText;
+    if ((scope === undefined) || goTranspiler.goTypeNameIsShadowed (scope, 'Float64PtrTyped')) {
+        return undefined;
+    }
+    let rebound = false;
+    const visit = (n) => {
+        if (rebound) {
+            return;
+        }
+        if ((n !== scope) && (FUNCTION_LIKE_KINDS.indexOf (n.kind) >= 0) && scopeMentionsIdentifier (n, name)) {
+            rebound = true;                          // a closure over the local
+            return;
+        }
+        if ((n !== element) && (n.kind === ts.SyntaxKind.BindingElement) && bindingMentionsName (n.name, name)) {
+            rebound = true;
+            return;
+        }
+        ts.forEachChild (n, visit);
+    };
+    ts.forEachChild (scope, visit);
+    return rebound ? undefined : goTranspiler.goDeclaredLocalTypeIfSafe (element, '*float64', (n) => ccxtGoTupleNumberReadIsSafe (goTranspiler, n));
+}
+
 function installCcxtGoTupleParamsElement (goTranspiler) {
     if ((goTranspiler === undefined) || goTranspiler.__ccxtGoTupleParamsElementInstalled
         || (typeof goTranspiler.printVariableDeclarationList !== 'function')) {
@@ -6485,7 +6545,12 @@ function installCcxtGoTupleParamsElement (goTranspiler) {
         }
         const lines = printed.split ('\n');
         pattern.elements.forEach ((element, index) => {
-            if ((element.kind !== ts.SyntaxKind.BindingElement) || (ccxtGoTupleParamsElementType (this, element) !== CCXT_GO_PRODUCER_DICT_TYPE)) {
+            if (element.kind !== ts.SyntaxKind.BindingElement) {
+                return;
+            }
+            const typed = (ccxtGoTupleParamsElementType (this, element) === CCXT_GO_PRODUCER_DICT_TYPE) ? 'map[string]any = MapTyped('
+                : ((ccxtGoTupleNumberElementType (this, element) === '*float64') ? '*float64 = Float64PtrTyped(' : undefined);
+            if (typed === undefined) {
                 return;
             }
             const name = this.printNode (element.name, 0);
@@ -6493,7 +6558,7 @@ function installCcxtGoTupleParamsElement (goTranspiler) {
                 && line.trimStart ().startsWith (name + ' := GetValue(') && line.endsWith (', ' + index + ')'));
             if (at >= 0) {
                 const indent = lines[at].substring (0, lines[at].length - lines[at].trimStart ().length);
-                lines[at] = indent + 'var ' + name + ' map[string]any = MapTyped(' + lines[at].trimStart ().substring (name.length + 4) + ')';
+                lines[at] = indent + 'var ' + name + ' ' + typed + lines[at].trimStart ().substring (name.length + 4) + ')';
             }
         });
         return lines.join ('\n');
