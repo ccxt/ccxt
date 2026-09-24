@@ -1719,7 +1719,7 @@ export default class coinsph extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger2 (order, 'time', 'transactTime');
-        const trades = this.safeValue (order, 'fills');
+        const trades = this.safeList (order, 'fills');
         let triggerPrice = this.safeString (order, 'stopPrice');
         if (Precise.stringEq (triggerPrice, '0')) {
             triggerPrice = undefined;
