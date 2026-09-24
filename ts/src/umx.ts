@@ -4477,13 +4477,14 @@ export default class umx extends Exchange {
         //     }
         //
         const result = this.depositWithdrawFee (fee);
+        const networks: Dict = {};
         const chains = this.safeList (fee, 'chains', []);
         const currencyCode = this.safeString (currency, 'code');
         for (let i = 0; i < chains.length; i++) {
             const chain = chains[i];
             const networkId = this.safeString (chain, 'chainType');
             const networkCode = this.networkIdToCode (networkId, currencyCode) as string;
-            result['networks'][networkCode] = {
+            networks[networkCode] = {
                 'deposit': {
                     'fee': undefined,
                     'percentage': undefined,
@@ -4494,6 +4495,7 @@ export default class umx extends Exchange {
                 },
             };
         }
+        result['networks'] = networks;
         return this.assignDefaultDepositWithdrawFees (result, currency) as DepositWithdrawFee;
     }
 
