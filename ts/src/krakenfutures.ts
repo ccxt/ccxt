@@ -2492,9 +2492,8 @@ export default class krakenfutures extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let market: Market = undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol);
+            symbol = this.symbol (symbol);
         }
         // todo: lastFillTime: this.iso8601(end)
         const response = await this.privateGetFills (params);
@@ -2519,7 +2518,9 @@ export default class krakenfutures extends Exchange {
         //    }
         //
         const fills = this.safeList (response, 'fills', []);
-        return this.parseTrades (fills, market, since, limit);
+        // the endpoint returns the fills of every contract, each row resolves its own market
+        const trades = this.parseTrades (fills);
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit) as Trade[];
     }
 
     /**
