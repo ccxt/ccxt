@@ -860,9 +860,9 @@ export default class aster extends asterRest {
         const orderId = this.safeString (trade, 'i');
         if ('m' in trade) {
             if (side === undefined) {
-                side = (trade['m'] === true) ? 'sell' : 'buy'; // this is reversed intentionally
+                side = (this.safeBool (trade, 'm') === true) ? 'sell' : 'buy'; // this is reversed intentionally
             }
-            takerOrMaker = (trade['m'] === true) ? 'maker' : 'taker';
+            takerOrMaker = (this.safeBool (trade, 'm') === true) ? 'maker' : 'taker';
         }
         let fee: FeeString = undefined;
         const feeCost = this.safeString (trade, 'n');
@@ -1343,7 +1343,7 @@ export default class aster extends asterRest {
                 await this.fapiPrivatePutV3ListenKey (); // extend the expiry
             }
         } catch (error) {
-            const url = this.urls['api']['ws']['private'][type] + '/' + listenKey;
+            const url = this.safeString (this.urls['api']['ws']['private'], type) + '/' + listenKey;
             const client = this.client (url);
             const messageHashes = Object.keys (client.futures);
             for (let i = 0; i < messageHashes.length; i++) {
@@ -1363,7 +1363,7 @@ export default class aster extends asterRest {
     getPrivateUrl (type: string = 'spot'): string {
         const listenKeyOptions = this.safeDict (this.options, 'listenKey', {});
         const listenKey = this.safeString (listenKeyOptions, type);
-        const url = this.urls['api']['ws']['private'][type] + '/' + listenKey;
+        const url = this.safeString (this.urls['api']['ws']['private'], type) + '/' + listenKey;
         return url;
     }
 
@@ -1644,7 +1644,7 @@ export default class aster extends asterRest {
         if (!this.isEmpty (messageHashes)) {
             for (let i = 0; i < newPositions.length; i++) {
                 const position = newPositions[i];
-                const symbol = position['symbol'];
+                const symbol = this.safeString (position, 'symbol');
                 const symbolMessageHash = messageHash + '::' + symbol;
                 client.resolve (position, symbolMessageHash);
             }
@@ -1820,7 +1820,7 @@ export default class aster extends asterRest {
                             let insertNewFeeCurrency = true;
                             for (let i = 0; i < fees.length; i++) {
                                 const orderFee = fees[i];
-                                if (orderFee['currency'] === tradeFee['currency']) {
+                                if (this.safeString (orderFee, 'currency') === this.safeString (tradeFee, 'currency')) {
                                     const feeCost = this.sum (tradeFee['cost'], orderFee['cost']);
                                     const feeCostString = this.currencyToPrecision (tradeFee['currency'], feeCost);
                                     order['fees'][i]['cost'] = (feeCostString === undefined) ? undefined : parseFloat (feeCostString);
@@ -1832,11 +1832,11 @@ export default class aster extends asterRest {
                                 order['fees'].push (tradeFee);
                             }
                         } else if (fee !== undefined) {
-                            if (fee['currency'] === tradeFee['currency']) {
+                            if (this.safeString (fee, 'currency') === this.safeString (tradeFee, 'currency')) {
                                 const feeCost = this.sum (fee['cost'], tradeFee['cost']);
                                 const feeCostString = this.currencyToPrecision (tradeFee['currency'], feeCost);
                                 order['fee']['cost'] = (feeCostString === undefined) ? undefined : parseFloat (feeCostString);
-                            } else if (fee['currency'] === undefined) {
+                            } else if (this.safeString (fee, 'currency') === undefined) {
                                 order['fee'] = tradeFee;
                             } else {
                                 order['fees'] = [ fee, tradeFee ];
