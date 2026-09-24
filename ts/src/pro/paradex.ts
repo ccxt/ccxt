@@ -560,6 +560,10 @@ export default class paradex extends paradexRest {
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger (contract, 'created_at');
         const fundingPeriod = this.safeString (contract, 'funding_period_hours');
+        let interval: Str = undefined;
+        if (fundingPeriod !== undefined) {
+            interval = fundingPeriod + 'h';
+        }
         return {
             'info': contract,
             'symbol': symbol,
@@ -578,7 +582,7 @@ export default class paradex extends paradexRest {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'interval': fundingPeriod + 'h',
+            'interval': interval,
         } as FundingRate;
     }
 

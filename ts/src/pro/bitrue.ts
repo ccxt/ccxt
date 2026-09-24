@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import bitrueRest from '../bitrue.js';
-import { AuthenticationError, NotSupported } from '../base/errors.js';
+import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Balances, Dict, Int, Market, Num, OHLCV, Order, OrderBook, Str, Ticker, Trade, List, Endpoint } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -428,9 +428,12 @@ export default class bitrue extends bitrueRest {
             if (this.safeBool (candidate, 'swap') !== true) {
                 continue;
             }
-            const baseId = this.safeStringLower (candidate, 'baseId', '');
-            const quoteId = this.safeStringLower (candidate, 'quoteId', '');
-            if ((baseId as string) + quoteId === wsBaseQuote) {
+            const baseId = this.safeStringLower (candidate, 'baseId');
+            const quoteId = this.safeStringLower (candidate, 'quoteId');
+            if (baseId === undefined || quoteId === undefined) {
+                throw new ExchangeError (this.id + ' findSwapMarketByWsBaseQuote() market ' + symbols[i] + ' has no baseId or quoteId');
+            }
+            if (baseId + quoteId === wsBaseQuote) {
                 return candidate;
             }
         }
