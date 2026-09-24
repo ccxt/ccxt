@@ -1909,7 +1909,7 @@ func (this *Binance) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"fee":          fee,
 	})
 }
-func (this *Binance) HandleTrade(client any, message any) {
+func (this *Binance) HandleTrade(client any, message map[string]any) {
 	// the trade streams push raw trade information in real-time
 	// each trade has a unique buyer and seller
 	var marketId *string = this.SafeString(message, "s")

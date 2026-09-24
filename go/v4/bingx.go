@@ -1764,7 +1764,7 @@ func (this *Bingx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		// bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
 		// the timeZone request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
 		var timeZone any = nil
-		var timeZoneparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "timeZone", 0)
+		var timeZoneparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOHLCV", "timeZone", 0)
 		timeZone = GetValue(timeZoneparamsVariable, 0)
 		params = MapTyped(GetValue(timeZoneparamsVariable, 1))
 		if !IsEqual(timeZone, nil) {

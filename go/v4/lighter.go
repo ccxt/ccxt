@@ -509,7 +509,7 @@ func (this *Lighter) loadAccountBody(ch chan any, chainId any, privateKey any, a
 		return nil
 	}
 	var libraryPath any = nil
-	var libraryPathparamsVariable []any = this.HandleOptionAndParams(params, "loadAccount", "libraryPath")
+	var libraryPathparamsVariable []any = this.HandleOptionStringAndParams(params, "loadAccount", "libraryPath")
 	libraryPath = GetValue(libraryPathparamsVariable, 0)
 	params = MapTyped(GetValue(libraryPathparamsVariable, 1))
 	var lighterPrivateKeyIsSet bool = (!IsEqual(privateKey, nil)) && (!IsEqual(privateKey, ""))
@@ -1034,7 +1034,7 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	var nonceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "nonce")
 	nonce = GetValue(nonceparamsVariable, 0)
 	params = GetValue(nonceparamsVariable, 1)
-	var orderExpiryparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "orderExpiry", 0)
+	var orderExpiryparamsVariable []any = this.HandleOptionIntegerAndParams(params, "createOrder", "orderExpiry", 0)
 	orderExpiry = GetValue(orderExpiryparamsVariable, 0)
 	params = GetValue(orderExpiryparamsVariable, 1)
 	if !IsEqual(nonce, nil) {
@@ -1231,7 +1231,7 @@ func (this *Lighter) signAndCreateOrderBody(ch chan any, method any, symbol any,
 	AddElementToObject(params, "accountIndex", accountIndex)
 	var market map[string]any = this.Market(symbol)
 	var groupingType any = nil
-	var groupingTypeparamsVariable []any = this.HandleOptionAndParams(params, method, "groupingType", 3)
+	var groupingTypeparamsVariable []any = this.HandleOptionIntegerAndParams(params, method, "groupingType", 3)
 	groupingType = GetValue(groupingTypeparamsVariable, 0)
 	params = GetValue(groupingTypeparamsVariable, 1) // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
 	var orderRequests any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
@@ -3799,7 +3799,7 @@ func (this *Lighter) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = mathMin(limit, 100)
 	}
 	var until any = nil
-	var untilparamsVariable []any = this.HandleOptionAndParams2(params, "fetchMyTrades", "until", "from")
+	var untilparamsVariable []any = this.HandleOptionIntegerAndParams2(params, "fetchMyTrades", "until", "from")
 	until = GetValue(untilparamsVariable, 0)
 	params = GetValue(untilparamsVariable, 1)
 	if !IsEqual(until, nil) {

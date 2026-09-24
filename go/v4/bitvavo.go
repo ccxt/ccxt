@@ -2241,7 +2241,7 @@ func (this *Bitvavo) cancelAllOrdersAfterBody(ch chan any, timeout any, optional
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var codGroupId any = nil
-	var codGroupIdparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrdersAfter", "codGroupId", 1)
+	var codGroupIdparamsVariable []any = this.HandleOptionIntegerAndParams(params, "cancelAllOrdersAfter", "codGroupId", 1)
 	codGroupId = GetValue(codGroupIdparamsVariable, 0)
 	params = MapTyped(GetValue(codGroupIdparamsVariable, 1))
 	var request map[string]any = map[string]any{

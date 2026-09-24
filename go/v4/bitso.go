@@ -982,7 +982,7 @@ func (this *Bitso) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTicker(this.Extend(request, params))).Raw))
-	var ticker any = this.SafeValue(response, "payload")
+	var ticker map[string]any = SafeMapTyped(response, "payload")
 
 	//
 	//     {

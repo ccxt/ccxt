@@ -3467,7 +3467,7 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 		var builderFeeRateparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "builderFeeRate", "0.0001")
 		builderFeeRate = GetValue(builderFeeRateparamsVariable, 0)
 		params = MapTyped(GetValue(builderFeeRateparamsVariable, 1))
-		var builderIdparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "builderId")
+		var builderIdparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "builderId")
 		builderId = GetValue(builderIdparamsVariable, 0)
 		params = MapTyped(GetValue(builderIdparamsVariable, 1))
 	}

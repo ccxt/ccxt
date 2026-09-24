@@ -1938,7 +1938,7 @@ func (this *Hibachi) fetchOrdersByStatusBody(ch chan any, status any, optionalAr
 		request["startTime"] = since
 	}
 	var until any = nil
-	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrdersByStatus", "until")
+	var untilparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOrdersByStatus", "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = MapTyped(GetValue(untilparamsVariable, 1))
 	if !IsEqual(until, nil) {
@@ -2096,7 +2096,7 @@ func (this *Hibachi) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		request["fromMs"] = since
 	}
 	var until any = nil
-	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "until")
+	var untilparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOHLCV", "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = MapTyped(GetValue(untilparamsVariable, 1))
 	if !IsEqual(until, nil) {
@@ -2817,7 +2817,7 @@ func (this *Hibachi) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...a
 		request["limit"] = limit
 	}
 	var until any = nil
-	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchMySettlementHistory", "until")
+	var untilparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchMySettlementHistory", "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = MapTyped(GetValue(untilparamsVariable, 1))
 	if !IsEqual(until, nil) {

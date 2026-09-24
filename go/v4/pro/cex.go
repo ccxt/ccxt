@@ -1775,7 +1775,7 @@ func (this *Cex) ResolveData(client any, message any) {
 	//    "ok": "ok"
 	//    }
 	//
-	var data any = this.SafeValue(message, "data")
+	var data []any = ccxt.SafeListTyped(message, "data")
 	var messageHash *string = this.SafeString(message, "oid")
 	client.(ccxt.ClientInterface).Resolve(data, messageHash)
 }

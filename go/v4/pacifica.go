@@ -1429,7 +1429,7 @@ func (this *Pacifica) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var aggLevel any = nil
-	var aggLevelparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrderBook", "aggLevel", 1)
+	var aggLevelparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOrderBook", "aggLevel", 1)
 	aggLevel = GetValue(aggLevelparamsVariable, 0)
 	params = MapTyped(GetValue(aggLevelparamsVariable, 1))
 	var request map[string]any = map[string]any{
@@ -4369,7 +4369,7 @@ func (this *Pacifica) createSubAccountBody(ch chan any, name any, optionalArgs .
 	timestamp = GetValue(timestampparamsVariable, 0)
 	params = GetValue(timestampparamsVariable, 1)
 	var expiryWindow any = nil
-	var expiryWindowparamsVariable []any = this.HandleOptionAndParams2(params, "createSubAccount", "expiryWindow", "expiry_window", 5000)
+	var expiryWindowparamsVariable []any = this.HandleOptionIntegerAndParams2(params, "createSubAccount", "expiryWindow", "expiry_window", 5000)
 	expiryWindow = GetValue(expiryWindowparamsVariable, 0)
 	params = GetValue(expiryWindowparamsVariable, 1)
 	var subaccountSignatureHeader map[string]any = map[string]any{
@@ -4706,7 +4706,7 @@ func (this *Pacifica) PostActionRequest(operationType any, sigPayload any, param
 		}
 	}
 	var expiryWindow any = nil
-	var expiryWindowparamsVariable []any = this.HandleOptionAndParams2(params, "postActionRequest", "expiryWindow", "expiry_window", 5000)
+	var expiryWindowparamsVariable []any = this.HandleOptionIntegerAndParams2(params, "postActionRequest", "expiryWindow", "expiry_window", 5000)
 	expiryWindow = GetValue(expiryWindowparamsVariable, 0)
 	params = GetValue(expiryWindowparamsVariable, 1)
 	var timestamp *int64 = this.SafeInteger(params, "timestamp", this.Milliseconds())
