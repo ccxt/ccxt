@@ -2537,7 +2537,7 @@ export default class pacifica extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    mapTimeInForce (tifRaw: Str) {
+    mapTimeInForce (tifRaw: Str): Str {
         const tifMap: Dict = {
             'GTC': 'GTC',
             'IOC': 'IOC',

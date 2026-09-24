@@ -2843,8 +2843,7 @@ export default class bybit extends Exchange {
             // start up to the interval boundary so that the exchange returns
             // candles from the first bucket at or after `since`
             const duration = this.parseTimeframe (timeframe) * 1000;
-            const rounded = this.parseToInt (since / duration) * duration;
-            request['start'] = (rounded === since) ? since : this.sum (rounded, duration);
+            request['start'] = this.parseToInt (Math.ceil (since / duration)) * duration;
         }
         if (limit !== undefined) {
             request['limit'] = limit; // max 1000, default 1000
