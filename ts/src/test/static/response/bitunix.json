@@ -133,6 +133,80 @@
                 }
             }
         ],
+        "fetchTickers": [
+            {
+                "description": "ignores tickers for symbols absent from loaded markets",
+                "method": "fetchTickers",
+                "input": [],
+                "httpResponse": {
+                    "code": 0,
+                    "data": [
+                        {
+                            "symbol": "BTCUSDT",
+                            "markPrice": "60240",
+                            "lastPrice": "60250",
+                            "last": "60199",
+                            "open": "60000",
+                            "quoteVol": "723000",
+                            "baseVol": "12",
+                            "high": "61000",
+                            "low": "59000",
+                            "time": 1700000000000
+                        },
+                        {
+                            "symbol": "WAVESUSDT",
+                            "markPrice": "60240",
+                            "lastPrice": "60250",
+                            "last": "60199",
+                            "open": "60000",
+                            "quoteVol": "723000",
+                            "baseVol": "12",
+                            "high": "61000",
+                            "low": "59000",
+                            "time": 1700000000000
+                        }
+                    ],
+                    "msg": "Success"
+                },
+                "parsedResponse": {
+                    "BTC/USDT:USDT": {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "high": 61000,
+                        "low": 59000,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 60250,
+                        "open": 60000,
+                        "close": 60250,
+                        "last": 60250,
+                        "change": 250,
+                        "percentage": 0.4166666666666666,
+                        "average": 60125,
+                        "baseVolume": 12,
+                        "quoteVolume": 723000,
+                        "previousClose": null,
+                        "indexPrice": null,
+                        "markPrice": 60240,
+                        "info": {
+                            "symbol": "BTCUSDT",
+                            "markPrice": "60240",
+                            "lastPrice": "60250",
+                            "last": "60199",
+                            "open": "60000",
+                            "quoteVol": "723000",
+                            "baseVol": "12",
+                            "high": "61000",
+                            "low": "59000",
+                            "time": 1700000000000
+                        }
+                    }
+                }
+            }
+        ],
         "fetchFundingRate": [
             {
                 "description": "parses current funding object and settlement interval",
@@ -223,27 +297,34 @@
                 ]
             }
         ],
-        "parseOrder": [
+        "fetchOrder": [
             {
-                "description": "parses documented futures partial-fill order",
-                "method": "parseOrder",
-                "input": [{
-                    "orderId": "11111",
-                    "clientId": "22222",
-                    "symbol": "BTCUSDT",
-                    "qty": "1",
-                    "tradeQty": "0.5",
-                    "price": "60000",
-                    "side": "BUY",
-                    "orderType": "LIMIT",
-                    "effect": "GTC",
-                    "status": "PART_FILLED",
-                    "fee": "0.01",
-                    "reduceOnly": false,
-                    "ctime": 1597026383085,
-                    "mtime": 1597026383185
-                }],
-                "httpResponse": null,
+                "description": "fetchOrder parses documented futures partial-fill order",
+                "method": "fetchOrder",
+                "input": [
+                    "11111",
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "data": {
+                        "orderId": "11111",
+                        "clientId": "22222",
+                        "symbol": "BTCUSDT",
+                        "qty": "1",
+                        "tradeQty": "0.5",
+                        "price": "60000",
+                        "side": "BUY",
+                        "orderType": "LIMIT",
+                        "effect": "GTC",
+                        "status": "PART_FILLED",
+                        "fee": "0.01",
+                        "reduceOnly": false,
+                        "ctime": 1597026383085,
+                        "mtime": 1597026383185
+                    },
+                    "msg": "Success"
+                },
                 "parsedResponse": {
                     "id": "11111",
                     "clientOrderId": "22222",
@@ -263,7 +344,10 @@
                     "cost": null,
                     "average": null,
                     "status": "open",
-                    "fee": { "cost": 0.01, "currency": "USDT" },
+                    "fee": {
+                        "cost": 0.01,
+                        "currency": "USDT"
+                    },
                     "trades": [],
                     "reduceOnly": false,
                     "info": {
@@ -282,7 +366,12 @@
                         "ctime": 1597026383085,
                         "mtime": 1597026383185
                     },
-                    "fees": [{ "cost": 0.01, "currency": "USDT" }],
+                    "fees": [
+                        {
+                            "cost": 0.01,
+                            "currency": "USDT"
+                        }
+                    ],
                     "lastUpdateTimestamp": null,
                     "stopPrice": null,
                     "takeProfitPrice": null,
@@ -290,130 +379,162 @@
                 }
             }
         ],
-        "parseTrade": [
+        "fetchMyTrades": [
             {
-                "description": "parses documented futures trade fill",
-                "method": "parseTrade",
-                "input": [{
-                    "tradeId": "123",
-                    "orderId": "11111",
-                    "symbol": "BTCUSDT",
-                    "qty": "1",
-                    "price": "60000",
-                    "side": "BUY",
-                    "orderType": "LIMIT",
-                    "positionMode": "HEDGE",
-                    "marginMode": "ISOLATION",
-                    "leverage": 15,
-                    "fee": "0.01",
-                    "realizedPNL": "1.78",
-                    "ctime": 1597026383085,
-                    "roleType": "TAKER"
-                }],
-                "httpResponse": null,
-                "parsedResponse": {
-                    "info": {
-                        "tradeId": "123",
-                        "orderId": "11111",
-                        "symbol": "BTCUSDT",
-                        "qty": "1",
-                        "price": "60000",
-                        "side": "BUY",
-                        "orderType": "LIMIT",
-                        "positionMode": "HEDGE",
-                        "marginMode": "ISOLATION",
-                        "leverage": 15,
-                        "fee": "0.01",
-                        "realizedPNL": "1.78",
-                        "ctime": 1597026383085,
-                        "roleType": "TAKER"
+                "description": "fetchMyTrades parses documented futures trade fill",
+                "method": "fetchMyTrades",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "data": {
+                        "tradeList": [
+                            {
+                                "tradeId": "123",
+                                "orderId": "11111",
+                                "symbol": "BTCUSDT",
+                                "qty": "1",
+                                "price": "60000",
+                                "side": "BUY",
+                                "orderType": "LIMIT",
+                                "positionMode": "HEDGE",
+                                "marginMode": "ISOLATION",
+                                "leverage": 15,
+                                "fee": "0.01",
+                                "realizedPNL": "1.78",
+                                "ctime": 1597026383085,
+                                "roleType": "TAKER"
+                            }
+                        ]
                     },
-                    "id": "123",
-                    "order": "11111",
-                    "symbol": "BTC/USDT:USDT",
-                    "side": "buy",
-                    "type": "limit",
-                    "takerOrMaker": "taker",
-                    "price": 60000,
-                    "amount": 1,
-                    "cost": 60000,
-                    "timestamp": 1597026383085,
-                    "datetime": "2020-08-10T02:26:23.085Z",
-                    "fee": { "currency": "USDT", "cost": 0.01 },
-                    "fees": [{ "currency": "USDT", "cost": 0.01 }]
-                }
+                    "msg": "Success"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "tradeId": "123",
+                            "orderId": "11111",
+                            "symbol": "BTCUSDT",
+                            "qty": "1",
+                            "price": "60000",
+                            "side": "BUY",
+                            "orderType": "LIMIT",
+                            "positionMode": "HEDGE",
+                            "marginMode": "ISOLATION",
+                            "leverage": 15,
+                            "fee": "0.01",
+                            "realizedPNL": "1.78",
+                            "ctime": 1597026383085,
+                            "roleType": "TAKER"
+                        },
+                        "id": "123",
+                        "order": "11111",
+                        "symbol": "BTC/USDT:USDT",
+                        "side": "buy",
+                        "type": "limit",
+                        "takerOrMaker": "taker",
+                        "price": 60000,
+                        "amount": 1,
+                        "cost": 60000,
+                        "timestamp": 1597026383085,
+                        "datetime": "2020-08-10T02:26:23.085Z",
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.01
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.01
+                            }
+                        ]
+                    }
+                ]
             }
         ],
-        "parsePosition": [
+        "fetchPositions": [
             {
-                "description": "parses documented BTC open position",
-                "method": "parsePosition",
-                "input": [{
-                    "positionId": "12345678",
-                    "symbol": "BTCUSDT",
-                    "qty": "0.5",
-                    "entryValue": "30000",
-                    "side": "LONG",
-                    "positionMode": "HEDGE",
-                    "marginMode": "ISOLATION",
-                    "leverage": 100,
-                    "fee": "0.1",
-                    "funding": "-0.2",
-                    "realizedPNL": "102.9",
-                    "margin": "300",
-                    "unrealizedPNL": "1.5",
-                    "liqPrice": "22209",
-                    "marginRate": "0.01",
-                    "avgOpenPrice": "60000",
-                    "ctime": 1691382137448,
-                    "mtime": 1691382137448
-                }],
-                "httpResponse": null,
-                "parsedResponse": {
-                    "info": {
-                        "positionId": "12345678",
-                        "symbol": "BTCUSDT",
-                        "qty": "0.5",
-                        "entryValue": "30000",
-                        "side": "LONG",
-                        "positionMode": "HEDGE",
-                        "marginMode": "ISOLATION",
+                "description": "fetchPositions parses documented BTC open position",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "data": [
+                        {
+                            "positionId": "12345678",
+                            "symbol": "BTCUSDT",
+                            "qty": "0.5",
+                            "entryValue": "30000",
+                            "side": "LONG",
+                            "positionMode": "HEDGE",
+                            "marginMode": "ISOLATION",
+                            "leverage": 100,
+                            "fee": "0.1",
+                            "funding": "-0.2",
+                            "realizedPNL": "102.9",
+                            "margin": "300",
+                            "unrealizedPNL": "1.5",
+                            "liqPrice": "22209",
+                            "marginRate": "0.01",
+                            "avgOpenPrice": "60000",
+                            "ctime": 1691382137448,
+                            "mtime": 1691382137448
+                        }
+                    ],
+                    "msg": "Success"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "positionId": "12345678",
+                            "symbol": "BTCUSDT",
+                            "qty": "0.5",
+                            "entryValue": "30000",
+                            "side": "LONG",
+                            "positionMode": "HEDGE",
+                            "marginMode": "ISOLATION",
+                            "leverage": 100,
+                            "fee": "0.1",
+                            "funding": "-0.2",
+                            "realizedPNL": "102.9",
+                            "margin": "300",
+                            "unrealizedPNL": "1.5",
+                            "liqPrice": "22209",
+                            "marginRate": "0.01",
+                            "avgOpenPrice": "60000",
+                            "ctime": 1691382137448,
+                            "mtime": 1691382137448
+                        },
+                        "id": "12345678",
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1691382137448,
+                        "datetime": "2023-08-07T04:22:17.448Z",
+                        "side": "long",
+                        "contracts": 0.5,
+                        "contractSize": 1,
+                        "entryPrice": 60000,
+                        "markPrice": null,
+                        "notional": null,
                         "leverage": 100,
-                        "fee": "0.1",
-                        "funding": "-0.2",
-                        "realizedPNL": "102.9",
-                        "margin": "300",
-                        "unrealizedPNL": "1.5",
-                        "liqPrice": "22209",
-                        "marginRate": "0.01",
-                        "avgOpenPrice": "60000",
-                        "ctime": 1691382137448,
-                        "mtime": 1691382137448
-                    },
-                    "id": "12345678",
-                    "symbol": "BTC/USDT:USDT",
-                    "timestamp": 1691382137448,
-                    "datetime": "2023-08-07T04:22:17.448Z",
-                    "side": "long",
-                    "contracts": 0.5,
-                    "contractSize": 1,
-                    "entryPrice": 60000,
-                    "markPrice": null,
-                    "notional": null,
-                    "leverage": 100,
-                    "collateral": 300,
-                    "initialMargin": 300,
-                    "maintenanceMargin": null,
-                    "unrealizedPnl": 1.5,
-                    "liquidationPrice": 22209,
-                    "marginMode": "isolated",
-                    "percentage": 0.5,
-                    "lastUpdateTimestamp": 1691382137448,
-                    "hedged": true,
-                    "stopLossPrice": null,
-                    "takeProfitPrice": null,
-                    "marginRatio": 0.01
-                }
+                        "collateral": 300,
+                        "initialMargin": 300,
+                        "maintenanceMargin": null,
+                        "unrealizedPnl": 1.5,
+                        "liquidationPrice": 22209,
+                        "marginMode": "isolated",
+                        "percentage": 0.5,
+                        "lastUpdateTimestamp": 1691382137448,
+                        "hedged": true,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "marginRatio": 0.01
+                    }
+                ]
             }
         ],
         "fetchBalance": [

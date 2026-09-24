@@ -285,7 +285,15 @@ export default class bitunix extends Exchange {
         }
         const response = await this.publicGetApiV1FuturesMarketTickers (this.extend (request, params));
         const data = this.safeList (response, 'data', []);
-        return this.parseTickers (data, symbols);
+        const tickers: Dict[] = [];
+        for (let i = 0; i < data.length; i++) {
+            const ticker = data[i];
+            const marketId = this.safeString (ticker, 'symbol');
+            if (marketId !== undefined && this.markets_by_id !== undefined && (marketId in this.markets_by_id)) {
+                tickers.push (ticker);
+            }
+        }
+        return this.parseTickers (tickers, symbols);
     }
 
     /**
@@ -541,7 +549,7 @@ export default class bitunix extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': market ? market['symbol'] : undefined,
+            'symbol': (market !== undefined) ? market['symbol'] : undefined,
             'type': orderType,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
@@ -724,7 +732,7 @@ export default class bitunix extends Exchange {
         const response = await this.privatePostApiV1FuturesTradeCancelOrders (this.extend (request, this.omit (params, [ 'clientOrderId', 'clientId' ])));
         const data = this.safeDict (response, 'data', {});
         const failures = this.safeList (data, 'failureList', []);
-        if (failures.length) {
+        if (failures.length > 0) {
             throw new OrderNotFound (this.id + ' cancelOrder() failed: ' + this.json (failures[0]));
         }
         const successes = this.safeList (data, 'successList', []);
@@ -741,7 +749,7 @@ export default class bitunix extends Exchange {
      * @param {object} [params] exchange-specific parameters including skip, endTime and subAccountId for historical orders
      * @returns {Order[]} a list of unified orders
      */
-    async fetchBitunixOrders (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+    async requestBitunixOrders (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -755,7 +763,12 @@ export default class bitunix extends Exchange {
         if (limit !== undefined) {
             request['limit'] = (limit > 100) ? 100 : limit;
         }
-        const response = (method === 'pending') ? await this.privateGetApiV1FuturesTradeGetPendingOrders (this.extend (request, params)) : await this.privateGetApiV1FuturesTradeGetHistoryOrders (this.extend (request, params));
+        let response: any = {};
+        if (method === 'pending') {
+            response = await this.privateGetApiV1FuturesTradeGetPendingOrders (this.extend (request, params));
+        } else {
+            response = await this.privateGetApiV1FuturesTradeGetHistoryOrders (this.extend (request, params));
+        }
         const data = this.safeDict (response, 'data', {});
         const orders = this.safeList (data, 'orderList', []);
         const market = (symbol === undefined) ? undefined : this.market (symbol);
@@ -793,7 +806,7 @@ export default class bitunix extends Exchange {
      * @returns {Order[]} a list of unified orders
      */
     override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
-        return await this.fetchBitunixOrders ('pending', symbol, since, limit, params);
+        return await this.requestBitunixOrders ('pending', symbol, since, limit, params);
     }
 
     /**
@@ -808,7 +821,7 @@ export default class bitunix extends Exchange {
      * @returns {Order[]} a list of unified orders
      */
     override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
-        return await this.fetchBitunixOrders ('history', symbol, since, limit, params);
+        return await this.requestBitunixOrders ('history', symbol, since, limit, params);
     }
 
     /**
@@ -823,8 +836,8 @@ export default class bitunix extends Exchange {
      * @returns {Order[]} a list of unified orders
      */
     override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
-        const requestParams: Dict = this.extend ({}, params, { 'queryCanceled': true });
-        return await this.fetchBitunixOrders ('history', symbol, since, limit, requestParams);
+        const requestParams: Dict = this.extend (params, { 'queryCanceled': true });
+        return await this.requestBitunixOrders ('history', symbol, since, limit, requestParams);
     }
 
     /**
@@ -873,7 +886,7 @@ export default class bitunix extends Exchange {
         const feeCost = this.safeString (trade, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
-            fee = { 'cost': this.parseNumber (feeCost), 'currency': market ? market['settle'] : undefined };
+            fee = { 'cost': this.parseNumber (feeCost), 'currency': (market !== undefined) ? market['settle'] : undefined };
         }
         const timestamp = this.safeInteger (trade, 'ctime');
         let side = this.safeStringLower (trade, 'side');
@@ -884,7 +897,7 @@ export default class bitunix extends Exchange {
             'info': trade,
             'id': this.safeString (trade, 'tradeId'),
             'order': this.safeString (trade, 'orderId'),
-            'symbol': market ? market['symbol'] : undefined,
+            'symbol': (market !== undefined) ? market['symbol'] : undefined,
             'side': side,
             'type': this.safeStringLower (trade, 'orderType'),
             'takerOrMaker': this.safeStringLower (trade, 'roleType'),
@@ -924,12 +937,12 @@ export default class bitunix extends Exchange {
         return this.safePosition ({
             'info': position,
             'id': this.safeString (position, 'positionId'),
-            'symbol': market ? market['symbol'] : undefined,
+            'symbol': (market !== undefined) ? market['symbol'] : undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'side': side,
             'contracts': this.parseNumber (contracts),
-            'contractSize': market ? market['contractSize'] : undefined,
+            'contractSize': (market !== undefined) ? market['contractSize'] : undefined,
             'entryPrice': this.parseNumber (entryPrice),
             'markPrice': this.parseNumber (markPrice),
             'notional': this.parseNumber (notional),
@@ -1062,10 +1075,9 @@ export default class bitunix extends Exchange {
         if (symbol !== undefined) {
             throw new BadRequest (this.id + ' setPositionMode() changes all futures markets; omit symbol');
         }
-        const request: Dict = this.extend ({}, params, { 'positionMode': hedged ? 'HEDGE' : 'ONE_WAY' });
+        const request: Dict = this.extend (params, { 'positionMode': hedged ? 'HEDGE' : 'ONE_WAY' });
         return await this.privatePostApiV1FuturesAccountChangePositionMode (request);
     }
-
 
     override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: Dict = {}, body: Str = undefined): Dict {
         let url = this.urls['api'][api] + '/' + path;
