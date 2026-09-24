@@ -184,7 +184,8 @@
 
 import { SyntaxKind } from 'typescript/unstable/ast';
 import { isArrayLiteralExpression, isAsExpression, isAwaitExpression, isBinaryExpression, isBlock, isCallExpression, isClassDeclaration, isConditionalExpression, isDeleteExpression, isDoStatement, isElementAccessExpression, isForOfStatement, isForStatement, isIdentifier, isIfStatement, isMethodDeclaration, isNewExpression, isNoSubstitutionTemplateLiteral, isNonNullExpression, isObjectLiteralExpression, isParameterDeclaration, isParenthesizedExpression, isPostfixUnaryExpression, isPrefixUnaryExpression, isPropertyAccessExpression, isPropertyAssignment, isPropertyDeclaration, isPropertySignatureDeclaration, isReturnStatement, isSourceFile, isSpreadElement, isStatement, isStringLiteral, isStringLiteralLikeNode, isTemplateExpression, isThrowStatement, isTypeAssertion, isTypeOfExpression, isTypeReferenceNode, isVariableDeclaration, isWhileStatement } from 'typescript/unstable/ast/is';
-import { API, SymbolFlags, TypeFlags } from 'typescript/unstable/sync';
+import { createRequire } from 'node:module';
+import { SymbolFlags, TypeFlags } from 'typescript/unstable/sync';
 import { canHaveModifiers, getModifiers, isFunctionLike } from 'ast-transpiler/tsUtils';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -9439,6 +9440,12 @@ export const JAVA_STRING_PARAM_POSITIONS = {
 // Fixed OrderType/OrderSide parameters of the base Exchange / PredictionExchange declarations: the
 // ast printer declares them `String` (JAVA_NATIVE_PARAMETER_TYPES), so the typed surface and the
 // uncast-argument sites treat them like the SS-05 positions.
+// the generator's own typescript (the ccxt root one may be an older 7.x without createSourceFile)
+function generatorTypescriptApi () {
+    const req = createRequire (createRequire (import.meta.url).resolve ('ast-transpiler'));
+    return req ('typescript/unstable/sync').API;
+}
+
 let _javaOrderStringPositions;
 function javaOrderStringPositions () {
     if (_javaOrderStringPositions !== undefined) {
@@ -9452,7 +9459,7 @@ function javaOrderStringPositions () {
         if (!fs.existsSync (full)) {
             continue;
         }
-        api ??= new API ({ cwd: root });
+        api ??= new (generatorTypescriptApi ()) ({ cwd: root });
         const sf = api.createSourceFile (full, fs.readFileSync (full, 'utf8'));
         const visit = (node) => {
             if (isMethodDeclaration (node) && node.name !== undefined && isIdentifier (node.name)) {
