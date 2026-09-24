@@ -2712,15 +2712,17 @@ export default class bitget extends bitgetRest {
         //         }
         //     }
         //
+        if (typeof message === 'string') {
+            if (message === 'pong') {
+                this.handlePong (client, message);
+            }
+            return;
+        }
         if (this.handleErrorMessage (client, message) === true) {
             return;
         }
         const content = this.safeString (message, 'message');
         if (content === 'pong') {
-            this.handlePong (client, message);
-            return;
-        }
-        if (message === 'pong') {
             this.handlePong (client, message);
             return;
         }
@@ -2773,7 +2775,7 @@ export default class bitget extends bitgetRest {
         return 'ping';
     }
 
-    handlePong (client: Client, message: Dict): Dict {
+    handlePong (client: Client, message: any) {
         client.lastPong = this.milliseconds ();
         return message;
     }

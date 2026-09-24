@@ -1806,11 +1806,18 @@ export default class bingx extends bingxRest {
     }
 
     override handleMessage (client: Client, message: any) {
+        // plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them
+        if (typeof message === 'string') {
+            if (message === 'Ping') {
+                this.spawn (this.pong, client, message);
+            }
+            return;
+        }
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
         // public subscriptions
-        if ((message === 'Ping') || ('ping' in message)) {
+        if ('ping' in message) {
             this.spawn (this.pong, client, message);
             return;
         }

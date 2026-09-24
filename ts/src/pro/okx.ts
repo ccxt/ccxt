@@ -2604,8 +2604,10 @@ export default class okx extends okxRest {
         //
         //
         //
-        if (message === 'pong') {
-            this.handlePong (client, message);
+        if (typeof message === 'string') {
+            if (message === 'pong') {
+                this.handlePong (client, message);
+            }
             return;
         }
         // const table = this.safeString (message, 'table');

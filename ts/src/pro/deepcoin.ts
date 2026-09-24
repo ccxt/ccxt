@@ -100,7 +100,7 @@ export default class deepcoin extends deepcoinRest {
         return 'ping';
     }
 
-    handlePong (client: Client, message: Dict): Dict {
+    handlePong (client: Client, message: any) {
         client.lastPong = this.milliseconds ();
         return message;
     }
@@ -1244,8 +1244,10 @@ export default class deepcoin extends deepcoinRest {
     }
 
     override handleMessage (client: Client, message: any) {
-        if (message === 'pong') {
-            this.handlePong (client, message);
+        if (typeof message === 'string') {
+            if (message === 'pong') {
+                this.handlePong (client, message);
+            }
         } else {
             const m = this.safeString (message, 'm');
             if ((m !== undefined) && (m !== 'Success')) {
