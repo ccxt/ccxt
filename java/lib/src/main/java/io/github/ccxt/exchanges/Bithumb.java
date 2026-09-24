@@ -705,7 +705,7 @@ public class Bithumb extends BithumbApi
                 {
                     String quote = (quotes == null || i < 0 || i >= quotes.size() ? null : quotes.get(i));
                     String quoteId = quote;
-                    Object response = (results == null || i < 0 || i >= ((List<?>)results).size() ? null : ((List<?>)results).get(i));
+                    Map<String, Object> response = (Map<String, Object>) this.safeDict(results, i);
                     Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                     Map<String, Object> extension = (Map<String, Object>) this.safeDict(quoteCurrencies, quote, new HashMap<String, Object>() {{}});
                     List<String> currencyIds = new ArrayList<String>(data.keySet());
@@ -850,7 +850,7 @@ public class Bithumb extends BithumbApi
         {
             for (var i = 0; i < Helpers.getArrayLength(response); i++)
             {
-                Object entry = Helpers.GetValue(response, i);
+                Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, i);
                 Map<String, Object> account = (Map<String, Object>) this.account();
                 String currencyId = this.safeString(entry, "currency");
                 String code = this.safeCurrencyCode(currencyId);
@@ -980,7 +980,7 @@ public class Bithumb extends BithumbApi
                 List<Object> asks = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)orderBookUnits).size(); i++)
                 {
-                    Object entry = (orderBookUnits == null || i < 0 || i >= orderBookUnits.size() ? null : orderBookUnits.get(i));
+                    Map<String, Object> entry = (Map<String, Object>) this.safeDict(orderBookUnits, i);
                     ((List<Object>)bids).add(new HashMap<String, Object>() {{
                         put( "price", Bithumb.this.safeString(entry, "bid_price") );
                         put( "quantity", Bithumb.this.safeString(entry, "bid_size") );
@@ -1395,7 +1395,7 @@ public class Bithumb extends BithumbApi
                 for (var i = 0; i < ((List<?>)quotes).size(); i++)
                 {
                     Object quote = (quotes == null || i < 0 || i >= ((List<?>)quotes).size() ? null : ((List<?>)quotes).get(i));
-                    Object response = (responses == null || i < 0 || i >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(i));
+                    Object response = this.safeDict(responses, i);
                     Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                     Long timestamp = this.safeInteger(data, "date");
                     Object tickers = this.omit(data, "date");
@@ -2020,10 +2020,10 @@ public class Bithumb extends BithumbApi
                 throw new ArgumentsRequired((this.id + " createOrders() requires a non-empty orders array")) ;
             }
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
-            Object orderSymbols = new ArrayList<Object>(Arrays.asList());
+            List<Object> orderSymbols = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i);
                 String symbol = this.safeString(rawOrder, "symbol");
                 if (java.util.Objects.equals(symbol, null))
                 {
@@ -4208,7 +4208,7 @@ public class Bithumb extends BithumbApi
             //         "secondary_address": null
             //     }
             //
-            return this.parseDepositAddress(response, currency);
+            return this.parseDepositAddress((Map<String, Object>) (response), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -4276,7 +4276,7 @@ public class Bithumb extends BithumbApi
             //         "secondary_address": null
             //     }
             //
-            return this.parseDepositAddress(response, currency);
+            return this.parseDepositAddress((Map<String, Object>) (response), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -4353,7 +4353,7 @@ public class Bithumb extends BithumbApi
         return this.fetchDepositAddresses(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseDepositAddress(Object response, Map<String, Object> currency)
+    public Object parseDepositAddress(Map<String, Object> response, Map<String, Object> currency)
     {
         //
         // generation 2: createDepositAddress, fetchDepositAddress, fetchDepositAddresses
@@ -4382,7 +4382,7 @@ public class Bithumb extends BithumbApi
             put( "tag", Bithumb.this.safeString(response, "secondary_address") );
         }};
     }
-    public Object parseDepositAddress(Object response, Object... optionalArgs)
+    public Object parseDepositAddress(Map<String, Object> response, Object... optionalArgs)
     {
         return this.parseDepositAddress(response, Helpers.getArgMap(optionalArgs, 0, null));
     }

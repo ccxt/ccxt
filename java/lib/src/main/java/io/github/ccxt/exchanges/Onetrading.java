@@ -951,7 +951,7 @@ public class Onetrading extends OnetradingApi
         List<Object> makerFees = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)feeTiers).size(); i++)
         {
-            Object tier = (feeTiers == null || i < 0 || i >= ((List<?>)feeTiers).size() ? null : ((List<?>)feeTiers).get(i));
+            Map<String, Object> tier = (Map<String, Object>) this.safeDict(feeTiers, i);
             Double volume = this.safeNumber(tier, "volume");
             String taker = this.safeString(tier, "taker_fee");
             String maker = this.safeString(tier, "maker_fee");
@@ -1493,7 +1493,7 @@ public class Onetrading extends OnetradingApi
         }};
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i);
             String currencyId = this.safeString(balance, "currency_code");
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();

@@ -1897,7 +1897,7 @@ final Object finalClobTokenId = clobTokenId;
             Map<String, Object> buckets = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)history).size(); i++)
             {
-                Object item = (history == null || i < 0 || i >= ((List<?>)history).size() ? null : ((List<?>)history).get(i));
+                Map<String, Object> item = (Map<String, Object>) this.safeDict(history, i);
                 Long t = this.safeInteger(item, "t");
                 Double price = this.safeNumber(item, "p");
                 if ((java.util.Objects.equals(t, null)) || (java.util.Objects.equals(price, null)))
@@ -2320,7 +2320,7 @@ final Object finalClobTokenId = clobTokenId;
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)trades).size(); i++)
             {
-                Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
+                PredictionTrade trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
                 Map<String, Object> info = (Map<String, Object>) this.safeDict(trade, "info", new HashMap<String, Object>() {{}});
                 Boolean belongs = (java.util.Objects.equals(this.safeString(trade, "order"), id)) || (java.util.Objects.equals(this.safeString(info, "taker_order_id"), id));
                 List<Object> makerOrders = (List<Object>) this.safeList(info, "maker_orders", new ArrayList<Object>(Arrays.asList()));
@@ -2379,12 +2379,27 @@ final Object finalClobTokenId = clobTokenId;
         Double price = this.safeNumber(trade, "price");
         Double amount = this.safeNumber(trade, "size");
         String rawSide = this.safeStringLower(trade, "side");
-        String side = (((java.util.Objects.equals(rawSide, "buy") || java.util.Objects.equals(rawSide, "sell")))) ? rawSide : null;
+        String side = null;
+        if (java.util.Objects.equals(rawSide, "buy") || java.util.Objects.equals(rawSide, "sell"))
+        {
+            side = rawSide;
+        }
         String assetId = this.safeString2(trade, "asset", "asset_id");
-        Object mkt = (((!java.util.Objects.equals(market, null)))) ? market : this.safeOutcome((String) (assetId));
+        Object mkt = null;
+        if (!java.util.Objects.equals(market, null))
+        {
+            mkt = market;
+        } else
+        {
+            mkt = this.safeOutcome((String) (assetId));
+        }
         Object outcome = this.safeOutcomeSymbol((String) (null), mkt);
         String rawTakerOrMaker = this.safeStringLower(trade, "trader_side");
-        String takerOrMaker = (((java.util.Objects.equals(rawTakerOrMaker, "taker") || java.util.Objects.equals(rawTakerOrMaker, "maker")))) ? rawTakerOrMaker : null;
+        String takerOrMaker = null;
+        if (java.util.Objects.equals(rawTakerOrMaker, "taker") || java.util.Objects.equals(rawTakerOrMaker, "maker"))
+        {
+            takerOrMaker = rawTakerOrMaker;
+        }
         String feeRateBps = this.safeString(trade, "fee_rate_bps");
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeRateBps, null))
@@ -2396,6 +2411,9 @@ final Object finalClobTokenId = clobTokenId;
             }};
         }
         final Long finalTimestamp = timestamp;
+        final Object finalMkt = mkt;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
         final Map<String, Object> finalFee = fee;
         return this.safePredictionTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
@@ -2404,12 +2422,12 @@ final Object finalClobTokenId = clobTokenId;
             put( "datetime", Polymarket.this.iso8601(finalTimestamp) );
             put( "outcome", outcome );
             put( "outcomeId", assetId );
-            put( "label", Polymarket.this.safeString(mkt, "label") );
-            put( "market", Polymarket.this.safeString(mkt, "market") );
+            put( "label", Polymarket.this.safeString(finalMkt, "label") );
+            put( "market", Polymarket.this.safeString(finalMkt, "market") );
             put( "order", Polymarket.this.safeString2(trade, "orderId", "taker_order_id") );
             put( "type", null );
-            put( "side", side );
-            put( "takerOrMaker", takerOrMaker );
+            put( "side", finalSide );
+            put( "takerOrMaker", finalTakerOrMaker );
             put( "price", price );
             put( "amount", amount );
             put( "cost", null );
@@ -2953,7 +2971,7 @@ final Object finalClobTokenId = clobTokenId;
             List<Object> orderOutcomes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object o = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+                Map<String, Object> o = (Map<String, Object>) this.safeDict(orders, i);
                 String __oc = this.safeString(o, "outcome");
                 if (!java.util.Objects.equals(__oc, null))
                 {
@@ -2966,7 +2984,7 @@ final Object finalClobTokenId = clobTokenId;
             List<Object> requests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object o = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+                Map<String, Object> o = (Map<String, Object>) this.safeDict(orders, i);
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(o, "params", new HashMap<String, Object>() {{}});
                 if (java.util.Objects.equals(this.safeString(orderParams, "salt"), null))
                 {
@@ -3128,13 +3146,18 @@ final Object finalClobTokenId = clobTokenId;
         // wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet (the EOA
         // still produces the signature and is checked on-chain as the wallet owner). Otherwise signer = EOA.
         Object maker = funder;
-        Object signer = ((((signatureType != null && signatureType == 3)))) ? funder : eoa;
+        Object signer = eoa;
+        if ((signatureType != null && signatureType == 3))
+        {
+            signer = funder;
+        }
+        final Object finalSigner = signer;
         final Long finalSignatureType = signatureType;
         final String finalBuilderBytes32 = builderBytes32;
         Map<String, Object> message = new HashMap<String, Object>() {{
             put( "salt", salt );
             put( "maker", maker );
-            put( "signer", signer );
+            put( "signer", finalSigner );
             put( "tokenId", tokenId );
             put( "makerAmount", makerAmount );
             put( "takerAmount", takerAmount );
@@ -3146,7 +3169,11 @@ final Object finalClobTokenId = clobTokenId;
         }};
         String exchangeV2 = this.safeString(this.options, "exchangeAddress", "0xE111180000d2663C0091e4f400237545B87B996B");
         String negRiskExchangeV2 = this.safeString(this.options, "negRiskExchangeAddress", "0xe2222d279d744050d28e00520010520000310F59");
-        String exchangeAddress = (((java.util.Objects.equals(negRisk, true)))) ? negRiskExchangeV2 : exchangeV2;
+        String exchangeAddress = exchangeV2;
+        if (java.util.Objects.equals(negRisk, true))
+        {
+            exchangeAddress = negRiskExchangeV2;
+        }
         String domainVersion = this.safeString(this.options, "ctfExchangeVersion", "2");
         String signature = this.signClobOrder((Map<String, Object>) (message), exchangeAddress, domainVersion, signatureType);
         String owner = this.safeString(this.options, "l2ApiKey", this.apiKey);
@@ -3158,7 +3185,7 @@ final Object finalClobTokenId = clobTokenId;
             put( "order", new HashMap<String, Object>() {{
                 put( "salt", Polymarket.this.parseToInt(salt) );
                 put( "maker", maker );
-                put( "signer", signer );
+                put( "signer", finalSigner );
                 put( "taker", "0x0000000000000000000000000000000000000000" );
                 put( "tokenId", tokenId );
                 put( "makerAmount", makerAmount );
@@ -3458,10 +3485,15 @@ final Object finalClobTokenId = clobTokenId;
             // fields, so report the cancellation outcome explicitly rather than parsing an empty order
             Map<String, Object> notCanceled = (Map<String, Object>) this.safeDict(response, "not_canceled", new HashMap<String, Object>() {{}});
             String failureReason = this.safeString(notCanceled, id);
-            String status = (((java.util.Objects.equals(failureReason, null)))) ? "canceled" : "open";
+            String status = "open";
+            if (java.util.Objects.equals(failureReason, null))
+            {
+                status = "canceled";
+            }
+            final String finalStatus = status;
             return this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
                 put( "id", id );
-                put( "status", status );
+                put( "status", finalStatus );
                 put( "info", response );
             }}));
         }).thenApply(PredictionOrder::new);
@@ -3888,7 +3920,7 @@ final Object finalClobTokenId = clobTokenId;
                 ((List<Object>)parsedTags).add(tagLabel);
             }
         }
-        final Object finalSlug = slug;
+        final String finalSlug = slug;
         final Boolean finalActive = active;
         return this.extend(new HashMap<String, Object>() {{
             put( "id", Polymarket.this.safeString(rawEvent, "id") );
@@ -4007,7 +4039,14 @@ final Object finalClobTokenId = clobTokenId;
                     hasArrayParam = true;
                 }
             }
-            String querystring = ((Boolean.TRUE.equals(hasArrayParam))) ? this.urlencodeWithArrayRepeat(query) : this.urlencode(query);
+            String querystring = null;
+            if (Boolean.TRUE.equals(hasArrayParam))
+            {
+                querystring = this.urlencodeWithArrayRepeat(query);
+            } else
+            {
+                querystring = this.urlencode(query);
+            }
             if (!java.util.Objects.equals(querystring, ""))
             {
                 url = (url + ("?" + querystring));
@@ -4064,7 +4103,14 @@ final Object finalClobTokenId = clobTokenId;
                 String secret = this.safeString(this.options, "l2Secret", this.secret);
                 String passphrase = this.safeString(this.options, "l2Passphrase", this.password);
                 // POLY_ADDRESS is the api-key owner = the signer EOA (derived from the privateKey when present)
-                Object address = (((!java.util.Objects.equals(this.privateKey, null)))) ? this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey)) : this.walletAddress;
+                Object address = null;
+                if (!java.util.Objects.equals(this.privateKey, null))
+                {
+                    address = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));
+                } else
+                {
+                    address = this.walletAddress;
+                }
                 String timestamp = String.valueOf(this.seconds());
                 // the L2 HMAC signs only the request path (no query string), matching
                 // @polymarket/clob-client — query params are sent separately, not signed
@@ -4085,10 +4131,11 @@ final Object finalClobTokenId = clobTokenId;
                 // url-safe base64, preserving '=' padding (matches the reference client)
                 signature = (signature == null ? null : ((String)signature).replace("+", "-"));
                 signature = (signature == null ? null : ((String)signature).replace("/", "_"));
+                final Object finalAddress = address;
                 final Object finalSignature = signature;
                 final String finalTimestamp = timestamp;
                 headers = this.extend(headers, new HashMap<String, Object>() {{
-                    put( "POLY_ADDRESS", address );
+                    put( "POLY_ADDRESS", finalAddress );
                     put( "POLY_API_KEY", apiKey );
                     put( "POLY_PASSPHRASE", passphrase );
                     put( "POLY_SIGNATURE", finalSignature );
@@ -4362,7 +4409,14 @@ final Object finalClobTokenId = clobTokenId;
                 return null;
             }
             Object apiKey = (((!java.util.Objects.equals(this.apiKey, null)))) ? this.apiKey : this.safeString(this.options, "l2ApiKey");
-            Object secret = (((!java.util.Objects.equals(this.secret, null)))) ? this.secret : this.safeString(this.options, "l2Secret");
+            Object secret = null;
+            if (!java.util.Objects.equals(this.secret, null))
+            {
+                secret = this.secret;
+            } else
+            {
+                secret = this.safeString(this.options, "l2Secret");
+            }
             Object passphrase = (((!java.util.Objects.equals(this.password, null)))) ? this.password : this.safeString(this.options, "l2Passphrase");
             Boolean hasL2 = (!java.util.Objects.equals(apiKey, null)) && (!java.util.Objects.equals(secret, null)) && (!java.util.Objects.equals(passphrase, null));
             if (Boolean.TRUE.equals(hasL2))
@@ -4439,13 +4493,13 @@ final Object finalClobTokenId = clobTokenId;
         List<Object> bids = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rawBids).size(); i++)
         {
-            Object b = (rawBids == null || i < 0 || i >= ((List<?>)rawBids).size() ? null : ((List<?>)rawBids).get(i));
+            Map<String, Object> b = (Map<String, Object>) this.safeDict(rawBids, i);
             ((List<Object>)bids).add(new ArrayList<Object>(Arrays.asList(this.safeNumber(b, "price"), this.safeNumber(b, "size"))));
         }
         List<Object> asks = new ArrayList<Object>(Arrays.asList());
         for (var j = 0; j < ((List<?>)rawAsks).size(); j++)
         {
-            Object a = (rawAsks == null || j < 0 || j >= ((List<?>)rawAsks).size() ? null : ((List<?>)rawAsks).get(j));
+            Map<String, Object> a = (Map<String, Object>) this.safeDict(rawAsks, j);
             ((List<Object>)asks).add(new ArrayList<Object>(Arrays.asList(this.safeNumber(a, "price"), this.safeNumber(a, "size"))));
         }
         Map<String, Object> outcomeObj = this.safeOutcome((String) (outcome));
@@ -4470,7 +4524,7 @@ final String finalOutcome = outcome;
         Map<String, Object> updated = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)changes).size(); i++)
         {
-            Object change = (changes == null || i < 0 || i >= ((List<?>)changes).size() ? null : ((List<?>)changes).get(i));
+            Map<String, Object> change = (Map<String, Object>) this.safeDict(changes, i);
             String tokenId = this.safeString(change, "asset_id");
             String outcome = this.tokenIdToSymbol((String) (tokenId));
             if ((java.util.Objects.equals(outcome, null)) || !(((Map<?, ?>)this.orderbooks).containsKey(outcome)))
@@ -4864,11 +4918,19 @@ final String finalOutcome = outcome;
 
             // the user channel authenticates inside the subscribe frame, not via HMAC headers
             Object apiKey = (((!java.util.Objects.equals(this.apiKey, null)))) ? this.apiKey : this.safeString(this.options, "l2ApiKey");
-            Object secret = (((!java.util.Objects.equals(this.secret, null)))) ? this.secret : this.safeString(this.options, "l2Secret");
+            Object secret = null;
+            if (!java.util.Objects.equals(this.secret, null))
+            {
+                secret = this.secret;
+            } else
+            {
+                secret = this.safeString(this.options, "l2Secret");
+            }
             Object passphrase = (((!java.util.Objects.equals(this.password, null)))) ? this.password : this.safeString(this.options, "l2Passphrase");
+            final Object finalSecret = secret;
             Map<String, Object> auth = new HashMap<String, Object>() {{
                 put( "apiKey", apiKey );
-                put( "secret", secret );
+                put( "secret", finalSecret );
                 put( "passphrase", passphrase );
             }};
             // an empty markets list subscribes to every market the user is active in

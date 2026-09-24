@@ -448,7 +448,7 @@ public class Hollaex extends HollaexApi
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                Object market = (pairs == null || key == null ? null : pairs.get(key));
+                Map<String, Object> market = (Map<String, Object>) this.safeDict(pairs, key);
                 String baseId = this.safeString(market, "pair_base");
                 String quoteId = this.safeString(market, "pair_2");
                 Object base = this.commonCurrencyCode(baseId.toUpperCase());
@@ -626,7 +626,11 @@ public class Hollaex extends HollaexApi
         String code = this.safeCurrencyCode(id);
         List<Object> withdrawalLimits = (List<Object>) this.safeList(rawCurrency, "withdrawal_limits", new ArrayList<Object>(Arrays.asList()));
         String rawType = this.safeString(rawCurrency, "type");
-        String type = (((java.util.Objects.equals(rawType, "blockchain")))) ? "crypto" : "other";
+        String type = "other";
+        if (java.util.Objects.equals(rawType, "blockchain"))
+        {
+            type = "crypto";
+        }
         Map<String, Object> rawNetworks = (Map<String, Object>) this.safeDict(rawCurrency, "withdrawal_fees", new HashMap<String, Object>() {{}});
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         List<String> networkIds = new ArrayList<String>(rawNetworks.keySet());
@@ -656,6 +660,7 @@ public class Hollaex extends HollaexApi
 }});
             }
         }
+        final String finalType = type;
         return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "numericId", Hollaex.this.safeInteger(rawCurrency, "id") );
@@ -678,7 +683,7 @@ public class Hollaex extends HollaexApi
                 }} );
             }} );
             put( "networks", networks );
-            put( "type", type );
+            put( "type", finalType );
         }}));
     }
 
@@ -2050,7 +2055,7 @@ public class Hollaex extends HollaexApi
         return this.fetchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseDepositAddress(Object depositAddress, Map<String, Object> currency)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         //
         //     {
@@ -2085,7 +2090,7 @@ public class Hollaex extends HollaexApi
             put( "tag", finalTag );
         }};
     }
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Object... optionalArgs)
     {
         return this.parseDepositAddress(depositAddress, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -2157,7 +2162,14 @@ public class Hollaex extends HollaexApi
             //     }
             //
             List<Object> wallet = (List<Object>) this.safeList(response, "wallet", new ArrayList<Object>(Arrays.asList()));
-            Object addresses = (((java.util.Objects.equals(network, null)))) ? wallet : this.filterBy(wallet, "network", network);
+            List<Object> addresses = null;
+            if (java.util.Objects.equals(network, null))
+            {
+                addresses = wallet;
+            } else
+            {
+                addresses = this.filterBy(wallet, "network", network);
+            }
             return this.parseDepositAddresses(addresses, codes, false);
         }).thenApply(res -> ((List<?>) res).stream().map(DepositAddress::new).collect(Collectors.toList()));
 
@@ -2576,7 +2588,7 @@ public class Hollaex extends HollaexApi
             }
             parameters = (Map<String, Object>) this.omit(parameters, "network");
             final String finalAddress = address;
-            final Object finalNetwork = network;
+            final String finalNetwork = network;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "amount", amount );
@@ -2675,7 +2687,7 @@ public class Hollaex extends HollaexApi
             for (var i = 0; Helpers.isLessThan(i, keysLength); i++)
             {
                 String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                Object value = (withdrawalFees == null || key == null ? null : withdrawalFees.get(key));
+                Map<String, Object> value = (Map<String, Object>) this.safeDict(withdrawalFees, key);
                 String currencyId = this.safeString(value, "symbol");
                 String currencyCode = this.safeCurrencyCode(currencyId);
                 String networkCode = this.networkIdToCode(key, currencyCode);

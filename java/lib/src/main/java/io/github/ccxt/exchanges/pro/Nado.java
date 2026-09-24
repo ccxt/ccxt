@@ -562,7 +562,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             List<Object> subscriptionParams = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object symbolAndTimeframe = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
+                List<Object> symbolAndTimeframe = (List<Object>) this.safeList(symbolsAndTimeframes, i);
                 String marketSymbol = this.safeString(symbolAndTimeframe, 0);
                 String timeframe = this.safeString(symbolAndTimeframe, 1, "1m");
                 Map<String, Object> market = (Map<String, Object>) this.market(marketSymbol);
@@ -665,7 +665,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             List<Object> subscriptionParams = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object symbolAndTimeframe = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
+                List<Object> symbolAndTimeframe = (List<Object>) this.safeList(symbolsAndTimeframes, i);
                 String marketSymbol = this.safeString(symbolAndTimeframe, 0);
                 String timeframe = this.safeString(symbolAndTimeframe, 1, "1m");
                 Map<String, Object> market = (Map<String, Object>) this.market(marketSymbol);
@@ -2767,7 +2767,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         for (var i = 0; i < ((List<?>)subscriptions).size(); i++)
         {
             Object unsubscribeHash = (subscriptions == null || i < 0 || i >= subscriptions.size() ? null : subscriptions.get(i));
-            Object subscription = Helpers.GetValue(client.subscriptions, unsubscribeHash);
+            Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, unsubscribeHash);
             String subscriptionId = this.safeString(subscription, "id");
             if (!java.util.Objects.equals(subscriptionId, id))
             {

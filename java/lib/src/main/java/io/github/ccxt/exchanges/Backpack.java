@@ -1973,7 +1973,7 @@ public class Backpack extends BackpackApi
         {
             Object id = (balanceKeys == null || i < 0 || i >= balanceKeys.size() ? null : balanceKeys.get(i));
             String code = this.safeCurrencyCode((String) (id));
-            Object balance = Helpers.GetValue(response, id);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, id);
             Map<String, Object> account = (Map<String, Object>) this.account();
             String locked = this.safeString(balance, "locked");
             String staked = this.safeString(balance, "staked");
@@ -2363,12 +2363,12 @@ public class Backpack extends BackpackApi
                 throw new ArgumentsRequired((this.id + " fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes")) ;
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
-            final Object finalNetworkCode = networkCode;
+            final String finalNetworkCode = networkCode;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "blockchain", Backpack.this.networkCodeToId((String) (finalNetworkCode), ((Map<String, Object>)currency).get("code")) );
             }};
             Map<String, Object> response = (this.privateGetWapiV1CapitalDepositAddress(this.extend(request, parameters))).join();
-            return this.parseDepositAddress(response, currency);
+            return this.parseDepositAddress((Map<String, Object>) (response), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -2387,7 +2387,7 @@ public class Backpack extends BackpackApi
         return this.fetchDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseDepositAddress(Object depositAddress, Map<String, Object> currency)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         //
         //     {
@@ -2406,7 +2406,7 @@ public class Backpack extends BackpackApi
             put( "tag", null );
         }};
     }
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Object... optionalArgs)
     {
         return this.parseDepositAddress(depositAddress, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -2513,7 +2513,7 @@ public class Backpack extends BackpackApi
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i);
                 String marketId = this.safeString(rawOrder, "symbol");
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
@@ -2554,7 +2554,7 @@ public class Backpack extends BackpackApi
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        final Object finalSide = side;
+        final String finalSide = side;
         final String finalType = type;
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -2563,7 +2563,11 @@ public class Backpack extends BackpackApi
         }};
         String triggerPrice = this.safeString(parameters, "triggerPrice");
         Boolean isTriggerOrder = !java.util.Objects.equals(triggerPrice, null);
-        String quantityKey = ((Boolean.TRUE.equals(isTriggerOrder))) ? "triggerQuantity" : "quantity";
+        String quantityKey = "quantity";
+        if (Boolean.TRUE.equals(isTriggerOrder))
+        {
+            quantityKey = "triggerQuantity";
+        }
         // handle basic limit/market order types
         if (java.util.Objects.equals(type, "limit"))
         {
@@ -2631,9 +2635,9 @@ public class Backpack extends BackpackApi
             }
             parameters = (Map<String, Object>) (this.omit(parameters, "stopLoss"));
         }
-        Object selfTradePrevention = null;
-        List<Object> selfTradePreventionparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "selfTradePrevention");
-        selfTradePrevention = ((List<Object>) selfTradePreventionparametersVariable).get(0);
+        String selfTradePrevention = null;
+        List<Object> selfTradePreventionparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "selfTradePrevention");
+        selfTradePrevention = (String) ((List<Object>) selfTradePreventionparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) selfTradePreventionparametersVariable).get(1);
         if (!java.util.Objects.equals(selfTradePrevention, null))
         {
@@ -3274,7 +3278,7 @@ public class Backpack extends BackpackApi
         return this.fetchFundingHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseIncome(Object income, Map<String, Object> market)
+    public Object parseIncome(Map<String, Object> income, Map<String, Object> market)
     {
         //
         //     {
@@ -3303,7 +3307,7 @@ public class Backpack extends BackpackApi
             put( "rate", rate );
         }};
     }
-    public Object parseIncome(Object income, Object... optionalArgs)
+    public Object parseIncome(Map<String, Object> income, Object... optionalArgs)
     {
         return this.parseIncome(income, Helpers.getArgMap(optionalArgs, 0, null));
     }

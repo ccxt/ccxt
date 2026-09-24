@@ -394,12 +394,12 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             String method = "market_subscribe";
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Object id = this.incrementingNonce();
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             List<Object> args = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
-                ((List<Object>)messageHashes).add(("ticker:" + ((Map<String, Object>)market).get("symbol")));
+                messageHashes.add(("ticker:" + ((Map<String, Object>)market).get("symbol")));
                 ((List<Object>)args).add(((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -702,11 +702,19 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         if (!java.util.Objects.equals(feeCost, null))
         {
             String feeCurrencyId = this.safeString(trade, 10);
-            Object feeCurrencyCode = (((!java.util.Objects.equals(feeCurrencyId, null)))) ? this.safeCurrencyCode((String) (feeCurrencyId)) : ((Map<String, Object>)market).get("quote");
+            Object feeCurrencyCode = null;
+            if (!java.util.Objects.equals(feeCurrencyId, null))
+            {
+                feeCurrencyCode = this.safeCurrencyCode((String) (feeCurrencyId));
+            } else
+            {
+                feeCurrencyCode = ((Map<String, Object>)market).get("quote");
+            }
             final String finalFeeCost = feeCost;
+            final Object finalFeeCurrencyCode = feeCurrencyCode;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
-                put( "currency", feeCurrencyCode );
+                put( "currency", finalFeeCurrencyCode );
             }};
         }
         Long rawSide = this.safeInteger(trade, 8);
@@ -908,7 +916,11 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         Long lastTradeTimestamp = this.safeTimestamp(order, "mtime");
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Long rawSide = this.safeInteger(order, "side");
-        String side = ((((rawSide != null && rawSide == 1)))) ? "sell" : "buy";
+        String side = "buy";
+        if ((rawSide != null && rawSide == 1))
+        {
+            side = "sell";
+        }
         String dealFee = this.safeString(order, "deal_fee");
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(dealFee, null))
@@ -935,6 +947,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             }
         }
         final String finalType = type;
+        final String finalSide = side;
         final String finalAmount = amount;
         final String finalRemaining = remaining;
         final String finalUnifiedStatus = unifiedStatus;
@@ -950,7 +963,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             put( "type", finalType );
             put( "timeInForce", null );
             put( "postOnly", null );
-            put( "side", side );
+            put( "side", finalSide );
             put( "price", price );
             put( "stopPrice", stopPrice );
             put( "triggerPrice", stopPrice );
@@ -1502,7 +1515,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             put( "balanceMargin_update", "handleBalance");
             put( "deals_update", "handleMyTrades");
         }};
-        Object topic = this.safeValue(message, "method");
+        String topic = this.safeString(message, "method");
         Object method = this.safeValue(methods, topic);
         if (!java.util.Objects.equals(method, null))
         {

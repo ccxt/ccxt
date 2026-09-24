@@ -155,7 +155,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         List<Object> balances = (List<Object>) this.safeList(message, "balances", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Object entry = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
+            Map<String, Object> entry = (Map<String, Object>) this.safeDict(balances, i);
             String currencyId = this.safeString(entry, "currency");
             String code = this.safeCurrencyCode((String) (currencyId));
             Map<String, Object> account = (Map<String, Object>) this.account();

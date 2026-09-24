@@ -622,7 +622,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
-            Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
+            List<Object> positions = (List<Object>) this.filterByArray(newPositions, "symbol", symbols, false);
             if (!this.isEmpty(positions))
             {
                 client.resolve(positions, messageHash);
@@ -847,9 +847,9 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             }
             String name = "balances";
             String messageHash = name;
-            Object account = null;
-            List<Object> accountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchBalance", "account");
-            account = ((List<Object>) accountparametersVariable).get(0);
+            String account = null;
+            List<Object> accountparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchBalance", "account");
+            account = (String) ((List<Object>) accountparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) accountparametersVariable).get(1);
             if (!java.util.Objects.equals(account, null))
             {
@@ -1650,7 +1650,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         }
         for (var i = 0; i < ((List<?>)bids).size(); i++)
         {
-            Object bid = (bids == null || i < 0 || i >= bids.size() ? null : bids.get(i));
+            Map<String, Object> bid = (Map<String, Object>) this.safeDict(bids, i);
             Double price = this.safeNumber(bid, "price");
             Double qty = this.safeNumber(bid, "qty");
             Object bidsSide = Helpers.GetValue(orderbook, "bids");
@@ -1658,7 +1658,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         }
         for (var i = 0; i < ((List<?>)asks).size(); i++)
         {
-            Object ask = (asks == null || i < 0 || i >= asks.size() ? null : asks.get(i));
+            Map<String, Object> ask = (Map<String, Object>) this.safeDict(asks, i);
             Double price = this.safeNumber(ask, "price");
             Double qty = this.safeNumber(ask, "qty");
             Object asksSide = Helpers.GetValue(orderbook, "asks");

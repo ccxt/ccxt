@@ -469,7 +469,7 @@ public class Foxbit extends FoxbitApi
         Map<String, Object> parsedNetworks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)networks).size(); j++)
         {
-            Object network = (networks == null || j < 0 || j >= networks.size() ? null : networks.get(j));
+            Map<String, Object> network = (Map<String, Object>) this.safeDict(networks, j);
             String networkId = this.safeString(network, "code");
             String networkCode = this.networkIdToCode(networkId, code);
             Map<String, Object> networkWithdrawInfo = (Map<String, Object>) this.safeDict(network, "withdraw_info");
@@ -1093,7 +1093,7 @@ public class Foxbit extends FoxbitApi
             }};
             for (var i = 0; i < ((List<?>)accounts).size(); i++)
             {
-                Object account = (accounts == null || i < 0 || i >= accounts.size() ? null : accounts.get(i));
+                Map<String, Object> account = (Map<String, Object>) this.safeDict(accounts, i);
                 String currencyId = this.safeString(account, "currency_symbol");
                 String currencyCode = this.safeCurrencyCode(currencyId);
                 String total = this.safeString(account, "balance");
@@ -1882,7 +1882,7 @@ public class Foxbit extends FoxbitApi
             //         "code": "btc"
             //     }
             // }
-            return this.parseDepositAddress(response, currency);
+            return this.parseDepositAddress((Map<String, Object>) (response), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -2507,11 +2507,11 @@ public class Foxbit extends FoxbitApi
     {
         String marketId = this.safeString(ticker, "market_symbol");
         String symbol = this.safeSymbol(marketId, market, null, "spot");
-        Object rolling_24h = ((Map<String, Object>)ticker).get("rolling_24h");
+        Map<String, Object> rolling_24h = (Map<String, Object>) this.safeDict(ticker, "rolling_24h");
         Map<String, Object> best = (Map<String, Object>) this.safeDict(ticker, "best");
         Map<String, Object> bestAsk = (Map<String, Object>) this.safeDict(best, "ask");
         Map<String, Object> bestBid = (Map<String, Object>) this.safeDict(best, "bid");
-        Object lastTrade = ((Map<String, Object>)ticker).get("last_trade");
+        Map<String, Object> lastTrade = (Map<String, Object>) this.safeDict(ticker, "last_trade");
         String lastPrice = this.safeString(lastTrade, "price");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -2673,7 +2673,7 @@ public class Foxbit extends FoxbitApi
         return this.parseOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public Object parseDepositAddress(Object depositAddress, Map<String, Object> currency)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         Map<String, Object> network = (Map<String, Object>) this.safeDict(depositAddress, "network");
         String networkId = this.safeString(network, "code");
@@ -2687,7 +2687,7 @@ public class Foxbit extends FoxbitApi
             put( "info", depositAddress );
         }};
     }
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Object... optionalArgs)
     {
         return this.parseDepositAddress(depositAddress, Helpers.getArgMap(optionalArgs, 0, null));
     }

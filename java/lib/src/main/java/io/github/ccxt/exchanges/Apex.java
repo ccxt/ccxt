@@ -680,11 +680,11 @@ public class Apex extends ApexApi
         Object chains = ((Map<String, Object>)this.options).get("_temp_currencies_chains");
         for (var j = 0; j < Helpers.getArrayLength(chains); j++)
         {
-            Object chain = Helpers.GetValue(chains, j);
+            Map<String, Object> chain = (Map<String, Object>) this.safeDict(chains, j);
             List<Object> tokens = (List<Object>) this.safeList(chain, "tokens", new ArrayList<Object>(Arrays.asList()));
             for (var f = 0; f < ((List<?>)tokens).size(); f++)
             {
-                Object token = (tokens == null || f < 0 || f >= tokens.size() ? null : tokens.get(f));
+                Map<String, Object> token = (Map<String, Object>) this.safeDict(tokens, f);
                 String tokenName = this.safeString(token, "token");
                 if (java.util.Objects.equals(tokenName, currencyId))
                 {
@@ -1709,7 +1709,14 @@ public class Apex extends ApexApi
     public Object generateRandomClientIdOmni(String _accountId)
     {
         Boolean hasAccountId = (!java.util.Objects.equals(_accountId, null)) && (!java.util.Objects.equals(_accountId, ""));
-        Object accountId = ((Boolean.TRUE.equals(hasAccountId))) ? _accountId : String.valueOf(this.randNumber(12));
+        Object accountId = null;
+        if (Boolean.TRUE.equals(hasAccountId))
+        {
+            accountId = _accountId;
+        } else
+        {
+            accountId = String.valueOf(this.randNumber(12));
+        }
         return ((((("apexomni-" + accountId) + "-") + String.valueOf(this.milliseconds())) + "-") + String.valueOf(this.randNumber(6)));
     }
 
@@ -2600,7 +2607,7 @@ public class Apex extends ApexApi
         return this.fetchFundingHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseIncome(Object income, Map<String, Object> market)
+    public Object parseIncome(Map<String, Object> income, Map<String, Object> market)
     {
         //
         // {
@@ -2632,7 +2639,7 @@ public class Apex extends ApexApi
             put( "rate", Apex.this.safeNumber(income, "rate") );
         }};
     }
-    public Object parseIncome(Object income, Object... optionalArgs)
+    public Object parseIncome(Map<String, Object> income, Object... optionalArgs)
     {
         return this.parseIncome(income, Helpers.getArgMap(optionalArgs, 0, null));
     }
