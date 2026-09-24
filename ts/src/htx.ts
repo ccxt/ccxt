@@ -3411,9 +3411,9 @@ export default class htx extends Exchange {
         }
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        let subType: SubType = undefined;
+        let subType: Str = undefined;
         let isMultiAssetMode: Bool = undefined;
-        [ subType, params ] = this.handleOptionAndParams2 (params, 'fetchBalance', 'defaultSubType', 'subType');
+        [ subType, params ] = this.handleOptionStringAndParams2 (params, 'fetchBalance', 'defaultSubType', 'subType');
         if (subType === undefined) {
             subType = 'linear';
         }
@@ -7417,8 +7417,8 @@ export default class htx extends Exchange {
         }
         symbols = this.marketSymbols (symbols);
         const defaultSubType: SubType = 'linear';
-        let subType: SubType = undefined;
-        [ subType, params ] = this.handleOptionAndParams (params, 'fetchFundingRates', 'subType', defaultSubType);
+        let subType: Str = undefined;
+        [ subType, params ] = this.handleOptionStringAndParams (params, 'fetchFundingRates', 'subType', defaultSubType);
         if (symbols !== undefined) {
             const firstSymbol = this.safeString (symbols, 0);
             const market = this.market (firstSymbol);

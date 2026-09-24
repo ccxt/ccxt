@@ -2057,7 +2057,7 @@ export default class kalshi extends Exchange {
             defaultTif = 'good_till_canceled';
         }
         let timeInForce: Str = undefined;
-        [ timeInForce, params ] = this.handleOptionAndParams (params, 'createOrder', 'time_in_force', defaultTif);
+        [ timeInForce, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'time_in_force', defaultTif);
         let stp: Str = undefined;
         [ stp, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'self_trade_prevention_type', 'taker_at_cross');
         const request: Dict = {

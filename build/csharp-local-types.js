@@ -11122,9 +11122,12 @@ function destructuredStringElementProof (csharp, declaration, idNode, assignment
     if (assignment.right?.kind !== ts.SyntaxKind.CallExpression) {
         return false;
     }
-    if (!Object.prototype.hasOwnProperty.call (DESTRUCTURED_STRING_HELPERS, name)
-            || !(isNullInit (declaration) || isLiteralInit (declaration))) {
+    if (!(isNullInit (declaration) || isLiteralInit (declaration))) {
         return false;
+    }
+    if (!Object.prototype.hasOwnProperty.call (DESTRUCTURED_STRING_HELPERS, name)) {
+        // a venue helper declared `[Str, Dict]` whose every program declaration proves slot 0
+        return idNode.parent?.elements?.indexOf (idNode) === 0 && tupleStringElement0Helper (csharp, name);
     }
     if (!stringElementIndexes (name).includes (idNode.parent?.elements?.indexOf (idNode))) {
         return false;
@@ -11148,6 +11151,81 @@ function destructuredStringElementProof (csharp, declaration, idNode, assignment
         }
     }
     return true;
+}
+
+// A helper whose TS return type is a tuple with a `Str` / `string` first member proves element 0
+// a string box when EVERY body-carrying declaration of the name in the program (no virtual
+// dispatch can pick another) returns only array literals whose slot 0 prints as a string:
+// a string literal, null / undefined, a string-typed `this.<member>`, or a local this module
+// declares `string` / `string?`. The C# body boxes exactly that value into the returned list.
+function tupleStringElement0Helper (csharp, name) {
+    const tables = parseReturnTables (csharp);
+    if (tables === undefined) {
+        return false;
+    }
+    if (tables.stringElement0 === undefined) {
+        tables.stringElement0 = new Map ();
+    }
+    if (tables.stringElement0.has (name)) {
+        return tables.stringElement0.get (name);
+    }
+    tables.stringElement0.set (name, false); // a recursive helper does not prove itself
+    const declarations = parseReturnDeclarations (tables, name);
+    const proven = declarations.length > 0 && declarations.every ((d) => declarationProvesStringElement0 (csharp, d));
+    tables.stringElement0.set (name, proven);
+    return proven;
+}
+
+function isStringTupleHead (typeNode) {
+    if (typeNode?.kind !== ts.SyntaxKind.TupleType) {
+        return false;
+    }
+    const head = typeNode.elements?.[0];
+    return head?.kind === ts.SyntaxKind.StringKeyword
+        || (head?.kind === ts.SyntaxKind.TypeReference && head.typeName?.escapedText === 'Str');
+}
+
+function stringElement0Proves (csharp, element) {
+    const node = unwrapPassthroughExpression (element);
+    switch (node?.kind) {
+    case ts.SyntaxKind.StringLiteral:
+    case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+    case ts.SyntaxKind.NullKeyword:
+        return true;
+    case ts.SyntaxKind.Identifier:
+        return isUndefinedLiteral (node) || STRING_TYPES.includes (localIdentifierType (csharp, node));
+    case ts.SyntaxKind.PropertyAccessExpression:
+        return node.expression?.kind === ts.SyntaxKind.ThisKeyword
+            && STRING_TYPES.includes (CSHARP_LOCAL_THIS_MEMBER_TYPES[node.name?.escapedText]);
+    }
+    return false;
+}
+
+function declarationProvesStringElement0 (csharp, declaration) {
+    if (!isStringTupleHead (declaration.type)) {
+        return false;
+    }
+    if (typeof csharp.isAsyncFunction === 'function' && csharp.isAsyncFunction (declaration)) {
+        return false;
+    }
+    let returns = 0;
+    let proven = true;
+    const visit = (node) => {
+        if (!proven || (node !== declaration && isFunctionScope (node))) {
+            return;
+        }
+        if (node.kind === ts.SyntaxKind.ReturnStatement) {
+            returns++;
+            const value = unwrapPassthroughExpression (node.expression);
+            if (value?.kind !== ts.SyntaxKind.ArrayLiteralExpression || !stringElement0Proves (csharp, value.elements[0])) {
+                proven = false;
+            }
+            return;
+        }
+        ts.forEachChild (node, visit);
+    };
+    ts.forEachChild (declaration.body, visit);
+    return proven && returns > 0;
 }
 
 // element 0 of `[ value, params ] = this.helper (...)` for the helpers whose generated C#

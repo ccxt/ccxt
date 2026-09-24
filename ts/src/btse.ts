@@ -965,7 +965,7 @@ export default class btse extends Exchange {
             throw new BadRequest (this.id + ' fetchFundingRateHistory() supports contract markets only');
         }
         let period = undefined;
-        [ period, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'period');
+        [ period, params ] = this.handleOptionStringAndParams (params, 'fetchFundingRateHistory', 'period');
         if (period === undefined) {
             period = '7D';
             if (since !== undefined) {

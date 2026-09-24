@@ -402,7 +402,7 @@ export default class lighter extends Exchange {
             return signer;
         }
         let libraryPath: Str = undefined;
-        [ libraryPath, params ] = this.handleOptionAndParams (params, 'loadAccount', 'libraryPath');
+        [ libraryPath, params ] = this.handleOptionStringAndParams (params, 'loadAccount', 'libraryPath');
         const lighterPrivateKeyIsSet = (privateKey !== undefined) && (privateKey !== '');
         if (lighterPrivateKeyIsSet && (libraryPath !== undefined) && (apiKeyIndex !== undefined) && (accountIndex !== undefined)) {
             // load lighter library, and create lighter client

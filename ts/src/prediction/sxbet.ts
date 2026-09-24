@@ -808,7 +808,7 @@ export default class sxbet extends Exchange {
             throw new BadRequest (this.id + ' approve() could not resolve the base token address from /metadata/obv3');
         }
         let spender = undefined;
-        [ spender, params ] = this.handleOptionAndParams2 (params, 'approve', 'spender', 'transferToProxySpender', executorAddress);
+        [ spender, params ] = this.handleOptionStringAndParams2 (params, 'approve', 'spender', 'transferToProxySpender', executorAddress);
         if (spender === undefined) {
             throw new BadRequest (this.id + ' approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender');
         }
@@ -940,7 +940,7 @@ export default class sxbet extends Exchange {
             defaultTif = 'GTC';
         }
         let timeInForce = undefined;
-        [ timeInForce, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce', defaultTif);
+        [ timeInForce, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'timeInForce', defaultTif);
         // an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
         // that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
         // contradicting the immediate-fill semantics the type promises
