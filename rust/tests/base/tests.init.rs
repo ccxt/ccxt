@@ -43,6 +43,7 @@ pub async fn baseTestsInit() {
     testInArray();
     testFilterBy();
     testHandleMethods();
+    testHandleHttpStatusCode();
     testNetworkMethods();
     testRemoveRepeatedElementsFromArray();
     testIsEmpty();
