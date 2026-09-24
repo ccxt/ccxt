@@ -2423,7 +2423,7 @@ export default class bullish extends Exchange {
         const length = safeResponse.length;
         let data = this.safeDict (safeResponse, 0, {});
         let network: Str = undefined;
-        [ network ] = this.handleNetworkCodeAndParams (params);
+        network = this.handleNetworkCodeAndParams (params)[0];
         const networkDefinedByUser = network !== undefined;
         if ((length > 1) || (networkDefinedByUser)) {
             // some currencies have multiple networks
