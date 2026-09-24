@@ -210,6 +210,16 @@ tokio = { version = "1", features = ["full"] }
 
 `ccxt` carries the REST exchanges; `ccxt-pro` adds the WebSocket (`watch*`) ones and is only needed if you stream. Both are async and expect a Tokio runtime.
 
+By default every exchange is compiled, which needs about 19 GB of RAM for a fresh debug build (50 GB in release). Each exchange is also a cargo feature named after its id, so disable the defaults and list only the ones you use — the same names on every ccxt crate:
+
+```toml
+[dependencies]
+ccxt = { version = "4.5.75", default-features = false, features = ["binance", "kraken"] }
+ccxt-pro = { version = "4.5.75", default-features = false, features = ["binance"] }
+```
+
+With three exchanges a fresh build takes ~30 s and 2.5 GB instead of minutes and tens of GB (see [rust/BUILD-BENCHMARK.md](https://github.com/ccxt/ccxt/blob/master/rust/BUILD-BENCHMARK.md)). A derived exchange pulls in its parent (`binanceus` → `binance`), `ccxt-prediction` has its own list (`polymarket`, `kalshi`, …), and `from_id` only knows the exchanges compiled in.
+
 ```rust
 use ccxt::{Binance, Params};
 
