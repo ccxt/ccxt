@@ -116,7 +116,7 @@ export default class whitebit extends whitebitRest {
         //     "id": null
         // }
         //
-        const params = this.safeList (message, 'params', []);
+        const params: Dict[] = this.safeList (message, 'params', []);
         for (let i = 0; i < params.length; i++) {
             const data = params[i];
             const marketId = this.safeString (data, 7);
@@ -718,7 +718,7 @@ export default class whitebit extends whitebitRest {
         }, market);
     }
 
-    parseWsOrderType (status: any) {
+    parseWsOrderType (status: any): string {
         const statuses: Dict = {
             '1': 'limit',
             '2': 'market',
@@ -969,7 +969,7 @@ export default class whitebit extends whitebitRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async authenticate (params: Dict = {}) {
+    async authenticate (params: Dict = {}): Promise<number> {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
         const client = this.client (url);

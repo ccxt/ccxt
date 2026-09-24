@@ -2176,7 +2176,7 @@ export default class okx extends okxRest {
         //
         const arg = this.safeDict (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
-        const rawOrders = this.safeList (message, 'data', []);
+        const rawOrders: Dict[] = this.safeList (message, 'data', []);
         const filteredOrders: List = [];
         // filter orders with no last trade id
         for (let i = 0; i < rawOrders.length; i++) {

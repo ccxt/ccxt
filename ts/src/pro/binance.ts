@@ -293,7 +293,7 @@ export default class binance extends binanceRest {
         return 'market';
     }
 
-    getPrivateWsUrl (type: Str, listenKey: Str) {
+    getPrivateWsUrl (type: Str, listenKey: Str): string {
         if (type === 'future') {
             return this.getWsUrl (type, 'private') + '?listenKey=' + listenKey;
         }
@@ -1184,7 +1184,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    handleSubscriptionStatus (client: Client, message: any) {
+    handleSubscriptionStatus (client: Client, message: Dict) {
         //
         //     {
         //         "result": null,
@@ -2851,7 +2851,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    handleUserDataStreamSubscribe (client: Client, message: any) {
+    handleUserDataStreamSubscribe (client: Client, message: Dict) {
         //
         //   {
         //     "id": 1,
@@ -3679,7 +3679,7 @@ export default class binance extends binanceRest {
         return [ type, subType, params ];
     }
 
-    getMarketType (method: any, market: any, params: Dict = {}) {
+    getMarketType (method: any, market: any, params: Dict = {}): string {
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams (method, market, params);
         let subType: Str = undefined;
@@ -4882,7 +4882,7 @@ export default class binance extends binanceRest {
         //         ]
         //     }
         //
-        const orders = this.safeList (message, 'o', []);
+        const orders: Dict[] = this.safeList (message, 'o', []);
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
             const fills = this.safeList (order, 'fi', []);
@@ -5098,7 +5098,7 @@ export default class binance extends binanceRest {
         }
         const cache = this.positions[accountType];
         const data = this.safeDict (message, 'a', {});
-        const rawPositions = this.safeList (data, 'P', []);
+        const rawPositions: Dict[] = this.safeList (data, 'P', []);
         const newPositions: Position[] = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
@@ -5566,7 +5566,7 @@ export default class binance extends binanceRest {
         this.handlePositions (client, message);
     }
 
-    handleOptionsAccountUpdate (client: Client, message: any) {
+    handleOptionsAccountUpdate (client: Client, message: Dict) {
         //
         // BALANCE_POSITION_UPDATE (options user data stream)
         //
@@ -5597,7 +5597,7 @@ export default class binance extends binanceRest {
         if (accountType === undefined) {
             return;
         }
-        const B = this.safeList (message, 'B', []);
+        const B: Dict[] = this.safeList (message, 'B', []);
         for (let i = 0; i < B.length; i++) {
             const entry = B[i];
             const currencyId = this.safeString (entry, 'a');
@@ -5621,7 +5621,7 @@ export default class binance extends binanceRest {
             this.positions[accountType] = new ArrayCacheBySymbolBySide ();
         }
         const cache = this.positions[accountType];
-        const P = this.safeList (message, 'P', []);
+        const P: Dict[] = this.safeList (message, 'P', []);
         const newPositions = [];
         for (let i = 0; i < P.length; i++) {
             const rawPosition = P[i];
@@ -5645,7 +5645,7 @@ export default class binance extends binanceRest {
         client.resolve (newPositions, accountType + ':positions');
     }
 
-    handleWsError (client: Client, message: any) {
+    handleWsError (client: Client, message: Dict) {
         //
         //    {
         //        "error": {
@@ -5691,7 +5691,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    handleEventStreamTerminated (client: Client, message: any) {
+    handleEventStreamTerminated (client: Client, message: Dict) {
         //
         //    {
         //        e: 'eventStreamTerminated',

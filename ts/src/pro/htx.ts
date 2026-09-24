@@ -2038,7 +2038,7 @@ export default class htx extends htxRest {
             }
             if (topic === 'account') {
                 const accountData = this.safeDict (message, 'data', {});
-                const details = this.safeList (accountData, 'details', []);
+                const details: Dict[] = this.safeList (accountData, 'details', []);
                 const detailsLength = details.length;
                 for (let i = 0; i < detailsLength; i++) {
                     const detail = details[i];

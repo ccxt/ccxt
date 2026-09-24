@@ -574,7 +574,7 @@ export default class krakenfutures extends krakenfuturesRest {
             }
             const tradesArray = this.trades[symbol];
             if (channel === 'trade_snapshot') {
-                const trades = this.safeList (message, 'trades', []);
+                const trades: Dict[] = this.safeList (message, 'trades', []);
                 const length = trades.length;
                 for (let i = 0; i < length; i++) {
                     const index = length - 1 - i; // need reverse to correct chronology
@@ -1533,7 +1533,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //        ]
         //    }
         //
-        const trades = this.safeList (message, 'fills', []);
+        const trades: Dict[] = this.safeList (message, 'fills', []);
         let stored = this.myTrades;
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);

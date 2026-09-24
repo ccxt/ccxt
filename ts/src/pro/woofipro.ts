@@ -1117,7 +1117,7 @@ export default class woofipro extends woofiproRest {
         //    }
         //
         const data = this.safeDict (message, 'data', {});
-        const rawPositions = this.safeList (data, 'positions', []);
+        const rawPositions: Dict[] = this.safeList (data, 'positions', []);
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }

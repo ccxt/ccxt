@@ -213,7 +213,7 @@ export default class bitvavo extends bitvavoRest {
 
     handleBidAsk (client: Client, message: Dict) {
         const event = 'bidask';
-        const tickers = this.safeList (message, 'data', []);
+        const tickers: Dict[] = this.safeList (message, 'data', []);
         const result: List = [];
         for (let i = 0; i < tickers.length; i++) {
             const data = tickers[i];
@@ -467,7 +467,7 @@ export default class bitvavo extends bitvavoRest {
         // use a reverse lookup in a static map instead
         const timeframe = this.findTimeframe (interval);
         const messageHash = name + '@' + marketId + '_' + interval;
-        const candles = this.safeList (message, 'candle', []);
+        const candles: Dict[] = this.safeList (message, 'candle', []);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {

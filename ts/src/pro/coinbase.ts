@@ -258,7 +258,7 @@ export default class coinbase extends coinbaseRest {
         return res;
     }
 
-    createWSAuth (name: string, productIds: Str[]) {
+    createWSAuth (name: string, productIds: Str[]): Dict {
         const subscribe: Dict = {};
         const timestamp = this.numberToString (this.seconds ());
         this.checkRequiredCredentials ();
@@ -457,7 +457,7 @@ export default class coinbase extends coinbaseRest {
         //
         //
         const channel = this.safeString (message, 'channel');
-        const events = this.safeList (message, 'events', []);
+        const events: Dict[] = this.safeList (message, 'events', []);
         const datetime = this.safeString (message, 'timestamp');
         const timestamp = this.parse8601 (datetime);
         const newTickers: Ticker[] = [];

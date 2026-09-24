@@ -1490,7 +1490,7 @@ export default class aster extends asterRest {
         }
         this.balance[accountType]['info'] = message;
         message = this.safeDict (message, 'a', message);
-        const B = this.safeList (message, 'B', []);
+        const B: Dict[] = this.safeList (message, 'B', []);
         const wallet = this.safeString (this.options, 'wallet', 'wb');
         for (let i = 0; i < B.length; i++) {
             const entry = B[i];
@@ -1629,7 +1629,7 @@ export default class aster extends asterRest {
         }
         const cache = this.positions;
         const data = this.safeDict (message, 'a', {});
-        const rawPositions = this.safeList (data, 'P', []);
+        const rawPositions: Dict[] = this.safeList (data, 'P', []);
         const newPositions: List = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];

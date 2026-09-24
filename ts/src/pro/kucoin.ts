@@ -2403,7 +2403,7 @@ export default class kucoin extends kucoinRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    getMyTradesMessageHashSuffix (topic: any) {
+    getMyTradesMessageHashSuffix (topic: any): string {
         let suffix = '-spot';
         if (topic.indexOf ('contractMarket') >= 0) {
             suffix = '-contract';

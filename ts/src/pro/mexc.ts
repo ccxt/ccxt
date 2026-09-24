@@ -327,7 +327,7 @@ export default class mexc extends mexcRest {
         //         "s": "BTCUSDT"
         //     }
         //
-        const data = this.safeList2 (message, 'data', 'd', []);
+        const data: Dict[] = this.safeList2 (message, 'data', 'd', []);
         const channel = this.safeString (message, 'c', '');
         const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId);

@@ -1351,7 +1351,7 @@ export default class lighter extends lighterRest {
         return true;
     }
 
-    handleErrorMessage (client: Client, message: any): boolean {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         //     {
         //         "error": {

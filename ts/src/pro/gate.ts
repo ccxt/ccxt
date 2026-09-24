@@ -1484,7 +1484,7 @@ export default class gate extends gateRest {
         //    }
         //
         const type = this.getMarketTypeByUrl (client.url);
-        const data = this.safeList (message, 'result', []);
+        const data: Dict[] = this.safeList (message, 'result', []);
         const cache = this.positions[type];
         const newPositions: Position[] = [];
         for (let i = 0; i < data.length; i++) {
@@ -1803,7 +1803,7 @@ export default class gate extends gateRest {
         //        ]
         //    }
         //
-        const rawLiquidations = this.safeList (message, 'result', []);
+        const rawLiquidations: Dict[] = this.safeList (message, 'result', []);
         const newLiquidations: Liquidation[] = [];
         if (this.liquidations === undefined) {
             const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
