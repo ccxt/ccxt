@@ -20,7 +20,6 @@ pub mod bingx;
 pub mod bitfinex;
 pub mod bitget;
 pub mod bithumb;
-pub mod bitmex;
 pub mod bitopro;
 pub mod bitrue;
 pub mod bitstamp;

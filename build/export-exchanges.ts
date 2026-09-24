@@ -533,7 +533,6 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
         'kucoinfutures',
         'bitget',
         'hyperliquid',
-        'bitmex',
         'bingx',
         'htx',
         'mexc',
