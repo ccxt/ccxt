@@ -358,11 +358,16 @@ function retypeCodeOnly (line: string): string {
     return out;
 }
 
+// a mention of local NAME: member accesses (`x.NAME()`) and method calls are other symbols
+function retypeMentionRegex (name: string, flags = ''): RegExp {
+    return new RegExp (`(?<![\\w$.])${name}\\b(?!\\s*\\()`, flags);
+}
+
 // every occurrence of the name must sit in a proven cast-free context: an argument of an
 // Object-parameter callee, an operand of a native `+` chain carrying a string literal (the
 // printer only emits a native `+` for a proven string concatenation, and JLS 15.18.1 keeps the
 function retypeMentionContextsOk (code: string, name: string, token: string | undefined, line: string): boolean {
-    const re = new RegExp (`\\b${name}\\b`, 'g');
+    const re = retypeMentionRegex (name, 'g');
     let m: RegExpExecArray | null;
     while ((m = re.exec (code)) !== null) {
         const pre = code.slice (0, m.index);
@@ -485,7 +490,7 @@ function retypeCopyUseIsAudited (lines: string[], j: number, from: number, name:
     const code = retypeCodeOnly (lines[j]);
     let prefix = '';
     for (let k = Math.max (from, j - 12); k < j; k++) prefix += retypeCodeOnly (lines[k]);
-    const re = new RegExp (`\\b${name}\\b`, 'g');
+    const re = retypeMentionRegex (name, 'g');
     let m: RegExpExecArray | null;
     while ((m = re.exec (code)) !== null) {
         const pre = prefix + code.slice (0, m.index);
@@ -527,7 +532,7 @@ function retypeDeclaresName (code: string, name: string): boolean {
 function retypeUseIsAudited (line: string, name: string, token?: string): boolean {
     const code = retypeCodeOnly (line);
     if (retypeDeclaresName (code, name)) return true;
-    if (!new RegExp (`\\b${name}\\b`).test (code)) return true;   // no mention outside literals
+    if (!retypeMentionRegex (name).test (code)) return true;   // no mention outside literals
     for (const shape of RETYPE_AUDITED_USE_SHAPES) {
         if (new RegExp (shape.source.replace (/NAME/g, name)).test (line)) return true;
     }

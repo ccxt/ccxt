@@ -402,7 +402,7 @@ public partial class bitstamp : ccxt.bitstamp
             tradesArray = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
         }
-        callDynamically(tradesArray, "append", new object[] {trade});
+        tradesArray.append(trade);
         client.resolve(tradesArray, messageHash);
     }
 
@@ -646,7 +646,7 @@ public partial class bitstamp : ccxt.bitstamp
         }
         ccxt.pro.ArrayCache stored = this.myTrades;
         Dictionary<string, object> trade = this.parseWsMyTrade(data, market);
-        callDynamically(stored, "append", new object[] {trade});
+        stored.append(trade);
         client.resolve(stored, channel);
     }
 
@@ -746,7 +746,7 @@ public partial class bitstamp : ccxt.bitstamp
         Dictionary<string, object> market = this.market(symbol);
         order["event"] = this.safeString(message, "event");
         Dictionary<string, object> parsed = this.parseWsOrder(order, market);
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         client.resolve(this.orders, channel);
     }
 

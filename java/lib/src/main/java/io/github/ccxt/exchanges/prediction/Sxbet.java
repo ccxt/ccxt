@@ -1802,7 +1802,7 @@ final Object finalI = i;
         final String outcome3 = outcome2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             Long limit = limit3;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object outcomeObj = null;
@@ -1891,7 +1891,7 @@ final Object finalI = i;
         final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
             Object id = id3;
-            Object outcome = outcome3;
+            String outcome = outcome3;
             this.checkRequiredCredentials();
             if (java.util.Objects.equals(id, null))
             {
@@ -1945,7 +1945,7 @@ final Object finalI = i;
         final String outcome3 = outcome2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             Long limit = limit3;
             if (java.util.Objects.equals(outcome, null))
             {
@@ -2009,7 +2009,7 @@ final Object finalI = i;
         final Long since3 = since2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             Long since = since3;
             Long limit = limit3;
             this.checkRequiredCredentials();
@@ -2367,7 +2367,7 @@ final Object finalI = i;
         final Long since3 = since2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             Long since = since3;
             Long limit = limit3;
             this.checkRequiredCredentials();
@@ -3676,7 +3676,7 @@ final Object finalI = i;
     {
         final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             if (java.util.Objects.equals(this.walletAddress, null))
             {
                 throw new ArgumentsRequired((this.id + " watchMyTrades() requires a walletAddress")) ;
@@ -3753,7 +3753,7 @@ final Object finalI = i;
     {
         final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             if (java.util.Objects.equals(this.walletAddress, null))
             {
                 throw new ArgumentsRequired((this.id + " watchOrders() requires a walletAddress")) ;

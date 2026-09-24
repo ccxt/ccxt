@@ -546,7 +546,7 @@ public partial class coinex : ccxt.coinex
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
         Dictionary<string, object> parsed = this.parseWsTrade(data, market);
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         client.resolve(getValue(this.trades, symbol), messageWithType);
         client.resolve(getValue(this.trades, symbol), messageHash);
@@ -616,7 +616,7 @@ public partial class coinex : ccxt.coinex
         {
             object trade = trades[i];
             Dictionary<string, object> parsed = this.parseWsTrade(trade, market);
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
         }
         ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         client.resolve(getValue(this.trades, symbol), messageHash);
@@ -1243,7 +1243,7 @@ public partial class coinex : ccxt.coinex
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache orders = this.orders;
-        callDynamically(orders, "append", new object[] {parsedOrder});
+        orders.append(parsedOrder);
         string messageHash = "orders";
         string messageWithType = ((messageHash + ":") + ((market.ContainsKey("type") ? market["type"] : null)));
         client.resolve(this.orders, messageWithType);

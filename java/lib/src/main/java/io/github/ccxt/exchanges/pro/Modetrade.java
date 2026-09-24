@@ -206,7 +206,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Long timestamp = this.safeInteger(message, "ts");
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
-        Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+        orderbook.reset(snapshot);
         client.resolve(orderbook, topic);
     }
 
@@ -617,7 +617,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
         }
         io.github.ccxt.ws.ArrayCache ohlcvCache = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
-        Helpers.callDynamically(ohlcvCache, "append", new Object[]{parsed});
+        ohlcvCache.append(parsed);
         client.resolve(ohlcvCache, topic);
     }
 
@@ -706,7 +706,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
         io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
-        Helpers.callDynamically(trades, "append", new Object[]{trade});
+        trades.append(trade);
         Helpers.addElementToObject(this.trades, symbol, trades);
         client.resolve(trades, topic);
     }

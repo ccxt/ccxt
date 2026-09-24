@@ -565,7 +565,7 @@ public partial class onetrading : ccxt.onetrading
         }
         Dictionary<string, object> order = this.parseTradingOrder(message);
         ccxt.pro.ArrayCache orders = this.orders;
-        callDynamically(orders, "append", new object[] {order});
+        orders.append(order);
         client.resolve(this.orders, ("orders:" + ((order != null && ((IDictionary<string, object>)order).ContainsKey("symbol") ? ((IDictionary<string, object>)order)["symbol"] : null))));
         client.resolve(this.orders, "orders");
     }
@@ -776,14 +776,14 @@ public partial class onetrading : ccxt.onetrading
         {
             Dictionary<string, object> order = this.parseOrder(rawOrders[i]);
             string? symbol = this.safeString(order, "symbol", "");
-            callDynamically(orders, "append", new object[] {order});
+            orders.append(order);
             client.resolve(this.orders, ("orders:" + symbol));
             List<object> rawTrades = this.safeList(rawOrders[i], "trades", new List<object>() {});
             for (int ii = 0; ii < rawTrades.Count; ii++)
             {
                 Dictionary<string, object> trade = this.parseTrade(rawTrades[ii]);
                 symbol = this.safeString(trade, "symbol", symbol);
-                callDynamically(this.myTrades, "append", new object[] {trade});
+                this.myTrades.append(trade);
                 client.resolve(this.myTrades, ("myTrades:" + symbol));
             }
         }
@@ -1048,12 +1048,12 @@ public partial class onetrading : ccxt.onetrading
                 { "timestamp", this.parse8601(datetime) },
                 { "datetime", datetime },
             };
-            callDynamically(orders, "append", new object[] {orderObject});
+            orders.append(orderObject);
         } else
         {
             Dictionary<string, object> parsed = this.parseOrder(update);
             symbol = this.safeString(parsed, "symbol", "");
-            callDynamically(orders, "append", new object[] {parsed});
+            orders.append(parsed);
         }
         client.resolve(this.orders, ("orders:" + symbol));
         client.resolve(this.orders, "orders");
@@ -1074,7 +1074,7 @@ public partial class onetrading : ccxt.onetrading
             Dictionary<string, object> parsed = this.parseTrade(update);
             symbol = this.safeString(parsed, "symbol", "");
             ccxt.pro.ArrayCache myTrades = this.myTrades;
-            callDynamically(myTrades, "append", new object[] {parsed});
+            myTrades.append(parsed);
             client.resolve(this.myTrades, ("myTrades:" + symbol));
             client.resolve(this.myTrades, "myTrades");
         }
@@ -1260,7 +1260,7 @@ public partial class onetrading : ccxt.onetrading
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
         }
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         if ((symbol != null) && (timeframe != null))
         {
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;

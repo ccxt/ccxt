@@ -962,7 +962,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object parsed = this.parseWsOHLCV((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
         }
         String messageHash = null;
         if (Boolean.TRUE.equals(isUta))
@@ -1389,7 +1389,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 }
             }
             Map<String, Object> parsedOrderbook = (Map<String, Object>) this.parseOrderBook(rawOrderBook, symbol, timestamp, bidsKey, asksKey);
-            Helpers.callDynamically(orderbook, "reset", new Object[]{parsedOrderbook});
+            orderbook.reset(parsedOrderbook);
             Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         }
         client.resolve(((Map<?, ?>)this.orderbooks).get(symbol), messageHash);
@@ -1686,7 +1686,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Object index = Helpers.subtract(Helpers.subtract(length, i), 1);
             Object rawTrade = Helpers.GetValue(data, index);
             Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (rawTrade), market);
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
         }
         String messageHash = ("trade:" + symbol);
         client.resolve(stored, messageHash);

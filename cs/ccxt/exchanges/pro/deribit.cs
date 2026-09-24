@@ -483,7 +483,7 @@ public partial class deribit : ccxt.deribit
         {
             object trade = trades[i];
             Dictionary<string, object> parsed = this.parseTrade(trade, market);
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
         }
         ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         string messageHash = ((("trades|" + symbol) + "|") + interval);
@@ -577,7 +577,7 @@ public partial class deribit : ccxt.deribit
         for (int i = 0; i < (parsed?.Count ?? 0); i++)
         {
             IDictionary<string, object> trade = ((IDictionary<string, object>)parsed[i]);
-            callDynamically(cachedTrades, "append", new object[] {trade});
+            cachedTrades.append(trade);
             string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
             marketIds[(string)symbol] = true;
         }
@@ -877,7 +877,7 @@ public partial class deribit : ccxt.deribit
         ccxt.pro.ArrayCache cachedOrders = this.orders;
         for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
-            callDynamically(cachedOrders, "append", new object[] {orders[i]});
+            cachedOrders.append(orders[i]);
         }
         client.resolve(this.orders, channel);
     }
@@ -980,7 +980,7 @@ public partial class deribit : ccxt.deribit
         IDictionary<string, object> ohlcv = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         // data contains a single OHLCV candle
         List<object> parsed = this.parseWsOHLCV(ohlcv, market);
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)unifiedTimeframe] = stored;
         List<object> resolveData = new List<object>() {symbol, unifiedTimeframe, stored};
         string messageHash = ((("chart.trades|" + symbol) + "|") + rawTimeframe);

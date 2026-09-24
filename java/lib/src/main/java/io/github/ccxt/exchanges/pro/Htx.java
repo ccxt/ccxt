@@ -475,7 +475,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Map<String, Object> trade = (Map<String, Object>) this.parseTrade((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
-            Helpers.callDynamically(tradesCache, "append", new Object[]{trade});
+            tradesCache.append(trade);
         }
         client.resolve(tradesCache, ch);
         return message;
@@ -630,7 +630,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         }
         Object tick = this.safeValue(message, "tick");
         List<Object> parsed = (List<Object>) this.parseOHLCV(tick, market);
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        stored.append(parsed);
         client.resolve(stored, ch);
     }
 
@@ -848,7 +848,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 }
             } else
             {
-                Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+                orderbook.reset(snapshot);
                 // unroll the accumulated deltas
                 for (var i = 0; i < Helpers.getArrayLength(messages); i++)
                 {
@@ -909,7 +909,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             try
             {
                 io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, requestId, request, requestId, snapshotSubscription)).join();
-                return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+                return orderbook.limit();
             } catch(Exception e)
             {
                 if (!java.util.Objects.equals(messageHash, null))
@@ -1021,7 +1021,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         if (java.util.Objects.equals(eventVar, "snapshot"))
         {
             Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(tick, symbol, timestamp);
-            Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+            orderbook.reset(snapshot);
             Helpers.addElementToObject(orderbook, "nonce", version);
         }
         if ((!java.util.Objects.equals(prevSeqNum, null)) && Helpers.isGreaterThan(prevSeqNum, this.safeInteger(orderbook, "nonce", 0)))

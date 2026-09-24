@@ -222,7 +222,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         {
             Object index = Helpers.subtract(Helpers.subtract(length, j), 1);
             Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (Helpers.GetValue(trades, index)), market);
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
         }
         String messageHash = (("trade" + ":") + symbol);
         client.resolve(stored, messageHash);
@@ -486,7 +486,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         if (Boolean.TRUE.equals(isSnapshot))
         {
             Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "b", "a");
-            Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+            orderbook.reset(snapshot);
         } else
         {
             List<Object> asks = (List<Object>) this.safeList(data, "a", new ArrayList<Object>(Arrays.asList()));
@@ -820,7 +820,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object parsed = this.parseWsOHLCV((data == null || i < 0 || i >= data.size() ? null : data.get(i)));
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
         }
         String messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
         List<Object> resolveData = new ArrayList<Object>(Arrays.asList(symbol, timeframe, stored));

@@ -606,7 +606,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             }};
             Object authentication = this.authenticate();
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watchMultiple(url, messageHashes, this.extend(request, authentication), messageHashes, subscription)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -663,7 +663,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             }};
             Object authentication = this.authenticate();
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, this.extend(request, authentication), messageHash, subscription)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -717,7 +717,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                     Helpers.addElementToObject(this.trades, symbol, tradesArray);
                 }
             }
-            Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
+            tradesArray.append(trade);
             client.resolve(tradesArray, messageHash);
         }
         return message;

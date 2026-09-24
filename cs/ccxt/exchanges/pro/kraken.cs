@@ -661,7 +661,7 @@ public partial class kraken : ccxt.kraken
         IList<object> parsed = this.parseTrades(data, market);
         for (int i = 0; i < (parsed?.Count ?? 0); i++)
         {
-            callDynamically(stored, "append", new object[] {parsed[i]});
+            stored.append(parsed[i]);
         }
         client.resolve(stored, messageHash);
     }
@@ -716,7 +716,7 @@ public partial class kraken : ccxt.kraken
             string? datetime = this.safeString(candle, "interval_begin");
             Int64? timestamp = this.parse8601(datetime);
             List<object> parsed = new List<object>() {timestamp, this.safeNumber(candle, "open"), this.safeNumber(candle, "high"), this.safeNumber(candle, "low"), this.safeNumber(candle, "close"), this.safeNumber(candle, "volume")};
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
         }
         client.resolve(stored, messageHash);
     }
@@ -1371,7 +1371,7 @@ public partial class kraken : ccxt.kraken
             {
                 IDictionary<string, object> trade = this.safeDict(allTrades, i, new Dictionary<string, object>() {});
                 Dictionary<string, object> parsed = this.parseWsTrade(trade);
-                callDynamically(stored, "append", new object[] {parsed});
+                stored.append(parsed);
                 string symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
                 symbols[(string)symbol] = true;
             }
@@ -1532,7 +1532,7 @@ public partial class kraken : ccxt.kraken
                         ((IDictionary<string,object>)symbolsByOrderId).Remove((string)getValue(first, "id"));
                     }
                 }
-                callDynamically(stored, "append", new object[] {newOrder});
+                stored.append(newOrder);
                 if ((symbol != null))
                 {
                     symbols[(string)symbol] = true;

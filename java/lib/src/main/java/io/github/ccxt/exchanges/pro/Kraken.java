@@ -789,7 +789,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         List<Object> parsed = this.parseTrades(data, market);
         for (var i = 0; i < ((List<?>)parsed).size(); i++)
         {
-            Helpers.callDynamically(stored, "append", new Object[]{(parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i))});
+            stored.append((parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i)));
         }
         client.resolve(stored, messageHash);
     }
@@ -844,7 +844,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             String datetime = this.safeString(candle, "interval_begin");
             Long timestamp = this.parse8601(datetime);
             List<Object> parsed = new ArrayList<Object>(Arrays.asList(timestamp, this.safeNumber(candle, "open"), this.safeNumber(candle, "high"), this.safeNumber(candle, "low"), this.safeNumber(candle, "close"), this.safeNumber(candle, "volume")));
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
         }
         client.resolve(stored, messageHash);
     }

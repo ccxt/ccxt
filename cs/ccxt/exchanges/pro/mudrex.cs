@@ -246,7 +246,7 @@ public partial class mudrex : ccxt.mudrex
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)tf] = stored;
             }
         }
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         string? messageHash = stream;
         client.resolve(stored, messageHash);
     }

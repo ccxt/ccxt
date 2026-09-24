@@ -1343,7 +1343,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             {
                 parsedTrade = this.parseTrade((trades == null || j < 0 || j >= trades.size() ? null : trades.get(j)), market);
             }
-            Helpers.callDynamically(stored, "append", new Object[]{parsedTrade});
+            stored.append(parsedTrade);
         }
         client.resolve(stored, messageHash);
     }

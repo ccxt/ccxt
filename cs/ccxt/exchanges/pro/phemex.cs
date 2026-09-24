@@ -478,7 +478,7 @@ public partial class phemex : ccxt.phemex
         IList<object> parsed = this.parseTrades(trades, market);
         for (int i = 0; i < (parsed?.Count ?? 0); i++)
         {
-            callDynamically(stored, "append", new object[] {parsed[i]});
+            stored.append(parsed[i]);
         }
         client.resolve(stored, messageHash);
     }
@@ -538,7 +538,7 @@ public partial class phemex : ccxt.phemex
             for (int i = 0; i < (ohlcvs?.Count ?? 0); i++)
             {
                 object candle = ohlcvs[i];
-                callDynamically(stored, "append", new object[] {candle});
+                stored.append(candle);
             }
             client.resolve(stored, messageHash);
         }
@@ -1045,7 +1045,7 @@ public partial class phemex : ccxt.phemex
             string? marketId = this.safeString(rawTrade, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
             Dictionary<string, object> parsed = this.parseTrade(rawTrade);
-            callDynamically(cachedTrades, "append", new object[] {parsed});
+            cachedTrades.append(parsed);
             string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
             if ((type == null))
             {
@@ -1328,7 +1328,7 @@ public partial class phemex : ccxt.phemex
         for (int i = 0; i < (parsedOrders?.Count ?? 0); i++)
         {
             Dictionary<string, object> parsed = ((Dictionary<string, object>)parsedOrders[i]);
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
             object symbol = (parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null);
             Dictionary<string, object> market = this.market(symbol);
             if ((type == null))

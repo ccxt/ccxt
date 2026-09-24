@@ -314,7 +314,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
                 put( "orderbooks", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"))) );
             }};
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -369,7 +369,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         if (java.util.Objects.equals(isSnapshot, true))
         {
             Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "b", "a", "p", "s");
-            Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+            orderbook.reset(snapshot);
         } else
         {
             List<Object> asks = (List<Object>) this.safeList(message, "a", new ArrayList<Object>(Arrays.asList()));
@@ -477,7 +477,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
         Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(message);
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        stored.append(parsed);
         String messageHash = (("trade" + ":") + symbol);
         client.resolve(stored, messageHash);
     }

@@ -3866,7 +3866,7 @@ public partial class predictfun : PredictionExchange
             this.orders = new ArrayCacheByOutcomeById(limit);
         }
         ccxt.pro.ArrayCache stored = this.orders;
-        callDynamically(stored, "append", new object[] {order});
+        stored.append(order);
         client.resolve(stored, "orders");
         string? outcomeHandle = this.safeString(order, "outcome");
         if ((outcomeHandle != null))
@@ -3893,7 +3893,7 @@ public partial class predictfun : PredictionExchange
             this.myTrades = new ArrayCacheByOutcomeById(limit);
         }
         ccxt.pro.ArrayCache stored = this.myTrades;
-        callDynamically(stored, "append", new object[] {trade});
+        stored.append(trade);
         client.resolve(stored, "myTrades");
         string? outcomeHandle = this.safeString(trade, "outcome");
         if ((outcomeHandle != null))

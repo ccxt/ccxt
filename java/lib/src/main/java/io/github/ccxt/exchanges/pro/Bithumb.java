@@ -520,7 +520,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 request = this.extend(request, parameters);
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, request, messageHash, null)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -853,7 +853,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 Helpers.addElementToObject(this.trades, symbol, stored);
             }
             io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
-            Helpers.callDynamically(trades, "append", new Object[]{parsed});
+            trades.append(parsed);
             String messageHash = (("trade" + ":") + symbol);
             client.resolve(trades, messageHash);
         }
