@@ -3718,7 +3718,11 @@ export default class kraken extends Exchange {
         } else {
             url = '/' + path;
         }
-        url = this.urls['api'][api] + url;
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        url = apiUrl + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 

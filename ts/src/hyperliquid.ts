@@ -5092,7 +5092,11 @@ export default class hyperliquid extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        const url = this.implodeHostname (this.urls['api'][api]) + '/' + path;
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = this.implodeHostname (apiUrl) + '/' + path;
         if (method === 'POST') {
             headers = {
                 'Content-Type': 'application/json',
