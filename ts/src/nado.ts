@@ -1170,7 +1170,7 @@ export default class nado extends Exchange {
         //     }
         //
         const closedOrders: Dict[] = [];
-        const orders = this.safeList (response, 'orders', []);
+        const orders: Dict[] = this.safeList (response, 'orders', []);
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
             if (this.isArchiveOrderClosed (order)) {

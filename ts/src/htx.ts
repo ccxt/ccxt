@@ -1690,7 +1690,7 @@ export default class htx extends Exchange {
         //         "ts":1640736207263
         //     }
         //
-        const markets = this.safeList (response, 'data', []);
+        const markets: Dict[] = this.safeList (response, 'data', []);
         const numMarkets = markets.length;
         if (numMarkets < 1) {
             throw new OperationFailed (this.id + ' fetchMarkets() returned an empty response: ' + this.json (response));
@@ -6180,7 +6180,7 @@ export default class htx extends Exchange {
             success = this.safeList (orders, 'success', []);
         }
         const failed = this.safeList2 (orders, 'errors', 'failed', []);
-        const data = this.safeList (orders, 'data', []);
+        const data: Dict[] = this.safeList (orders, 'data', []);
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const order = data[i];
@@ -7237,7 +7237,7 @@ export default class htx extends Exchange {
             }
         } else {
             const cursor = this.safeInteger (data, 'current_page');
-            const result = this.safeList (data, 'data', []);
+            const result: Dict[] = this.safeList (data, 'data', []);
             for (let i = 0; i < result.length; i++) {
                 const entry = result[i];
                 entry['current_page'] = cursor;

@@ -539,7 +539,7 @@ export default class hyperliquid extends Exchange {
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const options = this.safeDict (this.options, 'fetchMarkets', {});
-        const types = this.safeList (options, 'types', []);
+        const types: string[] = this.safeList (options, 'types', []);
         const rawPromises: Promise<any>[] = [];
         for (let i = 0; i < types.length; i++) {
             const marketType = types[i];
