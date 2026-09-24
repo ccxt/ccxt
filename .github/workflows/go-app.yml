@@ -81,7 +81,8 @@ jobs:
           # fi
           read -r -a files <<<"$(printf '%s %s' "${{ env.rest_files }}" "${{ env.ws_files }}" | xargs)"
           read -r -a prediction <<<"$(printf '%s' "${{ env.prediction_files }}" | xargs)"
-          if [ "${#files[@]}" -eq 0 ] && [ "${#prediction[@]}" -eq 0 ]; then
+          prediction_modified="${{ env.prediction_modified }}"
+          if [ "${#files[@]}" -eq 0 ] && [ "$prediction_modified" != "true" ]; then
             echo "No files to process; skipping."
             exit 0
           fi
@@ -96,15 +97,12 @@ jobs:
               fi
             done
           fi
-          if [ "${#prediction[@]}" -gt 0 ] && [ "$prediction_covered" = false ]; then
-            echo "Prediction files to process: ${prediction[*]}"
+          if [ "$prediction_modified" = "true" ] && [ "$prediction_covered" = false ]; then
+            echo "Prediction files to process: ${prediction[*]:-(fixtures only)}"
             npm run transpile-prediction-go
           fi
       # - name: Install dependencies
       #   run: cd go && go get ./ccxt && cd ..
-      - name: Transpile prediction to Go
-        if: env.important_modified == 'true'
-        run: npm run transpile-prediction-go
       - name: Check emitted Go is gofmt-clean
         run: tsx build/goTranspiler.ts --check-gofmt
       - name: Build
