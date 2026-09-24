@@ -616,7 +616,7 @@ public class Polymarket extends PolymarketApi
         return BaseExchange.supplyAsync(() -> {
 
             Object queries = (List<Object>)(this.parseSearchQueries(parameters));
-            Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
+            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
             Integer queriesLength = ((List<?>)queries).size();
             Object rawEvents = new ArrayList<Object>(Arrays.asList());
             if (Helpers.isGreaterThan(queriesLength, 0))
@@ -709,7 +709,7 @@ public class Polymarket extends PolymarketApi
             {
                 eventsStatus = null;
             }
-            Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit", "sort", "status", "searchIn", "eventId", "slug", "query", "queries", "searchPageSize", "maxSearchPages")));
+            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit", "sort", "status", "searchIn", "eventId", "slug", "query", "queries", "searchPageSize", "maxSearchPages")));
             Map<String, Object> seen = new HashMap<String, Object>() {{}};
             List<Object> rawEvents = new ArrayList<Object>(Arrays.asList());
             for (var qi = 0; qi < ((List<?>)queries).size(); qi++)
@@ -887,7 +887,7 @@ public class Polymarket extends PolymarketApi
             {
                 order = "startDate";
             }
-            Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("status", "limit", "sort", "searchIn", "eventId", "slug", "query", "queries", "tags")));
+            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("status", "limit", "sort", "searchIn", "eventId", "slug", "query", "queries", "tags")));
             final String finalOrder = order;
             Map<String, Object> baseRequest = new HashMap<String, Object>() {{
                 put( "limit", pageSize );
@@ -2447,7 +2447,7 @@ final Object finalClobTokenId = clobTokenId;
             (this.loadApiCredentials()).join();
             // the collateral balance is tied to the signature type / funder that holds the USDC
             Long signatureType = (Long) this.safeInteger2(parameters, "signatureType", "signature_type", this.safeInteger(this.options, "signatureType", 3));
-            Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("signatureType", "signature_type")));
+            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("signatureType", "signature_type")));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset_type", "COLLATERAL" );
                 put( "signature_type", signatureType );
@@ -3090,7 +3090,7 @@ final Object finalClobTokenId = clobTokenId;
         String expiration = this.safeString(parameters, "expiration", "0");
         // a market buy can be sized by USDC cost instead of shares (see createMarketBuyOrderWithCost)
         Double cost = this.safeNumber(parameters, "cost");
-        Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("signatureType", "signature_type", "funder", "maker", "orderType", "timeInForce", "postOnly", "tickSize", "negRisk", "salt", "timestamp", "expiration", "cost", "builder", "builderCode")));
+        Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("signatureType", "signature_type", "funder", "maker", "orderType", "timeInForce", "postOnly", "tickSize", "negRisk", "salt", "timestamp", "expiration", "cost", "builder", "builderCode")));
         Map<String, Object> amounts = this.polymarketOrderRawAmounts(sideStr, amount, price, (String) (tickSize), cost);
         String makerAmount = this.safeString(amounts, "makerAmount");
         String takerAmount = this.safeString(amounts, "takerAmount");
@@ -3275,8 +3275,8 @@ final Object finalClobTokenId = clobTokenId;
         Long amountDecimals = this.safeInteger(cfg, "amount");
         String priceStr = this.numberToString(price);
         String rawPrice = this.decimalToPrecision(priceStr, ROUND, priceDecimals, DECIMAL_PLACES);
-        Object makerRaw = null;
-        Object takerRaw = null;
+        String makerRaw = null;
+        String takerRaw = null;
         if ((!java.util.Objects.equals(cost, null)) && (java.util.Objects.equals(side, "BUY")))
         {
             // cost-sized market buy: maker pays `cost` USDC, taker receives cost/price shares.
@@ -3868,7 +3868,7 @@ final Object finalClobTokenId = clobTokenId;
         String updatedAt = this.safeString2(rawEvent, "updatedAt", "last_updated_date_iso");
         Boolean rawActive = (Boolean) this.safeBool(rawEvent, "active");
         Boolean closed = (Boolean) this.safeBool(rawEvent, "closed", false);
-        Object active = null;
+        Boolean active = null;
         if (!java.util.Objects.equals(rawActive, null))
         {
             active = (java.util.Objects.equals(rawActive, true)) && (!java.util.Objects.equals(closed, true));
@@ -3889,7 +3889,7 @@ final Object finalClobTokenId = clobTokenId;
             }
         }
         final Object finalSlug = slug;
-        final Object finalActive = active;
+        final Boolean finalActive = active;
         return this.extend(new HashMap<String, Object>() {{
             put( "id", Polymarket.this.safeString(rawEvent, "id") );
             put( "slug", finalSlug );
@@ -4492,7 +4492,7 @@ final String finalOutcome = outcome;
         List<String> updatedSymbols = new ArrayList<String>(updated.keySet());
         for (var k = 0; k < ((List<?>)updatedSymbols).size(); k++)
         {
-            Object outcome = (updatedSymbols == null || k < 0 || k >= updatedSymbols.size() ? null : updatedSymbols.get(k));
+            String outcome = (updatedSymbols == null || k < 0 || k >= updatedSymbols.size() ? null : updatedSymbols.get(k));
             Object orderbook = ((Map<?, ?>)this.orderbooks).get(outcome);
             client.resolve(orderbook, ("orderbook::" + outcome));
             client.resolve(orderbook, ("ticker::" + outcome));

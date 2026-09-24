@@ -402,7 +402,7 @@ public class Kalshi extends KalshiApi
             // markets — then flatten those markets.
             if (Helpers.isGreaterThan(queriesLength, 0))
             {
-                Object eventParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit")));
+                Map<String, Object> eventParams = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit")));
                 List<PredictionEvent> events = (this.fetchEvents(eventParams)).join();
                 Integer eventsLength = ((List<?>)events).size();
                 List<Object> queryMarkets = new ArrayList<Object>(Arrays.asList());
@@ -417,7 +417,7 @@ public class Kalshi extends KalshiApi
                 }
                 return queryMarkets;
             }
-            Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit")));
+            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit")));
             // no query: page the markets listing directly. Cap the total collected so an unscoped
             // loadMarkets cannot run away through every kalshi market via the cursor.
             Long maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "maxFetchMarketsLimit", 1000));
@@ -861,7 +861,7 @@ public class Kalshi extends KalshiApi
         {
             String label = (String) Helpers.GetValue(outcomeLabels, oi);
             Object outcomeHandle = this.slugToOutcomeSymbol((String) (eventTicker), subtitleOrTicker, label);
-            Object winnerRaw = null;
+            Boolean winnerRaw = null;
             Object settleFractionRaw = null;
             if (Boolean.TRUE.equals(resolved) && (!java.util.Objects.equals(result, null)) && (!java.util.Objects.equals(result, "")))
             {
@@ -874,7 +874,7 @@ public class Kalshi extends KalshiApi
             }
             // effectively-final copies for the object literal below (Java cannot capture a
             // reassigned local into the anonymous inner class it emits for a map literal)
-            Object winner = winnerRaw;
+            Boolean winner = winnerRaw;
             Object settleFraction = settleFractionRaw;
 final Object finalOi = oi;
             final Object finalTicker = ticker;

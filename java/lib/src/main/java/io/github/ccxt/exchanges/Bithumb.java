@@ -621,7 +621,7 @@ public class Bithumb extends BithumbApi
                     Object baseId = null;
                     Object quoteId = null;
                     Object base = null;
-                    Object quote = null;
+                    String quote = null;
                     if (!java.util.Objects.equals(marketId, null))
                     {
                         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("-"))));
@@ -703,8 +703,8 @@ public class Bithumb extends BithumbApi
                 Object results = (Helpers.promiseAll(promises)).join();
                 for (var i = 0; i < ((List<?>)quotes).size(); i++)
                 {
-                    Object quote = (quotes == null || i < 0 || i >= quotes.size() ? null : quotes.get(i));
-                    Object quoteId = quote;
+                    String quote = (quotes == null || i < 0 || i >= quotes.size() ? null : quotes.get(i));
+                    String quoteId = quote;
                     Object response = (results == null || i < 0 || i >= ((List<?>)results).size() ? null : ((List<?>)results).get(i));
                     Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                     Map<String, Object> extension = (Map<String, Object>) this.safeDict(quoteCurrencies, quote, new HashMap<String, Object>() {{}});
@@ -729,8 +729,8 @@ public class Bithumb extends BithumbApi
                         }
                         final String finalCurrencyId = currencyId;
                         final String finalBase = base;
-                        final Object finalQuote = quote;
-                        final Object finalQuoteId = quoteId;
+                        final String finalQuote = quote;
+                        final String finalQuoteId = quoteId;
                         final Boolean finalActive = active;
                         Map<String,Object> entry = this.deepExtend(new HashMap<String, Object>() {{
                             put( "id", finalCurrencyId );
@@ -1370,7 +1370,7 @@ public class Bithumb extends BithumbApi
                     Map<String, Object> requiredQuotes = new HashMap<String, Object>() {{}};
                     for (var i = 0; i < ((List<?>)symbols).size(); i++)
                     {
-                        Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+                        String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                         String quoteId = this.safeString(market, "quoteId");
                         if ((!java.util.Objects.equals(quoteId, null)) && (quoteCurrencies.containsKey(quoteId)))
@@ -2851,12 +2851,12 @@ public class Bithumb extends BithumbApi
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            Object currency = null;
+            String currency = null;
             if (!java.util.Objects.equals(market, null))
             {
-                currency = ((Map<String, Object>)market).get("quote");
+                currency = this.safeString(market, "quote");
             }
-            final Object finalCurrency = currency;
+            final String finalCurrency = currency;
             final Double finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
                 put( "currency", finalCurrency );

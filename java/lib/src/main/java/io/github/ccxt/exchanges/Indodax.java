@@ -1057,10 +1057,10 @@ public class Indodax extends IndodaxApi
         //        }
         //    }
         //
-        Object side = null;
+        String side = null;
         if (((Map<?, ?>)order).containsKey("type"))
         {
-            side = ((Map<String, Object>)order).get("type");
+            side = this.safeString(order, "type");
         }
         String status = this.parseOrderStatus(this.safeString(order, "status", "open"));
         Object symbol = null;
@@ -1095,7 +1095,7 @@ public class Indodax extends IndodaxApi
         Object fee = null;
         String id = this.safeString(order, "order_id");
         final Object finalSymbol = symbol;
-        final Object finalSide = side;
+        final String finalSide = side;
         final String finalCost = cost;
         final String finalAmount = amount;
         final String finalFilled = filled;

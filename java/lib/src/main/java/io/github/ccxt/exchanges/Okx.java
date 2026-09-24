@@ -5534,7 +5534,7 @@ public class Okx extends OkxApi
             {
                 ((Map<String, Object>)request).put("ordId", id);
             }
-            Object query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdId", "clientOrderId")));
+            Map<String, Object> query = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdId", "clientOrderId")));
             Map<String, Object> response = (this.privatePostTradeCancelOrder(this.extend(request, query))).join();
             // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
@@ -5719,7 +5719,7 @@ public class Okx extends OkxApi
             List<Object> ordersData = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             // the request-only keys must not be merged onto every parsed order: a clientOrderId[]
             // request would otherwise come back as a list under the unified string field
-            Object orderParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdId", "clientOrderId", "algoId", "stop", "trigger", "trailing", "method")));
+            Map<String, Object> orderParams = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdId", "clientOrderId", "algoId", "stop", "trigger", "trailing", "method")));
             return this.parseOrders(ordersData, market, null, null, orderParams);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -6301,7 +6301,7 @@ public class Okx extends OkxApi
                     ((Map<String, Object>)request).put("ordId", id);
                 }
             }
-            Object query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("method", "clOrdId", "clientOrderId", "stop", "trigger")));
+            Map<String, Object> query = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("method", "clOrdId", "clientOrderId", "stop", "trigger")));
             Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "privateGetTradeOrderAlgo"))
             {
@@ -10207,7 +10207,7 @@ public class Okx extends OkxApi
         List<String> keys = new ArrayList<String>(borrowRateHistories.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object code = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String code = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             ((Map<String, Object>)borrowRateHistories).put((String)code, this.filterByCurrencySinceLimit((borrowRateHistories == null || code == null ? null : borrowRateHistories.get(code)), code, since, limit));
         }
         return borrowRateHistories;
@@ -11185,18 +11185,18 @@ public class Okx extends OkxApi
                 (this.loadMarkets()).join();
             }
             // handle unified currency code or symbol
-            Object currencyId = null;
+            String currencyId = null;
             Map<String, Object> market = null;
             if (((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(symbol))) || ((!java.util.Objects.equals(this.markets_by_id, null)) && (((Map<?, ?>)this.markets_by_id).containsKey(symbol))))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                currencyId = ((Map<String, Object>)market).get("baseId");
+                currencyId = this.safeString(market, "baseId");
             } else
             {
                 Map<String, Object> currency = (Map<String, Object>) this.currency((String) (symbol));
-                currencyId = ((Map<String, Object>)currency).get("id");
+                currencyId = this.safeString(currency, "id");
             }
-            final Object finalCurrencyId = currencyId;
+            final String finalCurrencyId = currencyId;
             final Object finalTimeframe = timeframe;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "ccy", finalCurrencyId );
@@ -11501,8 +11501,8 @@ public class Okx extends OkxApi
         List<String> depositWithdrawCodes = new ArrayList<String>(depositWithdrawFees.keySet());
         for (var i = 0; i < ((List<?>)depositWithdrawCodes).size(); i++)
         {
-            Object code = (depositWithdrawCodes == null || i < 0 || i >= depositWithdrawCodes.size() ? null : depositWithdrawCodes.get(i));
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            String code = (depositWithdrawCodes == null || i < 0 || i >= depositWithdrawCodes.size() ? null : depositWithdrawCodes.get(i));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             ((Map<String, Object>)depositWithdrawFees).put((String)code, this.assignDefaultDepositWithdrawFees((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), currency));
         }
         return depositWithdrawFees;

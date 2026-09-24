@@ -753,7 +753,7 @@ public class Predictfun extends PredictfunApi
                 includeResolved = "true";
             }
             // marketVariant/tags/sort are categories-listing filters the search endpoint does not accept
-            Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit", "sort", "searchIn", "status", "eventId", "slug", "tags", "marketVariant")));
+            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit", "sort", "searchIn", "status", "eventId", "slug", "tags", "marketVariant")));
             Integer queriesLength = ((List<?>)queries).size();
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             // the venue answers every term separately and the same category comes back for each term
@@ -1118,14 +1118,14 @@ public class Predictfun extends PredictfunApi
         {
             active = (java.util.Objects.equals(status, "REGISTERED")) || (java.util.Objects.equals(status, "OPEN"));
         }
-        Object resolved = null;
+        Boolean resolved = null;
         if (!java.util.Objects.equals(status, null))
         {
             resolved = (java.util.Objects.equals(status, "RESOLVED")) || (java.util.Objects.equals(status, "SETTLED"));
         }
         final Object finalSlug = slug;
         final Object finalActive = active;
-        final Object finalResolved = resolved;
+        final Boolean finalResolved = resolved;
         return new HashMap<String, Object>() {{
             put( "id", finalSlug );
             put( "slug", finalSlug );
@@ -1362,7 +1362,7 @@ public class Predictfun extends PredictfunApi
             Object label = this.stripPriceFormatting((String) (rawLabel));
             String tokenId = this.safeString(rawOutcome, "onChainId");
             String outcomeHandle = ((marketSymbol + ":") + label);
-            Object winner = null;
+            Boolean winner = null;
             String outcomeStatus = this.safeString(rawOutcome, "status");
             Object settleFractionRaw = null;
             if (!java.util.Objects.equals(outcomeStatus, null))
@@ -1380,7 +1380,7 @@ public class Predictfun extends PredictfunApi
             Object settleFraction = settleFractionRaw;
 final Object finalMarketSymbol = marketSymbol;
             final Object finalActive = active;
-            final Object finalWinner = winner;
+            final Boolean finalWinner = winner;
                         ((List<Object>)outcomes).add(new HashMap<String, Object>() {{
                 put( "id", tokenId );
                 put( "outcomeId", tokenId );
@@ -1776,7 +1776,7 @@ final Object finalMarketSymbol = marketSymbol;
                 Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
                 ((Map<String, Object>)request).put("marketId", this.safeString(info, "marketId"));
             }
-            Object query = this.omit(parameters, "signerAddress");
+            Map<String, Object> query = (Map<String, Object>) this.omit(parameters, "signerAddress");
             // the endpoint carries no time filter, it pages back from the most recent match, so
             // since is applied client side by parsePredictionTrades
             Map<String, Object> response = (this.predictfunGetV1OrdersMatches(this.extend(request, query))).join();
@@ -2604,7 +2604,7 @@ final Object finalMarketSymbol = marketSymbol;
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "address", finalAddress );
                 }};
-                Object rest = this.omit(parameters, "address");
+                Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, "address");
                 response = (this.predictfunGetV1PositionsAddress(this.extend(request, rest))).join();
             } else
             {
@@ -2770,7 +2770,7 @@ final Object finalMarketSymbol = marketSymbol;
         String marketStatus = this.safeString(rawMarket, "status");
         Boolean settled = (java.util.Objects.equals(outcomeStatus, "WON")) || (java.util.Objects.equals(outcomeStatus, "LOST"));
         Boolean resolved = Boolean.TRUE.equals(settled) || (java.util.Objects.equals(marketStatus, "RESOLVED")) || (java.util.Objects.equals(marketStatus, "SETTLED"));
-        Object won = null;
+        Boolean won = null;
         String settleFraction = null;
         String payout = null;
         if (Boolean.TRUE.equals(settled))
@@ -2795,7 +2795,7 @@ final Object finalMarketSymbol = marketSymbol;
         final String finalCollateral = collateral;
         final String finalMarkPrice = markPrice;
         final String finalPercentage = percentage;
-        final Object finalWon = won;
+        final Boolean finalWon = won;
         final String finalSettleFraction = settleFraction;
         final String finalPayout = payout;
         return this.safePredictionPosition((Map<String, Object>) (new HashMap<String, Object>() {{

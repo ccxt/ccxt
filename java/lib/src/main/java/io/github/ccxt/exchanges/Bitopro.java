@@ -847,7 +847,7 @@ public class Bitopro extends BitoproApi
         //
         String id = this.safeString(trade, "tradeId");
         String orderId = this.safeString(trade, "orderId");
-        Object timestamp = null;
+        Long timestamp = null;
         if (java.util.Objects.equals(id, null))
         {
             timestamp = this.safeTimestamp(trade, "timestamp");
@@ -902,7 +902,7 @@ public class Bitopro extends BitoproApi
             }
         }
         final String finalId = id;
-        final Object finalTimestamp = timestamp;
+        final Long finalTimestamp = timestamp;
         final String finalTakerOrMaker = takerOrMaker;
         final String finalSide = side;
         final String finalAmount = amount;

@@ -4768,7 +4768,7 @@ final Object finalClientOrderId = clientOrderId;
         String totalAmount = this.safeString2(entry, "origSz", "totalSz");
         String remaining = this.safeString(entry, "sz");
         String tif = this.safeStringUpper(entry, "tif");
-        Object postOnly = null;
+        Boolean postOnly = null;
         if (!java.util.Objects.equals(tif, null))
         {
             postOnly = (java.util.Objects.equals(tif, "ALO"));
@@ -4793,7 +4793,7 @@ final Object finalClientOrderId = clientOrderId;
         final Object finalOrder = order;
         final Object finalEntry = entry;
         final String finalTif = tif;
-        final Object finalPostOnly = postOnly;
+        final Boolean finalPostOnly = postOnly;
         final String finalSide = side;
         final Double finalTriggerPx = triggerPx;
         final Double finalStopLossPrice = stopLossPrice;
@@ -5981,13 +5981,13 @@ final Object finalClientOrderId = clientOrderId;
                 put( "cost", finalFeeCost );
             }};
         }
-        Object intern = null;
+        Boolean intern = null;
         String type = this.safeString(delta, "type");
         if (!java.util.Objects.equals(type, null))
         {
             intern = (java.util.Objects.equals(type, "internalTransfer"));
         }
-        final Object finalIntern = intern;
+        final Boolean finalIntern = intern;
         final Map<String, Object> finalFee = fee;
         return new HashMap<String, Object>() {{
             put( "info", transaction );

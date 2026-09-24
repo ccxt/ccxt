@@ -1411,8 +1411,8 @@ public class Deribit extends DeribitApi
                     {
                         type = "spot";
                     }
-                    Object inverse = null;
-                    Object linear = null;
+                    Boolean inverse = null;
+                    Boolean linear = null;
                     if (Boolean.TRUE.equals(isSpot))
                     {
                         symbol = ((base + "/") + quote);
@@ -1450,8 +1450,8 @@ public class Deribit extends DeribitApi
                     final String finalSettle = settle;
                     final String finalType = type;
                     final Boolean finalOption = option;
-                    final Object finalLinear = linear;
-                    final Object finalInverse = inverse;
+                    final Boolean finalLinear = linear;
+                    final Boolean finalInverse = inverse;
                     final Double finalStrike = strike;
                     final String finalOptionType = optionType;
                                     ((List<Object>)result).add(new HashMap<String, Object>() {{
@@ -1955,8 +1955,8 @@ public class Deribit extends DeribitApi
                 (this.loadMarkets()).join();
             }
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
-            Object code = this.safeString2(parameters, "code", "currency");
-            Object type = null;
+            String code = this.safeString2(parameters, "code", "currency");
+            String type = null;
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("code")));
             if (!java.util.Objects.equals(symbols, null))
             {
@@ -1969,8 +1969,8 @@ public class Deribit extends DeribitApi
                     }
                     if (java.util.Objects.equals(code, null))
                     {
-                        code = ((Map<String, Object>)market).get("base");
-                        type = ((Map<String, Object>)market).get("type");
+                        code = this.safeString(market, "base");
+                        type = this.safeString(market, "type");
                     }
                 }
             }
@@ -1978,7 +1978,7 @@ public class Deribit extends DeribitApi
             {
                 throw new ArgumentsRequired((this.id + " fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for")) ;
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};

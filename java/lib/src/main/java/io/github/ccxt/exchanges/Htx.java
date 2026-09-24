@@ -2770,8 +2770,8 @@ public class Htx extends HtxApi
                 Boolean spot = !Boolean.TRUE.equals(contract);
                 Boolean swap = false;
                 Boolean future = false;
-                Object linear = null;
-                Object inverse = null;
+                Boolean linear = null;
+                Boolean inverse = null;
                 // check if parsed market is contract
                 if (Boolean.TRUE.equals(contract))
                 {
@@ -2873,7 +2873,7 @@ public class Htx extends HtxApi
                 Double costPrecision = null;
                 Double maker = null;
                 Double taker = null;
-                Object active = null;
+                Boolean active = null;
                 if (Boolean.TRUE.equals(spot))
                 {
                     pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "price-precision")));
@@ -2924,9 +2924,9 @@ public class Htx extends HtxApi
                 final Boolean finalSpot = spot;
                 final Boolean finalSwap = swap;
                 final Boolean finalFuture = future;
-                final Object finalActive = active;
-                final Object finalLinear = linear;
-                final Object finalInverse = inverse;
+                final Boolean finalActive = active;
+                final Boolean finalLinear = linear;
+                final Boolean finalInverse = inverse;
                 final Double finalTaker = taker;
                 final Double finalMaker = maker;
                 final Long finalExpiry = expiry;

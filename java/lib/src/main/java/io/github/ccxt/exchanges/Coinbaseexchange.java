@@ -2736,7 +2736,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             }
             (this.loadAccounts()).join();
             Map<String, Object> currency = null;
-            Object id = this.safeString(parameters, "id"); // account id
+            String id = this.safeString(parameters, "id"); // account id
             if (java.util.Objects.equals(id, null))
             {
                 if (!java.util.Objects.equals(code, null))
@@ -2748,7 +2748,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                     {
                         throw new ExchangeError(((this.id + " fetchDepositsWithdrawals() could not find account id for ") + code)) ;
                     }
-                    id = ((Map<String, Object>)account).get("id");
+                    id = this.safeString(account, "id");
                 }
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};

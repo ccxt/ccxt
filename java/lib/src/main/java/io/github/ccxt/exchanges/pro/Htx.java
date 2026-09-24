@@ -1178,7 +1178,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 market = (Map<String, Object>) this.market(symbol);
                 symbol = (String) ((Map<String, Object>)market).get("symbol");
-                type = ((Map<String, Object>)market).get("type");
+                type = this.safeString(market, "type");
                 subType = (((java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)))) ? "linear" : "inverse";
                 marketId = ((Map<String, Object>)market).get("lowercaseId");
             } else
@@ -1365,7 +1365,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 market = (Map<String, Object>) this.market(symbol);
                 symbol = (String) ((Map<String, Object>)market).get("symbol");
-                type = ((Map<String, Object>)market).get("type");
+                type = this.safeString(market, "type");
                 suffix = ((Map<String, Object>)market).get("lowercaseId");
                 subType = (((java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)))) ? "linear" : "inverse";
             } else
@@ -2037,7 +2037,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Object subType = null;
             if (!java.util.Objects.equals(market, null))
             {
-                type = ((Map<String, Object>)market).get("type");
+                type = this.safeString(market, "type");
                 subType = (((java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)))) ? "linear" : "inverse";
             } else
             {

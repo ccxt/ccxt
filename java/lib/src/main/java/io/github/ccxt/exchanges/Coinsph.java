@@ -2363,7 +2363,7 @@ public class Coinsph extends CoinsphApi
         String marketId = this.safeString(order, "symbol");
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
         Long timestamp = (Long) this.safeInteger2(order, "time", "transactTime");
-        Object trades = this.safeValue(order, "fills");
+        List<Object> trades = (List<Object>) this.safeList(order, "fills");
         String triggerPrice = this.safeString(order, "stopPrice");
         if (Precise.stringEq(triggerPrice, "0"))
         {

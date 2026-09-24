@@ -772,13 +772,13 @@ public class Bitflyer extends BitflyerApi
                 side = null;
             }
         }
-        Object order = null;
+        String order = null;
         if (!java.util.Objects.equals(side, null))
         {
             String idInner = (side + "_child_order_acceptance_id");
             if (((Map<?, ?>)trade).containsKey(idInner))
             {
-                order = Helpers.GetValue(trade, idInner);
+                order = this.safeString(trade, idInner);
             }
         }
         if (java.util.Objects.equals(order, null))
@@ -791,7 +791,7 @@ public class Bitflyer extends BitflyerApi
         String id = this.safeString(trade, "id");
         market = (Map<String, Object>) (this.safeMarket(null, market));
         final Map<String, Object> finalMarket = market;
-        final Object finalOrder = order;
+        final String finalOrder = order;
         final String finalSide = side;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );

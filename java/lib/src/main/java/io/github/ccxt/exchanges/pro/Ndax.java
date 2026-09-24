@@ -267,7 +267,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         List<String> symbols = new ArrayList<String>(updates.keySet());
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
-            Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+            String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
             io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
@@ -448,7 +448,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         List<String> marketIds = new ArrayList<String>(updates.keySet());
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
-            Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+            String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
             List<Object> timeframes = Helpers.objectKeys((updates == null || marketId == null ? null : updates.get(marketId)));
             for (var j = 0; j < ((List<?>)timeframes).size(); j++)
             {

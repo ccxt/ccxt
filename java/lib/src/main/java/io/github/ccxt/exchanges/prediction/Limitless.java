@@ -338,7 +338,7 @@ public class Limitless extends LimitlessApi
         return BaseExchange.supplyAsync(() -> {
 
             List<Object> queries = this.parseSearchQueries(parameters);
-            Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit")));
+            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit")));
             // scope the listing: without a search query loadMarkets would otherwise page through
             // every active limitless market. Cap the total number of markets collected.
             Long maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchMarketsLimit", 1000));
@@ -476,7 +476,7 @@ public class Limitless extends LimitlessApi
             List<String> eventKeys = new ArrayList<String>(eventGroups.keySet());
             for (var i = 0; i < ((List<?>)eventKeys).size(); i++)
             {
-                Object eventKey = (eventKeys == null || i < 0 || i >= eventKeys.size() ? null : eventKeys.get(i));
+                String eventKey = (eventKeys == null || i < 0 || i >= eventKeys.size() ? null : eventKeys.get(i));
                 Object g = (eventGroups == null || eventKey == null ? null : eventGroups.get(eventKey));
                 ((Map<String, Object>)eventsDict).put((String)eventKey, this.parseEvent((Map<String, Object>) (g)));
             }
@@ -635,7 +635,7 @@ public class Limitless extends LimitlessApi
             {
                 legIndex = 1;
             }
-            Object winnerRaw = null;
+            Boolean winnerRaw = null;
             Object settleFractionRaw = null;
             if (Boolean.TRUE.equals(marketResolved))
             {
@@ -648,7 +648,7 @@ public class Limitless extends LimitlessApi
             }
             // effectively-final copies for the object literal below (Java cannot capture a
             // reassigned local into the anonymous inner class it emits for a map literal)
-            Object winner = winnerRaw;
+            Boolean winner = winnerRaw;
             Object settleFraction = settleFractionRaw;
             ((List<Object>)outcomes).add(new HashMap<String, Object>() {{
                 put( "outcome", outcomeHandle );
@@ -3097,7 +3097,7 @@ public class Limitless extends LimitlessApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "conditionId", finalConditionId );
             }};
-            Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("conditionId", "condition_id")));
+            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("conditionId", "condition_id")));
             Map<String, Object> response = (this.limitlessPrivatePostPortfolioRedeem(this.extend(request, rest))).join();
             return new HashMap<String, Object>() {{
                 put( "info", response );
@@ -3949,7 +3949,7 @@ public class Limitless extends LimitlessApi
             Map<String, Object> searchParams = this.extend(new HashMap<String, Object>() {{
                 put( "searchIn", "both" );
             }}, parameters);
-            Object postParams = this.omit(searchParams, new ArrayList<Object>(Arrays.asList("tags")));
+            Map<String, Object> postParams = (Map<String, Object>) this.omit(searchParams, new ArrayList<Object>(Arrays.asList("tags")));
             return this.applyEventFetchParams(result, postParams, queries);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionEvent::new).collect(Collectors.toList()));
 
@@ -3989,7 +3989,7 @@ public class Limitless extends LimitlessApi
             String categoryId = categoryId3;
             Long maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchMarketsLimit", 1000));
             Long pageSize = this.safeInteger(this.options, "marketsPageSize", 25);
-            Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit", "sort", "searchIn", "eventId", "slug", "status", "tags")));
+            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit", "sort", "searchIn", "eventId", "slug", "status", "tags")));
             List<Object> allRaw = new ArrayList<Object>(Arrays.asList());
             Object page = 1;
             Object collected = 0;

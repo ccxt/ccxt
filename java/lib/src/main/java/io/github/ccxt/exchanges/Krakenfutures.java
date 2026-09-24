@@ -576,8 +576,8 @@ public class Krakenfutures extends KrakenfuturesApi
                 String marketType = this.safeString(market, "type");
                 String type = null;
                 Boolean index = (((String)marketType).indexOf(" index") >= 0);
-                Object linear = null;
-                Object inverse = null;
+                Boolean linear = null;
+                Boolean inverse = null;
                 Long expiry = null;
                 if (!Boolean.TRUE.equals(index))
                 {
@@ -634,8 +634,8 @@ public class Krakenfutures extends KrakenfuturesApi
                 final Object finalSettleId = settleId;
                 final String finalType = type;
                 final Boolean finalSwap = swap;
-                final Object finalLinear = linear;
-                final Object finalInverse = inverse;
+                final Boolean finalLinear = linear;
+                final Boolean finalInverse = inverse;
                 final Long finalExpiry = expiry;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );

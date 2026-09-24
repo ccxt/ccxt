@@ -266,7 +266,7 @@ public class Sxbet extends SxbetApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit")));
+            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit")));
             Long userLimit = this.safeInteger(parameters, "limit");
             Object rawMarkets = (this.fetchRawMarketsPaged(rest, userLimit)).join();
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
@@ -437,7 +437,7 @@ public class Sxbet extends SxbetApi
         Boolean active = (java.util.Objects.equals(status, "ACTIVE"));
         // guard against a zero sentinel for "no scheduled game time" - safeTimestamp would
         // turn it into the 1970 epoch
-        Object gameTime = null;
+        Long gameTime = null;
         if (!Helpers.isEqual(this.safeInteger(raw, "gameTime", 0), 0))
         {
             gameTime = this.safeTimestamp(raw, "gameTime");
@@ -463,7 +463,7 @@ final Object finalOi = oi;
             }});
         }
         final String finalMarketHash = marketHash;
-        final Object finalGameTime = gameTime;
+        final Long finalGameTime = gameTime;
         return new HashMap<String, Object>() {{
             put( "id", finalMarketHash );
             put( "market", marketSymbol );
@@ -1593,7 +1593,7 @@ final Object finalI = i;
 
             this.checkRequiredCredentials();
             String eventId = this.safeString2(parameters, "eventId", "sportXeventId");
-            Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("eventId", "sportXeventId")));
+            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("eventId", "sportXeventId")));
             Boolean isEventScoped = (!java.util.Objects.equals(eventId, null));
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isEventScoped))
@@ -2227,7 +2227,7 @@ final Object finalI = i;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", Sxbet.this.safeString(parameters, "status", "MATCHED,LOCKED") );
             }};
-            Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("status")));
+            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("status")));
             Map<String, Object> response = (this.sxbetPrivateGetPositionsV3(this.extend(request, rest))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> rawPositions = (List<Object>) this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
@@ -2421,7 +2421,7 @@ final Object finalI = i;
         Long winner = this.safeInteger(settlement, "outcome");
         Boolean isVoid = ((winner != null && winner == 0));
         Object heldNumber = ((Boolean.TRUE.equals(isBettingOutcomeOne))) ? 1 : 2;
-        Object won = null;
+        Boolean won = null;
         if ((!java.util.Objects.equals(winner, null)) && !Boolean.TRUE.equals(isVoid))
         {
             won = (Helpers.isEqual(winner, heldNumber));
@@ -2448,7 +2448,7 @@ final Object finalI = i;
             settlePrice = (((java.util.Objects.equals(won, true)))) ? 1 : 0;
         }
         final String finalResultLabel = resultLabel;
-        final Object finalWon = won;
+        final Boolean finalWon = won;
         final Object finalSettlePrice = settlePrice;
         return new HashMap<String, Object>() {{
             put( "info", trade );

@@ -1722,7 +1722,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         List<String> keys = new ArrayList<String>(marketIds.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object symbol = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String symbol = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object timeframe = (marketIds == null || symbol == null ? null : marketIds.get(symbol));
             String interval = this.findTimeframe(timeframe);
             String hash = (((("candles" + ":") + interval) + ":") + symbol);

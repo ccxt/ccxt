@@ -1440,53 +1440,53 @@ public class Bigone extends BigoneApi
             put( "cost", null );
             put( "info", trade );
         }};
-        Object makerCurrencyCode = null;
-        Object takerCurrencyCode = null;
+        String makerCurrencyCode = null;
+        String takerCurrencyCode = null;
         if (!java.util.Objects.equals(takerOrMaker, null))
         {
             if (java.util.Objects.equals(side, "buy"))
             {
                 if (java.util.Objects.equals(takerOrMaker, "maker"))
                 {
-                    makerCurrencyCode = ((Map<String, Object>)market).get("base");
-                    takerCurrencyCode = ((Map<String, Object>)market).get("quote");
+                    makerCurrencyCode = this.safeString(market, "base");
+                    takerCurrencyCode = this.safeString(market, "quote");
                 } else
                 {
-                    makerCurrencyCode = ((Map<String, Object>)market).get("quote");
-                    takerCurrencyCode = ((Map<String, Object>)market).get("base");
+                    makerCurrencyCode = this.safeString(market, "quote");
+                    takerCurrencyCode = this.safeString(market, "base");
                 }
             } else
             {
                 if (java.util.Objects.equals(takerOrMaker, "maker"))
                 {
-                    makerCurrencyCode = ((Map<String, Object>)market).get("quote");
-                    takerCurrencyCode = ((Map<String, Object>)market).get("base");
+                    makerCurrencyCode = this.safeString(market, "quote");
+                    takerCurrencyCode = this.safeString(market, "base");
                 } else
                 {
-                    makerCurrencyCode = ((Map<String, Object>)market).get("base");
-                    takerCurrencyCode = ((Map<String, Object>)market).get("quote");
+                    makerCurrencyCode = this.safeString(market, "base");
+                    takerCurrencyCode = this.safeString(market, "quote");
                 }
             }
         } else if (java.util.Objects.equals(side, "SELF_TRADING"))
         {
             if (java.util.Objects.equals(takerSide, "BID"))
             {
-                makerCurrencyCode = ((Map<String, Object>)market).get("quote");
-                takerCurrencyCode = ((Map<String, Object>)market).get("base");
+                makerCurrencyCode = this.safeString(market, "quote");
+                takerCurrencyCode = this.safeString(market, "base");
             } else if (java.util.Objects.equals(takerSide, "ASK"))
             {
-                makerCurrencyCode = ((Map<String, Object>)market).get("base");
-                takerCurrencyCode = ((Map<String, Object>)market).get("quote");
+                makerCurrencyCode = this.safeString(market, "base");
+                takerCurrencyCode = this.safeString(market, "quote");
             }
         }
         String makerFeeCost = this.safeString(trade, "maker_fee");
         String takerFeeCost = this.safeString(trade, "taker_fee");
         if (!java.util.Objects.equals(makerFeeCost, null))
         {
-            Object makerCode = makerCurrencyCode;
+            String makerCode = makerCurrencyCode;
             if (!java.util.Objects.equals(takerFeeCost, null))
             {
-                Object takerCode = takerCurrencyCode;
+                String takerCode = takerCurrencyCode;
                 ((Map<String, Object>)result).put("fees", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
     put( "cost", makerFeeCost );
     put( "currency", makerCode );
@@ -1504,7 +1504,7 @@ public class Bigone extends BigoneApi
             }
         } else if (!java.util.Objects.equals(takerFeeCost, null))
         {
-            Object takerCode2 = takerCurrencyCode;
+            String takerCode2 = takerCurrencyCode;
             final String finalTakerFeeCost_2 = takerFeeCost;
             ((Map<String, Object>)result).put("fee", new HashMap<String, Object>() {{
     put( "cost", finalTakerFeeCost_2 );

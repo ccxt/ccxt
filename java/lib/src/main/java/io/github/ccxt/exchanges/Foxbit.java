@@ -2599,14 +2599,14 @@ public class Foxbit extends FoxbitApi
 
     public Object parseOrder(Object order, Map<String, Object> market)
     {
-        Object symbol = this.safeString(order, "market_symbol");
+        String symbol = this.safeString(order, "market_symbol");
         if (java.util.Objects.equals(market, null) && !java.util.Objects.equals(symbol, null))
         {
             market = (Map<String, Object>) (this.market(symbol));
         }
         if (!java.util.Objects.equals(market, null))
         {
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = this.safeString(market, "symbol");
         }
         Object timestamp = this.parseDate(this.safeString(order, "created_at"));
         String price = this.safeString(order, "price");

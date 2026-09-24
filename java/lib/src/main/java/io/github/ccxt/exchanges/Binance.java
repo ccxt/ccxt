@@ -5533,8 +5533,8 @@ public class Binance extends BinanceApi
         String status = this.safeString2(market, "status", "contractStatus");
         Double contractSize = null;
         Object fees = this.fees;
-        Object linear = null;
-        Object inverse = null;
+        Boolean linear = null;
+        Boolean inverse = null;
         String symbol = ((base + "/") + quote);
         String strike = null;
         if (Boolean.TRUE.equals(contract))
@@ -5629,8 +5629,8 @@ public class Binance extends BinanceApi
         final Boolean finalStock = stock;
         final Boolean finalActive = active;
         final Boolean finalContract = contract;
-        final Object finalLinear = linear;
-        final Object finalInverse = inverse;
+        final Boolean finalLinear = linear;
+        final Boolean finalInverse = inverse;
         final Object finalFees = fees;
         final Double finalContractSize = contractSize;
         final Long finalExpiry = expiry;
@@ -15539,7 +15539,7 @@ public class Binance extends BinanceApi
         Double contracts = this.parseNumber(contractsStringAbs);
         Map<String, Object> leverageBrackets = (Map<String, Object>) this.safeDict(this.options, "leverageBrackets", new HashMap<String, Object>() {{}});
         List<Object> leverageBracket = (List<Object>) this.safeList(leverageBrackets, symbol, new ArrayList<Object>(Arrays.asList()));
-        Object maintenanceMarginPercentageString = null;
+        String maintenanceMarginPercentageString = null;
         for (var i = 0; i < ((List<?>)leverageBracket).size(); i++)
         {
             Object bracket = (leverageBracket == null || i < 0 || i >= leverageBracket.size() ? null : leverageBracket.get(i));
@@ -15547,7 +15547,7 @@ public class Binance extends BinanceApi
             {
                 break;
             }
-            maintenanceMarginPercentageString = Helpers.GetValue(bracket, 1);
+            maintenanceMarginPercentageString = this.safeString(bracket, 1);
         }
         Double maintenanceMarginPercentage = this.parseNumber(maintenanceMarginPercentageString);
         String unrealizedPnlString = this.safeString(position, "unrealizedProfit");
@@ -15602,7 +15602,7 @@ public class Binance extends BinanceApi
                 // mmp = maintenanceMarginPercentage
                 // where ± is negative for long and positive for short
                 // TODO: calculate liquidation price for coinm contracts
-                Object onePlusMaintenanceMarginPercentageString = null;
+                String onePlusMaintenanceMarginPercentageString = null;
                 Object entryPriceSignString = entryPriceString;
                 if (java.util.Objects.equals(side, "short"))
                 {
@@ -15621,7 +15621,7 @@ public class Binance extends BinanceApi
                 //
                 // liquidationPrice = (contracts * contractSize(±1 - mmp)) / (±1/entryPrice * contracts * contractSize - walletBalance)
                 //
-                Object onePlusMaintenanceMarginPercentageString = null;
+                String onePlusMaintenanceMarginPercentageString = null;
                 String entryPriceSignString = entryPriceString;
                 if (java.util.Objects.equals(side, "short"))
                 {
@@ -15789,7 +15789,7 @@ public class Binance extends BinanceApi
         List<Object> leverageBracket = (List<Object>) this.safeList(leverageBrackets, symbol, new ArrayList<Object>(Arrays.asList()));
         String notionalString = this.safeString2(position, "notional", "notionalValue");
         String notionalStringAbs = Precise.stringAbs(notionalString);
-        Object maintenanceMarginPercentageString = null;
+        String maintenanceMarginPercentageString = null;
         for (var i = 0; i < ((List<?>)leverageBracket).size(); i++)
         {
             Object bracket = (leverageBracket == null || i < 0 || i >= leverageBracket.size() ? null : leverageBracket.get(i));
@@ -15797,7 +15797,7 @@ public class Binance extends BinanceApi
             {
                 break;
             }
-            maintenanceMarginPercentageString = Helpers.GetValue(bracket, 1);
+            maintenanceMarginPercentageString = this.safeString(bracket, 1);
         }
         Double notional = this.parseNumber(notionalStringAbs);
         String contractsAbs = Precise.stringAbs(this.safeString(position, "positionAmt"));
@@ -15838,7 +15838,7 @@ public class Binance extends BinanceApi
                 if (Boolean.TRUE.equals(linear))
                 {
                     // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
-                    Object onePlusMaintenanceMarginPercentageString = null;
+                    String onePlusMaintenanceMarginPercentageString = null;
                     Object entryPriceSignString = entryPriceString;
                     if (java.util.Objects.equals(side, "short"))
                     {
@@ -15858,7 +15858,7 @@ public class Binance extends BinanceApi
                 } else
                 {
                     // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
-                    Object onePlusMaintenanceMarginPercentageString = null;
+                    String onePlusMaintenanceMarginPercentageString = null;
                     String entryPriceSignString = entryPriceString;
                     if (java.util.Objects.equals(side, "short"))
                     {
@@ -18436,14 +18436,14 @@ final Map<String, Object> finalMarket = market;
                 put( "amount", finalAmount );
             }};
             Map<String, Object> response = null;
-            Object code = null;
+            String code = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
-                code = ((Map<String, Object>)market).get("quote");
+                code = this.safeString(market, "quote");
                 response = (this.fapiPrivatePostPositionMargin(this.extend(request, parameters))).join();
             } else
             {
-                code = ((Map<String, Object>)market).get("base");
+                code = this.safeString(market, "base");
                 response = (this.dapiPrivatePostPositionMargin(this.extend(request, parameters))).join();
             }
             //
@@ -18458,7 +18458,7 @@ final Map<String, Object> finalMarket = market;
             {
                 throw new NullResponse((this.id + " parseMarginModification() returned empty response")) ;
             }
-            final Object finalCode = code;
+            final String finalCode = code;
             return this.extend(this.parseMarginModification((Map<String, Object>) (response), market), new HashMap<String, Object>() {{
                 put( "code", finalCode );
             }});

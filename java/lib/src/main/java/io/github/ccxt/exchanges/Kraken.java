@@ -1398,7 +1398,7 @@ public class Kraken extends KrakenApi
                 Object marketIds = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+                    String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                     Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                     if (java.util.Objects.equals(((Map<String, Object>)market).get("active"), true))
                     {
@@ -1880,7 +1880,7 @@ public class Kraken extends KrakenApi
         //         "timestamp": "2025-05-27T11:24:03.847761Z"
         //     }
         //
-        Object timestamp = null;
+        Long timestamp = null;
         String datetime = null;
         String side = null;
         String type = null;
@@ -1889,7 +1889,7 @@ public class Kraken extends KrakenApi
         Object id = null;
         String orderId = null;
         Map<String, Object> fee = null;
-        Object symbol = null;
+        String symbol = null;
         if ((trade instanceof List))
         {
             timestamp = this.safeTimestamp(trade, 2);
@@ -1926,12 +1926,12 @@ public class Kraken extends KrakenApi
             amount = this.safeString(trade, "vol");
             if (((Map<?, ?>)trade).containsKey("fee"))
             {
-                Object currency = null;
+                String currency = null;
                 if (!java.util.Objects.equals(market, null))
                 {
-                    currency = ((Map<String, Object>)market).get("quote");
+                    currency = this.safeString(market, "quote");
                 }
-                final Object finalCurrency = currency;
+                final String finalCurrency = currency;
                 fee = new HashMap<String, Object>() {{
                     put( "cost", Kraken.this.safeString(trade, "fee") );
                     put( "currency", finalCurrency );
@@ -1949,7 +1949,7 @@ public class Kraken extends KrakenApi
         }
         if (!java.util.Objects.equals(market, null))
         {
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = this.safeString(market, "symbol");
         }
         String cost = this.safeString(trade, "cost");
         Boolean maker = (Boolean) this.safeBool(trade, "maker");
@@ -1967,9 +1967,9 @@ public class Kraken extends KrakenApi
         }
         final Object finalId = id;
         final String finalOrderId = orderId;
-        final Object finalTimestamp = timestamp;
+        final Long finalTimestamp = timestamp;
         final String finalDatetime = datetime;
-        final Object finalSymbol = symbol;
+        final String finalSymbol = symbol;
         final String finalType = type;
         final String finalSide = side;
         final String finalTakerOrMaker = takerOrMaker;
@@ -2661,7 +2661,7 @@ public class Kraken extends KrakenApi
         rawType = this.safeString(description, "ordertype", rawType); // orderType has dash, e.g. trailing-stop
         marketId = this.safeString(description, "pair", marketId);
         Object foundMarket = this.findMarketByAltnameOrId(marketId);
-        Object symbol = null;
+        String symbol = null;
         if (!java.util.Objects.equals(foundMarket, null))
         {
             market = (Map<String, Object>) (foundMarket);
@@ -2692,7 +2692,7 @@ public class Kraken extends KrakenApi
         Double average = this.safeNumber(order, "price");
         if (!java.util.Objects.equals(market, null))
         {
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = this.safeString(market, "symbol");
             if (((Map<?, ?>)order).containsKey("fee"))
             {
                 String feeCost = this.safeString(order, "fee");
@@ -2726,7 +2726,7 @@ public class Kraken extends KrakenApi
             if ((rawTrade instanceof String))
             {
 final String finalId = id;
-                final Object finalSymbol = symbol;
+                final String finalSymbol = symbol;
                                 ((List<Object>)trades).add(this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
                     put( "id", rawTrade );
                     put( "orderId", finalId );
@@ -2777,7 +2777,7 @@ final String finalId = id;
         }
         final String finalId_2 = id;
         final Object finalOrder = order;
-        final Object finalSymbol_2 = symbol;
+        final String finalSymbol_2 = symbol;
         final String finalTypeParsed = typeParsed;
         final Boolean finalIsPostOnly = isPostOnly;
         final String finalSide = side;

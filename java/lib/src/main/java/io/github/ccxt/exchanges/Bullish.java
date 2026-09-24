@@ -1041,8 +1041,8 @@ public class Bullish extends BullishApi
         Boolean future = false;
         Boolean option = false;
         Boolean contract = true;
-        Object linear = null;
-        Object inverse = null;
+        Boolean linear = null;
+        Boolean inverse = null;
         String expiryDatetime = null;
         Double contractSize = null;
         String optionType = null;
@@ -1091,8 +1091,8 @@ public class Bullish extends BullishApi
         final Boolean finalFuture = future;
         final Boolean finalOption = option;
         final Boolean finalContract = contract;
-        final Object finalLinear = linear;
-        final Object finalInverse = inverse;
+        final Boolean finalLinear = linear;
+        final Boolean finalInverse = inverse;
         final Double finalContractSize = contractSize;
         final String finalExpiryDatetime = expiryDatetime;
         final Object finalStrike = strike;

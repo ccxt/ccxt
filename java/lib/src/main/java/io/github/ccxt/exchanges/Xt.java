@@ -5253,7 +5253,7 @@ public class Xt extends XtApi
         Object filled = (((java.util.Objects.equals(marketType, "spot")))) ? filledQuantity : Precise.stringMul(this.numberToString(filledQuantity), this.numberToString(((Map<String, Object>)market).get("contractSize")));
         Long lastUpdatedTimestamp = this.safeInteger(order, "updatedTime");
         String timeInForce = this.safeString(order, "timeInForce");
-        Object postOnly = null;
+        Boolean postOnly = null;
         if (!java.util.Objects.equals(timeInForce, null))
         {
             if (java.util.Objects.equals(timeInForce, "GTX"))
@@ -5283,7 +5283,7 @@ public class Xt extends XtApi
             }
         }
         final String finalTimeInForce = timeInForce;
-        final Object finalPostOnly = postOnly;
+        final Boolean finalPostOnly = postOnly;
         final String finalSide = side;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
