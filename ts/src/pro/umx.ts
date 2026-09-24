@@ -325,9 +325,14 @@ export default class umx extends umxRest {
     handleOrderBookSubscription (client: Client, message: Dict, subscription: Dict) {
         const symbol = this.safeString (subscription, 'symbol') as string;
         if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
+            // reset the book in place instead of replacing it, a consumer can hold a
+            // reference to it across resubscriptions, see the kraken issue 26773 class
+            const orderbook = this.orderbooks[symbol];
+            orderbook.reset ({});
+            orderbook.cache = [];
+        } else {
+            this.orderbooks[symbol] = this.orderBook ({});
         }
-        this.orderbooks[symbol] = this.orderBook ({});
         this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }
 
@@ -348,6 +353,14 @@ export default class umx extends umxRest {
             orderbook.cache = [];
             for (let i = 0; i < messages.length; i++) {
                 this.handleOrderBookUpdate (client, messages[i], orderbook, symbol);
+                const nonce = this.safeInteger (orderbook, 'nonce');
+                if (nonce === undefined) {
+                    // a gap was hit in the middle of the unroll, the book was reset in place
+                    // and a fresh snapshot is on its way, hand the remaining deltas over to
+                    // the new cycle instead of resolving an unhealed book
+                    orderbook.cache = this.arrayConcat (orderbook.cache, this.arraySlice (messages, i + 1));
+                    return;
+                }
             }
             this.orderbooks[symbol] = orderbook;
             client.resolve (orderbook, messageHash);
@@ -388,9 +401,10 @@ export default class umx extends umxRest {
             orderbook['nonce'] = lastUpdateId;
             client.resolve (orderbook, 'orderbook::' + symbol);
         } else {
-            // a gap in the sequence, the venue asks for a fresh snapshot in that case
-            this.orderbooks[symbol] = this.orderBook ({});
-            this.orderbooks[symbol].cache.push (update);
+            // a gap in the sequence, the venue asks for a fresh snapshot in that case,
+            // the book is reset in place to keep its identity for the held references
+            orderbook.reset ({});
+            orderbook.cache = [ update ];
             const resubscription: Dict = {
                 'symbol': symbol,
                 'params': {},
