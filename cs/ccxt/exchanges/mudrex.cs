@@ -599,7 +599,7 @@ public partial class mudrex : Exchange
             }
             for (int i = 0; i < numItems; i++)
             {
-                aggregated.Add(getValue(items, i));
+                aggregated.Add((items != null && i < items.Count ? items[i] : null));
             }
             if (numItems < pageLimit)
             {
@@ -1545,7 +1545,7 @@ public partial class mudrex : Exchange
             int dataLength = data.Count;
             for (int i = 0; i < dataLength; i++)
             {
-                object entry = getValue(data, i);
+                object entry = (data != null && i < data.Count ? data[i] : null);
                 allRows.Add(entry);
                 if ((this.safeString(entry, "fee_type") == "TRANSACTION"))
                 {
@@ -1592,7 +1592,7 @@ public partial class mudrex : Exchange
             string? rebate = null;
             for (int j = 0; j < (rebateKeys?.Count ?? 0); j++)
             {
-                if (isEqual(rebateKeys[j], getValue(transactionKeys, i)))
+                if (isEqual(rebateKeys[j], (transactionKeys != null && i < transactionKeys.Count ? transactionKeys[i] : null)))
                 {
                     rebate = this.safeString(rebateAmounts, j);
                     // blank the consumed key so the next equal fill matches the next rebate, never the same one twice

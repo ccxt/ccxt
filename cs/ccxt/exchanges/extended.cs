@@ -946,7 +946,7 @@ public partial class extended : Exchange
             List<object> marketIds = new List<object>() {};
             for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
-                Dictionary<string, object> market = this.market(getValue(symbols, i));
+                Dictionary<string, object> market = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
                 marketIds.Add((market.ContainsKey("id") ? market["id"] : null));
             }
             request["market"] = marketIds;
@@ -1211,7 +1211,7 @@ public partial class extended : Exchange
         int dataLength = data.Count;
         for (int i = 0; i < dataLength; i++)
         {
-            object entry = getValue(data, i);
+            object entry = (data != null && i < data.Count ? data[i] : null);
             if (((cursor != null)) && (isEqual(i, (dataLength - 1))))
             {
                 entry = this.extend(entry, new Dictionary<string, object>() {
@@ -1294,7 +1294,7 @@ public partial class extended : Exchange
         int dataLength = data.Count;
         for (int i = 0; i < dataLength; i++)
         {
-            object entry = getValue(data, i);
+            object entry = (data != null && i < data.Count ? data[i] : null);
             if (((cursor != null)) && (isEqual(i, (dataLength - 1))))
             {
                 entry = this.extend(entry, new Dictionary<string, object>() {
@@ -1578,7 +1578,7 @@ public partial class extended : Exchange
         int dataLength = data.Count;
         for (int i = 0; i < dataLength; i++)
         {
-            object entry = getValue(data, i);
+            object entry = (data != null && i < data.Count ? data[i] : null);
             if (((cursor != null)) && (isEqual(i, (dataLength - 1))))
             {
                 entry = this.extend(entry, new Dictionary<string, object>() {
@@ -1895,7 +1895,7 @@ public partial class extended : Exchange
         int dataLength = data.Count;
         for (int i = 0; i < dataLength; i++)
         {
-            object entry = getValue(data, i);
+            object entry = (data != null && i < data.Count ? data[i] : null);
             if (((cursor != null)) && (isEqual(i, (dataLength - 1))))
             {
                 entry = this.extend(entry, new Dictionary<string, object>() {
@@ -2024,7 +2024,7 @@ public partial class extended : Exchange
         int dataLength = data.Count;
         for (int i = 0; i < dataLength; i++)
         {
-            object entry = getValue(data, i);
+            object entry = (data != null && i < data.Count ? data[i] : null);
             if (((cursor != null)) && (isEqual(i, (dataLength - 1))))
             {
                 entry = this.extend(entry, new Dictionary<string, object>() {
@@ -2172,7 +2172,7 @@ public partial class extended : Exchange
         int dataLength = data.Count;
         for (int i = 0; i < dataLength; i++)
         {
-            object entry = getValue(data, i);
+            object entry = (data != null && i < data.Count ? data[i] : null);
             if (((cursor != null)) && (isEqual(i, (dataLength - 1))))
             {
                 entry = this.extend(entry, new Dictionary<string, object>() {
@@ -2718,7 +2718,7 @@ public partial class extended : Exchange
         int dataLength = data.Count;
         for (int i = 0; i < dataLength; i++)
         {
-            object entry = getValue(data, i);
+            object entry = (data != null && i < data.Count ? data[i] : null);
             if (((cursor != null)) && (isEqual(i, (dataLength - 1))))
             {
                 entry = this.extend(entry, new Dictionary<string, object>() {
@@ -3666,7 +3666,7 @@ public partial class extended : Exchange
         int dataLength = data.Count;
         for (int i = 0; i < dataLength; i++)
         {
-            object entry = getValue(data, i);
+            object entry = (data != null && i < data.Count ? data[i] : null);
             if (((cursor != null)) && (isEqual(i, (dataLength - 1))))
             {
                 entry = this.extend(entry, new Dictionary<string, object>() {

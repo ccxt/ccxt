@@ -2192,7 +2192,7 @@ public partial class bingx : ccxt.bingx
         for (int i = 0; i < (messageHashes?.Count ?? 0); i++)
         {
             object unsubHash = messageHashes[i];
-            string? subHash = ((string)getValue(subMessageHashes, i));
+            string? subHash = ((string)(subMessageHashes != null && i < subMessageHashes.Count ? subMessageHashes[i] : null));
             this.cleanUnsubscription(client, subHash, unsubHash);
         }
         this.cleanCache(subscription);

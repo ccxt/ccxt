@@ -2335,7 +2335,7 @@ public partial class htx : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
             result[(string)symbol] = ccxt.BaseExchange.FromDict(await this.FetchTradingLimitsById(this.marketId(symbol), parameters));
         }
         return ccxt.BaseExchange.ToDict(result);
@@ -2746,7 +2746,7 @@ public partial class htx : Exchange
             if ((createdDate != null))
             {
                 List<object> createdArray = this.stringToCharsArray(createdDate);
-                createdDate = add(add(add(add(add(add(add(add(add(add(getValue(createdArray, 0), getValue(createdArray, 1)), getValue(createdArray, 2)), getValue(createdArray, 3)), "-"), getValue(createdArray, 4)), getValue(createdArray, 5)), "-"), getValue(createdArray, 6)), getValue(createdArray, 7)), " 00:00:00");
+                createdDate = add(add(add(add(add(add(add(add(add(add((createdArray != null && 0 < createdArray.Count ? createdArray[0] : null), (createdArray != null && 1 < createdArray.Count ? createdArray[1] : null)), (createdArray != null && 2 < createdArray.Count ? createdArray[2] : null)), (createdArray != null && 3 < createdArray.Count ? createdArray[3] : null)), "-"), (createdArray != null && 4 < createdArray.Count ? createdArray[4] : null)), (createdArray != null && 5 < createdArray.Count ? createdArray[5] : null)), "-"), (createdArray != null && 6 < createdArray.Count ? createdArray[6] : null)), (createdArray != null && 7 < createdArray.Count ? createdArray[7] : null)), " 00:00:00");
                 created = this.parse8601(createdDate);
             }
             result.Add(new Dictionary<string, object>() {
@@ -6891,7 +6891,7 @@ public partial class htx : Exchange
             object price = this.safeValue(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             List<object> marginResult = this.handleMarginModeAndParams("createOrders", orderParams);
-            object currentMarginMode = getValue(marginResult, 0);
+            object currentMarginMode = (marginResult != null && 0 < marginResult.Count ? marginResult[0] : null);
             if ((currentMarginMode != null))
             {
                 if ((marginMode == null))

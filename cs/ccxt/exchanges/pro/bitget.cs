@@ -663,7 +663,7 @@ public partial class bitget : ccxt.bitget
         string? instType = null;
         object messageHash = null;
         List<object> values = this.handleOptionBoolAndParams(parameters, "watchOHLCV", "uta", false);
-        object uta = getValue(values, 0);
+        object uta = (values != null && 0 < values.Count ? values[0] : null);
         var instTypeparametersVariable = this.getInstType("watchOHLCV", market, uta, parameters);
         instType = (string)instTypeparametersVariable[0];
         parameters = instTypeparametersVariable[1];
@@ -1280,7 +1280,7 @@ public partial class bitget : ccxt.bitget
     {
         parameters ??= new Dictionary<string, object>();
         List<object> values = this.handleOptionBoolAndParams(parameters, "watchTrades", "uta", false);
-        object uta = getValue(values, 0);
+        object uta = (values != null && 0 < values.Count ? values[0] : null);
         string channelTopic = "trade";
         if (isTrue(uta))
         {
@@ -2610,7 +2610,7 @@ public partial class bitget : ccxt.bitget
         string? instType = this.safeStringLower(arg, "instType");
         for (int i = 0; i < length; i++)
         {
-            object trade = getValue(data, i);
+            object trade = (data != null && i < data.Count ? data[i] : null);
             IDictionary<string, object> market = null;
             if (instType == "uta")
             {

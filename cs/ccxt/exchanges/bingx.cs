@@ -4065,7 +4065,7 @@ public partial class bingx : Exchange
         }
         IList<object> symbols = this.marketSymbols(marketIds, null, false, true, true);
         int symbolsLength = (symbols?.Count ?? 0);
-        Dictionary<string, object> market = this.market(getValue(symbols, 0));
+        Dictionary<string, object> market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
         if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
         {
             throw new NotSupported ((this.id + " createOrders() is not supported for inverse swap markets")) ;
@@ -6399,7 +6399,7 @@ public partial class bingx : Exchange
         {
             for (int i = 0; i < networksLength; i++)
             {
-                string? networkCode = ((string)getValue(networkCodes, i));
+                string? networkCode = ((string)(networkCodes != null && i < networkCodes.Count ? networkCodes[i] : null));
                 IDictionary<string, object> network = this.safeDict(networks, networkCode);
                 ((IDictionary<string,object>)((IDictionary<string,object>)result)["networks"])[(string)networkCode] = new Dictionary<string, object>() {
                     { "deposit", new Dictionary<string, object>() {

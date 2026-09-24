@@ -33,7 +33,7 @@ public partial class testMainClass : BaseTest
             // loop
             for (int i = 0; i < currenciesLength; i++)
             {
-                object currency = getValue(values, i);
+                object currency = (values != null && i < values.Count ? values[i] : null);
                 testCurrency(exchange, skippedProperties, method, currency);
                 // detailed check for deposit/withdraw
                 bool? active = exchange.safeBool(currency, "active");

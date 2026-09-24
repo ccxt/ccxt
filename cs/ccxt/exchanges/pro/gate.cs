@@ -1134,14 +1134,14 @@ public partial class gate : ccxt.gate
         }
         symbols = this.marketSymbols(symbols);
         IList<object> marketIds = this.marketIds(symbols);
-        Dictionary<string, object> market = this.market(getValue(symbols, 0));
+        Dictionary<string, object> market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
         object messageType = this.getTypeByMarket(market);
         string? channel = ((string)add(messageType, ".trades"));
         List<object> subMessageHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
             subMessageHashes.Add(("trades:" + symbol));
             messageHashes.Add(("unsubscribe:trades:" + symbol));
         }
@@ -2052,7 +2052,7 @@ public partial class gate : ccxt.gate
             {
                 throw new BadRequest ((this.id + " watchMyLiquidationsForSymbols() only allows one symbol at a time. To listen to several symbols call watchMyLiquidationsForSymbols() several times.")) ;
             }
-            messageHash = ("myLiquidations::" + (getValue(symbols, 0)));
+            messageHash = ("myLiquidations::" + ((symbols != null && 0 < symbols.Count ? symbols[0] : null)));
             payload.Add((market.ContainsKey("id") ? market["id"] : null));
         }
         string channel = (typeId + ".liquidates");
@@ -2364,7 +2364,7 @@ public partial class gate : ccxt.gate
                 for (int j = 0; j < messageHashes.Count; j++)
                 {
                     object unsubHash = messageHashes[j];
-                    string? subHash = ((string)getValue(subMessageHashes, j));
+                    string? subHash = ((string)(subMessageHashes != null && j < subMessageHashes.Count ? subMessageHashes[j] : null));
                     this.cleanUnsubscription(client, subHash, unsubHash);
                 }
                 this.cleanCache(subscription);

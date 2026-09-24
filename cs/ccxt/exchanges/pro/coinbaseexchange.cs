@@ -399,7 +399,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < symbolsLength; i++)
         {
-            string? marketId = ((string)getValue(marketIds, i));
+            string? marketId = ((string)(marketIds != null && i < marketIds.Count ? marketIds[i] : null));
             messageHashes.Add(((name + ":") + marketId));
         }
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));

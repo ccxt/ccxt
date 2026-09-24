@@ -973,7 +973,7 @@ public partial class poloniex : Exchange
         parameters ??= new Dictionary<string, object>();
         List<object> promises = new List<object> {this.FetchSpotMarkets(parameters), this.FetchSwapMarkets(parameters)};
         List<object> results = await promiseAll(promises);
-        return ccxt.BaseExchange.ToMarketInterfaceList(this.arrayConcat(getValue(results, 0), getValue(results, 1)));
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.arrayConcat((results != null && 0 < results.Count ? results[0] : null), (results != null && 1 < results.Count ? results[1] : null)));
     }
 
     public async virtual Task<List<ccxt.MarketInterface>> FetchSpotMarkets(object parameters = null)
@@ -1364,7 +1364,7 @@ public partial class poloniex : Exchange
             int symbolsLength = symbols?.Count ?? 0;
             if (symbolsLength > 0)
             {
-                market = this.market(getValue(symbols, 0));
+                market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
                 if ((symbolsLength == 1))
                 {
                     request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);

@@ -114,7 +114,7 @@ public partial class PredictionExchange : BaseExchange
         string extraNames = "";
         for (int i = 0; i < extraScopeParamsLength; i++)
         {
-            object scopeKey = getValue(extraScopeParams, i);
+            object scopeKey = (extraScopeParams != null && i < extraScopeParams.Count ? extraScopeParams[i] : null);
             if (inOp(parameters, scopeKey))
             {
                 return null;
@@ -813,7 +813,7 @@ public partial class PredictionExchange : BaseExchange
         int marketsLength = markets.Count;
         for (int i = 0; i < marketsLength; i++)
         {
-            object m = getValue(markets, i);
+            object m = (markets != null && i < markets.Count ? markets[i] : null);
             string? marketHandle = this.safeString2(m, "market", "symbol");
             if ((marketHandle != null))
             {
@@ -857,9 +857,9 @@ public partial class PredictionExchange : BaseExchange
                 List<object> stillMissing = new List<object>() {};
                 for (int i = 0; i < missingLength; i++)
                 {
-                    if (!this.hasOutcome(getValue(missing, i)))
+                    if (!this.hasOutcome((missing != null && i < missing.Count ? missing[i] : null)))
                     {
-                        stillMissing.Add(getValue(missing, i));
+                        stillMissing.Add((missing != null && i < missing.Count ? missing[i] : null));
                     }
                 }
                 missing = stillMissing;
@@ -1511,7 +1511,7 @@ public partial class PredictionExchange : BaseExchange
             }
             for (int i = 0; i < tradesLength; i++)
             {
-                IDictionary<string, object> trade = ((IDictionary<string, object>)getValue(trades, i));
+                IDictionary<string, object> trade = ((IDictionary<string, object>)(trades != null && i < trades.Count ? trades[i] : null));
                 string? tradeAmount = this.safeString(trade, "amount");
                 if ((tradeAmount != null))
                 {
@@ -1578,7 +1578,7 @@ public partial class PredictionExchange : BaseExchange
             int reducedLength = (reduced?.Count ?? 0);
             if (reducedLength > 0)
             {
-                fee = getValue(reduced, 0);
+                fee = (reduced != null && 0 < reduced.Count ? reduced[0] : null);
             }
         }
         // derive timeInForce/postOnly the same way the crypto safeOrder does (prediction has no

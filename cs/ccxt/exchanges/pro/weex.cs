@@ -295,7 +295,7 @@ public partial class weex : ccxt.weex
         List<object> unSubHashes = new List<object>() {};
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
             Dictionary<string, object> market = this.market(symbol);
             string? channelName = ((string)add(add((market.ContainsKey("id") ? market["id"] : null), "@"), topic));
             string messageHash = ((topic + "::") + symbol);
@@ -516,7 +516,7 @@ public partial class weex : ccxt.weex
         List<object> unSubHashes = new List<object>() {};
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
             Dictionary<string, object> market = this.market(symbol);
             string? channelName = ((string)add(add((market.ContainsKey("id") ? market["id"] : null), "@"), topic));
             string messageHash = ((topic + "::") + symbol);
@@ -1000,7 +1000,7 @@ public partial class weex : ccxt.weex
         List<object> unSubHashes = new List<object>() {};
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
             Dictionary<string, object> market = this.market(symbol);
             string messageHash = ("orderbook::" + symbol);
             string? channel = ((string)add(add((market.ContainsKey("id") ? market["id"] : null), "@depth"), depth));
@@ -1151,7 +1151,7 @@ public partial class weex : ccxt.weex
         List<object> unSubHashes = new List<object>() {};
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
             Dictionary<string, object> market = this.market(symbol);
             string? channelName = ((string)add(add((market.ContainsKey("id") ? market["id"] : null), "@"), "bookTicker"));
             string messageHash = ("bidask::" + symbol);

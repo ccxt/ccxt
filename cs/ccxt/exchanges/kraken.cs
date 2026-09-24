@@ -1258,7 +1258,7 @@ public partial class kraken : Exchange
             List<object> marketIds = new List<object>() {};
             for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
-                string? symbol = ((string)getValue(symbols, i));
+                string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
                 Dictionary<string, object> market = this.market(symbol);
                 if ((((market.ContainsKey("active") ? market["active"] : null) as bool?) == true))
                 {
@@ -1568,7 +1568,7 @@ public partial class kraken : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> items = ccxt.BaseExchange.FromLedgerEntryList(await this.FetchLedgerEntriesByIds(new List<object>() {id},code, parameters));
-        return ccxt.BaseExchange.ToLedgerEntry(getValue(items, 0));
+        return ccxt.BaseExchange.ToLedgerEntry((items != null && 0 < items.Count ? items[0] : null));
     }
 
     public override Dictionary<string, object> parseTrade(object trade, object market = null)
@@ -1938,9 +1938,9 @@ public partial class kraken : Exchange
             { "volume", this.amountToPrecision(symbol, amount) },
         };
         List<object> orderRequest = this.orderRequest("createOrder", symbol, type, request, amount, price, parameters);
-        string? flags = this.safeString(getValue(orderRequest, 0), "oflags", "");
+        string? flags = this.safeString((orderRequest != null && 0 < orderRequest.Count ? orderRequest[0] : null), "oflags", "");
         bool isUsingCost = getIndexOf(flags, "viqc") > -1;
-        Dictionary<string, object> response = await this.privatePostAddOrder(this.extend(getValue(orderRequest, 0), getValue(orderRequest, 1)));
+        Dictionary<string, object> response = await this.privatePostAddOrder(this.extend((orderRequest != null && 0 < orderRequest.Count ? orderRequest[0] : null), (orderRequest != null && 1 < orderRequest.Count ? orderRequest[1] : null)));
         //
         //     {
         //         "error": [],
@@ -2006,7 +2006,7 @@ public partial class kraken : Exchange
                 { "volume", parsedAmount },
             };
             List<object> orderRequest = this.orderRequest("createOrders", marketId, type, req, amount, price, orderParams);
-            ordersRequests.Add(getValue(orderRequest, 0));
+            ordersRequests.Add((orderRequest != null && 0 < orderRequest.Count ? orderRequest[0] : null));
         }
         orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
         Dictionary<string, object> response = null;

@@ -227,7 +227,7 @@ public partial class opinion : PredictionExchange
             Int64? total = this.safeInteger(result, "total");
             for (int i = 0; i < rawMarketsLength; i++)
             {
-                object raw = getValue(rawMarkets, i);
+                object raw = (rawMarkets != null && i < rawMarkets.Count ? rawMarkets[i] : null);
                 Int64? marketType = this.safeInteger(raw, "marketType");
                 if ((marketType == 1))
                 {
@@ -344,7 +344,7 @@ public partial class opinion : PredictionExchange
         for (int i = 0; i < (outcomeLabels?.Count ?? 0); i++)
         {
             string? label = ((string)outcomeLabels[i]);
-            string? tokenId = ((string)getValue(outcomeTokenIds, i));
+            string? tokenId = ((string)(outcomeTokenIds != null && i < outcomeTokenIds.Count ? outcomeTokenIds[i] : null));
             string? outcomeHandle = this.slugToOutcomeSymbol(effectiveEventSlug, slug, label);
             bool? winner = null;
             int? settleFraction = null;
@@ -517,7 +517,7 @@ public partial class opinion : PredictionExchange
             fetchedRawCount = this.sum(fetchedRawCount, pageEventsLength);
             for (int i = 0; i < pageEventsLength; i++)
             {
-                rawEvents.Add(getValue(pageEvents, i));
+                rawEvents.Add((pageEvents != null && i < pageEvents.Count ? pageEvents[i] : null));
             }
             Int64? total = this.safeInteger(result, "total");
             if ((isLessThan(pageEventsLength, reqLimit)) || (isGreaterThanOrEqual(page, maxPages)) || (((total != null)) && (isGreaterThanOrEqual(fetchedRawCount, total))) || (isGreaterThanOrEqual(fetchedRawCount, fetchCap)))
@@ -534,14 +534,14 @@ public partial class opinion : PredictionExchange
         }
         for (int i = 0; i < rawEventsLength; i++)
         {
-            Dictionary<string, object> eventVar = this.parseEvent(getValue(rawEvents, i));
+            Dictionary<string, object> eventVar = this.parseEvent((rawEvents != null && i < rawEvents.Count ? rawEvents[i] : null));
             parsedEvents.Add(eventVar);
             // register the parsed markets so populateOutcomes can index their outcomes
             List<object> eventMarkets = this.safeList(eventVar, "markets", new List<object>() {});
             int eventMarketsLength = eventMarkets.Count;
             for (int mi = 0; mi < eventMarketsLength; mi++)
             {
-                object m = getValue(eventMarkets, mi);
+                object m = (eventMarkets != null && mi < eventMarkets.Count ? eventMarkets[mi] : null);
                 ((IDictionary<string,object>)this.markets)[(string)getValue(m, "market")] = m;
             }
         }
@@ -695,7 +695,7 @@ public partial class opinion : PredictionExchange
         List<object> marketsList = new List<object>() {};
         for (int i = 0; i < rawChildrenLength; i++)
         {
-            marketsList.Add(this.parseOpinionMarket(getValue(rawChildren, i), slug));
+            marketsList.Add(this.parseOpinionMarket((rawChildren != null && i < rawChildren.Count ? rawChildren[i] : null), slug));
         }
         string? statusEnum = this.safeString(rawEvent, "statusEnum");
         bool active = (statusEnum == "Activated");
@@ -843,7 +843,7 @@ public partial class opinion : PredictionExchange
         List<object> promises = new List<object>() {};
         for (int i = 0; i < outcomesLength; i++)
         {
-            IDictionary<string, object> outcomeObj = this.outcome(getValue(outcomes, i));
+            IDictionary<string, object> outcomeObj = this.outcome((outcomes != null && i < outcomes.Count ? outcomes[i] : null));
             string tokenId = ((string)(outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("outcomeId") ? ((IDictionary<string, object>)outcomeObj)["outcomeId"] : null));
             promises.Add(this.opinionPublicGetTokenLatestPrice(this.extend(new Dictionary<string, object>() {
                 { "token_id", tokenId },
@@ -856,7 +856,7 @@ public partial class opinion : PredictionExchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < outcomesLength; i++)
         {
-            IDictionary<string, object> outcomeObj = this.outcome(getValue(outcomes, i));
+            IDictionary<string, object> outcomeObj = this.outcome((outcomes != null && i < outcomes.Count ? outcomes[i] : null));
             Int64 priceIndex = multiply(i, 2);
             object priceResponse = getValue(responses, priceIndex);
             object bookResponse = getValue(responses, this.sum(priceIndex, 1));
@@ -1018,7 +1018,7 @@ public partial class opinion : PredictionExchange
         Dictionary<string, object> quoteTokens = new Dictionary<string, object>() {};
         for (int i = 0; i < listLength; i++)
         {
-            object entry = getValue(list, i);
+            object entry = (list != null && i < list.Count ? list[i] : null);
             string? address = this.safeStringLower(entry, "quoteTokenAddress");
             if ((address != null))
             {
@@ -1506,7 +1506,7 @@ public partial class opinion : PredictionExchange
         int tradesLength = trades.Count;
         for (int i = 0; i < tradesLength; i++)
         {
-            object trade = getValue(trades, i);
+            object trade = (trades != null && i < trades.Count ? trades[i] : null);
             string? tokenId = this.safeString(trade, "tokenId");
             Int64? marketId = this.safeInteger(trade, "marketId");
             if (((tokenId == null)) && ((marketId != null)))
@@ -1618,7 +1618,7 @@ public partial class opinion : PredictionExchange
         int rawBalancesLength = rawBalances.Count;
         for (int i = 0; i < rawBalancesLength; i++)
         {
-            object rawBalance = getValue(rawBalances, i);
+            object rawBalance = (rawBalances != null && i < rawBalances.Count ? rawBalances[i] : null);
             string? quoteTokenAddress = this.safeString(rawBalance, "quoteToken");
             IDictionary<string, object> quoteToken = await this.loadQuoteToken(quoteTokenAddress);
             ((IDictionary<string,object>)rawBalance)["symbol"] = this.safeString(quoteToken, "symbol", "USDT");
@@ -2002,7 +2002,7 @@ public partial class opinion : PredictionExchange
         int marketKeysLength = marketKeys.Count;
         for (int i = 0; i < marketKeysLength; i++)
         {
-            IDictionary<string, object> market = this.safeDict(this.markets, getValue(marketKeys, i));
+            IDictionary<string, object> market = this.safeDict(this.markets, (marketKeys != null && i < marketKeys.Count ? marketKeys[i] : null));
             IDictionary<string, object> info = this.safeDict(market, "info", new Dictionary<string, object>() {});
             if (isEqual(this.safeInteger(info, "marketId"), marketId))
             {

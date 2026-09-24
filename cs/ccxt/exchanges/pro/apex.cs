@@ -276,7 +276,7 @@ public partial class apex : ccxt.apex
         object newTopicsCount = 0;
         for (int i = 0; i < getArrayLength(topics); i++)
         {
-            if (!(inOp(client.subscriptions, getValue(messageHashes, i))))
+            if (!(inOp(client.subscriptions, (messageHashes != null && i < messageHashes.Count ? messageHashes[i] : null))))
             {
                 newTopics.Add(getValue(topics, i));
                 newTopicsCount = add(newTopicsCount, 1);

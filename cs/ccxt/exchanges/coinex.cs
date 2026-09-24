@@ -1317,8 +1317,8 @@ public partial class coinex : Exchange
         parameters ??= new Dictionary<string, object>();
         List<object> promisesUnresolved = new List<object> {this.FetchSpotMarkets(parameters), this.FetchContractMarkets(parameters)};
         List<object> promises = await promiseAll(promisesUnresolved);
-        object spotMarkets = getValue(promises, 0);
-        object swapMarkets = getValue(promises, 1);
+        object spotMarkets = (promises != null && 0 < promises.Count ? promises[0] : null);
+        object swapMarkets = (promises != null && 1 < promises.Count ? promises[1] : null);
         return ccxt.BaseExchange.ToMarketInterfaceList(this.arrayConcat(spotMarkets, swapMarkets));
     }
 
@@ -3984,7 +3984,7 @@ public partial class coinex : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToPosition(this.parsePosition(getValue(data, 0), market));
+        return ccxt.BaseExchange.ToPosition(this.parsePosition((data != null && 0 < data.Count ? data[0] : null), market));
     }
 
     public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
