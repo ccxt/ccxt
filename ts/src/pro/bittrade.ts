@@ -181,7 +181,7 @@ export default class bittrade extends bittradeRest {
         //     }
         //
         const tick = this.safeDict (message, 'tick', {});
-        const data = this.safeList (tick, 'data', []);
+        const data: Dict[] = this.safeList (tick, 'data', []);
         const ch = this.safeString (message, 'ch');
         if (ch === undefined) {
             return message;

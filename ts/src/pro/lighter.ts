@@ -576,7 +576,7 @@ export default class lighter extends lighterRest {
         if (liquidationDataLength > 0) {
             this.handleLiquidation (client, message);
         }
-        const data = this.safeList (message, 'trades', []);
+        const data: Dict[] = this.safeList (message, 'trades', []);
         const channel = this.safeString (message, 'channel', '');
         const parts = channel.split (':');
         const marketId = parts[1];
@@ -949,7 +949,7 @@ export default class lighter extends lighterRest {
         //         "type": "subscribed/trade"
         //     }
         //
-        const data = this.safeList (message, 'liquidation_trades', []);
+        const data: Dict[] = this.safeList (message, 'liquidation_trades', []);
         const channel = this.safeString (message, 'channel', '');
         const parts = channel.split (':');
         const marketId = parts[1];
@@ -1336,7 +1336,7 @@ export default class lighter extends lighterRest {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
-            const orders = this.safeList (data, marketId, []);
+            const orders: Dict[] = this.safeList (data, marketId, []);
             for (let j = 0; j < orders.length; j++) {
                 const order = this.parseOrder (orders[j], market);
                 stored.append (order);

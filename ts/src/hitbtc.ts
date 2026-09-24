@@ -1326,7 +1326,7 @@ export default class hitbtc extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const marketInner = this.market (marketId);
-            const rawTrades = this.safeList (response, marketId, []);
+            const rawTrades: Dict[] = this.safeList (response, marketId, []);
             const parsed = this.parseTrades (rawTrades, marketInner);
             trades = this.arrayConcat (trades, parsed);
         }
@@ -2726,7 +2726,7 @@ export default class hitbtc extends Exchange {
         } else {
             throw new BadSymbol (this.id + ' fetchMarginModes () supports swap contracts and margin only');
         }
-        const config = this.safeList (response, 'config', []);
+        const config: Dict[] = this.safeList (response, 'config', []);
         return this.parseMarginModes (config, symbols, 'symbol');
     }
 

@@ -765,7 +765,7 @@ export default class deepcoin extends Exchange {
             'instType': this.convertToInstrumentType (marketType),
         };
         const response = await this.publicGetDeepcoinMarketTickers (this.extend (request, params));
-        const tickers = this.safeList (response, 'data', []);
+        const tickers: Dict[] = this.safeList (response, 'data', []);
         return this.parseTickers (tickers, symbols);
     }
 
@@ -1205,7 +1205,7 @@ export default class deepcoin extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const list = this.safeList (data, 'list', []);
+        const list: Dict[] = this.safeList (data, 'list', []);
         const additionalParams: Dict = {
             'currency': code,
         };
@@ -2795,7 +2795,7 @@ export default class deepcoin extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const rates = this.safeList (data, 'current_fund_rates', []);
+        const rates: Dict[] = this.safeList (data, 'current_fund_rates', []);
         return this.parseFundingRates (rates, symbols);
     }
 

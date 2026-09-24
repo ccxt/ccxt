@@ -2416,7 +2416,7 @@ export default class gate extends Exchange {
             'currency': currency['id'],
         };
         const response = await this.privateWalletGetDepositAddress (this.extend (request, params));
-        const chains = this.safeList (response, 'multichain_addresses', []);
+        const chains: Dict[] = this.safeList (response, 'multichain_addresses', []);
         const currencyId = this.safeString (response, 'currency');
         currency = this.safeCurrency (currencyId, currency);
         const parsed = this.parseDepositAddresses (chains, undefined, false);
@@ -7558,7 +7558,7 @@ export default class gate extends Exchange {
             response = await this.privateOptionsGetMySettlements (this.extend (request, params));
         }
         const result = this.safeDict (response, 'result', {});
-        const data = this.safeList (result, 'list', []);
+        const data: Dict[] = this.safeList (result, 'list', []);
         const settlements = this.parseSettlements (data, market);
         const sorted = this.sortBy (settlements, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);

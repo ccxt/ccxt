@@ -2655,7 +2655,7 @@ export default class weex extends Exchange {
         } else {
             response = await this.contractPrivateDeleteCapiV3BatchOrders (this.extend (request, params));
         }
-        const ordersResponse = this.safeList (response, 'orderList', []);
+        const ordersResponse: Dict[] = this.safeList (response, 'orderList', []);
         const extendedParams: Dict = {
             'status': 'canceled',
         };
@@ -3656,7 +3656,7 @@ export default class weex extends Exchange {
         //         ]
         //     }
         //
-        const items = this.safeList (response, 'items', []);
+        const items: Dict[] = this.safeList (response, 'items', []);
         return this.parseIncomes (items, market, since, limit);
     }
 

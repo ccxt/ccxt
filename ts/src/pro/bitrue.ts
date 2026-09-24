@@ -532,7 +532,7 @@ export default class bitrue extends bitrueRest {
         }
         const symbol = market['symbol'];
         const tick = this.safeDict (message, 'tick', {});
-        const data = this.safeList (tick, 'data', []);
+        const data: Dict[] = this.safeList (tick, 'data', []);
         let appended = false;
         let stored = this.safeValue (this.trades, symbol);
         for (let i = 0; i < data.length; i++) {

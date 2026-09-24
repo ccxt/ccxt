@@ -2101,7 +2101,7 @@ export default class lighter extends Exchange {
         //         ]
         //     }
         //
-        const accounts = this.safeList (response, 'accounts', []);
+        const accounts: Dict[] = this.safeList (response, 'accounts', []);
         return this.parseAccounts (accounts, params);
     }
 
@@ -2214,7 +2214,7 @@ export default class lighter extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'orders', []);
+        const data: Dict[] = this.safeList (response, 'orders', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -2296,7 +2296,7 @@ export default class lighter extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'orders', []);
+        const data: Dict[] = this.safeList (response, 'orders', []);
         return this.parseOrders (data, market, since, limit);
     }
 

@@ -1320,7 +1320,7 @@ export default class bigone extends Exchange {
         //         ]
         //     }
         //
-        const trades = this.safeList (response, 'data', []);
+        const trades: Dict[] = this.safeList (response, 'data', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1847,7 +1847,7 @@ export default class bigone extends Exchange {
         //        "page_token":"dxzef",
         //    }
         //
-        const orders = this.safeList (response, 'data', []);
+        const orders: Dict[] = this.safeList (response, 'data', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1912,7 +1912,7 @@ export default class bigone extends Exchange {
         //         "page_token":"dxfv"
         //     }
         //
-        const trades = this.safeList (response, 'data', []);
+        const trades: Dict[] = this.safeList (response, 'data', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -2206,7 +2206,7 @@ export default class bigone extends Exchange {
         //         ]
         //     }
         //
-        const deposits = this.safeList (response, 'data', []);
+        const deposits: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransactions (deposits, currency, since, limit);
     }
 
@@ -2261,7 +2261,7 @@ export default class bigone extends Exchange {
         //         "page_token":"dxvf"
         //     }
         //
-        const withdrawals = this.safeList (response, 'data', []);
+        const withdrawals: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransactions (withdrawals, currency, since, limit);
     }
 

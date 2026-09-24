@@ -978,7 +978,7 @@ export default class bydfi extends bydfiRest {
         const messageHash = 'balance';
         if (messageHash in client.futures) {
             const data = this.safeDict (message, 'a', {});
-            const balances = this.safeList (data, 'B', []);
+            const balances: Dict[] = this.safeList (data, 'B', []);
             const timestamp = this.safeInteger (message, 'T');
             const result: Dict = {
                 'info': message,

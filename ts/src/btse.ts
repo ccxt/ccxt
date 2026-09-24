@@ -1278,7 +1278,7 @@ export default class btse extends Exchange {
         // the unified endpoint serves all market types in one call, the legacy type param is accepted and ignored
         params = this.omit (params, 'type');
         const response = await this.publicGetPublicApiMarketV1Ticker24hr (params);
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTickers (data, symbols);
     }
 
@@ -1612,7 +1612,7 @@ export default class btse extends Exchange {
         //         "time": 1786605671650
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const trades = this.parseTrades (data, market, since, limit);
         if (until === undefined) {
             return trades;

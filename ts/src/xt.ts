@@ -1130,7 +1130,7 @@ export default class xt extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'result', {});
-        const symbols = this.safeList (data, 'symbols', []);
+        const symbols: Dict[] = this.safeList (data, 'symbols', []);
         return this.parseMarkets (symbols);
     }
 
@@ -2121,7 +2121,7 @@ export default class xt extends Exchange {
         //         ]
         //     }
         //
-        const trades = this.safeList (response, 'result', []);
+        const trades: Dict[] = this.safeList (response, 'result', []);
         return this.parseTrades (trades, market);
     }
 
@@ -2233,7 +2233,7 @@ export default class xt extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'result', {});
-        const trades = this.safeList (data, 'items', []);
+        const trades: Dict[] = this.safeList (data, 'items', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -3173,7 +3173,7 @@ export default class xt extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'result', {});
-        const orders = this.safeList (data, 'items', []);
+        const orders: Dict[] = this.safeList (data, 'items', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -4070,7 +4070,7 @@ export default class xt extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'result', {});
-        const ledger = this.safeList (data, 'items', []);
+        const ledger: Dict[] = this.safeList (data, 'items', []);
         return this.parseLedger (ledger, currency, since, limit);
     }
 
@@ -4240,7 +4240,7 @@ export default class xt extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'result', {});
-        const deposits = this.safeList (data, 'items', []);
+        const deposits: Dict[] = this.safeList (data, 'items', []);
         return this.parseTransactions (deposits, currency, since, limit, params);
     }
 
@@ -4299,7 +4299,7 @@ export default class xt extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'result', {});
-        const withdrawals = this.safeList (data, 'items', []);
+        const withdrawals: Dict[] = this.safeList (data, 'items', []);
         return this.parseTransactions (withdrawals, currency, since, limit, params);
     }
 
@@ -5459,7 +5459,7 @@ export default class xt extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const items = this.safeList (result, 'items', []);
+        const items: Dict[] = this.safeList (result, 'items', []);
         const positions = this.parsePositions (items, symbols);
         return this.filterBySinceLimit (positions, since, limit);
     }

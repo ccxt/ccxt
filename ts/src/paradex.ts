@@ -950,7 +950,7 @@ export default class paradex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'results', []);
+        const data: Dict[] = this.safeList (response, 'results', []);
         return this.parseTickers (data, symbols);
     }
 
@@ -1078,7 +1078,7 @@ export default class paradex extends Exchange {
             'market': target,
         };
         const response = await this.publicGetMarketsSummary (this.extend (request, params));
-        const data = this.safeList (response, 'results', []);
+        const data: Dict[] = this.safeList (response, 'results', []);
         return this.parseFundingRates (data, symbols);
     }
 
@@ -2018,7 +2018,7 @@ export default class paradex extends Exchange {
         //     ]
         // }
         //
-        const responseOrders = this.safeList (response, 'orders', []);
+        const responseOrders: Dict[] = this.safeList (response, 'orders', []);
         const parsedOrders = this.parseOrders (responseOrders);
         const errors = this.safeList (response, 'errors', []) as List;
         for (let i = 0; i < errors.length; i++) {
@@ -3355,7 +3355,7 @@ export default class paradex extends Exchange {
         //     ]
         // }
         //
-        const results = this.safeList (response, 'results', []);
+        const results: Dict[] = this.safeList (response, 'results', []);
         return this.parseIncomes (results, market, since, limit);
     }
 

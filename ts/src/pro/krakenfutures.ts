@@ -1102,7 +1102,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //    {
         //        "time": 1680811086487,

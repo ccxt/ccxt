@@ -181,7 +181,7 @@ export default class woofipro extends woofiproRest {
         return await this.watchPublic (topic, message);
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "symbol": "PERP_BTC_USDC",

@@ -2327,7 +2327,7 @@ export default class htx extends Exchange {
             throw new NotSupported (this.id + ' fetchLastPrices() does not support ' + type + ' markets yet');
         }
         const tick = this.safeDict (response, 'tick', {});
-        const data = this.safeList (tick, 'data', []);
+        const data: Dict[] = this.safeList (tick, 'data', []);
         return this.parseLastPrices (data, symbols);
     }
 
@@ -2665,7 +2665,7 @@ export default class htx extends Exchange {
             'order-id': id,
         };
         const response = await this.spotPrivateGetV1OrderOrdersOrderIdMatchresults (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTrades (data, undefined, since, limit);
     }
 
@@ -3966,7 +3966,7 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -6432,7 +6432,7 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const parsed = this.parseDepositAddresses (data, [ currency['code'] ], false);
         return this.indexBy (parsed, 'network') as DepositAddresses;
     }
@@ -6480,7 +6480,7 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const allAddresses: Dict[] = this.parseDepositAddresses (data, [ currency['code'] ], false);
         const addresses: List = [];
         for (let i = 0; i < allAddresses.length; i++) {
@@ -6554,7 +6554,7 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -6616,7 +6616,7 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -7036,7 +7036,7 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransfers (data, currency, since, limit);
     }
 
@@ -7443,7 +7443,7 @@ export default class htx extends Exchange {
         //         "ts": 1643346173103
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseFundingRates (data, symbols);
     }
 
@@ -7861,7 +7861,7 @@ export default class htx extends Exchange {
             request['symbol'] = market['id'];
             response = await this.contractPrivatePostApiV3ContractFinancialRecordExact (this.extend (request, params));
         }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseIncomes (data, market, since, limit);
     }
 
@@ -8583,7 +8583,7 @@ export default class htx extends Exchange {
         //         "ok": true
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseLedger (data, currency, since, limit);
     }
 
@@ -8851,7 +8851,7 @@ export default class htx extends Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchOpenInterests() does not currently support linear markets');
         }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseOpenInterests (data, symbols) as OpenInterests;
     }
 
@@ -9336,7 +9336,7 @@ export default class htx extends Exchange {
         //     }
         //
         if (market['linear'] === true) {
-            const dataLinear = this.safeList (response, 'data', []);
+            const dataLinear: Dict[] = this.safeList (response, 'data', []);
             const settlementsLinear = this.parseSettlements (dataLinear, market);
             return this.sortBy (settlementsLinear, 'timestamp');
         }
@@ -9679,7 +9679,7 @@ export default class htx extends Exchange {
         //         "ts": 1604312615051
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseLiquidations (data, market, since, limit);
     }
 

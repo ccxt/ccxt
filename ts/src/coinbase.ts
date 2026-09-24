@@ -648,7 +648,7 @@ export default class coinbase extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
         const cursor = this.safeString (pagination, 'next_starting_after');
         const accounts = this.safeList (response, 'data', []);
@@ -909,7 +909,7 @@ export default class coinbase extends Exchange {
         }
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
         const sells = await this.v2PrivateGetAccountsAccountIdSells (this.extend (request, query));
-        const sellsData = this.safeList (sells, 'data', []);
+        const sellsData: Dict[] = this.safeList (sells, 'data', []);
         return this.parseTrades (sellsData, undefined, since, limit);
     }
 
@@ -933,7 +933,7 @@ export default class coinbase extends Exchange {
         }
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
         const buys = await this.v2PrivateGetAccountsAccountIdBuys (this.extend (request, query));
-        const buysData = this.safeList (buys, 'data', []);
+        const buysData: Dict[] = this.safeList (buys, 'data', []);
         return this.parseTrades (buysData, undefined, since, limit);
     }
 
@@ -2638,7 +2638,7 @@ export default class coinbase extends Exchange {
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg: instance.last_http_response -> pagination.next_starting_after
         const response = await this.v2PrivateGetAccountsAccountIdTransactions (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const ledger = this.parseLedger (data, currency, since, limit);
         const length = ledger.length;
         if (length === 0) {
@@ -4049,7 +4049,7 @@ export default class coinbase extends Exchange {
         //         ]
         //     }
         //
-        const trades = this.safeList (response, 'trades', []);
+        const trades: Dict[] = this.safeList (response, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -4226,7 +4226,7 @@ export default class coinbase extends Exchange {
         //         ]
         //     }
         //
-        const tickers = this.safeList (response, 'pricebooks', []);
+        const tickers: Dict[] = this.safeList (response, 'pricebooks', []);
         return this.parseTickers (tickers, symbols);
     }
 
@@ -4403,7 +4403,7 @@ export default class coinbase extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const addressStructures = this.parseDepositAddresses (data, undefined, false);
         return this.indexBy (addressStructures, 'network') as DepositAddresses;
     }
@@ -4961,7 +4961,7 @@ export default class coinbase extends Exchange {
             };
             response = await this.v3PrivateGetBrokerageIntxPositionsPortfolioUuid (this.extend (request, params));
         }
-        const positions = this.safeList (response, 'positions', []);
+        const positions: Dict[] = this.safeList (response, 'positions', []);
         return this.parsePositions (positions, symbols);
     }
 
@@ -5512,7 +5512,7 @@ export default class coinbase extends Exchange {
         }
         const request = this.prepareAccountRequest (undefined, params);
         const response = await this.v2PrivateGetAccountsAccountIdAddresses (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseDepositAddresses (data, codes, false, {});
     }
 }

@@ -545,7 +545,7 @@ export default class coinex extends coinexRest {
         //     }
         //
         const data = this.safeDict (message, 'data', {});
-        const trades = this.safeList (data, 'deal_list', []);
+        const trades: Dict[] = this.safeList (data, 'deal_list', []);
         const marketId = this.safeString (data, 'market');
         const isSpot = client.url.indexOf ('spot') > -1;
         const defaultType = isSpot ? 'spot' : 'swap';

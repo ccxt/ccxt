@@ -703,7 +703,7 @@ export default class xt extends xtRest {
         return await this.unSubscribe (messageHash, name, 'public', 'unWatchFundingRate', 'fund_rate', market, undefined, params);
     }
 
-    handleFundingRate (client: Client, message: Dict) {
+    handleFundingRate (client: Client, message: Dict): Dict {
         //
         //     {
         //         "topic": "fund_rate",
@@ -820,7 +820,7 @@ export default class xt extends xtRest {
         client.resolve ([ position ], 'position::contract');
     }
 
-    handleTicker (client: Client, message: Dict) {
+    handleTicker (client: Client, message: Dict): Dict {
         //
         // spot
         //
@@ -899,7 +899,7 @@ export default class xt extends xtRest {
         return message;
     }
 
-    handleTickers (client: Client, message: Dict) {
+    handleTickers (client: Client, message: Dict): Dict {
         //
         // spot
         //
@@ -999,7 +999,7 @@ export default class xt extends xtRest {
         return message;
     }
 
-    handleOHLCV (client: Client, message: Dict) {
+    handleOHLCV (client: Client, message: Dict): Dict {
         //
         // spot
         //
@@ -1060,7 +1060,7 @@ export default class xt extends xtRest {
         return message;
     }
 
-    handleTrade (client: Client, message: Dict) {
+    handleTrade (client: Client, message: Dict): Dict {
         //
         // spot
         //
@@ -1366,7 +1366,7 @@ export default class xt extends xtRest {
         }, market);
     }
 
-    handleOrder (client: Client, message: Dict) {
+    handleOrder (client: Client, message: Dict): Dict {
         //
         // spot
         //
@@ -1601,8 +1601,8 @@ export default class xt extends xtRest {
     }
 
     handleUnSubscription (client: Client, subscription: Dict) {
-        const messageHashes = this.safeList (subscription, 'messageHashes', []);
-        const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+        const messageHashes: string[] = this.safeList (subscription, 'messageHashes', []);
+        const subMessageHashes: string[] = this.safeList (subscription, 'subMessageHashes', []);
         for (let j = 0; j < messageHashes.length; j++) {
             const unsubHash = messageHashes[j];
             const subHash = subMessageHashes[j];

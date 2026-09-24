@@ -944,7 +944,7 @@ export default class cryptomus extends Exchange {
         //             ...
         //         ]
         //     }
-        const result = this.safeList (response, 'result', []);
+        const result: Dict[] = this.safeList (response, 'result', []);
         return this.parseOrders (result, market, undefined, undefined);
     }
 

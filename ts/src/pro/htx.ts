@@ -320,7 +320,7 @@ export default class htx extends htxRest {
         //     }
         //
         const tick = this.safeDict (message, 'tick', {});
-        const data = this.safeList (tick, 'data', []);
+        const data: Dict[] = this.safeList (tick, 'data', []);
         const ch = this.safeString (message, 'ch');
         if (ch === undefined) {
             return message;
@@ -968,7 +968,7 @@ export default class htx extends htxRest {
         return [ channel, messageHash ];
     }
 
-    getV5LinearChannelAndMessageHash (topic: Str, market: Market = undefined, params: Dict = {}) {
+    getV5LinearChannelAndMessageHash (topic: Str, market: Market = undefined, params: Dict = {}): any[] {
         const contractCode = (market !== undefined) ? market['id'] : this.safeString (params, 'contract_code', '*');
         const channel = topic;
         let messageHash = topic;
@@ -2193,8 +2193,8 @@ export default class htx extends htxRest {
     }
 
     handleUnSubscription (client: Client, subscription: Dict | undefined) {
-        const messageHashes = this.safeList (subscription, 'messageHashes', []);
-        const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+        const messageHashes: string[] = this.safeList (subscription, 'messageHashes', []);
+        const subMessageHashes: string[] = this.safeList (subscription, 'subMessageHashes', []);
         for (let i = 0; i < messageHashes.length; i++) {
             const unsubHash = messageHashes[i];
             const subHash = subMessageHashes[i];

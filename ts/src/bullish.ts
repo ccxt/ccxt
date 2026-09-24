@@ -2112,7 +2112,7 @@ export default class bullish extends Exchange {
         //         "totalCount": 1
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);

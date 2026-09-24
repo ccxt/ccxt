@@ -1023,7 +1023,7 @@ export default class nado extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const orders = this.safeList (data, 'orders', []);
+        const orders: Dict[] = this.safeList (data, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1095,7 +1095,7 @@ export default class nado extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const orders = this.safeList (data, 'orders', []);
+        const orders: Dict[] = this.safeList (data, 'orders', []);
         return this.parseOrders (orders, market, since, limit, { 'status': 'open' });
     }
 

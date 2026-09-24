@@ -339,7 +339,7 @@ export default class lbank extends lbankRest {
         client.resolve (parsedTicker, messageHash);
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "tick":{

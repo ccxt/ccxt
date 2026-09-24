@@ -3172,7 +3172,7 @@ export default class mexc extends Exchange {
                 request['page_size'] = 100; // max
             }
             const swapResponse = await this.contractPrivateGetOrderListOpenOrders (this.extend (request, params));
-            const data = this.safeList (swapResponse, 'data', []);
+            const data: Dict[] = this.safeList (swapResponse, 'data', []);
             return this.parseOrders (data, market, since, limit, params);
         }
     }
@@ -3457,7 +3457,7 @@ export default class mexc extends Exchange {
             //         "code": "0"
             //     }
             //
-            const data = this.safeList (response, 'data', []);
+            const data: Dict[] = this.safeList (response, 'data', []);
             return this.parseOrders (data, market);
         }
     }
@@ -5261,7 +5261,7 @@ export default class mexc extends Exchange {
         //         "data": []
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parsePositions (data);
     }
 
@@ -5330,7 +5330,7 @@ export default class mexc extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parsePositions (data, symbols);
     }
 
@@ -6227,7 +6227,7 @@ export default class mexc extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const positions = this.parsePositions (data, symbols, params);
         return this.filterBySinceLimit (positions, since, limit);
     }

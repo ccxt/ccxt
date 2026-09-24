@@ -700,7 +700,7 @@ export default class zebpay extends Exchange {
         //        }
         //     ]
         //
-        const tickerList = this.safeList (response, 'data', []);
+        const tickerList: Dict[] = this.safeList (response, 'data', []);
         return this.parseTickers (tickerList, symbols);
     }
 
@@ -1526,7 +1526,7 @@ export default class zebpay extends Exchange {
         //        ],
         //    }
         //
-        const positions = this.safeList (response, 'data', []);
+        const positions: Dict[] = this.safeList (response, 'data', []);
         const result = this.parsePositions (positions);
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }

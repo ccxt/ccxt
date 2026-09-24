@@ -235,7 +235,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return await this.subscribe ((channel as string), [ symbol ], params);
     }
 
-    getActiveSymbols () {
+    getActiveSymbols (): any[] {
         const symbols = this.symbols;
         const output: any[] = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -305,7 +305,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         client.resolve (ticker, channel + '::' + ticker['symbol']);
     }
 
-    parseWsInstrument (ticker: Dict, market: Market = undefined) {
+    parseWsInstrument (ticker: Dict, market: Market = undefined): Ticker {
         //
         //    {
         //        "sequence": 1,

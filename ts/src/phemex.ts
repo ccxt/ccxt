@@ -1682,7 +1682,7 @@ export default class phemex extends Exchange {
         } else {
             response = await this.v2GetMdV2Ticker24hrAll (query);
         }
-        const result = this.safeList (response, 'result', []);
+        const result: Dict[] = this.safeList (response, 'result', []);
         return this.parseTickers (result, symbols);
     }
 
@@ -1730,7 +1730,7 @@ export default class phemex extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const trades = this.safeList2 (result, 'trades', 'trades_p', []);
+        const trades: Dict[] = this.safeList2 (result, 'trades', 'trades_p', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -4058,7 +4058,7 @@ export default class phemex extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const positions = this.parsePositions (data, [ symbol ]);
         return this.filterBySymbolSinceLimit (positions, symbol, since, limit);
     }
@@ -5428,7 +5428,7 @@ export default class phemex extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
+        const rows: Dict[] = this.safeList (data, 'rows', []);
         return this.parseConversions (rows, code, 'fromCurrency', 'toCurrency', since, limit);
     }
 

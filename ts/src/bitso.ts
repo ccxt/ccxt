@@ -331,7 +331,7 @@ export default class bitso extends Exchange {
         //         }]
         //     }
         //
-        const payload = this.safeList (response, 'payload', []);
+        const payload: Dict[] = this.safeList (response, 'payload', []);
         const currency = this.safeCurrency (code);
         return this.parseLedger (payload, currency, since, limit);
     }
@@ -1040,7 +1040,7 @@ export default class bitso extends Exchange {
             'book': market['id'],
         };
         const response = await this.publicGetTrades (this.extend (request, params));
-        const payload = this.safeList (response, 'payload', []);
+        const payload: Dict[] = this.safeList (response, 'payload', []);
         return this.parseTrades (payload, market, since, limit);
     }
 
@@ -1158,7 +1158,7 @@ export default class bitso extends Exchange {
             // 'marker': id, // integer id to start from
         };
         const response = await this.privateGetUserTrades (this.extend (request, params));
-        const payload = this.safeList (response, 'payload', []);
+        const payload: Dict[] = this.safeList (response, 'payload', []);
         return this.parseTrades (payload, market, since, limit);
     }
 
@@ -1393,7 +1393,7 @@ export default class bitso extends Exchange {
             // 'marker': id, // integer id to start from
         };
         const response = await this.privateGetOpenOrders (this.extend (request, params));
-        const payload = this.safeList (response, 'payload', []);
+        const payload: Dict[] = this.safeList (response, 'payload', []);
         const orders = this.parseOrders (payload, market, since, limit);
         return orders;
     }
@@ -1446,7 +1446,7 @@ export default class bitso extends Exchange {
             'oid': id,
         };
         const response = await this.privateGetOrderTradesOid (this.extend (request, params));
-        const payload = this.safeList (response, 'payload', []);
+        const payload: Dict[] = this.safeList (response, 'payload', []);
         return this.parseTrades (payload, market);
     }
 
@@ -1539,7 +1539,7 @@ export default class bitso extends Exchange {
         //         }]
         //     }
         //
-        const transactions = this.safeList (response, 'payload', []);
+        const transactions: Dict[] = this.safeList (response, 'payload', []);
         return this.parseTransactions (transactions, currency, since, limit, params);
     }
 
