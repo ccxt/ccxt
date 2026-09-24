@@ -153,7 +153,7 @@ export default class blockchaincom extends blockchaincomRest {
         };
         request = this.deepExtend (request, params);
         const url = this.urls['api']['ws'];
-        const ohlcv = await this.watch (url, messageHash, request, messageHash, request);
+        const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, request, messageHash, request);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
@@ -447,7 +447,7 @@ export default class blockchaincom extends blockchaincomRest {
         };
         const messageHash = 'orders';
         const request = this.deepExtend (message, params);
-        const orders = await this.watch (url, messageHash, request, messageHash);
+        const orders: ArrayCache = await this.watch (url, messageHash, request, messageHash);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }

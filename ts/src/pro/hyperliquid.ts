@@ -501,7 +501,7 @@ export default class hyperliquid extends hyperliquidRest {
             throw new ArgumentsRequired (this.id + ' watchMyTrades() requires a user address');
         }
         const subscribeHash = 'subscribe:userFills::' + userAddress.toLowerCase ();
-        const trades = await this.watch (url, messageHash, message, subscribeHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, message, subscribeHash);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -707,7 +707,7 @@ export default class hyperliquid extends hyperliquidRest {
             },
         };
         const message = this.extend (request, params);
-        const trades = await this.watch (url, messageHash, message, messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, message, messageHash);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -878,7 +878,7 @@ export default class hyperliquid extends hyperliquidRest {
         };
         const messageHash = 'candles:' + timeframe + ':' + symbol;
         const message = this.extend (request, params);
-        const ohlcv = await this.watch (url, messageHash, message, messageHash);
+        const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, message, messageHash);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
@@ -1381,7 +1381,7 @@ export default class hyperliquid extends hyperliquidRest {
             throw new ArgumentsRequired (this.id + ' watchOrders() requires a user address');
         }
         const subscribeHash = 'subscribe:orderUpdates::' + userAddress.toLowerCase ();
-        const orders = await this.watch (url, messageHash, message, subscribeHash);
+        const orders: ArrayCache = await this.watch (url, messageHash, message, subscribeHash);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }

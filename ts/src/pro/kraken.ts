@@ -829,7 +829,7 @@ export default class kraken extends krakenRest {
             'req_id': requestId,
         };
         const request = this.deepExtend (subscribe, params);
-        const ohlcv = await this.watch (url, messageHash, request, messageHash);
+        const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, request, messageHash);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
@@ -1169,7 +1169,7 @@ export default class kraken extends krakenRest {
         if (params !== undefined) {
             subscribe['params'] = this.deepExtend (subscribe['params'], params);
         }
-        const result = await this.watch (url, messageHash, subscribe, subscriptionHash);
+        const result: ArrayCache = await this.watch (url, messageHash, subscribe, subscriptionHash);
         if (this.newUpdates) {
             limit = result.getLimit (symbol, limit);
         }
