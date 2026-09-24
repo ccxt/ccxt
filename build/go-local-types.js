@@ -6809,14 +6809,18 @@ function ccxtGoProducerArgIsMap (goTranspiler, arg) {
         && (goTranspiler.goDeclaredTypeOfIdentifier (arg) === CCXT_GO_PRODUCER_DICT_TYPE);
 }
 
-// `this.safeX (xs, i)`: xs is the accessor's container and i a slice index
+// `this.safeX (xs, i)`: xs is the accessor's container and i a slice index (AST only: no re-print)
 function ccxtGoSafeListIndexedAccessorRead (goTranspiler, node) {
     const parent = node.parent;
     if ((parent?.kind !== ts.SyntaxKind.CallExpression) || (parent.arguments.indexOf (node) !== 0)) {
         return false;
     }
-    const callee = typeof goTranspiler.goPrintedCallee === 'function' ? goTranspiler.goPrintedCallee (goTranspiler.printNode (parent, 0)) : undefined;
-    return (callee !== undefined) && CCXT_GO_SAFE_ACCESSOR_CALLEE.test (callee) && ccxtGoSafeAccessorIndexKey (goTranspiler, parent);
+    const callee = parent.expression;
+    if ((callee?.kind !== ts.SyntaxKind.PropertyAccessExpression) || (callee.expression?.kind !== ts.SyntaxKind.ThisKeyword)
+        || !(/^safe[A-Z]/).test (callee.name?.text ?? '')) {
+        return false;
+    }
+    return ccxtGoSafeAccessorIndexKey (goTranspiler, parent);
 }
 
 function ccxtGoProducerUseRebinds (n) {
