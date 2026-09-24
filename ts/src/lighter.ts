@@ -466,7 +466,8 @@ export default class lighter extends Exchange {
      */
     async preLoadLighterLibrary (params: Dict = {}): Promise<boolean> {
         const [ apiKeyIndex, paramsApiKeyIndex ] = this.handleApiKeyIndex (params, 'loadAccount', 'apiKeyIndex', 'api_key_index');
-        const [ accountIndex, paramsAccountIndex ] = await this.handleAccountIndex (paramsApiKeyIndex, 'loadAccount', 'accountIndex', 'account_index');
+        const accountIndexAndParams = await this.handleAccountIndex (paramsApiKeyIndex, 'loadAccount', 'accountIndex', 'account_index');
+        const accountIndex = accountIndexAndParams[0];
         if (accountIndex === undefined) {
             throw new ArgumentsRequired (this.id + ' requires accountIndex or account_index');
         }
