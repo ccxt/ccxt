@@ -1041,6 +1041,9 @@ export default class hashkey extends Exchange {
             suffix += ':' + settleId;
         }
         const base = this.safeCurrencyCode (baseId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const symbol = base + '/' + quote + suffix;
         const status = this.safeString (market, 'status');
         const active = status === 'TRADING';

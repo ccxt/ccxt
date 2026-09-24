@@ -339,6 +339,9 @@ export default class cryptomus extends Exchange {
         const quoteId = parts[1];
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const fees = this.safeDict (this.fees, 'trading');
         return this.safeMarketStructure ({
             'id': marketId,

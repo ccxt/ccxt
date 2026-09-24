@@ -1307,6 +1307,9 @@ export default class mexc extends Exchange {
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const status = this.safeString (market, 'status');
             const isSpotTradingAllowed = this.safeBool (market, 'isSpotTradingAllowed');
             let active = false;
@@ -1440,6 +1443,9 @@ export default class mexc extends Exchange {
             const settleId = this.safeString (market, 'settleCoin');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const settle = this.safeCurrencyCode (settleId);
             const state = this.safeString (market, 'state');
             const isLinear = quote === settle;

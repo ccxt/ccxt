@@ -676,6 +676,9 @@ export default class derive extends Exchange {
         const quoteId = this.safeString (market, 'quote_currency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const marketId = this.safeString (market, 'instrument_name');
         let symbol = base + '/' + quote;
         let settleId: Str = undefined;

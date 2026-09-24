@@ -276,6 +276,9 @@ export default class zaif extends Exchange {
         const [ baseId, quoteId ] = name.split ('/');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const symbol = base + '/' + quote;
         return this.safeMarketStructure ({
             'id': id,

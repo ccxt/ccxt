@@ -1205,7 +1205,10 @@ export default class xt extends Exchange {
     override parseMarkets (markets: any) {
         const result: List = [];
         for (let i = 0; i < markets.length; i++) {
-            result.push (this.parseMarket (markets[i]));
+            const parsed = this.parseMarket (markets[i]);
+            if (parsed !== undefined) {
+                result.push (parsed);
+            }
         }
         return result;
     }
@@ -1332,6 +1335,9 @@ export default class xt extends Exchange {
         const quoteId = this.safeString2 (market, 'quoteCurrency', 'quoteCoin');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const state = this.safeString (market, 'state');
         let symbol = base + '/' + quote;
         const filters = this.safeList (market, 'filters', []);

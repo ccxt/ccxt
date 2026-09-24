@@ -535,6 +535,9 @@ export default class upbit extends Exchange {
         const [ quoteId, baseId ] = id.split ('-');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         return this.safeMarketStructure ({
             'id': id,
             'symbol': base + '/' + quote,

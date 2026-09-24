@@ -677,6 +677,9 @@ export default class bitstamp extends Exchange {
             const [ baseId, quoteId ] = [ this.safeString (market, 'base_currency'), this.safeString (market, 'counter_currency') ];
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             let settleId: Str = undefined;
             const marketTypeRaw = this.safeString (market, 'market_type');
             let symbol = base + '/' + quote;

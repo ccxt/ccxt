@@ -3748,7 +3748,10 @@ export default class binance extends Exchange {
         }
         const result: List = [];
         for (let i = 0; i < markets.length; i++) {
-            result.push (this.parseMarket (markets[i]));
+            const parsed = this.parseMarket (markets[i]);
+            if (parsed !== undefined) {
+                result.push (parsed);
+            }
         }
         return result;
     }
@@ -3774,6 +3777,9 @@ export default class binance extends Exchange {
         }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const contractType = this.safeString (market, 'contractType');
         let contract = ('contractType' in market);
         let expiry = this.safeInteger2 (market, 'deliveryDate', 'expiryDate');

@@ -723,6 +723,9 @@ export default class btse extends Exchange {
         const quoteId = this.safeString (market, 'quoteCurrency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         let symbol = base + '/' + quote;
         const maxAmountString = this.safeString (market, 'maxOrderSize');
         const minAmountString = this.safeString (market, 'minOrderSize');

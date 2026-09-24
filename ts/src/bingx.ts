@@ -1060,6 +1060,9 @@ export default class bingx extends Exchange {
         const quoteId = symbolParts[1];
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         let currency = this.safeString (market, 'currency');
         let checkIsInverse = false;
         let checkIsLinear = true;

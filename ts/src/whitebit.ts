@@ -516,6 +516,9 @@ export default class whitebit extends Exchange {
         quoteId = (quoteId === 'PERP') ? 'USDT' : quoteId;
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const active = this.safeBool (market, 'tradesEnabled');
         const isCollateral = this.safeBool (market, 'isCollateral');
         const typeId = this.safeString (market, 'type');

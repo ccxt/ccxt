@@ -473,6 +473,9 @@ export default class krakenfutures extends Exchange {
             const quoteId = 'usd'; // always USD
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             // swap == perpetual
             let settle: Str = undefined;
             let settleId: Str = undefined;

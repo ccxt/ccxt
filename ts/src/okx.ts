@@ -1863,6 +1863,9 @@ export default class okx extends Exchange {
         }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         let symbol = base + '/' + quote;
         // handle preopen empty markets
         if (base === '' || quote === '') {

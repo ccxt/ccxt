@@ -969,6 +969,9 @@ export default class bitrue extends Exchange {
         }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         let symbol = base + '/' + quote;
         if (settle !== undefined) {
             symbol += ':' + settle;

@@ -1033,6 +1033,9 @@ export default class hyperliquid extends Exchange {
         }
         base = base.replace (':', '-'); // handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
         const quote = this.safeCurrencyCode (quoteId);
+        if (quote === undefined) {
+            return undefined;
+        }
         const baseId = this.safeString (market, 'baseId');
         const settle = this.safeCurrencyCode (settleId);
         let symbol = base + '/' + quote;

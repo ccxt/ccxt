@@ -519,6 +519,9 @@ export default class deepcoin extends Exchange {
         let settle: Str = undefined;
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         let symbol = base + '/' + quote;
         let isLinear: Bool = undefined;
         if (swap) {

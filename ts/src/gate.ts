@@ -1460,6 +1460,9 @@ export default class gate extends Exchange {
             const [ baseId, quoteId ] = (id as string).split ('_');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const takerPercent = this.safeString (market, 'fee');
             const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
             const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'amount_precision')));
@@ -1541,7 +1544,9 @@ export default class gate extends Exchange {
             for (let i = 0; i < response.length; i++) {
                 const contract = this.safeDict (response, i, {});
                 const parsedMarket = this.parseContractMarket (contract, settleId);
-                result.push (parsedMarket);
+                if (parsedMarket !== undefined) {
+                    result.push (parsedMarket);
+                }
             }
         }
         return result;
@@ -1562,13 +1567,15 @@ export default class gate extends Exchange {
             for (let i = 0; i < response.length; i++) {
                 const contract = this.safeDict (response, i, {});
                 const parsedMarket = this.parseContractMarket (contract, settleId);
-                result.push (parsedMarket);
+                if (parsedMarket !== undefined) {
+                    result.push (parsedMarket);
+                }
             }
         }
         return result;
     }
 
-    parseContractMarket (market: Dict, settleId: Str): Dict {
+    parseContractMarket (market: Dict, settleId: Str): NullableDict {
         //
         //  Perpetual swap
         //
@@ -1679,6 +1686,9 @@ export default class gate extends Exchange {
         const date = this.safeString (parts, 2);
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settle = this.safeCurrencyCode (settleId);
         const expiry = this.safeTimestamp (market, 'expire_time');
         let symbol = '';
@@ -1809,6 +1819,9 @@ export default class gate extends Exchange {
                 const quoteId = this.safeString (parts, 1);
                 const base = this.safeCurrencyCode (baseId);
                 const quote = this.safeCurrencyCode (quoteId);
+                if ((base === undefined) || (quote === undefined)) {
+                    continue;
+                }
                 let symbol = base + '/' + quote;
                 const expiry = this.safeTimestamp (market, 'expiration_time');
                 const strike = this.safeString (market, 'strike_price');

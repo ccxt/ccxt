@@ -394,6 +394,9 @@ export default class coinmate extends Exchange {
             const quoteId = this.safeString (market, 'secondCurrency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const symbol = base + '/' + quote;
             result.push ({
                 'id': id,
