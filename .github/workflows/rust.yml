@@ -114,6 +114,7 @@ jobs:
       - name: Build
         run: npm run buildRust
       - name: Check ccxt package (isolated feature sets)
+        if: env.important_modified == 'true'
         run: |
           cargo check --manifest-path rust/ccxt-base/Cargo.toml --no-default-features
           cargo check --manifest-path rust/ccxt-base/Cargo.toml --all-features
