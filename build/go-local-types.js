@@ -1527,6 +1527,11 @@ function ccxtGoSafeCollectionRestUse (goTranspiler, node, family, defaulted) {
             && (parent.expression.expression.text === 'Array') && (parent.expression.name?.text === 'isArray')) {
             return false;
         }
+        // `list.push (x)` hands x out whether it prints AppendToArray or a native append
+        if ((parent.expression?.kind === ts.SyntaxKind.PropertyAccessExpression) && (parent.expression.name?.text === 'push')
+            && (parent.expression.expression !== node)) {
+            return defaulted;
+        }
         const callee = typeof goTranspiler.goPrintedCallee === 'function' ? goTranspiler.goPrintedCallee (goTranspiler.printNode (parent, 0)) : undefined;
         if ((callee === undefined) || (CCXT_GO_SAFE_COLLECTION_VETO_CALLEES.indexOf (callee) >= 0)) {
             return false;
