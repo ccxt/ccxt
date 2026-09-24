@@ -1184,13 +1184,35 @@ function ccxtGoTypeOfUrlsInitializer (goTranspiler, initializer, printedValue) {
     let unproven = false;
     const visit = (n) => {
         if (!unproven && (n.kind === ts.SyntaxKind.Identifier) && (n.escapedText === varName) && (n !== declaration.name)) {
-            unproven = !ccxtGoClosureReadIsSafe (goTranspiler, n, varName);
+            unproven = !ccxtGoClosureReadIsSafe (goTranspiler, n, varName) && !ccxtGoUrlsStringEqualityRead (goTranspiler, n);
         } else if (!unproven) {
             ts.forEachChild (n, visit);
         }
     };
     ts.forEachChild (scope, visit);
     return unproven ? undefined : typeNameIsUsable (goTranspiler, initializer, '*string') ? '*string' : undefined;
+}
+
+// `client.url === gatewayUrl` where a `: string` annotation made the printer inline a native
+// `==` against the `any` box: once the local is a `*string`, printInlineEquality takes its
+// pointer branch (`x != nil && *x == other`) or falls back to IsEqual (derefs both); neither
+// ever compares the pointer itself, so the other side must be a proven Go string scalar and
+// the local a bare identifier operand
+function ccxtGoUrlsStringEqualityRead (goTranspiler, node) {
+    let current = node;
+    while (current.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        current = current.parent;
+    }
+    const parent = current.parent;
+    if ((parent?.kind !== ts.SyntaxKind.BinaryExpression) || (typeof goTranspiler.goScalarFamily !== 'function')) {
+        return false;
+    }
+    const op = parent.operatorToken?.kind;
+    if ((op !== ts.SyntaxKind.EqualsEqualsEqualsToken) && (op !== ts.SyntaxKind.ExclamationEqualsEqualsToken)) {
+        return false;
+    }
+    const other = (parent.left === current) ? parent.right : parent.left;
+    return goTranspiler.goScalarFamily (other) === 'string';
 }
 
 export function ccxtGoWrapUrlsDeclaration (printed) {
@@ -2619,11 +2641,61 @@ function ccxtGoTypeOfSumInitializer (goTranspiler, initializer, printedValue) {
     return ccxtGoSumCallIsInt64 (goTranspiler, initializer, printedValue, 0) ? CCXT_GO_SUM_LOCAL_TYPE : undefined;
 }
 
+// `a + b` printed `Add(a, b)` (the native-operand form of `this.sum (a, b)`): Add derefs both
+// operands, and with a LEFT that is a non-nil *int64 (a defaulted safeInteger read, or a const
+// bound once to one) its int64 branch returns int64 + int64 natively, or — for any other
+// non-nil int-kind right — the integral float64 sum through ParseInt, an int64 again. A nil
+// right is the only nil path, and ccxtGoSumOperandIsInt admits no nilable operand. Declarations
+// only, unboxed like the Sum family (ccxtGoUnboxSumDeclaration).
+function ccxtGoTypeOfAddInitializer (goTranspiler, initializer, printedValue) {
+    if ((initializer?.parent?.kind !== ts.SyntaxKind.VariableDeclaration) || (initializer.parent.initializer !== initializer)
+        || (initializer.parent.parent?.parent?.kind !== ts.SyntaxKind.VariableStatement)) {
+        return undefined;
+    }
+    if ((initializer.kind !== ts.SyntaxKind.BinaryExpression) || (initializer.operatorToken?.kind !== ts.SyntaxKind.PlusToken)) {
+        return undefined;
+    }
+    const parts = ccxtGoPrintedCallParts (goTranspiler, printedValue);
+    if ((parts === undefined) || (ccxtGoUnqualifiedCallee (parts.callee) !== 'Add')) {
+        return undefined;
+    }
+    const args = ccxtGoSplitPrintedArgs (parts.argsText);
+    if (args.length !== 2) {
+        return undefined;
+    }
+    let left = initializer.left;
+    while (left?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        left = left.expression;
+    }
+    if (!ccxtGoIsNonNilInt64Pointer (goTranspiler, left, args[0])) {
+        return undefined;
+    }
+    return ccxtGoSumOperandIsInt (goTranspiler, initializer.right, args[1], 0) ? CCXT_GO_SUM_LOCAL_TYPE : undefined;
+}
+
+// a defaulted `this.safeInteger (o, k, <int literal>)` read, directly or through a const bound once to one
+function ccxtGoIsNonNilInt64Pointer (goTranspiler, node, printed) {
+    if (ccxtGoIsDefaultedSafeInteger (node)) {
+        return ccxtGoWholePrintedCallee (goTranspiler, printed) === 'this.SafeInteger';
+    }
+    if (node?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    let declaration;
+    try {
+        declaration = goTranspiler.getChecker ().getSymbolAtLocation (node)?.valueDeclaration;
+    } catch (e) {
+        return false;
+    }
+    return (declaration?.kind === ts.SyntaxKind.VariableDeclaration) && (declaration.name?.kind === ts.SyntaxKind.Identifier)
+        && ((declaration.parent?.flags & ts.NodeFlags.Const) !== 0) && ccxtGoIsDefaultedSafeInteger (declaration.initializer);
+}
+
 export function ccxtGoUnboxSumDeclaration (goTranspiler, printed) {
     if (typeof printed !== 'string') {
         return printed;
     }
-    const match = /^([\s\S]*?\bvar [A-Za-z0-9_]+ int64 = )(this\.Sum\([^\n]*)$/.exec (printed);
+    const match = /^([\s\S]*?\bvar [A-Za-z0-9_]+ int64 = )((?:this\.Sum|(?:ccxt\.)?Add)\([^\n]*)$/.exec (printed);
     if (match === null) {
         return printed;
     }
@@ -5818,6 +5890,31 @@ function installCcxtGoGetArgTernaryStore (goTranspiler) {
     goTranspiler.__ccxtGoGetArgTernaryStoreInstalled = true;
 }
 
+// `since + d * 1000 - 1`: a GetArg pointer as an operand of a `+` the printer emits as the
+// runtime Add(...) helper, nested (through parentheses) inside the Subtract/Multiply/Divide/Mod
+// or comparison chain the shipped predicate already admits, or as a whole printed Add call.
+// Add derefScalar()s both operands at entry, exactly like those helpers, so the typed pointer
+// reads as the raw value did.
+function installCcxtGoGetArgAddArithmetic (goTranspiler) {
+    if ((goTranspiler === undefined) || goTranspiler.__ccxtGoGetArgAddArithmeticInstalled
+        || (typeof goTranspiler.goGetArgPointerInHelperArithmetic !== 'function')) {
+        return;
+    }
+    const shipped = goTranspiler.goGetArgPointerInHelperArithmetic;
+    goTranspiler.goGetArgPointerInHelperArithmetic = function (n) {
+        if (shipped.call (this, n)) {
+            return true;
+        }
+        const parent = n.parent;
+        if ((parent?.kind !== ts.SyntaxKind.BinaryExpression) || (parent.operatorToken?.kind !== ts.SyntaxKind.PlusToken)) {
+            return false;
+        }
+        const printed = (this.printNode (parent, 0) ?? '').trim ();
+        return /^(?:\(\s*)*(?:ccxt\.)?Add\(/.test (printed);
+    };
+    goTranspiler.__ccxtGoGetArgAddArithmeticInstalled = true;
+}
+
 export function installCcxtGoLocalTypes (goTranspiler) {
     if (goTranspiler === undefined || goTranspiler.__ccxtGoLocalTypesInstalled) {
         return;
@@ -5830,6 +5927,7 @@ export function installCcxtGoLocalTypes (goTranspiler) {
     goTranspiler.CCXT_GO_GETARG_DECLARED_TYPES = CCXT_GO_GETARG_DECLARED_TYPES;
     goTranspiler.CCXT_GO_GETARG_SAFE_CONSUMERS = CCXT_GO_GETARG_SAFE_CONSUMERS;
     installCcxtGoGetArgTernaryStore (goTranspiler);
+    installCcxtGoGetArgAddArithmetic (goTranspiler);
     installCcxtGoTypedConcat (goTranspiler);
     const upstream = goTranspiler.goTypeOfInitializer;
     goTranspiler.goTypeOfInitializer = function (initializer, printedValue) {
@@ -5867,7 +5965,8 @@ export function installCcxtGoLocalTypes (goTranspiler) {
         }
         // Multiply/Subtract/Divide/Mod with provably int-kind operands box an int64
         // on every return path (see ccxtGoTypeOfArithmeticInitializer above)
-        const counterType = ccxtGoCounterCallType (this, initializer, printedValue) ?? ccxtGoTypeOfSumInitializer (this, initializer, printedValue);
+        const counterType = ccxtGoCounterCallType (this, initializer, printedValue) ?? ccxtGoTypeOfSumInitializer (this, initializer, printedValue)
+            ?? ccxtGoTypeOfAddInitializer (this, initializer, printedValue);
         if ((counterType !== undefined) && typeNameIsUsable (this, initializer, counterType)) {
             return counterType;
         }

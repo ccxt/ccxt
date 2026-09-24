@@ -11382,6 +11382,12 @@ function nullScalarWriteType (printer, node) {
     if (isStaticallyStringExpression (printer, value, undefined)) {
         return JAVA_DATAFLOW_STRING;
     }
+    // a `+` the printer emits as the native Java concat `(a + b)` (one operand a proven String,
+    // JLS 15.18.1): statically String with no cast, null operands included
+    if (value.kind === ts.SyntaxKind.BinaryExpression && value.operatorToken.kind === ts.SyntaxKind.PlusToken
+        && printedConcatIsNative (printer, value.left, value.right)) {
+        return JAVA_DATAFLOW_STRING;
+    }
     if (ts.isCallExpression (value) && ts.isPropertyAccessExpression (value.expression)) {
         const callee = value.expression;
         if (ts.isIdentifier (callee.expression) && callee.expression.escapedText === 'Precise') {
