@@ -2154,7 +2154,7 @@ impl BitgetCore {
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
             symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            marketId = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
+            marketId = self.safe_string_k(market.clone(), "id", &[]);
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol).into());
         }
         let mut uta: Value = Value::Null;

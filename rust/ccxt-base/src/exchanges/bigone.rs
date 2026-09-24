@@ -1713,28 +1713,28 @@ impl BigoneCore {
         if (takerOrMaker != Value::Null) {
             if (side.as_str() == Some("buy")) {
                 if (takerOrMaker.as_str() == Some("maker")) {
-                    makerCurrencyCode = market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null);
-                    takerCurrencyCode = market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
+                    makerCurrencyCode = self.safe_string_k(market.clone(), "base", &[]);
+                    takerCurrencyCode = self.safe_string_k(market.clone(), "quote", &[]);
                 }  else {
-                    makerCurrencyCode = market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
-                    takerCurrencyCode = market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null);
+                    makerCurrencyCode = self.safe_string_k(market.clone(), "quote", &[]);
+                    takerCurrencyCode = self.safe_string_k(market.clone(), "base", &[]);
                 }
             }  else {
                 if (takerOrMaker.as_str() == Some("maker")) {
-                    makerCurrencyCode = market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
-                    takerCurrencyCode = market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null);
+                    makerCurrencyCode = self.safe_string_k(market.clone(), "quote", &[]);
+                    takerCurrencyCode = self.safe_string_k(market.clone(), "base", &[]);
                 }  else {
-                    makerCurrencyCode = market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null);
-                    takerCurrencyCode = market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
+                    makerCurrencyCode = self.safe_string_k(market.clone(), "base", &[]);
+                    takerCurrencyCode = self.safe_string_k(market.clone(), "quote", &[]);
                 }
             }
         }  else if (side.as_str() == Some("SELF_TRADING")) {
             if (takerSide.as_str() == Some("BID")) {
-                makerCurrencyCode = market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
-                takerCurrencyCode = market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null);
+                makerCurrencyCode = self.safe_string_k(market.clone(), "quote", &[]);
+                takerCurrencyCode = self.safe_string_k(market.clone(), "base", &[]);
             }  else if (takerSide.as_str() == Some("ASK")) {
-                makerCurrencyCode = market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null);
-                takerCurrencyCode = market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
+                makerCurrencyCode = self.safe_string_k(market.clone(), "base", &[]);
+                takerCurrencyCode = self.safe_string_k(market.clone(), "quote", &[]);
             }
         }
         let mut makerFeeCost: Value = self.safe_string_k(trade.clone(), "maker_fee", &[]);

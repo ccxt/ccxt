@@ -1110,7 +1110,7 @@ impl WeexCore {
             if (market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() != firstMarket.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str()) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), callerMethodName).into()), Value::Str(" market symbols must be of the same type".into()))));
             }
-            symbolString = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            symbolString = self.safe_string_k(market.clone(), "symbol", &[]);
             let mut unifiedTimeframe: Value = self.safe_string(data, Value::Int(1), &[Value::Str("1".into())]);
             let mut interval: Value = self.safe_string(self.timeframes.clone(), unifiedTimeframe.clone(), &[unifiedTimeframe.clone()]);
             let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@kline_".into())).into()), interval).into()), Value::Str("_".into())).into()), priceType).into());
@@ -1196,7 +1196,7 @@ impl WeexCore {
             if (market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() != firstMarket.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str()) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), callerMethodName).into()), Value::Str(" market symbols must be of the same type".into()))));
             }
-            symbolString = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            symbolString = self.safe_string_k(market.clone(), "symbol", &[]);
             let mut unifiedTimeframe: Value = self.safe_string(data, Value::Int(1), &[Value::Str("1".into())]);
             let mut interval: Value = self.safe_string(self.timeframes.clone(), unifiedTimeframe.clone(), &[unifiedTimeframe.clone()]);
             let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@kline_".into())).into()), interval).into()), Value::Str("_".into())).into()), priceType).into());
@@ -1891,9 +1891,9 @@ impl WeexCore {
             let mut feeCurrency: Value = self.safe_currency_code(commissionAsset, &[]);
             if (marketType.as_str() == Some("spot")) {
                 if (side.as_str() == Some("buy")) {
-                    feeCurrency = marketResolved.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null);
+                    feeCurrency = self.safe_string_k(marketResolved.clone(), "base", &[]);
                 }  else {
-                    feeCurrency = marketResolved.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
+                    feeCurrency = self.safe_string_k(marketResolved.clone(), "quote", &[]);
                 }
             }
             fee = Value::Map({
@@ -2208,9 +2208,9 @@ impl WeexCore {
             let mut feeCurrency: Value = self.safe_currency_code(commissionAsset, &[]);
             if (marketType.as_str() == Some("spot")) {
                 if (side.as_str() == Some("buy")) {
-                    feeCurrency = marketResolved.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null);
+                    feeCurrency = self.safe_string_k(marketResolved.clone(), "base", &[]);
                 }  else {
-                    feeCurrency = marketResolved.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
+                    feeCurrency = self.safe_string_k(marketResolved.clone(), "quote", &[]);
                 }
             }
             fee = Value::Map({

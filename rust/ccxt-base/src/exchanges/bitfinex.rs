@@ -3794,7 +3794,7 @@ impl BitfinexCore {
             let mut data: Value = self.safe_list(transaction.clone(), Value::Int(4), &[Value::from(vec![])]);
             timestamp = self.safe_integer(transaction.clone(), Value::Int(0), &[]);
             if (currency != Value::Null) {
-                code = currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null);
+                code = self.safe_string_k(currency.clone(), "code", &[]);
             }
             feeCost = self.safe_string(data.clone(), Value::Int(8), &[]);
             if (feeCost != Value::Null) {

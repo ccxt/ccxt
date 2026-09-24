@@ -2202,7 +2202,7 @@ impl KrakenCore {
             if (matches!(&trade, Value::Dict(__d) if __d.contains_key("fee"))) {
                 let mut currency: Value = Value::Null;
                 if (market != Value::Null) {
-                    currency = market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
+                    currency = self.safe_string_k(market.clone(), "quote", &[]);
                 }
                 fee = Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -2221,7 +2221,7 @@ impl KrakenCore {
             amount = self.safe_string_k(trade.clone(), "qty", &[]);
         }
         if (market != Value::Null) {
-            symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            symbol = self.safe_string_k(market.clone(), "symbol", &[]);
         }
         let mut cost: Value = self.safe_string_k(trade.clone(), "cost", &[]);
         let mut maker: Value = self.safe_bool_k(trade.clone(), "maker", &[]);
@@ -2856,7 +2856,7 @@ impl KrakenCore {
         let mut isPostOnly: Value = Value::Bool(Value::Int(flags.as_str().and_then(|__s| __s.find("post")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64));
         let mut average: Value = self.safe_number_k(order.clone(), "price", &[]);
         if (market != Value::Null) {
-            symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            symbol = self.safe_string_k(market.clone(), "symbol", &[]);
             if (matches!(&order, Value::Dict(__d) if __d.contains_key("fee"))) {
                 let mut feeCost: Value = self.safe_string_k(order.clone(), "fee", &[]);
                 fee = Value::Map({

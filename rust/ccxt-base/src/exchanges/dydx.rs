@@ -2602,11 +2602,11 @@ impl DydxCore {
         let mut gasPrice: Value = Value::Null;
         let mut denom: Value = Value::Null;
         if (defaultFeeDenom.as_deref() == Some("uusdc")) {
-            gasPrice = feeDenom.as_map().and_then(|__m| __m.get("USDC_GAS_PRICE")).cloned().unwrap_or(Value::Null);
-            denom = feeDenom.as_map().and_then(|__m| __m.get("USDC_DENOM")).cloned().unwrap_or(Value::Null);
+            gasPrice = self.safe_string_k(feeDenom.clone(), "USDC_GAS_PRICE", &[]);
+            denom = self.safe_string_k(feeDenom.clone(), "USDC_DENOM", &[]);
         }  else {
-            gasPrice = feeDenom.as_map().and_then(|__m| __m.get("CHAINTOKEN_GAS_PRICE")).cloned().unwrap_or(Value::Null);
-            denom = feeDenom.as_map().and_then(|__m| __m.get("CHAINTOKEN_DENOM")).cloned().unwrap_or(Value::Null);
+            gasPrice = self.safe_string_k(feeDenom.clone(), "CHAINTOKEN_GAS_PRICE", &[]);
+            denom = self.safe_string_k(feeDenom, "CHAINTOKEN_DENOM", &[]);
         }
         let mut gasLimit: Value = math_ceil(&self.parse_to_numeric(crate::precise::Precise::stringMul(&gasUsed, &defaultFeeMultiplier)));
         let mut feeAmount: Value = crate::precise::Precise::stringMul(&self.number_to_string(gasLimit.clone()), &gasPrice);

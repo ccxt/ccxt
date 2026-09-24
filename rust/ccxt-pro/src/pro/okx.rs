@@ -2585,7 +2585,7 @@ impl OkxCore {
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
             symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            type_var = market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
+            type_var = self.safe_string_k(market, "type", &[]);
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol).into());
         }
         if (type_var.as_str() == Some("future")) {
@@ -2823,7 +2823,7 @@ impl OkxCore {
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
             symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            type_var = market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
+            type_var = self.safe_string_k(market, "type", &[]);
         }
         if (type_var.as_str() == Some("future")) {
             type_var = Value::Str("futures".into());
