@@ -1271,6 +1271,20 @@ function ccxtGoSafeAccessorMemberKey (call) {
     return key.text;
 }
 
+// the accessor call's key is an integer literal or a number-typed expression (a slice index)
+function ccxtGoSafeAccessorIndexKey (goTranspiler, call) {
+    const key = call.arguments[1];
+    if (key === undefined) {
+        return false;
+    }
+    if (key.kind === ts.SyntaxKind.NumericLiteral) {
+        return (/^[0-9]+$/).test (key.text);
+    }
+    const checker = (typeof goTranspiler.checkerOrUndefined === 'function') ? goTranspiler.checkerOrUndefined () : undefined;
+    const type = checker?.getTypeAtLocation (key);
+    return (type !== undefined) && ((type.flags & ts.TypeFlags.NumberLike) !== 0) && ((type.flags & ts.TypeFlags.Union) === 0);
+}
+
 // the accessor call of a container local's initializer, or undefined for every other shape. The TS
 // cast and the non-null assertion around the call only drive the checker: the declaration print
 // drops them, so the local can be typed like the bare call.
@@ -1370,6 +1384,10 @@ function ccxtGoSafeCollectionUseReads (goTranspiler, node, family, defaulted) {
     }
     if (!dictLike) {
         if (CCXT_GO_SAFE_LIST_READ_CALLEES.indexOf (callee) >= 0) {
+            return true;
+        }
+        // `this.safeX (xs, i)` with a numeric index reads the element `xs[i]` reads
+        if (CCXT_GO_SAFE_ACCESSOR_CALLEE.test (callee) && ccxtGoSafeAccessorIndexKey (goTranspiler, parent)) {
             return true;
         }
         return (ccxtGoSafeAccessorMemberKey (parent) !== undefined);
@@ -6760,7 +6778,7 @@ function ccxtGoProducerDeclarationType (goTranspiler, declaration, family) {
         ? (n) => !ccxtGoProducerUseRebinds (n)
         : (dictLike
             ? (n) => goTranspiler.goSafeDictUseReadsTheMap (n)
-            : (n) => goTranspiler.goSafeListUseReadsTheList (n));
+            : (n) => goTranspiler.goSafeListUseReadsTheList (n) || ccxtGoSafeListIndexedAccessorRead (goTranspiler, n));
     return goTranspiler.goDeclaredLocalTypeIfSafe (declaration, goType, readsTheValue);
 }
 
@@ -6789,6 +6807,16 @@ function ccxtGoProducerArgIsMap (goTranspiler, arg) {
     }
     return (typeof goTranspiler.goDeclaredTypeOfIdentifier === 'function')
         && (goTranspiler.goDeclaredTypeOfIdentifier (arg) === CCXT_GO_PRODUCER_DICT_TYPE);
+}
+
+// `this.safeX (xs, i)`: xs is the accessor's container and i a slice index
+function ccxtGoSafeListIndexedAccessorRead (goTranspiler, node) {
+    const parent = node.parent;
+    if ((parent?.kind !== ts.SyntaxKind.CallExpression) || (parent.arguments.indexOf (node) !== 0)) {
+        return false;
+    }
+    const callee = typeof goTranspiler.goPrintedCallee === 'function' ? goTranspiler.goPrintedCallee (goTranspiler.printNode (parent, 0)) : undefined;
+    return (callee !== undefined) && CCXT_GO_SAFE_ACCESSOR_CALLEE.test (callee) && ccxtGoSafeAccessorIndexKey (goTranspiler, parent);
 }
 
 function ccxtGoProducerUseRebinds (n) {
