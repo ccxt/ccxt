@@ -504,12 +504,12 @@ func (this *Nado) createOrderRequestBody(ch chan any, symbol any, typeVar any, s
 		placeOrder["spot_leverage"] = spotLeverage
 	}
 	var isBuy bool = (IsEqual(side, "buy"))
-	var triggerPrice any = DerefScalar(this.SafeString2(params, "triggerPrice", "stopPrice"))
+	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLossTriggerPrice *string = this.SafeString(params, "stopLossPrice")
 	var takeProfitTriggerPrice *string = this.SafeString(params, "takeProfitPrice")
 	var isStopLossOrder bool = (stopLossTriggerPrice != nil)
 	var isTakeProfitOrder bool = (takeProfitTriggerPrice != nil)
-	var isStopOrder bool = !IsEqual(triggerPrice, nil)
+	var isStopOrder bool = (triggerPrice != nil)
 	var isTriggerOrder bool = isStopOrder || isStopLossOrder || isTakeProfitOrder
 	if isStopOrder {
 		var triggerDirection any = nil
@@ -546,12 +546,11 @@ func (this *Nado) createOrderRequestBody(ch chan any, symbol any, typeVar any, s
 				return "above"
 			}()
 		}
-		triggerPrice = func() any {
-			if isStopLossOrder {
-				return stopLossTriggerPrice
-			}
-			return takeProfitTriggerPrice
-		}()
+		if isStopLossOrder {
+			triggerPrice = stopLossTriggerPrice
+		} else {
+			triggerPrice = takeProfitTriggerPrice
+		}
 		var triggerPriceX18 any = this.ConvertToX18(triggerPrice)
 		var priceRequirement map[string]any = map[string]any{}
 		AddElementToObject(priceRequirement, "oracle_price_"+oracleSide, triggerPriceX18)
@@ -1281,10 +1280,10 @@ func (this *Nado) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	if trigger != nil && *trigger == true {
 
-		var retRes105619 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(params, map[string]any{
+		var retRes106019 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(params, map[string]any{
 			"status_types": []any{"waiting_price", "waiting_dependency"},
 		})))))
-		ch <- BoxAbsent(retRes105619)
+		ch <- BoxAbsent(retRes106019)
 		return nil
 	}
 	if symbol == nil {
@@ -1382,16 +1381,16 @@ func (this *Nado) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	if trigger != nil && *trigger == true {
 
-		var retRes113319 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(params, map[string]any{
+		var retRes113719 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(params, map[string]any{
 			"status_types": []any{"triggered", "triggering", "twap_executing", "twap_completed"},
 		})))))
-		ch <- BoxAbsent(retRes113319)
+		ch <- BoxAbsent(retRes113719)
 		return nil
 	}
 	var ordersRequest map[string]any = map[string]any{
 		"subaccounts": []any{sender},
 	}
-	if !IsEqual(market, nil) {
+	if market != nil {
 		ordersRequest["product_ids"] = []any{this.ParseToInt(GetValue(market, "id"))}
 	}
 	var ordersRequestparamsVariable []any = this.HandleUntilOption("max_time", ordersRequest, params, 0.001)
@@ -1472,11 +1471,11 @@ func (this *Nado) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any 
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes119715 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(params, map[string]any{
+	var retRes120115 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(params, map[string]any{
 		"trigger":      true,
 		"status_types": []any{"cancelled", "internal_error"},
 	})))))
-	ch <- BoxAbsent(retRes119715)
+	ch <- BoxAbsent(retRes120115)
 	return nil
 }
 
@@ -1508,11 +1507,11 @@ func (this *Nado) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ...
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes121715 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(params, map[string]any{
+	var retRes122115 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(params, map[string]any{
 		"trigger":      true,
 		"status_types": []any{"cancelled", "internal_error", "triggered", "triggering", "twap_executing", "twap_completed"},
 	})))))
-	ch <- BoxAbsent(retRes121715)
+	ch <- BoxAbsent(retRes122115)
 	return nil
 }
 
@@ -1561,7 +1560,7 @@ func (this *Nado) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var matchesRequest map[string]any = map[string]any{
 		"subaccounts": []any{this.CreateSubaccount(this.WalletAddress, subaccount)},
 	}
-	if !IsEqual(market, nil) {
+	if market != nil {
 		matchesRequest["product_ids"] = []any{this.ParseToInt(GetValue(market, "id"))}
 	}
 	var matchesRequestparamsVariable []any = this.HandleUntilOption("max_time", matchesRequest, params, 0.001)
@@ -1712,8 +1711,8 @@ func (this *Nado) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes136415 []any = ListTyped(PanicOnError((<-this.QueryTransactionsByEventTypeAsync("deposit_collateral", "deposit", "fetchDeposits", code, since, limit, params))))
-	ch <- BoxAbsent(retRes136415)
+	var retRes136815 []any = ListTyped(PanicOnError((<-this.QueryTransactionsByEventTypeAsync("deposit_collateral", "deposit", "fetchDeposits", code, since, limit, params))))
+	ch <- BoxAbsent(retRes136815)
 	return nil
 }
 
@@ -1747,8 +1746,8 @@ func (this *Nado) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes138115 []any = ListTyped(PanicOnError((<-this.QueryTransactionsByEventTypeAsync("withdraw_collateral", "withdrawal", "fetchWithdrawals", code, since, limit, params))))
-	ch <- BoxAbsent(retRes138115)
+	var retRes138515 []any = ListTyped(PanicOnError((<-this.QueryTransactionsByEventTypeAsync("withdraw_collateral", "withdrawal", "fetchWithdrawals", code, since, limit, params))))
+	ch <- BoxAbsent(retRes138515)
 	return nil
 }
 func (this *Nado) QueryTransactionsByEventTypeAsync(eventType any, transactionType any, methodName any, optionalArgs ...any) <-chan any {
@@ -1792,7 +1791,7 @@ func (this *Nado) queryTransactionsByEventTypeBody(ch chan any, eventType any, t
 			}(),
 		},
 	}
-	if !IsEqual(currency, nil) {
+	if currency != nil {
 		eventsRequest["product_ids"] = []any{this.ParseToInt(GetValue(currency, "id"))}
 	}
 	var eventsRequestparamsVariable []any = this.HandleUntilOption("max_time", eventsRequest, params, 0.001)
@@ -2129,7 +2128,7 @@ func (this *Nado) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			continue
 		}
 		var previous map[string]any = SafeMapTyped(assetsByCode, assetCode)
-		if IsEqual(previous, nil) {
+		if previous == nil {
 			AddElementToObject(assetsByCode, assetCode, rawAsset)
 		} else {
 			var previousDeposit *bool = this.SafeBool(previous, "can_deposit", false)
@@ -2306,7 +2305,7 @@ func (this *Nado) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 		var previous map[string]any = SafeMapTyped(result, code)
 		var canDeposit *bool = this.SafeBool(currency, "can_deposit", false)
 		var canWithdraw *bool = this.SafeBool(currency, "can_withdraw", false)
-		if IsEqual(previous, nil) {
+		if previous == nil {
 			AddElementToObject(result, code, parsed)
 		} else {
 			var previousDeposit *bool = this.SafeBool(previous, "deposit", false)
@@ -2393,7 +2392,7 @@ func (this *Nado) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 
 	var tickers map[string]any = MapTyped(PanicOnError((<-this.FetchTickersAsync([]any{symbol}, params))))
 	var ticker map[string]any = SafeMapTyped(tickers, symbol)
-	if IsEqual(ticker, nil) {
+	if ticker == nil {
 		panic(BadSymbol(Add(this.Id+" fetchTicker() ticker not found for ", symbol)))
 	}
 
@@ -3576,7 +3575,7 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
 		market = MapTyped(this.SafeMarket(marketId, market))
 		var data map[string]any = SafeMapTyped(order, "data")
 		id = this.SafeString(data, "digest")
-		if IsEqual(id, nil) {
+		if id == nil {
 			id = this.SafeString(placeOrder, "digest")
 			timestamp = this.SafeTimestamp(order, "placed_at")
 			lastUpdateTimestamp = this.SafeTimestamp(order, "updated_at")
@@ -3592,9 +3591,9 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
 			amount = this.ParseX18(Precise.StringAbs(amountString))
 		}
 		var triggerStatus map[string]any = SafeMapTyped(order, "status")
-		if !IsEqual(triggerStatus, nil) {
+		if triggerStatus != nil {
 			var triggered map[string]any = SafeMapTyped(triggerStatus, "triggered")
-			if !IsEqual(triggered, nil) {
+			if triggered != nil {
 				status = "closed"
 			} else {
 				status = "canceled"

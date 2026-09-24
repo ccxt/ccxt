@@ -1148,7 +1148,7 @@ func (this *Cryptomus) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 		market = this.Market(symbol)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(market, nil) {
+	if market != nil {
 		request["market"] = GetValue(market, "id")
 	}
 

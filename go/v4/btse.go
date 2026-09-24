@@ -1298,7 +1298,7 @@ func (this *Btse) ParseBalance(response any) any {
 	for i := 0; i < GetArrayLength(response); i++ {
 		var row map[string]any = SafeMapTyped(response, i)
 		var assets []any = SafeListTyped(row, "assets")
-		if !IsEqual(assets, nil) {
+		if assets != nil {
 			// futures wallet row: per-currency totals in assets, locked amounts in assetsInUse
 			// several wallet rows can report the same currency, so amounts are aggregated
 			var inUse []any = SafeListTyped(row, "assetsInUse")
@@ -2659,7 +2659,7 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol any, typeVar any, 
 	// here we handling with attached take profit and stop loss orders
 	var takeProfit any = this.SafeDict(params, "takeProfit")
 	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
-	if (!IsEqual(takeProfit, nil)) || (!IsEqual(stopLoss, nil)) {
+	if (!IsEqual(takeProfit, nil)) || ((stopLoss != nil)) {
 		var takeProfitTriggerPrice *string = this.SafeString(takeProfit, "triggerPrice")
 		var stopLossTriggerPrice *string = this.SafeString(stopLoss, "triggerPrice")
 		if takeProfitTriggerPrice != nil {

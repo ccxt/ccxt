@@ -4523,8 +4523,8 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 	var clientOrderId *string = this.SafeString2(params, "clOrdId", "clientOrderId")
 	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
 	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
-	var hasStopLoss bool = (!IsEqual(stopLoss, nil))
-	var hasTakeProfit bool = (!IsEqual(takeProfit, nil))
+	var hasStopLoss bool = ((stopLoss != nil))
+	var hasTakeProfit bool = ((takeProfit != nil))
 	var trailingPercent *string = this.SafeString2(params, "trailingPercent", "callbackRatio")
 	var isTrailingPercentOrder bool = (trailingPercent != nil)
 	var trailingPrice *string = this.SafeString2(params, "trailingPrice", "callbackSpread")
@@ -5009,8 +5009,8 @@ func (this *Okx) EditOrderRequest(id any, symbol any, typeVar any, side any, opt
 	var takeProfitTriggerPriceType *string = this.SafeString(params, "newTpTriggerPxType", "last")
 	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
 	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
-	var hasStopLoss bool = (!IsEqual(stopLoss, nil))
-	var hasTakeProfit bool = (!IsEqual(takeProfit, nil))
+	var hasStopLoss bool = ((stopLoss != nil))
+	var hasTakeProfit bool = ((takeProfit != nil))
 	if isAlgoOrder == true {
 		if (stopLossTriggerPrice == nil) && (takeProfitTriggerPrice == nil) {
 			panic(BadRequest(this.Id + " editOrder() requires a stopLossPrice or takeProfitPrice parameter for editing an algo order"))
@@ -7734,13 +7734,12 @@ func (this *Okx) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var addressFrom *string = this.SafeString(transaction, "from")
 	var addressTo *string = this.SafeString(transaction, "to")
 	var address *string = addressTo
-	var tagTo any = DerefScalar(this.SafeString2(transaction, "tag", "memo"))
-	tagTo = func() any {
-		if IsEqual(tagTo, nil) {
-			return this.SafeString(transaction, "pmtId")
-		}
-		return this.SafeString2(transaction, "pmtId", tagTo)
-	}()
+	var tagTo *string = this.SafeString2(transaction, "tag", "memo")
+	if tagTo == nil {
+		tagTo = this.SafeString(transaction, "pmtId")
+	} else {
+		tagTo = this.SafeString2(transaction, "pmtId", tagTo)
+	}
 	if withdrawalId != nil {
 		typeVar = "withdrawal"
 		id = withdrawalId
@@ -7757,9 +7756,7 @@ func (this *Okx) ParseTransaction(transaction any, optionalArgs ...any) any {
 		var chainParts []string = Split(chain, "-")
 		var networkParts any = this.ArraySlice(chainParts, 1)
 		var networkId string = Join(networkParts, "-")
-		if !IsEqual(networkId, nil) {
-			network = this.NetworkIdToCode(networkId, code)
-		}
+		network = this.NetworkIdToCode(networkId, code)
 	}
 	var amount *float64 = this.SafeNumber(transaction, "amt")
 	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "state"))
@@ -7973,7 +7970,7 @@ func (this *Okx) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any)
 	//
 	var data []any = SafeListTyped(response, "data")
 	var position map[string]any = SafeMapTyped(data, 0)
-	if IsEqual(position, nil) {
+	if position == nil {
 		panic(NullResponse(Add(this.Id+" fetchPosition() could not find a position for ", symbol)))
 	}
 
@@ -8113,8 +8110,8 @@ func (this *Okx) fetchPositionsForSymbolBody(ch chan any, symbol any, optionalAr
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes629815 []any = ListTyped(PanicOnError((<-this.FetchPositionsAsync([]any{symbol}, params))))
-	ch <- BoxAbsent(retRes629815)
+	var retRes630015 []any = ListTyped(PanicOnError((<-this.FetchPositionsAsync([]any{symbol}, params))))
+	ch <- BoxAbsent(retRes630015)
 	return nil
 }
 func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
@@ -8251,7 +8248,7 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
 	var maintenanceMarginPercentageString *string = Precise.StringDiv(maintenanceMarginString, notionalString)
 	if initialMarginPercentage == nil {
 		initialMarginPercentage = this.ParseNumber(Precise.StringDiv(initialMarginString, notionalString, 4))
-	} else if IsEqual(initialMarginString, nil) {
+	} else if initialMarginString == nil {
 		if GetValue(market, "linear") == true {
 			var initialMarginPercentageString *string = this.NumberToString(initialMarginPercentage)
 			initialMarginString = Precise.StringMul(initialMarginPercentageString, notionalString)
@@ -8777,8 +8774,8 @@ func (this *Okx) fetchFundingIntervalBody(ch chan any, symbol any, optionalArgs 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes688115 map[string]any = MapTyped(PanicOnError((<-this.FetchFundingRateAsync(symbol, params))))
-	ch <- BoxAbsent(retRes688115)
+	var retRes688315 map[string]any = MapTyped(PanicOnError((<-this.FetchFundingRateAsync(symbol, params))))
+	ch <- BoxAbsent(retRes688315)
 	return nil
 }
 
@@ -9732,8 +9729,8 @@ func (this *Okx) reduceMarginBody(ch chan any, symbol any, amount any, optionalA
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes767815 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))))
-	ch <- BoxAbsent(retRes767815)
+	var retRes768015 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))))
+	ch <- BoxAbsent(retRes768015)
 	return nil
 }
 
@@ -9758,8 +9755,8 @@ func (this *Okx) addMarginBody(ch chan any, symbol any, amount any, optionalArgs
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes769215 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))))
-	ch <- BoxAbsent(retRes769215)
+	var retRes769415 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))))
+	ch <- BoxAbsent(retRes769415)
 	return nil
 }
 
@@ -10555,7 +10552,7 @@ func (this *Okx) ParseDepositWithdrawFees(response any, optionalArgs ...any) any
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (code != nil) && ((codes == nil) || (this.InArray(code, codes))) {
 			var depositWithdrawFee map[string]any = SafeMapTyped(depositWithdrawFees, code)
-			if IsEqual(depositWithdrawFee, nil) {
+			if depositWithdrawFee == nil {
 				AddElementToObject(depositWithdrawFees, code, this.DepositWithdrawFee(map[string]any{}))
 			}
 			if currencyId != nil {

@@ -3473,7 +3473,7 @@ func (this *Polymarket) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	var requestedSlug *string = this.SafeString(params, "slug")
 	var queries []any = this.ParseSearchQueries(params)
 	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"query", "queries", "eventId", "slug"}))
-	if ccxt.IsEqual(queries, nil) {
+	if queries == nil {
 		panic(ccxt.ExchangeError(this.Id + " fetchEvents() missing queries"))
 	}
 	var queriesLength int = len(queries)
@@ -4700,11 +4700,7 @@ func (this *Polymarket) ParsePolyTimestamp(raw *string) any {
 	if raw == nil {
 		return nil
 	}
-	var n int64 = this.ParseToInt(raw)
-	if ccxt.IsEqual(n, nil) {
-		return nil
-	}
-	return n
+	return this.ParseToInt(raw)
 }
 
 func NewPolymarket(userConfig map[string]any) *Polymarket {

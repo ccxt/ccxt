@@ -1938,7 +1938,7 @@ func (this *Sxbet) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	trades = this.SortBy(trades, "timestamp")
 	var sym *string = func() *string {
-		if !ccxt.IsEqual(outcomeObj, nil) {
+		if outcomeObj != nil {
 			return this.SafeString(outcomeObj, "outcome")
 		}
 		return nil
@@ -2198,7 +2198,7 @@ func (this *Sxbet) ParseSxbetV3Position(raw any) any {
 		ownOdds = this.SafeString(odds, "outcomeTwo")
 	}
 	var entryPrice *float64 = func() *float64 {
-		if !ccxt.IsEqual(ownOdds, nil) {
+		if ownOdds != nil {
 			return ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(ownOdds, oneDenom)))
 		}
 		return nil
@@ -2609,7 +2609,7 @@ func (this *Sxbet) ParseSxbetTickersByHash(outcomesList any, rowsByHash map[stri
 		var outcomeObj map[string]any = this.Outcome(ccxt.GetValue(outcomesList, i))
 		var marketHash *string = this.SafeString(outcomeObj["info"], "marketHash", "")
 		var raw map[string]any = ccxt.SafeMapTyped(rowsByHash, marketHash)
-		if ccxt.IsEqual(raw, nil) {
+		if raw == nil {
 			continue
 		}
 		var ticker any = this.ParsePredictionTicker(raw, outcomeObj)
@@ -2682,7 +2682,7 @@ func (this *Sxbet) ParsePredictionTicker(raw any, optionalArgs ...any) any {
 		return ccxt.Int64PtrTyped(now)
 	}()
 	var average any = nil
-	if (!ccxt.IsEqual(bid, nil)) && (!ccxt.IsEqual(ask, nil)) {
+	if ((bid != nil)) && ((ask != nil)) {
 		average = this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(this.NumberToString(bid), this.NumberToString(ask)), "2"))
 	}
 	return this.SafePredictionTicker(map[string]any{
@@ -2996,7 +2996,7 @@ func (this *Sxbet) HandleCentrifugoFrame(client any, msg any) {
 	var pendingRequests any = this.SafeDict(this.Options, "wsPendingRequests", map[string]any{})
 	var pendingEntry any = this.SafeDict(pendingRequests, requestIdString)
 	var errorReply map[string]any = ccxt.SafeMapTyped(msg, "error")
-	if !ccxt.IsEqual(errorReply, nil) {
+	if errorReply != nil {
 		// a rejected connect (bad or expired realtime token) or subscribe (unauthorized or
 		// unknown channel) - fail the awaiting future and clear the subscription hash that
 		// watch() registered at send time, so the next call re-sends the command instead
@@ -3024,14 +3024,14 @@ func (this *Sxbet) HandleCentrifugoFrame(client any, msg any) {
 		this.Options.Store("wsPendingRequests", this.Omit(pendingRequests, requestIdString))
 	}
 	var connectReply map[string]any = ccxt.SafeMapTyped(msg, "connect")
-	if !ccxt.IsEqual(connectReply, nil) {
+	if connectReply != nil {
 		// connect acknowledged - unblock connectSxbetCentrifugo so channel subscribes can be sent
 		this.Options.Store("wsConnected", true)
 		client.(ccxt.ClientInterface).Resolve(true, "centrifugoConnected")
 		return
 	}
 	var push map[string]any = ccxt.SafeMapTyped(msg, "push")
-	if ccxt.IsEqual(push, nil) {
+	if push == nil {
 		return
 	}
 	var channel *string = this.SafeString(push, "channel")

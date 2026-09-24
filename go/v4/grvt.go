@@ -3899,7 +3899,7 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) any {
 	var avgPrices []any = SafeListTyped(stateObj, "avg_fill_price")
 	var primaryOrderIndex int = 0
 	var firstLeg map[string]any = SafeMapTyped(legs, primaryOrderIndex)
-	if !IsEqual(firstLeg, nil) {
+	if firstLeg != nil {
 		var marketId *string = this.SafeString(firstLeg, "instrument")
 		market = MapTyped(this.SafeMarket(marketId, market))
 		size = this.SafeString(firstLeg, "size")

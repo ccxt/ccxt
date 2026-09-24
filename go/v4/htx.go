@@ -6747,7 +6747,7 @@ func (this *Htx) CreateContractOrderRequest(symbol any, typeVar any, side any, a
 		var takeProfitOrderPrice *float64 = this.SafeNumber(takeProfit, "price")
 		var takeProfitType *string = this.SafeString(takeProfit, "type")
 		// on htx for attached tpsl orders sl_order_price or tp_order_price need to be filled and the sl_trigger_price or tp_trigger_price are optional
-		if !IsEqual(stopLoss, nil) {
+		if stopLoss != nil {
 			if stopLossTriggerPriceAttached != nil {
 				request["sl_trigger_price"] = this.PriceToPrecision(symbol, stopLossTriggerPriceAttached)
 			}
@@ -6759,7 +6759,7 @@ func (this *Htx) CreateContractOrderRequest(symbol any, typeVar any, side any, a
 			}
 			params = MapTyped(this.Omit(params, "stopLoss"))
 		}
-		if !IsEqual(takeProfit, nil) {
+		if takeProfit != nil {
 			if takeProfitTriggerPriceAttached != nil {
 				request["tp_trigger_price"] = this.PriceToPrecision(symbol, takeProfitTriggerPriceAttached)
 			}
@@ -8232,7 +8232,7 @@ func (this *Htx) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		"direct": "next",
 		"from":   0,
 	}
-	if !IsEqual(currency, nil) {
+	if currency != nil {
 		request["currency"] = GetValue(currency, "id")
 	}
 	if limit != nil {
@@ -8315,7 +8315,7 @@ func (this *Htx) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		"direct": "next",
 		"from":   0,
 	}
-	if !IsEqual(currency, nil) {
+	if currency != nil {
 		request["currency"] = GetValue(currency, "id")
 	}
 	if limit != nil {
@@ -9625,7 +9625,7 @@ func (this *Htx) HandleErrors(httpCode any, reason any, url any, method any, hea
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
 	var errorsList []any = SafeListTyped(data, "errors")
-	if !IsEqual(errorsList, nil) {
+	if errorsList != nil {
 		var first map[string]any = SafeMapTyped(errorsList, 0)
 		var errcode *string = this.SafeString(first, "err_code")
 		var errmessage *string = this.SafeString(first, "err_msg")
@@ -11459,7 +11459,7 @@ func (this *Htx) ParseSettlements(settlements any, market map[string]any) []any 
 		if market["linear"] == true {
 			var parsedSettlement any = this.ParseSettlement(settlement, market)
 			result = append(result, parsedSettlement)
-		} else if !IsEqual(list, nil) {
+		} else if list != nil {
 			var timestamp *int64 = this.SafeInteger(settlement, "settlement_time")
 			var timestampDetails map[string]any = map[string]any{
 				"timestamp": timestamp,

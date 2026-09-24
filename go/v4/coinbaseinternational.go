@@ -1150,7 +1150,7 @@ func (this *Coinbaseinternational) loadCurrencyNetworksBody(ch chan any, code an
 	_ = params
 	var currency map[string]any = this.Currency(code).(map[string]any)
 	var networks map[string]any = SafeMapTyped(currency, "networks")
-	if !IsEqual(networks, nil) {
+	if networks != nil {
 
 		ch <- false
 		return nil
@@ -2372,20 +2372,17 @@ func (this *Coinbaseinternational) createOrderBody(ch chan any, symbol any, type
 		request["portfolio"] = portfolio
 	}
 	var postOnly *bool = this.SafeBool2(params, "postOnly", "post_only")
-	var tif any = DerefScalar(this.SafeString2(params, "tif", "timeInForce"))
+	var tif *string = this.SafeString2(params, "tif", "timeInForce")
 	// market orders must be IOC
 	if typeId == "MARKET" {
-		if !IsEqual(tif, nil) && !IsEqual(tif, "IOC") {
+		if (tif != nil) && (tif == nil || *tif != "IOC") {
 			panic(InvalidOrder(this.Id + " createOrder() market orders must have tif set to \"IOC\""))
 		}
-		tif = "IOC"
+		tif = SafeStringPtr("IOC")
 	} else {
-		tif = func() any {
-			if IsEqual(tif, nil) {
-				return "GTC"
-			}
-			return tif
-		}()
+		if tif == nil {
+			tif = SafeStringPtr("GTC")
+		}
 	}
 	if postOnly != nil {
 		request["post_only"] = postOnly
@@ -2805,8 +2802,8 @@ func (this *Coinbaseinternational) fetchOpenOrdersBody(ch chan any, optionalArgs
 	var pageKey string = "ccxtPageKey"
 	if paginate {
 
-		var retRes218919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchOpenOrders", symbol, since, limit, params, pageKey, maxEntriesPerRequest))))
-		ch <- BoxAbsent(retRes218919)
+		var retRes219119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchOpenOrders", symbol, since, limit, params, pageKey, maxEntriesPerRequest))))
+		ch <- BoxAbsent(retRes219119)
 		return nil
 	}
 	var page any = Subtract(this.SafeInteger(params, pageKey, 1), 1)
@@ -2915,8 +2912,8 @@ func (this *Coinbaseinternational) fetchMyTradesBody(ch chan any, optionalArgs .
 	params = MapTyped(GetValue(maxEntriesPerRequestparamsVariable, 1))
 	if paginate {
 
-		var retRes227319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, pageKey, maxEntriesPerRequest))))
-		ch <- BoxAbsent(retRes227319)
+		var retRes227519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, pageKey, maxEntriesPerRequest))))
+		ch <- BoxAbsent(retRes227519)
 		return nil
 	}
 	var market map[string]any = nil

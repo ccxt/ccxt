@@ -1006,7 +1006,7 @@ func (this *Hashkey) HandleBalance(client any, message any) {
 	var account map[string]any = this.Account()
 	account["free"] = this.SafeString(balanceUpdate, "f")
 	account["used"] = this.SafeString(balanceUpdate, "l")
-	if (!ccxt.IsEqual(typeVar, nil)) && (code != nil) {
+	if code != nil {
 		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
 	}
 	ccxt.AddElementToObject(this.Balance, typeVar, this.SafeBalance(ccxt.GetValue(this.Balance, typeVar)))

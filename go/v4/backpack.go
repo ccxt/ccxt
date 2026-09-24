@@ -2321,7 +2321,7 @@ func (this *Backpack) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		AddElementToObject(params, "postOnly", true)
 	}
 	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
-	if !IsEqual(takeProfit, nil) {
+	if takeProfit != nil {
 		var takeProfitTriggerPrice *string = this.SafeString(takeProfit, "triggerPrice")
 		if takeProfitTriggerPrice != nil {
 			request["takeProfitTriggerPrice"] = this.PriceToPrecision(symbol, takeProfitTriggerPrice)
@@ -2333,7 +2333,7 @@ func (this *Backpack) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		params = MapTyped(this.Omit(params, "takeProfit"))
 	}
 	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
-	if !IsEqual(stopLoss, nil) {
+	if stopLoss != nil {
 		var stopLossTriggerPrice *string = this.SafeString(stopLoss, "triggerPrice")
 		if stopLossTriggerPrice != nil {
 			request["stopLossTriggerPrice"] = this.PriceToPrecision(symbol, stopLossTriggerPrice)
