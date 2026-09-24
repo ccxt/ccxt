@@ -4299,6 +4299,9 @@ export class BaseExchange {
     }
 
     orderbookChecksumMessage (symbol:Str): string {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' orderbookChecksumMessage() requires a symbol argument');
+        }
         return symbol + ' : ' + 'orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options["watchOrderBook"]["checksum"] = false';
     }
 
@@ -4653,10 +4656,17 @@ export class BaseExchange {
                 let highestPrecisionCurrency = this.safeValue (groupedCurrenciesCode, 0);
                 for (let j = 1; j < groupedCurrenciesCode.length; j++) {
                     const currentCurrency = groupedCurrenciesCode[j];
+                    const currentPrecision = this.safeNumber (currentCurrency, 'precision');
+                    const highestPrecision = this.safeNumber (highestPrecisionCurrency, 'precision');
+                    if ((currentPrecision === undefined) || (highestPrecision === undefined)) {
+                        continue;
+                    }
                     if (this.precisionMode === TICK_SIZE) {
-                        highestPrecisionCurrency = (currentCurrency['precision'] < highestPrecisionCurrency['precision']) ? currentCurrency : highestPrecisionCurrency;
-                    } else {
-                        highestPrecisionCurrency = (currentCurrency['precision'] > highestPrecisionCurrency['precision']) ? currentCurrency : highestPrecisionCurrency;
+                        if (currentPrecision < highestPrecision) {
+                            highestPrecisionCurrency = currentCurrency;
+                        }
+                    } else if (currentPrecision > highestPrecision) {
+                        highestPrecisionCurrency = currentCurrency;
                     }
                 }
                 resultingCurrencies.push (highestPrecisionCurrency);
@@ -5743,9 +5753,9 @@ export class BaseExchange {
             if (type !== undefined && market['type'] !== type) {
                 throw new BadRequest (this.id + ' symbols must be of the same type ' + type + '. If the type is incorrect you can change it in options or the params of the request');
             }
-            marketType = market['type'];
+            marketType = this.safeString (market, 'type');
             if (market['spot'] !== true) {
-                isLinearSubType = market['linear'];
+                isLinearSubType = this.safeBool (market, 'linear');
             }
             const symbol = this.safeString (market, 'symbol', symbols[i]);
             result.push (symbol);
@@ -6006,6 +6016,9 @@ export class BaseExchange {
             } else {
                 // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
                 const networkIdOrCode = isIndexedByUnifiedNetworkCode ? networkCode : this.networkCodeToId (networkCode, currencyCode);
+                if (networkIdOrCode === undefined) {
+                    throw new NotSupported (this.id + ' - ' + networkCode + ' network was not found for ' + currencyCode);
+                }
                 if (networkIdOrCode in indexedNetworkEntries) {
                     chosenNetworkId = networkIdOrCode;
                 } else {
@@ -6816,7 +6829,10 @@ export class BaseExchange {
         return this.safeValue (fees, code);
     }
 
-    getSupportedMapping (key: any, mapping: Dict = {}) {
+    getSupportedMapping (key: Str, mapping: Dict = {}) {
+        if (key === undefined) {
+            throw new ArgumentsRequired (this.id + ' getSupportedMapping() requires a key argument');
+        }
         if (key in mapping) {
             return mapping[key];
         } else {
@@ -7470,7 +7486,11 @@ export class BaseExchange {
         const market = this.market (symbol);
         const result = this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
         if (result === '0') {
-            throw new InvalidOrder (this.id + ' price of ' + market['symbol'] + ' must be greater than minimum price precision of ' + this.numberToString (market['precision']['price']));
+            const pricePrecision = this.numberToString (market['precision']['price']);
+            if (pricePrecision === undefined) {
+                throw new BadSymbol (this.id + ' priceToPrecision() market ' + market['symbol'] + ' has no price precision');
+            }
+            throw new InvalidOrder (this.id + ' price of ' + market['symbol'] + ' must be greater than minimum price precision of ' + pricePrecision);
         }
         return result;
     }
@@ -7482,7 +7502,11 @@ export class BaseExchange {
         const market = this.market (symbol);
         const result = this.decimalToPrecision (amount, TRUNCATE, market['precision']['amount'], this.precisionMode, this.paddingMode);
         if (result === '0') {
-            throw new InvalidOrder (this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + this.numberToString (market['precision']['amount']));
+            const amountPrecision = this.numberToString (market['precision']['amount']);
+            if (amountPrecision === undefined) {
+                throw new BadSymbol (this.id + ' amountToPrecision() market ' + market['symbol'] + ' has no amount precision');
+            }
+            throw new InvalidOrder (this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + amountPrecision);
         }
         return result;
     }
@@ -8422,7 +8446,7 @@ export class BaseExchange {
                         params['until'] = paginationTimestamp - 1;
                     }
                     const response = await this[method] (symbol, undefined, maxEntriesPerRequest, params);
-                    const responseLength = response.length;
+                    const responseLength: number = response.length;
                     if (this.verbose) {
                         let backwardMessage = 'Dynamic pagination call ' + this.numberToString (calls) + ' method ' + method + ' response length ' + this.numberToString (responseLength);
                         if (paginationTimestamp !== undefined) {
@@ -8446,7 +8470,7 @@ export class BaseExchange {
                 } else {
                     // do it forwards, starting from the since
                     const response = await this[method] (symbol, paginationTimestamp, maxEntriesPerRequest, params);
-                    const responseLength = response.length;
+                    const responseLength: number = response.length;
                     if (this.verbose) {
                         let forwardMessage = 'Dynamic pagination call ' + this.numberToString (calls) + ' method ' + method + ' response length ' + this.numberToString (responseLength);
                         if (paginationTimestamp !== undefined) {
@@ -8555,7 +8579,7 @@ export class BaseExchange {
                 break;
             }
             tasks.push (this.safeDeterministicCall (method, symbol, currentSince, maxEntriesPerRequest, timeframe, params));
-            currentSince = this.sum (currentSince, step) - 1;
+            currentSince = currentSince + step - 1;
         }
         const results = await Promise.all (tasks);
         let result: any[] = [];
@@ -8610,7 +8634,7 @@ export class BaseExchange {
                 if (response === undefined) {
                     throw new NullResponse (this.id + ' fetchPaginatedCallCursor() returned empty response');
                 }
-                const responseLength = response.length;
+                const responseLength: number = response.length;
                 if (this.verbose) {
                     const cursorString = (cursorValue === undefined) ? '' : cursorValue;
                     const iteration = (i + 1);
@@ -8673,7 +8697,7 @@ export class BaseExchange {
                 params[pageKey as string] = i + 1;
                 const response = await this[method] (symbol, since, maxEntriesPerRequest, params);
                 errors = 0;
-                const responseLength = response.length;
+                const responseLength: number = response.length;
                 if (this.verbose) {
                     const iteration = (i + 1).toString ();
                     const incrementalMessage = 'Incremental pagination call ' + iteration + ' method ' + method + ' response length ' + responseLength.toString ();
@@ -8741,7 +8765,19 @@ export class BaseExchange {
                 if (timestamp === undefined) {
                     throw new ExchangeError (this.id + ' removeRepeatedTradesFromArray() missing timestamp');
                 }
-                id = 't_' + timestamp.toString () + '_' + side + '_' + price + '_' + amount;
+                // optional parts are appended only when present, separators keep positions distinct
+                id = 't_' + timestamp.toString () + '_';
+                if (side !== undefined) {
+                    id = id + side;
+                }
+                id = id + '_';
+                if (price !== undefined) {
+                    id = id + price;
+                }
+                id = id + '_';
+                if (amount !== undefined) {
+                    id = id + amount;
+                }
             }
             if (id !== undefined && !(id in uniqueResult)) {
                 uniqueResult[id] = entry;
@@ -8992,6 +9028,9 @@ export class BaseExchange {
         } else if (monthRaw === '12') {
             month = 'DEC';
         }
+        if (month === undefined) {
+            throw new BadSymbol (this.id + ' invalid expiry date ' + date);
+        }
         const reconstructedDate = day + month + year;
         return reconstructedDate;
     }
@@ -9023,6 +9062,9 @@ export class BaseExchange {
         const monthName = date.slice (2, 5);
         const month = this.safeString (monthMappping, monthName);
         const day = date.slice (5, 7);
+        if (month === undefined) {
+            throw new BadSymbol (this.id + ' invalid expiry date ' + date);
+        }
         const reconstructedDate = day + month + year;
         return reconstructedDate;
     }
