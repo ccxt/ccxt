@@ -2913,14 +2913,22 @@ export default class krakenfutures extends Exchange {
             type = symbol;
         }
         if (type === undefined) {
-            type = (symbol === undefined) ? 'flex' : symbol;
+            if (symbol === undefined) {
+                type = 'flex';
+            } else {
+                type = symbol;
+            }
         }
         const accountName = this.parseAccount (type);
         const accounts = this.safeDict (response, 'accounts');
         const account = this.safeDict (accounts, accountName);
         if (account === undefined) {
-            type = (type === undefined) ? '' : type;
-            symbol = (symbol === undefined) ? '' : symbol;
+            if (type === undefined) {
+                type = '';
+            }
+            if (symbol === undefined) {
+                symbol = '';
+            }
             throw new BadRequest (this.id + ' fetchBalance has no account for ' + type);
         }
         const balance = this.parseBalance (account);

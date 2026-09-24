@@ -6947,7 +6947,9 @@ export default class bingx extends Exchange {
     override parseMarginMode (marginMode: Dict, market: Market = undefined): MarginMode {
         const marketId = this.safeString (marginMode, 'symbol');
         let marginType = this.safeStringLower (marginMode, 'marginType');
-        marginType = (marginType === 'crossed') ? 'cross' : marginType;
+        if (marginType === 'crossed') {
+            marginType = 'cross';
+        }
         return {
             'info': marginMode,
             'symbol': this.safeSymbol (marketId, market, '-', 'swap'),

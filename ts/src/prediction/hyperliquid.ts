@@ -323,7 +323,7 @@ export default class hyperliquid extends Exchange {
                     }
                     const thresholdsLength = thresholds.length;
                     const index = this.parseToInt (indexStr);
-                    if (thresholdsLength > 0 && index !== undefined) {
+                    if (thresholdsLength > 0) {
                         let bucketLabel: string;
                         if (index <= 0) {
                             bucketLabel = 'BELOW_' + thresholds[0];
@@ -1202,10 +1202,8 @@ export default class hyperliquid extends Exchange {
         if (isNumericInput) {
             candidates.push ('#' + outcomeInput); // encoding id without #
             const numeric = this.parseToInt (outcomeInput);
-            if (numeric !== undefined) {
-                candidates.push (this.outcomeCoin (this.outcomeEncoding (numeric, 0))); // raw outcome id -> YES encoding
-                candidates.push (this.outcomeCoin (this.outcomeEncoding (numeric, 1))); // raw outcome id -> NO encoding
-            }
+            candidates.push (this.outcomeCoin (this.outcomeEncoding (numeric, 0))); // raw outcome id -> YES encoding
+            candidates.push (this.outcomeCoin (this.outcomeEncoding (numeric, 1))); // raw outcome id -> NO encoding
         }
         for (let i = 0; i < candidates.length; i++) {
             const key = candidates[i];

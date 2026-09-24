@@ -2798,7 +2798,11 @@ export default class extended extends Exchange {
                 request['type'] = 'CONDITIONAL';
                 request['trigger'] = trigger;
             } else if (isStopLossOrder || isTakeProfitOrder) {
-                triggerPriceStr = isStopLossOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
+                if (isStopLossOrder) {
+                    triggerPriceStr = stopLossTriggerPrice;
+                } else {
+                    triggerPriceStr = takeProfitTriggerPrice;
+                }
                 const trigger: Dict = {
                     'triggerPrice': this.priceToPrecision (symbol, triggerPriceStr),
                 };
