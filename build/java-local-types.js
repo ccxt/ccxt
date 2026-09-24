@@ -5655,6 +5655,8 @@ export function installJavaLocalTypes (transpiler) {
     patchJavaBaseFieldLocalTypes (transpiler);
     // (16) ws cache limit locals (section 22)
     patchJavaLimitLocalTypes (transpiler);
+    // (17) element reads of declared typed lists (section 23)
+    patchJavaTypedListElementLocals (transpiler);
 }
 
 // ===== 4. dataflow engine: accumulators, local propagation, ternary arms, scope safety =====
@@ -11236,4 +11238,105 @@ export function patchJavaLimitLocalTypes (transpiler) {
         const at = printed.lastIndexOf (marker);
         return at === -1 ? printed : printed.slice (0, at) + `${iden}${type} ${printedName} = ` + printed.slice (at + marker.length);
     };
+}
+
+// ===== 23. element-read locals of declared typed lists =====
+// `const x = xs[i]` where xs is declared List<String> / List<<TypedMap DTO>> and i is an int
+// counter prints the guarded native `xs.get(i)`, statically the list's element type: no cast.
+const JAVA_TYPED_MAP_DTO_DIR = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt', 'types');
+const javaTypedMapDtoCache = new Map ();
+
+export function javaIsTypedMapDto (name) {
+    if (!javaTypedMapDtoCache.has (name)) {
+        let ok = false;
+        try {
+            ok = new RegExp (`\\bclass ${name} extends TypedMap\\b`).test (fs.readFileSync (path.join (JAVA_TYPED_MAP_DTO_DIR, `${name}.java`), 'utf8'));
+        } catch (e) {
+            ok = false;
+        }
+        javaTypedMapDtoCache.set (name, ok);
+    }
+    return javaTypedMapDtoCache.get (name);
+}
+
+function javaDtoElementUsesAreMapOnly (declaration) {
+    const scope = enclosingFunction (declaration);
+    for (const n of (scope === undefined ? [] : identifierIndex (scope).get (declaration.name.escapedText) ?? [])) {
+        const parent = n.parent;
+        if (n === declaration.name || (ts.isPropertyAccessExpression (parent) && parent.name === n)) {
+            continue;
+        }
+        const keyRead = ts.isElementAccessExpression (parent) && parent.expression === n
+            && ts.isStringLiteralLike (parent.argumentExpression)
+            && !(ts.isBinaryExpression (parent.parent) && parent.parent.left === parent);
+        const argument = (ts.isCallExpression (parent) || ts.isNewExpression (parent)) && (parent.arguments ?? []).includes (n);
+        const value = ts.isPropertyAssignment (parent) && parent.initializer === n;
+        if (!keyRead && !argument && !value) {
+            return false;
+        }
+    }
+    return scope !== undefined;
+}
+
+function javaTypedListElementLocalType (printer, declaration) {
+    const read = unwrapParens (declaration.initializer);
+    if (read === undefined || !ts.isElementAccessExpression (read) || !ts.isIdentifier (read.expression)
+        || typeof printer.javaDeclaredTypeOf !== 'function' || typeof printer.javaPrimitiveCounterIndex !== 'function'
+        || !printer.javaPrimitiveCounterIndex (read.argumentExpression)) {
+        return undefined;
+    }
+    const match = /^(?:java\.util\.)?List<(\w+)>$/.exec (String (printer.javaDeclaredTypeOf (read.expression) ?? '').trim ());
+    const element = match?.[1];
+    if (element === undefined || (element !== 'String' && !javaIsTypedMapDto (element))) {
+        return undefined;
+    }
+    // a DTO box is final and implements no List: keep only uses whose printed Java is a Map
+    // read or an Object slot, so no List/String cast can land on it
+    if (element !== 'String' && !javaDtoElementUsesAreMapOnly (declaration)) {
+        return undefined;
+    }
+    const info = element === 'String' ? { type: 'String', nonNull: false, strictPlus: true } : { type: element };
+    if (!isSafeToNarrow (printer, declaration, declaration.name.escapedText, info.type, /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName), info)) {
+        return undefined;
+    }
+    const list = printer.printNode (read.expression, 0);
+    const index = printer.printNode (read.argumentExpression, 0);
+    return { type: element, rhs: `(${list} == null || ${index} < 0 || ${index} >= ${list}.size() ? null : ${list}.get(${index}))` };
+}
+
+export function patchJavaTypedListElementLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaTypedListElementPatched) {
+        return;
+    }
+    printer._javaTypedListElementPatched = true;
+    const retyped = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || declaration.initializer === undefined
+            || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        let found;
+        try {
+            found = javaTypedListElementLocalType (printer, declaration);
+        } catch (e) {
+            return printed;
+        }
+        if (found === undefined) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const name = printer.printNode (declaration.name, 0);
+        const marker = `${iden}${printer.VAR_TOKEN} ${name} = `;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1 || printed.slice (at + marker.length).trim ().replace (/;$/, '') !== found.rhs) {
+            return printed;
+        }
+        retyped.set (declaration, found.type);
+        return printed.slice (0, at) + `${iden}${found.type} ${name} = ` + printed.slice (at + marker.length);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => retyped.get (declaration));
 }
