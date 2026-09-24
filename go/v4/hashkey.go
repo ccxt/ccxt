@@ -1683,7 +1683,7 @@ func (this *Hashkey) ParseTrade(trade any, optionalArgs ...any) any {
 	market = MapTyped(this.SafeMarket(marketId, market))
 	var side *string = this.SafeStringLower(trade, "side") // swap trades have side param
 	if side != nil {
-		side = this.SafeString(Split(side, "_"), 0)
+		side = this.SafeString(strings.Split(*side, "_"), 0)
 	}
 	var isBuyer *bool = this.SafeBool(trade, "isBuyer")
 	if isBuyer != nil {

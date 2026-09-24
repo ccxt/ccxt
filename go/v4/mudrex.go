@@ -315,7 +315,7 @@ func (this *Mudrex) HandleErrors(code any, reason any, url any, method any, head
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errCode, this.Id+" "+*text)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], text, this.Id+" "+*text)
 		var msg string = this.Id + " " + *text
-		var low string = ToLower(text)
+		var low string = strings.ToLower(*text)
 		if (IsEqual(code, 401)) || (strings.Index(low, "auth") >= 0) {
 			panic(AuthenticationError(msg))
 		}
@@ -669,7 +669,7 @@ func (this *Mudrex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 func (this *Mudrex) ParseMarket(asset any) any {
 	var ms *string = this.SafeString(asset, "symbol")
 	var base *string = ms
-	if (ms != nil) && EndsWith(ms, "USDT") {
+	if (ms != nil) && strings.HasSuffix(*ms, "USDT") {
 		base = SafeStringPtr(func() string {
 			if ms == nil {
 				return ""

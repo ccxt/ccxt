@@ -2308,7 +2308,7 @@ func (this *Kucoin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		if id == nil {
 			continue
 		}
-		baseIdquoteIdVariable := Split(id, "-")
+		baseIdquoteIdVariable := strings.Split(*id, "-")
 		baseId := GetValue(baseIdquoteIdVariable, 0)
 		quoteId := GetValue(baseIdquoteIdVariable, 1)
 		var base *string = this.SafeCurrencyCode(baseId)
@@ -4529,7 +4529,7 @@ func (this *Kucoin) ParseDepositAddress(depositAddress any, optionalArgs ...any)
 	var address *string = this.SafeString(depositAddress, "address")
 	// BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
 	if address != nil {
-		address = SafeStringPtr(Replace(address, "bitcoincash:", ""))
+		address = SafeStringPtr(strings.Replace(*address, "bitcoincash:", "", 1))
 	}
 	var code any = nil
 	if currency != nil {
@@ -12483,7 +12483,7 @@ func (this *Kucoin) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 		}()
 		var marketId *string = this.SafeString(entry, "symbol")
 		// kucoin returns funding index symbols (e.g. .ETHUSDTMFPI8H) alongside tradeable contracts
-		var isFundingIndex bool = (marketId != nil) && (StartsWith(marketId, "."))
+		var isFundingIndex bool = (marketId != nil) && (strings.HasPrefix(*marketId, "."))
 		if !isFundingIndex {
 			rates = append(rates, entry)
 		}

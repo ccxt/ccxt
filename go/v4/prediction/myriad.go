@@ -592,7 +592,7 @@ func (this *Myriad) fetchRawQuestionByIdBody(ch chan any, id any, optionalArgs .
 							var qSlug *string = this.SafeString(q, "slug", "")
 							var qTitle *string = this.SafeString(q, "title", "")
 							var qHandle any = this.ShortenSlug(qSlug)
-							if (ccxt.ToLower(qId) == idLower) || (ccxt.ToLower(qSlug) == idLower) || (ccxt.ToLower(qTitle) == idLower) || ((qHandle != nil) && (ccxt.ToLower(qHandle) == idLower)) {
+							if (strings.ToLower(*qId) == idLower) || (strings.ToLower(*qSlug) == idLower) || (strings.ToLower(*qTitle) == idLower) || ((qHandle != nil) && (ccxt.ToLower(qHandle) == idLower)) {
 
 								ch <- q
 								chSent = true
@@ -4291,7 +4291,7 @@ func (this *Myriad) HandleCentrifugoFrame(client any, msg any) {
 	}
 	var pub map[string]any = ccxt.SafeMapTyped(push, "pub")
 	var data map[string]any = ccxt.MapTyped(this.SafeDict(pub, "data", map[string]any{}))
-	var parts []string = ccxt.Split(channel, ":")
+	var parts []string = strings.Split(*channel, ":")
 	var channelType *string = this.SafeString(parts, 0)
 	if channelType != nil && *channelType == "orderbook" {
 		this.HandleOrderBook(client, data)

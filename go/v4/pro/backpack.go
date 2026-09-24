@@ -147,7 +147,7 @@ func (this *Backpack) HandleUnsubscriptions(url any, messageHashes any, message 
 	this.WatchMultiple(url, messageHashes, message, messageHashes)
 	for i := 0; i < ccxt.GetArrayLength(messageHashes); i++ {
 		var messageHash *string = ccxt.SafeStringPtr(ccxt.GetValue(messageHashes, i))
-		var subMessageHash string = ccxt.Replace(messageHash, "unsubscribe:", "")
+		var subMessageHash string = strings.Replace(*messageHash, "unsubscribe:", "", 1)
 		this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 		if func() int {
 			if messageHash == nil {
@@ -155,7 +155,7 @@ func (this *Backpack) HandleUnsubscriptions(url any, messageHashes any, message 
 			}
 			return strings.Index(*messageHash, "ticker")
 		}() >= 0 {
-			var symbol string = ccxt.Replace(messageHash, "unsubscribe:ticker:", "")
+			var symbol string = strings.Replace(*messageHash, "unsubscribe:ticker:", "", 1)
 			if ccxt.InOp(this.Tickers, symbol) {
 				ccxt.Remove(this.Tickers, symbol)
 			}
@@ -165,7 +165,7 @@ func (this *Backpack) HandleUnsubscriptions(url any, messageHashes any, message 
 			}
 			return strings.Index(*messageHash, "bidask")
 		}() >= 0 {
-			var symbol string = ccxt.Replace(messageHash, "unsubscribe:bidask:", "")
+			var symbol string = strings.Replace(*messageHash, "unsubscribe:bidask:", "", 1)
 			if ccxt.InOp(this.Bidsasks, symbol) {
 				ccxt.Remove(this.Bidsasks, symbol)
 			}
@@ -175,7 +175,7 @@ func (this *Backpack) HandleUnsubscriptions(url any, messageHashes any, message 
 			}
 			return strings.Index(*messageHash, "candles")
 		}() >= 0 {
-			var splitHashes []string = ccxt.Split(messageHash, ":")
+			var splitHashes []string = strings.Split(*messageHash, ":")
 			var symbol *string = this.SafeString(splitHashes, 2)
 			var timeframe *string = this.SafeString(splitHashes, 3)
 			if (symbol != nil) && (timeframe != nil) && (ccxt.InOp(this.Ohlcvs, symbol)) {
@@ -189,7 +189,7 @@ func (this *Backpack) HandleUnsubscriptions(url any, messageHashes any, message 
 			}
 			return strings.Index(*messageHash, "orderbook")
 		}() >= 0 {
-			var symbol string = ccxt.Replace(messageHash, "unsubscribe:orderbook:", "")
+			var symbol string = strings.Replace(*messageHash, "unsubscribe:orderbook:", "", 1)
 			if ccxt.InOp(this.Orderbooks, symbol) {
 				ccxt.Remove(this.Orderbooks, symbol)
 			}
@@ -199,7 +199,7 @@ func (this *Backpack) HandleUnsubscriptions(url any, messageHashes any, message 
 			}
 			return strings.Index(*messageHash, "trades")
 		}() >= 0 {
-			var symbol string = ccxt.Replace(messageHash, "unsubscribe:trades:", "")
+			var symbol string = strings.Replace(*messageHash, "unsubscribe:trades:", "", 1)
 			if ccxt.InOp(this.Trades, symbol) {
 				ccxt.Remove(this.Trades, symbol)
 			}
@@ -219,7 +219,7 @@ func (this *Backpack) HandleUnsubscriptions(url any, messageHashes any, message 
 					}
 				}
 			} else {
-				var symbol string = ccxt.Replace(messageHash, "unsubscribe:orders:", "")
+				var symbol string = strings.Replace(*messageHash, "unsubscribe:orders:", "", 1)
 				var cache any = this.Orders
 				if (!ccxt.IsEqual(cache, nil)) && (ccxt.InOp(cache, symbol)) {
 					ccxt.Remove(cache, symbol)
@@ -239,7 +239,7 @@ func (this *Backpack) HandleUnsubscriptions(url any, messageHashes any, message 
 					ccxt.Remove(this.Positions, symbol)
 				}
 			} else {
-				var symbol string = ccxt.Replace(messageHash, "unsubscribe:positions:", "")
+				var symbol string = strings.Replace(*messageHash, "unsubscribe:positions:", "", 1)
 				if ccxt.InOp(this.Positions, symbol) {
 					ccxt.Remove(this.Positions, symbol)
 				}
@@ -784,7 +784,7 @@ func (this *Backpack) HandleOHLCV(client any, message any) {
 	var market map[string]any = ccxt.MapTyped(this.Market(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var stream *string = this.SafeString(message, "stream", "")
-	var parts []string = ccxt.Split(stream, ".")
+	var parts []string = strings.Split(*stream, ".")
 	var timeframe *string = this.SafeString(parts, 1, "")
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})

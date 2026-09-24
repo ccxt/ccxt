@@ -3563,7 +3563,7 @@ func (this *Krakenfutures) ParseBalance(response any) any {
 		if code == nil {
 			continue
 		}
-		var splitCode []string = Split(code, "_")
+		var splitCode []string = strings.Split(*code, "_")
 		var codeLength int = len(splitCode)
 		if codeLength > 1 {
 			continue
