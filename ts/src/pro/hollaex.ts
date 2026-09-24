@@ -241,7 +241,7 @@ export default class hollaex extends hollaexRest {
         const rawTrades = this.safeValue (message, 'data');
         // usually the first message is an empty array
         // when the user does not have any trades yet
-        const dataLength = rawTrades.length;
+        const dataLength: number = rawTrades.length;
         if (dataLength === 0) {
             return;
         }
@@ -362,7 +362,7 @@ export default class hollaex extends hollaexRest {
         const channel = this.safeString (message, 'topic');
         const data = this.safeValue (message, 'data', {});
         // usually the first message is an empty array
-        const dataLength = data.length;
+        const dataLength: number = data.length;
         if (dataLength === 0) {
             return;
         }
