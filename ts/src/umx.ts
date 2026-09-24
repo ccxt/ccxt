@@ -1705,8 +1705,10 @@ export default class umx extends Exchange {
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchBorrowInterest', 'paginate');
         if (paginate) {
             // the venue documents beginId and endId cursors on the history endpoints, but the
-            // family proved broken venue side, so the pagination walks on endTime, see fetchTransfers
-            return await this.fetchPaginatedCallDynamic ('fetchBorrowInterest', code, since, limit, params, 100) as BorrowInterest[];
+            // family proved broken venue side, so the pagination walks on endTime, see fetchTransfers,
+            // the paginator invokes its target with four positional arguments, which the five
+            // argument signature of this method cannot take, hence the paginated helper in between
+            return await this.fetchPaginatedCallDynamic ('fetchBorrowInterestPaginated', code, since, limit, params, 100) as BorrowInterest[];
         }
         let currency: Currency = undefined;
         let request: Dict = {};
@@ -1729,6 +1731,21 @@ export default class umx extends Exchange {
         const interests = this.parseBorrowInterests (data, undefined);
         const filtered = this.filterByCurrencySinceLimit (interests, code, since, limit);
         return filtered as BorrowInterest[];
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name umx#fetchBorrowInterestPaginated
+     * @description the four argument shim between fetchPaginatedCallDynamic and fetchBorrowInterest, whose extra symbol argument the paginator cannot serve
+     * @param {string} [code] unified currency code
+     * @param {int} [since] timestamp in ms of the earliest entry to fetch
+     * @param {int} [limit] the maximum amount of entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+     */
+    async fetchBorrowInterestPaginated (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<BorrowInterest[]> {
+        return await this.fetchBorrowInterest (code, undefined, since, limit, params);
     }
 
     override parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {
