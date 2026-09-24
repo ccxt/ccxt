@@ -224,6 +224,7 @@ const TS_PATH = './ts/src/abstract/';
 const PHP_PATH = './php/abstract/'
 const ASYNC_PHP_PATH = './php/async/abstract/'
 const CSHARP_PATH = './cs/ccxt/api/';
+const CPP_PATH = './cpp/ccxt/api/';
 const PY_PATH = './python/ccxt/abstract/'
 const GO_PATH = './go/v4/'
 const JAVA_PATH = './java/lib/src/main/java/io/github/ccxt/api/'
@@ -482,6 +483,7 @@ let storedCamelCaseMethods: Dict = {};
 let storedUnderscoreMethods: Dict = {};
 let storedTypeScriptMethods: Dict = {};
 let storedCSharpMethods: Dict = {};
+let storedCppMethods: Dict = {};
 let storedContext: Dict = {};
 // exchange id -> camelCase method name -> the TypeScript type declared for that
 // endpoint by the `as Endpoint<...>` assertion on its api leaf in describe()
@@ -510,6 +512,7 @@ function resetStoredMethods () {
     storedUnderscoreMethods = {};
     storedTypeScriptMethods = {};
     storedCSharpMethods = {};
+    storedCppMethods = {};
     storedContext = {};
     storedReturnTypes = {};
     storedPhpMethods = {};
@@ -531,6 +534,7 @@ const langKeys = {
     '--go': false,
     '--java': false,
     '--rust': false,
+    '--cpp': false,
 }
 
 function isHttpMethod(method: string): boolean {
@@ -825,6 +829,38 @@ function createImplicitMethodsCSharp(){
 
 // -------------------------------------------------------------------------
 
+function createImplicitMethodsCpp(){
+    const exchanges = Object.keys(storedCppMethods);
+    for (const index in exchanges) {
+        const exchange = exchanges[index];
+        const methodNames = storedCamelCaseMethods[exchange];
+        const methods = methodNames.map(method => {
+            // Every endpoint returns ccxt::any: the C++ value model is dynamic, and the
+            // declared JSON shape the other ports narrow to (Dictionary/List) has no
+            // separate C++ type to narrow to -- dict and list already live inside
+            // ccxt::any. The prose shape stays in the comment so the information is not
+            // lost.
+            return [
+                `${IDEN}// Calls the ${method} endpoint. Returns ${proseReturnShape (exchange, method)}.`,
+                `${IDEN}virtual std::shared_future<ccxt::any> ${method} (ccxt::any parameters = ccxt::dict {}) {`,
+                `${IDEN}${IDEN}return this->callEndpoint (std::string ("${method}"), parameters);`,
+                `${IDEN}}`,
+                ``,
+            ].join('\n');
+        });
+        methods.push ('};');
+        methods.push ('');
+        methods.push (isPrediction ? '} // namespace prediction' : '} // namespace ccxt');
+        if (isPrediction) {
+            methods.push ('} // namespace ccxt');
+        }
+        methods.push ('');
+        storedCppMethods[exchange] = storedCppMethods[exchange].concat (methods);
+    }
+}
+
+// -------------------------------------------------------------------------
+
 function createImplicitMethodsJava(){
     const exchanges = Object.keys(storedCamelCaseMethods);
     for (const index in exchanges) {
@@ -1052,6 +1088,15 @@ async function editAPIFilesCSharp(subdir = ''){
 
 // -------------------------------------------------------------------------
 
+async function editAPIFilesCpp(subdir = ''){
+    const exchanges = Object.keys(storedCppMethods);
+    fs.mkdirSync(CPP_PATH + subdir, { recursive: true });
+    const files = exchanges.map(ex => CPP_PATH + subdir + ex + '.h');
+    await Promise.all(files.map((path, idx) => writeFile(path, storedCppMethods[exchanges[idx]].join ('\n'))))
+}
+
+// -------------------------------------------------------------------------
+
 async function editAPIFilesGo(subdir = ''){
     const exchanges = Object.keys(storedCamelCaseMethods);
     fs.mkdirSync(GO_PATH + subdir, { recursive: true });
@@ -1139,6 +1184,42 @@ function createCSharpHeader(exchange: Exchange, parent: string){
 
 // -------------------------------------------------------------------------
 
+function createCppHeader(exchange: Exchange, parent: string){
+    // The C++ port has no partial classes, so the implicit API is its own class and the
+    // exchange class derives from it (binance : binanceApi : Exchange), matching the
+    // chain the C++ transpiler emits. Everything is header-only, as the rest of the
+    // port is: the generated exchange includes this file. For a derived exchange
+    // (bequant -> hitbtc) the API tier derives from the parent EXCHANGE so the
+    // unified-method overrides stay in the chain: bequant : bequantApi : hitbtc :
+    // hitbtcApi : Exchange. Endpoint methods all route through the base callEndpoint,
+    // which reads the most-derived describe(), so no per-tier dispatch exists.
+    // The prediction tier mirrors C#: its own ccxt::prediction namespace and a
+    // PredictionExchange base (the TS sources say `extends Exchange`, which every
+    // language remaps to the prediction base class).
+    const prediction = isPrediction;
+    const cppParent = (parent === 'Exchange' && prediction) ? 'PredictionExchange' : parent;
+    const baseInclude = (parent === 'Exchange')
+        ? (prediction ? '#include "../../base/PredictionExchange.h"' : '#include "../base/Exchange.h"')
+        : (prediction ? `#include "${parent}.h"` : `#include "../exchanges/${parent}.h"`);
+    const header = [
+        '#pragma once',
+        '',
+        baseInclude,
+        '',
+        'namespace ccxt {',
+        '',
+        ...(prediction ? ['namespace prediction {', ''] : []),
+        `class ${exchange.id}Api : public ${cppParent} {`,
+        'public:',
+        `    ${exchange.id}Api () = default;`,
+        `    explicit ${exchange.id}Api (ccxt::any config) : ${cppParent} (config) {}`,
+        '',
+    ].join('\n');
+    storedCppMethods[exchange.id] = [ getPreamble(), header ];
+}
+
+// -------------------------------------------------------------------------
+
 function createGoHeader(exchange: Exchange, parent: string){
     const namespace = isPrediction ? 'package ccxtprediction' : 'package ccxt'
     storedParents[exchange.id] = parent;
@@ -1218,6 +1299,7 @@ function populateImplicitMethods(exchanges: string[]) {
         createTypescriptHeader(instance, parent);
         createPhpHeader(instance, parent);
         createCSharpHeader(instance, parent);
+        createCppHeader(instance, parent);
         createPyHeader(instance, parent);
         createGoHeader(instance, parent);
         createJavaHeader(instance, parent);
@@ -1310,6 +1392,15 @@ async function generateImplicitAPIs (exchanges: string[], shouldGenerateAll: boo
         log.bright.cyan ('C# implicit api methods completed!')
     }
 
+
+    // C++ is opt-in only, never under shouldGenerateAll: `npm run emitAPI` with no args
+    // is what CI runs for the other languages, and it must keep emitting exactly what it
+    // did before. Ask for the C++ headers explicitly with --cpp.
+    if (langKeys['--cpp']) {
+        createImplicitMethodsCpp()
+        await editAPIFilesCpp(subdir);
+        log.bright.cyan ('C++ implicit api methods completed!')
+    }
 
     if (shouldGenerateAll || langKeys['--go']) {
         createImplicitMethodsGo()

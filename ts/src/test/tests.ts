@@ -1669,7 +1669,7 @@ class testMainClass {
             return true;
             // c# requirement
         }
-        if (this.lang === 'C#') {
+        if ((this.lang === 'C#') || (this.lang === 'C++')) {
             // a struct is never null: an absent `fee` comes back as a Fee whose every
             // field is null, and an absent `fees` as []. The stored fixture writes the
             // same thing as a bare null. Treat "carries no data" as equal on both
@@ -1690,7 +1690,7 @@ class testMainClass {
             const newOutputKeys = Object.keys (newOutput);
             let storedKeysLength = storedOutputKeys.length;
             let newKeysLength = newOutputKeys.length;
-            if (this.lang === 'C#') {
+            if ((this.lang === 'C#') || (this.lang === 'C++')) {
                 // the unified types are structs there, so an unpopulated field still
                 // comes back (as an explicit null) and a unified key with no struct
                 // field cannot come back at all; count only the keys that carry data
@@ -1705,7 +1705,7 @@ class testMainClass {
                     continue;
                 }
                 if (!(exchange.inArray (key, newOutputKeys))) {
-                    if ((this.lang === 'C#') && this.isVacantValue (exchange, storedOutput[key])) {
+                    if (((this.lang === 'C#') || (this.lang === 'C++')) && this.isVacantValue (exchange, storedOutput[key])) {
                         continue; // the struct has no field for it and it carries no data
                     }
                     this.assertStaticError (false, 'output key missing: ' + key, storedOutput, newOutput);
@@ -2387,6 +2387,10 @@ class testMainClass {
                 if (isDisabledRust && (this.lang === 'RUST')) {
                     continue;
                 }
+                const isDisabledCpp = exchange.safeBool (result, 'disabledCPP', false);
+                if (isDisabledCpp && (this.lang === 'C++')) {
+                    continue;
+                }
                 const isDisabledJava = exchange.safeBool (result, 'disabledJava', false);
                 if ((isDisabledJava === true) && (this.lang === 'java')) {
                     continue;
@@ -2467,6 +2471,10 @@ class testMainClass {
                 if (isDisabledRust && (this.lang === 'RUST')) {
                     continue;
                 }
+                const isDisabledCpp = exchange.safeBool (result, 'disabledCPP', false);
+                if (isDisabledCpp && (this.lang === 'C++')) {
+                    continue;
+                }
                 const isDisabledJava = exchange.safeBool (result, 'disabledJava', false);
                 if ((isDisabledJava === true) && (this.lang === 'java')) {
                     continue;
@@ -2532,6 +2540,11 @@ class testMainClass {
         const isDisabledRust = exchange.safeBool (exchangeData, 'disabledRS', false);
         if (isDisabledRust && (this.lang === 'RUST')) {
             dump ('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in rust');
+            return true;
+        }
+        const isDisabledCpp = exchange.safeBool (exchangeData, 'disabledCPP', false);
+        if (isDisabledCpp && (this.lang === 'C++')) {
+            dump ('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in c++');
             return true;
         }
         const isDisabledJava = exchange.safeBool (exchangeData, 'disabledJava', false);

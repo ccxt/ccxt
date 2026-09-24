@@ -1,0 +1,79 @@
+name: C++
+run-name: ${{ github.event.head_commit.message || github.event.pull_request.title || format('{0} · {1}', github.ref_name, github.sha) }}
+
+env:
+  HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master, cpp-lang ]
+  pull_request:
+    branches: [ main, master, cpp-lang ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ !contains(github.event.head_commit.message, '[Automated changes]') }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') }}
+    timeout-minutes: 150
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 2
+        clean: false
+    - name: Skip Automated Push Commits
+      id: check_commit
+      run: |
+        if [[ "$HEAD_COMMIT_MESSAGE" == *"[Automated changes]"* ]]; then
+          echo "This commit was made by the action. Skipping."
+          exit 0
+        fi
+    - uses: actions/setup-node@v5
+      with:
+        node-version: '22'
+    - name: Install npm dependencies
+      run: npm ci --include=dev
+    - name: Install C++ toolchain
+      # lld links the whole-archive test binary in a fraction of GNU ld's time and
+      # memory -- the 104-exchange static lib is the memory hot spot on the runner
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build clang-format libcurl4-openssl-dev libssl-dev nlohmann-json3-dev lld libboost-dev libboost-system-dev libsimdjson-dev
+    - name: ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        max-size: 2G
+        key: cpp-linux
+        restore-keys: cpp-linux
+    - name: Emit implicit API
+      run: npm run emitAPI -- --cpp
+    - name: Transpile everything (base, tests, all exchanges)
+      run: npm run transpileCpp -- --all --force
+    - name: Configure
+      # ccache as compiler launcher turns a warm CI into a seconds-long build;
+      # lld as linker keeps the final whole-archive link inside runner memory
+      run: |
+        cmake -S cpp -B cpp/build -G Ninja -DCMAKE_BUILD_TYPE=Debug \
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+          -DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=lld
+    - name: Build (parallel compile)
+      run: cmake --build cpp/build --parallel 2
+    - name: Base tests
+      run: npm run test-base-rest-cpp
+    - name: binance smoke test
+      run: cpp/build/ccxt-smoke-binance
+    - name: typed layer smoke test
+      run: cpp/build/ccxt-typed-smoke
+    - name: Static request tests (all exchanges)
+      run: cpp/build/ccxt-tests all --requestTests
+    - name: Static response tests (all exchanges)
+      run: cpp/build/ccxt-tests all --responseTests
+    - name: binance live tests (public endpoints)
+      run: node run-tests binance --cpp
