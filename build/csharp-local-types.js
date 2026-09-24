@@ -12438,14 +12438,28 @@ const DESTRUCTURED_DECLARATION_ELEMENT0 = {
     'handleOptionBoolAndParams': 'bool?', 'handleOptionBoolAndParams2': 'bool?',
     'handleOptionIntegerAndParams': 'Int64?', 'handleOptionIntegerAndParams2': 'Int64?',
 };
-const DESTRUCTURED_ELEMENT0_LINE_RE = /^([ \t]*)var ([A-Za-z_]\w*) = ([A-Za-z_]\w*\[0\])$/m;
+// element 0 is not the last tuple read, so its line keeps the `;`
+const DESTRUCTURED_ELEMENT0_LINE_RE = /^([ \t]*)var ([A-Za-z_]\w*) = ([A-Za-z_]\w*\[0\])(?=;?$)/m;
+// the audited string helpers: a caller default that can flow out as element 0 must be a string literal or absent
+function destructuredStringHelperElement0 (call, helper) {
+    if (!Object.prototype.hasOwnProperty.call (DESTRUCTURED_STRING_HELPERS, helper)) {
+        return undefined;
+    }
+    const position = DESTRUCTURED_STRING_HELPERS[helper];
+    const argument = position > 0 ? call.arguments?.[position - 1] : undefined;
+    return (argument === undefined || isUndefinedLiteral (argument) || isStringLiteral (argument)) ? 'string?' : undefined;
+}
+
 function retypeDestructuredElement0 (csharp, scope, declaration, printed) {
     const helper = destructuredHandleCallName (declaration.initializer);
     const target = declaration.name.elements?.[0]?.name;
-    if (!Object.prototype.hasOwnProperty.call (DESTRUCTURED_DECLARATION_ELEMENT0, helper) || target?.kind !== ts.SyntaxKind.Identifier || scope === undefined) {
+    if (helper === undefined || target?.kind !== ts.SyntaxKind.Identifier || scope === undefined) {
         return printed;
     }
-    const type = DESTRUCTURED_DECLARATION_ELEMENT0[helper];
+    const type = DESTRUCTURED_DECLARATION_ELEMENT0[helper] ?? destructuredStringHelperElement0 (declaration.initializer, helper);
+    if (type === undefined) {
+        return printed;
+    }
     const match = DESTRUCTURED_ELEMENT0_LINE_RE.exec (printed);
     if (match === null || match[2] !== csharp.printNode (target, 0) || (indexScope (csharp, scope).bindingCounts.get (match[2]) ?? 0) !== 1) {
         return printed;
