@@ -260,7 +260,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const subMessageHash = 'orderbook:' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
         const url = this.urls['api']['ws']['public'];
-        const id = this.nonce().toString();
+        const id = this.incrementingNonce().toString();
         const request = {
             'id': id,
             'method': 'unsubscribe',

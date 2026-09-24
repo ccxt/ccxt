@@ -943,7 +943,7 @@ class gemini extends gemini$1["default"] {
         const request = url.slice(startIndex, endIndex);
         const payload = {
             'request': request,
-            'nonce': this.nonce(),
+            'nonce': this.incrementingNonce(), // must be greater than the previously used nonce, shared with the REST counter
         };
         const b64 = this.stringToBase64(this.json(payload));
         const signature = this.hmac(this.encode(b64), this.encode(this.secret), sha2_js.sha384, 'hex');

@@ -1082,7 +1082,7 @@ class bitbank extends bitbank$1["default"] {
             const isTimeWindow = (authMethod === 'timeWindow');
             const requestTime = this.milliseconds().toString();
             const timeWindow = this.safeString(this.options, 'timeWindow', '5000');
-            const nonce = this.nonce().toString();
+            const nonce = this.incrementingNonce().toString();
             let auth = undefined;
             if (isTimeWindow) {
                 auth = requestTime + timeWindow;

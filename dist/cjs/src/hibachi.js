@@ -944,7 +944,7 @@ class hibachi extends hibachi$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const nonce = this.nonce();
+        const nonce = this.incrementingNonce();
         const request = this.createOrderRequest(nonce, symbol, type, side, amount, price, params);
         request['accountId'] = this.getAccountId();
         const response = await this.privatePostTradeOrder(request);
@@ -971,7 +971,7 @@ class hibachi extends hibachi$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const nonce = this.nonce();
+        const nonce = this.incrementingNonce();
         const requestOrders = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
@@ -1048,7 +1048,7 @@ class hibachi extends hibachi$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const nonce = this.nonce();
+        const nonce = this.incrementingNonce();
         const request = this.editOrderRequest(nonce, id, symbol, type, side, amount, price, params);
         request['accountId'] = this.getAccountId();
         await this.privatePutTradeOrder(request);
@@ -1074,7 +1074,7 @@ class hibachi extends hibachi$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const nonce = this.nonce();
+        const nonce = this.incrementingNonce();
         const requestOrders = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
@@ -1194,7 +1194,7 @@ class hibachi extends hibachi$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const nonce = this.nonce();
+        const nonce = this.incrementingNonce();
         const nonce16 = this.intToBase16(nonce);
         const noncePadded = nonce16.padStart(16, '0');
         const message = this.base16ToBinary(noncePadded);

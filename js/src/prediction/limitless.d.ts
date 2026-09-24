@@ -373,6 +373,7 @@ export default class limitless extends Exchange {
      * @returns {object[]} raw limitless market objects, deduped by slug
      */
     fetchRawMarketsByTags(tags: string[], params?: {}): Promise<any[]>;
+    nonce(): number;
     /**
      * @ignore
      * @method

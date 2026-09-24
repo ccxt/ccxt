@@ -153,7 +153,7 @@ class hitbtc extends hitbtc$1["default"] {
         }
         const subscribe = {
             'method': 'subscribe',
-            'id': this.nonce(),
+            'id': this.incrementingNonce(),
             'ch': name,
         };
         const request = this.extend(subscribe, params);
@@ -180,7 +180,7 @@ class hitbtc extends hitbtc$1["default"] {
         const subscribe = {
             'method': name,
             'params': params,
-            'id': this.nonce(),
+            'id': this.incrementingNonce(),
         };
         return await this.watch(url, messageHash, subscribe, messageHash);
     }
@@ -196,7 +196,7 @@ class hitbtc extends hitbtc$1["default"] {
         }
         await this.authenticate();
         const url = this.urls['api']['ws']['private'];
-        const messageHash = this.nonce().toString();
+        const messageHash = this.incrementingNonce().toString();
         const subscribe = {
             'method': name,
             'params': params,
