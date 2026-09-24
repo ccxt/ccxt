@@ -2,7 +2,7 @@
 import Exchange from './abstract/byteexchange.js';
 import { ExchangeError, AuthenticationError, InsufficientFunds, InvalidNonce, BadSymbol, PermissionDenied, RateLimitExceeded, InvalidOrder } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { sha256 } from '@noble/hashes/sha2.js';
 import type { Balances, Currencies, Currency, Dict, int, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
