@@ -2479,7 +2479,7 @@ export default class woo extends Exchange {
         // same as fetchTicker, with multiple rows
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
+        const rows: Dict[] = this.safeList (data, 'rows', []);
         const timestamp = this.safeInteger (response, 'timestamp');
         const result = [];
         for (let i = 0; i < rows.length; i++) {
@@ -2838,7 +2838,7 @@ export default class woo extends Exchange {
         const result: Dict = {
             'info': response,
         };
-        const balances = this.safeList (response, 'holding', []);
+        const balances: Dict[] = this.safeList (response, 'holding', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const code = this.safeCurrencyCode (this.safeString (balance, 'token'));
@@ -3891,7 +3891,7 @@ export default class woo extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
+        const rows: Dict[] = this.safeList (data, 'rows', []);
         const rates: Dict[] = [];
         for (let i = 0; i < rows.length; i++) {
             const entry = rows[i];
@@ -4634,7 +4634,7 @@ export default class woo extends Exchange {
         //     }
         //
         const result: Dict = {};
-        const data = this.safeList (response, 'rows', []);
+        const data: Dict[] = this.safeList (response, 'rows', []);
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const id = this.safeString (entry, 'token');

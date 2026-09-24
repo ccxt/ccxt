@@ -1310,7 +1310,7 @@ export default class mudrex extends Exchange {
                 request['offset'] = offset;
             }
             const response = await this.privateGetFuturesFeeHistory (this.extend (request, params));
-            const data = this.safeList (response, 'data', []);
+            const data: Dict[] = this.safeList (response, 'data', []);
             const dataLength = data.length;
             for (let i = 0; i < dataLength; i++) {
                 const entry = data[i];

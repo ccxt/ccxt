@@ -857,7 +857,7 @@ export default class pacifica extends Exchange {
         usdcAccount['total'] = this.safeString (data, 'balance');
         usdcAccount['used'] = this.safeString (data, 'total_margin_used');
         result['USDC'] = usdcAccount;
-        const spotBalances = this.safeList (data, 'spot_balances', []);
+        const spotBalances: Dict[] = this.safeList (data, 'spot_balances', []);
         for (let i = 0; i < spotBalances.length; i++) {
             const balance = spotBalances[i];
             const currencyId = this.safeString (balance, 'symbol');
@@ -1802,7 +1802,7 @@ export default class pacifica extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const results = this.safeList (data, 'results', []);
+        const results: Dict[] = this.safeList (data, 'results', []);
         const ordersToReturn: Order[] = [];
         for (let i = 0; i < results.length; i++) {
             const order = results[i];
@@ -1863,7 +1863,7 @@ export default class pacifica extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const results = this.safeList (data, 'results', []);
+        const results: Dict[] = this.safeList (data, 'results', []);
         const ordersToReturn: Order[] = [];
         for (let i = 0; i < results.length; i++) {
             const order = results[i];

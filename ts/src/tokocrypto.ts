@@ -778,7 +778,7 @@ export default class tokocrypto extends Exchange {
             await this.loadTimeDifference ();
         }
         const data = this.safeDict (response, 'data', {});
-        const list = this.safeList (data, 'list', []);
+        const list: Dict[] = this.safeList (data, 'list', []);
         const result: List = [];
         for (let i = 0; i < list.length; i++) {
             const market = list[i];
@@ -1603,7 +1603,7 @@ export default class tokocrypto extends Exchange {
             'datetime': this.iso8601 (timestamp),
         };
         const data = this.safeDict (response, 'data', {});
-        const balances = this.safeList (data, 'accountAssets', []);
+        const balances: Dict[] = this.safeList (data, 'accountAssets', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'asset');

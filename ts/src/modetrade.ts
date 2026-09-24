@@ -703,7 +703,7 @@ export default class modetrade extends Exchange {
 
     override parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const currencyId = this.safeString (rawCurrency, 'token');
-        const networks = this.safeList (rawCurrency, 'chain_details', []);
+        const networks: Dict[] = this.safeList (rawCurrency, 'chain_details', []);
         const code = this.safeCurrencyCode (currencyId);
         let minPrecision: Str = undefined;
         const resultingNetworks: Dict = {};
@@ -1077,7 +1077,7 @@ export default class modetrade extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const result = this.safeList (data, 'rows', []);
+        const result: Dict[] = this.safeList (data, 'rows', []);
         const rates: List = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
@@ -2367,7 +2367,7 @@ export default class modetrade extends Exchange {
         const result: Dict = {
             'info': response,
         };
-        const balances = this.safeList (response, 'holding', []);
+        const balances: Dict[] = this.safeList (response, 'holding', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const code = this.safeCurrencyCode (this.safeString (balance, 'token'));

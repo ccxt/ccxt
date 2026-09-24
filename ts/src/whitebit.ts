@@ -1501,7 +1501,7 @@ export default class whitebit extends Exchange {
                 for (let i = 0; i < marketIds.length; i++) {
                     const marketId = marketIds[i];
                     const marketNew = this.safeMarket (marketId, undefined, '_');
-                    const marketOrders = this.safeList (response, marketId, []);
+                    const marketOrders: Dict[] = this.safeList (response, marketId, []);
                     for (let j = 0; j < marketOrders.length; j++) {
                         const order = marketOrders[j];
                         const orderId = this.safeString (order, 'id');

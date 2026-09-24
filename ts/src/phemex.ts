@@ -2060,7 +2060,7 @@ export default class phemex extends Exchange {
         //
         let timestamp: Int = undefined;
         const result: Dict = { 'info': response };
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
             const currencyId = this.safeString (balance, 'currency');
@@ -4299,7 +4299,7 @@ export default class phemex extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
+        const rows: Dict[] = this.safeList (data, 'rows', []);
         const result: FundingHistory[] = [];
         for (let i = 0; i < rows.length; i++) {
             const entry = rows[i];

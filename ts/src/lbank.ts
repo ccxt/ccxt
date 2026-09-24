@@ -563,7 +563,7 @@ export default class lbank extends Exchange {
         //         "ts": 1691560288484
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -660,7 +660,7 @@ export default class lbank extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -2763,13 +2763,13 @@ export default class lbank extends Exchange {
         //        "code": 0
         //    }
         //
-        const result = this.safeList (response, 'data', []);
+        const result: Dict[] = this.safeList (response, 'data', []);
         const withdrawFees: Dict = {};
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
             const currencyId = this.safeString (entry, 'coin');
             const code = this.safeCurrencyCode (currencyId);
-            const networkList = this.safeList (entry, 'networkList', []);
+            const networkList: Dict[] = this.safeList (entry, 'networkList', []);
             if (code !== undefined) {
                 withdrawFees[code] = {};
             }
@@ -2828,7 +2828,7 @@ export default class lbank extends Exchange {
         //        "ts": "1663364435973"
         //    }
         //
-        const result = this.safeList (response, 'data', []);
+        const result: Dict[] = this.safeList (response, 'data', []);
         const withdrawFees: Dict = {};
         for (let i = 0; i < result.length; i++) {
             const item = result[i];
@@ -3052,7 +3052,7 @@ export default class lbank extends Exchange {
         //
         const result = this.depositWithdrawFee (fee);
         const code = this.safeString (currency, 'code');
-        const networkList = this.safeList (fee, 'networkList', []);
+        const networkList: Dict[] = this.safeList (fee, 'networkList', []);
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
             const networkCode = this.networkIdToCode (this.safeString (networkEntry, 'name'), code);

@@ -737,7 +737,7 @@ export default class woofipro extends Exchange {
         const chainPromise = this.v1PublicGetPublicChainInfo (params);
         const [ tokenResponse, chainResponse ] = await Promise.all ([ tokenPromise, chainPromise ]);
         const tokenData = this.safeDict (tokenResponse, 'data', {});
-        const tokenRows = this.safeList (tokenData, 'rows', []);
+        const tokenRows: Dict[] = this.safeList (tokenData, 'rows', []);
         const chainData = this.safeDict (chainResponse, 'data', {});
         const chainRows = this.safeList (chainData, 'rows', []);
         const indexedChains = this.indexBy (chainRows, 'chain_id');
@@ -755,7 +755,7 @@ export default class woofipro extends Exchange {
     override parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const token = this.safeDict (rawCurrency, '_token', {});
         const currencyId = this.safeString (token, 'token');
-        const networks = this.safeList (token, 'chain_details', []);
+        const networks: Dict[] = this.safeList (token, 'chain_details', []);
         const code = this.safeCurrencyCode (currencyId);
         const indexedChains = this.safeDict (rawCurrency, '_indexedChains', {});
         const resultingNetworks: Dict = {};
@@ -1208,7 +1208,7 @@ export default class woofipro extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
+        const rows: Dict[] = this.safeList (data, 'rows', []);
         const timestamp = this.safeInteger (response, 'timestamp');
         const result = [];
         for (let i = 0; i < rows.length; i++) {
@@ -1321,7 +1321,7 @@ export default class woofipro extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
+        const rows: Dict[] = this.safeList (data, 'rows', []);
         const timestamp = this.safeInteger (response, 'timestamp');
         const result = [];
         for (let i = 0; i < rows.length; i++) {
@@ -1389,7 +1389,7 @@ export default class woofipro extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const result = this.safeList (data, 'rows', []);
+        const result: Dict[] = this.safeList (data, 'rows', []);
         const rates: FundingRateHistory[] = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
@@ -2665,7 +2665,7 @@ export default class woofipro extends Exchange {
         const result: Dict = {
             'info': response,
         };
-        const balances = this.safeList (response, 'holding', []);
+        const balances: Dict[] = this.safeList (response, 'holding', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const code = this.safeCurrencyCode (this.safeString (balance, 'token'));
