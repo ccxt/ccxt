@@ -361,7 +361,7 @@ export default class hollaex extends Exchange {
         const result: List = [];
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const market = pairs[key];
+            const market = this.safeDict (pairs, key);
             const baseId = this.safeString (market, 'pair_base');
             const quoteId = this.safeString (market, 'pair_2');
             const base = this.commonCurrencyCode ((baseId as string).toUpperCase ());

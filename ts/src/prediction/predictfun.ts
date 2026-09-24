@@ -672,7 +672,7 @@ export default class predictfun extends Exchange {
             const categories = this.safeList (data, 'categories', []) as any[];
             const categoriesLength = categories.length;
             for (let ci = 0; ci < categoriesLength; ci++) {
-                const category = categories[ci];
+                const category = this.safeDict (categories, ci);
                 const categorySlug = this.safeString (category, 'slug');
                 if (categorySlug === undefined) {
                     // nothing to key a duplicate on, keep the row rather than drop it
@@ -1594,7 +1594,7 @@ export default class predictfun extends Exchange {
         const flattenTrades: any[] = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            const entry = data[i];
+            const entry = this.safeDict (data, i);
             const taker = this.safeDict (entry, 'taker', {});
             const takerOutcome = this.safeDict (taker, 'outcome', {});
             const takerIndexSet = this.safeInteger (takerOutcome, 'indexSet');

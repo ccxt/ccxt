@@ -2901,7 +2901,7 @@ export default class myriad extends Exchange {
         for (let i = 0; i < marketKeys.length; i++) {
             const key = marketKeys[i];
             const grouped = outcomesByMarket[key] as any[];
-            const firstOutcome = grouped[0];
+            const firstOutcome = this.safeDict (grouped, 0);
             const info = this.safeDict (firstOutcome, 'info', {});
             promises.push (this.myriadPublicGetMarketsId (this.extend ({
                 'id': this.safeString (info, 'marketId'),
@@ -2977,7 +2977,7 @@ export default class myriad extends Exchange {
         const rows = (rowsList !== undefined) ? rowsList : [];
         const trades: any[] = [];
         for (let i = 0; i < rows.length; i++) {
-            const row = rows[i];
+            const row = this.safeDict (rows, i);
             const action = this.safeString (row, 'action');
             if ((action !== 'buy') && (action !== 'sell')) {
                 continue;

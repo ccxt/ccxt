@@ -1805,7 +1805,7 @@ export default class bybit extends bybitRest {
         if (Array.isArray (message['data'])) {
             const rawLiquidations = this.safeList (message, 'data', []);
             for (let i = 0; i < rawLiquidations.length; i++) {
-                const rawLiquidation = rawLiquidations[i];
+                const rawLiquidation = this.safeDict (rawLiquidations, i);
                 const marketId = this.safeString (rawLiquidation, 's');
                 const market = this.safeMarket (marketId, undefined, '', 'contract');
                 const symbol = market['symbol'];

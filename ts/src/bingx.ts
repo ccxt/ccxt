@@ -6295,7 +6295,7 @@ export default class bingx extends Exchange {
         for (let i = 0; i < responseCodes.length; i++) {
             const code = responseCodes[i];
             if ((codes === undefined) || (this.inArray (code, codes))) {
-                const entry = response[code];
+                const entry = this.safeDict (response, code);
                 depositWithdrawFees[code] = this.parseDepositWithdrawFee (entry);
             }
         }

@@ -380,7 +380,7 @@ export default class cex extends Exchange {
         const keys = Object.keys (rawNetworks);
         for (let j = 0; j < keys.length; j++) {
             const networkId = keys[j];
-            const rawNetwork = rawNetworks[networkId];
+            const rawNetwork = this.safeDict (rawNetworks, networkId);
             const networkCode = this.networkIdToCode (networkId, code);
             const deposit = this.safeString (rawNetwork, 'deposit') === 'enabled';
             const withdraw = this.safeString (rawNetwork, 'withdrawal') === 'enabled';

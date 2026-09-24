@@ -618,7 +618,7 @@ export default class bigone extends Exchange {
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const promises = [ this.publicGetAssetPairs (params), this.contractPublicGetSymbols (params) ];
         const promisesResult = await Promise.all (promises);
-        const response = promisesResult[0];
+        const response = this.safeDict (promisesResult, 0);
         const contractResponse = promisesResult[1];
         //
         //     {

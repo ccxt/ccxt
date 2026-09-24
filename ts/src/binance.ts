@@ -13345,7 +13345,7 @@ export default class binance extends Exchange {
             // cancelOrders returns an array like this: [{"code":-2011,"msg":"Unknown order sent."}]
             const arrayLength = response.length;
             if (arrayLength === 1) { // when there's a single error we can throw, otherwise we have a partial success
-                const element = response[0];
+                const element = this.safeDict (response, 0);
                 const errorCode = this.safeString (element, 'code');
                 if (errorCode !== undefined) {
                     this.throwExactlyMatchedException (this.getExceptionsByUrl (url, 'exact'), errorCode, this.id + ' ' + body);

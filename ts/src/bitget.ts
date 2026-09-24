@@ -2734,7 +2734,7 @@ export default class bitget extends Exchange {
             deposit = false;
         }
         for (let j = 0; j < chainsLength; j++) {
-            const chain = chains[j];
+            const chain = this.safeDict (chains, j);
             const networkId = this.safeString (chain, 'chain');
             let network = this.networkIdToCode (networkId, code);
             if (network === undefined) {
@@ -3717,7 +3717,7 @@ export default class bitget extends Exchange {
         const timestamp = this.safeIntegerOmitZero (ticker, 'ts'); // exchange bitget provided 0
         const category = this.safeString (ticker, 'category');
         const markPrice = this.safeString (ticker, 'markPrice');
-        let marketType: string;
+        let marketType: Str = undefined;
         if ((markPrice !== undefined) && (category !== 'SPOT')) {
             marketType = 'contract';
         } else {
@@ -9792,7 +9792,7 @@ export default class bitget extends Exchange {
     parseFundingHistories (contracts: Dict[], market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingHistory[] {
         const result: List = [];
         for (let i = 0; i < contracts.length; i++) {
-            const contract = contracts[i];
+            const contract = this.safeDict (contracts, i);
             // for non-uta, we've set bussinessType in request payload. Not sure why this existed.
             // const business = this.safeString (contract, 'businessType');
             // if (business !== 'contract_settle_fee') {

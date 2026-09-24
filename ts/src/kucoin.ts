@@ -2350,7 +2350,7 @@ export default class kucoin extends Exchange {
         const chains = this.safeList2 (entry, 'chains', 'items', []);
         const chainsLength = chains.length;
         for (let j = 0; j < chainsLength; j++) {
-            const chain = chains[j];
+            const chain = this.safeDict (chains, j);
             const chainId = this.safeString (chain, 'chainId');
             const networkCode = this.networkIdToCode (chainId, code);
             if (networkCode !== undefined) {
@@ -9631,7 +9631,7 @@ export default class kucoin extends Exchange {
         //
         const borrowRateHistories: Dict = {};
         for (let i = 0; i < response.length; i++) {
-            const item = response[i];
+            const item = this.safeDict (response, i);
             const code = this.safeCurrencyCode (this.safeString (item, 'currency'));
             if ((code !== undefined) && (codes === undefined || this.inArray (code, codes))) {
                 if (!(code in borrowRateHistories)) {

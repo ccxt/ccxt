@@ -210,7 +210,7 @@ export default class bitstamp extends bitstampRest {
 
     override getCacheIndex (orderbook: any, deltas: any): number {
         // we will consider it a fail
-        const firstElement = deltas[0];
+        const firstElement = this.safeDict (deltas, 0);
         const firstElementNonce = this.safeInteger (firstElement, 'microtimestamp');
         if (firstElementNonce === undefined) {
             return -1;

@@ -687,7 +687,7 @@ export default class gate extends gateRest {
             const waitAmount = isSpot ? snapshotDelay : 0;
             if (cacheLength === waitAmount) {
                 // max limit is 100
-                const subscription = client.subscriptions[messageHash];
+                const subscription = this.safeDict (client.subscriptions, messageHash);
                 const limit = this.safeInteger (subscription, 'limit');
                 this.spawn (this.loadOrderBook, client, messageHash, symbol, limit, {}); // needed for c#, number of args needs to match
             }
@@ -711,7 +711,7 @@ export default class gate extends gateRest {
 
     override getCacheIndex (orderBook: any, cache: any): number {
         const nonce = this.safeInteger (orderBook, 'nonce');
-        const firstDelta = cache[0];
+        const firstDelta = this.safeDict (cache, 0);
         const firstDeltaStart = this.safeInteger (firstDelta, 'U');
         if ((nonce !== undefined) && (firstDeltaStart !== undefined) && (nonce < firstDeltaStart)) {
             return -1;

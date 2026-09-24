@@ -443,7 +443,7 @@ export default class okx extends okxRest {
         //
         const data = this.safeList (message, 'data', []) as List;
         for (let i = 0; i < data.length; i++) {
-            const rawfr = data[i];
+            const rawfr = this.safeDict (data, i);
             const fundingRate = this.parseFundingRate (rawfr);
             const symbol = fundingRate['symbol'];
             if (symbol !== undefined) {

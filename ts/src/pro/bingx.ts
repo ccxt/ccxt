@@ -731,7 +731,7 @@ export default class bingx extends bingxRest {
         if (orderbook === undefined) {
             // const limit = [ 5, 10, 20, 50, 100 ]
             const subscriptionHash = dataType;
-            const subscription = client.subscriptions[subscriptionHash];
+            const subscription = this.safeDict (client.subscriptions, subscriptionHash);
             // see handleOHLCV — subscription.limit may be missing for non-orderbook callers;
             // default to a reasonable depth instead of throwing NPE in the Java port.
             const limit = this.safeInteger (subscription, 'limit', 100);
@@ -886,7 +886,7 @@ export default class bingx extends bingxRest {
         const unifiedTimeframe = this.findTimeframe (rawTimeframe, timeframes);
         if (this.safeValue (this.ohlcvs[symbol], rawTimeframe) === undefined) {
             const subscriptionHash = dataType;
-            const subscription = client.subscriptions[subscriptionHash];
+            const subscription = this.safeDict (client.subscriptions, subscriptionHash);
             // subscription.limit is only set when watchOHLCV registers the subscription;
             // when handleMessage routes a non-OHLCV-originated subscription here (or the
             // subscription dict was reset on reconnect), fall back to the OHLCVLimit option.

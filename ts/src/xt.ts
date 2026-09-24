@@ -4674,7 +4674,7 @@ export default class xt extends Exchange {
         //
         const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
+            const entry = this.safeDict (response, i);
             const marketId = this.safeString (entry, 'symbol');
             const market = this.safeMarket (marketId, undefined, '_', 'contract');
             const symbol = this.safeSymbol (marketId, market);
@@ -4761,7 +4761,7 @@ export default class xt extends Exchange {
         const tiers: List = [];
         const brackets = this.safeList (info, 'leverageBrackets', []);
         for (let i = 0; i < brackets.length; i++) {
-            const tier = brackets[i];
+            const tier = this.safeDict (brackets, i);
             const marketId = this.safeString (info, 'symbol');
             market = this.safeMarket (marketId, market, '_', 'contract');
             const minNotional = this.safeNumber (brackets[i - 1], 'maxNominalValue', 0);
@@ -5183,7 +5183,7 @@ export default class xt extends Exchange {
         const items = this.safeList (data, 'items', []);
         const result: List = [];
         for (let i = 0; i < items.length; i++) {
-            const entry = items[i];
+            const entry = this.safeDict (items, i);
             result.push (this.parseFundingHistory (entry, market));
         }
         const sorted = this.sortBy (result, 'timestamp');

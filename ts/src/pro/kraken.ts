@@ -528,7 +528,7 @@ export default class kraken extends krakenRest {
         //     }
         //
         const data = this.safeList (message, 'data', []) as List;
-        const ticker = data[0];
+        const ticker = this.safeDict (data, 0);
         const symbol = this.safeString (ticker, 'symbol') as string;
         const messageHash = this.getMessageHash ('ticker', undefined, symbol);
         const vwap = this.safeString (ticker, 'vwap');
@@ -583,7 +583,7 @@ export default class kraken extends krakenRest {
         //     }
         //
         const data = this.safeList (message, 'data', []) as List;
-        const trade = data[0];
+        const trade = this.safeDict (data, 0);
         const symbol = this.safeString (trade, 'symbol') as string;
         const messageHash = this.getMessageHash ('trade', undefined, symbol);
         let stored = this.safeValue (this.trades, symbol);
@@ -624,7 +624,7 @@ export default class kraken extends krakenRest {
         //     }
         //
         const data = this.safeList (message, 'data', []) as List;
-        const first = data[0];
+        const first = this.safeDict (data, 0);
         const marketId = this.safeString (first, 'symbol');
         const symbol = this.safeSymbol (marketId);
         if (!(symbol in this.ohlcvs)) {

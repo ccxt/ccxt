@@ -814,7 +814,7 @@ export default class cryptocom extends cryptocomRest {
         }
         const data: any[] = this.safeValue (message, 'data');
         for (let i = 0; i < data.length; i++) {
-            const tick = data[i];
+            const tick = this.safeDict (data, i);
             const parsed = this.parseOHLCV (tick, market);
             stored.append (parsed);
         }

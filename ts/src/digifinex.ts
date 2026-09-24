@@ -597,8 +597,8 @@ export default class digifinex extends Exchange {
         }
         promisesRaw.push (this.publicSwapGetPublicInstruments (params));
         const promises = await Promise.all (promisesRaw);
-        const spotMarkets = promises[0];
-        const swapMarkets = promises[1];
+        const spotMarkets = this.safeDict (promises, 0);
+        const swapMarkets = this.safeDict (promises, 1);
         //
         // spot and margin
         //
@@ -4175,7 +4175,7 @@ export default class digifinex extends Exchange {
         const tiers: LeverageTier[] = [];
         const brackets = this.safeValue (info, 'open_max_limits', {});
         for (let i = 0; i < brackets.length; i++) {
-            const tier = brackets[i];
+            const tier = this.safeDict (brackets, i);
             const marketId = this.safeString (info, 'instrument_id');
             market = this.safeMarket (marketId, market);
             tiers.push ({
@@ -4293,7 +4293,7 @@ export default class digifinex extends Exchange {
         const depositWithdrawFees: Dict = {};
         codes = this.marketCodes (codes);
         for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
+            const entry = this.safeDict (response, i);
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             if ((code !== undefined) && ((codes === undefined) || (this.inArray (code, codes)))) {

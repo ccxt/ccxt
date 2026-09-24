@@ -3048,7 +3048,7 @@ export default class krakenfutures extends Exchange {
         const tickers = this.safeList (response, 'tickers', []);
         const fundingRates: FundingRate[] = [];
         for (let i = 0; i < tickers.length; i++) {
-            const entry = tickers[i];
+            const entry = this.safeDict (tickers, i);
             const entry_symbol = this.safeString (entry, 'symbol');
             if (marketIds !== undefined) {
                 if (!this.inArray (entry_symbol, marketIds)) {
@@ -3171,7 +3171,7 @@ export default class krakenfutures extends Exchange {
         const rates = this.safeValue (response, 'rates');
         const result: FundingRateHistory[] = [];
         for (let i = 0; i < rates.length; i++) {
-            const item = rates[i];
+            const item = this.safeDict (rates, i);
             const datetime = this.safeString (item, 'timestamp');
             result.push ({
                 'info': item,

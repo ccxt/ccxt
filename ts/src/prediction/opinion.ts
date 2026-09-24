@@ -1744,7 +1744,7 @@ export default class opinion extends Exchange {
         const marketKeys = Object.keys (this.markets);
         const marketKeysLength = marketKeys.length;
         for (let i = 0; i < marketKeysLength; i++) {
-            const market = this.markets[marketKeys[i]];
+            const market = this.safeDict (this.markets, marketKeys[i]);
             const info = this.safeDict (market, 'info', {});
             if (this.safeInteger (info, 'marketId') === marketId) {
                 const outcomes = this.safeList (market, 'outcomes', []);

@@ -467,7 +467,7 @@ export default class binance extends Exchange {
             //
             const responseLength = response.length;
             for (let i = 0; i < responseLength; i++) {
-                const rawTopic = response[i];
+                const rawTopic = this.safeDict (response, i);
                 const topicId = this.safeString (rawTopic, 'marketTopicId');
                 if (topicId !== undefined) {
                     const already = this.safeString (seen, topicId);

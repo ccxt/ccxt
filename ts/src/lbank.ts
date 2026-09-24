@@ -474,7 +474,7 @@ export default class lbank extends Exchange {
         const networksRaw = rawCurrency;
         const networks: Dict = {};
         for (let j = 0; j < (networksRaw as List).length; j++) {
-            const networkEntry = networksRaw[j];
+            const networkEntry = this.safeDict (networksRaw, j);
             let networkId = this.safeString (networkEntry, 'chain');
             if (networkId === undefined) {
                 networkId = this.safeString (networkEntry, 'assetCode'); // use type as fallback if networkId is not present

@@ -597,7 +597,7 @@ export default class grvt extends Exchange {
         //     }]
         // }
         //
-        const currentBuilders = results[0];
+        const currentBuilders = this.safeDict (results, 0);
         const approvedBuilder = this.safeList (currentBuilders, 'results', []);
         const length = approvedBuilder.length;
         let found = false;
@@ -685,7 +685,7 @@ export default class grvt extends Exchange {
             promises.push (this.signIn ());
         }
         const results = await Promise.all (promises);
-        const response = results[0];
+        const response = this.safeDict (results, 0);
         const result = this.safeList (response, 'result', []) as List;
         return this.parseMarkets (result);
     }

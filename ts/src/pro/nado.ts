@@ -1769,7 +1769,7 @@ export default class nado extends nadoRest {
         const subscriptions = Object.keys (client.subscriptions);
         for (let i = 0; i < subscriptions.length; i++) {
             const unsubscribeHash = subscriptions[i];
-            const subscription = client.subscriptions[unsubscribeHash];
+            const subscription = this.safeDict (client.subscriptions, unsubscribeHash);
             const subscriptionId = this.safeString (subscription, 'id');
             if (subscriptionId !== id) {
                 continue;

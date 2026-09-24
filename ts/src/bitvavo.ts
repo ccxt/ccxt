@@ -476,7 +476,7 @@ export default class bitvavo extends Exchange {
         const result: Market[] = [];
         const fees = this.fees;
         for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
+            const market = this.safeDict (markets, i);
             const id = this.safeString (market, 'market');
             const baseId = this.safeString (market, 'base');
             const quoteId = this.safeString (market, 'quote');

@@ -1507,8 +1507,8 @@ export default class bybit extends Exchange {
             }
             const rawPromises = [ this.privateGetV5UserQueryApi (params), this.privateGetV5AccountInfo (params) ];
             const promises = await Promise.all (rawPromises);
-            const response = promises[0];
-            const accountInfo = promises[1];
+            const response = this.safeDict (promises, 0);
+            const accountInfo = this.safeDict (promises, 1);
             //
             //     {
             //         "retCode": 0,
@@ -9024,7 +9024,7 @@ export default class bybit extends Exchange {
         //
         const tiers: List = [];
         for (let i = 0; i < info.length; i++) {
-            const tier = info[i];
+            const tier = this.safeDict (info, i);
             const marketId = this.safeString (info, 'symbol');
             market = this.safeMarket (marketId);
             let minNotional: Num = this.parseNumber ('0');
