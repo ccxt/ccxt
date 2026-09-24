@@ -1130,6 +1130,21 @@ impl Exchange {
         }
     }
 
+    /// `handleHttpStatusCode(code, reason, url, method, body)` — throws the
+    /// `httpExceptions` class for the status; a status outside the table passes.
+    pub fn handle_http_status_code(&self, code: Value, reason: Value, url: Value, method: Value, body: Value) {
+        let code_as_string = Value::Str(stringify_param(&code).into());
+        if crate::runtime::in_op(&self.httpExceptions, &code_as_string) {
+            let error_class = crate::runtime::get_value(&self.httpExceptions, &code_as_string);
+            let message = [&self.id, &method, &url, &code_as_string, &reason, &body]
+                .iter()
+                .map(|part| stringify_param(part))
+                .collect::<Vec<_>>()
+                .join(" ");
+            panic!("{}", crate::exchange_errors::create_error(&stringify_param(&error_class), message));
+        }
+    }
+
     /// `checkRequiredDependencies()` — a no-op in Rust; all crypto deps are
     /// compiled in.
     pub fn check_required_dependencies(&self) -> Value {
