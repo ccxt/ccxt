@@ -1708,7 +1708,7 @@ export default class umx extends Exchange {
             // family proved broken venue side, so the pagination walks on endTime, see fetchTransfers,
             // the paginator invokes its target with four positional arguments, which the five
             // argument signature of this method cannot take, hence the paginated helper in between
-            return await this.fetchPaginatedCallDynamic ('fetchBorrowInterestPaginated', code, since, limit, params, 100) as BorrowInterest[];
+            return await this.fetchPaginatedCallDynamic ('borrowInterestPaginated', code, since, limit, params, 100) as BorrowInterest[];
         }
         let currency: Currency = undefined;
         let request: Dict = {};
@@ -1736,7 +1736,7 @@ export default class umx extends Exchange {
     /**
      * @ignore
      * @method
-     * @name umx#fetchBorrowInterestPaginated
+     * @name umx#borrowInterestPaginated
      * @description the four argument shim between fetchPaginatedCallDynamic and fetchBorrowInterest, whose extra symbol argument the paginator cannot serve
      * @param {string} [code] unified currency code
      * @param {int} [since] timestamp in ms of the earliest entry to fetch
@@ -1744,7 +1744,7 @@ export default class umx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
      */
-    async fetchBorrowInterestPaginated (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<BorrowInterest[]> {
+    async borrowInterestPaginated (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<BorrowInterest[]> {
         return await this.fetchBorrowInterest (code, undefined, since, limit, params);
     }
 

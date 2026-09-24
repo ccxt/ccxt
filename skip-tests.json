@@ -2376,6 +2376,7 @@
     },
     "umx": {
         "preferredSpotSymbol": "ETH/USDT",
+        "preferredSwapSymbol": "ETH/USDT:USDT",
         "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "fetchTickers": {

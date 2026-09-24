@@ -372,6 +372,21 @@ export default class umx extends umxRest {
         }
     }
 
+    handleOrderBookSnapshot (client: Client, message: Dict, symbol: string, timestamp: Int) {
+        // every push of the depthlevels flavour is a full snapshot of the top of the book
+        const data = this.safeList (message, 'data', []);
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ({});
+        }
+        const orderbook = this.orderbooks[symbol];
+        const dataLength = data.length;
+        const row = this.safeDict (data, dataLength - 1, {});
+        const snapshot = this.parseOrderBook (row, symbol, timestamp);
+        snapshot['nonce'] = this.safeInteger (row, 'lastUpdateId');
+        orderbook.reset (snapshot);
+        client.resolve (orderbook, 'orderbook::' + symbol);
+    }
+
     handleOrderBookUpdate (client: Client, update: Dict, orderbook: any, symbol: string) {
         //
         //     {
@@ -411,7 +426,8 @@ export default class umx extends umxRest {
                 'symbol': symbol,
                 'params': {},
             };
-            this.spawn (this.fetchOrderBookSnapshot, client, {}, resubscription);
+            const emptyMessage: Dict = {};
+            this.spawn (this.fetchOrderBookSnapshot, client, emptyMessage, resubscription);
         }
     }
 
@@ -455,17 +471,7 @@ export default class umx extends umxRest {
         const timestamp = this.safeInteger (message, 'ts');
         const data = this.safeList (message, 'data', []);
         if (stream.startsWith ('depthlevels')) {
-            // every push is a full snapshot of the top of the book
-            if (!(symbol in this.orderbooks)) {
-                this.orderbooks[symbol] = this.orderBook ({});
-            }
-            const book = this.orderbooks[symbol];
-            const dataLength = data.length;
-            const row = this.safeDict (data, dataLength - 1, {});
-            const snapshot = this.parseOrderBook (row, symbol, timestamp);
-            snapshot['nonce'] = this.safeInteger (row, 'lastUpdateId');
-            book.reset (snapshot);
-            client.resolve (book, 'orderbook::' + symbol);
+            this.handleOrderBookSnapshot (client, message, symbol, timestamp);
             return;
         }
         if (!(symbol in this.orderbooks)) {
@@ -515,7 +521,7 @@ export default class umx extends umxRest {
      * @name umx#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://www.umx.com/docs/coin-apis/websocket-stream/public-channel/24h-ticker-channel
-     * @param {string[]} [symbols] unified symbols of the markets to watch the tickers for, every market of every instrument type is streamed when left out
+     * @param {string[]} [symbols] unified symbols of the markets to watch the tickers for, every spot, perpetual and dated futures market is streamed when left out, the venue accepts no options subscription on this channel
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
@@ -663,7 +669,7 @@ export default class umx extends umxRest {
      * @name umx#watchBidsAsks
      * @description watches the best bid and ask prices and volumes of multiple markets
      * @see https://www.umx.com/docs/coin-apis/websocket-stream/public-channel/best-bid-and-offer-channel
-     * @param {string[]} [symbols] unified symbols of the markets to watch, every market of every instrument type is streamed when left out
+     * @param {string[]} [symbols] unified symbols of the markets to watch, every spot, perpetual and dated futures market is streamed when left out, the venue accepts no options subscription on this channel
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
@@ -1040,7 +1046,8 @@ export default class umx extends umxRest {
                 if (subscription !== undefined) {
                     const method = this.safeValue (subscription, 'method');
                     if (method !== undefined) {
-                        method.call (this, client, message, this.extend (subscription, { 'symbol': symbol }));
+                        const methodSubscription = this.extend (subscription, { 'symbol': symbol });
+                        method.call (this, client, message, methodSubscription);
                     }
                 }
             } else if (event === 'unsubscribe') {
