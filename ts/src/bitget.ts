@@ -3902,7 +3902,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTicker (data[0], market);
     }
 
@@ -3932,7 +3932,7 @@ export default class bitget extends Exchange {
             request['productType'] = productType;
             response = await this.publicMixGetV2MixMarketSymbolPrice (this.extend (request, params));
         }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTicker (data[0], market);
     }
 
@@ -4530,7 +4530,7 @@ export default class bitget extends Exchange {
             //         ]
             //     }
             //
-            const rows = this.safeList (utaResponse, 'data', []);
+            const rows: Dict[] = this.safeList (utaResponse, 'data', []);
             const utaResult: Dict = {};
             for (let i = 0; i < rows.length; i++) {
                 const entry = rows[i];
@@ -4634,7 +4634,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -9412,7 +9412,7 @@ export default class bitget extends Exchange {
                 //
             }
         }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseFundingRate (data[0], market);
     }
 
@@ -10432,7 +10432,7 @@ export default class bitget extends Exchange {
         //         "transfer": "true""
         //     }
         //
-        const chains = this.safeList (fee, 'chains', []);
+        const chains: Dict[] = this.safeList (fee, 'chains', []);
         const chainsLength = chains.length;
         const result: Dict = {
             'info': fee,

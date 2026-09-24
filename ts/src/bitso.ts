@@ -1259,7 +1259,7 @@ export default class bitso extends Exchange {
         //         "payload": ["yWTQGxDMZ0VimZgZ"]
         //     }
         //
-        const payload = this.safeList (response, 'payload', []);
+        const payload: Dict[] = this.safeList (response, 'payload', []);
         const orders: Order[] = [];
         for (let i = 0; i < payload.length; i++) {
             const id = payload[i];
@@ -1288,7 +1288,7 @@ export default class bitso extends Exchange {
         //         "payload": ["NWUZUYNT12ljwzDT", "kZUkZmQ2TTjkkYTY"]
         //     }
         //
-        const payload = this.safeList (response, 'payload', []);
+        const payload: Dict[] = this.safeList (response, 'payload', []);
         const canceledOrders: Order[] = [];
         for (let i = 0; i < payload.length; i++) {
             const order = this.parseOrder (payload[i]);

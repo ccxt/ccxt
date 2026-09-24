@@ -4015,7 +4015,7 @@ export default class binance extends Exchange {
                 }
             }
         } else if (isolated) {
-            const assets = this.safeList (response, 'assets', []);
+            const assets: Dict[] = this.safeList (response, 'assets', []);
             for (let i = 0; i < assets.length; i++) {
                 const asset = assets[i];
                 const base = this.safeDict (asset, 'baseAsset', {});
@@ -9211,7 +9211,7 @@ export default class binance extends Exchange {
         //         },
         //       ]
         //     }
-        const results = this.safeList (response, 'userAssetDribblets', []);
+        const results: Dict[] = this.safeList (response, 'userAssetDribblets', []);
         const rows = this.safeInteger (response, 'total', 0);
         const data: List = [];
         for (let i = 0; i < rows; i++) {
@@ -11049,7 +11049,7 @@ export default class binance extends Exchange {
     }
 
     parseAccountPositions (account: Dict, filterClosed: boolean = false): Position[] {
-        const positions = this.safeList (account, 'positions', []);
+        const positions: Dict[] = this.safeList (account, 'positions', []);
         const assets: Dict[] = this.safeList (account, 'assets', []);
         const balances: Dict = {};
         for (let i = 0; i < assets.length; i++) {

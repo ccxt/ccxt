@@ -519,7 +519,7 @@ export default class apex extends Exchange {
         const chains = this.options['_temp_currencies_chains'];
         for (let j = 0; j < chains.length; j++) {
             const chain = chains[j];
-            const tokens = this.safeList (chain, 'tokens', []);
+            const tokens: Dict[] = this.safeList (chain, 'tokens', []);
             for (let f = 0; f < tokens.length; f++) {
                 const token = tokens[f];
                 const tokenName = this.safeString (token, 'token');
@@ -1487,7 +1487,7 @@ export default class apex extends Exchange {
         const spotAccount = this.safeDict (accountData, 'spotAccount', {});
         const zkAccountId = this.safeString (spotAccount, 'zkAccountId', '');
         const subAccountId = this.safeString (spotAccount, 'defaultSubAccountId', '0');
-        const subAccounts = this.safeList (spotAccount, 'subAccounts', []);
+        const subAccounts: Dict[] = this.safeList (spotAccount, 'subAccounts', []);
         let nonce = '0';
         if (subAccounts.length > 0) {
             nonce = this.safeString (subAccounts[0], 'nonce', '0');

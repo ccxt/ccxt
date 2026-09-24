@@ -8203,7 +8203,7 @@ export default class bybit extends Exchange {
         //        ]
         //    }
         //
-        const chains = this.safeList (fee, 'chains', []);
+        const chains: Dict[] = this.safeList (fee, 'chains', []);
         const chainsLength = chains.length;
         const result: Dict = {
             'info': fee,
@@ -8600,7 +8600,7 @@ export default class bybit extends Exchange {
         //
         const timestamp = this.safeInteger (response, 'time');
         const result = this.safeDict (response, 'result', {});
-        const data = this.safeList (result, 'list', []);
+        const data: Dict[] = this.safeList (result, 'list', []);
         const greeks = this.parseGreeks (data[0], market);
         return this.extend (greeks, {
             'timestamp': timestamp,
