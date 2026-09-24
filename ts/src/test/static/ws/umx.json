@@ -790,6 +790,630 @@
                     ]
                 ]
             }
+        ],
+        "watchOrders": [
+            {
+                "description": "a filled market order with its trade list",
+                "input": [],
+                "url": "wss://stream.umx.com/ws/private/v2/notification",
+                "messages": [
+                    {
+                        "event": "authorization",
+                        "code": 0,
+                        "message": "成功"
+                    },
+                    {
+                        "event": "subscribe",
+                        "data": [
+                            {
+                                "businessType": "linear_perpetual",
+                                "stream": "order",
+                                "message": "成功",
+                                "code": 0
+                            }
+                        ],
+                        "ts": 1790258794977
+                    },
+                    {
+                        "stream": "order",
+                        "ts": "1790258800584",
+                        "code": "0",
+                        "data": [
+                            {
+                                "avgPrice": "2670.96",
+                                "businessType": "linear_perpetual",
+                                "clientOrderId": "3538205804946128896",
+                                "createTime": "1790258800576",
+                                "createType": "order",
+                                "eventId": "1",
+                                "isLeverage": "",
+                                "lever": "10",
+                                "marketUnit": "baseCoin",
+                                "massQuoteOrder": {
+                                    "priceAdjustment": false,
+                                    "quote": false
+                                },
+                                "orderId": "3538205804946128896",
+                                "orderType": "market",
+                                "pid": "1000000000000000000",
+                                "pnl": "0",
+                                "price": "2710.61",
+                                "qty": "0.001",
+                                "quoteFee": "-0.00133548",
+                                "reduceOnly": false,
+                                "riskReducing": false,
+                                "side": "buy",
+                                "source": "api",
+                                "status": "filled",
+                                "symbol": "ETH-USDT-PERP",
+                                "timeInForce": "ioc",
+                                "totalFillQty": "0.001",
+                                "tradeList": [
+                                    {
+                                        "businessType": "linear_perpetual",
+                                        "clientOrderId": "3538205804946128896",
+                                        "eventId": "1",
+                                        "fee": "-0.00133548",
+                                        "feeCurrency": "USDT",
+                                        "fillPrice": "2670.96",
+                                        "fillQty": "0.001",
+                                        "fillTime": "1790258800577",
+                                        "lever": "10",
+                                        "matchId": "12521655192",
+                                        "orderId": "3538205804946128896",
+                                        "orderType": "market",
+                                        "pnl": "0",
+                                        "postAvgPrice": "2670.96",
+                                        "postPositionQty": "0.001",
+                                        "preAvgPrice": "0",
+                                        "prePositionQty": "0",
+                                        "role": "taker",
+                                        "side": "buy",
+                                        "symbol": "ETH-USDT-PERP",
+                                        "tradeId": "3538205804946149378"
+                                    }
+                                ],
+                                "uid": "100000000000001",
+                                "updateTime": "1790258800577",
+                                "username": "John Doe"
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "data": {
+                            "type": "Token",
+                            "accessKey": "x",
+                            "accessTimestamp": "1"
+                        },
+                        "accessSign": "x",
+                        "event": "authorization"
+                    },
+                    {
+                        "event": "subscribe",
+                        "data": [
+                            {
+                                "stream": "order",
+                                "businessType": "spot"
+                            },
+                            {
+                                "stream": "order",
+                                "businessType": "linear_perpetual"
+                            },
+                            {
+                                "stream": "order",
+                                "businessType": "linear_futures"
+                            }
+                        ]
+                    }
+                ],
+                "sentSkipKeys": [
+                    "accessKey",
+                    "accessTimestamp",
+                    "accessSign"
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "avgPrice": "2670.96",
+                                "businessType": "linear_perpetual",
+                                "clientOrderId": "3538205804946128896",
+                                "createTime": "1790258800576",
+                                "createType": "order",
+                                "eventId": "1",
+                                "isLeverage": "",
+                                "lever": "10",
+                                "marketUnit": "baseCoin",
+                                "massQuoteOrder": {
+                                    "priceAdjustment": false,
+                                    "quote": false
+                                },
+                                "orderId": "3538205804946128896",
+                                "orderType": "market",
+                                "pid": "1000000000000000000",
+                                "pnl": "0",
+                                "price": "2710.61",
+                                "qty": "0.001",
+                                "quoteFee": "-0.00133548",
+                                "reduceOnly": false,
+                                "riskReducing": false,
+                                "side": "buy",
+                                "source": "api",
+                                "status": "filled",
+                                "symbol": "ETH-USDT-PERP",
+                                "timeInForce": "ioc",
+                                "totalFillQty": "0.001",
+                                "tradeList": [
+                                    {
+                                        "businessType": "linear_perpetual",
+                                        "clientOrderId": "3538205804946128896",
+                                        "eventId": "1",
+                                        "fee": "-0.00133548",
+                                        "feeCurrency": "USDT",
+                                        "fillPrice": "2670.96",
+                                        "fillQty": "0.001",
+                                        "fillTime": "1790258800577",
+                                        "lever": "10",
+                                        "matchId": "12521655192",
+                                        "orderId": "3538205804946128896",
+                                        "orderType": "market",
+                                        "pnl": "0",
+                                        "postAvgPrice": "2670.96",
+                                        "postPositionQty": "0.001",
+                                        "preAvgPrice": "0",
+                                        "prePositionQty": "0",
+                                        "role": "taker",
+                                        "side": "buy",
+                                        "symbol": "ETH-USDT-PERP",
+                                        "tradeId": "3538205804946149378"
+                                    }
+                                ],
+                                "uid": "100000000000001",
+                                "updateTime": "1790258800577",
+                                "username": "John Doe"
+                            },
+                            "id": "3538205804946128896",
+                            "clientOrderId": "3538205804946128896",
+                            "timestamp": 1790258800576,
+                            "datetime": "2026-09-24T14:06:40.576Z",
+                            "lastTradeTimestamp": null,
+                            "lastUpdateTimestamp": 1790258800577,
+                            "symbol": "ETH/USDT:USDT",
+                            "type": "market",
+                            "timeInForce": "IOC",
+                            "postOnly": false,
+                            "reduceOnly": false,
+                            "side": "buy",
+                            "price": 2710.61,
+                            "triggerPrice": null,
+                            "amount": 0.001,
+                            "cost": 2.67096,
+                            "average": 2670.96,
+                            "filled": 0.001,
+                            "remaining": 0,
+                            "status": "closed",
+                            "fee": {
+                                "currency": "USDT",
+                                "cost": 0.00133548
+                            },
+                            "trades": [],
+                            "fees": [
+                                {
+                                    "currency": "USDT",
+                                    "cost": 0.00133548
+                                }
+                            ],
+                            "stopPrice": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null
+                        }
+                    ]
+                ]
+            }
+        ],
+        "watchMyTrades": [
+            {
+                "description": "a taker fill on the linear swap",
+                "input": [],
+                "url": "wss://stream.umx.com/ws/private/v2/notification",
+                "messages": [
+                    {
+                        "event": "authorization",
+                        "code": 0,
+                        "message": "成功"
+                    },
+                    {
+                        "event": "subscribe",
+                        "data": [
+                            {
+                                "businessType": "linear_perpetual",
+                                "stream": "trade",
+                                "message": "成功",
+                                "code": 0
+                            }
+                        ],
+                        "ts": 1790258794977
+                    },
+                    {
+                        "stream": "trade",
+                        "ts": "1790258800579",
+                        "code": "0",
+                        "data": [
+                            {
+                                "orderId": "3538205804946128896",
+                                "symbol": "ETH-USDT-PERP",
+                                "clientOrderId": "3538205804946128896",
+                                "fillPrice": "2670.960000000000000000",
+                                "fillQty": "0.001000000000000000000",
+                                "side": "buy",
+                                "fillTime": "1790258800577",
+                                "matchId": "12521655192",
+                                "role": "taker",
+                                "businessType": "linear_perpetual",
+                                "pid": "1000000000000000000"
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "data": {
+                            "type": "Token",
+                            "accessKey": "x",
+                            "accessTimestamp": "1"
+                        },
+                        "accessSign": "x",
+                        "event": "authorization"
+                    },
+                    {
+                        "event": "subscribe",
+                        "data": [
+                            {
+                                "stream": "trade",
+                                "businessType": "spot"
+                            },
+                            {
+                                "stream": "trade",
+                                "businessType": "linear_perpetual"
+                            },
+                            {
+                                "stream": "trade",
+                                "businessType": "linear_futures"
+                            }
+                        ]
+                    }
+                ],
+                "sentSkipKeys": [
+                    "accessKey",
+                    "accessTimestamp",
+                    "accessSign"
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "id": null,
+                            "info": {
+                                "orderId": "3538205804946128896",
+                                "symbol": "ETH-USDT-PERP",
+                                "clientOrderId": "3538205804946128896",
+                                "fillPrice": "2670.960000000000000000",
+                                "fillQty": "0.001000000000000000000",
+                                "side": "buy",
+                                "fillTime": "1790258800577",
+                                "matchId": "12521655192",
+                                "role": "taker",
+                                "businessType": "linear_perpetual",
+                                "pid": "1000000000000000000"
+                            },
+                            "timestamp": 1790258800577,
+                            "datetime": "2026-09-24T14:06:40.577Z",
+                            "symbol": "ETH/USDT:USDT",
+                            "order": "3538205804946128896",
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": "taker",
+                            "price": 2670.96,
+                            "amount": 0.001,
+                            "cost": 2.67096,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ]
+                ]
+            }
+        ],
+        "watchBalance": [
+            {
+                "description": "the trading account snapshot, an order margin sits in initialMargin",
+                "input": [],
+                "url": "wss://stream.umx.com/ws/private/v2/notification",
+                "messages": [
+                    {
+                        "event": "authorization",
+                        "code": 0,
+                        "message": "成功"
+                    },
+                    {
+                        "event": "subscribe",
+                        "data": [
+                            {
+                                "stream": "trading_account",
+                                "message": "成功",
+                                "code": 0
+                            }
+                        ],
+                        "ts": 1790258794977
+                    },
+                    {
+                        "stream": "trading_account",
+                        "ts": "1790258802947",
+                        "code": "0",
+                        "data": [
+                            {
+                                "accountLeverage": "0",
+                                "contractUpl": "0",
+                                "details": [
+                                    {
+                                        "availableMargin": "29.483735665",
+                                        "balance": "29.483735665",
+                                        "borrow": "0",
+                                        "currency": "USDT",
+                                        "equity": "29.483735665",
+                                        "fixedBalance": "0",
+                                        "frozen": "0",
+                                        "initialMargin": "0",
+                                        "intLiability": "0",
+                                        "liabilityInitialMargin": "0",
+                                        "optionUpl": "0",
+                                        "potentialLiability": "0",
+                                        "realLiability": "0",
+                                        "realLiabilityValue": "0",
+                                        "upl": "0"
+                                    }
+                                ],
+                                "imr": "0",
+                                "mmr": "0",
+                                "pid": "1000000000000000000",
+                                "totalAvailableBalance": "29.745255935",
+                                "totalEffectiveMargin": "29.745255935",
+                                "totalEquity": "29.745255935",
+                                "totalIm": "0",
+                                "totalMarginBalance": "29.745255935",
+                                "totalMm": "0",
+                                "totalOpenLoss": "0",
+                                "totalPositionValue": "0"
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "data": {
+                            "type": "Token",
+                            "accessKey": "x",
+                            "accessTimestamp": "1"
+                        },
+                        "accessSign": "x",
+                        "event": "authorization"
+                    },
+                    {
+                        "event": "subscribe",
+                        "data": [
+                            {
+                                "stream": "trading_account"
+                            }
+                        ]
+                    }
+                ],
+                "sentSkipKeys": [
+                    "accessKey",
+                    "accessTimestamp",
+                    "accessSign"
+                ],
+                "parsedResponses": [
+                    {
+                        "info": {
+                            "data": {
+                                "accountLeverage": "0",
+                                "contractUpl": "0",
+                                "details": [
+                                    {
+                                        "availableMargin": "29.483735665",
+                                        "balance": "29.483735665",
+                                        "borrow": "0",
+                                        "currency": "USDT",
+                                        "equity": "29.483735665",
+                                        "fixedBalance": "0",
+                                        "frozen": "0",
+                                        "initialMargin": "0",
+                                        "intLiability": "0",
+                                        "liabilityInitialMargin": "0",
+                                        "optionUpl": "0",
+                                        "potentialLiability": "0",
+                                        "realLiability": "0",
+                                        "realLiabilityValue": "0",
+                                        "upl": "0"
+                                    }
+                                ],
+                                "imr": "0",
+                                "mmr": "0",
+                                "pid": "1000000000000000000",
+                                "totalAvailableBalance": "29.745255935",
+                                "totalEffectiveMargin": "29.745255935",
+                                "totalEquity": "29.745255935",
+                                "totalIm": "0",
+                                "totalMarginBalance": "29.745255935",
+                                "totalMm": "0",
+                                "totalOpenLoss": "0",
+                                "totalPositionValue": "0"
+                            },
+                            "ts": 1790258802947
+                        },
+                        "timestamp": 1790258802947,
+                        "datetime": "2026-09-24T14:06:42.947Z",
+                        "USDT": {
+                            "free": 29.483735665,
+                            "used": 0,
+                            "total": 29.483735665,
+                            "debt": 0
+                        },
+                        "free": {
+                            "USDT": 29.483735665
+                        },
+                        "used": {
+                            "USDT": 0
+                        },
+                        "total": {
+                            "USDT": 29.483735665
+                        },
+                        "debt": {
+                            "USDT": 0
+                        }
+                    }
+                ]
+            }
+        ],
+        "watchPositions": [
+            {
+                "description": "an opened long position on the linear swap",
+                "input": [],
+                "url": "wss://stream.umx.com/ws/private/v2/notification",
+                "messages": [
+                    {
+                        "event": "authorization",
+                        "code": 0,
+                        "message": "成功"
+                    },
+                    {
+                        "event": "subscribe",
+                        "data": [
+                            {
+                                "businessType": "linear_perpetual",
+                                "stream": "position",
+                                "message": "成功",
+                                "code": 0
+                            }
+                        ],
+                        "ts": 1790258794977
+                    },
+                    {
+                        "stream": "position",
+                        "ts": "1790258800584",
+                        "code": "0",
+                        "data": [
+                            {
+                                "avgPrice": "2670.96",
+                                "businessType": "linear_perpetual",
+                                "createTime": "1790258800577",
+                                "delta": "0.001",
+                                "fee": "-0.00133548",
+                                "fundingFee": "0",
+                                "im": "0.267056",
+                                "indexPrice": "2671.3",
+                                "lever": "10",
+                                "liquidationPrice": "0",
+                                "markPrice": "2670.56",
+                                "pid": "1000000000000000000",
+                                "pnl": "-0.00133548",
+                                "positionId": "3538205804946149376",
+                                "positionQty": "0.001",
+                                "symbol": "ETH-USDT-PERP",
+                                "tradedType": "OPEN",
+                                "updateTime": "1790258800577",
+                                "upl": "-0.0004"
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "data": {
+                            "type": "Token",
+                            "accessKey": "x",
+                            "accessTimestamp": "1"
+                        },
+                        "accessSign": "x",
+                        "event": "authorization"
+                    },
+                    {
+                        "event": "subscribe",
+                        "data": [
+                            {
+                                "stream": "position",
+                                "businessType": "linear_perpetual"
+                            },
+                            {
+                                "stream": "position",
+                                "businessType": "linear_futures"
+                            }
+                        ]
+                    }
+                ],
+                "sentSkipKeys": [
+                    "accessKey",
+                    "accessTimestamp",
+                    "accessSign"
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "avgPrice": "2670.96",
+                                "businessType": "linear_perpetual",
+                                "createTime": "1790258800577",
+                                "delta": "0.001",
+                                "fee": "-0.00133548",
+                                "fundingFee": "0",
+                                "im": "0.267056",
+                                "indexPrice": "2671.3",
+                                "lever": "10",
+                                "liquidationPrice": "0",
+                                "markPrice": "2670.56",
+                                "pid": "1000000000000000000",
+                                "pnl": "-0.00133548",
+                                "positionId": "3538205804946149376",
+                                "positionQty": "0.001",
+                                "symbol": "ETH-USDT-PERP",
+                                "tradedType": "OPEN",
+                                "updateTime": "1790258800577",
+                                "upl": "-0.0004"
+                            },
+                            "id": "3538205804946149376",
+                            "symbol": "ETH/USDT:USDT",
+                            "timestamp": 1790258800577,
+                            "datetime": "2026-09-24T14:06:40.577Z",
+                            "lastUpdateTimestamp": 1790258800577,
+                            "contracts": 0.001,
+                            "contractSize": 1,
+                            "side": "long",
+                            "notional": 2.67056,
+                            "leverage": 10,
+                            "unrealizedPnl": -0.0004,
+                            "realizedPnl": null,
+                            "collateral": null,
+                            "entryPrice": 2670.96,
+                            "markPrice": 2670.56,
+                            "lastPrice": null,
+                            "liquidationPrice": null,
+                            "marginMode": null,
+                            "hedged": false,
+                            "maintenanceMargin": null,
+                            "maintenanceMarginPercentage": null,
+                            "initialMargin": 0.267056,
+                            "initialMarginPercentage": null,
+                            "marginRatio": null,
+                            "percentage": -0.14,
+                            "stopLossPrice": null,
+                            "takeProfitPrice": null
+                        }
+                    ]
+                ]
+            }
         ]
     }
 }

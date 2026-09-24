@@ -1,10 +1,11 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import umxRest from '../umx.js';
-import { BadRequest, ExchangeError } from '../base/errors.js';
-import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Dict, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import { AuthenticationError, BadRequest, ExchangeError } from '../base/errors.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -14,18 +15,18 @@ export default class umx extends umxRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchBalance': false,
+                'watchBalance': true,
                 'watchBidsAsks': true,
                 'unWatchBidsAsks': true,
-                'watchMyTrades': false,
+                'watchMyTrades': true,
                 'watchOHLCV': true,
                 'unWatchOHLCV': true,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'unWatchOrderBook': true,
                 'unWatchOrderBookForSymbols': true,
-                'watchOrders': false,
-                'watchPositions': false,
+                'watchOrders': true,
+                'watchPositions': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'unWatchTicker': true,
@@ -931,6 +932,319 @@ export default class umx extends umxRest {
     /**
      * @ignore
      * @method
+     * @name umx#authenticate
+     * @description authenticate the private websocket connection, required before any private subscription
+     * @see https://www.umx.com/docs/coin-apis/websocket-stream/private-channel/user-authentication
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} resolves once the venue confirms the authorization
+     */
+    async authenticate (params: Dict = {}) {
+        this.checkRequiredCredentials ();
+        const url = this.urls['api']['ws']['private'];
+        const client = this.client (url);
+        const messageHash = 'authenticated';
+        const future = client.future (messageHash);
+        const isAuthenticated = this.safeValue (client.subscriptions, messageHash);
+        if (isAuthenticated === undefined) {
+            const timestamp = this.numberToString (this.milliseconds ());
+            const request: Dict = {
+                'type': 'Token',
+                'accessKey': this.apiKey,
+                'accessTimestamp': timestamp,
+            };
+            // the venue signs the json of the data object appended to the same prehash the
+            // rest api uses, with an empty query string, and the field order above is fixed
+            const payload = timestamp + 'POST' + '/v2/notification' + this.json (request);
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'hex');
+            const message: Dict = {
+                'data': request,
+                'accessSign': signature,
+                'event': 'authorization',
+            };
+            this.watch (url, messageHash, this.extend (message, params), messageHash);
+        }
+        return await future;
+    }
+
+    handleAuthenticate (client: Client, message: Dict) {
+        //
+        //     { "event": "authorization", "data": "", "code": 0, "message": "...", "ts": 1790000000000 }
+        //
+        const code = this.safeString (message, 'code');
+        const future = this.safeValue (client.futures, 'authenticated');
+        if ((code === undefined) || (code === '0')) {
+            future.resolve (true);
+        } else {
+            const error = new AuthenticationError (this.id + ' ' + this.json (message));
+            client.reject (error, 'authenticated');
+            if ('authenticated' in client.subscriptions) {
+                delete client.subscriptions['authenticated'];
+            }
+        }
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name umx#privateTopics
+     * @description build the subscription topics of a private channel, one per instrument type when no symbol narrows it
+     * @param {string} stream the venue channel name
+     * @param {string} [symbol] unified market symbol
+     * @param {string[]} businessTypes the instrument types the symbolless subscription covers
+     * @returns {object[]} the topic objects
+     */
+    privateTopics (stream: string, symbol: Str = undefined, businessTypes: string[] = []): Dict[] {
+        if (symbol !== undefined) {
+            return [ this.subscriptionTopic (stream, symbol) ];
+        }
+        const topics = [];
+        for (let i = 0; i < businessTypes.length; i++) {
+            topics.push ({
+                'stream': stream,
+                'businessType': businessTypes[i],
+            });
+        }
+        return topics;
+    }
+
+    /**
+     * @method
+     * @name umx#watchOrders
+     * @description watches information on the orders made by the user
+     * @see https://www.umx.com/docs/coin-apis/websocket-stream/private-channel/order-channel
+     * @param {string} [symbol] unified market symbol of the market the orders were made in
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum amount of orders to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        await this.authenticate ();
+        let messageHash = 'orders';
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            symbol = market['symbol'];
+            messageHash = 'orders::' + symbol;
+        }
+        const topics = this.privateTopics ('order', symbol, [ 'spot', 'linear_perpetual', 'linear_futures' ]);
+        const url = this.urls['api']['ws']['private'];
+        const message: Dict = {
+            'event': 'subscribe',
+            'data': topics,
+        };
+        const orders = await this.watch (url, messageHash, this.deepExtend (message, params), messageHash);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    handleOrders (client: Client, message: Dict) {
+        //
+        //     {
+        //         "businessType": "linear_perpetual",
+        //         "symbol": "ETH-USDT-PERP",
+        //         "stream": "order",
+        //         "data": [ { ... a rest style order row with a tradeList ... } ],
+        //         "ts": 1790000000000
+        //     }
+        //
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const stored = this.orders;
+        const data = this.safeList (message, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const row = this.safeDict (data, i, {});
+            const order = this.parseOrder (row);
+            stored.append (order);
+            client.resolve (stored, 'orders::' + order['symbol']);
+        }
+        client.resolve (stored, 'orders');
+    }
+
+    /**
+     * @method
+     * @name umx#watchMyTrades
+     * @description watches information on the trades made by the user
+     * @see https://www.umx.com/docs/coin-apis/websocket-stream/private-channel/account-trade-channel
+     * @param {string} [symbol] unified market symbol of the market the trades were made in
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        await this.authenticate ();
+        let messageHash = 'myTrades';
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            symbol = market['symbol'];
+            messageHash = 'myTrades::' + symbol;
+        }
+        const topics = this.privateTopics ('trade', symbol, [ 'spot', 'linear_perpetual', 'linear_futures' ]);
+        const url = this.urls['api']['ws']['private'];
+        const message: Dict = {
+            'event': 'subscribe',
+            'data': topics,
+        };
+        const trades = await this.watch (url, messageHash, this.deepExtend (message, params), messageHash);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
+    handleMyTrades (client: Client, message: Dict) {
+        //
+        //     {
+        //         "businessType": "linear_perpetual",
+        //         "symbol": "ETH-USDT-PERP",
+        //         "stream": "trade",
+        //         "data": [ { ... a rest style fill row ... } ],
+        //         "ts": 1790000000000
+        //     }
+        //
+        if (this.myTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.myTrades = new ArrayCacheBySymbolById (limit);
+        }
+        const stored = this.myTrades;
+        const data = this.safeList (message, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const row = this.safeDict (data, i, {});
+            const trade = this.parseTrade (row);
+            stored.append (trade);
+            client.resolve (stored, 'myTrades::' + trade['symbol']);
+        }
+        client.resolve (stored, 'myTrades');
+    }
+
+    /**
+     * @method
+     * @name umx#watchBalance
+     * @description watches the changes of the trading account balance, the venue streams no funding account channel
+     * @see https://www.umx.com/docs/coin-apis/websocket-stream/private-channel/trading-account-channel
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    override async watchBalance (params: Dict = {}): Promise<Balances> {
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const messageHash = 'balance';
+        const url = this.urls['api']['ws']['private'];
+        const message: Dict = {
+            'event': 'subscribe',
+            'data': [
+                {
+                    'stream': 'trading_account',
+                },
+            ],
+        };
+        return await this.watch (url, messageHash, this.deepExtend (message, params), messageHash);
+    }
+
+    handleBalance (client: Client, message: Dict) {
+        //
+        //     {
+        //         "stream": "trading_account",
+        //         "data": [ { ... the rest style trading account snapshot with a details list ... } ],
+        //         "ts": 1790000000000
+        //     }
+        //
+        const data = this.safeList (message, 'data', []);
+        const dataLength = data.length;
+        const row = this.safeDict (data, dataLength - 1, {});
+        // the rest parser expects the http envelope, whose data member is the account object
+        const restLike: Dict = {
+            'data': row,
+            'ts': this.safeInteger (message, 'ts'),
+        };
+        const parsed = this.parseBalance (restLike);
+        // merge into the existing object in place, a consumer can hold a reference to it
+        // across the updates, see the object identity issue class of ccxt#30595
+        const keys = Object.keys (parsed);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            this.balance[key] = parsed[key];
+        }
+        client.resolve (this.balance, 'balance');
+    }
+
+    /**
+     * @method
+     * @name umx#watchPositions
+     * @description watches information on multiple contract positions
+     * @see https://www.umx.com/docs/coin-apis/websocket-stream/private-channel/position-channel
+     * @param {string[]} [symbols] list of unified market symbols, every perpetual and dated futures market is streamed when left out
+     * @param {int} [since] timestamp in ms of the earliest position update to fetch
+     * @param {int} [limit] the maximum amount of position updates to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        await this.authenticate ();
+        symbols = this.marketSymbols (symbols);
+        const messageHashes = [];
+        let topics = [];
+        if (symbols === undefined) {
+            messageHashes.push ('positions');
+            topics = this.privateTopics ('position', undefined, [ 'linear_perpetual', 'linear_futures' ]);
+        } else {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const messageHash = 'positions::' + symbol;
+                if (!this.inArray (messageHash, messageHashes)) {
+                    messageHashes.push (messageHash);
+                    topics.push (this.subscriptionTopic ('position', symbol));
+                }
+            }
+        }
+        const url = this.urls['api']['ws']['private'];
+        const message: Dict = {
+            'event': 'subscribe',
+            'data': topics,
+        };
+        const newPositions = await this.watchMultiple (url, messageHashes, this.deepExtend (message, params), messageHashes);
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+    }
+
+    handlePositions (client: Client, message: Dict) {
+        //
+        //     {
+        //         "businessType": "linear_perpetual",
+        //         "symbol": "ETH-USDT-PERP",
+        //         "stream": "position",
+        //         "data": [ { ... a rest style position row ... } ],
+        //         "ts": 1790000000000
+        //     }
+        //
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
+        const cache = this.positions;
+        const data = this.safeList (message, 'data', []);
+        const newPositions = [];
+        for (let i = 0; i < data.length; i++) {
+            const row = this.safeDict (data, i, {});
+            const position = this.parsePosition (row);
+            newPositions.push (position);
+            cache.append (position);
+            client.resolve ([ position ], 'positions::' + position['symbol']);
+        }
+        client.resolve (newPositions, 'positions');
+    }
+
+    /**
+     * @ignore
+     * @method
      * @name umx#subscriptionTopic
      * @description build one entry of the data list of a subscription request
      * @param {string} stream the venue channel name, e.g. "trade"
@@ -1084,11 +1398,28 @@ export default class umx extends umxRest {
             return;
         }
         const event = this.safeString (message, 'event');
+        if (event === 'authorization') {
+            this.handleAuthenticate (client, message);
+            return;
+        }
         if ((event === 'subscribe') || (event === 'unsubscribe')) {
             this.handleSubscriptionStatus (client, message);
             return;
         }
         const stream = this.safeString (message, 'stream', '');
+        const isPrivate = (client.url === this.urls['api']['ws']['private']);
+        if (isPrivate) {
+            if (stream === 'order') {
+                this.handleOrders (client, message);
+            } else if (stream === 'trade') {
+                this.handleMyTrades (client, message);
+            } else if (stream === 'trading_account') {
+                this.handleBalance (client, message);
+            } else if (stream === 'position') {
+                this.handlePositions (client, message);
+            }
+            return;
+        }
         if (stream === 'trade') {
             this.handleTrades (client, message);
         } else if (stream.startsWith ('depth')) {
