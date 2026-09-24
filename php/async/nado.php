@@ -476,7 +476,11 @@ class nado extends Exchange {
             } else {
                 $oracleSide = $isStopLossOrder ? 'below' : 'above';
             }
-            $triggerPrice = $isStopLossOrder ? $stopLossTriggerPrice : $takeProfitTriggerPrice;
+            if ($isStopLossOrder) {
+                $triggerPrice = $stopLossTriggerPrice;
+            } else {
+                $triggerPrice = $takeProfitTriggerPrice;
+            }
             $triggerPriceX18 = $this->convert_to_x18($triggerPrice);
             $priceRequirement = array();
             $priceRequirement['oracle_price_' . $oracleSide] = $triggerPriceX18;

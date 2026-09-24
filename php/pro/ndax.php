@@ -337,7 +337,7 @@ class ndax extends \ccxt\async\ndax {
                         $parsed[4],
                         $this->sum($parsed[5], $previous[5]),
                     );
-                    if (($marketId !== null) && ($timeframe !== null)) {
+                    if ($marketId !== null) {
                         $updates[$marketId][$timeframe] = true;
                     }
                 } else {
@@ -349,7 +349,7 @@ class ndax extends \ccxt\async\ndax {
                         if ($length >= $limit) {
                             array_shift($stored);
                         }
-                        if (($marketId !== null) && ($timeframe !== null)) {
+                        if ($marketId !== null) {
                             $updates[$marketId][$timeframe] = true;
                         }
                     }

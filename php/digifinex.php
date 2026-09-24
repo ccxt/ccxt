@@ -1351,7 +1351,9 @@ class digifinex extends Exchange {
             $tradeRole = $this->safe_string($trade, 'match_role');
             $direction = $this->safe_string($trade, 'direction');
             if ($orderType !== null) {
-                $type = ($orderType === '0') ? 'limit' : null;
+                if ($orderType === '0') {
+                    $type = 'limit';
+                }
             }
             if ($tradeRole === '1') {
                 $takerOrMaker = 'taker';

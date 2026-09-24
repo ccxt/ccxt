@@ -1949,7 +1949,9 @@ class coinbaseinternational extends Exchange {
             }
             $tif = 'IOC';
         } else {
-            $tif = ($tif === null) ? 'GTC' : $tif;
+            if ($tif === null) {
+                $tif = 'GTC';
+            }
         }
         if ($postOnly !== null) {
             $request['post_only'] = $postOnly;

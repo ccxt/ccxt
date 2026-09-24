@@ -5969,7 +5969,11 @@ class okx extends Exchange {
         $addressTo = $this->safe_string($transaction, 'to');
         $address = $addressTo;
         $tagTo = $this->safe_string_2($transaction, 'tag', 'memo');
-        $tagTo = ($tagTo === null) ? $this->safe_string($transaction, 'pmtId') : $this->safe_string_2($transaction, 'pmtId', $tagTo);
+        if ($tagTo === null) {
+            $tagTo = $this->safe_string($transaction, 'pmtId');
+        } else {
+            $tagTo = $this->safe_string_2($transaction, 'pmtId', $tagTo);
+        }
         if ($withdrawalId !== null) {
             $type = 'withdrawal';
             $id = $withdrawalId;
@@ -5986,9 +5990,7 @@ class okx extends Exchange {
             $chainParts = explode('-', $chain);
             $networkParts = $this->array_slice($chainParts, 1);
             $networkId = implode('-', $networkParts);
-            if ($networkId !== null) {
-                $network = $this->network_id_to_code($networkId, $code);
-            }
+            $network = $this->network_id_to_code($networkId, $code);
         }
         $amount = $this->safe_number($transaction, 'amt');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
