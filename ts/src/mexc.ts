@@ -5909,7 +5909,7 @@ export default class mexc extends Exchange {
         return this.parseTransactionFees (response, codes);
     }
 
-    parseTransactionFees (response: any[], codes: Strings = undefined): Dict {
+    parseTransactionFees (response: Dict[], codes: Strings = undefined): Dict {
         const withdrawFees: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];

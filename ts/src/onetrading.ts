@@ -774,7 +774,7 @@ export default class onetrading extends Exchange {
         return result;
     }
 
-    parseFeeTiers (feeTiers: any[], market: Market = undefined): Dict {
+    parseFeeTiers (feeTiers: Dict[], market: Market = undefined): Dict {
         const takerFees: List = [];
         const makerFees: List = [];
         for (let i = 0; i < feeTiers.length; i++) {

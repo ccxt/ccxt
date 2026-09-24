@@ -1525,7 +1525,7 @@ export default class toobit extends Exchange {
         return this.parseBidsAsksCustom (response, symbols);
     }
 
-    parseBidsAsksCustom (tickers: any, symbols: Strings = undefined, params: Dict = {}): Tickers {
+    parseBidsAsksCustom (tickers: Dict[], symbols: Strings = undefined, params: Dict = {}): Tickers {
         const results: Ticker[] = [];
         for (let i = 0; i < tickers.length; i++) {
             const parsedTicker = this.parseBidAskCustom (tickers[i]);

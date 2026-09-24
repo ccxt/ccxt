@@ -1424,7 +1424,7 @@ export default class paradex extends Exchange {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
-    async getSystemConfig () {
+    async getSystemConfig (): Promise<Dict> {
         const cachedConfig = this.safeDict (this.options, 'systemConfig');
         if (cachedConfig !== undefined) {
             return cachedConfig;
@@ -1527,7 +1527,7 @@ export default class paradex extends Exchange {
         return response;
     }
 
-    async authenticateRest (params: Dict = {}) {
+    async authenticateRest (params: Dict = {}): Promise<Str> {
         const cachedToken = this.safeString (this.options, 'authToken');
         const now = this.nonce ();
         if (cachedToken !== undefined) {

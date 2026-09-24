@@ -562,7 +562,7 @@ export default class pacifica extends Exchange {
         });
     }
 
-    async initializeClient () {
+    async initializeClient (): Promise<boolean> {
         try {
             await this.handleBuilderFeeApproval ();
         } catch (e) {
@@ -571,7 +571,7 @@ export default class pacifica extends Exchange {
         return true;
     }
 
-    async handleBuilderFeeApproval () {
+    async handleBuilderFeeApproval (): Promise<boolean> {
         if (this.isSandboxModeEnabled) { // At this stage, building codes are mostly only on the mainnet.
             return false;
         }
@@ -981,7 +981,7 @@ export default class pacifica extends Exchange {
         return this.parseAccountSettings (this.safeList (response, 'data', []));
     }
 
-    async loadAccountSettings (refresh: boolean = false, params: Dict = {}) {
+    async loadAccountSettings (refresh: boolean = false, params: Dict = {}): Promise<void> {
         let settings = this.handleOption ('loadAccountSettings', 'settings');
         if ((settings === undefined) || (refresh === true)) {
             this.options['settings'] = this.createSafeDictionary ();
@@ -990,7 +990,7 @@ export default class pacifica extends Exchange {
         }
     }
 
-    parseAccountSettings (settings: any[]): Dict {
+    parseAccountSettings (settings: Dict[]): Dict {
         const settingsLen = settings.length;
         if (settingsLen === 0) {
             return {};

@@ -1340,7 +1340,7 @@ export default class lbank extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         // from spotPrivatePostUserInfo
         const toBtc = this.safeValue (data, 'toBtc');
         if (toBtc !== undefined) {
@@ -2964,7 +2964,7 @@ export default class lbank extends Exchange {
         return this.parsePublicDepositWithdrawFees (data, codes);
     }
 
-    parsePublicDepositWithdrawFees (response: any[], codes: Strings = undefined): DepositWithdrawFees {
+    parsePublicDepositWithdrawFees (response: Dict[], codes: Strings = undefined): DepositWithdrawFees {
         //
         //    [
         //        {
