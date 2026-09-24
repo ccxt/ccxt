@@ -6575,7 +6575,22 @@ function ccxtGoScalarElementReadType (goTranspiler, initializer) {
             return undefined;
         }
     }
-    return goType;
+    // `y = x` copies the pointer into a local another rule owns (often `any`), where a raw
+    // `y == "spot"` then compares the box against a string and never matches
+    const varName = declaration.name.escapedText;
+    let copied = false;
+    const visit = (n) => {
+        if (!copied && (n.kind === ts.SyntaxKind.Identifier) && (n.escapedText === varName) && (n !== declaration.name)
+            && (n.parent?.kind === ts.SyntaxKind.BinaryExpression) && (n.parent.right === n)
+            && (n.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) && (n.parent.left.kind === ts.SyntaxKind.Identifier)) {
+            copied = true;
+        }
+        if (!copied) {
+            ts.forEachChild (n, visit);
+        }
+    };
+    visit (declaration.parent.parent.parent);
+    return copied ? undefined : goType;
 }
 
 function installCcxtGoScalarElementReads (goTranspiler) {
