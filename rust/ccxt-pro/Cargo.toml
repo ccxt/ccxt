@@ -18,7 +18,7 @@ path = "src/lib.rs"
 [features]
 # `all` (the default) keeps today's behaviour: every WebSocket venue compiles.
 # Pick venues instead to cut build time and memory by two orders of magnitude:
-#   ccxt = { version = "…", default-features = false, features = ["binance", "kraken"] }
+#   ccxt-pro = { version = "…", default-features = false, features = ["binance", "kraken"] }
 default = ["all"]
 # BEGIN GENERATED FEATURES (emitted by build/generateRustWrappers.ts)
 alpaca = ["ccxt-base/alpaca"]
