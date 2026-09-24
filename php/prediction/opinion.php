@@ -622,7 +622,12 @@ class opinion extends Exchange {
         $eventId = $this->safe_string($rawEvent, 'marketId');
         $slug = $this->safe_string($rawEvent, 'slug');
         $title = $this->safe_string($rawEvent, 'marketTitle');
-        $eventHandle = ($title !== null) ? $this->shorten_slug($title) : $this->shorten_slug($slug);
+        $eventHandle = null;
+        if ($title !== null) {
+            $eventHandle = $this->shorten_slug($title);
+        } else {
+            $eventHandle = $this->shorten_slug($slug);
+        }
         $rawChildren = $this->safe_list($rawEvent, 'childMarkets', array());
         $rawChildrenLength = count($rawChildren);
         $marketsList = array();
@@ -874,7 +879,7 @@ class opinion extends Exchange {
         $candles = array();
         $historyLength = count($history);
         for ($i = 0; $i < $historyLength; $i++) {
-            $point = $history[$i];
+            $point = $this->safe_dict($history, $i);
             $price = $this->safe_number($point, 'p');
             $timestamp = $this->safe_timestamp($point, 't');
             if (($price !== null) && ($timestamp !== null)) {
@@ -1487,7 +1492,7 @@ class opinion extends Exchange {
         $balances = $this->safe_list($data, 'balances', array());
         $balancesLength = count($balances);
         for ($i = 0; $i < $balancesLength; $i++) {
-            $balance = $balances[$i];
+            $balance = $this->safe_dict($balances, $i);
             $code = $this->safe_string($balance, 'symbol', 'USDT');
             $result[$code] = array(
                 'free' => $this->safe_number($balance, 'availableBalance'),
@@ -1809,7 +1814,7 @@ class opinion extends Exchange {
         $marketKeys = is_array($this->markets) ? array_keys($this->markets) : array();
         $marketKeysLength = count($marketKeys);
         for ($i = 0; $i < $marketKeysLength; $i++) {
-            $market = $this->markets[$marketKeys[$i]];
+            $market = $this->safe_dict($this->markets, $marketKeys[$i]);
             $info = $this->safe_dict($market, 'info', array());
             if ($this->safe_integer($info, 'marketId') === $marketId) {
                 $outcomes = $this->safe_list($market, 'outcomes', array());
@@ -2120,9 +2125,15 @@ class opinion extends Exchange {
         // unlike the REST order body (0 buy / 1 sell), the websocket channel uses 1 buy / 2 sell
         // per the docs and confirmed live
         $sideInt = $this->safe_integer($message, 'side');
-        $side = ($sideInt === 1) ? 'buy' : 'sell';
+        $side = 'sell';
+        if ($sideInt === 1) {
+            $side = 'buy';
+        }
         $tradingMethod = $this->safe_integer($message, 'tradingMethod');
-        $type = ($tradingMethod === 1) ? 'market' : 'limit';
+        $type = 'limit';
+        if ($tradingMethod === 1) {
+            $type = 'market';
+        }
         $order = $this->safe_prediction_order(array(
             'id' => $this->safe_string($message, 'orderId'),
             'clientOrderId' => null,

@@ -499,7 +499,10 @@ class gemini extends Exchange {
         $code = $this->safe_currency_code($id);
         $fiatFlag = $this->safe_string($rawCurrency, 7);
         $isFiat = ($fiatFlag !== null) && ($fiatFlag !== '');
-        $type = $isFiat ? 'fiat' : 'crypto';
+        $type = 'crypto';
+        if ($isFiat) {
+            $type = 'fiat';
+        }
         $precision = $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 5)));
         $networks = array();
         $networkId = $this->safe_string($rawCurrency, 9);
@@ -897,7 +900,10 @@ class gemini extends Exchange {
             $linear = true; // always linear
             $inverse = false;
         }
-        $type = $swap ? 'swap' : 'spot';
+        $type = 'spot';
+        if ($swap) {
+            $type = 'swap';
+        }
         $isSpot = !$swap;
         return $this->safe_market_structure(array(
             'id' => $marketId,
@@ -1326,7 +1332,7 @@ class gemini extends Exchange {
     public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
-            $balance = $response[$i];
+            $balance = $this->safe_dict($response, $i);
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -2041,7 +2047,7 @@ class gemini extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         //
         //      {
         //          "address": "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",

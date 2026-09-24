@@ -501,7 +501,7 @@ class coinbase extends \ccxt\async\coinbase {
         $timestamp = $this->parse8601($datetime);
         $newTickers = array();
         for ($i = 0; $i < count($events); $i++) {
-            $tickersObj = $events[$i];
+            $tickersObj = $this->safe_dict($events, $i);
             $tickers = $this->safe_list($tickersObj, 'tickers', array());
             for ($j = 0; $j < count($tickers); $j++) {
                 $ticker = $tickers[$j];
@@ -828,7 +828,7 @@ class coinbase extends \ccxt\async\coinbase {
             $this->trades[$symbol] = $tradesArray;
         }
         for ($i = 0; $i < count($events); $i++) {
-            $currentEvent = $events[$i];
+            $currentEvent = $this->safe_dict($events, $i);
             $currentTrades = $this->safe_list($currentEvent, 'trades');
             if ($currentTrades === null) {
                 continue;
@@ -883,7 +883,7 @@ class coinbase extends \ccxt\async\coinbase {
             $this->orders = new ArrayCacheBySymbolById($limit);
         }
         for ($i = 0; $i < count($events); $i++) {
-            $event = $events[$i];
+            $event = $this->safe_dict($events, $i);
             $responseOrders = $this->safe_list($event, 'orders');
             if ($responseOrders === null) {
                 continue;
@@ -964,7 +964,7 @@ class coinbase extends \ccxt\async\coinbase {
 
     public function handle_order_book_helper(mixed $orderbook, mixed $updates) {
         for ($i = 0; $i < count($updates); $i++) {
-            $trade = $updates[$i];
+            $trade = $this->safe_dict($updates, $i);
             $sideId = $this->safe_string($trade, 'side');
             $side = $this->safe_string($this->options['sides'], $sideId);
             $price = $this->safe_number($trade, 'price_level');
@@ -1009,7 +1009,7 @@ class coinbase extends \ccxt\async\coinbase {
         }
         $datetime = $this->safe_string($message, 'timestamp');
         for ($i = 0; $i < count($events); $i++) {
-            $event = $events[$i];
+            $event = $this->safe_dict($events, $i);
             $updates = $this->safe_list($event, 'updates', array());
             $marketId = $this->safe_string($event, 'product_id');
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
@@ -1117,7 +1117,10 @@ class coinbase extends \ccxt\async\coinbase {
         if ($type === 'error') {
             $errorMessage = $this->safe_string($message, 'message');
             // ternary (not ||) so the ast-transpiler emits a value-typed conditional, not a boolean
-            $errorMessageValue = ($errorMessage !== null) ? $errorMessage : 'unknown error';
+            $errorMessageValue = 'unknown error';
+            if ($errorMessage !== null) {
+                $errorMessageValue = $errorMessage;
+            }
             throw new ExchangeError($errorMessageValue);
         }
         $method = $this->safe_value($methods, $channel);

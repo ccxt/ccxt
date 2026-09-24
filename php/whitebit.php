@@ -513,6 +513,7 @@ class whitebit extends Exchange {
         $active = $this->safe_bool($market, 'tradesEnabled');
         $isCollateral = $this->safe_bool($market, 'isCollateral');
         $typeId = $this->safe_string($market, 'type');
+        $type = null;
         $settle = null;
         $settleId = null;
         $symbol = $base . '/' . $quote;
@@ -2963,7 +2964,7 @@ class whitebit extends Exchange {
         return $this->parse_deposit_address($data, $currency);
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "address": "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN",
@@ -3661,7 +3662,7 @@ class whitebit extends Exchange {
         return $this->parse_funding_histories($data, $market, $since, $limit);
     }
 
-    public function parse_funding_history(mixed $contract, ?array $market = null) {
+    public function parse_funding_history(?array $contract, ?array $market = null) {
         //
         //     {
         //         "market": "BTC_PERP",
@@ -3689,7 +3690,7 @@ class whitebit extends Exchange {
     public function parse_funding_histories(mixed $contracts, ?array $market = null, ?int $since = null, ?int $limit = null): array {
         $result = array();
         for ($i = 0; $i < count($contracts); $i++) {
-            $contract = $contracts[$i];
+            $contract = $this->safe_dict($contracts, $i);
             $result[] = $this->parse_funding_history($contract, $market);
         }
         $sorted = $this->sort_by($result, 'timestamp');
@@ -4204,7 +4205,7 @@ class whitebit extends Exchange {
         }
         $maxLimit = 100;
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params, $maxLimit);
         }

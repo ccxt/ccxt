@@ -884,7 +884,7 @@ class p2b extends Exchange {
         $keys = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $currencyId = $keys[$i];
-            $balance = $response[$currencyId];
+            $balance = $this->safe_dict($response, $currencyId);
             $code = $this->safe_currency_code($currencyId);
             $used = $this->safe_string($balance, 'freeze');
             $available = $this->safe_string($balance, 'available');

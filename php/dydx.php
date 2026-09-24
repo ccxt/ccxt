@@ -855,7 +855,7 @@ class dydx extends Exchange {
 
     public function handle_public_address(?string $methodName, array $params): array {
         $userAux = null;
-        list($userAux, $params) = $this->handle_option_and_params($params, $methodName, 'user');
+        list($userAux, $params) = $this->handle_option_string_and_params($params, $methodName, 'user');
         $user = $userAux;
         list($user, $params) = $this->handle_option_string_and_params($params, $methodName, 'address', $userAux);
         if (($user !== null) && ($user !== '')) {

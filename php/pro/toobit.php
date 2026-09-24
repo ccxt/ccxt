@@ -326,7 +326,7 @@ class toobit extends \ccxt\async\toobit {
         $marketIds = array();
         $selectedTimeframe = null;
         for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-            $data = $symbolsAndTimeframes[$i];
+            $data = $this->safe_list($symbolsAndTimeframes, $i);
             $symbolStr = $this->safe_string($data, 0);
             $market = $this->market($symbolStr);
             $marketId = $market['id'];
@@ -645,7 +645,7 @@ class toobit extends \ccxt\async\toobit {
         $symbol = $market['symbol'];
         $data = $this->safe_list($message, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
-            $entry = $data[$i];
+            $entry = $this->safe_dict($data, $i);
             $messageHash = 'orderBook::' . $symbol . '::' . 'diffDepth';
             if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
                 $limit = $this->safe_integer($this->options['ws'], 'orderBookLimit', 1000);
@@ -701,7 +701,7 @@ class toobit extends \ccxt\async\toobit {
             return;
         }
         for ($i = 0; $i < $length; $i++) {
-            $entry = $data[$i];
+            $entry = $this->safe_dict($data, $i);
             $marketId = $this->safe_string($entry, 's');
             $symbol = $this->safe_symbol($marketId);
             $messageHash = 'orderBook::' . $symbol . '::' . $channel;
@@ -738,13 +738,22 @@ class toobit extends \ccxt\async\toobit {
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('watchBalance', null, $params);
         $isSpot = ($marketType === 'spot');
-        $type = $isSpot ? 'spot' : 'contract';
+        $type = 'contract';
+        if ($isSpot) {
+            $type = 'spot';
+        }
         $spotSubHash = 'spot:balance';
         $swapSubHash = 'contract:private';
         $spotMessageHash = 'spot:balance';
         $swapMessageHash = 'contract:balance';
-        $messageHash = $isSpot ? $spotMessageHash : $swapMessageHash;
-        $subscriptionHash = $isSpot ? $spotSubHash : $swapSubHash;
+        $messageHash = $swapMessageHash;
+        if ($isSpot) {
+            $messageHash = $spotMessageHash;
+        }
+        $subscriptionHash = $swapSubHash;
+        if ($isSpot) {
+            $subscriptionHash = $spotSubHash;
+        }
         if ($subscriptionHash === null) {
             throw new ArgumentsRequired($this->id . ' watchBalance() requires a subscription hash');
         }
@@ -759,7 +768,10 @@ class toobit extends \ccxt\async\toobit {
         if (($subscriptionHash === null) || (is_array($client->subscriptions) && array_key_exists($subscriptionHash ?? '', $client->subscriptions))) {
             return;
         }
-        $type = ($marketType === 'spot') ? 'spot' : 'contract';
+        $type = 'contract';
+        if ($marketType === 'spot') {
+            $type = 'spot';
+        }
         $messageHash = $type . ':fetchBalanceSnapshot';
         if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
             $client->future($messageHash);
@@ -804,7 +816,10 @@ class toobit extends \ccxt\async\toobit {
         $channel = $this->safe_string($message, 'e');
         $data = $this->safe_list($message, 'B', array());
         $timestamp = $this->safe_integer($message, 'E');
-        $type = ($channel === 'outboundContractAccountInfo') ? 'contract' : 'spot';
+        $type = 'spot';
+        if ($channel === 'outboundContractAccountInfo') {
+            $type = 'contract';
+        }
         if (!(is_array($this->balance) && array_key_exists($type ?? '', $this->balance))) {
             $this->balance[$type] = array();
         }
@@ -833,7 +848,10 @@ class toobit extends \ccxt\async\toobit {
 
     private function do_load_balance_snapshot(Client $client, string $messageHash, ?string $marketType) {
         $response = Async\await($this->fetch_balance(array( 'type' => $marketType )));
-        $type = ($marketType === 'spot') ? 'spot' : 'contract';
+        $type = 'contract';
+        if ($marketType === 'spot') {
+            $type = 'spot';
+        }
         $this->balance[$type] = $this->extend($response, $this->safe_dict($this->balance, $type, array()));
         // don't remove the future from the .futures cache
         if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
@@ -1040,7 +1058,10 @@ class toobit extends \ccxt\async\toobit {
         $marketId = $this->safe_string($trade, 's');
         $ts = $this->safe_string($trade, 't');
         $isMaker = ($this->safe_bool($trade, 'm') === true);
-        $takerOrMaker = $isMaker ? 'maker' : 'taker';
+        $takerOrMaker = 'taker';
+        if ($isMaker) {
+            $takerOrMaker = 'maker';
+        }
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $this->safe_string($trade, 'T'),

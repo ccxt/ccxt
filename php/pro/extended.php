@@ -861,7 +861,12 @@ class extended extends \ccxt\async\extended {
         $symbol = $this->safe_string($subscription, 'symbol');
         $timeframe = $this->safe_string($subscription, 'timeframe');
         $candleType = $this->safe_string($subscription, 'candleType');
-        $cacheKey = ($candleType === 'trades') ? $timeframe : $timeframe . ':' . $candleType;
+        $cacheKey = null;
+        if ($candleType === 'trades') {
+            $cacheKey = $timeframe;
+        } else {
+            $cacheKey = $timeframe . ':' . $candleType;
+        }
         $messageHash = $this->safe_string($subscription, 'messageHash');
         $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
         $stored = $this->safe_value($this->ohlcvs[$symbol], $cacheKey);

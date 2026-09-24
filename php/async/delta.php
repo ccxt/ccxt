@@ -372,7 +372,10 @@ class delta extends Exchange {
         $strike = $this->safe_string($optionParts, 2);
         $datetime = $this->convert_expire_date($expiry);
         $timestamp = $this->parse8601($datetime);
-        $optionTypeUnified = ($optionType === 'C') ? 'call' : 'put';
+        $optionTypeUnified = 'put';
+        if ($optionType === 'C') {
+            $optionTypeUnified = 'call';
+        }
         return $this->safe_market_structure(array(
             'id' => $optionType . '-' . $base . '-' . $strike . '-' . $expiry,
             'symbol' => $base . '/' . $quote . ':' . $settle . '-' . $expiry . '-' . $strike . '-' . $optionType,
@@ -510,7 +513,10 @@ class delta extends Exchange {
         //
         $result = $this->safe_dict($response, 'result', array());
         $underMaintenance = $this->safe_string($result, 'under_maintenance');
-        $status = ($underMaintenance === 'true') ? 'maintenance' : 'ok';
+        $status = 'ok';
+        if ($underMaintenance === 'true') {
+            $status = 'maintenance';
+        }
         $updated = $this->safe_integer_product($result, 'server_time', 0.001, $this->milliseconds());
         return array(
             'status' => $status,
@@ -1740,7 +1746,7 @@ class delta extends Exchange {
         $result = array( 'info' => $response );
         $currenciesByNumericId = $this->safe_dict($this->options, 'currenciesByNumericId', array());
         for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+            $balance = $this->safe_dict($balances, $i);
             $currencyId = $this->safe_string($balance, 'asset_id');
             $currency = $this->safe_dict($currenciesByNumericId, $currencyId);
             $code = ($currency === null) ? $currencyId : $currency['code'];
@@ -2018,7 +2024,12 @@ class delta extends Exchange {
         $marketId = $this->safe_string($order, 'product_id');
         $marketsByNumericId = $this->safe_dict($this->options, 'marketsByNumericId', array());
         $market = $this->safe_value($marketsByNumericId, $marketId, $market);
-        $symbol = ($market === null) ? $marketId : $market['symbol'];
+        $symbol = null;
+        if ($market === null) {
+            $symbol = $marketId;
+        } else {
+            $symbol = $market['symbol'];
+        }
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $side = $this->safe_string($order, 'side');
         $type = $this->safe_string($order, 'order_type');
@@ -2618,7 +2629,7 @@ class delta extends Exchange {
         return $this->parse_ledger($result, $currency, $since, $limit);
     }
 
-    public function parse_ledger_entry_type(mixed $type) {
+    public function parse_ledger_entry_type(?string $type) {
         $types = array(
             'pnl' => 'pnl',
             'deposit' => 'transaction',
@@ -2735,7 +2746,7 @@ class delta extends Exchange {
         return $this->parse_deposit_address($result, $currency);
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         //
         //    {
         //        "id": 1915615,
@@ -3414,7 +3425,7 @@ class delta extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
-    public function parse_settlement(array $settlement, mixed $market): array {
+    public function parse_settlement(array $settlement, array $market): array {
         //
         //     {
         //         "contract_value": "0.001",
@@ -3479,7 +3490,7 @@ class delta extends Exchange {
         );
     }
 
-    public function parse_settlements(array $settlements, mixed $market): array {
+    public function parse_settlements(array $settlements, array $market): array {
         $result = array();
         for ($i = 0; $i < count($settlements); $i++) {
             $result[] = $this->parse_settlement($settlements[$i], $market);

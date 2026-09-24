@@ -834,7 +834,7 @@ class btse extends Exchange {
         Async\await($this->load_markets());
         $maxLimit = 300;
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimit);
         }
@@ -1132,14 +1132,14 @@ class btse extends Exchange {
         $frees = array();
         $useds = array();
         for ($i = 0; $i < count($response); $i++) {
-            $row = $response[$i];
+            $row = $this->safe_dict($response, $i);
             $assets = $this->safe_list($row, 'assets');
             if ($assets !== null) {
                 // futures wallet row: per-currency totals in assets, locked amounts in assetsInUse
                 // several wallet rows can report the same currency, so amounts are aggregated
                 $inUse = $this->safe_list($row, 'assetsInUse', array());
                 for ($j = 0; $j < count($inUse); $j++) {
-                    $usedRow = $inUse[$j];
+                    $usedRow = $this->safe_dict($inUse, $j);
                     $usedCode = $this->safe_currency_code($this->safe_string($usedRow, 'currency'));
                     if ($usedCode === null) {
                         continue;
@@ -1147,7 +1147,7 @@ class btse extends Exchange {
                     $useds[$usedCode] = Precise::string_add($this->safe_string($useds, $usedCode, '0'), $this->safe_string($usedRow, 'balance'));
                 }
                 for ($j = 0; $j < count($assets); $j++) {
-                    $assetRow = $assets[$j];
+                    $assetRow = $this->safe_dict($assets, $j);
                     $code = $this->safe_currency_code($this->safe_string($assetRow, 'currency'));
                     if ($code === null) {
                         continue;
@@ -1230,7 +1230,7 @@ class btse extends Exchange {
         }
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
-            $entry = $data[$i];
+            $entry = $this->safe_dict($data, $i);
             $marketId = $this->safe_string($entry, 'symbol');
             $market = $this->safe_market($marketId);
             $symbol = $market['symbol'];
@@ -3606,7 +3606,10 @@ class btse extends Exchange {
         }
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        $positionMode = $hedged ? 'HEDGE' : 'ONE_WAY';
+        $positionMode = 'ONE_WAY';
+        if ($hedged) {
+            $positionMode = 'HEDGE';
+        }
         $request = array(
             'symbol' => $this->futures_request_id($market),
             'positionMode' => $positionMode,
@@ -3809,7 +3812,7 @@ class btse extends Exchange {
         $shortLeverage = null;
         $marginMode = null;
         for ($i = 0; $i < count($safeResponse); $i++) {
-            $entrty = $safeResponse[$i];
+            $entrty = $this->safe_dict($safeResponse, $i);
             $leverageValue = $this->safe_integer($entrty, 'leverage');
             $positionDirection = $this->safe_string($entrty, 'positionDirection');
             $marginMode = $this->safe_string_lower($entrty, 'marginMode');
@@ -3927,7 +3930,7 @@ class btse extends Exchange {
             $rows = array( $response );
         }
         for ($i = 0; $i < count($rows); $i++) {
-            $row = $rows[$i];
+            $row = $this->safe_dict($rows, $i);
             $status = $this->safe_string($row, 'status');
             if ($status !== null) {
                 $message = $this->safe_string($row, 'message');

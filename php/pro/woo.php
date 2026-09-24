@@ -97,7 +97,10 @@ class woo extends \ccxt\async\woo {
     }
 
     private function do_watch_public(string $messageHash, array $message) {
-        $urlUid = ($this->uid !== '') ? '/' . $this->uid : '';
+        $urlUid = '';
+        if ($this->uid !== '') {
+            $urlUid = '/' . $this->uid;
+        }
         $url = $this->urls['api']['ws']['public'] . $urlUid;
         $requestId = $this->request_id($url);
         $subscribe = array(
@@ -112,7 +115,10 @@ class woo extends \ccxt\async\woo {
     }
 
     private function do_unwatch_public(string $subHash, ?string $symbol, string $topic, $params = array()) {
-        $urlUid = ($this->uid !== '') ? '/' . $this->uid : '';
+        $urlUid = '';
+        if ($this->uid !== '') {
+            $urlUid = '/' . $this->uid;
+        }
         $url = $this->urls['api']['ws']['public'] . $urlUid;
         $requestId = $this->request_id($url);
         $unsubHash = 'unsubscribe::' . $subHash;
@@ -161,7 +167,10 @@ class woo extends \ccxt\async\woo {
         list($method, $params) = $this->handle_option_string_and_params($params, 'watchOrderBook', 'method', 'orderbook');
         $market = $this->market($symbol);
         $topic = $market['id'] . '@' . $method;
-        $urlUid = ($this->uid !== '') ? '/' . $this->uid : '';
+        $urlUid = '';
+        if ($this->uid !== '') {
+            $urlUid = '/' . $this->uid;
+        }
         $url = $this->urls['api']['ws']['public'] . $urlUid;
         $requestId = $this->request_id($url);
         $request = array(
@@ -464,7 +473,7 @@ class woo extends \ccxt\async\woo {
         //     }
         //
         $data = $this->safe_value($message, 'data');
-        $topic = $this->safe_value($message, 'topic');
+        $topic = $this->safe_string($message, 'topic');
         $marketId = $this->safe_string($data, 'symbol');
         $market = $this->safe_market($marketId);
         $timestamp = $this->safe_integer($message, 'ts');
@@ -560,7 +569,7 @@ class woo extends \ccxt\async\woo {
         //         ]
         //     }
         //
-        $topic = $this->safe_value($message, 'topic');
+        $topic = $this->safe_string($message, 'topic');
         $data = $this->safe_value($message, 'data');
         $timestamp = $this->safe_integer($message, 'ts');
         $result = array();
@@ -773,7 +782,7 @@ class woo extends \ccxt\async\woo {
         //     }
         //
         $data = $this->safe_dict($message, 'data');
-        $topic = $this->safe_value($message, 'topic');
+        $topic = $this->safe_string($message, 'topic');
         $marketId = $this->safe_string($data, 'symbol');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
@@ -1060,7 +1069,10 @@ class woo extends \ccxt\async\woo {
             Async\await($this->load_markets());
         }
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
-        $topic = ($trigger === true) ? 'algoexecutionreportv2' : 'executionreport';
+        $topic = 'executionreport';
+        if ($trigger === true) {
+            $topic = 'algoexecutionreportv2';
+        }
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         $messageHash = $topic;
         if ($symbol !== null) {
@@ -1102,7 +1114,10 @@ class woo extends \ccxt\async\woo {
             Async\await($this->load_markets());
         }
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
-        $topic = ($trigger === true) ? 'algoexecutionreportv2' : 'executionreport';
+        $topic = 'executionreport';
+        if ($trigger === true) {
+            $topic = 'algoexecutionreportv2';
+        }
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         $messageHash = 'myTrades';
         if ($symbol !== null) {
@@ -1562,7 +1577,7 @@ class woo extends \ccxt\async\woo {
         //
         //    }
         //
-        $data = $this->safe_value($message, 'data');
+        $data = $this->safe_dict($message, 'data');
         $balances = $this->safe_value($data, 'balances');
         $keys = is_array($balances) ? array_keys($balances) : array();
         $ts = $this->safe_integer($message, 'ts');
@@ -1571,7 +1586,7 @@ class woo extends \ccxt\async\woo {
         $this->balance['datetime'] = $this->iso8601($ts);
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            $value = $balances[$key];
+            $value = $this->safe_dict($balances, $key);
             $code = $this->safe_currency_code($key);
             $account = $this->account();
             if (($code !== null) && (is_array($this->balance) && array_key_exists($code ?? '', $this->balance))) {

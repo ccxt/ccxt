@@ -616,7 +616,10 @@ class paradex extends Exchange {
         $isOptionPerpetual = ($assetKind === 'PERP_OPTION');
         $isOptionDelivery = ($assetKind === 'OPTION');
         $isOption = $isOptionPerpetual || $isOptionDelivery;
-        $type = ($isOption) ? 'option' : 'swap';
+        $type = 'swap';
+        if ($isOption) {
+            $type = 'option';
+        }
         $isSwap = ($type === 'swap');
         $marketId = $this->safe_string($market, 'symbol');
         $quoteId = $this->safe_string($market, 'quote_currency');
@@ -1215,7 +1218,7 @@ class paradex extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchTrades', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchTrades', $symbol, $since, $limit, $params, 'next', 'cursor', null, 100);
         }
@@ -1296,7 +1299,10 @@ class paradex extends Exchange {
         $side = $this->safe_string_lower($trade, 'side');
         $liability = $this->safe_string_lower($trade, 'liquidity', 'taker');
         $isTaker = $liability === 'taker';
-        $takerOrMaker = ($isTaker) ? 'taker' : 'maker';
+        $takerOrMaker = 'maker';
+        if ($isTaker) {
+            $takerOrMaker = 'taker';
+        }
         $currencyId = $this->safe_string($trade, 'fee_currency');
         $code = $this->safe_currency_code($currencyId);
         return $this->safe_trade(array(
@@ -1975,7 +1981,7 @@ class paradex extends Exchange {
         }
         $ordersRequests = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $symbol = $this->safe_string($rawOrder, 'symbol');
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
@@ -2239,7 +2245,7 @@ class paradex extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOrders', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchOrders', $symbol, $since, $limit, $params, 'next', 'cursor', null, 50);
         }
@@ -2424,7 +2430,7 @@ class paradex extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchMyTrades', $symbol, $since, $limit, $params, 'next', 'cursor', null, 100);
         }
@@ -2679,7 +2685,7 @@ class paradex extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchDeposits', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchDeposits', $code, $since, $limit, $params, 'next', 'cursor', null, 100);
         }
@@ -2743,7 +2749,7 @@ class paradex extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchWithdrawals', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchWithdrawals', $code, $since, $limit, $params, 'next', 'cursor', null, 100);
         }
@@ -2807,7 +2813,7 @@ class paradex extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchTransfers', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchTransfers', $code, $since, $limit, $params, 'next', 'cursor', null, 100);
         }
@@ -3309,7 +3315,7 @@ class paradex extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingHistory', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchFundingHistory', $symbol, $since, $limit, $params, 'next', 'cursor', null, 100);
         }
@@ -3348,7 +3354,7 @@ class paradex extends Exchange {
         return $this->parse_incomes($results, $market, $since, $limit);
     }
 
-    public function parse_income(mixed $income, ?array $market = null): array {
+    public function parse_income(array $income, ?array $market = null): array {
         //
         //     {
         //         "account": "string",

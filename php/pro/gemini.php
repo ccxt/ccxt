@@ -530,7 +530,7 @@ class gemini extends \ccxt\async\gemini {
         $messageHash = 'bidsasks:' . $symbol;
         // last update always overwrites the previous state and is the latest state
         for ($i = 0; $i < count($rawBidAskChanges); $i++) {
-            $entry = $rawBidAskChanges[$i];
+            $entry = $this->safe_dict($rawBidAskChanges, $i);
             $rawSide = $this->safe_string($entry, 'side');
             $price = $this->safe_number($entry, 'price');
             $sizeString = $this->safe_string($entry, 'remaining');
@@ -620,7 +620,7 @@ class gemini extends \ccxt\async\gemini {
         $bids = $orderbook['bids'];
         $asks = $orderbook['asks'];
         for ($i = 0; $i < count($rawOrderBookChanges); $i++) {
-            $entry = $rawOrderBookChanges[$i];
+            $entry = $this->safe_dict($rawOrderBookChanges, $i);
             $price = $this->safe_number($entry, 'price');
             $size = $this->safe_number($entry, 'remaining');
             $rawSide = $this->safe_string($entry, 'side');

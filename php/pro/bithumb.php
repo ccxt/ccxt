@@ -515,7 +515,7 @@ class bithumb extends \ccxt\async\bithumb {
         $asks = $orderbook['asks'];
         $units = $this->safe_list($message, 'orderbook_units', array());
         for ($i = 0; $i < count($units); $i++) {
-            $entry = $units[$i];
+            $entry = $this->safe_dict($units, $i);
             $bidPrice = $this->safe_number($entry, 'bid_price');
             $bidSize = $this->safe_number($entry, 'bid_size');
             $askPrice = $this->safe_number($entry, 'ask_price');
@@ -552,7 +552,10 @@ class bithumb extends \ccxt\async\bithumb {
         //    }
         //
         $sideId = $this->safe_string($delta, 'orderType');
-        $side = ($sideId === 'bid') ? 'bids' : 'asks';
+        $side = 'asks';
+        if ($sideId === 'bid') {
+            $side = 'bids';
+        }
         $bidAsk = $this->parse_order_book_bid_ask($delta, 'price', 'quantity');
         $orderbookSide = $orderbook[$side];
         $orderbookSide->storeArray($bidAsk);
@@ -843,7 +846,7 @@ class bithumb extends \ccxt\async\bithumb {
             $this->balance = array();
         }
         for ($i = 0; $i < count($assets); $i++) {
-            $asset = $assets[$i];
+            $asset = $this->safe_dict($assets, $i);
             $currencyId = $this->safe_string($asset, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();

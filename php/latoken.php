@@ -603,7 +603,7 @@ class latoken extends Exchange {
         $balancesByType = $this->group_by($response, 'type');
         $balances = $this->safe_list($balancesByType, $accountType, array());
         for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+            $balance = $this->safe_dict($balances, $i);
             $currencyId = $this->safe_string($balance, 'currency');
             $timestamp = $this->safe_integer($balance, 'timestamp');
             if ($timestamp !== null) {

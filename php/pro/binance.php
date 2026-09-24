@@ -323,7 +323,10 @@ class binance extends \ccxt\async\binance {
         if ($stockSymbol === null) {
             return null;
         }
-        $safeQuote = ($quote === null) ? 'USDC' : $quote;
+        $safeQuote = $quote;
+        if ($quote === null) {
+            $safeQuote = 'USDC';
+        }
         $parsed = $this->safe_symbol($stockSymbol, null, '/', 'spot');
         if (($parsed !== null) && (mb_strpos($parsed, '/') !== false)) {
             return $parsed;
@@ -1107,7 +1110,10 @@ class binance extends \ccxt\async\binance {
         // symbol and stalls the orderbook future (delivery/option ids are
         // unique, so the swap hint resolves those correctly too)
         $isSpot = $this->is_spot_url($client);
-        $marketType = $isSpot ? 'spot' : 'swap';
+        $marketType = 'swap';
+        if ($isSpot) {
+            $marketType = 'spot';
+        }
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $messageHash = 'orderbook::' . $symbol;
@@ -1594,8 +1600,14 @@ class binance extends \ccxt\async\binance {
             }
         }
         $marketId = $this->safe_string($trade, 's');
-        $fallbackType = (is_array($trade) && array_key_exists('ps' ?? '', $trade)) ? 'contract' : 'spot';
-        $marketType = ($market !== null) ? $market['type'] : $fallbackType;
+        $fallbackType = 'spot';
+        if (is_array($trade) && array_key_exists('ps' ?? '', $trade)) {
+            $fallbackType = 'contract';
+        }
+        $marketType = $fallbackType;
+        if ($market !== null) {
+            $marketType = $market['type'];
+        }
         $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
         $side = $this->safe_string_lower($trade, 'S');
         $takerOrMaker = null;
@@ -1641,7 +1653,10 @@ class binance extends \ccxt\async\binance {
         // resolve the market from the transport url — an ambiguous id like
         // BTCUSDT maps to both the spot and the linear swap market
         $isSpot = $this->is_spot_url($client);
-        $marketType = $isSpot ? 'spot' : 'contract';
+        $marketType = 'contract';
+        if ($isSpot) {
+            $marketType = 'spot';
+        }
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $messageHash = 'trade::' . $symbol;
@@ -1783,7 +1798,10 @@ class binance extends \ccxt\async\binance {
             }
             $shouldUseUTC8 = ($isUtc8 && $isSpot);
             $suffix = '@+08:00';
-            $utcSuffix = $shouldUseUTC8 ? $suffix : '';
+            $utcSuffix = '';
+            if ($shouldUseUTC8) {
+                $utcSuffix = $suffix;
+            }
             $rawHashes[] = $marketId . '@' . $klineType . '_' . $interval . $utcSuffix;
             $messageHashes[] = 'ohlcv::' . $market['symbol'] . '::' . $timeframeString;
         }
@@ -1864,7 +1882,10 @@ class binance extends \ccxt\async\binance {
             }
             $shouldUseUTC8 = ($isUtc8 && $isSpot);
             $suffix = '@+08:00';
-            $utcSuffix = $shouldUseUTC8 ? $suffix : '';
+            $utcSuffix = '';
+            if ($shouldUseUTC8) {
+                $utcSuffix = $suffix;
+            }
             $rawHashes[] = $marketId . '@' . $klineType . '_' . $interval . $utcSuffix;
             $subMessageHashes[] = 'ohlcv::' . $market['symbol'] . '::' . $timeframeString;
             $messageHashes[] = 'unsubscribe::ohlcv::' . $market['symbol'] . '::' . $timeframeString;
@@ -1969,7 +1990,10 @@ class binance extends \ccxt\async\binance {
         // resolve the market from the transport url — an ambiguous id like
         // BTCUSDT maps to both the spot and the linear swap market
         $isSpot = $this->is_spot_url($client);
-        $marketType = $isSpot ? 'spot' : 'contract';
+        $marketType = 'contract';
+        if ($isSpot) {
+            $marketType = 'spot';
+        }
         $symbol = $this->safe_symbol($marketId, null, null, $marketType);
         $messageHash = 'ohlcv::' . $symbol . '::' . $unifiedTimeframe;
         $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
@@ -2829,7 +2853,7 @@ class binance extends \ccxt\async\binance {
             $rawTickers[] = $message;
         }
         for ($i = 0; $i < count($rawTickers); $i++) {
-            $ticker = $rawTickers[$i];
+            $ticker = $this->safe_dict($rawTickers, $i);
             $event = $this->safe_string($ticker, 'e');
             if ($isBidAsk) {
                 $event = 'bookTicker'; // as noted in `handleMessage`, bookTicker doesn't have identifier, so manually set here
@@ -2846,7 +2870,10 @@ class binance extends \ccxt\async\binance {
             // option id, may override it, see https://github.com/ccxt/ccxt/issues/29728
             $tickerMarketById = ($numTickerMarkets === 1) ? $this->safe_dict($tickerMarketsByIdList, 0) : null;
             $isSpot = $this->is_spot_url($client);
-            $tickerFallbackType = $isSpot ? 'spot' : 'contract';
+            $tickerFallbackType = 'contract';
+            if ($isSpot) {
+                $tickerFallbackType = 'spot';
+            }
             $tickerMarketType = ($tickerMarketById !== null) ? $tickerMarketById['type'] : $tickerFallbackType;
             $parsedTicker = $this->parse_ws_ticker($ticker, $tickerMarketType);
             $symbol = $parsedTicker['symbol'];
@@ -3142,7 +3169,10 @@ class binance extends \ccxt\async\binance {
         $isStock = ($type === 'stock');
         $options = $this->safe_dict($this->options, $type, array());
         $lastAuthenticatedTime = $this->safe_integer($options, 'lastAuthenticatedTime', 0);
-        $refreshRateKey = $isStock ? 'stockListenKeyRefreshRate' : 'listenKeyRefreshRate';
+        $refreshRateKey = 'listenKeyRefreshRate';
+        if ($isStock) {
+            $refreshRateKey = 'stockListenKeyRefreshRate';
+        }
         $listenKeyRefreshRate = $this->safe_integer($this->options, $refreshRateKey, 1200000);
         $delay = $this->sum($listenKeyRefreshRate, 10000);
         if ($time - $lastAuthenticatedTime > $delay) {
@@ -3313,7 +3343,10 @@ class binance extends \ccxt\async\binance {
         ));
         // whether or not to schedule another listenKey keepAlive request
         $clients = is_array($this->clients) ? array_values($this->clients) : array();
-        $refreshRateKey = $isStock ? 'stockListenKeyRefreshRate' : 'listenKeyRefreshRate';
+        $refreshRateKey = 'listenKeyRefreshRate';
+        if ($isStock) {
+            $refreshRateKey = 'stockListenKeyRefreshRate';
+        }
         $listenKeyRefreshRate = $this->safe_integer($this->options, $refreshRateKey, 1200000);
         $delayParams = $params;
         if ($isStock) {
@@ -3321,7 +3354,7 @@ class binance extends \ccxt\async\binance {
             $delayParams = $this->extend($params, array( 'type' => 'stock' ));
         }
         for ($i = 0; $i < count($clients); $i++) {
-            $client = $clients[$i];
+            $client = $this->safe_dict($clients, $i);
             $clientSubscriptions = $this->safe_dict($client, 'subscriptions', array());
             $subscriptionKeys = is_array($clientSubscriptions) ? array_keys($clientSubscriptions) : array();
             for ($j = 0; $j < count($subscriptionKeys); $j++) {
@@ -4756,7 +4789,10 @@ class binance extends \ccxt\async\binance {
         $executionType = $this->safe_string($order, 'x');
         $marketId = $this->safe_string($order, 's');
         // futures user-data events carry the position side field, spot ones do not
-        $marketType = (is_array($order) && array_key_exists('ps' ?? '', $order)) ? 'contract' : 'spot';
+        $marketType = 'spot';
+        if (is_array($order) && array_key_exists('ps' ?? '', $order)) {
+            $marketType = 'contract';
+        }
         $symbol = $this->safe_symbol($marketId, null, null, $marketType);
         $timestamp = $this->safe_integer($order, 'O');
         $T = $this->safe_integer($order, 'T');
@@ -5056,7 +5092,7 @@ class binance extends \ccxt\async\binance {
         //
         $orders = $this->safe_list($message, 'o', array());
         for ($i = 0; $i < count($orders); $i++) {
-            $order = $orders[$i];
+            $order = $this->safe_dict($orders, $i);
             $fills = $this->safe_list($order, 'fi', array());
             $rawQty = $this->safe_string($order, 'q', '0');
             $side = 'BUY';
@@ -5088,7 +5124,7 @@ class binance extends \ccxt\async\binance {
             );
             $this->handle_order($client, $normalizedOrder);
             for ($j = 0; $j < count($fills); $j++) {
-                $fill = $fills[$j];
+                $fill = $this->safe_dict($fills, $j);
                 $isMaker = ($this->safe_string($fill, 'm') === 'MAKER');
                 // normalize fill fields to the flat format parseWsTrade/handleMyTrade expect
                 $normalizedTrade = array(
@@ -5279,7 +5315,7 @@ class binance extends \ccxt\async\binance {
         $rawPositions = $this->safe_list($data, 'P', array());
         $newPositions = array();
         for ($i = 0; $i < count($rawPositions); $i++) {
-            $rawPosition = $rawPositions[$i];
+            $rawPosition = $this->safe_dict($rawPositions, $i);
             $position = $this->parse_ws_position($rawPosition);
             $timestamp = $this->safe_integer($message, 'E');
             $position['timestamp'] = $timestamp;
@@ -5787,7 +5823,7 @@ class binance extends \ccxt\async\binance {
         }
         $B = $this->safe_list($message, 'B', array());
         for ($i = 0; $i < count($B); $i++) {
-            $entry = $B[$i];
+            $entry = $this->safe_dict($B, $i);
             $currencyId = $this->safe_string($entry, 'a');
             $code = $this->safe_currency_code($currencyId);
             if ($code !== null) {
@@ -5812,7 +5848,7 @@ class binance extends \ccxt\async\binance {
         $P = $this->safe_list($message, 'P', array());
         $newPositions = array();
         for ($i = 0; $i < count($P); $i++) {
-            $rawPosition = $P[$i];
+            $rawPosition = $this->safe_dict($P, $i);
             $position = $this->parse_ws_options_position($rawPosition);
             $position['timestamp'] = $timestamp;
             $position['datetime'] = $this->iso8601($timestamp);
@@ -5967,7 +6003,7 @@ class binance extends \ccxt\async\binance {
         );
         $event = $this->safe_string($message, 'e');
         if ((gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message)))) {
-            $arrayMessage = $message[0];
+            $arrayMessage = $this->safe_dict($message, 0);
             $event = $this->safe_string($arrayMessage, 'e') . '@arr';
         }
         $method = $this->safe_value($methods, $event);

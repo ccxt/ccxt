@@ -72,7 +72,10 @@ class backpack extends \ccxt\async\backpack {
             Async\await($this->load_markets());
         }
         $url = $this->urls['api']['ws']['public'];
-        $method = $unwatch ? 'UNSUBSCRIBE' : 'SUBSCRIBE';
+        $method = 'SUBSCRIBE';
+        if ($unwatch) {
+            $method = 'UNSUBSCRIBE';
+        }
         $request = array(
             'method' => $method,
             'params' => $topics,
@@ -94,7 +97,10 @@ class backpack extends \ccxt\async\backpack {
         $url = $this->urls['api']['ws']['private'];
         $instruction = 'subscribe';
         $ts = (string) $this->nonce();
-        $method = $unwatch ? 'UNSUBSCRIBE' : 'SUBSCRIBE';
+        $method = 'SUBSCRIBE';
+        if ($unwatch) {
+            $method = 'UNSUBSCRIBE';
+        }
         $recvWindow = $this->safe_string_2($this->options, 'recvWindow', 'X-Window', '5000');
         $payload = 'instruction=' . $instruction . '&' . 'timestamp=' . $ts . '&window=' . $recvWindow;
         $secretBytes = base64_decode($this->secret);
@@ -532,7 +538,7 @@ class backpack extends \ccxt\async\backpack {
         $topics = array();
         $messageHashes = array();
         for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-            $symbolAndTimeframe = $symbolsAndTimeframes[$i];
+            $symbolAndTimeframe = $this->safe_list($symbolsAndTimeframes, $i);
             $marketId = $this->safe_string($symbolAndTimeframe, 0);
             $market = $this->market($marketId);
             $tf = $this->safe_string($symbolAndTimeframe, 1);
@@ -572,7 +578,7 @@ class backpack extends \ccxt\async\backpack {
         $topics = array();
         $messageHashes = array();
         for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-            $symbolAndTimeframe = $symbolsAndTimeframes[$i];
+            $symbolAndTimeframe = $this->safe_list($symbolsAndTimeframes, $i);
             $marketId = $this->safe_string($symbolAndTimeframe, 0);
             $market = $this->market($marketId);
             $tf = $this->safe_string($symbolAndTimeframe, 1);
@@ -1018,7 +1024,7 @@ class backpack extends \ccxt\async\backpack {
             return -1;
         }
         for ($i = 0; $i < count($cache); $i++) {
-            $delta = $cache[$i];
+            $delta = $this->safe_dict($cache, $i);
             $deltaStart = $this->safe_integer($delta, 'U');
             $deltaEnd = $this->safe_integer($delta, 'u');
             if (($deltaStart === null) || ($deltaEnd === null)) {

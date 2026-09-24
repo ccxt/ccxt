@@ -460,7 +460,7 @@ class paymium extends Exchange {
         return $this->parse_deposit_addresses($response, $codes, false);
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
