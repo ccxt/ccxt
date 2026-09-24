@@ -606,7 +606,7 @@ public partial class bingx : ccxt.bingx
         }
         for (int j = 0; j < (trades?.Count ?? 0); j++)
         {
-            callDynamically(stored, "append", new object[] {trades[j]});
+            stored.append(trades[j]);
         }
         client.resolve(stored, messageHash);
     }
@@ -978,7 +978,7 @@ public partial class bingx : ccxt.bingx
         {
             object candle = candles[i];
             List<object> parsed = this.parseWsOHLCV(candle, market);
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
         }
         List<object> resolveData = new List<object>() {symbol, unifiedTimeframe, stored};
         string? messageHash = this.getMessageHash("ohlcv", symbol, unifiedTimeframe);
@@ -1502,7 +1502,7 @@ public partial class bingx : ccxt.bingx
             double? contracts = this.safeNumber(position, "contracts", 0);
             if (isGreaterThan(contracts, 0))
             {
-                callDynamically(cache, "append", new object[] {position});
+                cache.append(position);
             }
         }
         // don't remove the future from the .futures cache
@@ -1623,7 +1623,7 @@ public partial class bingx : ccxt.bingx
             position["timestamp"] = timestamp;
             position["datetime"] = this.iso8601(timestamp);
             newPositions.Add(position);
-            callDynamically(cache, "append", new object[] {position});
+            cache.append(position);
         }
         List<object> messageHashes = this.findMessageHashes(client, "swap:positions::");
         for (int i = 0; i < (messageHashes?.Count ?? 0); i++)
@@ -1908,7 +1908,7 @@ public partial class bingx : ccxt.bingx
                 parsedOrder["lastUpdateTimestamp"] = updateTimestamp;
             }
         }
-        callDynamically(stored, "append", new object[] {parsedOrder});
+        stored.append(parsedOrder);
         string? symbol = ((string)(parsedOrder != null && ((IDictionary<string, object>)parsedOrder).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedOrder)["symbol"] : null));
         string spotHash = "spot:order";
         string swapHash = "swap:order";
@@ -2004,7 +2004,7 @@ public partial class bingx : ccxt.bingx
         {
             messageHash = spotHash;
         }
-        callDynamically(cachedTrades, "append", new object[] {parsed});
+        cachedTrades.append(parsed);
         client.resolve(cachedTrades, messageHash);
         client.resolve(cachedTrades, ((messageHash + ":") + symbol));
     }

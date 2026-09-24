@@ -892,7 +892,7 @@ public partial class pacifica : ccxt.pacifica
             {
                 symbols[(string)symbol] = true;
             }
-            callDynamically(trades, "append", new object[] {parsed});
+            trades.append(parsed);
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
         for (int i = 0; i < keys.Count; i++)
@@ -1025,7 +1025,7 @@ public partial class pacifica : ccxt.pacifica
         {
             IDictionary<string, object> data = this.safeDict(entry, i, new Dictionary<string, object>() {});
             Dictionary<string, object> trade = this.parseWsTrade(data);
-            callDynamically(trades, "append", new object[] {trade});
+            trades.append(trade);
         }
         string messageHash = ("trade:" + symbol);
         client.resolve(trades, messageHash);
@@ -1407,7 +1407,7 @@ public partial class pacifica : ccxt.pacifica
         {
             object rawOrder = data[i];
             Dictionary<string, object> order = this.parseOrder(rawOrder);
-            callDynamically(stored, "append", new object[] {order});
+            stored.append(order);
             string? symbol = this.safeString(order, "symbol");
             if ((symbol != null))
             {

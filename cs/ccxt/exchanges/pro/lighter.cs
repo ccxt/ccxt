@@ -660,7 +660,7 @@ public partial class lighter : ccxt.lighter
         {
             object iReversed = subtract((dataLength - 1), i);
             Dictionary<string, object> trade = this.parseWsTrade(getValue(data, iReversed), market);
-            callDynamically(stored, "append", new object[] {trade});
+            stored.append(trade);
         }
         string? messageHash = this.getMessageHash("trade", symbol);
         client.resolve(stored, messageHash);
@@ -881,7 +881,7 @@ public partial class lighter : ccxt.lighter
                 object tradeRaw = getValue(trades, jReversed);
                 ((IDictionary<string,object>)tradeRaw)["accountIndex"] = accountIndex;
                 Dictionary<string, object> trade = this.parseWsOrderTrade(tradeRaw, market);
-                callDynamically(stored, "append", new object[] {trade});
+                stored.append(trade);
                 string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
                 if ((symbol != null))
                 {
@@ -1511,7 +1511,7 @@ public partial class lighter : ccxt.lighter
             for (int j = 0; j < orders.Count; j++)
             {
                 Dictionary<string, object> order = this.parseOrder(orders[j], market);
-                callDynamically(stored, "append", new object[] {order});
+                stored.append(order);
                 string? symbol = ((string)(order != null && ((IDictionary<string, object>)order).ContainsKey("symbol") ? ((IDictionary<string, object>)order)["symbol"] : null));
                 if ((symbol != null))
                 {

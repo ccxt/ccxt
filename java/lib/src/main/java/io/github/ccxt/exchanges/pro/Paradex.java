@@ -223,7 +223,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             stored = new ArrayCache(((Number)this.safeInteger(this.options, "tradesLimit", 1000)).intValue());
             Helpers.addElementToObject(this.trades, ((String)symbol), stored);
         }
-        Helpers.callDynamically(stored, "append", new Object[]{parsedTrade});
+        stored.append(parsedTrade);
         client.resolve(stored, messageHash);
         return message;
     }
@@ -258,7 +258,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 }} );
             }};
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -340,7 +340,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderbookData, symbol, timestamp, "bids", "asks");
         ((Map<String, Object>)snapshot).put("nonce", this.safeInteger(data, "seq_no"));
-        Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+        orderbook.reset(snapshot);
         String messageHash = this.safeString(parameters, "channel");
         client.resolve(orderbook, messageHash);
     }

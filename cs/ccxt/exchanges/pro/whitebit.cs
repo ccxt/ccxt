@@ -144,7 +144,7 @@ public partial class whitebit : ccxt.whitebit
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))["unknown"] = stored;
             }
             ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)getValue(getValue(this.ohlcvs, symbol), "unknown"));
-            callDynamically(ohlcv, "append", new object[] {parsed});
+            ohlcv.append(parsed);
             client.resolve(ohlcv, messageHash);
         }
         return message;
@@ -457,7 +457,7 @@ public partial class whitebit : ccxt.whitebit
         IList<object> parsedTrades = this.parseTrades(data, market);
         for (int j = 0; j < (parsedTrades?.Count ?? 0); j++)
         {
-            callDynamically(stored, "append", new object[] {parsedTrades[j]});
+            stored.append(parsedTrades[j]);
         }
         string messageHash = ("trades:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         client.resolve(stored, messageHash);
@@ -529,7 +529,7 @@ public partial class whitebit : ccxt.whitebit
         }
         ccxt.pro.ArrayCache stored = this.myTrades;
         Dictionary<string, object> parsed = this.parseWsTrade(trade);
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
         string messageHash = ("myTrades:" + symbol);
         client.resolve(stored, messageHash);
@@ -689,7 +689,7 @@ public partial class whitebit : ccxt.whitebit
         Dictionary<string, object> parsed = this.parseWsOrder(this.extend(data, new Dictionary<string, object>() {
             { "status", status },
         }));
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
         string messageHash = ("orders:" + symbol);
         client.resolve(this.orders, messageHash);

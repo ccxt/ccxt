@@ -727,7 +727,7 @@ public partial class hitbtc : ccxt.hitbtc
             IList<object> trades = this.parseWsTrades(getValue(data, marketId), market);
             for (int j = 0; j < (trades?.Count ?? 0); j++)
             {
-                callDynamically(stored, "append", new object[] {trades[j]});
+                stored.append(trades[j]);
             }
             string messageHash = ("trades::" + symbol);
             client.resolve(stored, messageHash);
@@ -878,7 +878,7 @@ public partial class hitbtc : ccxt.hitbtc
             List<object> ohlcvs = this.parseWsOHLCVs(getValue(data, marketId), market);
             for (int j = 0; j < (ohlcvs?.Count ?? 0); j++)
             {
-                callDynamically(stored, "append", new object[] {ohlcvs[j]});
+                stored.append(ohlcvs[j]);
             }
             string messageHash = ("candles::" + symbol);
             client.resolve(stored, messageHash);
@@ -1042,7 +1042,7 @@ public partial class hitbtc : ccxt.hitbtc
         object messageHash = this.safeString(splitMethod, 0);
         string? symbol = this.safeSymbol(marketId);
         Dictionary<string, object> parsed = this.parseOrder(order);
-        callDynamically(orders, "append", new object[] {parsed});
+        orders.append(parsed);
         client.resolve(orders, messageHash);
         client.resolve(orders, add(add(messageHash, "::"), symbol));
     }

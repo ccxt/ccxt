@@ -168,7 +168,7 @@ public partial class paradex : ccxt.paradex
             stored = new ArrayCache(this.safeInteger(this.options, "tradesLimit", 1000));
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        callDynamically(stored, "append", new object[] {parsedTrade});
+        stored.append(parsedTrade);
         client.resolve(stored, messageHash);
         return message;
     }
@@ -438,7 +438,7 @@ public partial class paradex : ccxt.paradex
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
         }
-        callDynamically(this.orders, "append", new object[] {parsed});
+        this.orders.append(parsed);
         string messageHash = "orders";
         client.resolve(this.orders, messageHash);
         if ((symbol != null))

@@ -620,7 +620,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
         Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (data), market);
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        stored.append(parsed);
         Helpers.addElementToObject(this.trades, symbol, stored);
         client.resolve(Helpers.GetValue(this.trades, symbol), messageWithType);
         client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
@@ -690,7 +690,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         {
             Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
             Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (trade), market);
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
         }
         Helpers.addElementToObject(this.trades, symbol, stored);
         client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
@@ -1222,7 +1222,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             } else
             {
                 io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-                Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+                orderbook.reset(snapshot);
             }
         } else
         {

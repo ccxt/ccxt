@@ -961,7 +961,7 @@ public partial class poloniex : ccxt.poloniex
                 if (eventType == "place" || eventType == "canceled")
                 {
                     Dictionary<string, object> parsed = this.parseWsOrder(order);
-                    callDynamically(orders, "append", new object[] {parsed});
+                    orders.append(parsed);
                 } else
                 {
                     IDictionary<string, object> previousOrders = this.safeDict((orders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
@@ -972,7 +972,7 @@ public partial class poloniex : ccxt.poloniex
                     {
                         // fill event for an order missing from the cache (e.g. placed before subscribing or after a reconnect) - parse as a fresh order instead of aggregating
                         Dictionary<string, object> parsedOrder = this.parseWsOrder(order);
-                        callDynamically(orders, "append", new object[] {parsedOrder});
+                        orders.append(parsedOrder);
                         marketIds.Add(marketId);
                         continue;
                     }
@@ -1028,7 +1028,7 @@ public partial class poloniex : ccxt.poloniex
                     string? state = this.parseStatus(rawState);
                     previousOrder["status"] = state;
                     // update the newUpdates count
-                    callDynamically(orders, "append", new object[] {previousOrder});
+                    orders.append(previousOrder);
                 }
                 marketIds.Add(marketId);
             }
@@ -1365,7 +1365,7 @@ public partial class poloniex : ccxt.poloniex
             this.myTrades = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache trades = this.myTrades;
-        callDynamically(trades, "append", new object[] {parsedTrade});
+        trades.append(parsedTrade);
         client.resolve(trades, messageHash);
         string symbolMessageHash = ((messageHash + ":") + (symbol));
         client.resolve(trades, symbolMessageHash);

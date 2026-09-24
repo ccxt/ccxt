@@ -697,7 +697,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         List<Object> parsedTrades = this.parseTrades(data, market);
         for (var j = 0; j < ((List<?>)parsedTrades).size(); j++)
         {
-            Helpers.callDynamically(stored, "append", new Object[]{(parsedTrades == null || j < 0 || j >= parsedTrades.size() ? null : parsedTrades.get(j))});
+            stored.append((parsedTrades == null || j < 0 || j >= parsedTrades.size() ? null : parsedTrades.get(j)));
         }
         String channelReplaced = Helpers.replace(channel, (String)("." + marketId), (String)"");
         client.resolve(stored, symbolSpecificMessageHash);
@@ -1284,7 +1284,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         {
             Map<String, Object> tick = (Map<String, Object>) this.safeDict(data, i);
             List<Object> parsed = (List<Object>) this.parseOHLCV(tick, market);
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
         }
         client.resolve(stored, messageHash);
     }

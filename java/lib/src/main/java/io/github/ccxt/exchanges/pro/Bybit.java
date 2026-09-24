@@ -1240,7 +1240,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         for (var i = 0; i < Helpers.getArrayLength(data); i++)
         {
             Object parsed = this.parseWsOHLCV(Helpers.GetValue(data, i), market);
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
         }
         String messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
         List<Object> resolveData = new ArrayList<Object>(Arrays.asList(symbol, timeframe, stored));
@@ -1561,7 +1561,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         if (Boolean.TRUE.equals(isSnapshot))
         {
             Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "b", "a");
-            Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+            orderbook.reset(snapshot);
         } else
         {
             List<Object> asks = (List<Object>) this.safeList(data, "a", new ArrayList<Object>(Arrays.asList()));
@@ -1839,7 +1839,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         for (var j = 0; j < Helpers.getArrayLength(trades); j++)
         {
             Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (Helpers.GetValue(trades, j)), market);
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
         }
         String messageHash = (("trade" + ":") + symbol);
         client.resolve(stored, messageHash);

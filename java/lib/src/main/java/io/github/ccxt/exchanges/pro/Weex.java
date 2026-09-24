@@ -794,7 +794,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         for (var j = 0; j < ((List<?>)sorted).size(); j++)
         {
             Object sortedTrade = (sorted == null || j < 0 || j >= sorted.size() ? null : sorted.get(j));
-            Helpers.callDynamically(tradesArray, "append", new Object[]{sortedTrade});
+            tradesArray.append(sortedTrade);
         }
         Helpers.addElementToObject(this.trades, symbol, tradesArray);
         client.resolve(tradesArray, messageHash);
@@ -1158,7 +1158,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         {
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
             Object parsed = this.parseWsOHLCV(entry);
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
         }
         String messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
         List<Object> resolveData = new ArrayList<Object>(Arrays.asList(symbol, timeframe, stored));
@@ -1454,7 +1454,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         {
             Map<String, Object> parsed = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "b", "a");
             ((Map<String, Object>)parsed).put("nonce", nonce);
-            Helpers.callDynamically(orderbook, "reset", new Object[]{parsed});
+            orderbook.reset(parsed);
         } else
         {
             List<Object> asks = (List<Object>) this.safeList(message, "a", new ArrayList<Object>(Arrays.asList()));

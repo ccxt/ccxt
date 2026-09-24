@@ -789,7 +789,7 @@ public partial class bitget : ccxt.bitget
         for (int i = 0; i < data.Count; i++)
         {
             List<object> parsed = this.parseWsOHLCV(data[i], market);
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
         }
         string? messageHash = null;
         if ((isUta == true))
@@ -1350,7 +1350,7 @@ public partial class bitget : ccxt.bitget
             object index = subtract(subtract(length, i), 1);
             object rawTrade = getValue(data, index);
             Dictionary<string, object> parsed = this.parseWsTrade(rawTrade, market);
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
         }
         string messageHash = ("trade:" + symbol);
         client.resolve(stored, messageHash);
@@ -1669,7 +1669,7 @@ public partial class bitget : ccxt.bitget
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, "contract");
             Dictionary<string, object> position = this.parseWsPosition(rawPosition, market);
             newPositions.Add(position);
-            callDynamically(cache, "append", new object[] {position});
+            cache.append(position);
         }
         List<object> messageHashes = this.findMessageHashes(client, (instType + ":positions::"));
         for (int i = 0; i < (messageHashes?.Count ?? 0); i++)
@@ -2627,7 +2627,7 @@ public partial class bitget : ccxt.bitget
                 market = this.safeMarket(marketId, null, null, marketType);
             }
             Dictionary<string, object> parsed = this.parseWsTrade(trade, market);
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
             string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
             string symbolSpecificMessageHash = ("myTrades:" + symbol);
             client.resolve(stored, symbolSpecificMessageHash);

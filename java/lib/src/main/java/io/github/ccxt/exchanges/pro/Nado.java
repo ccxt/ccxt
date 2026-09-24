@@ -2262,7 +2262,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Helpers.addElementToObject(this.trades, symbol, trades);
         }
         Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message), market);
-        Helpers.callDynamically(trades, "append", new Object[]{trade});
+        trades.append(trade);
         client.resolve(trades, messageHash);
     }
 
@@ -2317,7 +2317,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
         }
         List<Object> parsed = (List<Object>) this.parseOHLCV(message, market);
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        stored.append(parsed);
         String messageHash = ((("ohlcv:" + timeframe) + ":") + symbol);
         client.resolve(new ArrayList<Object>(Arrays.asList(symbol, timeframe, stored)), messageHash);
     }

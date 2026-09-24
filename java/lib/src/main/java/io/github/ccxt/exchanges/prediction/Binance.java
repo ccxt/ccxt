@@ -1456,7 +1456,7 @@ final Object finalMarketSymbol = marketSymbol;
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             Long limit = limit3;
             Map<String, Object> parameters = parameters3;
             Boolean paginate = false;
@@ -1576,7 +1576,7 @@ final Object finalMarketSymbol = marketSymbol;
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             Long since = since3;
             Long limit = limit3;
             Map<String, Object> parameters = parameters3;
@@ -1945,7 +1945,7 @@ final Object finalMarketSymbol = marketSymbol;
         final Long limit3 = limit2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             Long since = since3;
             Long limit = limit3;
             Map<String, Object> parameters = parameters3;
@@ -2579,7 +2579,7 @@ final Object finalMarketSymbol = marketSymbol;
     {
         final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             Object outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {

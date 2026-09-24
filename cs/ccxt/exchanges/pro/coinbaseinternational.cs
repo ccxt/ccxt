@@ -566,7 +566,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             IDictionary<string, object> tick = this.safeDict(data, i);
             IList<object> parsed = this.parseOHLCV(tick, market);
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
         }
         client.resolve(stored, add(add(messageHash, "::"), symbol));
     }
@@ -642,7 +642,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArrayCache;
         }
         ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
-        callDynamically(tradesArray, "append", new object[] {trade});
+        tradesArray.append(trade);
         ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
         client.resolve(tradesArray, channel);
         client.resolve(tradesArray, add(add(channel, "::"), (trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null)));

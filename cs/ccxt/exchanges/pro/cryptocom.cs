@@ -499,7 +499,7 @@ public partial class cryptocom : ccxt.cryptocom
         IList<object> parsedTrades = this.parseTrades(data, market);
         for (int j = 0; j < (parsedTrades?.Count ?? 0); j++)
         {
-            callDynamically(stored, "append", new object[] {parsedTrades[j]});
+            stored.append(parsedTrades[j]);
         }
         string channelReplaced = channel.Replace(("." + marketId), (string)"");
         client.resolve(stored, symbolSpecificMessageHash);
@@ -926,7 +926,7 @@ public partial class cryptocom : ccxt.cryptocom
         {
             IDictionary<string, object> tick = this.safeDict(data, i);
             IList<object> parsed = this.parseOHLCV(tick, market);
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
         }
         client.resolve(stored, messageHash);
     }
@@ -1014,7 +1014,7 @@ public partial class cryptocom : ccxt.cryptocom
             IList<object> parsed = this.parseOrders(orders);
             for (int i = 0; i < (parsed?.Count ?? 0); i++)
             {
-                callDynamically(stored, "append", new object[] {parsed[i]});
+                stored.append(parsed[i]);
             }
             client.resolve(stored, symbolSpecificMessageHash);
             // non-symbol specific
@@ -1106,7 +1106,7 @@ public partial class cryptocom : ccxt.cryptocom
             double? contracts = this.safeNumber(position, "contracts", 0);
             if (((contracts != null)) && (isGreaterThan(contracts, 0)))
             {
-                callDynamically(cache, "append", new object[] {position});
+                cache.append(position);
             }
         }
         // don't remove the future from the .futures cache
@@ -1160,7 +1160,7 @@ public partial class cryptocom : ccxt.cryptocom
             object rawPosition = rawPositions[i];
             Dictionary<string, object> position = this.parsePosition(rawPosition);
             newPositions.Add(position);
-            callDynamically(cache, "append", new object[] {position});
+            cache.append(position);
         }
         List<object> messageHashes = this.findMessageHashes(client, "positions::");
         for (int i = 0; i < (messageHashes?.Count ?? 0); i++)

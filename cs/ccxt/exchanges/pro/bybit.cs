@@ -923,7 +923,7 @@ public partial class bybit : ccxt.bybit
         for (int i = 0; i < getArrayLength(data); i++)
         {
             List<object> parsed = this.parseWsOHLCV(getValue(data, i), market);
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
         }
         string messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
         List<object> resolveData = new List<object>() {symbol, timeframe, stored};
@@ -1350,7 +1350,7 @@ public partial class bybit : ccxt.bybit
         for (int j = 0; j < getArrayLength(trades); j++)
         {
             Dictionary<string, object> parsed = this.parseWsTrade(getValue(trades, j), market);
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
         }
         string messageHash = (("trade" + ":") + symbol);
         client.resolve(stored, messageHash);
@@ -1695,7 +1695,7 @@ public partial class bybit : ccxt.bybit
                 continue;
             }
             symbols[(string)symbol] = true;
-            callDynamically(trades, "append", new object[] {parsed});
+            trades.append(parsed);
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
         for (int i = 0; i < keys.Count; i++)
@@ -1796,7 +1796,7 @@ public partial class bybit : ccxt.bybit
             for (int ii = 0; ii < getArrayLength(positions); ii++)
             {
                 IDictionary<string, object> position = ((IDictionary<string, object>)getValue(positions, ii));
-                callDynamically(cache, "append", new object[] {position});
+                cache.append(position);
             }
         }
         // don't remove the future from the .futures cache
@@ -1869,14 +1869,14 @@ public partial class bybit : ccxt.bybit
                 // closing update, adding both sides to "reset" both sides
                 // since we don't know which side is being closed
                 position["side"] = "long";
-                callDynamically(cache, "append", new object[] {position});
+                cache.append(position);
                 position["side"] = "short";
-                callDynamically(cache, "append", new object[] {position});
+                cache.append(position);
                 position["side"] = null;
             } else
             {
                 // regular update
-                callDynamically(cache, "append", new object[] {position});
+                cache.append(position);
             }
         }
         List<object> messageHashes = this.findMessageHashes(client, "positions::");
@@ -2009,7 +2009,7 @@ public partial class bybit : ccxt.bybit
                     this.liquidations = new ArrayCache(limit);
                 }
                 ccxt.pro.ArrayCache cache = this.liquidations;
-                callDynamically(cache, "append", new object[] {liquidation});
+                cache.append(liquidation);
                 client.resolve(new List<object>() {liquidation}, "liquidations");
                 client.resolve(new List<object>() {liquidation}, ("liquidations::" + symbol));
             }
@@ -2026,7 +2026,7 @@ public partial class bybit : ccxt.bybit
                 this.liquidations = new ArrayCache(limit);
             }
             ccxt.pro.ArrayCache cache = this.liquidations;
-            callDynamically(cache, "append", new object[] {liquidation});
+            cache.append(liquidation);
             client.resolve(new List<object>() {liquidation}, "liquidations");
             client.resolve(new List<object>() {liquidation}, ("liquidations::" + symbol));
         }
@@ -2288,7 +2288,7 @@ public partial class bybit : ccxt.bybit
                 continue;
             }
             symbols[(string)symbol] = true;
-            callDynamically(orders, "append", new object[] {parsed});
+            orders.append(parsed);
         }
         List<object> symbolsArray = new List<object>(((IDictionary<string,object>)symbols).Keys);
         for (int i = 0; i < symbolsArray.Count; i++)

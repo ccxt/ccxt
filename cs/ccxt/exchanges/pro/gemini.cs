@@ -189,7 +189,7 @@ public partial class gemini : ccxt.gemini
                 ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
             }
         }
-        callDynamically(stored, "append", new object[] {trade});
+        stored.append(trade);
         string messageHash = ("trades:" + symbol);
         client.resolve(stored, messageHash);
     }
@@ -249,7 +249,7 @@ public partial class gemini : ccxt.gemini
             for (int i = 0; i < trades.Count; i++)
             {
                 Dictionary<string, object> trade = this.parseWsTrade(trades[i], market);
-                callDynamically(stored, "append", new object[] {trade});
+                stored.append(trade);
             }
             string messageHash = ("trades:" + symbol);
             client.resolve(stored, messageHash);
@@ -276,7 +276,7 @@ public partial class gemini : ccxt.gemini
                     stored = new ArrayCache(tradesLimit);
                     ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
                 }
-                callDynamically(stored, "append", new object[] {trade});
+                stored.append(trade);
                 storesForSymbols[(string)symbol] = stored;
             }
             List<object> symbols = new List<object>(((IDictionary<string,object>)storesForSymbols).Keys);
@@ -388,7 +388,7 @@ public partial class gemini : ccxt.gemini
         {
             object index = subtract(subtract(changesLength, i), 1);
             IList<object> parsed = this.parseOHLCV(getValue(changes, index), market);
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
         }
         string messageHash = ((("ohlcv:" + symbol) + ":") + timeframeId);
         client.resolve(stored, messageHash);
@@ -813,7 +813,7 @@ public partial class gemini : ccxt.gemini
         for (int i = 0; i < getArrayLength(message); i++)
         {
             Dictionary<string, object> order = this.parseWsOrder(getValue(message, i));
-            callDynamically(orders, "append", new object[] {order});
+            orders.append(order);
         }
         client.resolve(this.orders, messageHash);
     }

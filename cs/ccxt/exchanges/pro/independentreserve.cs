@@ -95,7 +95,7 @@ public partial class independentreserve : ccxt.independentreserve
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
         Dictionary<string, object> trade = this.parseWsTrade(data);
-        callDynamically(stored, "append", new object[] {trade});
+        stored.append(trade);
         ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         client.resolve(getValue(this.trades, symbol), messageHash);
     }

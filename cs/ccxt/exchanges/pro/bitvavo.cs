@@ -308,7 +308,7 @@ public partial class bitvavo : ccxt.bitvavo
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCache(limit);
         }
-        callDynamically(tradesArray, "append", new object[] {trade});
+        tradesArray.append(trade);
         ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
         client.resolve(tradesArray, messageHash);
     }
@@ -515,7 +515,7 @@ public partial class bitvavo : ccxt.bitvavo
         {
             object candle = candles[i];
             IList<object> parsed = this.parseOHLCV(candle, market);
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
         }
         client.resolve(stored, messageHash);
         // watchOHLCVForSymbols needs the symbol and timeframe to assemble its result
@@ -1912,7 +1912,7 @@ public partial class bitvavo : ccxt.bitvavo
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache orders = this.orders;
-        callDynamically(orders, "append", new object[] {order});
+        orders.append(order);
         client.resolve(this.orders, messageHash);
     }
 
@@ -1944,7 +1944,7 @@ public partial class bitvavo : ccxt.bitvavo
             this.myTrades = new ArrayCache(limit);
         }
         ccxt.pro.ArrayCache tradesArray = this.myTrades;
-        callDynamically(tradesArray, "append", new object[] {trade});
+        tradesArray.append(trade);
         client.resolve(tradesArray, messageHash);
     }
 

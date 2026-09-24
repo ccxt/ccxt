@@ -1527,7 +1527,7 @@ public partial class nado : ccxt.nado
             ((IDictionary<string,object>)this.trades)[(string)symbol] = trades;
         }
         Dictionary<string, object> trade = this.parseWsTrade(message, market);
-        callDynamically(trades, "append", new object[] {trade});
+        trades.append(trade);
         client.resolve(trades, messageHash);
     }
 
@@ -1540,7 +1540,7 @@ public partial class nado : ccxt.nado
             this.myTrades = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache trades = this.myTrades;
-        callDynamically(trades, "append", new object[] {trade});
+        trades.append(trade);
         string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
         client.resolve(trades, "myTrades");
         client.resolve(trades, ("myTrades:" + symbol));
@@ -1582,7 +1582,7 @@ public partial class nado : ccxt.nado
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
         }
         IList<object> parsed = this.parseOHLCV(message, market);
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         string messageHash = ((("ohlcv:" + timeframe) + ":") + symbol);
         client.resolve(new List<object>() {symbol, timeframe, stored}, messageHash);
     }
@@ -1666,7 +1666,7 @@ public partial class nado : ccxt.nado
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache orders = this.orders;
-        callDynamically(orders, "append", new object[] {order});
+        orders.append(order);
         string? symbol = ((string)(order != null && ((IDictionary<string, object>)order).ContainsKey("symbol") ? ((IDictionary<string, object>)order)["symbol"] : null));
         client.resolve(orders, "orders");
         client.resolve(orders, ("orders:" + symbol));
@@ -1757,13 +1757,13 @@ public partial class nado : ccxt.nado
         {
             Dictionary<string, object> longPosition = this.extend(new Dictionary<string, object>() {}, position);
             longPosition["side"] = "long";
-            callDynamically(positions, "append", new object[] {longPosition});
+            positions.append(longPosition);
             Dictionary<string, object> shortPosition = this.extend(new Dictionary<string, object>() {}, position);
             shortPosition["side"] = "short";
-            callDynamically(positions, "append", new object[] {shortPosition});
+            positions.append(shortPosition);
         } else
         {
-            callDynamically(positions, "append", new object[] {position});
+            positions.append(position);
         }
         string? symbol = ((string)(position != null && ((IDictionary<string, object>)position).ContainsKey("symbol") ? ((IDictionary<string, object>)position)["symbol"] : null));
         client.resolve(positions, "positions");

@@ -490,7 +490,7 @@ public partial class modetrade : ccxt.modetrade
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
         }
         ccxt.pro.ArrayCacheByTimestamp ohlcvCache = ((ccxt.pro.ArrayCacheByTimestamp)getValue(getValue(this.ohlcvs, symbol), timeframe));
-        callDynamically(ohlcvCache, "append", new object[] {parsed});
+        ohlcvCache.append(parsed);
         client.resolve(ohlcvCache, topic);
     }
 
@@ -560,7 +560,7 @@ public partial class modetrade : ccxt.modetrade
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
         ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
-        callDynamically(trades, "append", new object[] {trade});
+        trades.append(trade);
         ((IDictionary<string,object>)this.trades)[(string)symbol] = trades;
         client.resolve(trades, topic);
     }
@@ -1044,7 +1044,7 @@ public partial class modetrade : ccxt.modetrade
                 parsed["timestamp"] = this.safeInteger(order, "timestamp");
                 parsed["datetime"] = this.safeString(order, "datetime");
             }
-            callDynamically(cachedOrders, "append", new object[] {parsed});
+            cachedOrders.append(parsed);
             client.resolve(this.orders, topic);
             object messageHashSymbol = add(add(topic, ":"), symbol);
             client.resolve(this.orders, messageHashSymbol);
@@ -1093,7 +1093,7 @@ public partial class modetrade : ccxt.modetrade
             trades = new ArrayCacheBySymbolById(limit);
             this.myTrades = trades;
         }
-        callDynamically(trades, "append", new object[] {trade});
+        trades.append(trade);
         client.resolve(trades, messageHash);
         string symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(trades, symbolSpecificMessageHash);
@@ -1180,7 +1180,7 @@ public partial class modetrade : ccxt.modetrade
             string? contracts = this.safeString(position, "contracts", "0");
             if (Precise.stringGt(contracts, "0"))
             {
-                callDynamically(cache, "append", new object[] {position});
+                cache.append(position);
             }
         }
         // don't remove the future from the .futures cache
@@ -1241,7 +1241,7 @@ public partial class modetrade : ccxt.modetrade
             Dictionary<string, object> market = this.safeMarket(marketId);
             Dictionary<string, object> position = this.parseWsPosition(rawPosition, market);
             newPositions.Add(position);
-            callDynamically(cache, "append", new object[] {position});
+            cache.append(position);
             string messageHash = ("positions::" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
             client.resolve(position, messageHash);
         }

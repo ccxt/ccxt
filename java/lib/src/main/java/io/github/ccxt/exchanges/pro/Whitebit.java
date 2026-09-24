@@ -188,7 +188,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), "unknown", stored);
             }
             io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) ((Map<String, Object>)((Map<?, ?>)this.ohlcvs).get(symbol)).get("unknown");
-            Helpers.callDynamically(ohlcv, "append", new Object[]{parsed});
+            ohlcv.append(parsed);
             client.resolve(ohlcv, messageHash);
         }
         return message;
@@ -304,7 +304,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         if (java.util.Objects.equals(isSnapshot, true))
         {
             Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol);
-            Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+            orderbook.reset(snapshot);
         } else
         {
             List<Object> asks = (List<Object>) this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
@@ -572,7 +572,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         List<Object> parsedTrades = this.parseTrades(data, market);
         for (var j = 0; j < ((List<?>)parsedTrades).size(); j++)
         {
-            Helpers.callDynamically(stored, "append", new Object[]{(parsedTrades == null || j < 0 || j >= parsedTrades.size() ? null : parsedTrades.get(j))});
+            stored.append((parsedTrades == null || j < 0 || j >= parsedTrades.size() ? null : parsedTrades.get(j)));
         }
         String messageHash = ("trades:" + ((Map<String, Object>)market).get("symbol"));
         client.resolve(stored, messageHash);

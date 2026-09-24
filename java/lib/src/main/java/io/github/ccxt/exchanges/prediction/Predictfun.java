@@ -1768,7 +1768,7 @@ final Object finalMarketSymbol = marketSymbol;
     {
         final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             String signerAddress = this.safeString(parameters, "signerAddress", this.walletAddress);
             if (java.util.Objects.equals(signerAddress, null))
             {
@@ -2907,7 +2907,7 @@ final Object finalMarketSymbol = marketSymbol;
     {
         final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             Object outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
@@ -3003,7 +3003,7 @@ final Object finalMarketSymbol = marketSymbol;
     {
         final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             (this.authenticate()).join();
             Object outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
@@ -3170,7 +3170,7 @@ final Object finalMarketSymbol = marketSymbol;
     {
         final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             Object outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
@@ -3573,7 +3573,7 @@ final Object finalMarketSymbol = marketSymbol;
     {
         final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             if (java.util.Objects.equals(this.privateKey, null))
             {
                 throw new ArgumentsRequired((this.id + " approve() requires a privateKey to sign the on-chain transaction")) ;
@@ -3755,7 +3755,7 @@ final Object finalMarketSymbol = marketSymbol;
             }};
             Object url = this.socketUrl();
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, this.extend(request, parameters), topic, subscription)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(PredictionOrderBook::new);
 
     }
