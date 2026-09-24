@@ -790,8 +790,8 @@ class hashkey extends \ccxt\async\hashkey {
         $this->set_balance_cache($client, $type, $messageHash);
         $fetchBalanceSnapshot = null;
         $awaitBalanceSnapshot = null;
-        list($fetchBalanceSnapshot, $params) = $this->handle_option_and_params($this->options, 'watchBalance', 'fetchBalanceSnapshot', true);
-        list($awaitBalanceSnapshot, $params) = $this->handle_option_and_params($this->options, 'watchBalance', 'awaitBalanceSnapshot', false);
+        list($fetchBalanceSnapshot, $params) = $this->handle_option_bool_and_params($this->options, 'watchBalance', 'fetchBalanceSnapshot', true);
+        list($awaitBalanceSnapshot, $params) = $this->handle_option_bool_and_params($this->options, 'watchBalance', 'awaitBalanceSnapshot', false);
         if ($fetchBalanceSnapshot && $awaitBalanceSnapshot) {
             Async\await($client->future($type . ':fetchBalanceSnapshot'));
         }

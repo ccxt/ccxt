@@ -788,7 +788,7 @@ class binance extends \ccxt\async\binance {
         $watchOrderBookRate = null;
         list($watchOrderBookRate, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'watchOrderBookRate', '100');
         $rpi = null;
-        list($rpi, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'rpi', false);
+        list($rpi, $params) = $this->handle_option_bool_and_params($params, 'watchOrderBookForSymbols', 'rpi', false);
         if ($rpi && $type === 'future') {
             $name = 'rpiDepth';
             $watchOrderBookRate = '500';
@@ -947,7 +947,7 @@ class binance extends \ccxt\async\binance {
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
         $returnRateLimits = false;
-        list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'fetchOrderBookWs', 'returnRateLimits', false);
+        list($returnRateLimits, $params) = $this->handle_option_bool_and_params($params, 'fetchOrderBookWs', 'returnRateLimits', false);
         $payload['returnRateLimits'] = $returnRateLimits;
         $params = $this->omit($params, 'test');
         $message = array(
@@ -1280,7 +1280,7 @@ class binance extends \ccxt\async\binance {
             $streamHash .= '::' . implode(',', $symbols);
         }
         $name = null;
-        list($name, $params) = $this->handle_option_and_params($params, 'watchTradesForSymbols', 'name', 'trade');
+        list($name, $params) = $this->handle_option_string_and_params($params, 'watchTradesForSymbols', 'name', 'trade');
         $params = $this->omit($params, 'callerMethodName');
         $firstMarket = $this->market($symbols[0]);
         $type = $firstMarket['type'];
@@ -1369,7 +1369,7 @@ class binance extends \ccxt\async\binance {
             $streamHash .= '::' . implode(',', $symbols);
         }
         $name = null;
-        list($name, $params) = $this->handle_option_and_params($params, 'watchTradesForSymbols', 'name', 'trade');
+        list($name, $params) = $this->handle_option_string_and_params($params, 'watchTradesForSymbols', 'name', 'trade');
         $params = $this->omit($params, 'callerMethodName');
         $firstMarket = $this->market($symbols[0]);
         $type = $firstMarket['type'];
@@ -1721,7 +1721,7 @@ class binance extends \ccxt\async\binance {
             Async\await($this->load_markets());
         }
         $stock = false;
-        list($stock, $params) = $this->handle_option_and_params($params, 'watchOHLCVForSymbols', 'stock', false);
+        list($stock, $params) = $this->handle_option_bool_and_params($params, 'watchOHLCVForSymbols', 'stock', false);
         if ($stock) {
             $stockStreams = array();
             $stockMessageHashes = array();
@@ -2017,11 +2017,11 @@ class binance extends \ccxt\async\binance {
             'method' => array($this, 'handle_ticker_ws'),
         );
         $returnRateLimits = false;
-        list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'fetchTickerWs', 'returnRateLimits', false);
+        list($returnRateLimits, $params) = $this->handle_option_bool_and_params($params, 'fetchTickerWs', 'returnRateLimits', false);
         $payload['returnRateLimits'] = $returnRateLimits;
         $params = $this->omit($params, 'test');
         $method = null;
-        list($method, $params) = $this->handle_option_and_params($params, 'fetchTickerWs', 'method', 'ticker.book');
+        list($method, $params) = $this->handle_option_string_and_params($params, 'fetchTickerWs', 'method', 'ticker.book');
         $message = array(
             'id' => $messageHash,
             'method' => $method,
@@ -2064,7 +2064,7 @@ class binance extends \ccxt\async\binance {
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
         $returnRateLimits = false;
-        list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'fetchOHLCVWs', 'returnRateLimits', false);
+        list($returnRateLimits, $params) = $this->handle_option_bool_and_params($params, 'fetchOHLCVWs', 'returnRateLimits', false);
         $payload = array(
             'symbol' => $this->market_id($symbol),
             'returnRateLimits' => $returnRateLimits,
@@ -2203,7 +2203,7 @@ class binance extends \ccxt\async\binance {
         // for now watchmarkPrice uses the same messageHash as watchTicker
         // so it's impossible to watch both at the same time
         // refactor this to use different messageHashes
-        list($channelName, $params) = $this->handle_option_and_params($params, 'watchMarkPrices', 'name', 'markPrice');
+        list($channelName, $params) = $this->handle_option_string_and_params($params, 'watchMarkPrices', 'name', 'markPrice');
         $newTickers = Async\await($this->watch_multi_ticker_helper('watchMarkPrices', $channelName, $symbols, $params));
         if ($this->newUpdates) {
             return $newTickers;
@@ -2233,7 +2233,7 @@ class binance extends \ccxt\async\binance {
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         $stock = false;
-        list($stock, $params) = $this->handle_option_and_params($params, 'watchTickers', 'stock', false);
+        list($stock, $params) = $this->handle_option_bool_and_params($params, 'watchTickers', 'stock', false);
         if ($stock) {
             if ($symbols === null) {
                 throw new ArgumentsRequired($this->id . ' watchTickers() with $stock stream requires symbols');
@@ -2246,7 +2246,7 @@ class binance extends \ccxt\async\binance {
             return $this->filter_by_array($this->tickers, 'symbol', $symbols);
         }
         $channelName = null;
-        list($channelName, $params) = $this->handle_option_and_params($params, 'watchTickers', 'name', 'miniTicker');
+        list($channelName, $params) = $this->handle_option_string_and_params($params, 'watchTickers', 'name', 'miniTicker');
         if ($channelName === 'bookTicker') {
             throw new BadRequest($this->id . ' deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead');
         }
@@ -2277,7 +2277,7 @@ class binance extends \ccxt\async\binance {
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         $channelName = null;
-        list($channelName, $params) = $this->handle_option_and_params($params, 'watchTickers', 'name', 'ticker');
+        list($channelName, $params) = $this->handle_option_string_and_params($params, 'watchTickers', 'name', 'ticker');
         if ($channelName === 'bookTicker') {
             throw new BadRequest($this->id . ' deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead');
         }
@@ -2299,7 +2299,7 @@ class binance extends \ccxt\async\binance {
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         $channelName = null;
-        list($channelName, $params) = $this->handle_option_and_params($params, 'watchMarkPrices', 'name', 'markPrice');
+        list($channelName, $params) = $this->handle_option_string_and_params($params, 'watchMarkPrices', 'name', 'markPrice');
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -2377,7 +2377,7 @@ class binance extends \ccxt\async\binance {
             Async\await($this->load_markets());
         }
         $stock = false;
-        list($stock, $params) = $this->handle_option_and_params($params, 'watchBidsAsks', 'stock', false);
+        list($stock, $params) = $this->handle_option_bool_and_params($params, 'watchBidsAsks', 'stock', false);
         if ($stock) {
             if ($symbols === null) {
                 throw new ArgumentsRequired($this->id . ' watchBidsAsks() with $stock stream requires symbols');
@@ -3116,7 +3116,7 @@ class binance extends \ccxt\async\binance {
         $type = $resolvedAuth[0];
         $params = $resolvedAuth[2];
         $isPortfolioMargin = null;
-        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'authenticate', 'papi', 'portfolioMargin', false);
+        list($isPortfolioMargin, $params) = $this->handle_option_bool_and_params_2($params, 'authenticate', 'papi', 'portfolioMargin', false);
         // For spot use WebSocket API signature subscription
         if ($type === 'spot') {
             Async\await($this->ensure_user_data_stream_ws_subscribe_signature('spot'));
@@ -3225,7 +3225,7 @@ class binance extends \ccxt\async\binance {
         $type = $this->safe_string_2($this->options, 'defaultType', 'authenticate', 'spot');
         $type = $this->safe_string($params, 'type', $type);
         $isPortfolioMargin = null;
-        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'keepAliveListenKey', 'papi', 'portfolioMargin', false);
+        list($isPortfolioMargin, $params) = $this->handle_option_bool_and_params_2($params, 'keepAliveListenKey', 'papi', 'portfolioMargin', false);
         $subTypeInfo = $this->handle_sub_type_and_params('keepAliveListenKey', null, $params);
         $subType = $subTypeInfo[0];
         if ($type !== 'option' && $type !== 'stock') {
@@ -3402,12 +3402,12 @@ class binance extends \ccxt\async\binance {
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
         $returnRateLimits = false;
-        list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'fetchBalanceWs', 'returnRateLimits', false);
+        list($returnRateLimits, $params) = $this->handle_option_bool_and_params($params, 'fetchBalanceWs', 'returnRateLimits', false);
         $payload = array(
             'returnRateLimits' => $returnRateLimits,
         );
         $method = null;
-        list($method, $params) = $this->handle_option_and_params($params, 'fetchBalanceWs', 'method', 'account.status');
+        list($method, $params) = $this->handle_option_string_and_params($params, 'fetchBalanceWs', 'method', 'account.status');
         $message = array(
             'id' => $messageHash,
             'method' => $method,
@@ -3545,10 +3545,10 @@ class binance extends \ccxt\async\binance {
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
         $returnRateLimits = false;
-        list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'fetchPositionsWs', 'returnRateLimits', false);
+        list($returnRateLimits, $params) = $this->handle_option_bool_and_params($params, 'fetchPositionsWs', 'returnRateLimits', false);
         $payload['returnRateLimits'] = $returnRateLimits;
         $method = null;
-        list($method, $params) = $this->handle_option_and_params($params, 'fetchPositionsWs', 'method', 'account.position');
+        list($method, $params) = $this->handle_option_string_and_params($params, 'fetchPositionsWs', 'method', 'account.position');
         $message = array(
             'id' => $messageHash,
             'method' => $method,
@@ -3628,7 +3628,7 @@ class binance extends \ccxt\async\binance {
         list($type, $subType, $params) = $this->resolve_auth_type('watchBalance', null, $params);
         Async\await($this->authenticate($this->extend(array( 'type' => $type, 'subType' => $subType ), $params)));
         $isPortfolioMargin = null;
-        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'watchBalance', 'papi', 'portfolioMargin', false);
+        list($isPortfolioMargin, $params) = $this->handle_option_bool_and_params_2($params, 'watchBalance', 'papi', 'portfolioMargin', false);
         $url = '';
         $urlType = $type;
         if ($type === 'spot' || $type === 'margin') {
@@ -3877,7 +3877,7 @@ class binance extends \ccxt\async\binance {
         $isConditional = $isTriggerOrder || $isTrailingPercentOrder || $isStopLoss || $isTakeProfit;
         $payload = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $returnRateLimits = false;
-        list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'createOrderWs', 'returnRateLimits', false);
+        list($returnRateLimits, $params) = $this->handle_option_bool_and_params($params, 'createOrderWs', 'returnRateLimits', false);
         $payload['returnRateLimits'] = $returnRateLimits;
         $test = $this->safe_bool($params, 'test', false);
         $params = $this->omit($params, 'test');
@@ -4043,7 +4043,7 @@ class binance extends \ccxt\async\binance {
             $payload = $this->editContractOrderRequest($id, $symbol, $type, $side, $amount, $price, $params);
         }
         $returnRateLimits = false;
-        list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'editOrderWs', 'returnRateLimits', false);
+        list($returnRateLimits, $params) = $this->handle_option_bool_and_params($params, 'editOrderWs', 'returnRateLimits', false);
         $payload['returnRateLimits'] = $returnRateLimits;
         $message = array(
             'id' => $messageHash,
@@ -4198,7 +4198,7 @@ class binance extends \ccxt\async\binance {
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
         $returnRateLimits = false;
-        list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'cancelOrderWs', 'returnRateLimits', false);
+        list($returnRateLimits, $params) = $this->handle_option_bool_and_params($params, 'cancelOrderWs', 'returnRateLimits', false);
         $payload = array(
             'symbol' => $this->market_id($symbol),
             'returnRateLimits' => $returnRateLimits,
@@ -4263,7 +4263,7 @@ class binance extends \ccxt\async\binance {
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
         $returnRateLimits = false;
-        list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'cancelAllOrdersWs', 'returnRateLimits', false);
+        list($returnRateLimits, $params) = $this->handle_option_bool_and_params($params, 'cancelAllOrdersWs', 'returnRateLimits', false);
         $payload = array(
             'symbol' => $this->market_id($symbol),
             'returnRateLimits' => $returnRateLimits,
@@ -4311,7 +4311,7 @@ class binance extends \ccxt\async\binance {
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
         $returnRateLimits = false;
-        list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'fetchOrderWs', 'returnRateLimits', false);
+        list($returnRateLimits, $params) = $this->handle_option_bool_and_params($params, 'fetchOrderWs', 'returnRateLimits', false);
         $payload = array(
             'symbol' => $this->market_id($symbol),
             'returnRateLimits' => $returnRateLimits,
@@ -4368,7 +4368,7 @@ class binance extends \ccxt\async\binance {
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
         $returnRateLimits = false;
-        list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'fetchOrdersWs', 'returnRateLimits', false);
+        list($returnRateLimits, $params) = $this->handle_option_bool_and_params($params, 'fetchOrdersWs', 'returnRateLimits', false);
         $payload = array(
             'symbol' => $this->market_id($symbol),
             'returnRateLimits' => $returnRateLimits,
@@ -4440,7 +4440,7 @@ class binance extends \ccxt\async\binance {
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
         $returnRateLimits = false;
-        list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'fetchOpenOrdersWs', 'returnRateLimits', false);
+        list($returnRateLimits, $params) = $this->handle_option_bool_and_params($params, 'fetchOpenOrdersWs', 'returnRateLimits', false);
         $payload = array(
             'returnRateLimits' => $returnRateLimits,
         );
@@ -4486,7 +4486,7 @@ class binance extends \ccxt\async\binance {
             Async\await($this->load_markets());
         }
         $stock = false;
-        list($stock, $params) = $this->handle_option_and_params($params, 'watchOrders', 'stock', false);
+        list($stock, $params) = $this->handle_option_bool_and_params($params, 'watchOrders', 'stock', false);
         if ($stock) {
             // literal on top: a stray type in the caller params must not override
             // the forced stock, the removed authenticateStock ignored it entirely
@@ -4537,7 +4537,7 @@ class binance extends \ccxt\async\binance {
             $urlType = 'spot'; // spot-margin shares the same stream as regular spot
         }
         $isPortfolioMargin = null;
-        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'watchOrders', 'papi', 'portfolioMargin', false);
+        list($isPortfolioMargin, $params) = $this->handle_option_bool_and_params_2($params, 'watchOrders', 'papi', 'portfolioMargin', false);
         $url = '';
         if ($type === 'spot' || $type === 'margin') {
             // route orders to ws-api user data stream
@@ -5155,7 +5155,7 @@ class binance extends \ccxt\async\binance {
         Async\await($this->authenticate($this->extend($marketTypeObject, $params)));
         $messageHash = $type . ':positions' . $messageHash;
         $isPortfolioMargin = null;
-        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'watchPositions', 'papi', 'portfolioMargin', false);
+        list($isPortfolioMargin, $params) = $this->handle_option_bool_and_params_2($params, 'watchPositions', 'papi', 'portfolioMargin', false);
         $urlType = $type;
         if ($isPortfolioMargin) {
             $urlType = 'papi';
@@ -5437,7 +5437,7 @@ class binance extends \ccxt\async\binance {
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
         $returnRateLimits = false;
-        list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'fetchMyTradesWs', 'returnRateLimits', false);
+        list($returnRateLimits, $params) = $this->handle_option_bool_and_params($params, 'fetchMyTradesWs', 'returnRateLimits', false);
         $payload = array(
             'symbol' => $this->market_id($symbol),
             'returnRateLimits' => $returnRateLimits,
@@ -5495,7 +5495,7 @@ class binance extends \ccxt\async\binance {
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
         $returnRateLimits = false;
-        list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'fetchTradesWs', 'returnRateLimits', false);
+        list($returnRateLimits, $params) = $this->handle_option_bool_and_params($params, 'fetchTradesWs', 'returnRateLimits', false);
         $payload = array(
             'symbol' => $this->market_id($symbol),
             'returnRateLimits' => $returnRateLimits,
@@ -5605,7 +5605,7 @@ class binance extends \ccxt\async\binance {
             $urlType = 'spot'; // spot-margin shares the same stream as regular spot
         }
         $isPortfolioMargin = null;
-        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'watchMyTrades', 'papi', 'portfolioMargin', false);
+        list($isPortfolioMargin, $params) = $this->handle_option_bool_and_params_2($params, 'watchMyTrades', 'papi', 'portfolioMargin', false);
         $url = '';
         if ($type === 'spot' || $type === 'margin') {
             $url = $this->urls['api']['ws']['ws-api']['spot'];

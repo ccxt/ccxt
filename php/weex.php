@@ -1411,7 +1411,7 @@ class weex extends Exchange {
             throw new NotSupported($this->id . ' fetchMarkPrice() supports contract markets only');
         }
         $priceType = null;
-        list($priceType, $params) = $this->handle_option_and_params($params, 'fetchMarkPrice', 'priceType', 'MARK'); // the endpoint defaults to INDEX
+        list($priceType, $params) = $this->handle_option_string_and_params($params, 'fetchMarkPrice', 'priceType', 'MARK'); // the endpoint defaults to INDEX
         $request = array(
             'symbol' => $market['id'],
             'priceType' => $priceType,
@@ -2115,7 +2115,7 @@ class weex extends Exchange {
         }
         $maxLimit = 100;
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchTransfers', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchTransfers', $code, $since, $limit, $params, $maxLimit);
         }
@@ -2750,7 +2750,7 @@ class weex extends Exchange {
         list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
         $isSpot = ($marketType === 'spot');
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOpenOrders', 'paginate', false);
         $maxLimit = 100;
         if ($paginate) {
             if ($isSpot) {
@@ -2962,7 +2962,7 @@ class weex extends Exchange {
         }
         $maxLimit = 1000;
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOrders', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchOrders', $symbol, $since, $limit, $params, $maxLimit);
         }
@@ -3029,7 +3029,7 @@ class weex extends Exchange {
             throw new NotSupported($this->id . ' fetchCanceledAndClosedOrders() does not support spot markets. Use fetchOrders() instead and filter by status "canceled" or "closed"');
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchCanceledAndClosedOrders', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchCanceledAndClosedOrders', 'paginate', false);
         $maxLimit = 1000;
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchCanceledAndClosedOrders', $symbol, $since, $limit, $params, $maxLimit);
@@ -3341,7 +3341,7 @@ class weex extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument for spot markets');
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         $maxLimit = 100;
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params, $maxLimit);
@@ -3426,7 +3426,7 @@ class weex extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchLedger', 'paginate', false);
         $maxLimit = 100;
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchLedger', $code, $since, $limit, $params, $maxLimit);
@@ -3600,7 +3600,7 @@ class weex extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingHistory', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchFundingHistory', $symbol, $since, $limit, $params, 100);
         }

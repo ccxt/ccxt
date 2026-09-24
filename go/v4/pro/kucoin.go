@@ -528,7 +528,7 @@ func (this *Kucoin) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	symbol = market["symbol"]
 	var messageHash any = ccxt.Add("ticker:", symbol)
 	var uta any = false
-	var utaparamsVariable []any = this.HandleOptionAndParams(params, "watchTicker", "uta", uta)
+	var utaparamsVariable []any = this.HandleOptionBoolAndParams(params, "watchTicker", "uta", uta)
 	uta = ccxt.GetValue(utaparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(utaparamsVariable, 1))
 	if uta == true {
@@ -546,7 +546,7 @@ func (this *Kucoin) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	if isFuturesMethod != nil && *isFuturesMethod == true {
 		method = "/contractMarket/ticker"
 	} else {
-		var methodparamsVariable []any = this.HandleOptionAndParams(params, "watchTicker", "spotMethod", method)
+		var methodparamsVariable []any = this.HandleOptionStringAndParams(params, "watchTicker", "spotMethod", method)
 		method = ccxt.GetValue(methodparamsVariable, 0)
 		params = ccxt.MapTyped(ccxt.GetValue(methodparamsVariable, 1))
 	}
@@ -586,7 +586,7 @@ func (this *Kucoin) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	symbol = market["symbol"]
 	var isFuturesMethod *bool = ccxt.SafeBoolPtr(market["contract"])
 	var uta any = false
-	var utaparamsVariable []any = this.HandleOptionAndParams(params, "unWatchTicker", "uta", uta)
+	var utaparamsVariable []any = this.HandleOptionBoolAndParams(params, "unWatchTicker", "uta", uta)
 	uta = ccxt.GetValue(utaparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(utaparamsVariable, 1))
 	var subscription map[string]any = map[string]any{
@@ -611,7 +611,7 @@ func (this *Kucoin) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...a
 		if isFuturesMethod != nil && *isFuturesMethod == true {
 			method = "/contractMarket/ticker"
 		} else {
-			var methodparamsVariable []any = this.HandleOptionAndParams(params, "watchTicker", "spotMethod", method)
+			var methodparamsVariable []any = this.HandleOptionStringAndParams(params, "watchTicker", "spotMethod", method)
 			method = ccxt.GetValue(methodparamsVariable, 0)
 			params = ccxt.MapTyped(ccxt.GetValue(methodparamsVariable, 1))
 		}
@@ -665,7 +665,7 @@ func (this *Kucoin) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	marketType = ccxt.SafeStringPtr(ccxt.GetValue(marketTypeparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsVariable, 1))
 	var uta any = false
-	var utaparamsVariable []any = this.HandleOptionAndParams(params, "watchTickers", "uta", uta)
+	var utaparamsVariable []any = this.HandleOptionBoolAndParams(params, "watchTickers", "uta", uta)
 	uta = ccxt.GetValue(utaparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(utaparamsVariable, 1))
 	var isFuturesMethod bool = (marketType == nil || *marketType != "spot") && (marketType == nil || *marketType != "margin")
@@ -677,7 +677,7 @@ func (this *Kucoin) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	if isFuturesMethod {
 		method = "/contractMarket/ticker"
 	} else {
-		var methodparamsVariable []any = this.HandleOptionAndParams2(params, "watchTickers", "method", "spotMethod", method)
+		var methodparamsVariable []any = this.HandleOptionStringAndParams2(params, "watchTickers", "method", "spotMethod", method)
 		method = ccxt.GetValue(methodparamsVariable, 0)
 		params = ccxt.MapTyped(ccxt.GetValue(methodparamsVariable, 1))
 	}
@@ -1228,7 +1228,7 @@ func (this *Kucoin) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var period *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("candles:", symbol), ":"), timeframe)
 	var uta any = false
-	var utaparamsVariable []any = this.HandleOptionAndParams(params, "watchOHLCV", "uta", uta)
+	var utaparamsVariable []any = this.HandleOptionBoolAndParams(params, "watchOHLCV", "uta", uta)
 	uta = ccxt.GetValue(utaparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(utaparamsVariable, 1))
 	var ohlcv any = nil
@@ -1296,7 +1296,7 @@ func (this *Kucoin) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
 	var uta any = false
-	var utaparamsVariable []any = this.HandleOptionAndParams(params, "unWatchOHLCV", "uta", uta)
+	var utaparamsVariable []any = this.HandleOptionBoolAndParams(params, "unWatchOHLCV", "uta", uta)
 	uta = ccxt.GetValue(utaparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(utaparamsVariable, 1))
 	var period *string = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -1478,7 +1478,7 @@ func (this *Kucoin) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	var uta any = false
-	var utaparamsVariable []any = this.HandleOptionAndParams(params, "watchTrades", "uta", uta)
+	var utaparamsVariable []any = this.HandleOptionBoolAndParams(params, "watchTrades", "uta", uta)
 	uta = ccxt.GetValue(utaparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(utaparamsVariable, 1))
 	if uta == true {
@@ -1653,7 +1653,7 @@ func (this *Kucoin) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var uta any = false
-	var utaparamsVariable []any = this.HandleOptionAndParams(params, "watchTrades", "uta", uta)
+	var utaparamsVariable []any = this.HandleOptionBoolAndParams(params, "watchTrades", "uta", uta)
 	uta = ccxt.GetValue(utaparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(utaparamsVariable, 1))
 	if uta == true {
@@ -1838,7 +1838,7 @@ func (this *Kucoin) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var uta any = false
-	var utaparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "uta", uta)
+	var utaparamsVariable []any = this.HandleOptionBoolAndParams(params, "watchOrderBook", "uta", uta)
 	uta = ccxt.GetValue(utaparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(utaparamsVariable, 1))
 	if uta == true {
@@ -1847,7 +1847,7 @@ func (this *Kucoin) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 		symbol = market["symbol"]
 		var depth any = "increment" // '1', '5', '50' or 'increment'
-		var depthparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "utaDepth", depth)
+		var depthparamsVariable []any = this.HandleOptionStringAndParams(params, "watchOrderBook", "utaDepth", depth)
 		depth = ccxt.GetValue(depthparamsVariable, 0)
 		params = ccxt.MapTyped(ccxt.GetValue(depthparamsVariable, 1))
 		var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("uta:orderbook:", symbol), ":depth:"), depth)
@@ -1902,7 +1902,7 @@ func (this *Kucoin) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var uta any = false
-	var utaparamsVariable []any = this.HandleOptionAndParams(params, "unWatchOrderBook", "uta", uta)
+	var utaparamsVariable []any = this.HandleOptionBoolAndParams(params, "unWatchOrderBook", "uta", uta)
 	uta = ccxt.GetValue(utaparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(utaparamsVariable, 1))
 	if uta == true {
@@ -1911,7 +1911,7 @@ func (this *Kucoin) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 		symbol = market["symbol"]
 		var depth any = "increment" // '1', '5', '50' or 'increment'
-		var depthparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "utaDepth", depth)
+		var depthparamsVariable []any = this.HandleOptionStringAndParams(params, "watchOrderBook", "utaDepth", depth)
 		depth = ccxt.GetValue(depthparamsVariable, 0)
 		params = ccxt.MapTyped(ccxt.GetValue(depthparamsVariable, 1))
 		params = this.Extend(params, map[string]any{
@@ -2488,7 +2488,7 @@ func (this *Kucoin) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	uta := (<-this.IsUTAEnabledAsync())
 	ccxt.PanicOnError(uta)
-	var utaparamsVariable []any = this.HandleOptionAndParams(params, "watchOrders", "uta", uta)
+	var utaparamsVariable []any = this.HandleOptionBoolAndParams(params, "watchOrders", "uta", uta)
 	uta = ccxt.GetValue(utaparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(utaparamsVariable, 1))
 	var market map[string]any = nil
@@ -2971,7 +2971,7 @@ func (this *Kucoin) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	uta := (<-this.IsUTAEnabledAsync())
 	ccxt.PanicOnError(uta)
-	var utaparamsVariable []any = this.HandleOptionAndParams(params, "watchMyTrades", "uta", uta)
+	var utaparamsVariable []any = this.HandleOptionBoolAndParams(params, "watchMyTrades", "uta", uta)
 	uta = ccxt.GetValue(utaparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(utaparamsVariable, 1))
 	var trades any = nil
@@ -3218,7 +3218,7 @@ func (this *Kucoin) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 	uta := (<-this.IsUTAEnabledAsync())
 	ccxt.PanicOnError(uta)
-	var utaparamsVariable []any = this.HandleOptionAndParams(params, "watchBalance", "uta", uta)
+	var utaparamsVariable []any = this.HandleOptionBoolAndParams(params, "watchBalance", "uta", uta)
 	uta = ccxt.GetValue(utaparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(utaparamsVariable, 1))
 	var defaultType any = func() string {
@@ -3565,7 +3565,7 @@ func (this *Kucoin) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 	uta := (<-this.IsUTAEnabledAsync())
 	ccxt.PanicOnError(uta)
-	var utaparamsVariable []any = this.HandleOptionAndParams(params, "watchPositions", "uta", uta)
+	var utaparamsVariable []any = this.HandleOptionBoolAndParams(params, "watchPositions", "uta", uta)
 	uta = ccxt.GetValue(utaparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(utaparamsVariable, 1))
 	var tradeType string = func() string {

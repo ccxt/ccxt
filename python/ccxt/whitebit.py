@@ -2153,7 +2153,7 @@ class whitebit(Exchange, ImplicitAPI):
         requestType = []
         if type == 'spot':
             isMargin = None
-            isMargin, params = self.handle_option_and_params(params, 'cancelAllOrders', 'isMargin', False)
+            isMargin, params = self.handle_option_bool_and_params(params, 'cancelAllOrders', 'isMargin', False)
             if isMargin:
                 requestType.append('margin')
             else:
@@ -4024,7 +4024,7 @@ class whitebit(Exchange, ImplicitAPI):
             nonce = str(self.incrementing_nonce())
             secret = self.encode(self.secret)
             request = '/' + 'api' + '/' + version + pathWithParams
-            nonceWindow, requestParams = self.handle_option_and_params(params, 'sign', 'nonceWindow', False)
+            nonceWindow, requestParams = self.handle_option_bool_and_params(params, 'sign', 'nonceWindow', False)
             body = self.json(self.extend({'request': request, 'nonce': nonce, 'nonceWindow': nonceWindow}, requestParams))
             payload = self.string_to_base64(body)
             signature = self.hmac(self.encode(payload), secret, hashlib.sha512)

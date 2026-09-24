@@ -1338,9 +1338,9 @@ public class Hyperliquid extends HyperliquidApi
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
-            Object marginMode = null;
+            String marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchBalance", parameters);
-            marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+            marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             Object isUnifiedEnabled = null;
             var isUnifiedEnabledparametersVariable = (this.isUnifiedEnabled("fetchBalance", userAddress, shouldRefresh, parameters)).join();
@@ -1555,9 +1555,9 @@ public class Hyperliquid extends HyperliquidApi
             Object response = new ArrayList<Object>(Arrays.asList());
             String type = this.safeString(parameters, "type");
             parameters = (Map<String, Object>) this.omit(parameters, "type");
-            Object hip3 = false;
-            List<Object> hip3parametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTickers", "hip3", false);
-            hip3 = ((List<Object>) hip3parametersVariable).get(0);
+            Boolean hip3 = false;
+            List<Object> hip3parametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTickers", "hip3", false);
+            hip3 = (Boolean) ((List<Object>) hip3parametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) hip3parametersVariable).get(1);
             if (!java.util.Objects.equals(symbols, null))
             {
@@ -4208,15 +4208,15 @@ final Object finalClientOrderId = clientOrderId;
             List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("fetchOpenOrders", (Map<String, Object>) (parameters));
             userAddress = (String) ((List<Object>) userAddressparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
-            Object method = null;
-            List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "method", "frontendOpenOrders");
-            method = ((List<Object>) methodparametersVariable).get(0);
+            String method = null;
+            List<Object> methodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchOpenOrders", "method", "frontendOpenOrders");
+            method = (String) ((List<Object>) methodparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            final Object finalMethod = method;
+            final String finalMethod = method;
             final String finalUserAddress = userAddress;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", finalMethod );
@@ -6894,7 +6894,7 @@ final Object finalClientOrderId = clientOrderId;
         userAux = ((List<Object>) userAuxparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) userAuxparametersVariable).get(1);
         Object user = userAux;
-        List<Object> userparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "address", userAux);
+        List<Object> userparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, (String) (methodName), "address", (String) (userAux));
         user = ((List<Object>) userparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) userparametersVariable).get(1);
         if ((!java.util.Objects.equals(user, null)) && (!java.util.Objects.equals(user, "")))

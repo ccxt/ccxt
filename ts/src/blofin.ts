@@ -1014,7 +1014,7 @@ export default class blofin extends Exchange {
             request['limit'] = limit; // default 100
         }
         let method: Str = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'method', 'publicGetMarketTrades');
+        [ method, params ] = this.handleOptionStringAndParams (params, 'fetchTrades', 'method', 'publicGetMarketTrades');
         if (method === 'publicGetMarketTrades') {
             response = await this.publicGetMarketTrades (this.extend (request, params));
         }
@@ -1604,7 +1604,7 @@ export default class blofin extends Exchange {
         const isTakeProfitPriceDefined = this.safeString (params, 'takeProfitPrice') !== undefined;
         const isTriggerOrder = this.safeString (params, 'triggerPrice') !== undefined;
         let isTpslEndpoint = false;
-        [ isTpslEndpoint, params ] = this.handleOptionAndParams (params, 'createOrder', 'tpsl', false);
+        [ isTpslEndpoint, params ] = this.handleOptionBoolAndParams (params, 'createOrder', 'tpsl', false);
         const isCombinedSlTp = (isStopLossPriceDefined && isTakeProfitPriceDefined) || isTpslEndpoint;
         const isSlOrTp = isStopLossPriceDefined || isTakeProfitPriceDefined;
         let response: Dict;
@@ -1810,7 +1810,7 @@ export default class blofin extends Exchange {
         const isTrigger = this.safeBoolN (params, [ 'stop', 'trigger' ], false);
         const isTpSl = this.safeBool2 (params, 'tpsl', 'TPSL', false);
         let method: Str = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
+        [ method, params ] = this.handleOptionStringAndParams (params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
         const query = this.omit (params, [ 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ]);
         let response: Dict;
         if ((isTpSl === true) || (method === 'privateGetTradeOrdersTpslPending')) {
@@ -2915,7 +2915,7 @@ export default class blofin extends Exchange {
         }
         const isTrigger = this.safeBoolN (params, [ 'stop', 'trigger', 'tpsl', 'TPSL' ], false);
         let method: Str = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory');
+        [ method, params ] = this.handleOptionStringAndParams (params, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory');
         const query = this.omit (params, [ 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ]);
         let response: Dict;
         if ((isTrigger === true) || (method === 'privateGetTradeOrdersTpslHistory')) {

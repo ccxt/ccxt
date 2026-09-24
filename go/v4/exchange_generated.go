@@ -5412,8 +5412,8 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan any, code any, optiona
 		panic(NotSupported(this.Id + " fetchTransactionFee() is not supported yet"))
 	}
 
-	var retRes676015 map[string]any = MapTyped(PanicOnError((<-this.FetchTransactionFeesAsync([]any{code}, params))))
-	ch <- BoxAbsent(retRes676015)
+	var retRes677015 map[string]any = MapTyped(PanicOnError((<-this.FetchTransactionFeesAsync([]any{code}, params))))
+	ch <- BoxAbsent(retRes677015)
 	return nil
 }
 func (this *BaseExchange) FetchTransactionFeesAsync(optionalArgs ...any) <-chan any {
@@ -5601,6 +5601,52 @@ func (this *BaseExchange) HandleOptionAndParams2(params any, methodName1 any, op
 	params = GetValue(value2paramsVariable, 1)
 	return []any{value2, params}
 }
+
+/* eslint-disable no-unused-vars */
+/* eslint-enable no-unused-vars */
+func (this *BaseExchange) HandleOptionStringAndParams(params any, methodName any, optionName any, optionalArgs ...any) []any {
+	// handleOptionAndParams read as a string; the statically typed ports throw on another type
+	var defaultValue *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = defaultValue
+	var valuenewParamsVariable []any = this.HandleOptionAndParams(params, methodName, optionName, defaultValue)
+	value := GetValue(valuenewParamsVariable, 0)
+	newParams := GetValue(valuenewParamsVariable, 1)
+	return []any{this.CheckOptionString(methodName, optionName, value), newParams}
+}
+
+/* eslint-disable no-unused-vars */
+/* eslint-enable no-unused-vars */
+func (this *BaseExchange) HandleOptionStringAndParams2(params any, methodName any, optionName1 any, optionName2 any, optionalArgs ...any) []any {
+	var defaultValue *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = defaultValue
+	var valuenewParamsVariable []any = this.HandleOptionAndParams2(params, methodName, optionName1, optionName2, defaultValue)
+	value := GetValue(valuenewParamsVariable, 0)
+	newParams := GetValue(valuenewParamsVariable, 1)
+	return []any{this.CheckOptionString(methodName, optionName1, value), newParams}
+}
+
+/* eslint-disable no-unused-vars */
+/* eslint-enable no-unused-vars */
+func (this *BaseExchange) HandleOptionBoolAndParams(params any, methodName any, optionName any, optionalArgs ...any) []any {
+	// handleOptionAndParams read as a boolean; the statically typed ports throw on another type
+	var defaultValue *bool = GetArgBoolPtr(optionalArgs, 0, nil)
+	_ = defaultValue
+	var valuenewParamsVariable []any = this.HandleOptionAndParams(params, methodName, optionName, defaultValue)
+	value := GetValue(valuenewParamsVariable, 0)
+	newParams := GetValue(valuenewParamsVariable, 1)
+	return []any{this.CheckOptionBool(methodName, optionName, value), newParams}
+}
+
+/* eslint-disable no-unused-vars */
+/* eslint-enable no-unused-vars */
+func (this *BaseExchange) HandleOptionBoolAndParams2(params any, methodName any, optionName1 any, optionName2 any, optionalArgs ...any) []any {
+	var defaultValue *bool = GetArgBoolPtr(optionalArgs, 0, nil)
+	_ = defaultValue
+	var valuenewParamsVariable []any = this.HandleOptionAndParams2(params, methodName, optionName1, optionName2, defaultValue)
+	value := GetValue(valuenewParamsVariable, 0)
+	newParams := GetValue(valuenewParamsVariable, 1)
+	return []any{this.CheckOptionBool(methodName, optionName1, value), newParams}
+}
 func (this *BaseExchange) HandleOption(methodName any, optionName any, optionalArgs ...any) any {
 	defaultValue := GetArg(optionalArgs, 0, nil)
 	_ = defaultValue
@@ -5701,9 +5747,9 @@ func (this *BaseExchange) HandleMarginModeAndParams(methodName any, optionalArgs
 	 */
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	defaultValue := GetArg(optionalArgs, 1, nil)
+	var defaultValue *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = defaultValue
-	return this.HandleOptionAndParams(params, methodName, "marginMode", defaultValue)
+	return this.HandleOptionStringAndParams(params, methodName, "marginMode", defaultValue)
 }
 func (this *BaseExchange) ThrowExactlyMatchedException(exact any, string any, message any) {
 	if IsEqual(string, nil) {
@@ -11050,8 +11096,8 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan any, clientOrde
 		"clientOrderIds": clientOrderIds,
 	})
 
-	var retRes1013515 []any = ListTyped(PanicOnError((<-this.CancelOrdersAsync([]any{}, symbol, extendedParams))))
-	ch <- BoxAbsent(retRes1013515)
+	var retRes1017515 []any = ListTyped(PanicOnError((<-this.CancelOrdersAsync([]any{}, symbol, extendedParams))))
+	ch <- BoxAbsent(retRes1017515)
 	return nil
 }
 func (this *Exchange) CancelAllOrdersAsync(optionalArgs ...any) <-chan any {

@@ -2089,7 +2089,7 @@ class phemex(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' does not support ' + type + ' markets, only spot and swap')
         if type == 'swap':
             settle = None
-            settle, params = self.handle_option_and_params(params, 'fetchBalance', 'settle', 'USDT')
+            settle, params = self.handle_option_string_and_params(params, 'fetchBalance', 'settle', 'USDT')
             if code is not None or settle is not None:
                 coin = None
                 if code is not None:
@@ -3673,7 +3673,7 @@ class phemex(Exchange, ImplicitAPI):
             settle = market['settle']
             code = market['settle']
         else:
-            settle, params = self.handle_option_and_params(params, 'fetchPositions', 'settle', code)
+            settle, params = self.handle_option_string_and_params(params, 'fetchPositions', 'settle', code)
         subType, params = self.handle_sub_type_and_params('fetchPositions', market, params)
         isUSDTSettled = settle == 'USDT'
         if isUSDTSettled:
@@ -3689,7 +3689,7 @@ class phemex(Exchange, ImplicitAPI):
         response: dict
         if isUSDTSettled:
             method = None
-            method, params = self.handle_option_and_params(params, 'fetchPositions', 'method', 'privateGetGAccountsAccountPositions')
+            method, params = self.handle_option_string_and_params(params, 'fetchPositions', 'method', 'privateGetGAccountsAccountPositions')
             if method == 'privateGetGAccountsAccountPositions':
                 response = await self.privateGetGAccountsAccountPositions(self.extend(request, params))
             else:
@@ -5195,7 +5195,7 @@ class phemex(Exchange, ImplicitAPI):
             settle = market['settle']
             code = market['settle']
         else:
-            settle, params = self.handle_option_and_params(params, 'fetchPositionsADLRank', 'settle', code)
+            settle, params = self.handle_option_string_and_params(params, 'fetchPositionsADLRank', 'settle', code)
         subType, params = self.handle_sub_type_and_params('fetchPositionsADLRank', market, params)
         isUSDTSettled = settle == 'USDT'
         if isUSDTSettled:
@@ -5211,7 +5211,7 @@ class phemex(Exchange, ImplicitAPI):
         response: dict
         if isUSDTSettled:
             method = None
-            method, params = self.handle_option_and_params(params, 'fetchPositionsADLRank', 'method', 'privateGetGAccountsAccountPositions')
+            method, params = self.handle_option_string_and_params(params, 'fetchPositionsADLRank', 'method', 'privateGetGAccountsAccountPositions')
             if method == 'privateGetGAccountsAccountPositions':
                 response = await self.privateGetGAccountsAccountPositions(self.extend(request, params))
             else:

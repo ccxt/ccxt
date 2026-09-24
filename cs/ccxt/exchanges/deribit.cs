@@ -1120,8 +1120,8 @@ public partial class deribit : Exchange
         List<object> result = new List<object>() {};
         Dictionary<string, object> parsedMarkets = new Dictionary<string, object>() {};
         bool? fetchAllMarkets = null;
-        IList<object> fetchAllMarketsparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMarkets", "fetchAllMarkets", true);
-        fetchAllMarkets = isTrue(fetchAllMarketsparametersVariable[0]);
+        IList<object> fetchAllMarketsparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMarkets", "fetchAllMarkets", true);
+        fetchAllMarkets = (bool?)fetchAllMarketsparametersVariable[0];
         parameters = fetchAllMarketsparametersVariable[1];
         if ((fetchAllMarkets == true))
         {

@@ -5188,9 +5188,9 @@ public class Bybit extends BybitApi
             }
             Map<String, Object> accountTypes = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String unifiedType = this.safeStringUpper(accountTypes, type, type);
-            Object marginMode = null;
+            String marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchBalance", parameters);
-            marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+            marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isSpot) && (!java.util.Objects.equals(marginMode, null)))
@@ -5779,9 +5779,9 @@ public class Bybit extends BybitApi
             {
                 defaultMethod = "privatePostV5OrderCreate";
             }
-            Object method = null;
-            List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "method", defaultMethod);
-            method = ((List<Object>) methodparametersVariable).get(0);
+            String method = null;
+            List<Object> methodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "method", defaultMethod);
+            method = (String) ((List<Object>) methodparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
             Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "privatePostV5PositionTradingStop"))
@@ -5892,9 +5892,9 @@ public class Bybit extends BybitApi
         {
             defaultMethod = "privatePostV5OrderCreate";
         }
-        Object method = null;
-        List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "method", defaultMethod);
-        method = ((List<Object>) methodparametersVariable).get(0);
+        String method = null;
+        List<Object> methodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "method", defaultMethod);
+        method = (String) ((List<Object>) methodparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
         Boolean endpointIsTradingStop = java.util.Objects.equals(method, "privatePostV5PositionTradingStop");
         if ((java.util.Objects.equals(price, null)) && (java.util.Objects.equals(lowerCaseType, "limit")) && !Boolean.TRUE.equals(endpointIsTradingStop))
@@ -11221,9 +11221,9 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object type = null;
-            List<Object> typeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTradingFees", "type", "future");
-            type = ((List<Object>) typeparametersVariable).get(0);
+            String type = null;
+            List<Object> typeparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchTradingFees", "type", "future");
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             if (java.util.Objects.equals(type, "spot"))
             {
@@ -12909,16 +12909,16 @@ final Map<String, Object> finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Object accountType = null;
+            String accountType = null;
             var enableUnifiedMarginenableUnifiedAccountVariable = (this.isUnifiedEnabled()).join();
             var enableUnifiedMargin = ((List<Object>) enableUnifiedMarginenableUnifiedAccountVariable).get(0);
             var enableUnifiedAccount = ((List<Object>) enableUnifiedMarginenableUnifiedAccountVariable).get(1);
             Boolean isUnifiedAccount = (java.util.Objects.equals(enableUnifiedMargin, true)) || (java.util.Objects.equals(enableUnifiedAccount, true));
             String accountTypeDefault = ((Boolean.TRUE.equals(isUnifiedAccount))) ? "eb_convert_uta" : "eb_convert_spot";
-            List<Object> accountTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchConvertCurrencies", "accountType", accountTypeDefault);
-            accountType = ((List<Object>) accountTypeparametersVariable).get(0);
+            List<Object> accountTypeparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchConvertCurrencies", "accountType", accountTypeDefault);
+            accountType = (String) ((List<Object>) accountTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) accountTypeparametersVariable).get(1);
-            final Object finalAccountType = accountType;
+            final String finalAccountType = accountType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "accountType", finalAccountType );
             }};
@@ -13039,16 +13039,16 @@ final Map<String, Object> finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Object accountType = null;
+            String accountType = null;
             var enableUnifiedMarginenableUnifiedAccountVariable = (this.isUnifiedEnabled()).join();
             var enableUnifiedMargin = ((List<Object>) enableUnifiedMarginenableUnifiedAccountVariable).get(0);
             var enableUnifiedAccount = ((List<Object>) enableUnifiedMarginenableUnifiedAccountVariable).get(1);
             Boolean isUnifiedAccount = (java.util.Objects.equals(enableUnifiedMargin, true)) || (java.util.Objects.equals(enableUnifiedAccount, true));
             String accountTypeDefault = ((Boolean.TRUE.equals(isUnifiedAccount))) ? "eb_convert_uta" : "eb_convert_spot";
-            List<Object> accountTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchConvertQuote", "accountType", accountTypeDefault);
-            accountType = ((List<Object>) accountTypeparametersVariable).get(0);
+            List<Object> accountTypeparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchConvertQuote", "accountType", accountTypeDefault);
+            accountType = (String) ((List<Object>) accountTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) accountTypeparametersVariable).get(1);
-            final Object finalAccountType = accountType;
+            final String finalAccountType = accountType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "fromCoin", fromCode );
                 put( "toCoin", toCode );
@@ -13182,16 +13182,16 @@ final Map<String, Object> finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Object accountType = null;
+            String accountType = null;
             var enableUnifiedMarginenableUnifiedAccountVariable = (this.isUnifiedEnabled()).join();
             var enableUnifiedMargin = ((List<Object>) enableUnifiedMarginenableUnifiedAccountVariable).get(0);
             var enableUnifiedAccount = ((List<Object>) enableUnifiedMarginenableUnifiedAccountVariable).get(1);
             Boolean isUnifiedAccount = (java.util.Objects.equals(enableUnifiedMargin, true)) || (java.util.Objects.equals(enableUnifiedAccount, true));
             String accountTypeDefault = ((Boolean.TRUE.equals(isUnifiedAccount))) ? "eb_convert_uta" : "eb_convert_spot";
-            List<Object> accountTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchConvertTrade", "accountType", accountTypeDefault);
-            accountType = ((List<Object>) accountTypeparametersVariable).get(0);
+            List<Object> accountTypeparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchConvertTrade", "accountType", accountTypeDefault);
+            accountType = (String) ((List<Object>) accountTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) accountTypeparametersVariable).get(1);
-            final Object finalAccountType = accountType;
+            final String finalAccountType = accountType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "quoteTxId", id );
                 put( "accountType", finalAccountType );

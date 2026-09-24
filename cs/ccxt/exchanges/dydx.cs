@@ -988,7 +988,7 @@ public partial class dydx : Exchange
         userAux = userAuxparametersVariable[0];
         parameters = userAuxparametersVariable[1];
         object user = userAux;
-        IList<object> userparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "address", userAux);
+        IList<object> userparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "address", userAux);
         user = userparametersVariable[0];
         parameters = userparametersVariable[1];
         if (((user != null)) && (!isEqual(user, "")))
@@ -1133,12 +1133,12 @@ public partial class dydx : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object userAddress = null;
-        object subAccountNumber = null;
+        string? subAccountNumber = null;
         IList<object> userAddressparametersVariable = (IList<object>)this.handlePublicAddress("fetchOrders", parameters);
         userAddress = userAddressparametersVariable[0];
         parameters = userAddressparametersVariable[1];
-        IList<object> subAccountNumberparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrders", "subAccountNumber", "0");
-        subAccountNumber = subAccountNumberparametersVariable[0];
+        IList<object> subAccountNumberparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchOrders", "subAccountNumber", "0");
+        subAccountNumber = (string)subAccountNumberparametersVariable[0];
         parameters = subAccountNumberparametersVariable[1];
         if ((this.markets == null))
         {
@@ -1325,12 +1325,12 @@ public partial class dydx : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object userAddress = null;
-        object subAccountNumber = null;
+        string? subAccountNumber = null;
         IList<object> userAddressparametersVariable = (IList<object>)this.handlePublicAddress("fetchPositions", parameters);
         userAddress = userAddressparametersVariable[0];
         parameters = userAddressparametersVariable[1];
-        IList<object> subAccountNumberparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchPositions", "subAccountNumber", "0");
-        subAccountNumber = subAccountNumberparametersVariable[0];
+        IList<object> subAccountNumberparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchPositions", "subAccountNumber", "0");
+        subAccountNumber = (string)subAccountNumberparametersVariable[0];
         parameters = subAccountNumberparametersVariable[1];
         if ((this.markets == null))
         {
@@ -2568,12 +2568,12 @@ public partial class dydx : Exchange
         string? methodName = this.safeString(parameters, "methodName");
         parameters = this.omit(parameters, "methodName");
         object userAddress = null;
-        object subAccountNumber = null;
+        string? subAccountNumber = null;
         IList<object> userAddressparametersVariable = (IList<object>)this.handlePublicAddress(methodName, parameters);
         userAddress = userAddressparametersVariable[0];
         parameters = userAddressparametersVariable[1];
-        IList<object> subAccountNumberparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "subAccountNumber", "0");
-        subAccountNumber = subAccountNumberparametersVariable[0];
+        IList<object> subAccountNumberparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "subAccountNumber", "0");
+        subAccountNumber = (string)subAccountNumberparametersVariable[0];
         parameters = subAccountNumberparametersVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "address", userAddress },

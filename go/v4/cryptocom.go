@@ -823,7 +823,7 @@ func (this *Cryptocom) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any
 		return nil
 	}
 	var skipFetchCurrencies bool = false
-	var skipFetchCurrenciesparamsVariable []any = this.HandleOptionAndParams(params, "fetchCurrencies", "skipFetchCurrencies", false)
+	var skipFetchCurrenciesparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchCurrencies", "skipFetchCurrencies", false)
 	skipFetchCurrencies = GetValueBool(skipFetchCurrenciesparamsVariable, 0, false)
 	params = MapTyped(GetValue(skipFetchCurrenciesparamsVariable, 1))
 	if skipFetchCurrencies {
@@ -1547,7 +1547,7 @@ func (this *Cryptocom) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -2216,7 +2216,7 @@ func (this *Cryptocom) CreateAdvancedOrderRequest(symbol any, typeVar any, side 
 		// use createmarketBuy logic here
 		var quoteAmount any = nil
 		var createMarketBuyOrderRequiresPrice bool = true
-		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
+		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		createMarketBuyOrderRequiresPrice = GetValueBool(createMarketBuyOrderRequiresPriceparamsVariable, 0, false)
 		params = MapTyped(GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1))
 		var cost *float64 = this.SafeNumber2(params, "cost", "notional")
@@ -3452,17 +3452,17 @@ func (this *Cryptocom) CustomHandleMarginModeAndParams(methodName any, optionalA
 	var defaultType *string = this.SafeString(this.Options, "defaultType")
 	var isMargin *bool = this.SafeBool(params, "margin", false)
 	params = MapTyped(this.Omit(params, "margin"))
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams(methodName, params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	if marginMode != nil {
-		if !IsEqual(marginMode, "cross") {
+		if marginMode == nil || *marginMode != "cross" {
 			panic(NotSupported(this.Id + " only cross margin is supported"))
 		}
 	} else {
 		if (defaultType != nil && *defaultType == "margin") || (isMargin != nil && *isMargin == true) {
-			marginMode = "cross"
+			marginMode = SafeStringPtr("cross")
 		}
 	}
 	return []any{marginMode, params}

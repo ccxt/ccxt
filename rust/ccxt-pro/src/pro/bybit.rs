@@ -1967,7 +1967,7 @@ impl BybitCore {
         });
         let mut topic: Value = self.safe_string(topicByMarket, self.get_private_type(url.clone()), &[]);
         let mut executionFast: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchMyTrades".into()), Value::Str("executionFast".into()), &[Value::Bool(false)]); executionFast = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_bool_and_params(params.clone(), Value::Str("watchMyTrades".into()), Value::Str("executionFast".into()), &[Value::Bool(false)]); executionFast = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&executionFast) {
             topic = Value::Str("execution.fast".into());
         }
@@ -2018,7 +2018,7 @@ impl BybitCore {
         });
         let mut topic: Value = self.safe_string(topicByMarket, self.get_private_type(url.clone()), &[]);
         let mut executionFast: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchMyTrades".into()), Value::Str("executionFast".into()), &[Value::Bool(false)]); executionFast = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_bool_and_params(params.clone(), Value::Str("watchMyTrades".into()), Value::Str("executionFast".into()), &[Value::Bool(false)]); executionFast = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&executionFast) {
             topic = Value::Str("execution.fast".into());
         }
@@ -2445,7 +2445,7 @@ impl BybitCore {
         let mut url: Value = self.get_url_by_market_type(&[symbol.clone(), Value::Bool(false), Value::Str("watchLiquidations".into()), params.clone()]).await;
         params = self.clean_params(params.clone());
         let mut method: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchLiquidations".into()), Value::Str("method".into()), &[Value::Str("allLiquidation".into())]); method = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("watchLiquidations".into()), Value::Str("method".into()), &[Value::Str("allLiquidation".into())]); method = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("liquidations::".into()), symbol).into());
         let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, Value::Str(".".into())).into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
         let mut newLiquidation: Value = self.watch_topics(url, Value::from(vec![messageHash]), Value::from(vec![topic]), &[params]).await;

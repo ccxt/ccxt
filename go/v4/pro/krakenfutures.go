@@ -651,7 +651,7 @@ func (this *Krakenfutures) watchOrdersBody(ch chan any, optionalArgs ...any) any
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var verbose bool = false
-	var verboseparamsVariable []any = this.HandleOptionAndParams(params, "watchOrders", "verbose", false)
+	var verboseparamsVariable []any = this.HandleOptionBoolAndParams(params, "watchOrders", "verbose", false)
 	verbose = ccxt.GetValueBool(verboseparamsVariable, 0, false)
 	params = ccxt.MapTyped(ccxt.GetValue(verboseparamsVariable, 1))
 	var name any = "open_orders"

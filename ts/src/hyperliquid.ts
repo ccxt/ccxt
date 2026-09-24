@@ -1293,7 +1293,7 @@ export default class hyperliquid extends Exchange {
         const type = this.safeString (params, 'type');
         params = this.omit (params, 'type');
         let hip3 = false;
-        [ hip3, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'hip3', false);
+        [ hip3, params ] = this.handleOptionBoolAndParams (params, 'fetchTickers', 'hip3', false);
         if (symbols !== undefined) {
             // infer from first symbol
             const firstSymbol = this.safeString (symbols, 0);
@@ -3145,7 +3145,7 @@ export default class hyperliquid extends Exchange {
         let userAddress: Str = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('fetchOpenOrders', params);
         let method: Str = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
+        [ method, params ] = this.handleOptionStringAndParams (params, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5007,7 +5007,7 @@ export default class hyperliquid extends Exchange {
         let userAux: Str = undefined;
         [ userAux, params ] = this.handleOptionAndParams2 (params, methodName, 'user', 'subAccountAddress');
         let user = userAux;
-        [ user, params ] = this.handleOptionAndParams (params, methodName, 'address', userAux);
+        [ user, params ] = this.handleOptionStringAndParams (params, methodName, 'address', userAux);
         if ((user !== undefined) && (user !== '')) {
             return [ user, params ];
         }

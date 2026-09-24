@@ -786,7 +786,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         method = None
-        method, params = self.handle_option_and_params(params, 'createDepositAddress', 'method', 'v1PrivatePostTransfersAddress')
+        method, params = self.handle_option_string_and_params(params, 'createDepositAddress', 'method', 'v1PrivatePostTransfersAddress')
         portfolio = None
         portfolio, params = self.handle_portfolio_and_params('createDepositAddress', params)
         request = {
@@ -2225,7 +2225,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         portfolio = None
         portfolio, params = self.handle_portfolio_and_params('withdraw', params)
         method = None
-        method, params = self.handle_option_and_params(params, 'withdraw', 'method', 'v1PrivatePostTransfersWithdraw')
+        method, params = self.handle_option_string_and_params(params, 'withdraw', 'method', 'v1PrivatePostTransfersWithdraw')
         networkId = None
         networkId, params = self.handle_network_id_and_params(code, 'withdraw', params)
         request = {

@@ -2158,8 +2158,8 @@ public class Bithumb extends BithumbApi
                 String cost = this.safeString(parameters, "cost");
                 parameters = (Map<String, Object>) (this.omit(parameters, "cost"));
                 Boolean createMarketBuyOrderRequiresPrice = true;
-                List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = Boolean.TRUE.equals(((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0));
+                List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                 if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                 {

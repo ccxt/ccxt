@@ -5812,8 +5812,8 @@ public partial class gate : Exchange
                 {
                     string? quoteAmount = null;
                     bool? createMarketBuyOrderRequiresPrice = true;
-                    IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                    createMarketBuyOrderRequiresPrice = isTrue(createMarketBuyOrderRequiresPriceparametersVariable[0]);
+                    IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                    createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparametersVariable[0];
                     parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
                     double? cost = this.safeNumber(parameters, "cost");
                     parameters = this.omit(parameters, "cost");
@@ -6719,11 +6719,11 @@ public partial class gate : Exchange
         }
         List<object> res = this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
         string? type = this.safeString(res, 0);
-        bool useHistorical = false;
-        IList<object> useHistoricalparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchClosedOrders", "historical", false);
-        useHistorical = isTrue(useHistoricalparametersVariable[0]);
+        bool? useHistorical = false;
+        IList<object> useHistoricalparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchClosedOrders", "historical", false);
+        useHistorical = (bool?)useHistoricalparametersVariable[0];
         parameters = useHistoricalparametersVariable[1];
-        if (!useHistorical && (((since == null) && (until == null)) || (type != "swap")))
+        if (useHistorical != true && (((since == null) && (until == null)) || (type != "swap")))
         {
             return await this.FetchOrdersByStatus("finished", symbolVar,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
         }
@@ -8507,21 +8507,21 @@ public partial class gate : Exchange
             request["limit"] = limit;
         }
         List<object> response = null;
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchBorrowInterest", parameters, "cross");
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         if ((isUnifiedAccount == true))
         {
             response = await this.privateUnifiedGetInterestRecords(this.extend(request, parameters));
-        } else if (isEqual(marginMode, "isolated"))
+        } else if (marginMode == "isolated")
         {
             if ((market != null))
             {
                 request["currency_pair"] = (market.ContainsKey("id") ? market["id"] : null);
             }
             response = await this.privateMarginGetUniInterestRecords(this.extend(request, parameters));
-        } else if (isEqual(marginMode, "cross"))
+        } else if (marginMode == "cross")
         {
             // deprecated and not present in the exchange's docs but still works
             response = await this.privateMarginGetCrossInterestRecords(this.extend(request, parameters));
@@ -8805,8 +8805,8 @@ public partial class gate : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOpenInterestHistory", "paginate", false);
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOpenInterestHistory", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {

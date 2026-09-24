@@ -1071,7 +1071,7 @@ export default class btse extends Exchange {
             response = this.safeList (walletResponse, 'data', []);
         } else {
             let wallet = undefined;
-            [ wallet, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'wallet', 'CROSS@');
+            [ wallet, params ] = this.handleOptionStringAndParams (params, 'fetchBalance', 'wallet', 'CROSS@');
             const request: Dict = {
                 'wallet': wallet,
             };
@@ -1995,7 +1995,7 @@ export default class btse extends Exchange {
         if (needsQuoteSize) {
             let quoteAmount = undefined;
             let createMarketBuyOrderRequiresPrice = true;
-            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionBoolAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
             const cost = this.safeString (params, 'cost');
             params = this.omit (params, 'cost');
             if (cost !== undefined) {
@@ -2172,9 +2172,9 @@ export default class btse extends Exchange {
         // if positionMode is provided, we will get it from params and send it as is
         if (positionMode === undefined) {
             let hedged = false;
-            [ hedged, params ] = this.handleOptionAndParams (params, 'createOrder', 'hedged', hedged);
+            [ hedged, params ] = this.handleOptionBoolAndParams (params, 'createOrder', 'hedged', hedged);
             let marginMode = 'cross';
-            [ marginMode, params ] = this.handleOptionAndParams (params, 'createOrder', 'marginMode', marginMode);
+            [ marginMode, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'marginMode', marginMode);
             if (marginMode === 'isolated') {
                 if (hedged) {
                     throw new BadRequest (this.id + ' createOrder() cannot use isolated margin with hedged positions');
@@ -3579,7 +3579,7 @@ export default class btse extends Exchange {
             'symbol': this.futuresRequestId (market),
         };
         let type = 'market';
-        [ type, params ] = this.handleOptionAndParams (params, 'closePosition', 'type', type);
+        [ type, params ] = this.handleOptionStringAndParams (params, 'closePosition', 'type', type);
         type = type.toUpperCase ();
         request['orderType'] = type;
         if (type === 'LIMIT') {

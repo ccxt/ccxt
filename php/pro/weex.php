@@ -878,7 +878,7 @@ class weex extends \ccxt\async\weex {
         $callerMethodName = $this->safe_string($params, 'callerMethodName', 'watchOrderBookForSymbols');
         $params = $this->omit($params, 'callerMethodName');
         $depth = '200';
-        list($depth, $params) = $this->handle_option_and_params($params, $callerMethodName, 'depth', $depth);
+        list($depth, $params) = $this->handle_option_string_and_params($params, $callerMethodName, 'depth', $depth);
         $messageHashes = array();
         $channels = array();
         for ($i = 0; $i < count($symbols); $i++) {
@@ -941,7 +941,7 @@ class weex extends \ccxt\async\weex {
         $callerMethodName = $this->safe_string($params, 'callerMethodName', 'unWatchOrderBookForSymbols');
         $params = $this->omit($params, 'callerMethodName');
         $depth = '200';
-        list($depth, $params) = $this->handle_option_and_params($params, $callerMethodName, 'depth', $depth);
+        list($depth, $params) = $this->handle_option_string_and_params($params, $callerMethodName, 'depth', $depth);
         $subHashes = array();
         $channels = array();
         $unSubHashes = array();

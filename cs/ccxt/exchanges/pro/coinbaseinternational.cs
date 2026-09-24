@@ -253,11 +253,11 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             await this.loadMarkets();
         }
-        object channel = null;
-        IList<object> channelparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchTicker", "channel", "LEVEL1");
-        channel = channelparametersVariable[0];
+        string? channel = null;
+        IList<object> channelparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchTicker", "channel", "LEVEL1");
+        channel = (string)channelparametersVariable[0];
         parameters = channelparametersVariable[1];
-        return ccxt.BaseExchange.ToTicker(await this.subscribe(((string)channel), new List<object>() {symbol}, parameters));
+        return ccxt.BaseExchange.ToTicker(await this.subscribe(channel, new List<object>() {symbol}, parameters));
     }
 
     public virtual List<object> getActiveSymbols()
@@ -293,9 +293,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             await this.loadMarkets();
         }
-        object channel = null;
-        IList<object> channelparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchTickers", "channel", "LEVEL1");
-        channel = channelparametersVariable[0];
+        string? channel = null;
+        IList<object> channelparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchTickers", "channel", "LEVEL1");
+        channel = (string)channelparametersVariable[0];
         parameters = channelparametersVariable[1];
         object ticker = await this.subscribe(channel, symbols, parameters);
         if (this.newUpdates)

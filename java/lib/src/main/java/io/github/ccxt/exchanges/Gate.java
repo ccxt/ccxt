@@ -6611,8 +6611,8 @@ final String finalPointFee = pointFee;
                 {
                     String quoteAmount = null;
                     Boolean createMarketBuyOrderRequiresPrice = true;
-                    List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                    createMarketBuyOrderRequiresPrice = Boolean.TRUE.equals(((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0));
+                    List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                    createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                     parameters = (Map<String, Object>) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                     Double cost = this.safeNumber(parameters, "cost");
                     parameters = (Map<String, Object>) (this.omit(parameters, "cost"));
@@ -7663,8 +7663,8 @@ final Object finalRebate = rebate;
             Object res = this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
             String type = this.safeString(res, 0);
             Boolean useHistorical = false;
-            List<Object> useHistoricalparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchClosedOrders", "historical", false);
-            useHistorical = Boolean.TRUE.equals(((List<Object>) useHistoricalparametersVariable).get(0));
+            List<Object> useHistoricalparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchClosedOrders", "historical", false);
+            useHistorical = (Boolean) ((List<Object>) useHistoricalparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) useHistoricalparametersVariable).get(1);
             if (!Boolean.TRUE.equals(useHistorical) && ((java.util.Objects.equals(since, null) && java.util.Objects.equals(until, null)) || (!java.util.Objects.equals(type, "swap"))))
             {
@@ -9832,9 +9832,9 @@ final Object finalI = i;
                 ((Map<String, Object>)request).put("limit", limit);
             }
             List<Object> response = null;
-            Object marginMode = null;
+            String marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchBorrowInterest", parameters, "cross");
-            marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+            marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if (Boolean.TRUE.equals(isUnifiedAccount))
             {
@@ -10214,8 +10214,8 @@ final Object finalI = i;
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenInterestHistory", "paginate", false);
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOpenInterestHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {

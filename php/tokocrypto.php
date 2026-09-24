@@ -1886,7 +1886,7 @@ class tokocrypto extends Exchange {
                 $precision = $market['precision']['price'];
                 $quoteAmount = null;
                 $createMarketBuyOrderRequiresPrice = true;
-                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_bool_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 $cost = $this->safe_number_2($params, 'cost', 'quoteOrderQty');
                 $params = $this->omit($params, array( 'cost', 'quoteOrderQty' ));
                 if ($cost !== null) {

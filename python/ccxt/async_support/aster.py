@@ -3823,7 +3823,7 @@ class aster(Exchange, ImplicitAPI):
         await self.load_leverage_brackets(False, params)
         response = await self.fapiPrivateGetV4Account(params)
         filterClosed = None
-        filterClosed, params = self.handle_option_and_params(params, 'fetchAccountPositions', 'filterClosed', False)
+        filterClosed, params = self.handle_option_bool_and_params(params, 'fetchAccountPositions', 'filterClosed', False)
         result = self.parse_account_positions(response, filterClosed)
         symbols = self.market_symbols(symbols)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)

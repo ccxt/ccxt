@@ -3469,7 +3469,7 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 		builderId = DerefScalar(this.SafeString2(params, "builderId", "defaultBuilderId"))
 		params = MapTyped(this.Omit(params, []any{"builderFeeRate", "defaultBuilderFeeRate", "builderId", "defaultBuilderId"}))
 	} else {
-		var builderFeeRateparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "builderFeeRate", "0.0001")
+		var builderFeeRateparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "builderFeeRate", "0.0001")
 		builderFeeRate = GetValue(builderFeeRateparamsVariable, 0)
 		params = MapTyped(GetValue(builderFeeRateparamsVariable, 1))
 		var builderIdparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "builderId")

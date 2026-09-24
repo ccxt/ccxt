@@ -258,7 +258,7 @@ class poloniex extends \ccxt\async\poloniex {
         if (($uppercaseType === 'MARKET') && ($uppercaseSide === 'BUY')) {
             $quoteAmount = null;
             $createMarketBuyOrderRequiresPrice = true;
-            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_bool_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
             $cost = $this->safe_number($params, 'cost');
             $params = $this->omit($params, 'cost');
             if ($cost !== null) {
@@ -544,7 +544,7 @@ class poloniex extends \ccxt\async\poloniex {
         }
         $watchOrderBookOptions = $this->safe_dict($this->options, 'watchOrderBook');
         $name = $this->safe_string($watchOrderBookOptions, 'name', 'book_lv2');
-        list($name, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'name', $name);
+        list($name, $params) = $this->handle_option_string_and_params($params, 'watchOrderBook', 'name', $name);
         $orderbook = Async\await($this->subscribe($name, $name, false, array( $symbol ), $params));
         return $orderbook->limit();
     }

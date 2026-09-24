@@ -919,10 +919,10 @@ func (this *Hashkey) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	this.SetBalanceCache(client, typeVar, messageHash)
 	var fetchBalanceSnapshot any = nil
 	var awaitBalanceSnapshot any = nil
-	var fetchBalanceSnapshotparamsVariable []any = this.HandleOptionAndParams(this.Options, "watchBalance", "fetchBalanceSnapshot", true)
+	var fetchBalanceSnapshotparamsVariable []any = this.HandleOptionBoolAndParams(this.Options, "watchBalance", "fetchBalanceSnapshot", true)
 	fetchBalanceSnapshot = ccxt.GetValue(fetchBalanceSnapshotparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(fetchBalanceSnapshotparamsVariable, 1))
-	var awaitBalanceSnapshotparamsVariable []any = this.HandleOptionAndParams(this.Options, "watchBalance", "awaitBalanceSnapshot", false)
+	var awaitBalanceSnapshotparamsVariable []any = this.HandleOptionBoolAndParams(this.Options, "watchBalance", "awaitBalanceSnapshot", false)
 	awaitBalanceSnapshot = ccxt.GetValue(awaitBalanceSnapshotparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(awaitBalanceSnapshotparamsVariable, 1))
 	if (fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true) {

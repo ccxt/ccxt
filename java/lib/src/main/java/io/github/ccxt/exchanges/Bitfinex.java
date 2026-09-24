@@ -2430,9 +2430,9 @@ public class Bitfinex extends BitfinexApi
         {
             orderType = "FOK";
         }
-        Object marginMode = null;
+        String marginMode = null;
         List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
-        marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+        marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
         if ((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) && (java.util.Objects.equals(marginMode, null)))
         {

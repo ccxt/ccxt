@@ -2281,7 +2281,7 @@ export default class coinex extends Exchange {
             }
             if ((type === 'market') && (side === 'buy')) {
                 let createMarketBuyOrderRequiresPrice = true;
-                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionBoolAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 const cost = this.safeNumber (params, 'cost');
                 params = this.omit (params, 'cost');
                 if (createMarketBuyOrderRequiresPrice) {
@@ -4178,7 +4178,7 @@ export default class coinex extends Exchange {
             await this.loadMarkets ();
         }
         let defaultMethod: Str = undefined;
-        [ defaultMethod, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'method', 'v2PrivateGetFuturesPendingPosition');
+        [ defaultMethod, params ] = this.handleOptionStringAndParams (params, 'fetchPositions', 'method', 'v2PrivateGetFuturesPendingPosition');
         symbols = this.marketSymbols (symbols);
         const request: Dict = {
             'market_type': 'FUTURES',
@@ -6169,7 +6169,7 @@ export default class coinex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    override handleMarginModeAndParams (methodName: string, params: Dict = {}, defaultValue: any = undefined): [any, Dict] {
+    override handleMarginModeAndParams (methodName: string, params: Dict = {}, defaultValue: Str = undefined): [Str, Dict] {
         /**
          * @ignore
          * @method

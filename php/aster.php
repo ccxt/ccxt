@@ -4014,7 +4014,7 @@ class aster extends Exchange {
         $this->load_leverage_brackets(false, $params);
         $response = $this->fapiPrivateGetV4Account($params);
         $filterClosed = null;
-        list($filterClosed, $params) = $this->handle_option_and_params($params, 'fetchAccountPositions', 'filterClosed', false);
+        list($filterClosed, $params) = $this->handle_option_bool_and_params($params, 'fetchAccountPositions', 'filterClosed', false);
         $result = $this->parse_account_positions($response, $filterClosed);
         $symbols = $this->market_symbols($symbols);
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);

@@ -2507,8 +2507,8 @@ public class Bitrue extends BitrueApi
                 }
                 ((Map<String, Object>)request).put("contractName", ((Map<String, Object>)market).get("id"));
                 Boolean createMarketBuyOrderRequiresPrice = true;
-                List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = Boolean.TRUE.equals(((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0));
+                List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                 if (Boolean.TRUE.equals(isMarket) && (java.util.Objects.equals(side, "buy")) && Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                 {

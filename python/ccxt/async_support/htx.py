@@ -2975,7 +2975,7 @@ class htx(Exchange, ImplicitAPI):
         else:
             request['symbol'] = market['id']
             useHistorical = None
-            useHistorical, params = self.handle_option_and_params(params, 'fetchOHLCV', 'useHistoricalEndpointForSpot', True)
+            useHistorical, params = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'useHistoricalEndpointForSpot', True)
             if not useHistorical:
                 if limit is not None:
                     request['size'] = min(limit, 2000)  # max 2000
@@ -3250,7 +3250,7 @@ class htx(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         isUnifiedAccount = None
-        isUnifiedAccount, params = self.handle_option_and_params_2(params, 'fetchBalance', 'unified', 'uta', False)
+        isUnifiedAccount, params = self.handle_option_bool_and_params_2(params, 'fetchBalance', 'unified', 'uta', False)
         if isUnifiedAccount:
             raise NotSupported(self.id + ' fetchBalance() unified account has been deprecated on htx')
         type = None
@@ -3260,7 +3260,7 @@ class htx(Exchange, ImplicitAPI):
         subType, params = self.handle_option_and_params_2(params, 'fetchBalance', 'defaultSubType', 'subType')
         if subType is None:
             subType = 'linear'
-        isMultiAssetMode, params = self.handle_option_and_params(params, 'fetchBalance', 'multiAssetMode', False)
+        isMultiAssetMode, params = self.handle_option_bool_and_params(params, 'fetchBalance', 'multiAssetMode', False)
         request = {}
         spot = (type == 'spot')
         future = (type == 'future')
@@ -4874,7 +4874,7 @@ class htx(Exchange, ImplicitAPI):
         if (orderType == 'market') and (side == 'buy'):
             quoteAmount = None
             createMarketBuyOrderRequiresPrice = True
-            createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+            createMarketBuyOrderRequiresPrice, params = self.handle_option_bool_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
             cost = self.safe_number(params, 'cost')
             params = self.omit(params, 'cost')
             if cost is not None:

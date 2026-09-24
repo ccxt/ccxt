@@ -1238,7 +1238,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         type = self.safe_string(params, 'type')
         params = self.omit(params, 'type')
         hip3 = False
-        hip3, params = self.handle_option_and_params(params, 'fetchTickers', 'hip3', False)
+        hip3, params = self.handle_option_bool_and_params(params, 'fetchTickers', 'hip3', False)
         if symbols is not None:
             # infer from first symbol
             firstSymbol = self.safe_string(symbols, 0)
@@ -2922,7 +2922,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         userAddress = None
         userAddress, params = self.handle_public_address('fetchOpenOrders', params)
         method = None
-        method, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'method', 'frontendOpenOrders')
+        method, params = self.handle_option_string_and_params(params, 'fetchOpenOrders', 'method', 'frontendOpenOrders')
         if self.markets is None:
             self.load_markets()
         request = {
@@ -4604,7 +4604,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         userAux = None
         userAux, params = self.handle_option_and_params_2(params, methodName, 'user', 'subAccountAddress')
         user = userAux
-        user, params = self.handle_option_and_params(params, methodName, 'address', userAux)
+        user, params = self.handle_option_string_and_params(params, methodName, 'address', userAux)
         if (user is not None) and (user != ''):
             return [user, params]
         if (self.walletAddress is not None) and (self.walletAddress != ''):

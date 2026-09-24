@@ -1638,8 +1638,8 @@ public partial class bingx : Exchange
         Dictionary<string, object> market = this.market(symbol);
         int maxLimit = ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true)) ? 1000 : 1440;
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -3031,8 +3031,8 @@ public partial class bingx : Exchange
         }
         Dictionary<string, object> response = null;
         bool? standard = null;
-        IList<object> standardparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchBalance", "standard", false);
-        standard = isTrue(standardparametersVariable[0]);
+        IList<object> standardparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchBalance", "standard", false);
+        standard = (bool?)standardparametersVariable[0];
         parameters = standardparametersVariable[1];
         string? subType = null;
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("fetchBalance", null, parameters);
@@ -3287,8 +3287,8 @@ public partial class bingx : Exchange
         }
         symbols = this.marketSymbols(symbols);
         bool? standard = null;
-        IList<object> standardparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchPositions", "standard", false);
-        standard = isTrue(standardparametersVariable[0]);
+        IList<object> standardparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchPositions", "standard", false);
+        standard = (bool?)standardparametersVariable[0];
         parameters = standardparametersVariable[1];
         Dictionary<string, object> response = null;
         if ((standard == true))
@@ -5402,8 +5402,8 @@ public partial class bingx : Exchange
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("fetchCanceledAndClosedOrders", market, parameters);
         subType = (string)subTypeparametersVariable[0];
         parameters = subTypeparametersVariable[1];
-        IList<object> standardparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "standard", false);
-        standard = isTrue(standardparametersVariable[0]);
+        IList<object> standardparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchCanceledAndClosedOrders", "standard", false);
+        standard = (bool?)standardparametersVariable[0];
         parameters = standardparametersVariable[1];
         if ((standard == true))
         {
@@ -5559,8 +5559,8 @@ public partial class bingx : Exchange
         }
         int maxLimit = 100;
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTransfers", "paginate", false);
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {

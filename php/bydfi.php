@@ -708,7 +708,7 @@ class bydfi extends Exchange {
             return $this->sort_by($paginatedResponse, 'timestamp');
         }
         $contractType = 'FUTURE';
-        list($contractType, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'contractType', $contractType);
+        list($contractType, $params) = $this->handle_option_string_and_params($params, 'fetchMyTrades', 'contractType', $contractType);
         $request = array(
             'contractType' => $contractType,
         );
@@ -1206,7 +1206,7 @@ class bydfi extends Exchange {
         $market = $this->market($symbol);
         $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $wallet = 'W001';
-        list($wallet, $params) = $this->handle_option_and_params($params, 'createOrder', 'wallet', $wallet);
+        list($wallet, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'wallet', $wallet);
         $orderRequest = $this->extend($orderRequest, array( 'wallet' => $wallet ));
         $response = $this->privatePostV1FapiTradePlaceOrder($orderRequest);
         //
@@ -1316,7 +1316,7 @@ class bydfi extends Exchange {
         }
         $request['type'] = $type;
         $hedged = false;
-        list($hedged, $params) = $this->handle_option_and_params($params, 'createOrder', 'hedged', $hedged);
+        list($hedged, $params) = $this->handle_option_bool_and_params($params, 'createOrder', 'hedged', $hedged);
         $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
         if ($hedged) {
             $params = $this->omit($params, 'reduceOnly');
@@ -1345,7 +1345,7 @@ class bydfi extends Exchange {
         }
         if ($isStopLossOrder || $isTakeProfitOrder || $isTailingStopOrder) {
             $workingType = 'CONTRACT_PRICE';
-            list($workingType, $params) = $this->handle_option_and_params($params, 'createOrder', 'triggerPriceType', $workingType);
+            list($workingType, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'triggerPriceType', $workingType);
             $request['workingType'] = $this->encode_working_type($workingType);
         }
         return $this->extend($request, $params);
@@ -1393,7 +1393,7 @@ class bydfi extends Exchange {
             $ordersRequests[] = $orderRequest;
         }
         $wallet = 'W001';
-        list($wallet, $params) = $this->handle_option_and_params($params, 'createOrder', 'wallet', $wallet);
+        list($wallet, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'wallet', $wallet);
         $request = array(
             'wallet' => $wallet,
             'orders' => $ordersRequests,
@@ -1425,7 +1425,7 @@ class bydfi extends Exchange {
         }
         $request = $this->create_edit_order_request($id, $symbol, 'limit', $side, $amount, $price, $params);
         $wallet = 'W001';
-        list($wallet, $params) = $this->handle_option_and_params($params, 'editOrder', 'wallet', $wallet);
+        list($wallet, $params) = $this->handle_option_string_and_params($params, 'editOrder', 'wallet', $wallet);
         $request['wallet'] = $wallet;
         $response = $this->privatePostV1FapiTradeEditOrder($request);
         $data = $this->safe_dict($response, 'data', array());
@@ -1463,7 +1463,7 @@ class bydfi extends Exchange {
             $ordersRequests[] = $orderRequest;
         }
         $wallet = 'W001';
-        list($wallet, $params) = $this->handle_option_and_params($params, 'editOrder', 'wallet', $wallet);
+        list($wallet, $params) = $this->handle_option_string_and_params($params, 'editOrder', 'wallet', $wallet);
         $request = array(
             'wallet' => $wallet,
             'editOrders' => $ordersRequests,
@@ -1514,7 +1514,7 @@ class bydfi extends Exchange {
         }
         $market = $this->market($symbol);
         $wallet = 'W001';
-        list($wallet, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'wallet', $wallet);
+        list($wallet, $params) = $this->handle_option_string_and_params($params, 'cancelAllOrders', 'wallet', $wallet);
         $request = array(
             'symbol' => $market['id'],
             'wallet' => $wallet,
@@ -1579,13 +1579,13 @@ class bydfi extends Exchange {
         }
         $market = $this->market($symbol);
         $wallet = 'W001';
-        list($wallet, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'wallet', $wallet);
+        list($wallet, $params) = $this->handle_option_string_and_params($params, 'fetchOpenOrders', 'wallet', $wallet);
         $request = array(
             'symbol' => $market['id'],
             'wallet' => $wallet,
         );
         $trigger = false;
-        list($trigger, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'trigger', $trigger);
+        list($trigger, $params) = $this->handle_option_bool_and_params($params, 'fetchOpenOrders', 'trigger', $trigger);
         if (!$trigger) {
             //
             //     {
@@ -1659,10 +1659,10 @@ class bydfi extends Exchange {
             $request['orderId'] = $id;
         }
         $wallet = 'W001';
-        list($wallet, $params) = $this->handle_option_and_params($params, 'fetchOpenOrder', 'wallet', $wallet);
+        list($wallet, $params) = $this->handle_option_string_and_params($params, 'fetchOpenOrder', 'wallet', $wallet);
         $request['wallet'] = $wallet;
         $trigger = false;
-        list($trigger, $params) = $this->handle_option_and_params($params, 'fetchOpenOrder', 'trigger', $trigger);
+        list($trigger, $params) = $this->handle_option_bool_and_params($params, 'fetchOpenOrder', 'trigger', $trigger);
         if (!$trigger) {
             $response = $this->privateGetV1FapiTradeOpenOrder($this->extend($request, $params));
         } else {
@@ -1701,7 +1701,7 @@ class bydfi extends Exchange {
             return $this->sort_by($paginatedResponse, 'timestamp');
         }
         $contractType = 'FUTURE';
-        list($contractType, $params) = $this->handle_option_and_params($params, 'fetchCanceledAndClosedOrders', 'contractType', $contractType);
+        list($contractType, $params) = $this->handle_option_string_and_params($params, 'fetchCanceledAndClosedOrders', 'contractType', $contractType);
         $request = array(
             'contractType' => $contractType,
         );
@@ -1967,7 +1967,7 @@ class bydfi extends Exchange {
         }
         $market = $this->market($symbol);
         $wallet = 'W001';
-        list($wallet, $params) = $this->handle_option_and_params($params, 'setLeverage', 'wallet', $wallet);
+        list($wallet, $params) = $this->handle_option_string_and_params($params, 'setLeverage', 'wallet', $wallet);
         $request = array(
             'symbol' => $market['id'],
             'leverage' => $leverage,
@@ -1997,7 +1997,7 @@ class bydfi extends Exchange {
         }
         $market = $this->market($symbol);
         $wallet = 'W001';
-        list($wallet, $params) = $this->handle_option_and_params($params, 'fetchLeverage', 'wallet', $wallet);
+        list($wallet, $params) = $this->handle_option_string_and_params($params, 'fetchLeverage', 'wallet', $wallet);
         $request = array(
             'symbol' => $market['id'],
             'wallet' => $wallet,
@@ -2046,7 +2046,7 @@ class bydfi extends Exchange {
             $this->load_markets();
         }
         $contractType = 'FUTURE';
-        list($contractType, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'contractType', $contractType);
+        list($contractType, $params) = $this->handle_option_string_and_params($params, 'fetchPositions', 'contractType', $contractType);
         $request = array(
             'contractType' => $contractType,
         );
@@ -2094,7 +2094,7 @@ class bydfi extends Exchange {
         }
         $market = $this->market($symbol);
         $contractType = 'FUTURE';
-        list($contractType, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'contractType', $contractType);
+        list($contractType, $params) = $this->handle_option_string_and_params($params, 'fetchPositions', 'contractType', $contractType);
         $request = array(
             'contractType' => $contractType,
             'symbol' => $market['id'],
@@ -2237,7 +2237,7 @@ class bydfi extends Exchange {
         }
         $market = $this->market($symbol);
         $contractType = 'FUTURE';
-        list($contractType, $params) = $this->handle_option_and_params($params, 'fetchPositionHistory', 'contractType', $contractType);
+        list($contractType, $params) = $this->handle_option_string_and_params($params, 'fetchPositionHistory', 'contractType', $contractType);
         $request = array(
             'symbol' => $market['id'],
             'contractType' => $contractType,
@@ -2273,7 +2273,7 @@ class bydfi extends Exchange {
             $this->load_markets();
         }
         $contractType = 'FUTURE';
-        list($contractType, $params) = $this->handle_option_and_params($params, 'fetchPositionsHistory', 'contractType', $contractType);
+        list($contractType, $params) = $this->handle_option_string_and_params($params, 'fetchPositionsHistory', 'contractType', $contractType);
         $request = array(
             'contractType' => $contractType,
         );
@@ -2346,9 +2346,9 @@ class bydfi extends Exchange {
         }
         $market = $this->market($symbol);
         $contractType = 'FUTURE';
-        list($contractType, $params) = $this->handle_option_and_params($params, 'fetchMarginMode', 'contractType', $contractType);
+        list($contractType, $params) = $this->handle_option_string_and_params($params, 'fetchMarginMode', 'contractType', $contractType);
         $wallet = 'W001';
-        list($wallet, $params) = $this->handle_option_and_params($params, 'fetchMarginMode', 'wallet', $wallet);
+        list($wallet, $params) = $this->handle_option_string_and_params($params, 'fetchMarginMode', 'wallet', $wallet);
         $request = array(
             'contractType' => $contractType,
             'symbol' => $market['id'],
@@ -2405,9 +2405,9 @@ class bydfi extends Exchange {
         }
         $market = $this->market($symbol);
         $contractType = 'FUTURE';
-        list($contractType, $params) = $this->handle_option_and_params($params, 'setMarginMode', 'contractType', $contractType);
+        list($contractType, $params) = $this->handle_option_string_and_params($params, 'setMarginMode', 'contractType', $contractType);
         $wallet = 'W001';
-        list($wallet, $params) = $this->handle_option_and_params($params, 'setMarginMode', 'wallet', $wallet);
+        list($wallet, $params) = $this->handle_option_string_and_params($params, 'setMarginMode', 'wallet', $wallet);
         $request = array(
             'contractType' => $contractType,
             'symbol' => $market['id'],
@@ -2439,11 +2439,11 @@ class bydfi extends Exchange {
         }
         $positionType = $hedged ? 'HEDGE' : 'ONEWAY';
         $wallet = 'W001';
-        list($wallet, $params) = $this->handle_option_and_params($params, 'setPositionMode', 'wallet', $wallet);
+        list($wallet, $params) = $this->handle_option_string_and_params($params, 'setPositionMode', 'wallet', $wallet);
         $contractType = 'FUTURE';
-        list($contractType, $params) = $this->handle_option_and_params($params, 'setPositionMode', 'contractType', $contractType);
+        list($contractType, $params) = $this->handle_option_string_and_params($params, 'setPositionMode', 'contractType', $contractType);
         $settleCoin = 'USDT';
-        list($settleCoin, $params) = $this->handle_option_and_params($params, 'setPositionMode', 'settleCoin', $settleCoin);
+        list($settleCoin, $params) = $this->handle_option_string_and_params($params, 'setPositionMode', 'settleCoin', $settleCoin);
         $request = array(
             'contractType' => $contractType,
             'wallet' => $wallet,
@@ -2477,12 +2477,12 @@ class bydfi extends Exchange {
             $this->load_markets();
         }
         $wallet = 'W001';
-        list($wallet, $params) = $this->handle_option_and_params($params, 'fetchPositionMode', 'wallet', $wallet);
+        list($wallet, $params) = $this->handle_option_string_and_params($params, 'fetchPositionMode', 'wallet', $wallet);
         $contractType = 'FUTURE';
-        list($contractType, $params) = $this->handle_option_and_params($params, 'fetchPositionMode', 'contractType', $contractType);
+        list($contractType, $params) = $this->handle_option_string_and_params($params, 'fetchPositionMode', 'contractType', $contractType);
         $settleCoin = 'USDT';
         if ($symbol === null) {
-            list($settleCoin, $params) = $this->handle_option_and_params($params, 'fetchPositionMode', 'settleCoin', $settleCoin);
+            list($settleCoin, $params) = $this->handle_option_string_and_params($params, 'fetchPositionMode', 'settleCoin', $settleCoin);
         } else {
             $market = $this->market($symbol);
             $settleCoin = $market['settleId'];

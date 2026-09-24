@@ -2161,7 +2161,7 @@ export default class phemex extends Exchange {
         }
         if (type === 'swap') {
             let settle: Str = undefined;
-            [ settle, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'settle', 'USDT');
+            [ settle, params ] = this.handleOptionStringAndParams (params, 'fetchBalance', 'settle', 'USDT');
             if (code !== undefined || settle !== undefined) {
                 let coin: Str = undefined;
                 if (code !== undefined) {
@@ -3893,7 +3893,7 @@ export default class phemex extends Exchange {
             settle = this.safeString (market, 'settle');
             code = market['settle'];
         } else {
-            [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', code);
+            [ settle, params ] = this.handleOptionStringAndParams (params, 'fetchPositions', 'settle', code);
         }
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', market, params);
         const isUSDTSettled = settle === 'USDT';
@@ -3911,7 +3911,7 @@ export default class phemex extends Exchange {
         let response: Dict;
         if (isUSDTSettled) {
             let method: Str = undefined;
-            [ method, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'method', 'privateGetGAccountsAccountPositions');
+            [ method, params ] = this.handleOptionStringAndParams (params, 'fetchPositions', 'method', 'privateGetGAccountsAccountPositions');
             if (method === 'privateGetGAccountsAccountPositions') {
                 response = await this.privateGetGAccountsAccountPositions (this.extend (request, params));
             } else {
@@ -5535,7 +5535,7 @@ export default class phemex extends Exchange {
             settle = this.safeString (market, 'settle');
             code = market['settle'];
         } else {
-            [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositionsADLRank', 'settle', code);
+            [ settle, params ] = this.handleOptionStringAndParams (params, 'fetchPositionsADLRank', 'settle', code);
         }
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionsADLRank', market, params);
         const isUSDTSettled = settle === 'USDT';
@@ -5553,7 +5553,7 @@ export default class phemex extends Exchange {
         let response: Dict;
         if (isUSDTSettled) {
             let method: Str = undefined;
-            [ method, params ] = this.handleOptionAndParams (params, 'fetchPositionsADLRank', 'method', 'privateGetGAccountsAccountPositions');
+            [ method, params ] = this.handleOptionStringAndParams (params, 'fetchPositionsADLRank', 'method', 'privateGetGAccountsAccountPositions');
             if (method === 'privateGetGAccountsAccountPositions') {
                 response = await this.privateGetGAccountsAccountPositions (this.extend (request, params));
             } else {

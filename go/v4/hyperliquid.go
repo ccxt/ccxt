@@ -1240,9 +1240,9 @@ func (this *Hyperliquid) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = GetValue(typeVarparamsVariable, 1)
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchBalance", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = GetValue(marginModeparamsVariable, 1)
 	var isUnifiedEnabled any = nil
 	var isUnifiedEnabledparamsVariable []any = ListTyped(PanicOnError((<-this.IsUnifiedEnabledAsync("fetchBalance", userAddress, shouldRefresh, params))))
@@ -1333,7 +1333,7 @@ func (this *Hyperliquid) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	var usdcBalance map[string]any = map[string]any{
 		"total": this.SafeNumber(data, "accountValue"),
 	}
-	if (marginMode != nil) && (IsEqual(marginMode, "isolated")) {
+	if marginMode != nil && *marginMode == "isolated" {
 		usdcBalance["free"] = this.SafeNumber(response, "withdrawable")
 	} else {
 		usdcBalance["used"] = this.SafeNumber(data, "totalMarginUsed")
@@ -1456,7 +1456,7 @@ func (this *Hyperliquid) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 	var typeVar *string = this.SafeString(params, "type")
 	params = MapTyped(this.Omit(params, "type"))
 	var hip3 bool = false
-	var hip3paramsVariable []any = this.HandleOptionAndParams(params, "fetchTickers", "hip3", false)
+	var hip3paramsVariable []any = this.HandleOptionBoolAndParams(params, "fetchTickers", "hip3", false)
 	hip3 = GetValueBool(hip3paramsVariable, 0, false)
 	params = MapTyped(GetValue(hip3paramsVariable, 1))
 	if symbols != nil {
@@ -3925,9 +3925,9 @@ func (this *Hyperliquid) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 	userAddressparamsVariable := this.HandlePublicAddress("fetchOpenOrders", params)
 	userAddress = GetValue(userAddressparamsVariable, 0)
 	params = MapTyped(GetValue(userAddressparamsVariable, 1))
-	var method any = nil
-	var methodparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "method", "frontendOpenOrders")
-	method = GetValue(methodparamsVariable, 0)
+	var method *string = nil
+	var methodparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchOpenOrders", "method", "frontendOpenOrders")
+	method = SafeStringPtr(GetValue(methodparamsVariable, 0))
 	params = MapTyped(GetValue(methodparamsVariable, 1))
 	if this.Markets == nil {
 
@@ -6293,7 +6293,7 @@ func (this *Hyperliquid) HandlePublicAddress(methodName any, params any) any {
 	userAux = GetValue(userAuxparamsVariable, 0)
 	params = GetValue(userAuxparamsVariable, 1)
 	var user any = userAux
-	var userparamsVariable []any = this.HandleOptionAndParams(params, methodName, "address", userAux)
+	var userparamsVariable []any = this.HandleOptionStringAndParams(params, methodName, "address", userAux)
 	user = GetValue(userparamsVariable, 0)
 	params = GetValue(userparamsVariable, 1)
 	if (user != nil) && (!IsEqual(user, "")) {

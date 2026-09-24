@@ -734,7 +734,7 @@ func (this *Deribit) watchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	}
 	var descriptor any = ""
 	var useDepthEndpoint any = nil // for more info, see comment in .options
-	var useDepthEndpointparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "useDepthEndpoint", false)
+	var useDepthEndpointparamsVariable []any = this.HandleOptionBoolAndParams(params, "watchOrderBookForSymbols", "useDepthEndpoint", false)
 	useDepthEndpoint = ccxt.GetValue(useDepthEndpointparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(useDepthEndpointparamsVariable, 1))
 	if useDepthEndpoint == true {
@@ -742,11 +742,11 @@ func (this *Deribit) watchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 		var depthparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "depth", "20")
 		depth = ccxt.GetValue(depthparamsVariable, 0)
 		params = ccxt.MapTyped(ccxt.GetValue(depthparamsVariable, 1))
-		var group any = nil
-		var groupparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "group", "none")
-		group = ccxt.GetValue(groupparamsVariable, 0)
+		var group *string = nil
+		var groupparamsVariable []any = this.HandleOptionStringAndParams(params, "watchOrderBookForSymbols", "group", "none")
+		group = ccxt.SafeStringPtr(ccxt.GetValue(groupparamsVariable, 0))
 		params = ccxt.MapTyped(ccxt.GetValue(groupparamsVariable, 1))
-		descriptor = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(group, "."), depth), "."), interval)
+		descriptor = ccxt.Add(ccxt.Add(ccxt.Add(*group+".", depth), "."), interval)
 	} else {
 		descriptor = interval
 	}

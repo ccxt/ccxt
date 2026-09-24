@@ -744,7 +744,7 @@ class mexc(ccxt.async_support.mexc):
         orderbook = None
         if market['spot'] is True:
             frequency = None
-            frequency, params = self.handle_option_and_params(params, 'watchOrderBook', 'frequency', '100ms')
+            frequency, params = self.handle_option_string_and_params(params, 'watchOrderBook', 'frequency', '100ms')
             channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + market['id']
             orderbook = await self.watch_spot_public(channel, messageHash, params)
         else:
@@ -1786,7 +1786,7 @@ class mexc(ccxt.async_support.mexc):
         if market['spot'] is True:
             url = self.urls['api']['ws']['spot']
             frequency = None
-            frequency, params = self.handle_option_and_params(params, 'watchOrderBook', 'frequency', '100ms')
+            frequency, params = self.handle_option_string_and_params(params, 'watchOrderBook', 'frequency', '100ms')
             channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + market['id']
             params['unsubscribed'] = True
             self.spawn(self.watch_spot_public, channel, messageHash, params)

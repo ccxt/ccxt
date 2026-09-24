@@ -294,7 +294,7 @@ func (this *Gate) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any {
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	var messageType any = this.GetTypeByMarket(market)
 	var channel any = ccxt.Add(messageType, ".order_cancel_cp")
-	var channelparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrdersWs", "channel", channel)
+	var channelparamsVariable []any = this.HandleOptionStringAndParams(params, "cancelAllOrdersWs", "channel", channel)
 	channel = ccxt.GetValue(channelparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(channelparamsVariable, 1))
 	var url any = this.GetUrlByMarket(market)

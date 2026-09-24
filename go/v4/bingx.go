@@ -1728,7 +1728,7 @@ func (this *Bingx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		return 1440
 	}()
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -3265,7 +3265,7 @@ func (this *Bingx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var response map[string]any = nil
 	var standard any = nil
-	var standardparamsVariable []any = this.HandleOptionAndParams(params, "fetchBalance", "standard", false)
+	var standardparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchBalance", "standard", false)
 	standard = GetValue(standardparamsVariable, 0)
 	params = MapTyped(GetValue(standardparamsVariable, 1))
 	var subType *string = nil
@@ -3542,7 +3542,7 @@ func (this *Bingx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 	var standard any = nil
-	var standardparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositions", "standard", false)
+	var standardparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchPositions", "standard", false)
 	standard = GetValue(standardparamsVariable, 0)
 	params = MapTyped(GetValue(standardparamsVariable, 1))
 	var response map[string]any = nil
@@ -5817,7 +5817,7 @@ func (this *Bingx) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchCanceledAndClosedOrders", market, params)
 	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
-	var standardparamsVariable []any = this.HandleOptionAndParams(params, "fetchCanceledAndClosedOrders", "standard", false)
+	var standardparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchCanceledAndClosedOrders", "standard", false)
 	standard = GetValue(standardparamsVariable, 0)
 	params = MapTyped(GetValue(standardparamsVariable, 1))
 	if standard == true {
@@ -6008,7 +6008,7 @@ func (this *Bingx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var maxLimit int = 100
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTransfers", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchTransfers", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {

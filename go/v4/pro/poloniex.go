@@ -301,7 +301,7 @@ func (this *Poloniex) createOrderWsBody(ch chan any, symbol any, typeVar any, si
 	if (uppercaseType == "MARKET") && (uppercaseSide == "BUY") {
 		var quoteAmount any = nil
 		var createMarketBuyOrderRequiresPrice bool = true
-		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
+		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		createMarketBuyOrderRequiresPrice = ccxt.GetValueBool(createMarketBuyOrderRequiresPriceparamsVariable, 0, false)
 		params = ccxt.MapTyped(ccxt.GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1))
 		var cost *float64 = this.SafeNumber(params, "cost")
@@ -701,7 +701,7 @@ func (this *Poloniex) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	}
 	var watchOrderBookOptions map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
 	var name any = ccxt.DerefScalar(this.SafeString(watchOrderBookOptions, "name", "book_lv2"))
-	var nameparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "name", name)
+	var nameparamsVariable []any = this.HandleOptionStringAndParams(params, "watchOrderBook", "name", name)
 	name = ccxt.GetValue(nameparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(nameparamsVariable, 1))
 

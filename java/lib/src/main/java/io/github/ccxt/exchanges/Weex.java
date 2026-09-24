@@ -1792,11 +1792,11 @@ public class Weex extends WeexApi
             {
                 throw new NotSupported((this.id + " fetchMarkPrice() supports contract markets only")) ;
             }
-            Object priceType = null;
-            List<Object> priceTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMarkPrice", "priceType", "MARK");
-            priceType = ((List<Object>) priceTypeparametersVariable).get(0);
+            String priceType = null;
+            List<Object> priceTypeparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchMarkPrice", "priceType", "MARK");
+            priceType = (String) ((List<Object>) priceTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) priceTypeparametersVariable).get(1); // the endpoint defaults to INDEX
-            final Object finalPriceType = priceType;
+            final String finalPriceType = priceType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "priceType", finalPriceType );
@@ -2856,8 +2856,8 @@ public class Weex extends WeexApi
             }
             Integer maxLimit = 100;
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "paginate", false);
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -3857,8 +3857,8 @@ public class Weex extends WeexApi
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             Boolean isSpot = (java.util.Objects.equals(marketType, "spot"));
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate", false);
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             Integer maxLimit = 100;
             if (Boolean.TRUE.equals(paginate))
@@ -4184,8 +4184,8 @@ public class Weex extends WeexApi
             }
             Integer maxLimit = 1000;
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate", false);
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -4292,8 +4292,8 @@ public class Weex extends WeexApi
                 throw new NotSupported((this.id + " fetchCanceledAndClosedOrders() does not support spot markets. Use fetchOrders() instead and filter by status \"canceled\" or \"closed\"")) ;
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate", false);
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             Integer maxLimit = 1000;
             if (Boolean.TRUE.equals(paginate))
@@ -4696,8 +4696,8 @@ public class Weex extends WeexApi
                 throw new ArgumentsRequired((this.id + " fetchMyTrades() requires a symbol argument for spot markets")) ;
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate", false);
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             Integer maxLimit = 100;
             if (Boolean.TRUE.equals(paginate))
@@ -4823,8 +4823,8 @@ public class Weex extends WeexApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchLedger", "paginate", false);
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             Integer maxLimit = 100;
             if (Boolean.TRUE.equals(paginate))
@@ -5064,8 +5064,8 @@ public class Weex extends WeexApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate", false);
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -5932,13 +5932,13 @@ public class Weex extends WeexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            Object marginMode = null;
+            String marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters);
-            marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+            marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if (!java.util.Objects.equals(marginMode, null))
             {
-                ((Map<String, Object>)request).put("marginType", this.encodeMarginMode((String) (marginMode)));
+                ((Map<String, Object>)request).put("marginType", this.encodeMarginMode(marginMode));
             }
             Double isolatedLongLeverage = this.safeNumber(parameters, "isolatedLongLeverage");
             Double isolatedShortLeverage = this.safeNumber(parameters, "isolatedShortLeverage");
@@ -6056,9 +6056,9 @@ public class Weex extends WeexApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object marginMode = null;
+            String marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("setPositionMode", parameters);
-            marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+            marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if (java.util.Objects.equals(marginMode, null))
             {

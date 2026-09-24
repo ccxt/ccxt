@@ -1445,7 +1445,7 @@ export default class coinsph extends Exchange {
             } else if (orderSide === 'BUY') {
                 let quoteAmount: Str = undefined;
                 let createMarketBuyOrderRequiresPrice = true;
-                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionBoolAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 const cost = this.safeNumber2 (params, 'cost', 'quoteOrderQty');
                 params = this.omit (params, 'cost');
                 if (cost !== undefined) {

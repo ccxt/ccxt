@@ -1084,7 +1084,7 @@ func (this *Weex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 	var callerMethodName *string = this.SafeString(params, "callerMethodName", "watchOrderBookForSymbols")
 	params = ccxt.MapTyped(this.Omit(params, "callerMethodName"))
 	var depth any = "200"
-	var depthparamsVariable []any = this.HandleOptionAndParams(params, callerMethodName, "depth", depth)
+	var depthparamsVariable []any = this.HandleOptionStringAndParams(params, callerMethodName, "depth", depth)
 	depth = ccxt.GetValue(depthparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(depthparamsVariable, 1))
 	var messageHashes []any = []any{}
@@ -1165,7 +1165,7 @@ func (this *Weex) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	var callerMethodName *string = this.SafeString(params, "callerMethodName", "unWatchOrderBookForSymbols")
 	params = ccxt.MapTyped(this.Omit(params, "callerMethodName"))
 	var depth any = "200"
-	var depthparamsVariable []any = this.HandleOptionAndParams(params, callerMethodName, "depth", depth)
+	var depthparamsVariable []any = this.HandleOptionStringAndParams(params, callerMethodName, "depth", depth)
 	depth = ccxt.GetValue(depthparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(depthparamsVariable, 1))
 	var subHashes []any = []any{}

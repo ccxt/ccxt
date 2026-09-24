@@ -1005,7 +1005,7 @@ class blofin(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit  # default 100
         method = None
-        method, params = self.handle_option_and_params(params, 'fetchTrades', 'method', 'publicGetMarketTrades')
+        method, params = self.handle_option_string_and_params(params, 'fetchTrades', 'method', 'publicGetMarketTrades')
         if method == 'publicGetMarketTrades':
             response = await self.publicGetMarketTrades(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
@@ -1546,7 +1546,7 @@ class blofin(Exchange, ImplicitAPI):
         isTakeProfitPriceDefined = self.safe_string(params, 'takeProfitPrice') is not None
         isTriggerOrder = self.safe_string(params, 'triggerPrice') is not None
         isTpslEndpoint = False
-        isTpslEndpoint, params = self.handle_option_and_params(params, 'createOrder', 'tpsl', False)
+        isTpslEndpoint, params = self.handle_option_bool_and_params(params, 'createOrder', 'tpsl', False)
         isCombinedSlTp = (isStopLossPriceDefined and isTakeProfitPriceDefined) or isTpslEndpoint
         isSlOrTp = isStopLossPriceDefined or isTakeProfitPriceDefined
         response: dict
@@ -1725,7 +1725,7 @@ class blofin(Exchange, ImplicitAPI):
         isTrigger = self.safe_bool_n(params, ['stop', 'trigger'], False)
         isTpSl = self.safe_bool_2(params, 'tpsl', 'TPSL', False)
         method = None
-        method, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending')
+        method, params = self.handle_option_string_and_params(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending')
         query = self.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL'])
         response: dict
         if (isTpSl is True) or (method == 'privateGetTradeOrdersTpslPending'):
@@ -2727,7 +2727,7 @@ class blofin(Exchange, ImplicitAPI):
             request['begin'] = since
         isTrigger = self.safe_bool_n(params, ['stop', 'trigger', 'tpsl', 'TPSL'], False)
         method = None
-        method, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory')
+        method, params = self.handle_option_string_and_params(params, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory')
         query = self.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL'])
         response: dict
         if (isTrigger is True) or (method == 'privateGetTradeOrdersTpslHistory'):

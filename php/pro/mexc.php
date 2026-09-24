@@ -819,7 +819,7 @@ class mexc extends \ccxt\async\mexc {
         $orderbook = null;
         if ($market['spot'] === true) {
             $frequency = null;
-            list($frequency, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'frequency', '100ms');
+            list($frequency, $params) = $this->handle_option_string_and_params($params, 'watchOrderBook', 'frequency', '100ms');
             $channel = 'spot@public.aggre.depth.v3.api.pb@' . $frequency . '@' . $market['id'];
             $orderbook = Async\await($this->watch_spot_public($channel, $messageHash, $params));
         } else {
@@ -1984,7 +1984,7 @@ class mexc extends \ccxt\async\mexc {
         if ($market['spot'] === true) {
             $url = $this->urls['api']['ws']['spot'];
             $frequency = null;
-            list($frequency, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'frequency', '100ms');
+            list($frequency, $params) = $this->handle_option_string_and_params($params, 'watchOrderBook', 'frequency', '100ms');
             $channel = 'spot@public.aggre.depth.v3.api.pb@' . $frequency . '@' . $market['id'];
             $params['unsubscribed'] = true;
             $this->spawn(array($this, 'watch_spot_public'), $channel, $messageHash, $params);

@@ -881,7 +881,7 @@ func (this *Deepcoin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var maxLimit int = 300
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -1316,7 +1316,7 @@ func (this *Deepcoin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchDeposits", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchDeposits", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -1388,7 +1388,7 @@ func (this *Deepcoin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchWithdrawals", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -2091,7 +2091,7 @@ func (this *Deepcoin) CreateRegularOrderRequest(symbol any, typeVar any, side an
 		params = MapTyped(GetValue(marginModeparamsVariable, 1))
 		request["tdMode"] = marginMode
 		var mrgPosition any = "merge"
-		var mrgPositionparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "mrgPosition", mrgPosition)
+		var mrgPositionparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "mrgPosition", mrgPosition)
 		mrgPosition = GetValue(mrgPositionparamsVariable, 0)
 		params = MapTyped(GetValue(mrgPositionparamsVariable, 1))
 		request["mrgPosition"] = mrgPosition
@@ -2193,7 +2193,7 @@ func (this *Deepcoin) CreateTriggerOrderRequest(symbol any, typeVar any, side an
 		}
 	}
 	var mrgPosition any = "merge"
-	var mrgPositionparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "mrgPosition", mrgPosition)
+	var mrgPositionparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "mrgPosition", mrgPosition)
 	mrgPosition = GetValue(mrgPositionparamsVariable, 0)
 	params = MapTyped(GetValue(mrgPositionparamsVariable, 1))
 	request["mrgPosition"] = mrgPosition
@@ -2919,7 +2919,7 @@ func (this *Deepcoin) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 		}
 	}
 	var merged any = true
-	var mergedparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrders", "merged", merged)
+	var mergedparamsVariable []any = this.HandleOptionBoolAndParams(params, "cancelAllOrders", "merged", merged)
 	merged = GetValue(mergedparamsVariable, 0)
 	params = MapTyped(GetValue(mergedparamsVariable, 1))
 	var isMergedMode int = func() int {
@@ -3443,7 +3443,7 @@ func (this *Deepcoin) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 		panic(BadRequest(this.Id + " setLeverage() requires a marginMode parameter that must be either cross or isolated"))
 	}
 	var mrgPosition any = "merge"
-	var mrgPositionparamsVariable []any = this.HandleOptionAndParams(params, "setLeverage", "mrgPosition", mrgPosition)
+	var mrgPositionparamsVariable []any = this.HandleOptionStringAndParams(params, "setLeverage", "mrgPosition", mrgPosition)
 	mrgPosition = GetValue(mrgPositionparamsVariable, 0)
 	params = MapTyped(GetValue(mrgPositionparamsVariable, 1))
 	if (!IsEqual(mrgPosition, "merge")) && (!IsEqual(mrgPosition, "split")) {

@@ -1212,7 +1212,7 @@ export default class bingx extends Exchange {
         const market = this.market (symbol);
         const maxLimit = (market['inverse'] === true) ? 1000 : 1440;
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
         }
@@ -2501,7 +2501,7 @@ export default class bingx extends Exchange {
         }
         let response: Dict;
         let standard: Bool = undefined;
-        [ standard, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'standard', false);
+        [ standard, params ] = this.handleOptionBoolAndParams (params, 'fetchBalance', 'standard', false);
         let subType: Str = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
         const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
@@ -2808,7 +2808,7 @@ export default class bingx extends Exchange {
         }
         symbols = this.marketSymbols (symbols);
         let standard: Bool = undefined;
-        [ standard, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'standard', false);
+        [ standard, params ] = this.handleOptionBoolAndParams (params, 'fetchPositions', 'standard', false);
         let response: Dict;
         if (standard) {
             response = await this.contractV1PrivateGetAllPosition (params);
@@ -5114,7 +5114,7 @@ export default class bingx extends Exchange {
         let response: Dict;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchCanceledAndClosedOrders', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchCanceledAndClosedOrders', market, params);
-        [ standard, params ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'standard', false);
+        [ standard, params ] = this.handleOptionBoolAndParams (params, 'fetchCanceledAndClosedOrders', 'standard', false);
         if (standard) {
             response = await this.contractV1PrivateGetAllOrders (this.extend (request, params));
         } else if (type === 'spot') {
@@ -5388,7 +5388,7 @@ export default class bingx extends Exchange {
         }
         const maxLimit = 100;
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate', false);
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchTransfers', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchTransfers', code, since, limit, params, maxLimit);
         }

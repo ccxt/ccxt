@@ -649,7 +649,7 @@ class nado extends \ccxt\async\nado {
             $productId = $this->parse_to_int($market['id']);
         }
         $subaccount = null;
-        list($subaccount, $params) = $this->handle_option_and_params($params, 'watchOrders', 'subaccount', 'default');
+        list($subaccount, $params) = $this->handle_option_string_and_params($params, 'watchOrders', 'subaccount', 'default');
         $sender = $this->create_subaccount($this->walletAddress, $subaccount);
         $stream = array(
             'type' => 'order_update',
@@ -691,7 +691,7 @@ class nado extends \ccxt\async\nado {
             $productId = $this->parse_to_int($market['id']);
         }
         $subaccount = null;
-        list($subaccount, $params) = $this->handle_option_and_params($params, 'unWatchOrders', 'subaccount', 'default');
+        list($subaccount, $params) = $this->handle_option_string_and_params($params, 'unWatchOrders', 'subaccount', 'default');
         $sender = $this->create_subaccount($this->walletAddress, $subaccount);
         $stream = array(
             'type' => 'order_update',
@@ -732,7 +732,7 @@ class nado extends \ccxt\async\nado {
             $productId = $this->parse_to_int($market['id']);
         }
         $subaccount = null;
-        list($subaccount, $params) = $this->handle_option_and_params($params, 'watchMyTrades', 'subaccount', 'default');
+        list($subaccount, $params) = $this->handle_option_string_and_params($params, 'watchMyTrades', 'subaccount', 'default');
         $sender = $this->create_subaccount($this->walletAddress, $subaccount);
         $stream = array(
             'type' => 'fill',
@@ -774,7 +774,7 @@ class nado extends \ccxt\async\nado {
             $productId = $this->parse_to_int($market['id']);
         }
         $subaccount = null;
-        list($subaccount, $params) = $this->handle_option_and_params($params, 'unWatchMyTrades', 'subaccount', 'default');
+        list($subaccount, $params) = $this->handle_option_string_and_params($params, 'unWatchMyTrades', 'subaccount', 'default');
         $sender = $this->create_subaccount($this->walletAddress, $subaccount);
         $stream = array(
             'type' => 'fill',
@@ -817,7 +817,7 @@ class nado extends \ccxt\async\nado {
             }
         }
         $subaccount = null;
-        list($subaccount, $params) = $this->handle_option_and_params($params, 'watchPositions', 'subaccount', 'default');
+        list($subaccount, $params) = $this->handle_option_string_and_params($params, 'watchPositions', 'subaccount', 'default');
         $sender = $this->create_subaccount($this->walletAddress, $subaccount);
         $stream = array(
             'type' => 'position_change',
@@ -861,7 +861,7 @@ class nado extends \ccxt\async\nado {
             }
         }
         $subaccount = null;
-        list($subaccount, $params) = $this->handle_option_and_params($params, 'unWatchPositions', 'subaccount', 'default');
+        list($subaccount, $params) = $this->handle_option_string_and_params($params, 'unWatchPositions', 'subaccount', 'default');
         $sender = $this->create_subaccount($this->walletAddress, $subaccount);
         $stream = array(
             'type' => 'position_change',
@@ -1228,7 +1228,7 @@ class nado extends \ccxt\async\nado {
         $recvWindow = null;
         list($recvWindow, $params) = $this->handle_option_and_params($params, 'authenticate', 'recvWindow', 5000);
         $subaccount = null;
-        list($subaccount, $params) = $this->handle_option_and_params($params, 'authenticate', 'subaccount', 'default');
+        list($subaccount, $params) = $this->handle_option_string_and_params($params, 'authenticate', 'subaccount', 'default');
         $id = $this->request_id();
         $sender = $this->create_subaccount($this->walletAddress, $subaccount);
         $expiration = $this->sum($this->milliseconds(), $recvWindow);

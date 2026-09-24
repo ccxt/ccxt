@@ -999,8 +999,8 @@ public partial class alpaca : Exchange
         string? loc = this.safeString(parameters, "loc", "us");
         string? method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocBars");
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         object paginationCalls = 10;
         IList<object> paginationCallsparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginationCalls", 10);
@@ -1735,14 +1735,14 @@ public partial class alpaca : Exchange
         {
             request["limit_price"] = this.priceToPrecision(symbol, price);
         }
-        object timeInForce = null;
-        IList<object> timeInForceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "editOrder", "timeInForce", "gtc");
-        timeInForce = timeInForceparametersVariable[0];
+        string? timeInForce = null;
+        IList<object> timeInForceparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "editOrder", "timeInForce", "gtc");
+        timeInForce = (string)timeInForceparametersVariable[0];
         parameters = timeInForceparametersVariable[1];
         if ((timeInForce != null))
         {
             // the venue only accepts lowercase values, normalize the unified uppercase spellings
-            request["time_in_force"] = ((string)timeInForce).ToLower();
+            request["time_in_force"] = timeInForce.ToLower();
         }
         request["client_order_id"] = this.generateClientOrderId(parameters);
         parameters = this.omit(parameters, new List<object>() {"clientOrderId"});

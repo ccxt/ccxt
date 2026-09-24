@@ -998,8 +998,8 @@ public class Cryptomus extends CryptomusApi
                 if (Boolean.TRUE.equals(sideBuy))
                 {
                     Boolean createMarketBuyOrderRequiresPrice = true;
-                    List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                    createMarketBuyOrderRequiresPrice = Boolean.TRUE.equals(((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0));
+                    List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                    createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                     parameters = (Map<String, Object>) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                     if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                     {

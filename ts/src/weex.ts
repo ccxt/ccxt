@@ -1417,7 +1417,7 @@ export default class weex extends Exchange {
             throw new NotSupported (this.id + ' fetchMarkPrice() supports contract markets only');
         }
         let priceType: Str = undefined;
-        [ priceType, params ] = this.handleOptionAndParams (params, 'fetchMarkPrice', 'priceType', 'MARK'); // the endpoint defaults to INDEX
+        [ priceType, params ] = this.handleOptionStringAndParams (params, 'fetchMarkPrice', 'priceType', 'MARK'); // the endpoint defaults to INDEX
         const request: Dict = {
             'symbol': market['id'],
             'priceType': priceType,
@@ -2121,7 +2121,7 @@ export default class weex extends Exchange {
         }
         const maxLimit = 100;
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate', false);
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchTransfers', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchTransfers', code, since, limit, params, maxLimit);
         }
@@ -2756,7 +2756,7 @@ export default class weex extends Exchange {
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         const isSpot = (marketType === 'spot');
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate', false);
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOpenOrders', 'paginate', false);
         const maxLimit = 100;
         if (paginate) {
             if (isSpot) {
@@ -2968,7 +2968,7 @@ export default class weex extends Exchange {
         }
         const maxLimit = 1000;
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate', false);
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, params, maxLimit);
         }
@@ -3035,7 +3035,7 @@ export default class weex extends Exchange {
             throw new NotSupported (this.id + ' fetchCanceledAndClosedOrders() does not support spot markets. Use fetchOrders() instead and filter by status "canceled" or "closed"');
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'paginate', false);
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchCanceledAndClosedOrders', 'paginate', false);
         const maxLimit = 1000;
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchCanceledAndClosedOrders', symbol, since, limit, params, maxLimit);
@@ -3347,7 +3347,7 @@ export default class weex extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument for spot markets');
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate', false);
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         const maxLimit = 100;
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params, maxLimit);
@@ -3432,7 +3432,7 @@ export default class weex extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate', false);
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchLedger', 'paginate', false);
         const maxLimit = 100;
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params, maxLimit);
@@ -3606,7 +3606,7 @@ export default class weex extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate', false);
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchFundingHistory', symbol, since, limit, params, 100) as FundingHistory[];
         }

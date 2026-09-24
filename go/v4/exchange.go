@@ -755,6 +755,34 @@ func (this *BaseExchange) ConvertToSafeDictionary(data any) any {
 	return data
 }
 
+// a present option value of another type is a user error: panic instead of coercing
+func (this *BaseExchange) CheckOptionString(methodName any, optionName any, value any) *string {
+	if value = derefScalar(value); value == nil {
+		return nil
+	}
+	if s, ok := value.(string); ok {
+		return &s
+	}
+	panic(BadRequest(this.Id + " " + optionMethodLabel(methodName) + " option " + ToString(optionName) + " must be a string"))
+}
+
+func (this *BaseExchange) CheckOptionBool(methodName any, optionName any, value any) *bool {
+	if value = derefScalar(value); value == nil {
+		return nil
+	}
+	if b, ok := value.(bool); ok {
+		return &b
+	}
+	panic(BadRequest(this.Id + " " + optionMethodLabel(methodName) + " option " + ToString(optionName) + " must be a boolean"))
+}
+
+func optionMethodLabel(methodName any) string {
+	if methodName = derefScalar(methodName); methodName == nil {
+		return "exchange-wide"
+	}
+	return ToString(methodName) + "()"
+}
+
 func (this *BaseExchange) CallDynamically(name2 any, args ...any) <-chan any {
 	return this.callInternal(name2.(string), args...)
 }

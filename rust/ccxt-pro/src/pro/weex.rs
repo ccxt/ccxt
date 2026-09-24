@@ -1352,7 +1352,7 @@ impl WeexCore {
         let mut callerMethodName: Value = self.safe_string_k(params.clone(), "callerMethodName", &[Value::Str("watchOrderBookForSymbols".into())]);
         params = self.omit(params.clone(), Value::Str("callerMethodName".into()), &[]);
         let mut depth: Value = Value::Str("200".into());
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), callerMethodName, Value::Str("depth".into()), &[depth.clone()]); depth = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), callerMethodName, Value::Str("depth".into()), &[depth.clone()]); depth = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut messageHashes: Value = Value::from(vec![]);
         let mut channels: Value = Value::from(vec![]);
         {
@@ -1427,7 +1427,7 @@ impl WeexCore {
         let mut callerMethodName: Value = self.safe_string_k(params.clone(), "callerMethodName", &[Value::Str("unWatchOrderBookForSymbols".into())]);
         params = self.omit(params.clone(), Value::Str("callerMethodName".into()), &[]);
         let mut depth: Value = Value::Str("200".into());
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), callerMethodName, Value::Str("depth".into()), &[depth.clone()]); depth = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), callerMethodName, Value::Str("depth".into()), &[depth.clone()]); depth = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut subHashes: Value = Value::from(vec![]);
         let mut channels: Value = Value::from(vec![]);
         let mut unSubHashes: Value = Value::from(vec![]);

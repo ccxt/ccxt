@@ -156,7 +156,7 @@ class grvt(ccxt.async_support.grvt):
         if symbols is None:
             raise ArgumentsRequired(self.id + ' watchTickers requires a symbols argument')
         channel = None
-        channel, params = self.handle_option_and_params(params, 'watchTickers', 'channel', 'v1.ticker.s')
+        channel, params = self.handle_option_string_and_params(params, 'watchTickers', 'channel', 'v1.ticker.s')
         interval = 500
         interval, params = self.handle_option_and_params(params, 'watchTickers', 'interval', interval)
         if self.markets is None:
@@ -495,7 +495,7 @@ class grvt(ccxt.async_support.grvt):
         if self.markets is None:
             await self.load_markets()
         channel = None
-        channel, params = self.handle_option_and_params(params, 'watchOrderBook', 'channel', 'v1.book.d')
+        channel, params = self.handle_option_string_and_params(params, 'watchOrderBook', 'channel', 'v1.book.d')
         isSnapshot = channel == 'v1.book.s'
         symbolsLength = len(symbols)
         if symbolsLength == 0:

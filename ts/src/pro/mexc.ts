@@ -781,7 +781,7 @@ export default class mexc extends mexcRest {
         let orderbook: any = undefined;
         if (market['spot'] === true) {
             let frequency: Str = undefined;
-            [ frequency, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'frequency', '100ms');
+            [ frequency, params ] = this.handleOptionStringAndParams (params, 'watchOrderBook', 'frequency', '100ms');
             const channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + market['id'];
             orderbook = await this.watchSpotPublic (channel, messageHash, params);
         } else {
@@ -1915,7 +1915,7 @@ export default class mexc extends mexcRest {
         if (market['spot'] === true) {
             url = this.urls['api']['ws']['spot'];
             let frequency: Str = undefined;
-            [ frequency, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'frequency', '100ms');
+            [ frequency, params ] = this.handleOptionStringAndParams (params, 'watchOrderBook', 'frequency', '100ms');
             const channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + market['id'];
             params['unsubscribed'] = true;
             this.spawn (this.watchSpotPublic, channel, messageHash, params);

@@ -863,7 +863,7 @@ func (this *Nado) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		productId = this.ParseToInt(ccxt.GetValue(market, "id"))
 	}
 	var subaccount any = nil
-	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "watchOrders", "subaccount", "default")
+	var subaccountparamsVariable []any = this.HandleOptionStringAndParams(params, "watchOrders", "subaccount", "default")
 	subaccount = ccxt.GetValue(subaccountparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(subaccountparamsVariable, 1))
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
@@ -919,7 +919,7 @@ func (this *Nado) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 		productId = this.ParseToInt(ccxt.GetValue(market, "id"))
 	}
 	var subaccount any = nil
-	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "unWatchOrders", "subaccount", "default")
+	var subaccountparamsVariable []any = this.HandleOptionStringAndParams(params, "unWatchOrders", "subaccount", "default")
 	subaccount = ccxt.GetValue(subaccountparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(subaccountparamsVariable, 1))
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
@@ -977,7 +977,7 @@ func (this *Nado) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		productId = this.ParseToInt(ccxt.GetValue(market, "id"))
 	}
 	var subaccount any = nil
-	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "watchMyTrades", "subaccount", "default")
+	var subaccountparamsVariable []any = this.HandleOptionStringAndParams(params, "watchMyTrades", "subaccount", "default")
 	subaccount = ccxt.GetValue(subaccountparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(subaccountparamsVariable, 1))
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
@@ -1033,7 +1033,7 @@ func (this *Nado) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		productId = this.ParseToInt(ccxt.GetValue(market, "id"))
 	}
 	var subaccount any = nil
-	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "unWatchMyTrades", "subaccount", "default")
+	var subaccountparamsVariable []any = this.HandleOptionStringAndParams(params, "unWatchMyTrades", "subaccount", "default")
 	subaccount = ccxt.GetValue(subaccountparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(subaccountparamsVariable, 1))
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
@@ -1093,7 +1093,7 @@ func (this *Nado) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 	var subaccount any = nil
-	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "watchPositions", "subaccount", "default")
+	var subaccountparamsVariable []any = this.HandleOptionStringAndParams(params, "watchPositions", "subaccount", "default")
 	subaccount = ccxt.GetValue(subaccountparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(subaccountparamsVariable, 1))
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
@@ -1154,7 +1154,7 @@ func (this *Nado) unWatchPositionsBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 	var subaccount any = nil
-	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "unWatchPositions", "subaccount", "default")
+	var subaccountparamsVariable []any = this.HandleOptionStringAndParams(params, "unWatchPositions", "subaccount", "default")
 	subaccount = ccxt.GetValue(subaccountparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(subaccountparamsVariable, 1))
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
@@ -1653,7 +1653,7 @@ func (this *Nado) authenticateBody(ch chan any, optionalArgs ...any) any {
 	recvWindow = ccxt.GetValue(recvWindowparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(recvWindowparamsVariable, 1))
 	var subaccount any = nil
-	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "authenticate", "subaccount", "default")
+	var subaccountparamsVariable []any = this.HandleOptionStringAndParams(params, "authenticate", "subaccount", "default")
 	subaccount = ccxt.GetValue(subaccountparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(subaccountparamsVariable, 1))
 	var id int64 = this.RequestId()

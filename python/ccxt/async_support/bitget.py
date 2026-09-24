@@ -5768,7 +5768,7 @@ class bitget(Exchange, ImplicitAPI):
             quantity = None
             planType = None
             createMarketBuyOrderRequiresPrice = True
-            createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+            createMarketBuyOrderRequiresPrice, params = self.handle_option_bool_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
             if isMarketOrder and (side == 'buy'):
                 planType = 'total'
                 cost = self.safe_number(params, 'cost')
@@ -8383,7 +8383,7 @@ class bitget(Exchange, ImplicitAPI):
         if useHistoryEndpoint is True:
             method = 'privateMixGetV2MixPositionHistoryPosition'
         else:
-            method, params = self.handle_option_and_params(params, 'fetchPositions', 'method', 'privateMixGetV2MixPositionAllPosition')
+            method, params = self.handle_option_string_and_params(params, 'fetchPositions', 'method', 'privateMixGetV2MixPositionAllPosition')
         market = None
         if symbols is not None:
             first = self.safe_string(symbols, 0)
@@ -8894,7 +8894,7 @@ class bitget(Exchange, ImplicitAPI):
         else:
             request['productType'] = productType
             method = None
-            method, params = self.handle_option_and_params(params, 'fetchFundingRate', 'method', 'publicMixGetV2MixMarketCurrentFundRate')
+            method, params = self.handle_option_string_and_params(params, 'fetchFundingRate', 'method', 'publicMixGetV2MixMarketCurrentFundRate')
             if method == 'publicMixGetV2MixMarketCurrentFundRate':
                 response = await self.publicMixGetV2MixMarketCurrentFundRate(self.extend(request, params))
                 #
@@ -8956,7 +8956,7 @@ class bitget(Exchange, ImplicitAPI):
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
         method = 'publicMixGetV2MixMarketTickers'
-        method, params = self.handle_option_and_params(params, 'fetchFundingRates', 'method', method)
+        method, params = self.handle_option_string_and_params(params, 'fetchFundingRates', 'method', method)
         response = None
         request['productType'] = productType
         if method == 'publicMixGetV2MixMarketTickers':

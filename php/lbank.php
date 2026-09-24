@@ -1686,7 +1686,7 @@ class lbank extends Exchange {
                 $request['type'] = $side . '_' . 'market';
                 $quoteAmount = null;
                 $createMarketBuyOrderRequiresPrice = true;
-                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_bool_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 $cost = $this->safe_number($params, 'cost');
                 $params = $this->omit($params, 'cost');
                 if ($cost !== null) {

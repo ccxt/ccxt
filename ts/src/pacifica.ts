@@ -1246,7 +1246,7 @@ export default class pacifica extends Exchange {
         }
         const market = this.market (symbol);
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, defaultMaxLimit) as OHLCV[];
         }
@@ -1388,7 +1388,7 @@ export default class pacifica extends Exchange {
             market = this.market (symbol);
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate', false);
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         let userAddress: Str = undefined;
         [ userAddress, params ] = this.handleOriginAndSingleAddress ('fetchMyTrades', params);
         const defaultLimit = 100;  // Default max limit
@@ -2115,7 +2115,7 @@ export default class pacifica extends Exchange {
         }
         const market = this.market (symbol);
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         const defaultLimit = 100;  // Default max limit
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchFundingRateHistory', symbol, since, limit, params, 'next_cursor', 'cursor', undefined, defaultLimit) as FundingRateHistory[];
@@ -2381,7 +2381,7 @@ export default class pacifica extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate', false);
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOrders', 'paginate', false);
         const defaultLimit = 100; // max default 100
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchOrders', symbol, since, limit, params, 'next_cursor', 'cursor', undefined, defaultLimit) as Order[];
@@ -3093,7 +3093,7 @@ export default class pacifica extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate', false);
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchLedger', 'paginate', false);
         let userAddress: Str = undefined;
         [ userAddress, params ] = this.handleOriginAndSingleAddress ('fetchLedger', params);
         const defaultLimit = 100; // Default max limit
@@ -3203,7 +3203,7 @@ export default class pacifica extends Exchange {
             market = this.market (symbol);
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate', false);
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingHistory', 'paginate', false);
         let userAddress: Str = undefined;
         [ userAddress, params ] = this.handleOriginAndSingleAddress ('fetchFundingHistory', params);
         const request: Dict = {

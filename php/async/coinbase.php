@@ -1522,7 +1522,7 @@ class coinbase extends Exchange {
 
     private function do_fetch_markets_v3($params = array()) {
         $usePrivate = false;
-        list($usePrivate, $params) = $this->handle_option_and_params($params, 'fetchMarkets', 'usePrivate', false);
+        list($usePrivate, $params) = $this->handle_option_bool_and_params($params, 'fetchMarkets', 'usePrivate', false);
         $spotUnresolvedPromises = array();
         if ($usePrivate) {
             $spotUnresolvedPromises[] = $this->v3PrivateGetBrokerageProducts($params);
@@ -2227,7 +2227,7 @@ class coinbase extends Exchange {
         }
         $response = null;
         $usePrivate = false;
-        list($usePrivate, $params) = $this->handle_option_and_params($params, 'fetchTickers', 'usePrivate', false);
+        list($usePrivate, $params) = $this->handle_option_bool_and_params($params, 'fetchTickers', 'usePrivate', false);
         if ($usePrivate) {
             $response = Async\await($this->v3PrivateGetBrokerageProducts($this->extend($request, $params)));
         } else {
@@ -2355,7 +2355,7 @@ class coinbase extends Exchange {
             'limit' => 1,
         );
         $usePrivate = false;
-        list($usePrivate, $params) = $this->handle_option_and_params($params, 'fetchTicker', 'usePrivate', false);
+        list($usePrivate, $params) = $this->handle_option_bool_and_params($params, 'fetchTicker', 'usePrivate', false);
         $response = null;
         if ($usePrivate) {
             $response = Async\await($this->v3PrivateGetBrokerageProductsProductIdTicker($this->extend($request, $params)));
@@ -3310,7 +3310,7 @@ class coinbase extends Exchange {
             if (($market['spot'] === true) && ($side === 'buy')) {
                 $total = null;
                 $createMarketBuyOrderRequiresPrice = true;
-                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_bool_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 $cost = $this->safe_number($params, 'cost');
                 $params = $this->omit($params, 'cost');
                 if ($cost !== null) {
@@ -4058,7 +4058,7 @@ class coinbase extends Exchange {
         $maxLimit = 300;
         $limit = ($limit === null) ? $maxLimit : min($limit, $maxLimit);
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimit - 1));
         }
@@ -4087,7 +4087,7 @@ class coinbase extends Exchange {
         }
         $response = null;
         $usePrivate = false;
-        list($usePrivate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'usePrivate', false);
+        list($usePrivate, $params) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'usePrivate', false);
         if ($usePrivate) {
             $response = Async\await($this->v3PrivateGetBrokerageProductsProductIdCandles($this->extend($request, $params)));
         } else {
@@ -4174,7 +4174,7 @@ class coinbase extends Exchange {
         }
         $response = null;
         $usePrivate = false;
-        list($usePrivate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'usePrivate', false);
+        list($usePrivate, $params) = $this->handle_option_bool_and_params($params, 'fetchTrades', 'usePrivate', false);
         if ($usePrivate) {
             $response = Async\await($this->v3PrivateGetBrokerageProductsProductIdTicker($this->extend($request, $params)));
         } else {
@@ -4308,7 +4308,7 @@ class coinbase extends Exchange {
         }
         $response = null;
         $usePrivate = false;
-        list($usePrivate, $params) = $this->handle_option_and_params($params, 'fetchOrderBook', 'usePrivate', false);
+        list($usePrivate, $params) = $this->handle_option_bool_and_params($params, 'fetchOrderBook', 'usePrivate', false);
         if ($usePrivate) {
             $response = Async\await($this->v3PrivateGetBrokerageProductBook($this->extend($request, $params)));
         } else {

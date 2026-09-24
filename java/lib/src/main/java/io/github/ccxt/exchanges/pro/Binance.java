@@ -1004,10 +1004,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             watchOrderBookRate = ((List<Object>) watchOrderBookRateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) watchOrderBookRateparametersVariable).get(1);
             Boolean rpi = null;
-            List<Object> rpiparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "rpi", false);
-            rpi = Helpers.isTrue(((List<Object>) rpiparametersVariable).get(0));
+            List<Object> rpiparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchOrderBookForSymbols", "rpi", false);
+            rpi = (Boolean) ((List<Object>) rpiparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) rpiparametersVariable).get(1);
-            if (Helpers.isTrue(rpi) && java.util.Objects.equals(type, "future"))
+            if (Boolean.TRUE.equals(rpi) && java.util.Objects.equals(type, "future"))
             {
                 name = "rpiDepth";
                 watchOrderBookRate = "500";
@@ -1257,9 +1257,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), marketType);
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
-            Object returnRateLimits = false;
-            List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrderBookWs", "returnRateLimits", false);
-            returnRateLimits = ((List<Object>) returnRateLimitsparametersVariable).get(0);
+            Boolean returnRateLimits = false;
+            List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrderBookWs", "returnRateLimits", false);
+            returnRateLimits = (Boolean) ((List<Object>) returnRateLimitsparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) returnRateLimitsparametersVariable).get(1);
             ((Map<String, Object>)payload).put("returnRateLimits", returnRateLimits);
             parameters = (Map<String, Object>) this.omit(parameters, "test");
@@ -1671,9 +1671,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 }
                 streamHash = (streamHash + ("::" + String.join(",", (List<String>)symbols)));
             }
-            Object name = null;
-            List<Object> nameparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTradesForSymbols", "name", "trade");
-            name = ((List<Object>) nameparametersVariable).get(0);
+            String name = null;
+            List<Object> nameparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchTradesForSymbols", "name", "trade");
+            name = (String) ((List<Object>) nameparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) nameparametersVariable).get(1);
             parameters = (Map<String, Object>) this.omit(parameters, "callerMethodName");
             Map<String, Object> firstMarket = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
@@ -1714,13 +1714,13 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                     ((List<Object>)messageHashes).add(("trade::" + symbol));
-                    String rawHash = Helpers.add((((Map<String, Object>)market).get("lowercaseId") + "@"), name);
+                    String rawHash = ((((Map<String, Object>)market).get("lowercaseId") + "@") + name);
                     ((List<Object>)subParams).add(rawHash);
                 }
             }
             Object query = this.omit(parameters, "type");
             Integer subParamsLength = ((List<?>)subParams).size();
-            Object url = Helpers.add(Helpers.add(this.getWsUrl(type, this.getFutureWsCategory((String) (name))), "/"), this.stream(type, streamHash, subParamsLength));
+            Object url = Helpers.add(Helpers.add(this.getWsUrl(type, this.getFutureWsCategory(name)), "/"), this.stream(type, streamHash, subParamsLength));
             Long requestId = this.requestId(url);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "SUBSCRIBE" );
@@ -1796,9 +1796,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 }
                 streamHash = (streamHash + ("::" + String.join(",", (List<String>)symbols)));
             }
-            Object name = null;
-            List<Object> nameparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTradesForSymbols", "name", "trade");
-            name = ((List<Object>) nameparametersVariable).get(0);
+            String name = null;
+            List<Object> nameparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchTradesForSymbols", "name", "trade");
+            name = (String) ((List<Object>) nameparametersVariable).get(0);
             parameters = ((List<Object>) nameparametersVariable).get(1);
             parameters = this.omit(parameters, "callerMethodName");
             Map<String, Object> firstMarket = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
@@ -1842,13 +1842,13 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                     ((List<Object>)subMessageHashes).add(("trade::" + symbol));
                     ((List<Object>)messageHashes).add(("unsubscribe:trade:" + symbol));
-                    String rawHash = Helpers.add((((Map<String, Object>)market).get("lowercaseId") + "@"), name);
+                    String rawHash = ((((Map<String, Object>)market).get("lowercaseId") + "@") + name);
                     ((List<Object>)subParams).add(rawHash);
                 }
             }
             Object query = this.omit(parameters, "type");
             Integer subParamsLength = ((List<?>)subParams).size();
-            Object url = Helpers.add(Helpers.add(this.getWsUrl(type, this.getFutureWsCategory((String) (name))), "/"), this.stream(type, streamHash, subParamsLength));
+            Object url = Helpers.add(Helpers.add(this.getWsUrl(type, this.getFutureWsCategory(name)), "/"), this.stream(type, streamHash, subParamsLength));
             Long requestId = this.requestId(url);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "UNSUBSCRIBE" );
@@ -2286,8 +2286,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 (this.loadMarkets()).join();
             }
             Boolean stock = false;
-            List<Object> stockparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOHLCVForSymbols", "stock", false);
-            stock = Boolean.TRUE.equals(((List<Object>) stockparametersVariable).get(0));
+            List<Object> stockparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchOHLCVForSymbols", "stock", false);
+            stock = (Boolean) ((List<Object>) stockparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) stockparametersVariable).get(1);
             if (Boolean.TRUE.equals(stock))
             {
@@ -2678,17 +2678,17 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "method", "handleTickerWs");
             }};
-            Object returnRateLimits = false;
-            List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTickerWs", "returnRateLimits", false);
-            returnRateLimits = ((List<Object>) returnRateLimitsparametersVariable).get(0);
+            Boolean returnRateLimits = false;
+            List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTickerWs", "returnRateLimits", false);
+            returnRateLimits = (Boolean) ((List<Object>) returnRateLimitsparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) returnRateLimitsparametersVariable).get(1);
             ((Map<String, Object>)payload).put("returnRateLimits", returnRateLimits);
             parameters = (Map<String, Object>) this.omit(parameters, "test");
-            Object method = null;
-            List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTickerWs", "method", "ticker.book");
-            method = ((List<Object>) methodparametersVariable).get(0);
+            String method = null;
+            List<Object> methodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchTickerWs", "method", "ticker.book");
+            method = (String) ((List<Object>) methodparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
-            final Object finalMethod = method;
+            final String finalMethod = method;
             final Map<String, Object> finalParameters = parameters;
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", messageHash );
@@ -2753,11 +2753,11 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), marketType);
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
-            Object returnRateLimits = false;
-            List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCVWs", "returnRateLimits", false);
-            returnRateLimits = ((List<Object>) returnRateLimitsparametersVariable).get(0);
+            Boolean returnRateLimits = false;
+            List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCVWs", "returnRateLimits", false);
+            returnRateLimits = (Boolean) ((List<Object>) returnRateLimitsparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) returnRateLimitsparametersVariable).get(1);
-            final Object finalReturnRateLimits = returnRateLimits;
+            final Boolean finalReturnRateLimits = returnRateLimits;
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "symbol", Binance.this.marketId((String) (symbol)) );
                 put( "returnRateLimits", finalReturnRateLimits );
@@ -2970,7 +2970,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             // for now watchmarkPrice uses the same messageHash as watchTicker
             // so it's impossible to watch both at the same time
             // refactor this to use different messageHashes
-            List<Object> channelNameparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchMarkPrices", "name", "markPrice");
+            List<Object> channelNameparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchMarkPrices", "name", "markPrice");
             channelName = ((List<Object>) channelNameparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) channelNameparametersVariable).get(1);
             Object newTickers = (this.watchMultiTickerHelper("watchMarkPrices", (String) (channelName), symbols, parameters)).join();
@@ -3021,8 +3021,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             List<String> symbols = symbols3;
             Map<String, Object> parameters = parameters3;
             Boolean stock = false;
-            List<Object> stockparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "stock", false);
-            stock = Boolean.TRUE.equals(((List<Object>) stockparametersVariable).get(0));
+            List<Object> stockparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchTickers", "stock", false);
+            stock = (Boolean) ((List<Object>) stockparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) stockparametersVariable).get(1);
             if (Boolean.TRUE.equals(stock))
             {
@@ -3039,7 +3039,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 return this.filterByArray(this.tickers, "symbol", symbols);
             }
             Object channelName = null;
-            List<Object> channelNameparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "name", "miniTicker");
+            List<Object> channelNameparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchTickers", "name", "miniTicker");
             channelName = ((List<Object>) channelNameparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) channelNameparametersVariable).get(1);
             if (java.util.Objects.equals(channelName, "bookTicker"))
@@ -3096,7 +3096,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         return BaseExchange.supplyAsync(() -> {
             Object parameters = parameters3;
             Object channelName = null;
-            List<Object> channelNameparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "name", "ticker");
+            List<Object> channelNameparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchTickers", "name", "ticker");
             channelName = ((List<Object>) channelNameparametersVariable).get(0);
             parameters = ((List<Object>) channelNameparametersVariable).get(1);
             if (java.util.Objects.equals(channelName, "bookTicker"))
@@ -3145,7 +3145,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         return BaseExchange.supplyAsync(() -> {
             Object parameters = parameters3;
             Object channelName = null;
-            List<Object> channelNameparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchMarkPrices", "name", "markPrice");
+            List<Object> channelNameparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchMarkPrices", "name", "markPrice");
             channelName = ((List<Object>) channelNameparametersVariable).get(0);
             parameters = ((List<Object>) channelNameparametersVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
@@ -3319,8 +3319,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 (this.loadMarkets()).join();
             }
             Boolean stock = false;
-            List<Object> stockparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchBidsAsks", "stock", false);
-            stock = Boolean.TRUE.equals(((List<Object>) stockparametersVariable).get(0));
+            List<Object> stockparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchBidsAsks", "stock", false);
+            stock = (Boolean) ((List<Object>) stockparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) stockparametersVariable).get(1);
             if (Boolean.TRUE.equals(stock))
             {
@@ -4240,8 +4240,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object type = ((List<Object>)resolvedAuth).get(0);
             parameters = ((List<Object>)resolvedAuth).get(2);
             Boolean isPortfolioMargin = null;
-            List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "authenticate", "papi", "portfolioMargin", false);
-            isPortfolioMargin = Helpers.isTrue(((List<Object>) isPortfolioMarginparametersVariable).get(0));
+            List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionBoolAndParams2(parameters, "authenticate", "papi", "portfolioMargin", false);
+            isPortfolioMargin = (Boolean) ((List<Object>) isPortfolioMarginparametersVariable).get(0);
             parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             // For spot use WebSocket API signature subscription
             if (java.util.Objects.equals(type, "spot"))
@@ -4249,9 +4249,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 (this.ensureUserDataStreamWsSubscribeSignature("spot")).join();
                 return null;
             }
-            Object marginMode = null;
+            String marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("authenticate", parameters);
-            marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+            marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
             parameters = ((List<Object>) marginModeparametersVariable).get(1);
             Boolean isIsolatedMargin = (java.util.Objects.equals(marginMode, "isolated"));
             String symbol = this.safeString(parameters, "symbol");
@@ -4306,7 +4306,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     {
                         Object requestParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe")));
                         response = (this.sapiPostEquityListenKey(requestParams)).join();
-                    } else if (Helpers.isTrue(isPortfolioMargin))
+                    } else if (Boolean.TRUE.equals(isPortfolioMargin))
                     {
                         response = (this.papiPostListenKey(parameters)).join();
                         parameters = this.extend(parameters, new HashMap<String, Object>() {{
@@ -4377,8 +4377,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             String type = this.safeString2(this.options, "defaultType", "authenticate", "spot");
             type = this.safeString(parameters, "type", type);
             Boolean isPortfolioMargin = null;
-            List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "keepAliveListenKey", "papi", "portfolioMargin", false);
-            isPortfolioMargin = Helpers.isTrue(((List<Object>) isPortfolioMarginparametersVariable).get(0));
+            List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionBoolAndParams2(parameters, "keepAliveListenKey", "papi", "portfolioMargin", false);
+            isPortfolioMargin = (Boolean) ((List<Object>) isPortfolioMarginparametersVariable).get(0);
             parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Object subTypeInfo = this.handleSubTypeAndParams("keepAliveListenKey", null, parameters);
             Object subType = ((List<Object>)subTypeInfo).get(0);
@@ -4426,7 +4426,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     // POST extends io.github.ccxt.exchanges.Binance validity of that same key
                     Object requestParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stock", "name", "callerMethodName", "subType", "timeframe")));
                     (this.sapiPostEquityListenKey(requestParams)).join();
-                } else if (Helpers.isTrue(isPortfolioMargin))
+                } else if (Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     (this.papiPutListenKey(this.extend(request, parameters))).join();
                     parameters = this.extend(parameters, new HashMap<String, Object>() {{
@@ -4457,7 +4457,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 } else
                 {
                     String urlType = type;
-                    if (Helpers.isTrue(isPortfolioMargin))
+                    if (Boolean.TRUE.equals(isPortfolioMargin))
                     {
                         urlType = "papi";
                     }
@@ -4610,19 +4610,19 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), type);
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
-            Object returnRateLimits = false;
-            List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchBalanceWs", "returnRateLimits", false);
-            returnRateLimits = ((List<Object>) returnRateLimitsparametersVariable).get(0);
+            Boolean returnRateLimits = false;
+            List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchBalanceWs", "returnRateLimits", false);
+            returnRateLimits = (Boolean) ((List<Object>) returnRateLimitsparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) returnRateLimitsparametersVariable).get(1);
-            final Object finalReturnRateLimits = returnRateLimits;
+            final Boolean finalReturnRateLimits = returnRateLimits;
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "returnRateLimits", finalReturnRateLimits );
             }};
-            Object method = null;
-            List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchBalanceWs", "method", "account.status");
-            method = ((List<Object>) methodparametersVariable).get(0);
+            String method = null;
+            List<Object> methodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchBalanceWs", "method", "account.status");
+            method = (String) ((List<Object>) methodparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
-            final Object finalMethod = method;
+            final String finalMethod = method;
             final Map<String, Object> finalParameters = parameters;
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", messageHash );
@@ -4810,16 +4810,16 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), type);
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
-            Object returnRateLimits = false;
-            List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositionsWs", "returnRateLimits", false);
-            returnRateLimits = ((List<Object>) returnRateLimitsparametersVariable).get(0);
+            Boolean returnRateLimits = false;
+            List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchPositionsWs", "returnRateLimits", false);
+            returnRateLimits = (Boolean) ((List<Object>) returnRateLimitsparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) returnRateLimitsparametersVariable).get(1);
             ((Map<String, Object>)payload).put("returnRateLimits", returnRateLimits);
-            Object method = null;
-            List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositionsWs", "method", "account.position");
-            method = ((List<Object>) methodparametersVariable).get(0);
+            String method = null;
+            List<Object> methodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchPositionsWs", "method", "account.position");
+            method = (String) ((List<Object>) methodparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
-            final Object finalMethod = method;
+            final String finalMethod = method;
             final Map<String, Object> finalParameters = parameters;
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", messageHash );
@@ -4931,9 +4931,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "finalType", finalType );
                 put( "finalSubType", finalSubType );
             }}, parameters))).join();
-            Object isPortfolioMargin = null;
-            List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "watchBalance", "papi", "portfolioMargin", false);
-            isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
+            Boolean isPortfolioMargin = null;
+            List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionBoolAndParams2(parameters, "watchBalance", "papi", "portfolioMargin", false);
+            isPortfolioMargin = (Boolean) ((List<Object>) isPortfolioMarginparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Object url = "";
             Object urlType = type;
@@ -4943,7 +4943,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), "spot");
             } else
             {
-                if (Helpers.isTrue(isPortfolioMargin))
+                if (Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     urlType = "papi";
                 } else if (java.util.Objects.equals(type, "option"))
@@ -5241,9 +5241,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Boolean isTriggerOrder = !java.util.Objects.equals(triggerPrice, null);
             Boolean isConditional = Boolean.TRUE.equals(isTriggerOrder) || Boolean.TRUE.equals(isTrailingPercentOrder) || Boolean.TRUE.equals(isStopLoss) || Boolean.TRUE.equals(isTakeProfit);
             Map<String, Object> payload = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-            Object returnRateLimits = false;
-            List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrderWs", "returnRateLimits", false);
-            returnRateLimits = ((List<Object>) returnRateLimitsparametersVariable).get(0);
+            Boolean returnRateLimits = false;
+            List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "createOrderWs", "returnRateLimits", false);
+            returnRateLimits = (Boolean) ((List<Object>) returnRateLimitsparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) returnRateLimitsparametersVariable).get(1);
             ((Map<String, Object>)payload).put("returnRateLimits", returnRateLimits);
             Boolean test = (Boolean) this.safeBool(parameters, "test", false);
@@ -5445,9 +5445,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 payload = this.editContractOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             }
-            Object returnRateLimits = false;
-            List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "editOrderWs", "returnRateLimits", false);
-            returnRateLimits = ((List<Object>) returnRateLimitsparametersVariable).get(0);
+            Boolean returnRateLimits = false;
+            List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "editOrderWs", "returnRateLimits", false);
+            returnRateLimits = (Boolean) ((List<Object>) returnRateLimitsparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) returnRateLimitsparametersVariable).get(1);
             ((Map<String, Object>)payload).put("returnRateLimits", returnRateLimits);
             final Object finalPayload = payload;
@@ -5634,12 +5634,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), type);
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
-            Object returnRateLimits = false;
-            List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelOrderWs", "returnRateLimits", false);
-            returnRateLimits = ((List<Object>) returnRateLimitsparametersVariable).get(0);
+            Boolean returnRateLimits = false;
+            List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "cancelOrderWs", "returnRateLimits", false);
+            returnRateLimits = (Boolean) ((List<Object>) returnRateLimitsparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) returnRateLimitsparametersVariable).get(1);
             final Object finalSymbol = symbol;
-            final Object finalReturnRateLimits = returnRateLimits;
+            final Boolean finalReturnRateLimits = returnRateLimits;
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "symbol", Binance.this.marketId((String) (finalSymbol)) );
                 put( "returnRateLimits", finalReturnRateLimits );
@@ -5737,12 +5737,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), type);
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
-            Object returnRateLimits = false;
-            List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrdersWs", "returnRateLimits", false);
-            returnRateLimits = ((List<Object>) returnRateLimitsparametersVariable).get(0);
+            Boolean returnRateLimits = false;
+            List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "cancelAllOrdersWs", "returnRateLimits", false);
+            returnRateLimits = (Boolean) ((List<Object>) returnRateLimitsparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) returnRateLimitsparametersVariable).get(1);
             final Object finalSymbol = symbol;
-            final Object finalReturnRateLimits = returnRateLimits;
+            final Boolean finalReturnRateLimits = returnRateLimits;
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "symbol", Binance.this.marketId((String) (finalSymbol)) );
                 put( "returnRateLimits", finalReturnRateLimits );
@@ -5810,12 +5810,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), type);
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
-            Object returnRateLimits = false;
-            List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrderWs", "returnRateLimits", false);
-            returnRateLimits = ((List<Object>) returnRateLimitsparametersVariable).get(0);
+            Boolean returnRateLimits = false;
+            List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrderWs", "returnRateLimits", false);
+            returnRateLimits = (Boolean) ((List<Object>) returnRateLimitsparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) returnRateLimitsparametersVariable).get(1);
             final Object finalSymbol = symbol;
-            final Object finalReturnRateLimits = returnRateLimits;
+            final Boolean finalReturnRateLimits = returnRateLimits;
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "symbol", Binance.this.marketId((String) (finalSymbol)) );
                 put( "returnRateLimits", finalReturnRateLimits );
@@ -5897,12 +5897,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), type);
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
-            Object returnRateLimits = false;
-            List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrdersWs", "returnRateLimits", false);
-            returnRateLimits = ((List<Object>) returnRateLimitsparametersVariable).get(0);
+            Boolean returnRateLimits = false;
+            List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrdersWs", "returnRateLimits", false);
+            returnRateLimits = (Boolean) ((List<Object>) returnRateLimitsparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) returnRateLimitsparametersVariable).get(1);
             final Object finalSymbol = symbol;
-            final Object finalReturnRateLimits = returnRateLimits;
+            final Boolean finalReturnRateLimits = returnRateLimits;
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "symbol", Binance.this.marketId((String) (finalSymbol)) );
                 put( "returnRateLimits", finalReturnRateLimits );
@@ -6018,11 +6018,11 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), type);
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
-            Object returnRateLimits = false;
-            List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrdersWs", "returnRateLimits", false);
-            returnRateLimits = ((List<Object>) returnRateLimitsparametersVariable).get(0);
+            Boolean returnRateLimits = false;
+            List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOpenOrdersWs", "returnRateLimits", false);
+            returnRateLimits = (Boolean) ((List<Object>) returnRateLimitsparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) returnRateLimitsparametersVariable).get(1);
-            final Object finalReturnRateLimits = returnRateLimits;
+            final Boolean finalReturnRateLimits = returnRateLimits;
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "returnRateLimits", finalReturnRateLimits );
             }};
@@ -6092,8 +6092,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 (this.loadMarkets()).join();
             }
             Boolean stock = false;
-            List<Object> stockparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrders", "stock", false);
-            stock = Boolean.TRUE.equals(((List<Object>) stockparametersVariable).get(0));
+            List<Object> stockparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchOrders", "stock", false);
+            stock = (Boolean) ((List<Object>) stockparametersVariable).get(0);
             parameters = ((List<Object>) stockparametersVariable).get(1);
             if (Boolean.TRUE.equals(stock))
             {
@@ -6155,18 +6155,18 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "subType", finalSubType );
             }}); // needed inside authenticate for isolated margin
             (this.authenticate(parameters)).join();
-            Object marginMode = null;
+            String marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("watchOrders", parameters);
-            marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+            marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
             parameters = ((List<Object>) marginModeparametersVariable).get(1);
             Object urlType = type;
             if ((java.util.Objects.equals(type, "margin")) || ((java.util.Objects.equals(type, "spot")) && (!java.util.Objects.equals(marginMode, null))))
             {
                 urlType = "spot"; // spot-margin shares the same stream as regular spot
             }
-            Object isPortfolioMargin = null;
-            List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "watchOrders", "papi", "portfolioMargin", false);
-            isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
+            Boolean isPortfolioMargin = null;
+            List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionBoolAndParams2(parameters, "watchOrders", "papi", "portfolioMargin", false);
+            isPortfolioMargin = (Boolean) ((List<Object>) isPortfolioMarginparametersVariable).get(0);
             parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Object url = "";
             if (java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin"))
@@ -6175,7 +6175,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), "spot");
             } else
             {
-                if (Helpers.isTrue(isPortfolioMargin))
+                if (Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     urlType = "papi";
                 } else if (java.util.Objects.equals(type, "option"))
@@ -6867,12 +6867,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             ((Map<String, Object>)marketTypeObject).put("subType", subType);
             (this.authenticate(this.extend(marketTypeObject, parameters))).join();
             messageHash = ((type + ":positions") + messageHash);
-            Object isPortfolioMargin = null;
-            List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "watchPositions", "papi", "portfolioMargin", false);
-            isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
+            Boolean isPortfolioMargin = null;
+            List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionBoolAndParams2(parameters, "watchPositions", "papi", "portfolioMargin", false);
+            isPortfolioMargin = (Boolean) ((List<Object>) isPortfolioMarginparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Object urlType = type;
-            if (Helpers.isTrue(isPortfolioMargin))
+            if (Boolean.TRUE.equals(isPortfolioMargin))
             {
                 urlType = "papi";
             } else if (java.util.Objects.equals(type, "option"))
@@ -7231,12 +7231,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), type);
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
-            Object returnRateLimits = false;
-            List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTradesWs", "returnRateLimits", false);
-            returnRateLimits = ((List<Object>) returnRateLimitsparametersVariable).get(0);
+            Boolean returnRateLimits = false;
+            List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTradesWs", "returnRateLimits", false);
+            returnRateLimits = (Boolean) ((List<Object>) returnRateLimitsparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) returnRateLimitsparametersVariable).get(1);
             final Object finalSymbol = symbol;
-            final Object finalReturnRateLimits = returnRateLimits;
+            final Boolean finalReturnRateLimits = returnRateLimits;
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "symbol", Binance.this.marketId((String) (finalSymbol)) );
                 put( "returnRateLimits", finalReturnRateLimits );
@@ -7320,11 +7320,11 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), type);
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
-            Object returnRateLimits = false;
-            List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTradesWs", "returnRateLimits", false);
-            returnRateLimits = ((List<Object>) returnRateLimitsparametersVariable).get(0);
+            Boolean returnRateLimits = false;
+            List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTradesWs", "returnRateLimits", false);
+            returnRateLimits = (Boolean) ((List<Object>) returnRateLimitsparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) returnRateLimitsparametersVariable).get(1);
-            final Object finalReturnRateLimits = returnRateLimits;
+            final Boolean finalReturnRateLimits = returnRateLimits;
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "symbol", Binance.this.marketId((String) (symbol)) );
                 put( "returnRateLimits", finalReturnRateLimits );
@@ -7479,9 +7479,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 urlType = "spot"; // spot-margin shares the same stream as regular spot
             }
-            Object isPortfolioMargin = null;
-            List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "watchMyTrades", "papi", "portfolioMargin", false);
-            isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
+            Boolean isPortfolioMargin = null;
+            List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionBoolAndParams2(parameters, "watchMyTrades", "papi", "portfolioMargin", false);
+            isPortfolioMargin = (Boolean) ((List<Object>) isPortfolioMarginparametersVariable).get(0);
             parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Object url = "";
             if (java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin"))
@@ -7489,7 +7489,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), "spot");
             } else
             {
-                if (Helpers.isTrue(isPortfolioMargin))
+                if (Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     urlType = "papi";
                 } else if (java.util.Objects.equals(type, "option"))

@@ -182,7 +182,7 @@ class blofin(ccxt.async_support.blofin):
         callerMethodName = None
         callerMethodName, params = self.handle_param_string(params, 'callerMethodName', 'watchOrderBookForSymbols')
         channelName = None
-        channelName, params = self.handle_option_and_params(params, callerMethodName, 'channel', 'books')
+        channelName, params = self.handle_option_string_and_params(params, callerMethodName, 'channel', 'books')
         # due to some problem, temporarily disable other channels
         if channelName != 'books':
             raise NotSupported(self.id + ' ' + callerMethodName + '() at self moment ' + channelName + ' is not supported, coming soon')

@@ -1459,11 +1459,11 @@ public partial class bybit : ccxt.bybit
             { "usdc", "user.openapi.perp.trade" },
         };
         string? topic = this.safeString(topicByMarket, this.getPrivateType(url));
-        bool executionFast = false;
-        IList<object> executionFastparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchMyTrades", "executionFast", false);
-        executionFast = isTrue(executionFastparametersVariable[0]);
+        bool? executionFast = false;
+        IList<object> executionFastparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "watchMyTrades", "executionFast", false);
+        executionFast = (bool?)executionFastparametersVariable[0];
         parameters = executionFastparametersVariable[1];
-        if (executionFast)
+        if ((executionFast == true))
         {
             topic = "execution.fast";
         }
@@ -1509,11 +1509,11 @@ public partial class bybit : ccxt.bybit
             { "usdc", "user.openapi.perp.trade" },
         };
         string? topic = this.safeString(topicByMarket, this.getPrivateType(url));
-        bool executionFast = false;
-        IList<object> executionFastparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchMyTrades", "executionFast", false);
-        executionFast = isTrue(executionFastparametersVariable[0]);
+        bool? executionFast = false;
+        IList<object> executionFastparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "watchMyTrades", "executionFast", false);
+        executionFast = (bool?)executionFastparametersVariable[0];
         parameters = executionFastparametersVariable[1];
-        if (executionFast)
+        if ((executionFast == true))
         {
             topic = "execution.fast";
         }
@@ -1921,7 +1921,7 @@ public partial class bybit : ccxt.bybit
         string? url = await this.getUrlByMarketType(symbolVar, false, "watchLiquidations", parameters);
         parameters = this.cleanParams(parameters);
         object method = null;
-        IList<object> methodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchLiquidations", "method", "allLiquidation");
+        IList<object> methodparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchLiquidations", "method", "allLiquidation");
         method = methodparametersVariable[0];
         parameters = methodparametersVariable[1];
         string messageHash = ("liquidations::" + (symbolVar));

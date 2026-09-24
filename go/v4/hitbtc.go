@@ -1569,13 +1569,13 @@ func (this *Hitbtc) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["from"] = since
 	}
 	var marketType *string = nil
-	var marginMode any = nil
+	var marginMode *string = nil
 	var response any = []any{}
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
 	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchMyTrades", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	params = MapTyped(this.Omit(params, []any{"marginMode", "margin"}))
 	if marginMode != nil {
@@ -2390,12 +2390,12 @@ func (this *Hitbtc) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 		request["limit"] = limit
 	}
 	var marketType *string = nil
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchClosedOrders", market, params)
 	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchClosedOrders", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	params = MapTyped(this.Omit(params, []any{"marginMode", "margin"}))
 	var response any = nil
@@ -2464,12 +2464,12 @@ func (this *Hitbtc) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		"client_order_id": id,
 	}
 	var marketType *string = nil
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrder", market, params)
 	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchOrder", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	params = MapTyped(this.Omit(params, []any{"marginMode", "margin"}))
 	var response []any = nil
@@ -2559,12 +2559,12 @@ func (this *Hitbtc) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
 		"order_id": id,
 	}
 	var marketType *string = nil
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrderTrades", market, params)
 	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchOrderTrades", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	params = MapTyped(this.Omit(params, []any{"marginMode", "margin"}))
 	var response any = []any{}
@@ -2674,12 +2674,12 @@ func (this *Hitbtc) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["symbol"] = GetValue(market, "id")
 	}
 	var marketType *string = nil
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
 	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchOpenOrders", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	params = MapTyped(this.Omit(params, []any{"marginMode", "margin"}))
 	var response any = nil
@@ -2766,12 +2766,12 @@ func (this *Hitbtc) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any)
 		"client_order_id": id,
 	}
 	var marketType *string = nil
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOpenOrder", market, params)
 	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchOpenOrder", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	params = MapTyped(this.Omit(params, []any{"marginMode", "margin"}))
 	var response any = nil
@@ -2837,12 +2837,12 @@ func (this *Hitbtc) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["symbol"] = GetValue(market, "id")
 	}
 	var marketType *string = nil
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
 	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("cancelAllOrders", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	params = MapTyped(this.Omit(params, []any{"marginMode", "margin"}))
 	var response any = nil
@@ -2910,12 +2910,12 @@ func (this *Hitbtc) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		market = this.Market(symbol)
 	}
 	var marketType *string = nil
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("cancelOrder", market, params)
 	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("cancelOrder", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	params = MapTyped(this.Omit(params, []any{"marginMode", "margin"}))
 	var response any = nil
@@ -2977,12 +2977,12 @@ func (this *Hitbtc) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 		market = this.Market(symbol)
 	}
 	var marketType *string = nil
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("editOrder", market, params)
 	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("editOrder", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	params = MapTyped(this.Omit(params, []any{"marginMode", "margin"}))
 	var response any = nil
@@ -3738,7 +3738,7 @@ func (this *Hitbtc) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = map[string]any{}
 	var marketType *string = nil
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchPositions", nil, params)
 	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
@@ -3746,7 +3746,7 @@ func (this *Hitbtc) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		marketType = SafeStringPtr("swap")
 	}
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchPositions", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	params = MapTyped(this.Omit(params, []any{"marginMode", "margin"}))
 	var response any = nil
@@ -3839,12 +3839,12 @@ func (this *Hitbtc) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
 		"symbol": market["id"],
 	}
 	var marketType *string = nil
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchPosition", nil, params)
 	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchPosition", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	params = MapTyped(this.Omit(params, []any{"marginMode", "margin"}))
 	var response any = nil
@@ -4272,19 +4272,19 @@ func (this *Hitbtc) modifyMarginHelperBody(ch chan any, symbol any, amount any, 
 		request["leverage"] = leverage
 	}
 	var marketType *string = nil
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("modifyMarginHelper", market, params)
 	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("modifyMarginHelper", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	var response any = nil
 	if marketType != nil && *marketType == "swap" {
 
 		response = (<-this.PrivatePutFuturesAccountIsolatedSymbol(this.Extend(request, params))).Raw
 		PanicOnError(response)
-	} else if (marketType != nil && *marketType == "margin") || (marketType != nil && *marketType == "spot") || (IsEqual(marginMode, "isolated")) {
+	} else if (marketType != nil && *marketType == "margin") || (marketType != nil && *marketType == "spot") || (marginMode != nil && *marginMode == "isolated") {
 
 		response = (<-this.PrivatePutMarginAccountIsolatedSymbol(this.Extend(request, params))).Raw
 		PanicOnError(response)
@@ -4448,9 +4448,9 @@ func (this *Hitbtc) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchLeverage", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	params = MapTyped(this.Omit(params, []any{"marginMode", "margin"}))
 	var response any = nil
@@ -4729,9 +4729,9 @@ func (this *Hitbtc) closePositionBody(ch chan any, symbol any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("closePosition", params, "cross")
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -4769,7 +4769,7 @@ func (this *Hitbtc) HandleMarginModeAndParams(methodName any, optionalArgs ...an
 	 */
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	defaultValue := GetArg(optionalArgs, 1, nil)
+	var defaultValue *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = defaultValue
 	var defaultType *string = this.SafeString(this.Options, "defaultType")
 	var isMargin *bool = this.SafeBool(params, "margin", false)

@@ -857,7 +857,7 @@ class coinbaseinternational extends Exchange {
             Async\await($this->load_markets());
         }
         $method = null;
-        list($method, $params) = $this->handle_option_and_params($params, 'createDepositAddress', 'method', 'v1PrivatePostTransfersAddress');
+        list($method, $params) = $this->handle_option_string_and_params($params, 'createDepositAddress', 'method', 'v1PrivatePostTransfersAddress');
         $portfolio = null;
         list($portfolio, $params) = Async\await($this->handle_portfolio_and_params('createDepositAddress', $params));
         $request = array(
@@ -2482,7 +2482,7 @@ class coinbaseinternational extends Exchange {
         $portfolio = null;
         list($portfolio, $params) = Async\await($this->handle_portfolio_and_params('withdraw', $params));
         $method = null;
-        list($method, $params) = $this->handle_option_and_params($params, 'withdraw', 'method', 'v1PrivatePostTransfersWithdraw');
+        list($method, $params) = $this->handle_option_string_and_params($params, 'withdraw', 'method', 'v1PrivatePostTransfersWithdraw');
         $networkId = null;
         list($networkId, $params) = Async\await($this->handle_network_id_and_params($code, 'withdraw', $params));
         $request = array(

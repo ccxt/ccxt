@@ -1364,9 +1364,9 @@ public class Blofin extends BlofinApi
             {
                 ((Map<String, Object>)request).put("limit", limit); // default 100
             }
-            Object method = null;
-            List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "method", "publicGetMarketTrades");
-            method = ((List<Object>) methodparametersVariable).get(0);
+            String method = null;
+            List<Object> methodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchTrades", "method", "publicGetMarketTrades");
+            method = (String) ((List<Object>) methodparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
             if (java.util.Objects.equals(method, "publicGetMarketTrades"))
             {
@@ -1891,9 +1891,9 @@ public class Blofin extends BlofinApi
             put( "size", Blofin.this.amountToPrecision(symbol, amount) );
             put( "brokerId", Blofin.this.safeString(Blofin.this.options, "brokerId", "ec6dd3a7dd982d0b") );
         }};
-        Object marginMode = null;
+        String marginMode = null;
         List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters, "cross");
-        marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+        marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
         ((Map<String, Object>)request).put("marginMode", marginMode);
         String triggerPriceAny = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopLossPrice", "takeProfitPrice")));
@@ -2163,9 +2163,9 @@ public class Blofin extends BlofinApi
             Boolean isStopLossPriceDefined = !java.util.Objects.equals(this.safeString(parameters, "stopLossPrice"), null);
             Boolean isTakeProfitPriceDefined = !java.util.Objects.equals(this.safeString(parameters, "takeProfitPrice"), null);
             Boolean isTriggerOrder = !java.util.Objects.equals(this.safeString(parameters, "triggerPrice"), null);
-            Object isTpslEndpoint = false;
-            List<Object> isTpslEndpointparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "tpsl", false);
-            isTpslEndpoint = ((List<Object>) isTpslEndpointparametersVariable).get(0);
+            Boolean isTpslEndpoint = false;
+            List<Object> isTpslEndpointparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "createOrder", "tpsl", false);
+            isTpslEndpoint = (Boolean) ((List<Object>) isTpslEndpointparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) isTpslEndpointparametersVariable).get(1);
             Boolean isCombinedSlTp = (Boolean.TRUE.equals(isStopLossPriceDefined) && Boolean.TRUE.equals(isTakeProfitPriceDefined)) || Boolean.TRUE.equals(isTpslEndpoint);
             Boolean isSlOrTp = Boolean.TRUE.equals(isStopLossPriceDefined) || Boolean.TRUE.equals(isTakeProfitPriceDefined);
@@ -2497,9 +2497,9 @@ public class Blofin extends BlofinApi
             }
             Boolean isTrigger = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")), false);
             Boolean isTpSl = (Boolean) this.safeBool2(parameters, "tpsl", "TPSL", false);
-            Object method = null;
-            List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "method", "privateGetTradeOrdersPending");
-            method = ((List<Object>) methodparametersVariable).get(0);
+            String method = null;
+            List<Object> methodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchOpenOrders", "method", "privateGetTradeOrdersPending");
+            method = (String) ((List<Object>) methodparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
             Object query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("method", "stop", "trigger", "tpsl", "TPSL")));
             Map<String, Object> response = null;
@@ -3812,9 +3812,9 @@ public class Blofin extends BlofinApi
             {
                 throw new ArgumentsRequired((this.id + " fetchLeverages() requires a symbols argument")) ;
             }
-            Object marginMode = null;
+            String marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchLeverages", parameters);
-            marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+            marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if (java.util.Objects.equals(marginMode, null))
             {
@@ -3840,7 +3840,7 @@ public class Blofin extends BlofinApi
                 }
             }
             final Object finalInstIds = instIds;
-            final Object finalMarginMode = marginMode;
+            final String finalMarginMode = marginMode;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instId", finalInstIds );
                 put( "marginMode", finalMarginMode );
@@ -3898,9 +3898,9 @@ public class Blofin extends BlofinApi
             {
                 (this.loadMarkets()).join();
             }
-            Object marginMode = null;
+            String marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchLeverage", parameters);
-            marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+            marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if (java.util.Objects.equals(marginMode, null))
             {
@@ -3911,7 +3911,7 @@ public class Blofin extends BlofinApi
                 throw new BadRequest((this.id + " fetchLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            final Object finalMarginMode = marginMode;
+            final String finalMarginMode = marginMode;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instId", ((Map<String, Object>)market).get("id") );
                 put( "marginMode", finalMarginMode );
@@ -4001,16 +4001,16 @@ public class Blofin extends BlofinApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object marginMode = null;
+            String marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters, "cross");
-            marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+            marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if ((!java.util.Objects.equals(marginMode, "cross")) && (!java.util.Objects.equals(marginMode, "isolated")))
             {
                 throw new BadRequest((this.id + " setLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
             }
             final Object finalLeverage = leverage;
-            final Object finalMarginMode = marginMode;
+            final String finalMarginMode = marginMode;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "leverage", finalLeverage );
                 put( "marginMode", finalMarginMode );
@@ -4066,11 +4066,11 @@ public class Blofin extends BlofinApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String clientOrderId = this.safeString(parameters, "clientOrderId");
-            Object marginMode = null;
+            String marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("closePosition", parameters, "cross");
-            marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+            marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
-            final Object finalMarginMode = marginMode;
+            final String finalMarginMode = marginMode;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instId", ((Map<String, Object>)market).get("id") );
                 put( "marginMode", finalMarginMode );
@@ -4159,9 +4159,9 @@ public class Blofin extends BlofinApi
                 ((Map<String, Object>)request).put("begin", since);
             }
             Boolean isTrigger = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "tpsl", "TPSL")), false);
-            Object method = null;
-            List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchClosedOrders", "method", "privateGetTradeOrdersHistory");
-            method = ((List<Object>) methodparametersVariable).get(0);
+            String method = null;
+            List<Object> methodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchClosedOrders", "method", "privateGetTradeOrdersHistory");
+            method = (String) ((List<Object>) methodparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
             Object query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("method", "stop", "trigger", "tpsl", "TPSL")));
             Map<String, Object> response = null;

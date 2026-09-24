@@ -173,9 +173,9 @@ public partial class grvt : ccxt.grvt
         {
             throw new ArgumentsRequired ((this.id + " watchTickers requires a symbols argument")) ;
         }
-        object channel = null;
-        IList<object> channelparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchTickers", "channel", "v1.ticker.s");
-        channel = channelparametersVariable[0];
+        string? channel = null;
+        IList<object> channelparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchTickers", "channel", "v1.ticker.s");
+        channel = (string)channelparametersVariable[0];
         parameters = channelparametersVariable[1];
         object interval = 500;
         IList<object> intervalparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchTickers", "interval", interval);
@@ -583,11 +583,11 @@ public partial class grvt : ccxt.grvt
         {
             await this.loadMarkets();
         }
-        object channel = null;
-        IList<object> channelparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "channel", "v1.book.d");
-        channel = channelparametersVariable[0];
+        string? channel = null;
+        IList<object> channelparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBook", "channel", "v1.book.d");
+        channel = (string)channelparametersVariable[0];
         parameters = channelparametersVariable[1];
-        bool isSnapshot = isEqual(channel, "v1.book.s");
+        bool isSnapshot = channel == "v1.book.s";
         int symbolsLength = getArrayLength(symbols);
         if ((symbolsLength == 0))
         {

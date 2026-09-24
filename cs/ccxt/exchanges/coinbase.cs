@@ -1678,8 +1678,8 @@ public partial class coinbase : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         bool? usePrivate = false;
-        IList<object> usePrivateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMarkets", "usePrivate", false);
-        usePrivate = isTrue(usePrivateparametersVariable[0]);
+        IList<object> usePrivateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMarkets", "usePrivate", false);
+        usePrivate = (bool?)usePrivateparametersVariable[0];
         parameters = usePrivateparametersVariable[1];
         List<object> spotUnresolvedPromises = new List<object>() {};
         if ((usePrivate == true))
@@ -2403,8 +2403,8 @@ public partial class coinbase : Exchange
         }
         Dictionary<string, object> response = null;
         bool? usePrivate = false;
-        IList<object> usePrivateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTickers", "usePrivate", false);
-        usePrivate = isTrue(usePrivateparametersVariable[0]);
+        IList<object> usePrivateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTickers", "usePrivate", false);
+        usePrivate = (bool?)usePrivateparametersVariable[0];
         parameters = usePrivateparametersVariable[1];
         if ((usePrivate == true))
         {
@@ -2533,8 +2533,8 @@ public partial class coinbase : Exchange
             { "limit", 1 },
         };
         bool? usePrivate = false;
-        IList<object> usePrivateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTicker", "usePrivate", false);
-        usePrivate = isTrue(usePrivateparametersVariable[0]);
+        IList<object> usePrivateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTicker", "usePrivate", false);
+        usePrivate = (bool?)usePrivateparametersVariable[0];
         parameters = usePrivateparametersVariable[1];
         Dictionary<string, object> response = null;
         if ((usePrivate == true))
@@ -3555,8 +3555,8 @@ public partial class coinbase : Exchange
             {
                 string? total = null;
                 bool? createMarketBuyOrderRequiresPrice = true;
-                IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = isTrue(createMarketBuyOrderRequiresPriceparametersVariable[0]);
+                IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparametersVariable[0];
                 parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
                 double? cost = this.safeNumber(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
@@ -4355,8 +4355,8 @@ public partial class coinbase : Exchange
         object maxLimit = 300;
         limitVar = ((limitVar == null)) ? maxLimit : mathMin(limitVar, maxLimit);
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -4391,8 +4391,8 @@ public partial class coinbase : Exchange
         }
         Dictionary<string, object> response = null;
         bool? usePrivate = false;
-        IList<object> usePrivateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "usePrivate", false);
-        usePrivate = isTrue(usePrivateparametersVariable[0]);
+        IList<object> usePrivateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "usePrivate", false);
+        usePrivate = (bool?)usePrivateparametersVariable[0];
         parameters = usePrivateparametersVariable[1];
         if ((usePrivate == true))
         {
@@ -4481,8 +4481,8 @@ public partial class coinbase : Exchange
         }
         Dictionary<string, object> response = null;
         bool? usePrivate = false;
-        IList<object> usePrivateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTrades", "usePrivate", false);
-        usePrivate = isTrue(usePrivateparametersVariable[0]);
+        IList<object> usePrivateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTrades", "usePrivate", false);
+        usePrivate = (bool?)usePrivateparametersVariable[0];
         parameters = usePrivateparametersVariable[1];
         if ((usePrivate == true))
         {
@@ -4627,8 +4627,8 @@ public partial class coinbase : Exchange
         }
         Dictionary<string, object> response = null;
         bool? usePrivate = false;
-        IList<object> usePrivateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrderBook", "usePrivate", false);
-        usePrivate = isTrue(usePrivateparametersVariable[0]);
+        IList<object> usePrivateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOrderBook", "usePrivate", false);
+        usePrivate = (bool?)usePrivateparametersVariable[0];
         parameters = usePrivateparametersVariable[1];
         if ((usePrivate == true))
         {

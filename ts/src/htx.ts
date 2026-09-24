@@ -3087,7 +3087,7 @@ export default class htx extends Exchange {
         } else {
             request['symbol'] = market['id'];
             let useHistorical: Bool = undefined;
-            [ useHistorical, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'useHistoricalEndpointForSpot', true);
+            [ useHistorical, params ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'useHistoricalEndpointForSpot', true);
             if (!useHistorical) {
                 if (limit !== undefined) {
                     request['size'] = Math.min (limit, 2000); // max 2000
@@ -3397,7 +3397,7 @@ export default class htx extends Exchange {
             await this.loadMarkets ();
         }
         let isUnifiedAccount: Bool = undefined;
-        [ isUnifiedAccount, params ] = this.handleOptionAndParams2 (params, 'fetchBalance', 'unified', 'uta', false);
+        [ isUnifiedAccount, params ] = this.handleOptionBoolAndParams2 (params, 'fetchBalance', 'unified', 'uta', false);
         if (isUnifiedAccount) {
             throw new NotSupported (this.id + ' fetchBalance() unified account has been deprecated on htx');
         }
@@ -3409,7 +3409,7 @@ export default class htx extends Exchange {
         if (subType === undefined) {
             subType = 'linear';
         }
-        [ isMultiAssetMode, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'multiAssetMode', false);
+        [ isMultiAssetMode, params ] = this.handleOptionBoolAndParams (params, 'fetchBalance', 'multiAssetMode', false);
         const request: Dict = {};
         const spot = (type === 'spot');
         const future = (type === 'future');
@@ -5158,7 +5158,7 @@ export default class htx extends Exchange {
         if ((orderType === 'market') && (side === 'buy')) {
             let quoteAmount: Str = undefined;
             let createMarketBuyOrderRequiresPrice = true;
-            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionBoolAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
             const cost = this.safeNumber (params, 'cost');
             params = this.omit (params, 'cost');
             if (cost !== undefined) {

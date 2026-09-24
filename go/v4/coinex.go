@@ -2536,9 +2536,9 @@ func (this *Coinex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchBalance", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	var isMargin bool = (marginMode != nil) || (marketType != nil && *marketType == "margin")
 	if marketType != nil && *marketType == "swap" {
@@ -2958,9 +2958,9 @@ func (this *Coinex) CreateOrderRequest(symbol any, typeVar any, side any, amount
 			}
 		}
 	} else {
-		var marginMode any = nil
+		var marginMode *string = nil
 		var marginModeparamsVariable []any = this.HandleMarginModeAndParams("createOrder", params)
-		marginMode = GetValue(marginModeparamsVariable, 0)
+		marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 		params = MapTyped(GetValue(marginModeparamsVariable, 1))
 		if marginMode != nil {
 			request["market_type"] = "MARGIN"
@@ -2969,7 +2969,7 @@ func (this *Coinex) CreateOrderRequest(symbol any, typeVar any, side any, amount
 		}
 		if (IsEqual(typeVar, "market")) && (IsEqual(side, "buy")) {
 			var createMarketBuyOrderRequiresPrice bool = true
-			var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
+			var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			createMarketBuyOrderRequiresPrice = GetValueBool(createMarketBuyOrderRequiresPriceparamsVariable, 0, false)
 			params = MapTyped(GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1))
 			var cost *float64 = this.SafeNumber(params, "cost")
@@ -3365,9 +3365,9 @@ func (this *Coinex) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	} else {
 		request["order_id"] = this.ParseToNumeric(id)
 	}
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("editOrder", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	if GetValue(market, "spot") == true {
 		if marginMode != nil {
@@ -3439,9 +3439,9 @@ func (this *Coinex) editOrdersBody(ch chan any, orders any, optionalArgs ...any)
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
-		var marginMode any = nil
+		var marginMode *string = nil
 		var marginModeorderParamsVariable []any = this.HandleMarginModeAndParams("editOrders", orderParams)
-		marginMode = GetValue(marginModeorderParamsVariable, 0)
+		marginMode = SafeStringPtr(GetValue(marginModeorderParamsVariable, 0))
 		orderParams = GetValue(marginModeorderParamsVariable, 1)
 		var market_type string = "SPOT"
 		if GetValue(market, "swap") == true {
@@ -3548,9 +3548,9 @@ func (this *Coinex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("cancelOrder", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	if swap != nil && *swap == true {
 		request["market_type"] = "FUTURES"
@@ -3669,9 +3669,9 @@ func (this *Coinex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		response = MapTyped(PanicOnError((<-this.V2PrivatePostFuturesCancelAllOrder(this.Extend(request, params))).Raw))
 	} else {
-		var marginMode any = nil
+		var marginMode *string = nil
 		var marginModeparamsVariable []any = this.HandleMarginModeAndParams("cancelAllOrders", params)
-		marginMode = GetValue(marginModeparamsVariable, 0)
+		marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 		params = MapTyped(GetValue(marginModeparamsVariable, 1))
 		if marginMode != nil {
 			request["market_type"] = "MARGIN"
@@ -3812,9 +3812,9 @@ func (this *Coinex) fetchOrdersByStatusBody(ch chan any, status any, optionalArg
 			}
 		}
 	} else {
-		var marginMode any = nil
+		var marginMode *string = nil
 		var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchOrdersByStatus", params)
-		marginMode = GetValue(marginModeparamsVariable, 0)
+		marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 		params = MapTyped(GetValue(marginModeparamsVariable, 1))
 		if marginMode != nil {
 			request["market_type"] = "MARGIN"
@@ -4116,9 +4116,9 @@ func (this *Coinex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		response = MapTyped(PanicOnError((<-this.V2PrivateGetFuturesUserDeals(this.Extend(request, params))).Raw))
 	} else {
-		var marginMode any = nil
+		var marginMode *string = nil
 		var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchMyTrades", params)
-		marginMode = GetValue(marginModeparamsVariable, 0)
+		marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 		params = MapTyped(GetValue(marginModeparamsVariable, 1))
 		if marginMode != nil {
 			request["market_type"] = "MARGIN"
@@ -4161,9 +4161,9 @@ func (this *Coinex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var defaultMethod any = nil
-	var defaultMethodparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositions", "method", "v2PrivateGetFuturesPendingPosition")
-	defaultMethod = GetValue(defaultMethodparamsVariable, 0)
+	var defaultMethod *string = nil
+	var defaultMethodparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchPositions", "method", "v2PrivateGetFuturesPendingPosition")
+	defaultMethod = SafeStringPtr(GetValue(defaultMethodparamsVariable, 0))
 	params = MapTyped(GetValue(defaultMethodparamsVariable, 1))
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{
@@ -4185,7 +4185,7 @@ func (this *Coinex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		request["market"] = GetValue(market, "id")
 	}
 	var response map[string]any = nil
-	if IsEqual(defaultMethod, "v2PrivateGetFuturesPendingPosition") {
+	if defaultMethod != nil && *defaultMethod == "v2PrivateGetFuturesPendingPosition" {
 
 		response = MapTyped(PanicOnError((<-this.V2PrivateGetFuturesPendingPosition(this.Extend(request, params))).Raw))
 	} else {
@@ -4496,9 +4496,9 @@ func (this *Coinex) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 	if GetValue(market, "swap") != true {
 		panic(BadSymbol(this.Id + " setLeverage() supports swap contracts only"))
 	}
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("setLeverage", params, "cross")
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	var minLeverage *int64 = this.SafeInteger(GetValue(market["limits"], "leverage"), "min", 1)
 	var maxLeverage *int64 = this.SafeInteger(GetValue(market["limits"], "leverage"), "max", 100)
@@ -5569,9 +5569,9 @@ func (this *Coinex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"ccy": currency["id"],
 	}
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchTransfers", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	if marginMode != nil {
 		request["transfer_type"] = "MARGIN"
@@ -6615,7 +6615,7 @@ func (this *Coinex) HandleMarginModeAndParams(methodName any, optionalArgs ...an
 	 */
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	defaultValue := GetArg(optionalArgs, 1, nil)
+	var defaultValue *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = defaultValue
 	var defaultType *string = this.SafeString(this.Options, "defaultType")
 	var isMargin *bool = this.SafeBool(params, "margin", false)

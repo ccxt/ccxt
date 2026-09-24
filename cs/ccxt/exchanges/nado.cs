@@ -439,9 +439,9 @@ public partial class nado : Exchange
         {
             amountX18 = Precise.stringMul(amountX18, "-1");
         }
-        object subaccount = null;
-        IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "subaccount", "default");
-        subaccount = subaccountparametersVariable[0];
+        string? subaccount = null;
+        IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "subaccount", "default");
+        subaccount = (string)subaccountparametersVariable[0];
         parameters = subaccountparametersVariable[1];
         object expiration = null;
         IList<object> expirationparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "expiration", "4294967295");
@@ -628,13 +628,13 @@ public partial class nado : Exchange
             amountX18 = Precise.stringMul(amountX18, "-1");
         }
         IDictionary<string, object> editOrderOptions = this.safeDict(this.options, "editOrder", new Dictionary<string, object>() {});
-        object subaccount = null;
-        IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "editOrder", "subaccount", "default");
-        subaccount = subaccountparametersVariable[0];
+        string? subaccount = null;
+        IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "editOrder", "subaccount", "default");
+        subaccount = (string)subaccountparametersVariable[0];
         parameters = subaccountparametersVariable[1];
-        object expiration = null;
-        IList<object> expirationparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "editOrder", "expiration", "4294967295");
-        expiration = expirationparametersVariable[0];
+        string? expiration = null;
+        IList<object> expirationparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "editOrder", "expiration", "4294967295");
+        expiration = (string)expirationparametersVariable[0];
         parameters = expirationparametersVariable[1];
         object recvWindow = null;
         IList<object> recvWindowparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "editOrder", "recvWindow", 5000);
@@ -783,9 +783,9 @@ public partial class nado : Exchange
             Dictionary<string, object> market = this.market(symbol);
             productIds.Add(this.parseToInt((market.ContainsKey("id") ? market["id"] : null)));
         }
-        object subaccount = null;
-        IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelAllOrders", "subaccount", "default");
-        subaccount = subaccountparametersVariable[0];
+        string? subaccount = null;
+        IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "cancelAllOrders", "subaccount", "default");
+        subaccount = (string)subaccountparametersVariable[0];
         parameters = subaccountparametersVariable[1];
         string sender = this.createSubaccount(this.walletAddress, subaccount);
         object recvWindow = null;
@@ -884,9 +884,9 @@ public partial class nado : Exchange
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);
         Int64? productId = this.parseToInt((market.ContainsKey("id") ? market["id"] : null));
-        object subaccount = null;
-        IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelOrders", "subaccount", "default");
-        subaccount = subaccountparametersVariable[0];
+        string? subaccount = null;
+        IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "cancelOrders", "subaccount", "default");
+        subaccount = (string)subaccountparametersVariable[0];
         parameters = subaccountparametersVariable[1];
         string sender = this.createSubaccount(this.walletAddress, subaccount);
         List<object> productIds = new List<object>() {};
@@ -1010,9 +1010,9 @@ public partial class nado : Exchange
             market = this.market(symbol);
             productIds.Add(this.parseToInt((market.ContainsKey("id") ? market["id"] : null)));
         }
-        object subaccount = null;
-        IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrders", "subaccount", "default");
-        subaccount = subaccountparametersVariable[0];
+        string? subaccount = null;
+        IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchOrders", "subaccount", "default");
+        subaccount = (string)subaccountparametersVariable[0];
         parameters = subaccountparametersVariable[1];
         string sender = this.createSubaccount(this.walletAddress, subaccount);
         bool? trigger = this.safeBool2(parameters, "stop", "trigger");
@@ -1100,9 +1100,9 @@ public partial class nado : Exchange
             throw new ArgumentsRequired ((this.id + " fetchOpenOrders() requires walletAddress")) ;
         }
         await this.loadMarkets();
-        object subaccount = null;
-        IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOpenOrders", "subaccount", "default");
-        subaccount = subaccountparametersVariable[0];
+        string? subaccount = null;
+        IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchOpenOrders", "subaccount", "default");
+        subaccount = (string)subaccountparametersVariable[0];
         parameters = subaccountparametersVariable[1];
         string sender = this.createSubaccount(this.walletAddress, subaccount);
         bool? trigger = this.safeBool2(parameters, "stop", "trigger");
@@ -1183,9 +1183,9 @@ public partial class nado : Exchange
         {
             market = this.market(symbol);
         }
-        object subaccount = null;
-        IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchClosedOrders", "subaccount", "default");
-        subaccount = subaccountparametersVariable[0];
+        string? subaccount = null;
+        IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchClosedOrders", "subaccount", "default");
+        subaccount = (string)subaccountparametersVariable[0];
         parameters = subaccountparametersVariable[1];
         string sender = this.createSubaccount(this.walletAddress, subaccount);
         bool? trigger = this.safeBool2(parameters, "stop", "trigger");
@@ -1313,9 +1313,9 @@ public partial class nado : Exchange
         {
             market = this.market(symbol);
         }
-        object subaccount = null;
-        IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "subaccount", "default");
-        subaccount = subaccountparametersVariable[0];
+        string? subaccount = null;
+        IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchMyTrades", "subaccount", "default");
+        subaccount = (string)subaccountparametersVariable[0];
         parameters = subaccountparametersVariable[1];
         Dictionary<string, object> matchesRequest = new Dictionary<string, object>() {
             { "subaccounts", new List<object> {this.createSubaccount(this.walletAddress, subaccount)} },
@@ -1394,9 +1394,9 @@ public partial class nado : Exchange
             throw new ArgumentsRequired ((this.id + " fetchBalance() requires walletAddress")) ;
         }
         await this.loadMarkets();
-        object subaccount = null;
-        IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchBalance", "subaccount", "default");
-        subaccount = subaccountparametersVariable[0];
+        string? subaccount = null;
+        IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchBalance", "subaccount", "default");
+        subaccount = (string)subaccountparametersVariable[0];
         parameters = subaccountparametersVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subaccount_info" },
@@ -1477,9 +1477,9 @@ public partial class nado : Exchange
         {
             currency = this.currency(code);
         }
-        object subaccount = null;
-        IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "subaccount", "default");
-        subaccount = subaccountparametersVariable[0];
+        string? subaccount = null;
+        IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "subaccount", "default");
+        subaccount = (string)subaccountparametersVariable[0];
         parameters = subaccountparametersVariable[1];
         Dictionary<string, object> eventsRequest = new Dictionary<string, object>() {
             { "subaccounts", new List<object> {this.createSubaccount(this.walletAddress, subaccount)} },
@@ -1576,9 +1576,9 @@ public partial class nado : Exchange
         }
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        object subaccount = null;
-        IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchPositions", "subaccount", "default");
-        subaccount = subaccountparametersVariable[0];
+        string? subaccount = null;
+        IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchPositions", "subaccount", "default");
+        subaccount = (string)subaccountparametersVariable[0];
         parameters = subaccountparametersVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subaccount_info" },
@@ -2037,9 +2037,9 @@ public partial class nado : Exchange
         {
             throw new BadSymbol ((this.id + " fetchFundingHistory() supports swap contracts only")) ;
         }
-        object subaccount = null;
-        IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingHistory", "subaccount", "default");
-        subaccount = subaccountparametersVariable[0];
+        string? subaccount = null;
+        IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchFundingHistory", "subaccount", "default");
+        subaccount = (string)subaccountparametersVariable[0];
         parameters = subaccountparametersVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "interest_and_funding", new Dictionary<string, object>() {

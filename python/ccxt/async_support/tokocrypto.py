@@ -1843,7 +1843,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 precision = market['precision']['price']
                 quoteAmount = None
                 createMarketBuyOrderRequiresPrice = True
-                createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+                createMarketBuyOrderRequiresPrice, params = self.handle_option_bool_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
                 cost = self.safe_number_2(params, 'cost', 'quoteOrderQty')
                 params = self.omit(params, ['cost', 'quoteOrderQty'])
                 if cost is not None:

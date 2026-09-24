@@ -1487,7 +1487,7 @@ class bullish(Exchange, ImplicitAPI):
         if limit is not None:
             request['_pageSize'] = self.get_closest_limit(limit)
         method = 'privateGetV2HistoryOrders'
-        method, params = self.handle_option_and_params(params, 'fetchOrders', 'method', method)
+        method, params = self.handle_option_string_and_params(params, 'fetchOrders', 'method', method)
         response = []
         if method == 'privateGetV2Orders':
             #
@@ -1729,7 +1729,7 @@ class bullish(Exchange, ImplicitAPI):
         if postOnly:
             type = 'POST_ONLY'
         timeInForce = 'GTC'  # is mandatory
-        timeInForce, params = self.handle_option_and_params(params, 'createOrder', 'timeInForce', timeInForce)
+        timeInForce, params = self.handle_option_string_and_params(params, 'createOrder', 'timeInForce', timeInForce)
         params['timeInForce'] = timeInForce.upper()
         if not isMarketOrder:
             request['price'] = self.price_to_precision(symbol, price)

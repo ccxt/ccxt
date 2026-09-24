@@ -116,7 +116,7 @@ class bitget(ccxt.async_support.bitget):
         else:
             instType = 'SPOT'
         instypeAux = None
-        instypeAux, params = self.handle_option_and_params(params, methodName, 'instType', instType)
+        instypeAux, params = self.handle_option_string_and_params(params, methodName, 'instType', instType)
         instType = instypeAux
         if uta and (instType is not None):
             instType = instType.lower()
@@ -142,7 +142,7 @@ class bitget(ccxt.async_support.bitget):
         messageHash = 'ticker:' + symbol
         instType = None
         uta = None
-        uta, params = self.handle_option_and_params(params, 'watchTicker', 'uta', False)
+        uta, params = self.handle_option_bool_and_params(params, 'watchTicker', 'uta', False)
         instType, params = self.get_inst_type('watchTicker', market, uta, params)
         args = {
             'instType': instType,
@@ -187,7 +187,7 @@ class bitget(ccxt.async_support.bitget):
         market = self.market(symbols[0])
         instType = None
         uta = None
-        uta, params = self.handle_option_and_params(params, 'watchTickers', 'uta', False)
+        uta, params = self.handle_option_bool_and_params(params, 'watchTickers', 'uta', False)
         instType, params = self.get_inst_type('watchTickers', market, uta, params)
         topics = []
         messageHashes = []
@@ -425,7 +425,7 @@ class bitget(ccxt.async_support.bitget):
         market = self.market(symbols[0])
         instType = None
         uta = None
-        uta, params = self.handle_option_and_params(params, 'watchBidsAsks', 'uta', False)
+        uta, params = self.handle_option_bool_and_params(params, 'watchBidsAsks', 'uta', False)
         instType, params = self.get_inst_type('watchBidsAsks', market, uta, params)
         topics = []
         messageHashes = []
@@ -503,7 +503,7 @@ class bitget(ccxt.async_support.bitget):
         messageHash = None
         instType = None
         uta = None
-        uta, params = self.handle_option_and_params(params, 'watchOHLCV', 'uta', False)
+        uta, params = self.handle_option_bool_and_params(params, 'watchOHLCV', 'uta', False)
         instType, params = self.get_inst_type('watchOHLCV', market, uta, params)
         args = {
             'instType': instType,
@@ -545,7 +545,7 @@ class bitget(ccxt.async_support.bitget):
         market = self.market(symbol)
         instType = None
         messageHash = None
-        values = self.handle_option_and_params(params, 'watchOHLCV', 'uta', False)
+        values = self.handle_option_bool_and_params(params, 'watchOHLCV', 'uta', False)
         uta = values[0]
         instType, params = self.get_inst_type('watchOHLCV', market, uta, params)
         args = {
@@ -742,7 +742,7 @@ class bitget(ccxt.async_support.bitget):
         messageHash = 'unsubscribe:' + messageHashTopic + ':' + market['symbol']
         instType = None
         uta = None
-        uta, params = self.handle_option_and_params(params, methodName, 'uta', False)
+        uta, params = self.handle_option_bool_and_params(params, methodName, 'uta', False)
         instType, params = self.get_inst_type(methodName, market, uta, params)
         args = {
             'instType': instType,
@@ -783,7 +783,7 @@ class bitget(ccxt.async_support.bitget):
         topics = []
         messageHashes = []
         uta = None
-        uta, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'uta', False)
+        uta, params = self.handle_option_bool_and_params(params, 'watchOrderBookForSymbols', 'uta', False)
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
@@ -973,7 +973,7 @@ class bitget(ccxt.async_support.bitget):
             await self.load_markets()
         symbols = self.market_symbols(symbols)
         uta = None
-        uta, params = self.handle_option_and_params(params, 'watchTradesForSymbols', 'uta', False)
+        uta, params = self.handle_option_bool_and_params(params, 'watchTradesForSymbols', 'uta', False)
         topics = []
         messageHashes = []
         for i in range(0, len(symbols)):
@@ -1017,7 +1017,7 @@ class bitget(ccxt.async_support.bitget):
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns any: status of the unwatch request
         """
-        values = self.handle_option_and_params(params, 'watchTrades', 'uta', False)
+        values = self.handle_option_bool_and_params(params, 'watchTrades', 'uta', False)
         uta = values[0]
         channelTopic = 'publicTrade' if uta else 'trade'
         return await self.un_watch_channel(symbol, channelTopic, 'trade', 'watchTrades', params)
@@ -1233,7 +1233,7 @@ class bitget(ccxt.async_support.bitget):
         subscriptionHash = 'positions'
         instType = 'USDT-FUTURES'
         uta = None
-        uta, params = self.handle_option_and_params(params, 'watchPositions', 'uta', False)
+        uta, params = self.handle_option_bool_and_params(params, 'watchPositions', 'uta', False)
         symbols = self.market_symbols(symbols)
         if (symbols is not None) and not self.is_empty(symbols):
             market = self.get_market_from_symbols(symbols)
@@ -1493,7 +1493,7 @@ class bitget(ccxt.async_support.bitget):
             marketId = market['id']
             messageHash = messageHash + ':' + symbol
         uta = None
-        uta, params = self.handle_option_and_params(params, 'watchOrders', 'uta', False)
+        uta, params = self.handle_option_bool_and_params(params, 'watchOrders', 'uta', False)
         productType = self.safe_string(params, 'productType')
         type = None
         type, params = self.handle_market_type_and_params('watchOrders', market, params)
@@ -1975,7 +1975,7 @@ class bitget(ccxt.async_support.bitget):
         type, params = self.handle_market_type_and_params('watchMyTrades', market, params)
         instType = None
         uta = None
-        uta, params = self.handle_option_and_params(params, 'watchMyTrades', 'uta', False)
+        uta, params = self.handle_option_bool_and_params(params, 'watchMyTrades', 'uta', False)
         if market is None and type == 'spot':
             instType = 'SPOT'
         else:
@@ -2154,7 +2154,7 @@ class bitget(ccxt.async_support.bitget):
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         uta = None
-        uta, params = self.handle_option_and_params(params, 'watchBalance', 'uta', False)
+        uta, params = self.handle_option_bool_and_params(params, 'watchBalance', 'uta', False)
         type = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params)
         marginMode = None
@@ -2172,7 +2172,7 @@ class bitget(ccxt.async_support.bitget):
                     channel = 'account-crossed'
         elif not uta:
             instType = 'SPOT'
-        instType, params = self.handle_option_and_params(params, 'watchBalance', 'instType', instType)
+        instType, params = self.handle_option_string_and_params(params, 'watchBalance', 'instType', instType)
         if uta:
             instType = 'UTA'
         args = {

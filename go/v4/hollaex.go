@@ -1142,7 +1142,7 @@ func (this *Hollaex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var paginate any = false
 	var maxLimit int = 500
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", paginate)
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", paginate)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate == true {

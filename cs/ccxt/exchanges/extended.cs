@@ -2978,7 +2978,7 @@ public partial class extended : Exchange
             timeInForce = (uppercaseType == "MARKET") ? "IOC" : "GTT";
         }
         string? fee = this.safeString(parameters, "fee", "0.0005");
-        object builderFeeRate = null;
+        string? builderFeeRate = null;
         object builderId = null;
         if (this.isSandboxModeEnabled)
         {
@@ -2987,8 +2987,8 @@ public partial class extended : Exchange
             parameters = this.omit(parameters, new List<object>() {"builderFeeRate", "defaultBuilderFeeRate", "builderId", "defaultBuilderId"});
         } else
         {
-            IList<object> builderFeeRateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "builderFeeRate", "0.0001");
-            builderFeeRate = builderFeeRateparametersVariable[0];
+            IList<object> builderFeeRateparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "builderFeeRate", "0.0001");
+            builderFeeRate = (string)builderFeeRateparametersVariable[0];
             parameters = builderFeeRateparametersVariable[1];
             IList<object> builderIdparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "builderId");
             builderId = builderIdparametersVariable[0];

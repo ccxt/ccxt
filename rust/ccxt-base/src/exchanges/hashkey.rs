@@ -4082,7 +4082,7 @@ impl HashkeyCore {
     pub fn handle_trigger_option_and_params(&self, mut params: Value, mut methodName: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let mut isTrigger: Value = defaultValue;
-        { let __destr_tmp = self.handle_option_and_params2(params.clone(), methodName, Value::Str("stop".into()), Value::Str("trigger".into()), &[isTrigger.clone()]); isTrigger = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_bool_and_params2(params.clone(), methodName, Value::Str("stop".into()), Value::Str("trigger".into()), &[isTrigger.clone()]); isTrigger = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         return Value::from(vec![isTrigger, params]);
 
     Value::Null

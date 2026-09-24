@@ -3643,7 +3643,7 @@ public partial class hashkey : Exchange
     public virtual List<object> handleTriggerOptionAndParams(object parameters, object methodName, object defaultValue = null)
     {
         object isTrigger = defaultValue;
-        IList<object> isTriggerparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, methodName, "stop", "trigger", isTrigger);
+        IList<object> isTriggerparametersVariable = (IList<object>)this.handleOptionBoolAndParams2(parameters, methodName, "stop", "trigger", isTrigger);
         isTrigger = isTriggerparametersVariable[0];
         parameters = isTriggerparametersVariable[1];
         return new List<object>() {isTrigger, parameters};

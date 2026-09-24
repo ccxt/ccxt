@@ -115,7 +115,7 @@ export default class bitget extends bitgetRest {
             instType = 'SPOT';
         }
         let instypeAux: Str = undefined;
-        [ instypeAux, params ] = this.handleOptionAndParams (params, methodName, 'instType', instType);
+        [ instypeAux, params ] = this.handleOptionStringAndParams (params, methodName, 'instType', instType);
         instType = instypeAux;
         if (uta && (instType !== undefined)) {
             instType = instType.toLowerCase ();
@@ -144,7 +144,7 @@ export default class bitget extends bitgetRest {
         const messageHash = 'ticker:' + symbol;
         let instType: Str = undefined;
         let uta: Bool = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'watchTicker', 'uta', false);
+        [ uta, params ] = this.handleOptionBoolAndParams (params, 'watchTicker', 'uta', false);
         [ instType, params ] = this.getInstType ('watchTicker', market, uta, params);
         const args: Dict = {
             'instType': instType,
@@ -193,7 +193,7 @@ export default class bitget extends bitgetRest {
         const market = this.market (symbols[0]);
         let instType: Str = undefined;
         let uta: Bool = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'watchTickers', 'uta', false);
+        [ uta, params ] = this.handleOptionBoolAndParams (params, 'watchTickers', 'uta', false);
         [ instType, params ] = this.getInstType ('watchTickers', market, uta, params);
         const topics: Dict[] = [];
         const messageHashes: string[] = [];
@@ -439,7 +439,7 @@ export default class bitget extends bitgetRest {
         const market = this.market (symbols[0]);
         let instType: Str = undefined;
         let uta: Bool = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'watchBidsAsks', 'uta', false);
+        [ uta, params ] = this.handleOptionBoolAndParams (params, 'watchBidsAsks', 'uta', false);
         [ instType, params ] = this.getInstType ('watchBidsAsks', market, uta, params);
         const topics: Dict[] = [];
         const messageHashes: string[] = [];
@@ -524,7 +524,7 @@ export default class bitget extends bitgetRest {
         let messageHash: Str = undefined;
         let instType: Str = undefined;
         let uta: Bool = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'watchOHLCV', 'uta', false);
+        [ uta, params ] = this.handleOptionBoolAndParams (params, 'watchOHLCV', 'uta', false);
         [ instType, params ] = this.getInstType ('watchOHLCV', market, uta, params);
         const args: Dict = {
             'instType': instType,
@@ -570,7 +570,7 @@ export default class bitget extends bitgetRest {
         const market = this.market (symbol);
         let instType: Str = undefined;
         let messageHash: Str = undefined;
-        const values = this.handleOptionAndParams (params, 'watchOHLCV', 'uta', false);
+        const values = this.handleOptionBoolAndParams (params, 'watchOHLCV', 'uta', false);
         const uta: Bool = values[0];
         [ instType, params ] = this.getInstType ('watchOHLCV', market, uta, params);
         const args: Dict = {
@@ -782,7 +782,7 @@ export default class bitget extends bitgetRest {
         const messageHash = 'unsubscribe:' + messageHashTopic + ':' + market['symbol'];
         let instType: Str = undefined;
         let uta: Bool = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, methodName, 'uta', false);
+        [ uta, params ] = this.handleOptionBoolAndParams (params, methodName, 'uta', false);
         [ instType, params ] = this.getInstType (methodName, market, uta, params);
         const args: Dict = {
             'instType': instType,
@@ -827,7 +827,7 @@ export default class bitget extends bitgetRest {
         const topics: Dict[] = [];
         const messageHashes: string[] = [];
         let uta: Bool = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'uta', false);
+        [ uta, params ] = this.handleOptionBoolAndParams (params, 'watchOrderBookForSymbols', 'uta', false);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -1040,7 +1040,7 @@ export default class bitget extends bitgetRest {
         }
         symbols = this.marketSymbols (symbols);
         let uta: Bool = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'watchTradesForSymbols', 'uta', false);
+        [ uta, params ] = this.handleOptionBoolAndParams (params, 'watchTradesForSymbols', 'uta', false);
         const topics: Dict[] = [];
         const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -1089,7 +1089,7 @@ export default class bitget extends bitgetRest {
      * @returns {any} status of the unwatch request
      */
     override async unWatchTrades (symbol: string, params = {}): Promise<any> {
-        const values = this.handleOptionAndParams (params, 'watchTrades', 'uta', false);
+        const values = this.handleOptionBoolAndParams (params, 'watchTrades', 'uta', false);
         const uta: Bool = values[0];
         const channelTopic = uta ? 'publicTrade' : 'trade';
         return await this.unWatchChannel (symbol, channelTopic, 'trade', 'watchTrades', params);
@@ -1314,7 +1314,7 @@ export default class bitget extends bitgetRest {
         const subscriptionHash = 'positions';
         let instType: Str = 'USDT-FUTURES';
         let uta: Bool = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'watchPositions', 'uta', false);
+        [ uta, params ] = this.handleOptionBoolAndParams (params, 'watchPositions', 'uta', false);
         symbols = this.marketSymbols (symbols);
         if ((symbols !== undefined) && !this.isEmpty (symbols)) {
             market = this.getMarketFromSymbols (symbols);
@@ -1589,7 +1589,7 @@ export default class bitget extends bitgetRest {
             messageHash = messageHash + ':' + symbol;
         }
         let uta: Bool = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'watchOrders', 'uta', false);
+        [ uta, params ] = this.handleOptionBoolAndParams (params, 'watchOrders', 'uta', false);
         const productType = this.safeString (params, 'productType');
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
@@ -2107,7 +2107,7 @@ export default class bitget extends bitgetRest {
         [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
         let instType: Str = undefined;
         let uta: Bool = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'watchMyTrades', 'uta', false);
+        [ uta, params ] = this.handleOptionBoolAndParams (params, 'watchMyTrades', 'uta', false);
         if (market === undefined && type === 'spot') {
             instType = 'SPOT';
         } else {
@@ -2296,7 +2296,7 @@ export default class bitget extends bitgetRest {
      */
     override async watchBalance (params: Dict = {}): Promise<Balances> {
         let uta: Bool = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'watchBalance', 'uta', false);
+        [ uta, params ] = this.handleOptionBoolAndParams (params, 'watchBalance', 'uta', false);
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         let marginMode: Str = undefined;
@@ -2317,7 +2317,7 @@ export default class bitget extends bitgetRest {
         } else if (!uta) {
             instType = 'SPOT';
         }
-        [ instType, params ] = this.handleOptionAndParams (params, 'watchBalance', 'instType', instType);
+        [ instType, params ] = this.handleOptionStringAndParams (params, 'watchBalance', 'instType', instType);
         if (uta) {
             instType = 'UTA';
         }

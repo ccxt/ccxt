@@ -821,7 +821,7 @@ export default class weex extends weexRest {
         const callerMethodName = this.safeString (params, 'callerMethodName', 'watchOrderBookForSymbols');
         params = this.omit (params, 'callerMethodName');
         let depth = '200';
-        [ depth, params ] = this.handleOptionAndParams (params, callerMethodName, 'depth', depth);
+        [ depth, params ] = this.handleOptionStringAndParams (params, callerMethodName, 'depth', depth);
         const messageHashes: string[] = [];
         const channels: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -876,7 +876,7 @@ export default class weex extends weexRest {
         const callerMethodName = this.safeString (params, 'callerMethodName', 'unWatchOrderBookForSymbols');
         params = this.omit (params, 'callerMethodName');
         let depth = '200';
-        [ depth, params ] = this.handleOptionAndParams (params, callerMethodName, 'depth', depth);
+        [ depth, params ] = this.handleOptionStringAndParams (params, callerMethodName, 'depth', depth);
         const subHashes: string[] = [];
         const channels: string[] = [];
         const unSubHashes: string[] = [];

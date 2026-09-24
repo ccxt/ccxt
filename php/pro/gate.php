@@ -257,7 +257,7 @@ class gate extends \ccxt\async\gate {
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $messageType = $this->get_type_by_market($market);
         $channel = $messageType . '.order_cancel_cp';
-        list($channel, $params) = $this->handle_option_and_params($params, 'cancelAllOrdersWs', 'channel', $channel);
+        list($channel, $params) = $this->handle_option_string_and_params($params, 'cancelAllOrdersWs', 'channel', $channel);
         $url = $this->get_url_by_market($market);
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         list($type, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);

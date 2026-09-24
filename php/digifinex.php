@@ -1900,7 +1900,7 @@ class digifinex extends Exchange {
             // limit orders require the amount in the base currency, market orders require the amount in the quote currency
             $quantity = null;
             $createMarketBuyOrderRequiresPrice = true;
-            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrderRequest', 'createMarketBuyOrderRequiresPrice', true);
+            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_bool_and_params($params, 'createOrderRequest', 'createMarketBuyOrderRequiresPrice', true);
             if ($isMarketOrder && ($side === 'buy')) {
                 $cost = $this->safe_number($params, 'cost');
                 $params = $this->omit($params, 'cost');
@@ -4143,7 +4143,7 @@ class digifinex extends Exchange {
         return $tiers;
     }
 
-    public function handle_margin_mode_and_params(string $methodName, $params = array(), mixed $defaultValue = null): array {
+    public function handle_margin_mode_and_params(string $methodName, $params = array(), ?string $defaultValue = null): array {
         /**
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'

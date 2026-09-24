@@ -1112,8 +1112,8 @@ public class Alpaca extends AlpacaApi
             String loc = this.safeString(parameters, "loc", "us");
             String method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocBars");
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             Object paginationCalls = 10;
             List<Object> paginationCallsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginationCalls", 10);
@@ -2123,14 +2123,14 @@ public class Alpaca extends AlpacaApi
             {
                 ((Map<String, Object>)request).put("limit_price", this.priceToPrecision(symbol, price));
             }
-            Object timeInForce = null;
-            List<Object> timeInForceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "editOrder", "timeInForce", "gtc");
-            timeInForce = ((List<Object>) timeInForceparametersVariable).get(0);
+            String timeInForce = null;
+            List<Object> timeInForceparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "editOrder", "timeInForce", "gtc");
+            timeInForce = (String) ((List<Object>) timeInForceparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) timeInForceparametersVariable).get(1);
             if (!java.util.Objects.equals(timeInForce, null))
             {
                 // the venue only accepts lowercase values, normalize the unified uppercase spellings
-                ((Map<String, Object>)request).put("time_in_force", ((String)timeInForce).toLowerCase());
+                ((Map<String, Object>)request).put("time_in_force", timeInForce.toLowerCase());
             }
             ((Map<String, Object>)request).put("client_order_id", this.generateClientOrderId((Map<String, Object>) (parameters)));
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));

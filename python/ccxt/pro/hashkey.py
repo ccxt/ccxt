@@ -695,8 +695,8 @@ class hashkey(ccxt.async_support.hashkey):
         self.set_balance_cache(client, type, messageHash)
         fetchBalanceSnapshot = None
         awaitBalanceSnapshot = None
-        fetchBalanceSnapshot, params = self.handle_option_and_params(self.options, 'watchBalance', 'fetchBalanceSnapshot', True)
-        awaitBalanceSnapshot, params = self.handle_option_and_params(self.options, 'watchBalance', 'awaitBalanceSnapshot', False)
+        fetchBalanceSnapshot, params = self.handle_option_bool_and_params(self.options, 'watchBalance', 'fetchBalanceSnapshot', True)
+        awaitBalanceSnapshot, params = self.handle_option_bool_and_params(self.options, 'watchBalance', 'awaitBalanceSnapshot', False)
         if fetchBalanceSnapshot and awaitBalanceSnapshot:
             await client.future(type + ':fetchBalanceSnapshot')
         return await self.watch(url, messageHash, None, messageHash)

@@ -789,9 +789,9 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             List<Object> depthparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "depth", depth);
             depth = ((List<Object>) depthparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) depthparametersVariable).get(1);
-            Object frequency = "100ms";
-            List<Object> frequencyparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "frequency", frequency);
-            frequency = ((List<Object>) frequencyparametersVariable).get(0);
+            String frequency = "100ms";
+            List<Object> frequencyparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "frequency", frequency);
+            frequency = (String) ((List<Object>) frequencyparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) frequencyparametersVariable).get(1);
             String channelSuffix = "";
             if (java.util.Objects.equals(frequency, "100ms"))
@@ -853,9 +853,9 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             List<Object> depthparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "depth", depth);
             depth = ((List<Object>) depthparametersVariable).get(0);
             parameters = ((List<Object>) depthparametersVariable).get(1);
-            Object frequency = "100ms";
-            List<Object> frequencyparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "frequency", frequency);
-            frequency = ((List<Object>) frequencyparametersVariable).get(0);
+            String frequency = "100ms";
+            List<Object> frequencyparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "frequency", frequency);
+            frequency = (String) ((List<Object>) frequencyparametersVariable).get(0);
             parameters = ((List<Object>) frequencyparametersVariable).get(1);
             String channelSuffix = "";
             if (java.util.Objects.equals(frequency, "100ms"))
