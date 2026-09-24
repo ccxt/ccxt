@@ -7273,7 +7273,13 @@ public partial class okx : Exchange
         string? addressTo = this.safeString(transaction, "to");
         string? address = addressTo;
         string? tagTo = this.safeString2(transaction, "tag", "memo");
-        tagTo = ((tagTo == null)) ? this.safeString(transaction, "pmtId") : this.safeString2(transaction, "pmtId", tagTo);
+        if ((tagTo == null))
+        {
+            tagTo = this.safeString(transaction, "pmtId");
+        } else
+        {
+            tagTo = this.safeString2(transaction, "pmtId", tagTo);
+        }
         if ((withdrawalId != null))
         {
             type = "withdrawal";
@@ -7293,10 +7299,7 @@ public partial class okx : Exchange
             List<object> chainParts = chain.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
             List<object> networkParts = ((List<object>)this.arraySlice(chainParts, 1));
             string networkId = String.Join("-", networkParts.ToArray());
-            if ((networkId != null))
-            {
-                network = this.networkIdToCode(networkId, code);
-            }
+            network = this.networkIdToCode(networkId, code);
         }
         double? amount = this.safeNumber(transaction, "amt");
         string? status = this.parseTransactionStatus(this.safeString(transaction, "state"));

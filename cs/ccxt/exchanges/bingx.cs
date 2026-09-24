@@ -6997,7 +6997,10 @@ public partial class bingx : Exchange
     {
         string? marketId = this.safeString(marginMode, "symbol");
         string? marginType = this.safeStringLower(marginMode, "marginType");
-        marginType = (marginType == "crossed") ? "cross" : marginType;
+        if (marginType == "crossed")
+        {
+            marginType = "cross";
+        }
         return new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", this.safeSymbol(marketId, market, "-", "swap") },

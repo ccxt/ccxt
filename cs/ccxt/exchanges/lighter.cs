@@ -1467,7 +1467,10 @@ public partial class lighter : Exchange
             object market = markets[i];
             string? id = this.safeString(market, "market_id");
             string? type = this.safeString(market, "market_type");
-            type = (type == "perp") ? "swap" : type;
+            if (type == "perp")
+            {
+                type = "swap";
+            }
             object baseId = this.safeString(market, "symbol");
             if ((baseId != null) && (((string)baseId).IndexOf("/", StringComparison.Ordinal) != -1))
             {

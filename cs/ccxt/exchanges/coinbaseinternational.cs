@@ -2105,7 +2105,10 @@ public partial class coinbaseinternational : Exchange
             tif = "IOC";
         } else
         {
-            tif = ((tif == null)) ? "GTC" : tif;
+            if ((tif == null))
+            {
+                tif = "GTC";
+            }
         }
         if ((postOnly != null))
         {

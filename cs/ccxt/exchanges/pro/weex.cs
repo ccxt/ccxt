@@ -1961,7 +1961,7 @@ public partial class weex : ccxt.weex
             account["free"] = this.safeString2(entry, "available", "amount");
             account["used"] = this.safeString(entry, "frozen");
             account["total"] = this.safeString2(entry, "equity", "legacyAmount");
-            if (((accountType != null)) && ((code != null)))
+            if ((code != null))
             {
                 ((IDictionary<string,object>)getValue(this.balance, accountType))[(string)code] = account;
             }
