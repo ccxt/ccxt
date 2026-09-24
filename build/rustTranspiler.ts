@@ -8903,6 +8903,11 @@ impl std::ops::DerefMut for ${coreName} {
             : (ws ? EXCHANGES_WS_FOLDER : EXCHANGES_FOLDER);
         log.blue(`[rust] Transpiling [${files.join(', ')}]`);
 
+        // one TS7 snapshot for every file of this pass instead of one per file
+        if (files.length > 1) {
+            this.transpiler.setSharedProgram(files.map(f => `${tsFolder}/${f}`));
+        }
+
         const written: string[] = [];
         for (const file of files) {
             const tsPath = `${tsFolder}/${file}`;
