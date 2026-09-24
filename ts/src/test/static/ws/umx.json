@@ -1573,6 +1573,188 @@
                     ]
                 ]
             }
+        ],
+        "createOrderWs": [
+            {
+                "description": "a limit order on the linear swap placed through the trading socket",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    1900
+                ],
+                "url": "wss://stream.umx.com/ws/private/trade/v2/trade",
+                "messages": [
+                    {
+                        "reqId": "1",
+                        "op": "authorization",
+                        "code": 0,
+                        "ts": "1790266865005"
+                    },
+                    {
+                        "reqId": "2",
+                        "op": "order",
+                        "code": 0,
+                        "ts": "1790266865350",
+                        "data": {
+                            "orderId": "3538239631034830848",
+                            "clientOrderId": "3538239631034830848"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "body": {
+                            "type": "Token",
+                            "accessKey": "x",
+                            "accessTimestamp": "1",
+                            "accessSign": "x"
+                        },
+                        "op": "authorization",
+                        "reqId": "1"
+                    },
+                    {
+                        "reqId": "2",
+                        "op": "order",
+                        "body": {
+                            "symbol": "ETH-USDT-PERP",
+                            "side": "buy",
+                            "orderType": "limit",
+                            "price": "1900",
+                            "qty": "0.001"
+                        }
+                    }
+                ],
+                "sentSkipKeys": [
+                    "accessKey",
+                    "accessTimestamp",
+                    "accessSign"
+                ],
+                "parsedResponses": [
+                    {
+                        "info": {
+                            "orderId": "3538239631034830848",
+                            "clientOrderId": "3538239631034830848",
+                            "symbol": "ETH-USDT-PERP",
+                            "ts": 1790266865350
+                        },
+                        "id": "3538239631034830848",
+                        "clientOrderId": "3538239631034830848",
+                        "timestamp": 1790266865350,
+                        "datetime": "2026-09-24T16:21:05.350Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": "ETH/USDT:USDT",
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "side": null,
+                        "price": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "status": null,
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null
+                    }
+                ]
+            }
+        ],
+        "cancelOrderWs": [
+            {
+                "description": "cancel an order through the trading socket, the answer only acknowledges the request",
+                "input": [
+                    "3538240733163745280",
+                    "ETH/USDT:USDT"
+                ],
+                "url": "wss://stream.umx.com/ws/private/trade/v2/trade",
+                "messages": [
+                    {
+                        "reqId": "1",
+                        "op": "authorization",
+                        "code": 0,
+                        "ts": "1790267129476"
+                    },
+                    {
+                        "reqId": "2",
+                        "op": "cancelOrder",
+                        "code": 0,
+                        "ts": "1790267129830",
+                        "data": {
+                            "orderId": "3538240733163745280"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "body": {
+                            "type": "Token",
+                            "accessKey": "x",
+                            "accessTimestamp": "1",
+                            "accessSign": "x"
+                        },
+                        "op": "authorization",
+                        "reqId": "1"
+                    },
+                    {
+                        "reqId": "2",
+                        "op": "cancelOrder",
+                        "body": {
+                            "symbol": "ETH-USDT-PERP",
+                            "orderId": "3538240733163745280"
+                        }
+                    }
+                ],
+                "sentSkipKeys": [
+                    "accessKey",
+                    "accessTimestamp",
+                    "accessSign"
+                ],
+                "parsedResponses": [
+                    {
+                        "info": {
+                            "orderId": "3538240733163745280",
+                            "symbol": "ETH-USDT-PERP",
+                            "ts": 1790267129830
+                        },
+                        "id": "3538240733163745280",
+                        "clientOrderId": null,
+                        "timestamp": 1790267129830,
+                        "datetime": "2026-09-24T16:25:29.830Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": "ETH/USDT:USDT",
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "side": null,
+                        "price": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "status": null,
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null
+                    }
+                ]
+            }
         ]
     }
 }

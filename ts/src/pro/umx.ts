@@ -3,9 +3,9 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import umxRest from '../umx.js';
-import { AuthenticationError, BadRequest, ExchangeError, NotSupported } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -15,6 +15,8 @@ export default class umx extends umxRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
+                'cancelOrderWs': true,
+                'createOrderWs': true,
                 'watchBalance': true,
                 'watchBidsAsks': true,
                 'unWatchBidsAsks': true,
@@ -45,6 +47,7 @@ export default class umx extends umxRest {
                     'ws': {
                         'public': 'wss://stream.umx.com/ws/public/v1/market',
                         'private': 'wss://stream.umx.com/ws/private/v2/notification',
+                        'trade': 'wss://stream.umx.com/ws/private/trade/v2/trade',
                     },
                 },
             },
@@ -1637,6 +1640,234 @@ export default class umx extends umxRest {
     /**
      * @ignore
      * @method
+     * @name umx#requestId
+     * @description the next id to match a request of the trading socket with its answer
+     * @returns {string} the request id
+     */
+    requestId () {
+        this.lockId ();
+        const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
+        this.options['requestId'] = requestId;
+        this.unlockId ();
+        return this.numberToString (requestId);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name umx#authenticateTrade
+     * @description authenticate the trading websocket connection, required before placing or canceling orders on it
+     * @see https://www.umx.com/docs/coin-apis/websocket-stream/trading-channel/user-authentication
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} resolves once the venue confirms the authorization
+     */
+    async authenticateTrade (params: Dict = {}) {
+        this.checkRequiredCredentials ();
+        const url = this.urls['api']['ws']['trade'];
+        const client = this.client (url);
+        const messageHash = 'tradeAuthenticated';
+        const future = client.future (messageHash);
+        const isAuthenticated = this.safeValue (client.subscriptions, messageHash);
+        if (isAuthenticated === undefined) {
+            const timestamp = this.numberToString (this.milliseconds ());
+            // signed like the notification socket, over the same path, but the signature travels
+            // inside the body and the body is signed without it, the key order is required
+            const signedData = '{"type":"Token","accessKey":"' + this.apiKey + '","accessTimestamp":"' + timestamp + '"}';
+            const payload = timestamp + 'POST' + '/v2/notification' + signedData;
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'hex');
+            const body: Dict = {
+                'type': 'Token',
+                'accessKey': this.apiKey,
+                'accessTimestamp': timestamp,
+                'accessSign': signature,
+            };
+            const message: Dict = {
+                'body': body,
+                'op': 'authorization',
+                'reqId': this.requestId (),
+            };
+            this.watch (url, messageHash, this.extend (message, params), messageHash);
+        }
+        return await future;
+    }
+
+    /**
+     * @method
+     * @name umx#createOrderWs
+     * @description create a trade order through the trading websocket
+     * @see https://www.umx.com/docs/coin-apis/websocket-stream/trading-channel/order-placement-channel
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market', 'limit' or 'post_only'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of the base currency to trade
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint, the same as createOrder takes, except the trigger and the attached take profit and stop loss ones, which the socket does not accept
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    override async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
+        await this.loadMarkets ();
+        await this.authenticateTrade ();
+        const market = this.market (symbol);
+        const request = this.createOrderRequest (symbol, type, side, amount, price, params);
+        if ('complexType' in request) {
+            throw new NotSupported (this.id + ' createOrderWs() does not support trigger orders, the trading socket places regular orders only');
+        }
+        if ('tpslOrder' in request) {
+            throw new NotSupported (this.id + ' createOrderWs() does not support an attached take profit or stop loss');
+        }
+        const url = this.urls['api']['ws']['trade'];
+        const reqId = this.requestId ();
+        const message: Dict = {
+            'reqId': reqId,
+            'op': 'order',
+            'body': request,
+        };
+        const subscription: Dict = {
+            'symbol': market['id'],
+        };
+        return await this.watch (url, reqId, message, reqId, subscription);
+    }
+
+    /**
+     * @method
+     * @name umx#cancelOrderWs
+     * @description cancel an open order through the trading websocket
+     * @see https://www.umx.com/docs/coin-apis/websocket-stream/trading-channel/cancel-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] cancel by the client order id instead of the id
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}, the venue only acknowledges the request, fetch the order to confirm the cancelation
+     */
+    override async cancelOrderWs (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrderWs() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        await this.authenticateTrade ();
+        let isTrigger = false;
+        [ isTrigger, params ] = this.handleOptionAndParams2 (params, 'cancelOrderWs', 'trigger', 'stop', false);
+        if (isTrigger) {
+            throw new NotSupported (this.id + ' cancelOrderWs() does not support trigger orders, the trading socket cancels regular orders only');
+        }
+        const market = this.market (symbol);
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        params = this.omit (params, 'clientOrderId');
+        const body: Dict = {
+            'symbol': market['id'],
+        };
+        if (clientOrderId !== undefined) {
+            body['clientOrderId'] = clientOrderId;
+        } else {
+            body['orderId'] = id;
+        }
+        const url = this.urls['api']['ws']['trade'];
+        const reqId = this.requestId ();
+        const message: Dict = {
+            'reqId': reqId,
+            'op': 'cancelOrder',
+            'body': this.extend (body, params),
+        };
+        const subscription: Dict = {
+            'symbol': market['id'],
+        };
+        return await this.watch (url, reqId, message, reqId, subscription);
+    }
+
+    handleTradeMessage (client: Client, message: Dict) {
+        //
+        //     {
+        //         "reqId": "2",
+        //         "op": "order",
+        //         "code": 0,
+        //         "ts": "1790266865350",
+        //         "data": {
+        //             "orderId": "3538239631034830848",
+        //             "clientOrderId": "3538239631034830848"
+        //         }
+        //     }
+        //
+        //     {
+        //         "reqId": "4",
+        //         "op": "cancelOrder",
+        //         "code": 50026,
+        //         "msg": "Order already completed, cancelation failed",
+        //         "ts": "1790266867542"
+        //     }
+        //
+        const op = this.safeString (message, 'op');
+        const reqId = this.safeString (message, 'reqId', '');
+        if (op === 'pong') {
+            client.lastPong = this.milliseconds ();
+            return;
+        }
+        if (op === 'ping') {
+            this.spawn (this.pongTrade, client, message);
+            return;
+        }
+        let messageHash = reqId;
+        if (op === 'authorization') {
+            messageHash = 'tradeAuthenticated';
+        }
+        const code = this.safeString (message, 'code');
+        if ((code !== undefined) && (code !== '0')) {
+            const feedback = this.id + ' ' + this.json (message);
+            if (op === 'authorization') {
+                const error = new AuthenticationError (feedback);
+                client.reject (error, messageHash);
+            } else {
+                try {
+                    this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+                    this.throwBroadlyMatchedException (this.exceptions['broad'], this.safeString (message, 'msg'), feedback);
+                    throw new ExchangeError (feedback);
+                } catch (e) {
+                    client.reject (e, messageHash);
+                }
+            }
+            if (messageHash in client.subscriptions) {
+                delete client.subscriptions[messageHash];
+            }
+            return;
+        }
+        if (op === 'authorization') {
+            const future = this.safeValue (client.futures, messageHash);
+            future.resolve (true);
+            return;
+        }
+        if ((op === 'order') || (op === 'cancelOrder')) {
+            // the answer carries the ids only, the symbol is taken from the request
+            const subscription = this.safeDict (client.subscriptions, messageHash, {});
+            const data = this.safeDict (message, 'data', {});
+            const row = this.extend (data, {
+                'symbol': this.safeString (subscription, 'symbol'),
+                'ts': this.safeInteger (message, 'ts'),
+            });
+            const order = this.parseOrder (row);
+            if (messageHash in client.subscriptions) {
+                delete client.subscriptions[messageHash];
+            }
+            client.resolve (order, messageHash);
+        }
+    }
+
+    async pongTrade (client: Client, message: Dict) {
+        const reqId = this.safeString (message, 'reqId');
+        const pong: Dict = {
+            'op': 'pong',
+        };
+        if (reqId !== undefined) {
+            pong['reqId'] = reqId;
+        }
+        try {
+            await client.send (pong);
+        } catch (e) {
+            this.onError (client, e);
+        }
+    }
+
+    /**
+     * @ignore
+     * @method
      * @name umx#subscriptionTopic
      * @description build one entry of the data list of a subscription request
      * @param {string} stream the venue channel name, e.g. "trade"
@@ -1799,6 +2030,13 @@ export default class umx extends umxRest {
     }
 
     override ping (client: Client): any {
+        if (client.url === this.urls['api']['ws']['trade']) {
+            // the trading socket speaks json and answers a ping only when it carries a reqId
+            return {
+                'reqId': this.requestId (),
+                'op': 'ping',
+            };
+        }
         return 'PING';
     }
 
@@ -1809,6 +2047,10 @@ export default class umx extends umxRest {
         }
         if (message === 'PONG') {
             client.lastPong = this.milliseconds ();
+            return;
+        }
+        if (client.url === this.urls['api']['ws']['trade']) {
+            this.handleTradeMessage (client, message);
             return;
         }
         const event = this.safeString (message, 'event');
