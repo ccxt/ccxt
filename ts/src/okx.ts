@@ -1740,7 +1740,11 @@ export default class okx extends Exchange {
     }
 
     override nonce (): number {
-        return this.milliseconds () - this.options['timeDifference'];
+        const timeDifference = this.safeInteger (this.options, 'timeDifference');
+        if (timeDifference === undefined) {
+            throw new ExchangeError (this.id + ' nonce() requires a numeric options["timeDifference"]');
+        }
+        return this.milliseconds () - timeDifference;
     }
 
     /**

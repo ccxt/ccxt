@@ -5859,7 +5859,11 @@ export default class xt extends Exchange {
         } else {
             payload = request;
         }
-        let url = this.urls['api'][endpoint] + payload;
+        const apiUrl = this.safeString (this.urls['api'], endpoint);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + payload;
         const query = this.omit (params, this.extractParams (path));
         const urlencoded = this.urlencode (this.keysort (query));
         headers = {

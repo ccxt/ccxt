@@ -4278,7 +4278,11 @@ export default class whitebit extends Exchange {
         }
         headers['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
         const pathWithParams = '/' + this.implodeParams (path, params);
-        let url = (this.urls['api'] as Dict)[version][accessibility] + pathWithParams;
+        const apiUrl = this.safeString (this.urls['api'][version], accessibility);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + pathWithParams;
         if (accessibility === 'public') {
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
