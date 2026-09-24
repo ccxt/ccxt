@@ -1193,6 +1193,101 @@ function ccxtGoTypeOfUrlsInitializer (goTranspiler, initializer, printedValue) {
     return unproven ? undefined : typeNameIsUsable (goTranspiler, initializer, '*string') ? '*string' : undefined;
 }
 
+// `var s *string = SafeStringPtr(Add(Add(base, "/"), quote))`: Add's only non-numeric arm is
+// `case string`, so a chain whose leftmost leaf is a Go string or *string boxes a string or nil,
+// which SafeStringPtr carries unchanged. Declarations whose every read is pointer-safe only.
+function goAddChainLeftmostLeaf (node) {
+    let current = node;
+    while ((current?.kind === ts.SyntaxKind.ParenthesizedExpression)
+        || ((current?.kind === ts.SyntaxKind.BinaryExpression) && (current.operatorToken?.kind === ts.SyntaxKind.PlusToken))) {
+        current = (current.kind === ts.SyntaxKind.ParenthesizedExpression) ? current.expression : current.left;
+    }
+    return current;
+}
+
+function goAddChainLeafIsStringOrNil (goTranspiler, leaf) {
+    if (goStringOperand (goTranspiler, leaf)) {
+        return true;
+    }
+    if (leaf?.kind === ts.SyntaxKind.Identifier) {
+        return (typeof goTranspiler.goDeclaredTypeOfIdentifier === 'function')
+            && (goTranspiler.goDeclaredTypeOfIdentifier (leaf) === '*string');
+    }
+    if (leaf?.kind === ts.SyntaxKind.CallExpression) {
+        return goTranspiler.goTypeOfInitializer (leaf, goTranspiler.printNode (leaf, 0)) === '*string';
+    }
+    return false;
+}
+
+// `new ExchangeError (s)`: every ccxt error constructor stringifies through NewError's ToString,
+// which derefs a pointer first
+function goAddChainReadIsErrorArgument (node) {
+    const parent = node.parent;
+    if ((parent?.kind !== ts.SyntaxKind.NewExpression) || (parent.expression === node)
+        || (parent.expression?.kind !== ts.SyntaxKind.Identifier)) {
+        return false;
+    }
+    return goIdentifierImportedFromErrors (parent.expression);
+}
+
+function goIdentifierImportedFromErrors (identifier) {
+    let sourceFile = identifier;
+    while (sourceFile?.parent !== undefined) {
+        sourceFile = sourceFile.parent;
+    }
+    for (const statement of sourceFile?.statements ?? []) {
+        if ((statement.kind === ts.SyntaxKind.ImportDeclaration) && /errors(\.js)?$/.test (statement.moduleSpecifier?.text ?? '')) {
+            const elements = statement.importClause?.namedBindings?.elements ?? [];
+            if (elements.some ((element) => element.name?.escapedText === identifier.escapedText)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+function ccxtGoTypeOfAddChainInitializer (goTranspiler, initializer, printedValue) {
+    const declaration = initializer?.parent;
+    if ((initializer?.kind !== ts.SyntaxKind.BinaryExpression) || (initializer.operatorToken?.kind !== ts.SyntaxKind.PlusToken)
+        || (declaration?.kind !== ts.SyntaxKind.VariableDeclaration) || (declaration.initializer !== initializer)
+        || (declaration.name?.kind !== ts.SyntaxKind.Identifier)
+        || (declaration.parent?.parent?.kind !== ts.SyntaxKind.VariableStatement)) {
+        return undefined;
+    }
+    if (ccxtGoWholePrintedCallee (goTranspiler, printedValue) !== 'Add') {
+        return undefined;
+    }
+    if (!goAddChainLeafIsStringOrNil (goTranspiler, goAddChainLeftmostLeaf (initializer))) {
+        return undefined;
+    }
+    const scope = (typeof goTranspiler.goEnclosingFunction === 'function') ? goTranspiler.goEnclosingFunction (declaration) : undefined;
+    if (scope === undefined) {
+        return undefined;
+    }
+    const varName = declaration.name.escapedText;
+    let unproven = false;
+    const visit = (n) => {
+        if (!unproven && (n.kind === ts.SyntaxKind.Identifier) && (n.escapedText === varName) && (n !== declaration.name)) {
+            // a return hands the pointer to a signature that may name `string`; an assertion needs an interface
+            const printedParent = (goTranspiler.printNode (n.parent, 0) ?? '');
+            unproven = (n.parent?.kind === ts.SyntaxKind.ReturnStatement) || printedParent.includes (varName + '.(')
+                || !(ccxtGoClosureReadIsSafe (goTranspiler, n, varName) || goAddChainReadIsErrorArgument (n));
+        } else if (!unproven) {
+            ts.forEachChild (n, visit);
+        }
+    };
+    ts.forEachChild (scope, visit);
+    return (unproven || goTranspiler.goTypeNameIsShadowed (scope, 'SafeStringPtr')) ? undefined : '*string';
+}
+
+export function ccxtGoWrapAddChainDeclaration (printed) {
+    if (typeof printed !== 'string') {
+        return printed;
+    }
+    const match = /^([\s\S]*?\bvar [A-Za-z0-9_]+ \*string = )(Add\([^\n]*\))(\s*)$/.exec (printed);
+    return (match === null) ? printed : match[1] + 'SafeStringPtr(' + match[2] + ')' + match[3];
+}
+
 export function ccxtGoWrapUrlsDeclaration (printed) {
     if (typeof printed !== 'string') {
         return printed;
@@ -1228,7 +1323,7 @@ function installCcxtGoCurrencyUnbox (goTranspiler) {
     const upstream = goTranspiler.printVariableDeclarationList;
     goTranspiler.printVariableDeclarationList = function (node, identation) {
         const printed = upstream.call (this, node, identation);
-        return ccxtGoWrapUrlsDeclaration (ccxtGoUnboxSumDeclaration (this, ccxtGoUnboxParseNumberDeclaration (this, ccxtGoUnboxCurrencyDeclaration (this, printed))));
+        return ccxtGoWrapAddChainDeclaration (ccxtGoWrapUrlsDeclaration (ccxtGoUnboxSumDeclaration (this, ccxtGoUnboxParseNumberDeclaration (this, ccxtGoUnboxCurrencyDeclaration (this, printed)))));
     };
     goTranspiler.__ccxtGoCurrencyUnboxInstalled = true;
 }
@@ -5882,6 +5977,10 @@ export function installCcxtGoLocalTypes (goTranspiler) {
         // provably Go strings, so the emitted value is a plain concatenation
         if (TYPED_CONCAT_IN_FLIGHT.has (initializer)) {
             return 'string';
+        }
+        const addChainType = ccxtGoTypeOfAddChainInitializer (this, initializer, printedValue);
+        if (addChainType !== undefined) {
+            return addChainType;
         }
         const wsTree = goSourceIsWsTree (initializer);
         const goType = ccxtGoTypeOfPrintedCall (this, printedValue, wsTree, initializer);
