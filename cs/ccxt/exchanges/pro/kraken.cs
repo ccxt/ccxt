@@ -164,11 +164,31 @@ public partial class kraken : ccxt.kraken
         bool isTrailingLimitAmountOrder = (trailingLimitAmount != null);
         bool isTrailingLimitPercentOrder = (trailingLimitPercent != null);
         string offset = this.safeString(parameters, "offset", ""); // can set this to - for minus
-        string? trailingAmountString = ((trailingAmount != null)) ? (offset + this.numberToString(trailingAmount)) : null;
-        string? trailingPercentString = ((trailingPercent != null)) ? (offset + this.numberToString(trailingPercent)) : null;
-        string? trailingLimitAmountString = ((trailingLimitAmount != null)) ? (offset + this.numberToString(trailingLimitAmount)) : null;
-        string? trailingLimitPercentString = ((trailingLimitPercent != null)) ? (offset + this.numberToString(trailingLimitPercent)) : null;
-        string priceType = (isTrailingPercentOrder || isTrailingLimitPercentOrder) ? "pct" : "quote";
+        string? trailingAmountString = null;
+        if ((trailingAmount != null))
+        {
+            trailingAmountString = (offset + this.numberToString(trailingAmount));
+        }
+        string? trailingPercentString = null;
+        if ((trailingPercent != null))
+        {
+            trailingPercentString = (offset + this.numberToString(trailingPercent));
+        }
+        string? trailingLimitAmountString = null;
+        if ((trailingLimitAmount != null))
+        {
+            trailingLimitAmountString = (offset + this.numberToString(trailingLimitAmount));
+        }
+        string? trailingLimitPercentString = null;
+        if ((trailingLimitPercent != null))
+        {
+            trailingLimitPercentString = (offset + this.numberToString(trailingLimitPercent));
+        }
+        string priceType = "quote";
+        if (isTrailingPercentOrder || isTrailingLimitPercentOrder)
+        {
+            priceType = "pct";
+        }
         if (isEqual(method, "createOrderWs"))
         {
             bool? reduceOnly = this.safeBool(parameters, "reduceOnly");
@@ -570,7 +590,7 @@ public partial class kraken : ccxt.kraken
         //     }
         //
         List<object> data = this.safeList(message, "data", new List<object>() {});
-        object ticker = getValue(data, 0);
+        IDictionary<string, object> ticker = this.safeDict(data, 0);
         string symbol = this.safeString(ticker, "symbol");
         string? messageHash = this.getMessageHash("ticker", null, symbol);
         string? vwap = this.safeString(ticker, "vwap");
@@ -627,7 +647,7 @@ public partial class kraken : ccxt.kraken
         //     }
         //
         List<object> data = this.safeList(message, "data", new List<object>() {});
-        object trade = getValue(data, 0);
+        IDictionary<string, object> trade = this.safeDict(data, 0);
         string symbol = this.safeString(trade, "symbol");
         string? messageHash = this.getMessageHash("trade", null, symbol);
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
@@ -641,7 +661,7 @@ public partial class kraken : ccxt.kraken
         IList<object> parsed = this.parseTrades(data, market);
         for (int i = 0; i < (parsed?.Count ?? 0); i++)
         {
-            callDynamically(stored, "append", new object[] {parsed[i]});
+            stored.append(parsed[i]);
         }
         client.resolve(stored, messageHash);
     }
@@ -671,7 +691,7 @@ public partial class kraken : ccxt.kraken
         //     }
         //
         List<object> data = this.safeList(message, "data", new List<object>() {});
-        object first = getValue(data, 0);
+        IDictionary<string, object> first = this.safeDict(data, 0);
         string? marketId = this.safeString(first, "symbol");
         string? symbol = this.safeSymbol(marketId);
         if (!(inOp(this.ohlcvs, symbol)))
@@ -692,11 +712,11 @@ public partial class kraken : ccxt.kraken
         int ohlcvsLength = (data?.Count ?? 0);
         for (int i = 0; i < ohlcvsLength; i++)
         {
-            object candle = getValue(data, i);
+            IDictionary<string, object> candle = this.safeDict(data, i);
             string? datetime = this.safeString(candle, "interval_begin");
             Int64? timestamp = this.parse8601(datetime);
             List<object> parsed = new List<object>() {timestamp, this.safeNumber(candle, "open"), this.safeNumber(candle, "high"), this.safeNumber(candle, "low"), this.safeNumber(candle, "close"), this.safeNumber(candle, "volume")};
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
         }
         client.resolve(stored, messageHash);
     }
@@ -1124,7 +1144,7 @@ public partial class kraken : ccxt.kraken
         // const sortOrder = (key === 'bids') ? true : false;
         for (int j = 0; j < getArrayLength(deltas); j++)
         {
-            object delta = getValue(deltas, j);
+            IDictionary<string, object> delta = this.safeDict(deltas, j);
             double? price = this.safeNumber(delta, "price");
             double? amount = this.safeNumber(delta, "qty");
             (bookside as IOrderBookSide).store(price, amount);
@@ -1351,7 +1371,7 @@ public partial class kraken : ccxt.kraken
             {
                 IDictionary<string, object> trade = this.safeDict(allTrades, i, new Dictionary<string, object>() {});
                 Dictionary<string, object> parsed = this.parseWsTrade(trade);
-                callDynamically(stored, "append", new object[] {parsed});
+                stored.append(parsed);
                 string symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
                 symbols[(string)symbol] = true;
             }
@@ -1409,7 +1429,11 @@ public partial class kraken : ccxt.kraken
         }
         string? datetime = this.safeString(trade, "timestamp");
         string? liquidityIndicator = this.safeString(trade, "liquidity_ind");
-        string takerOrMaker = (liquidityIndicator == "t") ? "taker" : "maker";
+        string takerOrMaker = "maker";
+        if (liquidityIndicator == "t")
+        {
+            takerOrMaker = "taker";
+        }
         return new Dictionary<string, object>() {
             { "info", trade },
             { "id", this.safeString(trade, "exec_id") },
@@ -1508,7 +1532,7 @@ public partial class kraken : ccxt.kraken
                         ((IDictionary<string,object>)symbolsByOrderId).Remove((string)getValue(first, "id"));
                     }
                 }
-                callDynamically(stored, "append", new object[] {newOrder});
+                stored.append(newOrder);
                 if ((symbol != null))
                 {
                     symbols[(string)symbol] = true;

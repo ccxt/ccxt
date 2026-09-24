@@ -1890,7 +1890,7 @@ class zebpay extends Exchange {
         );
         $currencyList = $this->safe_list($response, 'data', array());
         for ($i = 0; $i < count($currencyList); $i++) {
-            $entry = $currencyList[$i];
+            $entry = $this->safe_dict($currencyList, $i);
             $account = $this->account();
             $account['total'] = $this->safe_string($entry, 'total');
             $account['free'] = $this->safe_string($entry, 'free');
@@ -2053,7 +2053,10 @@ class zebpay extends Exchange {
     public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $params = $this->omit($params, 'defaultType');
         $isV1 = mb_strpos($path, 'v1/') > -1;
-        $marketType = $isV1 ? 'swap' : 'spot';
+        $marketType = 'spot';
+        if ($isV1) {
+            $marketType = 'swap';
+        }
         $url = $this->urls['api'][$marketType];
         $tail = '/api/' . $this->implode_params($path, $params);
         $url .= $tail;

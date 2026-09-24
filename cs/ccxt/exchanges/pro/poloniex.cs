@@ -147,7 +147,11 @@ public partial class poloniex : ccxt.poloniex
     public async virtual Task<object> subscribe(object name, object messageHash, object isPrivate, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string publicOrPrivate = isTrue(isPrivate) ? "private" : "public";
+        string publicOrPrivate = "public";
+        if (isTrue(isPrivate))
+        {
+            publicOrPrivate = "private";
+        }
         object url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), publicOrPrivate);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "event", "subscribe" },
@@ -738,7 +742,7 @@ public partial class poloniex : ccxt.poloniex
         List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            object item = data[i];
+            IDictionary<string, object> item = this.safeDict(data, i);
             string? marketId = this.safeString(item, "symbol");
             if ((marketId != null))
             {
@@ -957,7 +961,7 @@ public partial class poloniex : ccxt.poloniex
                 if (eventType == "place" || eventType == "canceled")
                 {
                     Dictionary<string, object> parsed = this.parseWsOrder(order);
-                    callDynamically(orders, "append", new object[] {parsed});
+                    orders.append(parsed);
                 } else
                 {
                     IDictionary<string, object> previousOrders = this.safeDict((orders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
@@ -968,7 +972,7 @@ public partial class poloniex : ccxt.poloniex
                     {
                         // fill event for an order missing from the cache (e.g. placed before subscribing or after a reconnect) - parse as a fresh order instead of aggregating
                         Dictionary<string, object> parsedOrder = this.parseWsOrder(order);
-                        callDynamically(orders, "append", new object[] {parsedOrder});
+                        orders.append(parsedOrder);
                         marketIds.Add(marketId);
                         continue;
                     }
@@ -1024,7 +1028,7 @@ public partial class poloniex : ccxt.poloniex
                     string? state = this.parseStatus(rawState);
                     previousOrder["status"] = state;
                     // update the newUpdates count
-                    callDynamically(orders, "append", new object[] {previousOrder});
+                    orders.append(previousOrder);
                 }
                 marketIds.Add(marketId);
             }
@@ -1230,7 +1234,7 @@ public partial class poloniex : ccxt.poloniex
         bool update = type == "update";
         for (int i = 0; i < data.Count; i++)
         {
-            object item = data[i];
+            IDictionary<string, object> item = this.safeDict(data, i);
             string? marketId = this.safeString(item, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -1361,7 +1365,7 @@ public partial class poloniex : ccxt.poloniex
             this.myTrades = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache trades = this.myTrades;
-        callDynamically(trades, "append", new object[] {parsedTrade});
+        trades.append(parsedTrade);
         client.resolve(trades, messageHash);
         string symbolMessageHash = ((messageHash + ":") + (symbol));
         client.resolve(trades, symbolMessageHash);

@@ -154,7 +154,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         {
             Object rawTrade = (rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i));
             Map<String, Object> trade = (Map<String, Object>) this.parseTrade(rawTrade, market);
-            Helpers.callDynamically(stored, "append", new Object[]{trade});
+            stored.append(trade);
         }
         Helpers.addElementToObject(this.trades, symbol, stored);
         client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
@@ -173,13 +173,21 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         //       "order_id": "BXEEU4S2BWF5WRB"
         //     }
         //
-        Object symbol = (((java.util.Objects.equals(market, null)))) ? null : ((Map<String, Object>)market).get("symbol");
+        Object symbol = null;
+        if (java.util.Objects.equals(market, null))
+        {
+            symbol = null;
+        } else
+        {
+            symbol = ((Map<String, Object>)market).get("symbol");
+        }
+        final Object finalSymbol = symbol;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", null );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "symbol", symbol );
+            put( "symbol", finalSymbol );
             put( "order", null );
             put( "type", null );
             put( "side", null );
@@ -231,7 +239,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             }};
             Map<String,Object> request = this.deepExtend(subscribe, parameters);
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, request, subscriptionHash, subscription)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -292,7 +300,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.indexedOrderBook(new HashMap<String, Object>() {{}}));
         }
-        Object asks = this.safeValue(message, "asks");
+        List<Object> asks = (List<Object>) this.safeList(message, "asks");
         if (!java.util.Objects.equals(asks, null))
         {
             Object snapshot = this.customParseOrderBook((Map<String, Object>) (message), (String) (symbol), timestamp, "bids", "asks", "price", "volume", "id");
@@ -405,7 +413,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         //         "timestamp": 1660598775360
         //     }
         //
-        Object createUpdate = this.safeValue(message, "create_update");
+        Map<String, Object> createUpdate = (Map<String, Object>) this.safeDict(message, "create_update");
         Object asksOrderSide = Helpers.GetValue(orderbook, "asks");
         Object bidsOrderSide = Helpers.GetValue(orderbook, "bids");
         if (!java.util.Objects.equals(createUpdate, null))
@@ -420,7 +428,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
                 Helpers.callDynamically(bidsOrderSide, "storeArray", new Object[]{bidAskArray});
             }
         }
-        Object deleteUpdate = this.safeValue(message, "delete_update");
+        Map<String, Object> deleteUpdate = (Map<String, Object>) this.safeDict(message, "delete_update");
         if (!java.util.Objects.equals(deleteUpdate, null))
         {
             String orderId = this.safeString(deleteUpdate, "order_id");

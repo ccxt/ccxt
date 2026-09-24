@@ -222,7 +222,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         {
             Object index = Helpers.subtract(Helpers.subtract(length, j), 1);
             Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (Helpers.GetValue(trades, index)), market);
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
         }
         String messageHash = (("trade" + ":") + symbol);
         client.resolve(stored, messageHash);
@@ -486,7 +486,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         if (Boolean.TRUE.equals(isSnapshot))
         {
             Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "b", "a");
-            Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+            orderbook.reset(snapshot);
         } else
         {
             List<Object> asks = (List<Object>) this.safeList(data, "a", new ArrayList<Object>(Arrays.asList()));
@@ -730,7 +730,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object data = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
+                List<Object> data = (List<Object>) this.safeList(symbolsAndTimeframes, i);
                 Object symbolString = this.safeString(data, 0);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbolString);
                 symbolString = ((Map<String, Object>)market).get("id2");
@@ -800,7 +800,11 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         Object timeframe = this.findTimeframe(timeframeId);
         String marketId = this.safeString(topicParts, (((long) topicLength) - 1L));
         Boolean isSpot = Helpers.isGreaterThan(((String)client.url).indexOf("spot"), -1);
-        String marketType = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "contract";
+        String marketType = "contract";
+        if (Boolean.TRUE.equals(isSpot))
+        {
+            marketType = "spot";
+        }
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
@@ -816,7 +820,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object parsed = this.parseWsOHLCV((data == null || i < 0 || i >= data.size() ? null : data.get(i)));
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
         }
         String messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
         List<Object> resolveData = new ArrayList<Object>(Arrays.asList(symbol, timeframe, stored));
@@ -1232,7 +1236,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
-            Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
+            List<Object> positions = (List<Object>) this.filterByArray(newPositions, "symbol", symbols, false);
             if (!this.isEmpty(positions))
             {
                 client.resolve(positions, messageHash);

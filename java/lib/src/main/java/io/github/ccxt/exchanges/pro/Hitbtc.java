@@ -127,7 +127,11 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             {
                 Long timestamp = this.milliseconds();
                 String timestampString = this.numberToString(timestamp);
-                String timestampEncoded = (((java.util.Objects.equals(timestampString, null)))) ? "" : timestampString;
+                String timestampEncoded = timestampString;
+                if (java.util.Objects.equals(timestampString, null))
+                {
+                    timestampEncoded = "";
+                }
                 String signature = (String) this.hmac(this.encode(timestampEncoded), this.encode(this.secret), sha256(), "hex");
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "method", "login" );
@@ -378,7 +382,11 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //
         Map<String, Object> snapshot = (Map<String, Object>) this.safeDict(message, "snapshot");
         Map<String, Object> data = (Map<String, Object>) this.safeDict2(message, "snapshot", "update", new HashMap<String, Object>() {{}});
-        String type = (((!java.util.Objects.equals(snapshot, null) && !java.util.Objects.equals(snapshot, null)))) ? "snapshot" : "update";
+        String type = "update";
+        if (!java.util.Objects.equals(snapshot, null) && !java.util.Objects.equals(snapshot, null))
+        {
+            type = "snapshot";
+        }
         List<String> marketIds = new ArrayList<String>(data.keySet());
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
@@ -399,7 +407,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             if (java.util.Objects.equals(type, "snapshot"))
             {
                 Map<String, Object> parsedSnapshot = (Map<String, Object>) this.parseOrderBook(item, symbol, timestamp, "b", "a");
-                Helpers.callDynamically(orderbook, "reset", new Object[]{parsedSnapshot});
+                orderbook.reset(parsedSnapshot);
             } else
             {
                 List<Object> asks = (List<Object>) this.safeList(item, "a", new ArrayList<Object>(Arrays.asList()));
@@ -776,9 +784,14 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
     public Object parseWsBidAsk(Map<String, Object> ticker, Map<String, Object> market)
     {
         Long timestamp = this.safeInteger(ticker, "t");
-        Object bidAskSymbol = (((!java.util.Objects.equals(market, null)))) ? ((Map<String, Object>)market).get("symbol") : null;
+        Object bidAskSymbol = null;
+        if (!java.util.Objects.equals(market, null))
+        {
+            bidAskSymbol = ((Map<String, Object>)market).get("symbol");
+        }
+        final Object finalBidAskSymbol = bidAskSymbol;
         return this.safeTicker(new HashMap<String, Object>() {{
-            put( "symbol", bidAskSymbol );
+            put( "symbol", finalBidAskSymbol );
             put( "timestamp", timestamp );
             put( "datetime", Hitbtc.this.iso8601(timestamp) );
             put( "ask", Hitbtc.this.safeString(ticker, "a") );
@@ -907,7 +920,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Object trades = this.parseWsTrades((data == null || marketId == null ? null : data.get(marketId)), market);
             for (var j = 0; j < ((List<?>)trades).size(); j++)
             {
-                Helpers.callDynamically(stored, "append", new Object[]{(trades == null || j < 0 || j >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(j))});
+                stored.append((trades == null || j < 0 || j >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(j)));
             }
             String messageHash = ("trades::" + symbol);
             client.resolve(stored, messageHash);
@@ -1082,7 +1095,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Object ohlcvs = this.parseWsOHLCVs((data == null || marketId == null ? null : data.get(marketId)), market);
             for (var j = 0; j < ((List<?>)ohlcvs).size(); j++)
             {
-                Helpers.callDynamically(stored, "append", new Object[]{(ohlcvs == null || j < 0 || j >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(j))});
+                stored.append((ohlcvs == null || j < 0 || j >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(j)));
             }
             String messageHash = ("candles::" + symbol);
             client.resolve(stored, messageHash);

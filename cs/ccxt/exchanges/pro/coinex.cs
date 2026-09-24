@@ -346,7 +346,7 @@ public partial class coinex : ccxt.coinex
         }
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         List<object> balances = this.safeList(data, "balance_list", new List<object>() {});
-        object firstEntry = (balances != null && 0 < balances.Count ? balances[0] : null);
+        IDictionary<string, object> firstEntry = this.safeDict(balances, 0);
         Int64? updated = this.safeInteger(firstEntry, "updated_at");
         string? unrealizedPnl = this.safeString(firstEntry, "unrealized_pnl");
         bool isSpot = ((updated != null));
@@ -529,7 +529,11 @@ public partial class coinex : ccxt.coinex
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "market");
         bool isSpot = ((string)client.url).IndexOf("spot", StringComparison.Ordinal) > -1;
-        string defaultType = isSpot ? "spot" : "swap";
+        string defaultType = "swap";
+        if (isSpot)
+        {
+            defaultType = "spot";
+        }
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, defaultType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("myTrades:" + symbol);
@@ -542,7 +546,7 @@ public partial class coinex : ccxt.coinex
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
         Dictionary<string, object> parsed = this.parseWsTrade(data, market);
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         client.resolve(getValue(this.trades, symbol), messageWithType);
         client.resolve(getValue(this.trades, symbol), messageHash);
@@ -593,7 +597,11 @@ public partial class coinex : ccxt.coinex
         List<object> trades = this.safeList(data, "deal_list", new List<object>() {});
         string? marketId = this.safeString(data, "market");
         bool isSpot = ((string)client.url).IndexOf("spot", StringComparison.Ordinal) > -1;
-        string defaultType = isSpot ? "spot" : "swap";
+        string defaultType = "swap";
+        if (isSpot)
+        {
+            defaultType = "spot";
+        }
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, defaultType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("trades:" + symbol);
@@ -608,7 +616,7 @@ public partial class coinex : ccxt.coinex
         {
             object trade = trades[i];
             Dictionary<string, object> parsed = this.parseWsTrade(trade, market);
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
         }
         ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         client.resolve(getValue(this.trades, symbol), messageHash);
@@ -655,7 +663,11 @@ public partial class coinex : ccxt.coinex
         //
         Int64? timestamp = this.safeInteger(trade, "created_at");
         bool isSpot = ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("margin_market")));
-        string defaultType = isSpot ? "spot" : "swap";
+        string defaultType = "swap";
+        if (isSpot)
+        {
+            defaultType = "spot";
+        }
         string? marketId = this.safeString(trade, "market");
         market = this.safeMarket(marketId, market, null, defaultType);
         Dictionary<string, object> fee = new Dictionary<string, object>() {};
@@ -982,7 +994,11 @@ public partial class coinex : ccxt.coinex
         //     }
         //
         bool isSpot = ((string)client.url).IndexOf("spot", StringComparison.Ordinal) > -1;
-        string defaultType = isSpot ? "spot" : "swap";
+        string defaultType = "swap";
+        if (isSpot)
+        {
+            defaultType = "spot";
+        }
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         IDictionary<string, object> depth = this.safeDict(data, "depth", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "market");
@@ -1227,7 +1243,7 @@ public partial class coinex : ccxt.coinex
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache orders = this.orders;
-        callDynamically(orders, "append", new object[] {parsedOrder});
+        orders.append(parsedOrder);
         string messageHash = "orders";
         string messageWithType = ((messageHash + ":") + ((market.ContainsKey("type") ? market["type"] : null)));
         client.resolve(this.orders, messageWithType);
@@ -1329,7 +1345,11 @@ public partial class coinex : ccxt.coinex
         string? marketId = this.safeString(order, "market");
         string? status = this.safeString(order, "status");
         bool isSpot = ((order != null && ((IDictionary<string, object>)order).ContainsKey("margin_market")));
-        string defaultType = isSpot ? "spot" : "swap";
+        string defaultType = "swap";
+        if (isSpot)
+        {
+            defaultType = "spot";
+        }
         market = this.safeMarket(marketId, market, null, defaultType);
         Dictionary<string, object> fee = null;
         string? feeCost = ((string)this.omitZero(this.safeString2(order, "fee", "quote_ccy_fee")));

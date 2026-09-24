@@ -392,7 +392,7 @@ public partial class bydfi : ccxt.bydfi
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbolsAndTimeframes); i++)
         {
-            object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
+            List<object> symbolAndTimeframe = this.safeList(symbolsAndTimeframes, i);
             string? marketId = this.safeString(symbolAndTimeframe, 0);
             Dictionary<string, object> market = this.market(marketId);
             string? tf = this.safeString(symbolAndTimeframe, 1);
@@ -435,7 +435,7 @@ public partial class bydfi : ccxt.bydfi
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbolsAndTimeframes?.Count ?? 0); i++)
         {
-            object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
+            List<object> symbolAndTimeframe = this.safeList(symbolsAndTimeframes, i);
             string? marketId = this.safeString(symbolAndTimeframe, 0);
             Dictionary<string, object> market = this.market(marketId);
             string? tf = this.safeString(symbolAndTimeframe, 1);
@@ -487,7 +487,7 @@ public partial class bydfi : ccxt.bydfi
         }
         ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)getValue(getValue(this.ohlcvs, symbol), timeframe));
         List<object> parsed = this.parseWsOHLCV(message);
-        callDynamically(ohlcv, "append", new object[] {parsed});
+        ohlcv.append(parsed);
         string messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
         client.resolve(new List<object>() {symbol, timeframe, ohlcv}, messageHash);
     }
@@ -752,7 +752,7 @@ public partial class bydfi : ccxt.bydfi
         Dictionary<string, object> order = this.parseWsOrder(rawOrder, market);
         Int64? lastUpdateTimestamp = this.safeInteger(message, "T");
         order["lastUpdateTimestamp"] = lastUpdateTimestamp;
-        callDynamically(orders, "append", new object[] {order});
+        orders.append(order);
         client.resolve(orders, messageHash);
         client.resolve(orders, symbolMessageHash);
     }
@@ -923,7 +923,7 @@ public partial class bydfi : ccxt.bydfi
         Int64? timestamp = this.safeInteger(message, "T");
         parsedPosition["timestamp"] = timestamp;
         parsedPosition["datetime"] = this.iso8601(timestamp);
-        callDynamically(cache, "append", new object[] {parsedPosition});
+        cache.append(parsedPosition);
         client.resolve(new List<object>() {parsedPosition}, messageHash);
         client.resolve(new List<object>() {parsedPosition}, symbolMessageHash);
     }
@@ -1105,7 +1105,7 @@ public partial class bydfi : ccxt.bydfi
             };
             for (int i = 0; i < balances.Count; i++)
             {
-                object balance = balances[i];
+                IDictionary<string, object> balance = this.safeDict(balances, i);
                 string? currencyId = this.safeString(balance, "a");
                 string? code = this.safeCurrencyCode(currencyId);
                 Dictionary<string, object> account = this.account();

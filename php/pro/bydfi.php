@@ -382,7 +382,7 @@ class bydfi extends \ccxt\async\bydfi {
         $channels = array();
         $messageHashes = array();
         for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-            $symbolAndTimeframe = $symbolsAndTimeframes[$i];
+            $symbolAndTimeframe = $this->safe_list($symbolsAndTimeframes, $i);
             $marketId = $this->safe_string($symbolAndTimeframe, 0);
             $market = $this->market($marketId);
             $tf = $this->safe_string($symbolAndTimeframe, 1);
@@ -421,7 +421,7 @@ class bydfi extends \ccxt\async\bydfi {
         $channels = array();
         $messageHashes = array();
         for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-            $symbolAndTimeframe = $symbolsAndTimeframes[$i];
+            $symbolAndTimeframe = $this->safe_list($symbolsAndTimeframes, $i);
             $marketId = $this->safe_string($symbolAndTimeframe, 0);
             $market = $this->market($marketId);
             $tf = $this->safe_string($symbolAndTimeframe, 1);
@@ -1051,7 +1051,7 @@ class bydfi extends \ccxt\async\bydfi {
                 'datetime' => $this->iso8601($timestamp),
             );
             for ($i = 0; $i < count($balances); $i++) {
-                $balance = $balances[$i];
+                $balance = $this->safe_dict($balances, $i);
                 $currencyId = $this->safe_string($balance, 'a');
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();

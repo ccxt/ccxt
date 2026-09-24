@@ -341,7 +341,7 @@ class coinex extends \ccxt\async\coinex {
         }
         $data = $this->safe_dict($message, 'data', array());
         $balances = $this->safe_list($data, 'balance_list', array());
-        $firstEntry = $balances[0];
+        $firstEntry = $this->safe_dict($balances, 0);
         $updated = $this->safe_integer($firstEntry, 'updated_at');
         $unrealizedPnl = $this->safe_string($firstEntry, 'unrealized_pnl');
         $isSpot = ($updated !== null);
@@ -499,7 +499,10 @@ class coinex extends \ccxt\async\coinex {
         $data = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($data, 'market');
         $isSpot = mb_strpos($client->url, 'spot') > -1;
-        $defaultType = $isSpot ? 'spot' : 'swap';
+        $defaultType = 'swap';
+        if ($isSpot) {
+            $defaultType = 'spot';
+        }
         $market = $this->safe_market($marketId, null, null, $defaultType);
         $symbol = $market['symbol'];
         $messageHash = 'myTrades:' . $symbol;
@@ -561,7 +564,10 @@ class coinex extends \ccxt\async\coinex {
         $trades = $this->safe_list($data, 'deal_list', array());
         $marketId = $this->safe_string($data, 'market');
         $isSpot = mb_strpos($client->url, 'spot') > -1;
-        $defaultType = $isSpot ? 'spot' : 'swap';
+        $defaultType = 'swap';
+        if ($isSpot) {
+            $defaultType = 'spot';
+        }
         $market = $this->safe_market($marketId, null, null, $defaultType);
         $symbol = $market['symbol'];
         $messageHash = 'trades:' . $symbol;
@@ -620,7 +626,10 @@ class coinex extends \ccxt\async\coinex {
         //
         $timestamp = $this->safe_integer($trade, 'created_at');
         $isSpot = (is_array($trade) && array_key_exists('margin_market' ?? '', $trade));
-        $defaultType = $isSpot ? 'spot' : 'swap';
+        $defaultType = 'swap';
+        if ($isSpot) {
+            $defaultType = 'spot';
+        }
         $marketId = $this->safe_string($trade, 'market');
         $market = $this->safe_market($marketId, $market, null, $defaultType);
         $fee = array();
@@ -919,7 +928,10 @@ class coinex extends \ccxt\async\coinex {
         //     }
         //
         $isSpot = mb_strpos($client->url, 'spot') > -1;
-        $defaultType = $isSpot ? 'spot' : 'swap';
+        $defaultType = 'swap';
+        if ($isSpot) {
+            $defaultType = 'spot';
+        }
         $data = $this->safe_dict($message, 'data', array());
         $depth = $this->safe_dict($data, 'depth', array());
         $marketId = $this->safe_string($data, 'market');
@@ -1244,7 +1256,10 @@ class coinex extends \ccxt\async\coinex {
         $marketId = $this->safe_string($order, 'market');
         $status = $this->safe_string($order, 'status');
         $isSpot = (is_array($order) && array_key_exists('margin_market' ?? '', $order));
-        $defaultType = $isSpot ? 'spot' : 'swap';
+        $defaultType = 'swap';
+        if ($isSpot) {
+            $defaultType = 'spot';
+        }
         $market = $this->safe_market($marketId, $market, null, $defaultType);
         $fee = null;
         $feeCost = $this->omit_zero($this->safe_string_2($order, 'fee', 'quote_ccy_fee'));

@@ -114,7 +114,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         List<object> balances = this.safeList(message, "balances", new List<object>() {});
         for (int i = 0; i < balances.Count; i++)
         {
-            object entry = balances[i];
+            IDictionary<string, object> entry = this.safeDict(balances, i);
             string? currencyId = this.safeString(entry, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -216,7 +216,7 @@ public partial class blockchaincom : ccxt.blockchaincom
                 stored = new ArrayCacheByTimestamp(limit);
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
             }
-            callDynamically(stored, "append", new object[] {ohlcv});
+            stored.append(ohlcv);
             client.resolve(stored, messageHash);
         } else if (eventVar != "subscribed")
         {
@@ -416,7 +416,7 @@ public partial class blockchaincom : ccxt.blockchaincom
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
         Dictionary<string, object> parsed = this.parseWsTrade(message, market);
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         client.resolve(getValue(this.trades, symbol), messageHash);
     }
@@ -593,12 +593,12 @@ public partial class blockchaincom : ccxt.blockchaincom
             {
                 object order = orders[i];
                 Dictionary<string, object> parsedOrder = this.parseWsOrder(order);
-                callDynamically(cachedOrders, "append", new object[] {parsedOrder});
+                cachedOrders.append(parsedOrder);
             }
         } else if (eventVar == "updated")
         {
             Dictionary<string, object> parsedOrder = this.parseWsOrder(message);
-            callDynamically(cachedOrders, "append", new object[] {parsedOrder});
+            cachedOrders.append(parsedOrder);
         }
         this.orders = cachedOrders;
         client.resolve(this.orders, messageHash);

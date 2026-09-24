@@ -235,7 +235,7 @@ public partial class lbank : ccxt.lbank
                 stored = new ArrayCacheByTimestamp(limit);
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
             }
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
             string messageHash = ((("fetchOHLCV:" + symbol) + ":") + timeframeId);
             client.resolve(stored, messageHash);
         } else
@@ -253,7 +253,7 @@ public partial class lbank : ccxt.lbank
                 stored = new ArrayCacheByTimestamp(limit);
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
             }
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
             string messageHash = ((("ohlcv:" + symbol) + ":") + timeframeId);
             client.resolve(stored, messageHash);
         }
@@ -517,7 +517,7 @@ public partial class lbank : ccxt.lbank
         {
             Dictionary<string, object> trade = this.parseWsTrade(rawTrades[i], market);
             trade["symbol"] = symbol;
-            callDynamically(stored, "append", new object[] {trade});
+            stored.append(trade);
         }
         ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         string messageHash = ("trades:" + symbol);
@@ -541,7 +541,14 @@ public partial class lbank : ccxt.lbank
         //    }
         //
         Int64? timestamp = this.safeInteger(trade, 0);
-        string? datetime = ((timestamp != null)) ? (this.iso8601(timestamp)) : (this.safeString(trade, "TS"));
+        string? datetime = null;
+        if ((timestamp != null))
+        {
+            datetime = (this.iso8601(timestamp));
+        } else
+        {
+            datetime = (this.safeString(trade, "TS"));
+        }
         if ((timestamp == null))
         {
             timestamp = this.parse8601(datetime);
@@ -592,7 +599,7 @@ public partial class lbank : ccxt.lbank
         {
             await this.loadMarkets();
         }
-        object key = await this.authenticate(parameters);
+        string? key = await this.authenticate(parameters);
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string? messageHash = null;
         string pair = "all";
@@ -650,7 +657,7 @@ public partial class lbank : ccxt.lbank
         {
             return;
         }
-        callDynamically(myOrders, "append", new object[] {order});
+        myOrders.append(order);
         this.orders = myOrders;
         client.resolve(myOrders, "orders");
         string messageHash = ("orders:" + symbol);
@@ -771,7 +778,7 @@ public partial class lbank : ccxt.lbank
         {
             await this.loadMarkets();
         }
-        object key = await this.authenticate(parameters);
+        string? key = await this.authenticate(parameters);
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string messageHash = "balance";
         Dictionary<string, object> message = new Dictionary<string, object>() {
@@ -1036,7 +1043,7 @@ public partial class lbank : ccxt.lbank
         }
     }
 
-    public async virtual Task<object> authenticate(object parameters = null)
+    public async virtual Task<string?> authenticate(object parameters = null)
     {
         // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
         // concurrent watchOrders/watchBalance callers would each POST subscribe/get_key or
@@ -1054,7 +1061,7 @@ public partial class lbank : ccxt.lbank
             // a flight is already in progress - wake when the leader settles
             // it: the subscribeKey is then in the bucket
             await client.future(messageHash);
-            return getValue(getValue(client.subscriptions, "authenticated"), "key");
+            return this.safeString(this.safeDict(client.subscriptions, "authenticated"), "key");
         }
         var future = client.reusableFuture(messageHash);
         try
@@ -1107,6 +1114,6 @@ public partial class lbank : ccxt.lbank
         // rethrows a rejected flight to the leader and attaches the handler
         // that keeps an alone leader from crashing on an unhandled rejection
         await future;
-        return getValue(getValue(client.subscriptions, "authenticated"), "key");
+        return this.safeString(this.safeDict(client.subscriptions, "authenticated"), "key");
     }
 }

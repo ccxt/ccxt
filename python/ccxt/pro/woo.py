@@ -89,7 +89,9 @@ class woo(ccxt.async_support.woo):
         return newValue
 
     async def watch_public(self, messageHash: str, message: dict):
-        urlUid = '/' + self.uid if (self.uid != '') else ''
+        urlUid = ''
+        if self.uid != '':
+            urlUid = '/' + self.uid
         url = self.urls['api']['ws']['public'] + urlUid
         requestId = self.request_id(url)
         subscribe = {
@@ -99,7 +101,9 @@ class woo(ccxt.async_support.woo):
         return await self.watch(url, messageHash, request, messageHash, subscribe)
 
     async def unwatch_public(self, subHash: str, symbol: Str, topic: str, params={}) -> object:
-        urlUid = '/' + self.uid if (self.uid != '') else ''
+        urlUid = ''
+        if self.uid != '':
+            urlUid = '/' + self.uid
         url = self.urls['api']['ws']['public'] + urlUid
         requestId = self.request_id(url)
         unsubHash = 'unsubscribe::' + subHash
@@ -141,7 +145,9 @@ class woo(ccxt.async_support.woo):
         method, params = self.handle_option_string_and_params(params, 'watchOrderBook', 'method', 'orderbook')
         market = self.market(symbol)
         topic = market['id'] + '@' + method
-        urlUid = '/' + self.uid if (self.uid != '') else ''
+        urlUid = ''
+        if self.uid != '':
+            urlUid = '/' + self.uid
         url = self.urls['api']['ws']['public'] + urlUid
         requestId = self.request_id(url)
         request = {
@@ -394,7 +400,7 @@ class woo(ccxt.async_support.woo):
         #     }
         #
         data = self.safe_value(message, 'data')
-        topic = self.safe_value(message, 'topic')
+        topic = self.safe_string(message, 'topic')
         marketId = self.safe_string(data, 'symbol')
         market = self.safe_market(marketId)
         timestamp = self.safe_integer(message, 'ts')
@@ -476,7 +482,7 @@ class woo(ccxt.async_support.woo):
         #         ]
         #     }
         #
-        topic = self.safe_value(message, 'topic')
+        topic = self.safe_string(message, 'topic')
         data = self.safe_value(message, 'data')
         timestamp = self.safe_integer(message, 'ts')
         result = []
@@ -653,7 +659,7 @@ class woo(ccxt.async_support.woo):
         #     }
         #
         data = self.safe_dict(message, 'data')
-        topic = self.safe_value(message, 'topic')
+        topic = self.safe_string(message, 'topic')
         marketId = self.safe_string(data, 'symbol')
         market = self.safe_market(marketId)
         symbol = market['symbol']
@@ -895,7 +901,9 @@ class woo(ccxt.async_support.woo):
         if self.markets is None:
             await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
-        topic = 'algoexecutionreportv2' if (trigger is True) else 'executionreport'
+        topic = 'executionreport'
+        if trigger is True:
+            topic = 'algoexecutionreportv2'
         params = self.omit(params, ['stop', 'trigger'])
         messageHash = topic
         if symbol is not None:
@@ -929,7 +937,9 @@ class woo(ccxt.async_support.woo):
         if self.markets is None:
             await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
-        topic = 'algoexecutionreportv2' if (trigger is True) else 'executionreport'
+        topic = 'executionreport'
+        if trigger is True:
+            topic = 'algoexecutionreportv2'
         params = self.omit(params, ['stop', 'trigger'])
         messageHash = 'myTrades'
         if symbol is not None:
@@ -1339,7 +1349,7 @@ class woo(ccxt.async_support.woo):
         #
         #    }
         #
-        data = self.safe_value(message, 'data')
+        data = self.safe_dict(message, 'data')
         balances = self.safe_value(data, 'balances')
         keys = list(balances.keys())
         ts = self.safe_integer(message, 'ts')
@@ -1348,7 +1358,7 @@ class woo(ccxt.async_support.woo):
         self.balance['datetime'] = self.iso8601(ts)
         for i in range(0, len(keys)):
             key = keys[i]
-            value = balances[key]
+            value = self.safe_dict(balances, key)
             code = self.safe_currency_code(key)
             account = self.account()
             if (code is not None) and (code in self.balance):

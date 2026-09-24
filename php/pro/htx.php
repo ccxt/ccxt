@@ -984,13 +984,19 @@ class htx extends \ccxt\async\htx {
         if (($market !== null) && ($market['lowercaseId'] !== null)) {
             $marketCode = strtolower($market['lowercaseId']);
         }
-        $baseId = ($market !== null) ? $market['baseId'] : null;
+        $baseId = null;
+        if ($market !== null) {
+            $baseId = $market['baseId'];
+        }
         $prefix = $orderType;
         $messageHash = $prefix;
         if ($subType === 'linear') {
             // USDT Margined Contracts Example: LTC/USDT:USDT
             $marginMode = $this->safe_string($params, 'margin', 'cross');
-            $marginPrefix = ($marginMode === 'cross') ? $prefix . '_cross' : $prefix;
+            $marginPrefix = $prefix;
+            if ($marginMode === 'cross') {
+                $marginPrefix = $prefix . '_cross';
+            }
             $messageHash = $marginPrefix;
             if ($marketCode !== null) {
                 $messageHash .= '.' . $marketCode;
@@ -1019,7 +1025,12 @@ class htx extends \ccxt\async\htx {
     }
 
     public function get_v5_linear_channel_and_message_hash(?string $topic, ?array $market = null, $params = array()) {
-        $contractCode = ($market !== null) ? $market['id'] : $this->safe_string($params, 'contract_code', '*');
+        $contractCode = null;
+        if ($market !== null) {
+            $contractCode = $market['id'];
+        } else {
+            $contractCode = $this->safe_string($params, 'contract_code', '*');
+        }
         $channel = $topic;
         $messageHash = $topic;
         if (($contractCode !== null) && ($contractCode !== '*')) {
@@ -1683,7 +1694,10 @@ class htx extends \ccxt\async\htx {
         $isLinear = ($subType === 'linear');
         $url = $this->get_url_by_market_type($type, $isLinear, true, false, $isV5Linear);
         $messageHash = $marginMode . ':positions' . $messageHash;
-        $channel = ($marginMode === 'cross') ? 'positions_cross.*' : 'positions.*';
+        $channel = 'positions.*';
+        if ($marginMode === 'cross') {
+            $channel = 'positions_cross.*';
+        }
         if ($isV5Linear) {
             $v5Market = null;
             if (($symbols !== null) && (strlen($symbols) === 1)) {
@@ -1786,7 +1800,10 @@ class htx extends \ccxt\async\htx {
         //
         $url = $client->url;
         $topic = $this->safe_string($message, 'topic', '');
-        $defaultMarginMode = ($topic === 'positions_cross') ? 'cross' : 'isolated';
+        $defaultMarginMode = 'isolated';
+        if ($topic === 'positions_cross') {
+            $defaultMarginMode = 'cross';
+        }
         if ($this->positions === null) {
             $this->positions = array();
         }
@@ -2103,7 +2120,7 @@ class htx extends \ccxt\async\htx {
                 $details = $this->safe_list($accountData, 'details', array());
                 $detailsLength = count($details);
                 for ($i = 0; $i < $detailsLength; $i++) {
-                    $detail = $details[$i];
+                    $detail = $this->safe_dict($details, $i);
                     $currencyId = $this->safe_string($detail, 'currency');
                     $code = $this->safe_currency_code($currencyId);
                     if ($code === null) {
@@ -2182,7 +2199,7 @@ class htx extends \ccxt\async\htx {
                 } else {
                     // isolated margin
                     for ($i = 0; $i < count($data); $i++) {
-                        $isolatedBalance = $data[$i];
+                        $isolatedBalance = $this->safe_dict($data, $i);
                         $account = $this->account();
                         $account['free'] = $this->safe_string($isolatedBalance, 'margin_balance', 'margin_available');
                         $account['used'] = $this->safe_string($isolatedBalance, 'margin_frozen');
@@ -2197,7 +2214,7 @@ class htx extends \ccxt\async\htx {
             } else {
                 // inverse branch
                 for ($i = 0; $i < count($data); $i++) {
-                    $balance = $data[$i];
+                    $balance = $this->safe_dict($data, $i);
                     $currencyId = $this->safe_string($balance, 'symbol');
                     $code = $this->safe_currency_code($currencyId);
                     $account = $this->account();

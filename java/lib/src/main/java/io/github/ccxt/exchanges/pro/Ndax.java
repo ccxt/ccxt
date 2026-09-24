@@ -375,7 +375,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         Map<String, Object> updates = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)payload).size(); i++)
         {
-            Object ohlcv = (payload == null || i < 0 || i >= payload.size() ? null : payload.get(i));
+            List<Object> ohlcv = (List<Object>) this.safeList(payload, i);
             String marketId = this.safeString(ohlcv, 8);
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             String symbol = (String) ((Map<String, Object>)market).get("symbol");
@@ -517,7 +517,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             }};
             Map<String, Object> message = this.extend(request, parameters);
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, message, messageHash, subscription)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -578,7 +578,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         Object nonce = null;
         for (var i = 0; i < ((List<?>)payload).size(); i++)
         {
-            Object bidask = (payload == null || i < 0 || i >= payload.size() ? null : payload.get(i));
+            List<Object> bidask = (List<Object>) this.safeList(payload, i);
             if (java.util.Objects.equals(timestamp, null))
             {
                 timestamp = this.safeInteger(bidask, 2);

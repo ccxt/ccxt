@@ -157,7 +157,7 @@ public partial class apex : ccxt.apex
         {
             object index = subtract(subtract(length, j), 1);
             Dictionary<string, object> parsed = this.parseWsTrade(getValue(trades, index), market);
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
         }
         string messageHash = (("trade" + ":") + symbol);
         client.resolve(stored, messageHash);
@@ -563,7 +563,7 @@ public partial class apex : ccxt.apex
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbolsAndTimeframes); i++)
         {
-            object data = getValue(symbolsAndTimeframes, i);
+            List<object> data = this.safeList(symbolsAndTimeframes, i);
             object symbolString = this.safeString(data, 0);
             Dictionary<string, object> market = this.market(symbolString);
             symbolString = (market != null && market.ContainsKey("id2") ? market["id2"] : null);
@@ -616,7 +616,11 @@ public partial class apex : ccxt.apex
         string? timeframe = this.findTimeframe(timeframeId);
         string? marketId = this.safeString(topicParts, (topicLength - 1));
         bool isSpot = ((string)client.url).IndexOf("spot", StringComparison.Ordinal) > -1;
-        string marketType = isSpot ? "spot" : "contract";
+        string marketType = "contract";
+        if (isSpot)
+        {
+            marketType = "spot";
+        }
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         if (!(inOp(this.ohlcvs, symbol)))
@@ -632,7 +636,7 @@ public partial class apex : ccxt.apex
         for (int i = 0; i < data.Count; i++)
         {
             List<object> parsed = this.parseWsOHLCV(data[i]);
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
         }
         string messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
         List<object> resolveData = new List<object>() {symbol, timeframe, stored};
@@ -809,7 +813,7 @@ public partial class apex : ccxt.apex
             Dictionary<string, object> parsed = this.parseWsTrade(rawTrade);
             string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
             symbols[(string)symbol] = true;
-            callDynamically(trades, "append", new object[] {parsed});
+            trades.append(parsed);
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
         for (int i = 0; i < keys.Count; i++)
@@ -865,7 +869,7 @@ public partial class apex : ccxt.apex
             Dictionary<string, object> parsed = this.parseOrder(getValue(lists, i));
             string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
             symbols[(string)symbol] = true;
-            callDynamically(orders, "append", new object[] {parsed});
+            orders.append(parsed);
         }
         List<object> symbolsArray = new List<object>(((IDictionary<string,object>)symbols).Keys);
         for (int i = 0; i < symbolsArray.Count; i++)
@@ -904,7 +908,7 @@ public partial class apex : ccxt.apex
             for (int ii = 0; ii < getArrayLength(positions); ii++)
             {
                 IDictionary<string, object> position = ((IDictionary<string, object>)getValue(positions, ii));
-                callDynamically(cache, "append", new object[] {position});
+                cache.append(position);
             }
         }
         // don't remove the future from the .futures cache
@@ -959,14 +963,14 @@ public partial class apex : ccxt.apex
                 // closing update, adding both sides to "reset" both sides
                 // since we don't know which side is being closed
                 position["side"] = "long";
-                callDynamically(cache, "append", new object[] {position});
+                cache.append(position);
                 position["side"] = "short";
-                callDynamically(cache, "append", new object[] {position});
+                cache.append(position);
                 position["side"] = null;
             } else
             {
                 // regular update
-                callDynamically(cache, "append", new object[] {position});
+                cache.append(position);
             }
         }
         List<object> messageHashes = this.findMessageHashes(client, "positions::");

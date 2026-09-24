@@ -150,7 +150,11 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 put( "params", request );
                 put( "id", Grvt.this.requestId() );
             }};
-            String apiPart = ((Helpers.isTrue(publicOrPrivate))) ? "publicMarket" : "privateTrading";
+            String apiPart = "privateTrading";
+            if (Helpers.isTrue(publicOrPrivate))
+            {
+                apiPart = "publicMarket";
+            }
             return (this.watchMultiple((String) (Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), apiPart)), messageHashes, payload, rawHashes, null)).join();
         });
 
@@ -523,7 +527,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         }
         Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (data));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        stored.append(parsed);
         client.resolve(stored, ("trade::" + symbol));
     }
 
@@ -606,7 +610,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object data = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
+                List<Object> data = (List<Object>) this.safeList(symbolsAndTimeframes, i);
                 String symbolString = this.safeString(data, 0);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbolString);
                 String marketId = (String) ((Map<String, Object>)market).get("id");
@@ -688,7 +692,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe));
         Object parsed = this.parseWsOHLCV(data, market);
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        stored.append(parsed);
         List<Object> resolveData = new ArrayList<Object>(Arrays.asList(symbol, timeframe, stored));
         client.resolve(resolveData, messageHash);
     }
@@ -873,7 +877,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         if (Boolean.TRUE.equals(isSnapshotChannel) || Boolean.TRUE.equals(isSnapshotMessage))
         {
             Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size");
-            Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+            orderbook.reset(snapshot);
         } else
         {
             List<Object> asks = (List<Object>) this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));

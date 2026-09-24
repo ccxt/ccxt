@@ -194,7 +194,7 @@ func (this *Coincheck) HandleTrades(client any, message any) {
 	//         ]
 	//     ]
 	//
-	var first []any = ccxt.SafeListTypedDefault(message, 0, []any{})
+	var first []any = ccxt.SafeListTyped(message, 0)
 	var symbol any = this.Symbol(this.SafeString(first, 2))
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {

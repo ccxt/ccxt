@@ -555,7 +555,7 @@ public class Cryptomus extends CryptomusApi
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)rawCurrency).size(); i++)
         {
-            Object networkEntry = Helpers.GetValue(rawCurrency, i);
+            Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(rawCurrency, i);
             // set ID on first loop
             if (java.util.Objects.equals(id, null))
             {
@@ -927,7 +927,7 @@ public class Cryptomus extends CryptomusApi
         }};
         for (var i = 0; i < Helpers.getArrayLength(balance); i++)
         {
-            Object balanceEntry = Helpers.GetValue(balance, i);
+            Map<String, Object> balanceEntry = (Map<String, Object>) this.safeDict(balance, i);
             String currencyId = this.safeString(balanceEntry, "ticker");
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
@@ -1376,7 +1376,7 @@ public class Cryptomus extends CryptomusApi
         String feeCurrency = this.safeString(firstTx, "feeCurrency");
         if (!java.util.Objects.equals(feeCurrency, null))
         {
-            final Object finalFeeCurrency = feeCurrency;
+            final String finalFeeCurrency = feeCurrency;
             fee = new HashMap<String, Object>() {{
                 put( "currency", Cryptomus.this.safeCurrencyCode((String) (finalFeeCurrency)) );
                 put( "cost", Cryptomus.this.safeNumber(firstTx, "fee") );
@@ -1554,7 +1554,7 @@ public class Cryptomus extends CryptomusApi
         List<Object> makerFees = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)feeTiers).size(); i++)
         {
-            Object tier = (feeTiers == null || i < 0 || i >= ((List<?>)feeTiers).size() ? null : ((List<?>)feeTiers).get(i));
+            Map<String, Object> tier = (Map<String, Object>) this.safeDict(feeTiers, i);
             Double turnover = this.safeNumber(tier, "from_turnover");
             String taker = this.safeString(tier, "taker_percent");
             String maker = this.safeString(tier, "maker_percent");

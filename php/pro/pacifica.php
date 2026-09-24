@@ -123,7 +123,10 @@ class pacifica extends \ccxt\async\pacifica {
             'stopLossPrice', 'stopLossLimitPrice', 'takeProfitCloid', 'takeProfitPrice', 'takeProfitLimitPrice', 'expiryWindow', 'agentAddress', 'originAddress',
         ));
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
         $url = $this->urls[$urlKey]['ws']['public'];
         $wsRequest = $this->wrap_as_post_action($operationType, $request);
         $requestId = $this->safe_string($wsRequest, 'id');
@@ -208,7 +211,10 @@ class pacifica extends \ccxt\async\pacifica {
         $request = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $market, $params);
         $params = $this->omit($params, array( 'originAddress', 'agentAddress', 'expiryWindow', 'clientOrderId' ));
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
         $url = $this->urls[$urlKey]['ws']['public'];
         $wsRequest = $this->wrap_as_post_action($batchOperationType, $request);
         $requestId = $this->safe_string($wsRequest, 'id');
@@ -271,7 +277,10 @@ class pacifica extends \ccxt\async\pacifica {
         $request = $this->cancelOrdersRequest($ids, $symbol, $params);
         $params = $this->omit($params, array( 'originAddress', 'agentAddress', 'expiryWindow', 'clientOrderIds' ));
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
         $url = $this->urls[$urlKey]['ws']['public'];
         $wsRequest = $this->wrap_as_post_action($batchOperationType, $request);
         $requestId = $this->safe_string($wsRequest, 'id');
@@ -303,7 +312,7 @@ class pacifica extends \ccxt\async\pacifica {
         $results = $this->safe_list($data, 'results', array());
         $ordersToReturn = array();
         for ($i = 0; $i < count($results); $i++) {
-            $order = $results[$i];
+            $order = $this->safe_dict($results, $i);
             $error = $this->safe_string($order, 'error');
             $success = $this->safe_bool($order, 'success', false);
             $marketId = $this->safe_string($order, 'symbol');
@@ -351,7 +360,10 @@ class pacifica extends \ccxt\async\pacifica {
         $request = $this->cancel_order_request($id, $symbol, $params);
         $params = $this->omit($params, array( 'originAddress', 'agentAddress', 'expiryWindow', 'trigger', 'stop', 'clientOrderId' ));
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
         $url = $this->urls[$urlKey]['ws']['public'];
         $wsRequest = $this->wrap_as_post_action($operationType, $request);
         $requestId = $this->safe_string($wsRequest, 'id');
@@ -411,7 +423,10 @@ class pacifica extends \ccxt\async\pacifica {
         $request = $this->cancelAllOrdersRequest($symbol, $params);
         $params = $this->omit($params, array( 'excludeReduceOnly', 'agentAddress', 'originAddress', 'expiryWindow' ));
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
         $url = $this->urls[$urlKey]['ws']['public'];
         $wsRequest = $this->wrap_as_post_action($operationType, $request);
         $requestId = $this->safe_string($wsRequest, 'id');
@@ -458,7 +473,10 @@ class pacifica extends \ccxt\async\pacifica {
         list($aggLevel, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'aggLevel', 1);
         $messageHash = 'orderbook:' . $symbol;
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
         $url = $this->urls[$urlKey]['ws']['public'];
         $request = array(
             'method' => 'subscribe',
@@ -497,7 +515,10 @@ class pacifica extends \ccxt\async\pacifica {
         $subMessageHash = 'orderbook:' . $symbol;
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
         $url = $this->urls[$urlKey]['ws']['public'];
         $request = array(
             'method' => 'unsubscribe',
@@ -609,7 +630,10 @@ class pacifica extends \ccxt\async\pacifica {
         $symbols = $this->market_symbols($symbols, null, true);
         $messageHash = 'tickers';
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
         $url = $this->urls[$urlKey]['ws']['public'];
         $request = array(
             'method' => 'subscribe',
@@ -645,7 +669,10 @@ class pacifica extends \ccxt\async\pacifica {
         $subMessageHash = 'tickers';
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
         $url = $this->urls[$urlKey]['ws']['public'];
         $request = array(
             'method' => 'unsubscribe',
@@ -684,7 +711,10 @@ class pacifica extends \ccxt\async\pacifica {
             $messageHash .= ':' . $symbol;
         }
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
         $url = $this->urls[$urlKey]['ws']['public'];
         $request = array(
             'method' => 'subscribe',
@@ -726,7 +756,10 @@ class pacifica extends \ccxt\async\pacifica {
         list($userAddress, $params) = $this->handleOriginAndSingleAddress('unWatchMyTrades', $params);
         $messageHash = 'unsubscribe:myTrades';
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
         $url = $this->urls[$urlKey]['ws']['public'];
         $request = array(
             'method' => 'unsubscribe',
@@ -858,7 +891,10 @@ class pacifica extends \ccxt\async\pacifica {
         $symbol = $market['symbol'];
         $messageHash = 'trade:' . $symbol;
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
         $url = $this->urls[$urlKey]['ws']['public'];
         $request = array(
             'method' => 'subscribe',
@@ -897,7 +933,10 @@ class pacifica extends \ccxt\async\pacifica {
         $subMessageHash = 'trade:' . $symbol;
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
         $url = $this->urls[$urlKey]['ws']['public'];
         $request = array(
             'method' => 'unsubscribe',
@@ -1052,7 +1091,10 @@ class pacifica extends \ccxt\async\pacifica {
         $symbol = $market['symbol'];
         $isTestnet = $this->isSandboxModeEnabled;
         $parsedTf = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-        $urlKey = ($isTestnet) ? 'test' : 'api';
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
         $url = $this->urls[$urlKey]['ws']['public'];
         $request = array(
             'method' => 'subscribe',
@@ -1092,7 +1134,10 @@ class pacifica extends \ccxt\async\pacifica {
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
         $url = $this->urls[$urlKey]['ws']['public'];
         $request = array(
             'method' => 'unsubscribe',
@@ -1180,7 +1225,10 @@ class pacifica extends \ccxt\async\pacifica {
             $messageHash = $messageHash . ':' . $symbol;
         }
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
         $url = $this->urls[$urlKey]['ws']['public'];
         $request = array(
             'method' => 'subscribe',
@@ -1220,7 +1268,10 @@ class pacifica extends \ccxt\async\pacifica {
         }
         $messageHash = 'unsubscribe:order';
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
         $url = $this->urls[$urlKey]['ws']['public'];
         $userAddress = null;
         list($userAddress, $params) = $this->handleOriginAndSingleAddress('unWatchOrders', $params);

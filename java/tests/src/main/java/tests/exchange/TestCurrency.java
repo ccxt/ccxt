@@ -27,7 +27,7 @@ public class TestCurrency extends BaseTest {
             put( "code", "BTC" );
         }};
         // todo: remove fee from empty
-        List<Object> emptyAllowedFor = new ArrayList<Object>(Arrays.asList("name", "fee"));
+        List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("name", "fee"));
         // todo: info key needs to be added in base, when exchange does not have fetchCurrencies
         Boolean isNative = (!java.util.Objects.equals(((Map<String, Object>)exchange.has).get("fetchCurrencies"), null)) && (!java.util.Objects.equals(((Map<String, Object>)exchange.has).get("fetchCurrencies"), false)) && (!java.util.Objects.equals(((Map<String, Object>)exchange.has).get("fetchCurrencies"), "emulated"));
         String currencyType = exchange.safeString(entry, "type");
@@ -55,15 +55,15 @@ public class TestCurrency extends BaseTest {
             // only require "deposit" & "withdraw" values, when currency is not fiat, or when it's fiat, but not skipped
             if (!java.util.Objects.equals(currencyType, "crypto") && (Helpers.inOp(skippedProperties, "depositForNonCrypto")))
             {
-                ((List<Object>)emptyAllowedFor).add("deposit");
+                emptyAllowedFor.add("deposit");
             }
             if (!java.util.Objects.equals(currencyType, "crypto") && (Helpers.inOp(skippedProperties, "withdrawForNonCrypto")))
             {
-                ((List<Object>)emptyAllowedFor).add("withdraw");
+                emptyAllowedFor.add("withdraw");
             }
             if (java.util.Objects.equals(currencyType, "leveraged") || java.util.Objects.equals(currencyType, "other"))
             {
-                ((List<Object>)emptyAllowedFor).add("precision");
+                emptyAllowedFor.add("precision");
             }
         }
         //

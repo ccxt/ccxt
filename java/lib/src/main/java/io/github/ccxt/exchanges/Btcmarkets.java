@@ -843,7 +843,7 @@ public class Btcmarkets extends BtcmarketsApi
         }};
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
-            Object balance = Helpers.GetValue(response, i);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i);
             String currencyId = this.safeString(balance, "assetName");
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
@@ -1204,7 +1204,14 @@ public class Btcmarkets extends BtcmarketsApi
         Long timestamp = this.parse8601(this.safeString(trade, "timestamp"));
         String marketId = this.safeString(trade, "marketId");
         market = (Map<String, Object>) (this.safeMarket(marketId, market, "-"));
-        Object feeCurrencyCode = (((java.util.Objects.equals(((Map<String, Object>)market).get("quote"), "AUD")))) ? ((Map<String, Object>)market).get("quote") : ((Map<String, Object>)market).get("base");
+        Object feeCurrencyCode = null;
+        if (java.util.Objects.equals(((Map<String, Object>)market).get("quote"), "AUD"))
+        {
+            feeCurrencyCode = ((Map<String, Object>)market).get("quote");
+        } else
+        {
+            feeCurrencyCode = ((Map<String, Object>)market).get("base");
+        }
         String side = this.safeString(trade, "side");
         if (java.util.Objects.equals(side, "Bid"))
         {
@@ -1222,9 +1229,10 @@ public class Btcmarkets extends BtcmarketsApi
         if (!java.util.Objects.equals(feeCostString, null))
         {
             final String finalFeeCostString = feeCostString;
+            final Object finalFeeCurrencyCode = feeCurrencyCode;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
-                put( "currency", feeCurrencyCode );
+                put( "currency", finalFeeCurrencyCode );
             }};
         }
         String takerOrMaker = this.safeStringLower(trade, "liquidityType");
@@ -1985,7 +1993,7 @@ public class Btcmarkets extends BtcmarketsApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
-            final Object finalCode = code;
+            final String finalCode = code;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "assetName", ((Map<String, Object>)currency).get("id") );
                 put( "amount", Btcmarkets.this.currencyToPrecision((String) (finalCode), amount) );

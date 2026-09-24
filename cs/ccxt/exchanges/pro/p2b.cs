@@ -333,7 +333,7 @@ public partial class p2b : ccxt.p2b
                 stored = new ArrayCacheByTimestamp(limit);
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
             }
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
             client.resolve(stored, messageHash);
         }
         return message;
@@ -376,7 +376,7 @@ public partial class p2b : ccxt.p2b
         {
             object item = getValue((IList<object>)(trades), i);
             Dictionary<string, object> trade = this.parseTrade(item, market);
-            callDynamically(tradesArray, "append", new object[] {trade});
+            tradesArray.append(trade);
         }
         string messageHash = ("deals::" + symbol);
         client.resolve(tradesArray, messageHash);

@@ -126,12 +126,12 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             if (Helpers.isGreaterThan(symbolsLength, 1))
             {
-                Object parsedSymbols = this.marketSymbols(symbols);
+                List<Object> parsedSymbols = this.marketSymbols(symbols);
                 List<Object> marketIds = this.marketIds(parsedSymbols);
                 productIds = marketIds;
                 for (var i = 0; i < ((List<?>)parsedSymbols).size(); i++)
                 {
-                    ((List<Object>)messageHashes).add(((name + "::") + (parsedSymbols == null || i < 0 || i >= ((List<?>)parsedSymbols).size() ? null : ((List<?>)parsedSymbols).get(i))));
+                    ((List<Object>)messageHashes).add(((name + "::") + (parsedSymbols == null || i < 0 || i >= parsedSymbols.size() ? null : parsedSymbols.get(i))));
                 }
             } else if (java.util.Objects.equals(symbolsLength, 1))
             {
@@ -730,9 +730,9 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         List<Object> data = (List<Object>) this.safeList(message, "candles", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object tick = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+            Map<String, Object> tick = (Map<String, Object>) this.safeDict(data, i);
             List<Object> parsed = (List<Object>) this.parseOHLCV(tick, market);
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
         }
         client.resolve(stored, ((messageHash + "::") + symbol));
     }
@@ -846,7 +846,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Helpers.addElementToObject(this.trades, ((String)symbol), tradesArrayCache);
         }
         io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, ((String)symbol));
-        Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
+        tradesArray.append(trade);
         Helpers.addElementToObject(this.trades, ((String)symbol), tradesArray);
         client.resolve(tradesArray, channel);
         client.resolve(tradesArray, Helpers.add((channel + "::"), ((Map<String, Object>)trade).get("symbol")));
@@ -1009,7 +1009,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         if (java.util.Objects.equals(type, "SNAPSHOT"))
         {
             Map<String, Object> parsedSnapshot = (Map<String, Object>) this.parseOrderBook(message, symbol, null, "bids", "asks");
-            Helpers.callDynamically(orderbook, "reset", new Object[]{parsedSnapshot});
+            orderbook.reset(parsedSnapshot);
             Helpers.addElementToObject(orderbook, "symbol", symbol);
         } else
         {
@@ -1026,7 +1026,11 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
     public void handleDelta(Object orderbook, Object delta)
     {
         String rawSide = this.safeStringLower(delta, 0);
-        String side = (((java.util.Objects.equals(rawSide, "buy")))) ? "bids" : "asks";
+        String side = "asks";
+        if (java.util.Objects.equals(rawSide, "buy"))
+        {
+            side = "bids";
+        }
         Double price = this.safeFloat(delta, 1);
         Double amount = this.safeFloat(delta, 2);
         Object bookside = Helpers.GetValue(orderbook, side);

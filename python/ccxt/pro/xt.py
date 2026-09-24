@@ -78,7 +78,9 @@ class xt(ccxt.async_support.xt):
         :returns str: listen key / access token
         """
         self.check_required_credentials()
-        tradeType = 'contract' if isContract else 'spot'
+        tradeType = 'spot'
+        if isContract:
+            tradeType = 'contract'
         url = self.urls['api']['ws'][tradeType]
         if not isContract:
             url = url + '/private'
@@ -148,7 +150,7 @@ class xt(ccxt.async_support.xt):
         if (nonce is not None) and (firstDeltaNonce is not None) and (nonce < firstDeltaNonce - 1):
             return -1
         for i in range(0, len(cache)):
-            delta = cache[i]
+            delta = self.safe_dict(cache, i)
             deltaNonce = self.safe_integer_2(delta, 'i', 'u')
             if (deltaNonce is not None) and (nonce is not None) and (deltaNonce >= nonce):
                 return i
@@ -161,12 +163,12 @@ class xt(ccxt.async_support.xt):
         bids = orderbook['bids']
         asks = orderbook['asks']
         for i in range(0, len(obBids)):
-            bid = obBids[i]
+            bid = self.safe_list(obBids, i)
             price = self.safe_number(bid, 0)
             quantity = self.safe_number(bid, 1)
             bids.store(price, quantity)
         for i in range(0, len(obAsks)):
-            ask = obAsks[i]
+            ask = self.safe_list(obAsks, i)
             price = self.safe_number(ask, 0)
             quantity = self.safe_number(ask, 1)
             asks.store(price, quantity)
@@ -208,7 +210,9 @@ class xt(ccxt.async_support.xt):
                 subscribe['params'] = [param]
         else:
             subscribe['params'] = [name]
-        tradeType = 'contract' if isContract else 'spot'
+        tradeType = 'spot'
+        if isContract:
+            tradeType = 'contract'
         messageHash = name + '::' + tradeType
         if symbols is not None:
             messageHash = messageHash + '::' + ','.join(symbols)
@@ -260,7 +264,9 @@ class xt(ccxt.async_support.xt):
                 unsubscribe['params'] = [param]
         else:
             unsubscribe['params'] = [name]
-        tradeType = 'contract' if isContract else 'spot'
+        tradeType = 'spot'
+        if isContract:
+            tradeType = 'contract'
         subMessageHash = name + '::' + tradeType
         request = self.extend(unsubscribe, params)
         tail = access
@@ -811,7 +817,9 @@ class xt(ccxt.async_support.xt):
             if symbol is not None:
                 self.tickers[symbol] = ticker
             event = self.safe_string(message, 'event')
-            messageHashTail = 'spot' if isSpot else 'contract'
+            messageHashTail = 'contract'
+            if isSpot:
+                messageHashTail = 'spot'
             messageHash = event + '::' + messageHashTail
             client.resolve(ticker, messageHash)
         return message
@@ -887,7 +895,9 @@ class xt(ccxt.async_support.xt):
         data = self.safe_list(message, 'data', [])
         firstTicker = self.safe_dict(data, 0)
         spotTest = self.safe_string_2(firstTicker, 'cv', 'aq')
-        tradeType = 'spot' if (spotTest is not None) else 'contract'
+        tradeType = 'contract'
+        if spotTest is not None:
+            tradeType = 'spot'
         newTickers = []
         for i in range(0, len(data)):
             tickerData = data[i]
@@ -953,7 +963,9 @@ class xt(ccxt.async_support.xt):
         marketId = self.safe_string(data, 's')
         if marketId is not None:
             timeframe = self.safe_string(data, 'i', '')
-            tradeType = 'spot' if ('q' in data) else 'contract'
+            tradeType = 'contract'
+            if 'q' in data:
+                tradeType = 'spot'
             market = self.safe_market(marketId, None, None, tradeType)
             symbol = market['symbol']
             parsed = self.parse_ohlcv(data, market)
@@ -1005,7 +1017,9 @@ class xt(ccxt.async_support.xt):
         if marketId is not None:
             trade = self.parse_trade(data)
             i = self.safe_string(data, 'i')
-            tradeType = 'spot' if (i is not None) else 'contract'
+            tradeType = 'contract'
+            if i is not None:
+                tradeType = 'spot'
             market = self.safe_market(marketId, None, None, tradeType)
             symbol = market['symbol']
             event = self.safe_string(message, 'event')
@@ -1109,14 +1123,14 @@ class xt(ccxt.async_support.xt):
             if obAsks is not None:
                 asks = orderbook['asks']
                 for i in range(0, len(obAsks)):
-                    ask = obAsks[i]
+                    ask = self.safe_list(obAsks, i)
                     price = self.safe_number(ask, 0)
                     quantity = self.safe_number(ask, 1)
                     asks.store(price, quantity)
             if obBids is not None:
                 bids = orderbook['bids']
                 for i in range(0, len(obBids)):
-                    bid = obBids[i]
+                    bid = self.safe_list(obBids, i)
                     price = self.safe_number(bid, 0)
                     quantity = self.safe_number(bid, 1)
                     bids.store(price, quantity)
@@ -1161,7 +1175,9 @@ class xt(ccxt.async_support.xt):
         #    }
         #
         marketId = self.safe_string(trade, 's')
-        tradeType = 'contract' if ('symbol' in trade) else 'spot'
+        tradeType = 'spot'
+        if 'symbol' in trade:
+            tradeType = 'contract'
         market = self.safe_market(marketId, market, None, tradeType)
         timestamp = self.safe_string(trade, 't')
         return self.safe_trade({
@@ -1228,7 +1244,9 @@ class xt(ccxt.async_support.xt):
         #    }
         #
         marketId = self.safe_string_2(order, 's', 'symbol')
-        tradeType = 'contract' if ('symbol' in order) else 'spot'
+        tradeType = 'spot'
+        if 'symbol' in order:
+            tradeType = 'contract'
         market = self.safe_market(marketId, market, None, tradeType)
         timestamp = self.safe_integer_2(order, 'ct', 'createTime')
         return self.safe_order({
@@ -1311,7 +1329,9 @@ class xt(ccxt.async_support.xt):
         order = self.safe_dict(message, 'data', {})
         marketId = self.safe_string_2(order, 's', 'symbol')
         if marketId is not None:
-            tradeType = 'contract' if ('symbol' in order) else 'spot'
+            tradeType = 'spot'
+            if 'symbol' in order:
+                tradeType = 'contract'
             market = self.safe_market(marketId, None, None, tradeType)
             parsed = self.parse_ws_order(order, market)
             orders.append(parsed)
@@ -1363,7 +1383,9 @@ class xt(ccxt.async_support.xt):
         if code is not None:
             self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
-        tradeType = 'contract' if ('coin' in data) else 'spot'
+        tradeType = 'spot'
+        if 'coin' in data:
+            tradeType = 'contract'
         client.resolve(self.balance, 'balance::' + tradeType)
 
     def handle_my_trades(self, client: Client, message: dict):
@@ -1413,7 +1435,9 @@ class xt(ccxt.async_support.xt):
             return
         market = self.market(tradeSymbol)
         stored.append(parsedTrade)
-        tradeType = 'contract' if (market['contract'] is True) else 'spot'
+        tradeType = 'spot'
+        if market['contract'] is True:
+            tradeType = 'contract'
         client.resolve(stored, 'trade::' + tradeType)
 
     def handle_message(self, client: Client, message: dict):

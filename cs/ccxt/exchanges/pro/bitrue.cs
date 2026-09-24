@@ -85,7 +85,7 @@ public partial class bitrue : ccxt.bitrue
     public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = await this.authenticate();
+        string? url = await this.authenticate();
         string messageHash = "balance";
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "event", "sub" },
@@ -171,7 +171,7 @@ public partial class bitrue : ccxt.bitrue
         ((IDictionary<string,object>)this.balance)["info"] = balances;
         for (int i = 0; i < getArrayLength(balances); i++)
         {
-            object balance = getValue(balances, i);
+            IDictionary<string, object> balance = this.safeDict(balances, i);
             string? currencyId = this.safeString(balance, "a");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -225,7 +225,7 @@ public partial class bitrue : ccxt.bitrue
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         }
-        object url = await this.authenticate();
+        string? url = await this.authenticate();
         string messageHash = "orders";
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "event", "sub" },
@@ -274,7 +274,7 @@ public partial class bitrue : ccxt.bitrue
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache orders = this.orders;
-        callDynamically(orders, "append", new object[] {parsed});
+        orders.append(parsed);
         string messageHash = "orders";
         client.resolve(this.orders, messageHash);
     }
@@ -310,7 +310,11 @@ public partial class bitrue : ccxt.bitrue
         Int64? sideId = this.safeInteger(order, "S");
         // 1: buy
         // 2: sell
-        string side = ((sideId == 1)) ? "buy" : "sell";
+        string side = "sell";
+        if ((sideId == 1))
+        {
+            side = "buy";
+        }
         string? statusId = this.safeString(order, "X");
         string? feeCurrencyId = this.safeString(order, "N");
         return this.safeOrder(new Dictionary<string, object>() {
@@ -482,7 +486,7 @@ public partial class bitrue : ccxt.bitrue
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(bidsAsks); i++)
         {
-            object level = getValue(bidsAsks, i);
+            List<object> level = this.safeList(bidsAsks, i);
             double? price = this.safeNumber(level, 0);
             double? rawAmount = this.safeNumber(level, 1);
             object amount = this.convertFromRawQuantity(symbol, rawAmount);
@@ -598,7 +602,7 @@ public partial class bitrue : ccxt.bitrue
                 ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
             }
             Dictionary<string, object> trade = this.parseWsTrade(data[i], market);
-            callDynamically(stored, "append", new object[] {trade});
+            stored.append(trade);
             appended = true;
         }
         if (appended)
@@ -738,7 +742,7 @@ public partial class bitrue : ccxt.bitrue
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = new ArrayCacheByTimestamp(limit);
         }
         ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue(getValue(this.ohlcvs, symbol), timeframe));
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         string messageHash = ((("ohlcv:" + (symbol)) + ":") + timeframe);
         client.resolve(stored, messageHash);
     }
@@ -948,7 +952,7 @@ public partial class bitrue : ccxt.bitrue
         }
     }
 
-    public async virtual Task<object> authenticate(object parameters = null)
+    public async virtual Task<string?> authenticate(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? listenKey = this.safeString(this.options, "listenKey");
@@ -969,7 +973,7 @@ public partial class bitrue : ccxt.bitrue
                 // a flight is already in progress - wake when the leader
                 // settles it: the listenKey url is then in the options
                 await client.future(messageHash);
-                return (this.options.ContainsKey("listenKeyUrl") ? this.options["listenKeyUrl"] : null);
+                return this.safeString(this.options, "listenKeyUrl");
             }
             // register before the first await, so a concurrent caller entering
             // authenticate () while this one is inside the fetch sees the flight
@@ -1015,7 +1019,7 @@ public partial class bitrue : ccxt.bitrue
             Int64? refreshTimeout = this.safeInteger(this.options, "listenKeyRefreshRate", 1800000);
             this.delay(refreshTimeout, this.keepAliveListenKey);
         }
-        return (this.options.ContainsKey("listenKeyUrl") ? this.options["listenKeyUrl"] : null);
+        return this.safeString(this.options, "listenKeyUrl");
     }
 
     public async virtual Task keepAliveListenKey(object parameters = null)

@@ -447,7 +447,11 @@ public partial class delta : Exchange
         string? strike = this.safeString(optionParts, 2);
         string? datetime = this.convertExpireDate(expiry);
         Int64? timestamp = this.parse8601(datetime);
-        string optionTypeUnified = (isEqual(optionType, "C")) ? "call" : "put";
+        string optionTypeUnified = "put";
+        if (isEqual(optionType, "C"))
+        {
+            optionTypeUnified = "call";
+        }
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", add(add(add(add(add(add(optionType, "-"), bs), "-"), strike), "-"), expiry) },
             { "symbol", add(add(add(add(add(add(add(add(add(add(bs, "/"), quote), ":"), settle), "-"), expiry), "-"), strike), "-"), optionType) },
@@ -587,7 +591,11 @@ public partial class delta : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         string? underMaintenance = this.safeString(result, "under_maintenance");
-        string status = (underMaintenance == "true") ? "maintenance" : "ok";
+        string status = "ok";
+        if (underMaintenance == "true")
+        {
+            status = "maintenance";
+        }
         Int64? updated = this.safeIntegerProduct(result, "server_time", 0.001, this.milliseconds());
         return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", status },             { "updated", updated },             { "eta", null },             { "url", null },             { "info", response },         });
     }
@@ -1835,7 +1843,7 @@ public partial class delta : Exchange
         IDictionary<string, object> currenciesByNumericId = this.safeDict(this.options, "currenciesByNumericId", new Dictionary<string, object>() {});
         for (int i = 0; i < balances.Count; i++)
         {
-            object balance = balances[i];
+            IDictionary<string, object> balance = this.safeDict(balances, i);
             string? currencyId = this.safeString(balance, "asset_id");
             IDictionary<string, object> currency = this.safeDict(currenciesByNumericId, currencyId);
             object code = ((currency == null)) ? currencyId : (currency.ContainsKey("code") ? currency["code"] : null);
@@ -2116,7 +2124,14 @@ public partial class delta : Exchange
         string? marketId = this.safeString(order, "product_id");
         IDictionary<string, object> marketsByNumericId = this.safeDict(this.options, "marketsByNumericId", new Dictionary<string, object>() {});
         market = this.safeValue(marketsByNumericId, marketId, market);
-        object symbol = ((market == null)) ? marketId : getValue(market, "symbol");
+        object symbol = null;
+        if ((market == null))
+        {
+            symbol = marketId;
+        } else
+        {
+            symbol = getValue(market, "symbol");
+        }
         string? status = this.parseOrderStatus(this.safeString(order, "state"));
         string? side = this.safeString(order, "side");
         string? type = this.safeString(order, "order_type");

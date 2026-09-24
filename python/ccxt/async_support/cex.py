@@ -375,14 +375,16 @@ class cex(Exchange, ImplicitAPI):
         id = self.safe_string(rawCurrency, 'currency')
         code = self.safe_currency_code(id)
         isFiat = (self.safe_bool(rawCurrency, 'fiat') is True)
-        type = 'fiat' if isFiat else 'crypto'
+        type = 'crypto'
+        if isFiat:
+            type = 'fiat'
         currencyPrecision = self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 'precision')))
         networks = {}
         rawNetworks = self.safe_dict(rawCurrency, 'blockchains', {})
         keys = list(rawNetworks.keys())
         for j in range(0, len(keys)):
             networkId = keys[j]
-            rawNetwork = rawNetworks[networkId]
+            rawNetwork = self.safe_dict(rawNetworks, networkId)
             networkCode = self.network_id_to_code(networkId, code)
             deposit = self.safe_string(rawNetwork, 'deposit') == 'enabled'
             withdraw = self.safe_string(rawNetwork, 'withdrawal') == 'enabled'
@@ -767,7 +769,7 @@ class cex(Exchange, ImplicitAPI):
         :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         dataType = None
-        dataType, params = self.handle_option_and_params(params, 'fetchOHLCV', 'dataType')
+        dataType, params = self.handle_option_string_and_params(params, 'fetchOHLCV', 'dataType')
         if dataType is None:
             raise ArgumentsRequired(self.id + ' fetchOHLCV requires a parameter "dataType" to be either "bestBid" or "bestAsk"')
         if self.markets is None:
@@ -1511,7 +1513,9 @@ class cex(Exchange, ImplicitAPI):
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         currencyId = self.safe_string(transaction, 'currency')
         direction = self.safe_string(transaction, 'direction')
-        type = 'withdrawal' if (direction == 'withdraw') else 'deposit'
+        type = 'deposit'
+        if direction == 'withdraw':
+            type = 'withdrawal'
         code = self.safe_currency_code(currencyId, currency)
         updatedAt = self.safe_string(transaction, 'updatedAt')
         timestamp = self.parse8601(updatedAt)
@@ -1578,7 +1582,9 @@ class cex(Exchange, ImplicitAPI):
             await self.load_markets()
         currency = self.currency(code)
         fromMain = (fromAccount == '')
-        targetAccount = toAccount if fromMain else fromAccount
+        targetAccount = fromAccount
+        if fromMain:
+            targetAccount = toAccount
         guid = self.safe_string(params, 'guid', self.uuid())
         request = {
             'currency': currency['id'],
@@ -1706,7 +1712,7 @@ class cex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_deposit_address(data, currency)
 
-    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         address = self.safe_string(depositAddress, 'address')
         currencyId = self.safe_string(depositAddress, 'currency')
         currency = self.safe_currency(currencyId, currency)

@@ -212,7 +212,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         Helpers.addElementToObject(this.balance, "info", balances);
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Object balance = (balances == null || i < 0 || i >= ((List<?>)balances).size() ? null : ((List<?>)balances).get(i));
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i);
             String currencyId = this.safeString(balance, "a");
             String code = this.safeCurrencyCode((String) (currencyId));
             Map<String, Object> account = (Map<String, Object>) this.account();
@@ -370,9 +370,14 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         Long sideId = this.safeInteger(order, "S");
         // 1: buy
         // 2: sell
-        String side = ((((sideId != null && sideId == 1)))) ? "buy" : "sell";
+        String side = "sell";
+        if ((sideId != null && sideId == 1))
+        {
+            side = "buy";
+        }
         String statusId = this.safeString(order, "X");
         String feeCurrencyId = this.safeString(order, "N");
+        final String finalSide = side;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Bitrue.this.safeString(order, "i") );
@@ -384,7 +389,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             put( "type", Bitrue.this.parseWsOrderType((String) (typeId)) );
             put( "timeInForce", null );
             put( "postOnly", null );
-            put( "side", side );
+            put( "side", finalSide );
             put( "price", Bitrue.this.safeString(order, "p") );
             put( "triggerPrice", null );
             put( "amount", Bitrue.this.safeString(order, "q") );
@@ -521,7 +526,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (symbol == null ? null : ((Map<?, ?>)this.orderbooks).get(symbol));
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(parseable, symbol, timestamp, "buys", "asks");
-        Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+        orderbook.reset(snapshot);
         String messageHash = Helpers.add("orderbook:", symbol);
         client.resolve(orderbook, messageHash);
     }
@@ -556,7 +561,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)bidsAsks).size(); i++)
         {
-            Object level = (bidsAsks == null || i < 0 || i >= ((List<?>)bidsAsks).size() ? null : ((List<?>)bidsAsks).get(i));
+            List<Object> level = (List<Object>) this.safeList(bidsAsks, i);
             Double price = this.safeNumber(level, 0);
             Double rawAmount = this.safeNumber(level, 1);
             Object amount = this.convertFromRawQuantity(symbol, rawAmount);
@@ -691,7 +696,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 Helpers.addElementToObject(this.trades, symbol, stored);
             }
             Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), market);
-            Helpers.callDynamically(stored, "append", new Object[]{trade});
+            stored.append(trade);
             appended = true;
         }
         if (Boolean.TRUE.equals(appended))
@@ -853,7 +858,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             Helpers.addElementToObject((symbol == null ? null : ((Map<?, ?>)this.ohlcvs).get(symbol)), ((String)timeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue((symbol == null ? null : ((Map<?, ?>)this.ohlcvs).get(symbol)), ((String)timeframe));
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        stored.append(parsed);
         String messageHash = ((Helpers.add("ohlcv:", symbol) + ":") + timeframe);
         client.resolve(stored, messageHash);
     }
@@ -1116,7 +1121,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                     // a flight is already in progress - wake when the leader
                     // settles it: the listenKey url is then in the options
                     client.future(messageHash).getFuture().join();
-                    return ((Map<String, Object>)this.options).get("listenKeyUrl");
+                    return this.safeString(this.options, "listenKeyUrl");
                 }
                 // register before the first await, so a concurrent caller entering
                 // authenticate () while this one is inside the fetch sees the flight
@@ -1162,7 +1167,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 Long refreshTimeout = this.safeInteger(this.options, "listenKeyRefreshRate", 1800000);
                 this.scheduleCallback(refreshTimeout, "keepAliveListenKey");
             }
-            return ((Map<String, Object>)this.options).get("listenKeyUrl");
+            return this.safeString(this.options, "listenKeyUrl");
         });
 
     }

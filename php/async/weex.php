@@ -1413,7 +1413,7 @@ class weex extends Exchange {
         return $this->parse_last_prices($response, $symbols);
     }
 
-    public function parse_last_price(mixed $entry, ?array $market = null): array {
+    public function parse_last_price(array $entry, ?array $market = null): array {
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -1661,14 +1661,14 @@ class weex extends Exchange {
         }
         $maxHistoricalLimit = 100;
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             $params = $this->extend($params, array( 'historical' => true ));
             return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxHistoricalLimit));
         }
         $until = $this->safe_integer($params, 'until');
         $historical = false;
-        list($historical, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'historical');
+        list($historical, $params) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'historical', false);
         $timeframeOption = $this->safe_dict($this->options, 'timeframes', array());
         $contractTimeframes = $this->safe_dict($timeframeOption, 'contract', array());
         $market = $this->market($symbol);
@@ -1844,7 +1844,10 @@ class weex extends Exchange {
         if ($market === null) {
             $marketId = $this->safe_string($trade, 'symbol');
             $realizedPnl = $this->safe_string($trade, 'realizedPnl');
-            $marketType = ($realizedPnl !== null) ? 'swap' : 'spot';
+            $marketType = 'spot';
+            if ($realizedPnl !== null) {
+                $marketType = 'swap';
+            }
             $market = $this->safe_market($marketId, null, null, $marketType);
             $isSpot = $marketType === 'spot';
         } else {
@@ -3324,7 +3327,10 @@ class weex extends Exchange {
         if ($market === null) {
             $marketId = $this->from_sandbox_market_id($this->safe_string($order, 'symbol'));
             $positionSide = $this->safe_string($order, 'positionSide');
-            $marketType = ($positionSide === null) ? 'spot' : 'swap';
+            $marketType = 'swap';
+            if ($positionSide === null) {
+                $marketType = 'spot';
+            }
             $market = $this->safe_market($marketId, null, null, $marketType);
         }
         $timestamp = $this->safe_integer_n($order, array( 'transactTime', 'time', 'createTime' ));
@@ -3806,7 +3812,7 @@ class weex extends Exchange {
         return $this->parse_incomes($items, $market, $since, $limit);
     }
 
-    public function parse_income(mixed $income, ?array $market = null): array {
+    public function parse_income(array $income, ?array $market = null): array {
         //
         //     {
         //         "billId": "793622764958253481",
@@ -4442,7 +4448,10 @@ class weex extends Exchange {
         if ($marginMode === null) {
             throw new ArgumentsRequired($this->id . ' setPositionMode() also sets $marginMode, so a $marginMode parameter is required');
         }
-        $separatedType = $hedged ? 'SEPARATED' : 'COMBINED';
+        $separatedType = 'COMBINED';
+        if ($hedged) {
+            $separatedType = 'SEPARATED';
+        }
         $request = array(
             'symbol' => $market['id'],
             'marginType' => $this->encode_margin_mode($marginMode),
@@ -4470,7 +4479,10 @@ class weex extends Exchange {
             'amount' => $this->cost_to_precision($symbol, $amount),
             'type' => $type,
         );
-        $parsedType = ($type === 1) ? 'add' : 'reduce';
+        $parsedType = 'reduce';
+        if ($type === 1) {
+            $parsedType = 'add';
+        }
         $response = Async\await($this->contractPrivatePostCapiV3AccountPositionMargin($this->extend($request, $params)));
         return $this->extend($this->parse_margin_modification($response, $market), array(
             'amount' => $this->parse_number($amount),
@@ -4487,7 +4499,10 @@ class weex extends Exchange {
         //     }
         //
         $msg = $this->safe_string($data, 'msg');
-        $status = ($msg === 'success') ? 'ok' : 'failed';
+        $status = 'failed';
+        if ($msg === 'success') {
+            $status = 'ok';
+        }
         $timestamp = $this->safe_integer($data, 'requestTime');
         return array(
             'info' => $data,

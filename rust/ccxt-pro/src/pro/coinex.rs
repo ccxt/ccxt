@@ -643,7 +643,7 @@ impl CoinexCore {
     m
 }) });
         let mut balances: Value = self.safe_list_k(data, "balance_list", &[Value::from(vec![])]);
-        let mut firstEntry: Value = balances.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut firstEntry: Value = self.safe_dict(balances.clone(), Value::Int(0), &[]);
         let mut updated: Option<i64> = self.safe_integer_k(firstEntry.clone(), "updated_at", &[]).as_i64();
         let mut unrealizedPnl: Option<String> = self.safe_string_k(firstEntry, "unrealized_pnl", &[]).as_str().map(str::to_owned);
         let mut isSpot: bool = updated.is_some();
@@ -836,7 +836,10 @@ impl CoinexCore {
 }) });
         let mut marketId: Value = self.safe_string_k(data.clone(), "market", &[]);
         let mut isSpot: bool = Value::Int(get_value(&client, &Value::Str("url".into())).as_str().and_then(|__s| __s.find("spot")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);
-        let mut defaultType: Value = (if isSpot { Value::Str("spot".into()) } else { Value::Str("swap".into()) });
+        let mut defaultType: Value = Value::Str("swap".into());
+        if isSpot {
+            defaultType = Value::Str("spot".into());
+        }
         let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, defaultType]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("myTrades:".into()), symbol).into());
@@ -903,7 +906,10 @@ impl CoinexCore {
         let mut trades: Value = self.safe_list_k(data.clone(), "deal_list", &[Value::from(vec![])]);
         let mut marketId: Value = self.safe_string_k(data, "market", &[]);
         let mut isSpot: bool = Value::Int(get_value(&client, &Value::Str("url".into())).as_str().and_then(|__s| __s.find("spot")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);
-        let mut defaultType: Value = (if isSpot { Value::Str("spot".into()) } else { Value::Str("swap".into()) });
+        let mut defaultType: Value = Value::Str("swap".into());
+        if isSpot {
+            defaultType = Value::Str("spot".into());
+        }
         let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, defaultType]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".into()), symbol).into());
@@ -967,7 +973,10 @@ impl CoinexCore {
         //
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "created_at", &[]);
         let mut isSpot: bool = matches!(&trade, Value::Dict(__d) if __d.contains_key("margin_market"));
-        let mut defaultType: Value = (if isSpot { Value::Str("spot".into()) } else { Value::Str("swap".into()) });
+        let mut defaultType: Value = Value::Str("swap".into());
+        if isSpot {
+            defaultType = Value::Str("spot".into());
+        }
         let mut marketId: Value = self.safe_string_k(trade.clone(), "market", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, defaultType.clone()]);
         let mut fee: Value = Value::Map({
@@ -1339,7 +1348,10 @@ impl CoinexCore {
         //     }
         //
         let mut isSpot: bool = Value::Int(get_value(&client, &Value::Str("url".into())).as_str().and_then(|__s| __s.find("spot")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);
-        let mut defaultType: Value = (if isSpot { Value::Str("spot".into()) } else { Value::Str("swap".into()) });
+        let mut defaultType: Value = Value::Str("swap".into());
+        if isSpot {
+            defaultType = Value::Str("spot".into());
+        }
         let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1696,7 +1708,10 @@ impl CoinexCore {
         let mut marketId: Value = self.safe_string_k(order.clone(), "market", &[]);
         let mut status: Value = self.safe_string_k(order.clone(), "status", &[]);
         let mut isSpot: bool = matches!(&order, Value::Dict(__d) if __d.contains_key("margin_market"));
-        let mut defaultType: Value = (if isSpot { Value::Str("spot".into()) } else { Value::Str("swap".into()) });
+        let mut defaultType: Value = Value::Str("swap".into());
+        if isSpot {
+            defaultType = Value::Str("spot".into());
+        }
         market = self.safe_market(&[marketId, market.clone(), Value::Null, defaultType]);
         let mut fee: Value = Value::Null;
         let mut feeCost: Value = self.omit_zero(self.safe_string2(order.clone(), Value::Str("fee".into()), Value::Str("quote_ccy_fee".into()), &[]));

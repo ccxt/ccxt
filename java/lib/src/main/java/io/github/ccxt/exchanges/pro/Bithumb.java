@@ -204,7 +204,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             Integer symbolsLengthDefined = ((List<?>)symbols).size();
             Object url = ((Boolean.TRUE.equals(isGenerationTwo))) ? Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "publicGen2") : Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
             List<Object> streamMarketIds = new ArrayList<Object>(Arrays.asList());
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, symbolsLengthDefined); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
@@ -218,7 +218,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                     streamMarketId = (((((Map<String, Object>)market).get("base") + "_") + ((Map<String, Object>)market).get("quote")));
                 }
                 ((List<Object>)streamMarketIds).add(streamMarketId);
-                ((List<Object>)messageHashes).add(("ticker:" + ((Map<String, Object>)market).get("symbol")));
+                messageHashes.add(("ticker:" + ((Map<String, Object>)market).get("symbol")));
             }
             String tickTypes = this.safeString(parameters, "tickTypes", "24H");
             parameters = (Map<String, Object>) this.omit(parameters, "tickTypes");
@@ -520,7 +520,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 request = this.extend(request, parameters);
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, request, messageHash, null)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -640,7 +640,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         List<Object> units = (List<Object>) this.safeList(message, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)units).size(); i++)
         {
-            Object entry = (units == null || i < 0 || i >= units.size() ? null : units.get(i));
+            Map<String, Object> entry = (Map<String, Object>) this.safeDict(units, i);
             Double bidPrice = this.safeNumber(entry, "bid_price");
             Double bidSize = this.safeNumber(entry, "bid_size");
             Double askPrice = this.safeNumber(entry, "ask_price");
@@ -682,7 +682,11 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         //    }
         //
         String sideId = this.safeString(delta, "orderType");
-        String side = (((java.util.Objects.equals(sideId, "bid")))) ? "bids" : "asks";
+        String side = "asks";
+        if (java.util.Objects.equals(sideId, "bid"))
+        {
+            side = "bids";
+        }
         List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, "price", "quantity");
         Object orderbookSide = Helpers.GetValue(orderbook, side);
         Helpers.callDynamically(orderbookSide, "storeArray", new Object[]{bidAsk});
@@ -849,7 +853,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 Helpers.addElementToObject(this.trades, symbol, stored);
             }
             io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
-            Helpers.callDynamically(trades, "append", new Object[]{parsed});
+            trades.append(parsed);
             String messageHash = (("trade" + ":") + symbol);
             client.resolve(trades, messageHash);
         }
@@ -1051,7 +1055,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         }
         for (var i = 0; i < ((List<?>)assets).size(); i++)
         {
-            Object asset = (assets == null || i < 0 || i >= assets.size() ? null : assets.get(i));
+            Map<String, Object> asset = (Map<String, Object>) this.safeDict(assets, i);
             String currencyId = this.safeString(asset, "currency");
             String code = this.safeCurrencyCode((String) (currencyId));
             Map<String, Object> account = (Map<String, Object>) this.account();

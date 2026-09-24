@@ -473,7 +473,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         name = 'balances'
         messageHash = name
         account = None
-        account, params = self.handle_option_and_params(params, 'watchBalance', 'account')
+        account, params = self.handle_option_string_and_params(params, 'watchBalance', 'account')
         if account is not None:
             if account != 'futures' and account != 'flex_futures':
                 raise ArgumentsRequired(self.id + ' watchBalance account must be either \'futures\' or \'flex_futures\'')
@@ -1146,13 +1146,13 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         if asks is None:
             return
         for i in range(0, len(bids)):
-            bid = bids[i]
+            bid = self.safe_dict(bids, i)
             price = self.safe_number(bid, 'price')
             qty = self.safe_number(bid, 'qty')
             bidsSide = orderbook['bids']
             bidsSide.store(price, qty)
         for i in range(0, len(asks)):
-            ask = asks[i]
+            ask = self.safe_dict(asks, i)
             price = self.safe_number(ask, 'price')
             qty = self.safe_number(ask, 'qty')
             asksSide = orderbook['asks']

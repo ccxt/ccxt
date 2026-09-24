@@ -355,7 +355,7 @@ class hollaex extends Exchange {
         $result = array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            $market = $pairs[$key];
+            $market = $this->safe_dict($pairs, $key);
             $baseId = $this->safe_string($market, 'pair_base');
             $quoteId = $this->safe_string($market, 'pair_2');
             $base = $this->common_currency_code(strtoupper($baseId));
@@ -499,7 +499,10 @@ class hollaex extends Exchange {
         $code = $this->safe_currency_code($id);
         $withdrawalLimits = $this->safe_list($rawCurrency, 'withdrawal_limits', array());
         $rawType = $this->safe_string($rawCurrency, 'type');
-        $type = ($rawType === 'blockchain') ? 'crypto' : 'other';
+        $type = 'other';
+        if ($rawType === 'blockchain') {
+            $type = 'crypto';
+        }
         $rawNetworks = $this->safe_dict($rawCurrency, 'withdrawal_fees', array());
         $networks = array();
         $networkIds = is_array($rawNetworks) ? array_keys($rawNetworks) : array();
@@ -1522,7 +1525,7 @@ class hollaex extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "currency":"usdt",
@@ -1615,7 +1618,12 @@ class hollaex extends Exchange {
         //     }
         //
         $wallet = $this->safe_list($response, 'wallet', array());
-        $addresses = ($network === null) ? $wallet : $this->filter_by($wallet, 'network', $network);
+        $addresses = null;
+        if ($network === null) {
+            $addresses = $wallet;
+        } else {
+            $addresses = $this->filter_by($wallet, 'network', $network);
+        }
         return $this->parse_deposit_addresses($addresses, $codes, false);
     }
 
@@ -1995,7 +2003,7 @@ class hollaex extends Exchange {
             $keysLength = count($keys);
             for ($i = 0; $i < $keysLength; $i++) {
                 $key = $keys[$i];
-                $value = $withdrawalFees[$key];
+                $value = $this->safe_dict($withdrawalFees, $key);
                 $currencyId = $this->safe_string($value, 'symbol');
                 $currencyCode = $this->safe_currency_code($currencyId);
                 $networkCode = $this->network_id_to_code($key, $currencyCode);

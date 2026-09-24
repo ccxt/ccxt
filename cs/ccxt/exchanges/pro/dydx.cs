@@ -135,7 +135,7 @@ public partial class dydx : ccxt.dydx
         for (int i = 0; i < (parsedTrades?.Count ?? 0); i++)
         {
             object parsed = parsedTrades[i];
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
         }
         string messageHash = (("trade" + ":") + symbol);
         client.resolve(stored, messageHash);
@@ -431,7 +431,7 @@ public partial class dydx : ccxt.dydx
             stored = new ArrayCacheByTimestamp(limit);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
         }
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         client.resolve(stored, messageHash);
     }
 

@@ -372,7 +372,12 @@ impl LunoCore {
         //       "order_id": "BXEEU4S2BWF5WRB"
         //     }
         //
-        let mut symbol: Value = (if (market == Value::Null) { Value::Null } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
+        let mut symbol: Value = Value::Null;
+        if (market == Value::Null) {
+            symbol = Value::Null;
+        }  else {
+            symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
@@ -482,7 +487,7 @@ impl LunoCore {
     m
 })]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
-        let mut asks: Value = (match __pro_message.get("asks").cloned() { Some(Value::Str(__s)) if __s.is_empty() => Value::Null, Some(__v) => __v, None => Value::Null });
+        let mut asks: Value = (match __pro_message.get("asks").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null });
         if (asks != Value::Null) {
             let mut snapshot: Value = self.custom_parse_order_book(message.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("volume".into()), Value::Str("id".into())]);
             { let __be_tmp = self.indexed_order_book(&[snapshot]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
@@ -599,7 +604,7 @@ impl LunoCore {
         //         "timestamp": 1660598775360
         //     }
         //
-        let mut createUpdate: Value = self.safe_value_k(message.clone(), "create_update", &[]);
+        let mut createUpdate: Value = self.safe_dict_k(message.clone(), "create_update", &[]);
         let mut asksOrderSide: Value = crate::value::get_value_k(&orderbook, "asks");
         let mut bidsOrderSide: Value = crate::value::get_value_k(&orderbook, "bids");
         if (createUpdate != Value::Null) {
@@ -611,7 +616,7 @@ impl LunoCore {
                 bidsOrderSide.store_array(bidAskArray);
             }
         }
-        let mut deleteUpdate: Value = self.safe_value_k(message, "delete_update", &[]);
+        let mut deleteUpdate: Value = self.safe_dict_k(message, "delete_update", &[]);
         if (deleteUpdate != Value::Null) {
             let mut orderId: Value = self.safe_string_k(deleteUpdate, "order_id", &[]);
             asksOrderSide.store_array(Value::from(vec![Value::Int(0), Value::Int(0), orderId.clone()]));

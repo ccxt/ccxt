@@ -400,7 +400,7 @@ public partial class coincheck : Exchange
         Int64? updated = null;
         for (int i = 0; i < exchangeStatuses.Count; i++)
         {
-            object exchangeStatus = exchangeStatuses[i];
+            IDictionary<string, object> exchangeStatus = this.safeDict(exchangeStatuses, i);
             string? rawStatus = this.safeString(exchangeStatus, "status");
             if ((updated == null))
             {

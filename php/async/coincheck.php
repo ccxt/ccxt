@@ -320,7 +320,7 @@ class coincheck extends Exchange {
         $status = 'ok';
         $updated = null;
         for ($i = 0; $i < count($exchangeStatuses); $i++) {
-            $exchangeStatus = $exchangeStatuses[$i];
+            $exchangeStatus = $this->safe_dict($exchangeStatuses, $i);
             $rawStatus = $this->safe_string($exchangeStatus, 'status');
             if ($updated === null) {
                 $updated = $this->safe_timestamp($exchangeStatus, 'timestamp');

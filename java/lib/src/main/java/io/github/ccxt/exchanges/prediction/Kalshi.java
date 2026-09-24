@@ -450,7 +450,11 @@ public class Kalshi extends KalshiApi
                     Object parsed = this.parseBinaryMarketToOutcomes((Map<String, Object>) (raw));
                     String eventTicker = this.safeString(raw, "event_ticker");
                     String eventTitle = this.safeString(raw, "title", eventTicker);
-                    String eventKey = (((!java.util.Objects.equals(eventTitle, null) && !java.util.Objects.equals(eventTitle, "")))) ? this.shortenSlug((String) (eventTitle)) : null;
+                    String eventKey = null;
+                    if (!java.util.Objects.equals(eventTitle, null) && !java.util.Objects.equals(eventTitle, ""))
+                    {
+                        eventKey = this.shortenSlug((String) (eventTitle));
+                    }
                     for (var j = 0; j < ((List<?>)parsed).size(); j++)
                     {
                         Object m = (parsed == null || j < 0 || j >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(j));
@@ -546,12 +550,17 @@ public class Kalshi extends KalshiApi
                 Long symbolLength = this.parseToInt(((String)outcomeSymbol).length());
                 String suffix = Helpers.slice(outcomeSymbol, (symbolLength - 3L), null);
                 Boolean isNo = (java.util.Objects.equals(suffix, "-NO"));
-                Object baseTicker = ((Boolean.TRUE.equals(isNo))) ? Helpers.slice(outcomeSymbol, 0, (symbolLength - 3L)) : outcomeSymbol;
+                Object baseTicker = outcomeSymbol;
+                if (Boolean.TRUE.equals(isNo))
+                {
+                    baseTicker = Helpers.slice(outcomeSymbol, 0, (symbolLength - 3L));
+                }
                 Map<String, Object> response = null;
                 try
                 {
+                    final Object finalBaseTicker = baseTicker;
                     response = (this.kalshiPublicGetMarketsTicker(new HashMap<String, Object>() {{
-                        put( "ticker", baseTicker );
+                        put( "ticker", finalBaseTicker );
                     }})).join();
                 } catch(Exception e)
                 {
@@ -647,7 +656,11 @@ public class Kalshi extends KalshiApi
                 // parseToInt-wrapped .length — see the fetchOutcome comment (php count()/python slice traps)
                 Long symbolLength = this.parseToInt(((String)outcomeSymbol).length());
                 String suffix = Helpers.slice(outcomeSymbol, (symbolLength - 3L), null);
-                Object baseTicker = (((java.util.Objects.equals(suffix, "-NO")))) ? Helpers.slice(outcomeSymbol, 0, (symbolLength - 3L)) : outcomeSymbol;
+                Object baseTicker = outcomeSymbol;
+                if (java.util.Objects.equals(suffix, "-NO"))
+                {
+                    baseTicker = Helpers.slice(outcomeSymbol, 0, (symbolLength - 3L));
+                }
                 if (!(seen.containsKey(baseTicker)))
                 {
                     ((Map<String, Object>)seen).put((String)baseTicker, true);
@@ -834,7 +847,11 @@ public class Kalshi extends KalshiApi
             seriesTicker = String.join("-", (List<String>)seriesParts);
         }
         // market symbol (no outcome suffix)
-        String subtitleOrTicker = (((!java.util.Objects.equals(subtitle, null)))) ? subtitle : ticker;
+        String subtitleOrTicker = ticker;
+        if (!java.util.Objects.equals(subtitle, null))
+        {
+            subtitleOrTicker = subtitle;
+        }
         Object marketSymbol = this.slugToMarketSymbol((String) (eventTicker), subtitleOrTicker);
         // kalshi exposes the per-market price tick via price_ranges[].step (a dollar value,
         // e.g. "0.0010" for deci-cent markets, "0.0100" for cent markets); older responses
@@ -853,7 +870,7 @@ public class Kalshi extends KalshiApi
             put( "price", finalPricePrecision );
         }};
         // Build outcomes
-        List<Object> outcomeLabels = new ArrayList<Object>(Arrays.asList("YES", "NO"));
+        List<String> outcomeLabels = new ArrayList<String>(Arrays.asList("YES", "NO"));
         List<Object> outcomeIds = new ArrayList<Object>(Arrays.asList(ticker, (ticker + "-NO")));
         List<Object> outcomes = new ArrayList<Object>(Arrays.asList());
         Object resolvedOutcome = null;
@@ -1273,8 +1290,22 @@ final Object finalOi = oi;
             close = last;
         }
         // the book is quoted in the yes token, the no side mirrors with sizes swapped
-        String bidSizeString = ((Boolean.TRUE.equals(isNo))) ? this.safeString(raw, "yes_ask_size_fp") : this.safeString(raw, "yes_bid_size_fp");
-        String askSizeString = ((Boolean.TRUE.equals(isNo))) ? this.safeString(raw, "yes_bid_size_fp") : this.safeString(raw, "yes_ask_size_fp");
+        String bidSizeString = null;
+        if (Boolean.TRUE.equals(isNo))
+        {
+            bidSizeString = this.safeString(raw, "yes_ask_size_fp");
+        } else
+        {
+            bidSizeString = this.safeString(raw, "yes_bid_size_fp");
+        }
+        String askSizeString = null;
+        if (Boolean.TRUE.equals(isNo))
+        {
+            askSizeString = this.safeString(raw, "yes_bid_size_fp");
+        } else
+        {
+            askSizeString = this.safeString(raw, "yes_ask_size_fp");
+        }
         // kalshi occasionally reports a negative size for settling/closed markets; a size
         // can't be negative, so drop it rather than emit an invalid volume
         Double bidVolume = null;
@@ -1922,7 +1953,7 @@ final Object finalOi = oi;
         final String outcome3 = outcome2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             Long limit = limit3;
             if (!java.util.Objects.equals(outcome, null))
             {
@@ -2003,7 +2034,7 @@ final Object finalOi = oi;
         String ticker = this.safeString2(fill, "ticker", "market_ticker");
         // the leg the fill executed on ('yes' | 'no'); NO is addressed as <ticker>-NO
         String sideLeg = this.safeStringLower(fill, "side");
-        Object outcomeKey = ticker;
+        String outcomeKey = ticker;
         if ((java.util.Objects.equals(sideLeg, "no")) && (!java.util.Objects.equals(ticker, null)))
         {
             outcomeKey = (ticker + "-NO");
@@ -2012,7 +2043,11 @@ final Object finalOi = oi;
         Long ts = this.parse8601(this.safeString(fill, "created_time"));
         // action is the order side (buy/sell) of the held leg
         String action = this.safeStringLower(fill, "action");
-        String side = (((java.util.Objects.equals(action, "sell")))) ? "sell" : "buy";
+        String side = "buy";
+        if (java.util.Objects.equals(action, "sell"))
+        {
+            side = "sell";
+        }
         // price is the price of the leg held; kalshi reports dollars in V2, cents otherwise
         Object price = null;
         if (java.util.Objects.equals(sideLeg, "no"))
@@ -2045,7 +2080,11 @@ final Object finalOi = oi;
             cost = Helpers.multiply(price, amount);
         }
         Boolean isTaker = (Boolean) this.safeBool(fill, "is_taker", true);
-        String takerOrMaker = (((java.util.Objects.equals(isTaker, true)))) ? "taker" : "maker";
+        String takerOrMaker = "maker";
+        if (java.util.Objects.equals(isTaker, true))
+        {
+            takerOrMaker = "taker";
+        }
         Double feeCost = this.safeNumber(fill, "fee_cost");
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
@@ -2056,7 +2095,9 @@ final Object finalOi = oi;
                 put( "currency", "USD" );
             }};
         }
-        final Object finalOutcomeKey = outcomeKey;
+        final String finalOutcomeKey = outcomeKey;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
         final Object finalPrice = price;
         final Double finalAmount = amount;
         final Object finalCost = cost;
@@ -2072,8 +2113,8 @@ final Object finalOi = oi;
             put( "market", Kalshi.this.safeString2(mkt, "market", "outcome") );
             put( "order", orderId );
             put( "type", null );
-            put( "side", side );
-            put( "takerOrMaker", takerOrMaker );
+            put( "side", finalSide );
+            put( "takerOrMaker", finalTakerOrMaker );
             put( "price", finalPrice );
             put( "amount", finalAmount );
             put( "cost", finalCost );
@@ -2317,10 +2358,21 @@ final Object finalOi = oi;
         Double yesCount = this.safeNumber2(settlement, "yes_count_fp", "yes_count", 0);
         Double noCount = this.safeNumber2(settlement, "no_count_fp", "no_count", 0);
         Boolean heldYes = (Helpers.isGreaterThanOrEqual(yesCount, noCount));
-        String heldLabel = ((Boolean.TRUE.equals(heldYes))) ? "YES" : "NO";
+        String heldLabel = "NO";
+        if (Boolean.TRUE.equals(heldYes))
+        {
+            heldLabel = "YES";
+        }
         Boolean tickerMissing = (java.util.Objects.equals(ticker, null));
         Boolean useHeldYesTicker = (Boolean.TRUE.equals(heldYes) || Boolean.TRUE.equals(tickerMissing));
-        Object heldTicker = ((Boolean.TRUE.equals(useHeldYesTicker))) ? ticker : ((ticker + "-NO"));
+        Object heldTicker = null;
+        if (Boolean.TRUE.equals(useHeldYesTicker))
+        {
+            heldTicker = ticker;
+        } else
+        {
+            heldTicker = ((ticker + "-NO"));
+        }
         Map<String, Object> mkt = this.safeOutcome((String) (heldTicker), market);
         // which leg won; market_result is yes or no
         String marketResult = this.safeStringUpper(settlement, "market_result");
@@ -2335,8 +2387,16 @@ final Object finalOi = oi;
                 payout = (((double) revenueCents) / ((double) 100));
             }
         }
-        String costKey = ((Boolean.TRUE.equals(heldYes))) ? "yes_total_cost" : "no_total_cost";
-        String costDollarsKey = ((Boolean.TRUE.equals(heldYes))) ? "yes_total_cost_dollars" : "no_total_cost_dollars";
+        String costKey = "no_total_cost";
+        if (Boolean.TRUE.equals(heldYes))
+        {
+            costKey = "yes_total_cost";
+        }
+        String costDollarsKey = "no_total_cost_dollars";
+        if (Boolean.TRUE.equals(heldYes))
+        {
+            costDollarsKey = "yes_total_cost_dollars";
+        }
         Object cost = this.safeNumber(settlement, costDollarsKey);
         if (java.util.Objects.equals(cost, null))
         {
@@ -2353,6 +2413,7 @@ final Object finalOi = oi;
         }
         Long ts = this.parse8601(this.safeString(settlement, "settled_time"));
         final String finalTicker = ticker;
+        final Object finalHeldTicker = heldTicker;
         final String finalMarketResult = marketResult;
         final Boolean finalHeldYes = heldYes;
         final Object finalYesCount = yesCount;
@@ -2364,8 +2425,8 @@ final Object finalOi = oi;
             put( "id", finalTicker );
             put( "timestamp", ts );
             put( "datetime", Kalshi.this.iso8601(ts) );
-            put( "outcome", Kalshi.this.safeString(mkt, "outcome", heldTicker) );
-            put( "outcomeId", Kalshi.this.safeString2(mkt, "outcomeId", "id", heldTicker) );
+            put( "outcome", Kalshi.this.safeString(mkt, "outcome", finalHeldTicker) );
+            put( "outcomeId", Kalshi.this.safeString2(mkt, "outcomeId", "id", finalHeldTicker) );
             put( "market", Kalshi.this.safeString2(mkt, "market", "outcome") );
             put( "event", null );
             put( "result", finalMarketResult );
@@ -2474,7 +2535,7 @@ final Object finalOi = oi;
     {
         final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome))).join();
@@ -2529,7 +2590,7 @@ final Object finalOi = oi;
     {
         final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome))).join();
@@ -2590,7 +2651,7 @@ final Object finalOi = oi;
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object order = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
+                PredictionOrder order = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
                 String status = this.safeString(order, "status");
                 if ((java.util.Objects.equals(status, "closed")) || (java.util.Objects.equals(status, "canceled")))
                 {
@@ -2676,7 +2737,7 @@ final Object finalOi = oi;
         // a kalshi order is leg-specific: the raw `side` field says which leg ('yes'|'no');
         // the bare ticker is the YES outcome's id, the NO leg is addressed as `<ticker>-NO`
         String sideLeg = this.safeStringLower(order, "side");
-        Object outcomeKey = ticker;
+        String outcomeKey = ticker;
         if ((java.util.Objects.equals(sideLeg, "no")) && (!java.util.Objects.equals(ticker, null)))
         {
             outcomeKey = (ticker + "-NO");
@@ -2697,8 +2758,16 @@ final Object finalOi = oi;
         // price in the outcome's own leg: V2 returns *_price_dollars (already dollars),
         // legacy returned yes_price/no_price in cents
         Boolean labelIsNo = (java.util.Objects.equals(this.safeStringUpper(mkt, "label"), "NO"));
-        String dollarsKey = ((Boolean.TRUE.equals(labelIsNo))) ? "no_price_dollars" : "yes_price_dollars";
-        String centsKey = ((Boolean.TRUE.equals(labelIsNo))) ? "no_price" : "yes_price";
+        String dollarsKey = "yes_price_dollars";
+        if (Boolean.TRUE.equals(labelIsNo))
+        {
+            dollarsKey = "no_price_dollars";
+        }
+        String centsKey = "yes_price";
+        if (Boolean.TRUE.equals(labelIsNo))
+        {
+            centsKey = "no_price";
+        }
         Object price = this.safeNumber(order, dollarsKey);
         if (java.util.Objects.equals(price, null))
         {
@@ -2822,7 +2891,11 @@ final Object finalOi = oi;
             // kalshi V2 (/portfolio/events/orders) quotes the YES leg only: side 'bid' = buy YES,
             // 'ask' = sell YES, price in dollars. a NO order maps to the complementary YES order
             // buy NO @ q == sell YES @ 1-q - flip the book side and the price
-            String bookSide = ((Boolean.TRUE.equals(isBuy))) ? "bid" : "ask";
+            String bookSide = "ask";
+            if (Boolean.TRUE.equals(isBuy))
+            {
+                bookSide = "bid";
+            }
             Object yesPrice = price;
             if (Boolean.TRUE.equals(isNo))
             {
@@ -2837,7 +2910,11 @@ final Object finalOi = oi;
             // `time_in_force` param (handled below) still overrides
             String unifiedTif = this.safeStringUpper(parameters, "timeInForce");
             parameters = (Map<String, Object>) this.omit(parameters, "timeInForce");
-            String defaultTif = ((Boolean.TRUE.equals(isMarket))) ? "immediate_or_cancel" : "good_till_canceled";
+            String defaultTif = "good_till_canceled";
+            if (Boolean.TRUE.equals(isMarket))
+            {
+                defaultTif = "immediate_or_cancel";
+            }
             // kalshi has BOTH immediate_or_cancel (partial ok) and fill_or_kill (all-or-nothing);
             // map the unified tokens to the matching primitive rather than collapsing FOK into IOC
             if (java.util.Objects.equals(unifiedTif, "IOC"))
@@ -2854,14 +2931,14 @@ final Object finalOi = oi;
             List<Object> timeInForceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "time_in_force", defaultTif);
             timeInForce = ((List<Object>) timeInForceparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) timeInForceparametersVariable).get(1);
-            Object stp = null;
-            List<Object> stpparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "self_trade_prevention_type", "taker_at_cross");
-            stp = ((List<Object>) stpparametersVariable).get(0);
+            String stp = null;
+            List<Object> stpparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "self_trade_prevention_type", "taker_at_cross");
+            stp = (String) ((List<Object>) stpparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) stpparametersVariable).get(1);
             final String finalBookSide = bookSide;
             final Object finalAmount = amount;
             final Object finalTimeInForce = timeInForce;
-            final Object finalStp = stp;
+            final String finalStp = stp;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "ticker", ticker );
                 put( "side", finalBookSide );
@@ -3053,7 +3130,7 @@ final Object finalOi = oi;
     {
         final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome))).join();
@@ -3714,12 +3791,17 @@ final Object finalOi = oi;
         String ticker = this.safeString(rawEvent, "event_ticker");
         String title = this.safeString(rawEvent, "title");
         Boolean hasTitle = (!java.util.Objects.equals(title, null)) && (!java.util.Objects.equals(title, ""));
-        String eventSlug = ((Boolean.TRUE.equals(hasTitle))) ? this.shortenSlug((String) (title)) : null;
+        String eventSlug = null;
+        if (Boolean.TRUE.equals(hasTitle))
+        {
+            eventSlug = this.shortenSlug((String) (title));
+        }
         Long created = this.parse8601(this.safeString(rawEvent, "created_date_iso"));
         if (java.util.Objects.equals(created, null))
         {
             created = earliestCreated;
         }
+        final String finalEventSlug = eventSlug;
         final String finalTitle = title;
         final Object finalTotalVolume = totalVolume;
         final Object finalTotalLiquidity = totalLiquidity;
@@ -3730,7 +3812,7 @@ final Object finalOi = oi;
         return this.extend(new HashMap<String, Object>() {{
             put( "id", ticker );
             put( "slug", ticker );
-            put( "event", eventSlug );
+            put( "event", finalEventSlug );
             put( "title", finalTitle );
             put( "markets", marketsList );
             put( "volume", finalTotalVolume );

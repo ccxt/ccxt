@@ -547,7 +547,12 @@ class lbank extends \ccxt\async\lbank {
         //    }
         //
         $timestamp = $this->safe_integer($trade, 0);
-        $datetime = ($timestamp !== null) ? ($this->iso8601($timestamp)) : ($this->safe_string($trade, 'TS'));
+        $datetime = null;
+        if ($timestamp !== null) {
+            $datetime = ($this->iso8601($timestamp));
+        } else {
+            $datetime = ($this->safe_string($trade, 'TS'));
+        }
         if ($timestamp === null) {
             $timestamp = $this->parse8601($datetime);
         }
@@ -1042,7 +1047,7 @@ class lbank extends \ccxt\async\lbank {
             // a flight is already in progress - wake when the leader settles
             // it: the subscribeKey is then in the bucket
             Async\await($client->future($messageHash));
-            return $client->subscriptions['authenticated']['key'];
+            return $this->safe_string($this->safe_dict($client->subscriptions, 'authenticated'), 'key');
         }
         $future = $client->reusableFuture($messageHash);
         try {
@@ -1088,6 +1093,6 @@ class lbank extends \ccxt\async\lbank {
         // rethrows a rejected flight to the leader and attaches the handler
         // that keeps an alone leader from crashing on an unhandled rejection
         Async\await($future);
-        return $client->subscriptions['authenticated']['key'];
+        return $this->safe_string($this->safe_dict($client->subscriptions, 'authenticated'), 'key');
     }
 }

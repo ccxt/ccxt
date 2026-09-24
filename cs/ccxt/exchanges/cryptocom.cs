@@ -1237,8 +1237,8 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -1331,8 +1331,8 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -1533,7 +1533,7 @@ public partial class cryptocom : Exchange
         };
         for (int i = 0; i < positionBalances.Count; i++)
         {
-            object balance = positionBalances[i];
+            IDictionary<string, object> balance = this.safeDict(positionBalances, i);
             string? currencyId = this.safeString(balance, "instrument_name");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -1878,7 +1878,7 @@ public partial class cryptocom : Exchange
         List<object> ordersRequests = new List<object>() {};
         for (int i = 0; i < getArrayLength(orders); i++)
         {
-            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
+            IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
             string? type = this.safeString(rawOrder, "type");
             string? side = this.safeString(rawOrder, "side");
@@ -2294,7 +2294,7 @@ public partial class cryptocom : Exchange
         List<object> orderRequests = new List<object>() {};
         for (int i = 0; i < getArrayLength(orders); i++)
         {
-            IDictionary<string, object> order = ((IDictionary<string, object>)getValue(orders, i));
+            IDictionary<string, object> order = this.safeDict(orders, i);
             string? id = this.safeString(order, "id");
             string? symbol = this.safeString(order, "symbol");
             Dictionary<string, object> market = this.market(symbol);
@@ -2402,8 +2402,8 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -3240,7 +3240,7 @@ public partial class cryptocom : Exchange
         {
             for (int i = 0; i < networkListLength; i++)
             {
-                object networkInfo = getValue(networkList, i);
+                IDictionary<string, object> networkInfo = this.safeDict(networkList, i);
                 string? networkId = this.safeString(networkInfo, "network_id");
                 string? currencyCode = this.safeString(currency, "code");
                 string? networkCode = this.networkIdToCode(networkId, currencyCode);
@@ -3750,8 +3750,8 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -4181,8 +4181,16 @@ public partial class cryptocom : Exchange
             object symbol = getValue(this.symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             bool? isSwap = ((bool?)(market.ContainsKey("swap") ? market["swap"] : null));
-            string takerFeeKey = ((isSwap == true)) ? "effective_deriv_taker_rate_bps" : "effective_spot_taker_rate_bps";
-            string makerFeeKey = ((isSwap == true)) ? "effective_deriv_maker_rate_bps" : "effective_spot_maker_rate_bps";
+            string takerFeeKey = "effective_spot_taker_rate_bps";
+            if ((isSwap == true))
+            {
+                takerFeeKey = "effective_deriv_taker_rate_bps";
+            }
+            string makerFeeKey = "effective_spot_maker_rate_bps";
+            if ((isSwap == true))
+            {
+                makerFeeKey = "effective_deriv_maker_rate_bps";
+            }
             Dictionary<string, object> tradingFee = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },

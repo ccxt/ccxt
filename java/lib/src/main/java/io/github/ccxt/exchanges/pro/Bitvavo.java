@@ -426,7 +426,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCache(((Number)limit).intValue());
         }
-        Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
+        tradesArray.append(trade);
         Helpers.addElementToObject(this.trades, symbol, tradesArray);
         client.resolve(tradesArray, messageHash);
     }
@@ -715,7 +715,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         {
             Object candle = (candles == null || i < 0 || i >= candles.size() ? null : candles.get(i));
             List<Object> parsed = (List<Object>) this.parseOHLCV(candle, market);
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
         }
         client.resolve(stored, messageHash);
         // watchOHLCVForSymbols needs the symbol and timeframe to assemble its result
@@ -743,7 +743,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets()).join();
             }
             String name = "candles";
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             Map<String, Object> marketIdsByInterval = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
@@ -757,7 +757,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 }
                 Object intervalIds = (marketIdsByInterval == null || interval == null ? null : marketIdsByInterval.get(interval));
                 ((List<Object>)intervalIds).add(((Map<String, Object>)market).get("id"));
-                ((List<Object>)messageHashes).add(((((("multi:" + name) + "@") + ((Map<String, Object>)market).get("id")) + "_") + interval));
+                messageHashes.add(((((("multi:" + name) + "@") + ((Map<String, Object>)market).get("id")) + "_") + interval));
             }
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
             List<String> intervals = new ArrayList<String>(marketIdsByInterval.keySet());
@@ -962,7 +962,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }};
             Map<String, Object> message = this.extend(request, parameters);
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, message, messageHash, subscription)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -1029,7 +1029,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }};
             Map<String, Object> message = this.extend(request, parameters);
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watchMultiple(url, messageHashes, message, messageHashes, subscription)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -1257,7 +1257,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 put( "market", marketId );
             }};
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         });
 
     }
@@ -1300,7 +1300,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         }
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(response, symbol);
         ((Map<String, Object>)snapshot).put("nonce", this.safeInteger(response, "nonce"));
-        Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+        orderbook.reset(snapshot);
         // unroll the accumulated deltas
         Object messages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));
         for (var i = 0; i < Helpers.getArrayLength(messages); i++)
@@ -1367,10 +1367,10 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 put( "action", "unsubscribe" );
                 put( "channels", channels );
             }};
-            List<Object> unsubHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> unsubHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)subMessageHashes).size(); i++)
             {
-                ((List<Object>)unsubHashes).add(("unsubscribe:" + (subMessageHashes == null || i < 0 || i >= ((List<?>)subMessageHashes).size() ? null : ((List<?>)subMessageHashes).get(i))));
+                unsubHashes.add(("unsubscribe:" + (subMessageHashes == null || i < 0 || i >= ((List<?>)subMessageHashes).size() ? null : ((List<?>)subMessageHashes).get(i))));
             }
             Map<String, Object> subscription = this.extend(new HashMap<String, Object>() {{
                 put( "topic", topic );

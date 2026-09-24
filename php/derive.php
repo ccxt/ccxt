@@ -1198,7 +1198,10 @@ class derive extends Exchange {
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
         ), $order), 'keccak', 'binary');
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        $DOMAIN_SEPARATOR = ($sandboxMode === true) ? '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105' : 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b';
+        $DOMAIN_SEPARATOR = 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b';
+        if ($sandboxMode === true) {
+            $DOMAIN_SEPARATOR = '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105';
+        }
         $binaryDomainSeparator = $this->base16_to_binary($DOMAIN_SEPARATOR);
         $prefix = $this->base16_to_binary('1901');
         return $this->hash($this->binary_concat($prefix, $binaryDomainSeparator, $accountHash), 'keccak', 'hex');
@@ -1277,7 +1280,10 @@ class derive extends Exchange {
         $signatureExpiry = $this->safe_integer($params, 'signature_expiry_sec', $this->seconds() + 7776000);
         $ACTION_TYPEHASH = $this->base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        $TRADE_MODULE_ADDRESS = ($sandboxMode === true) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
+        $TRADE_MODULE_ADDRESS = '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
+        if ($sandboxMode === true) {
+            $TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be';
+        }
         $priceString = $this->number_to_string($price);
         $maxFee = null;
         list($maxFee, $params) = $this->handle_option_and_params($params, 'createOrder', 'max_fee');
@@ -1468,7 +1474,10 @@ class derive extends Exchange {
         // TODO: subaccount id / trade module address
         $ACTION_TYPEHASH = $this->base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        $TRADE_MODULE_ADDRESS = ($sandboxMode === true) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
+        $TRADE_MODULE_ADDRESS = '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
+        if ($sandboxMode === true) {
+            $TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be';
+        }
         $priceString = $this->number_to_string($price);
         $maxFeeString = $this->safe_string($params, 'max_fee', '0');
         $amountString = $this->number_to_string($amount);
@@ -1765,7 +1774,7 @@ class derive extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOrders', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_incremental('fetchOrders', $symbol, $since, $limit, $params, 'page', 500);
         }
@@ -2151,7 +2160,7 @@ class derive extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_incremental('fetchMyTrades', $symbol, $since, $limit, $params, 'page', 500);
         }
@@ -2379,7 +2388,7 @@ class derive extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingHistory', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_incremental('fetchFundingHistory', $symbol, $since, $limit, $params, 'page', 500);
         }
@@ -2444,7 +2453,7 @@ class derive extends Exchange {
         return $this->parse_incomes($events, $market, $since, $limit);
     }
 
-    public function parse_income(mixed $income, ?array $market = null): array {
+    public function parse_income(array $income, ?array $market = null): array {
         //
         // {
         //     "instrument_name": "BTC-PERP",
@@ -2545,10 +2554,10 @@ class derive extends Exchange {
             'info' => $response,
         );
         for ($i = 0; $i < count($response); $i++) {
-            $subaccount = $response[$i];
+            $subaccount = $this->safe_dict($response, $i);
             $collaterals = $this->safe_list($subaccount, 'collaterals', array());
             for ($j = 0; $j < count($collaterals); $j++) {
-                $balance = $collaterals[$j];
+                $balance = $this->safe_dict($collaterals, $j);
                 $code = $this->safe_currency_code($this->safe_string($balance, 'currency'));
                 $account = $this->safe_dict($result, $code);
                 if ($account === null) {
@@ -2730,7 +2739,7 @@ class derive extends Exchange {
 
     public function handle_derive_wallet_address(string $methodName, array $params) {
         $deriveWalletAddress = null;
-        list($deriveWalletAddress, $params) = $this->handle_option_and_params($params, $methodName, 'deriveWalletAddress');
+        list($deriveWalletAddress, $params) = $this->handle_option_string_and_params($params, $methodName, 'deriveWalletAddress');
         if (($deriveWalletAddress !== null) && ($deriveWalletAddress !== '')) {
             $this->options['deriveWalletAddress'] = $deriveWalletAddress; // saving in options
             return array( $deriveWalletAddress, $params );

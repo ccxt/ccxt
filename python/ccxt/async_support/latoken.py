@@ -609,7 +609,7 @@ class latoken(Exchange, ImplicitAPI):
         balancesByType = self.group_by(response, 'type')
         balances = self.safe_list(balancesByType, accountType, [])
         for i in range(0, len(balances)):
-            balance = balances[i]
+            balance = self.safe_dict(balances, i)
             currencyId = self.safe_string(balance, 'currency')
             timestamp = self.safe_integer(balance, 'timestamp')
             if timestamp is not None:

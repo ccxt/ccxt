@@ -334,7 +334,7 @@ public partial class coinone : ccxt.coinone
             stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        callDynamically(stored, "append", new object[] {trade});
+        stored.append(trade);
         string messageHash = ("trade:" + symbol);
         client.resolve(stored, messageHash);
     }

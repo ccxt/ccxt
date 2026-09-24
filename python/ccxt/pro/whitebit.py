@@ -484,7 +484,11 @@ class whitebit(ccxt.async_support.whitebit):
         feeCost = self.safe_string(trade, 6)
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 10)
-            feeCurrencyCode = self.safe_currency_code(feeCurrencyId) if (feeCurrencyId is not None) else market['quote']
+            feeCurrencyCode = None
+            if feeCurrencyId is not None:
+                feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
+            else:
+                feeCurrencyCode = market['quote']
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
@@ -629,7 +633,9 @@ class whitebit(ccxt.async_support.whitebit):
         lastTradeTimestamp = self.safe_timestamp(order, 'mtime')
         symbol = market['symbol']
         rawSide = self.safe_integer(order, 'side')
-        side = 'sell' if (rawSide == 1) else 'buy'
+        side = 'buy'
+        if rawSide == 1:
+            side = 'sell'
         dealFee = self.safe_string(order, 'deal_fee')
         fee = None
         if dealFee is not None:
@@ -1030,7 +1036,7 @@ class whitebit(ccxt.async_support.whitebit):
             'balanceMargin_update': self.handle_balance,
             'deals_update': self.handle_my_trades,
         }
-        topic = self.safe_value(message, 'method')
+        topic = self.safe_string(message, 'method')
         method = self.safe_value(methods, topic)
         if method is not None:
             method(client, message)

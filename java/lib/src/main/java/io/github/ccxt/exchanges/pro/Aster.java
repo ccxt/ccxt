@@ -259,7 +259,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }
             String url = (String) Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public"), type);
             List<Object> subscriptionArgs = new ArrayList<Object>(Arrays.asList());
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "SUBSCRIBE" );
                 put( "params", subscriptionArgs );
@@ -269,7 +269,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 ((List<Object>)subscriptionArgs).add((this.safeStringLower(market, "id") + "@ticker"));
-                ((List<Object>)messageHashes).add(("ticker:" + ((Map<String, Object>)market).get("symbol")));
+                messageHashes.add(("ticker:" + ((Map<String, Object>)market).get("symbol")));
             }
             Object newTicker = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             if (this.newUpdates)
@@ -341,7 +341,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }
             String url = (String) Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public"), type);
             List<Object> subscriptionArgs = new ArrayList<Object>(Arrays.asList());
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "UNSUBSCRIBE" );
                 put( "params", subscriptionArgs );
@@ -351,7 +351,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 ((List<Object>)subscriptionArgs).add((this.safeStringLower(market, "id") + "@ticker"));
-                ((List<Object>)messageHashes).add(("unsubscribe:ticker:" + ((Map<String, Object>)market).get("symbol")));
+                messageHashes.add(("unsubscribe:ticker:" + ((Map<String, Object>)market).get("symbol")));
             }
             return (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
         });
@@ -499,7 +499,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }
             String url = (String) Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public"), type);
             List<Object> subscriptionArgs = new ArrayList<Object>(Arrays.asList());
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "SUBSCRIBE" );
                 put( "params", subscriptionArgs );
@@ -509,9 +509,13 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                String suffix = (((java.util.Objects.equals(use1sFreq, true)))) ? "@1s" : "";
+                String suffix = "";
+                if (java.util.Objects.equals(use1sFreq, true))
+                {
+                    suffix = "@1s";
+                }
                 ((List<Object>)subscriptionArgs).add(((this.safeStringLower(market, "id") + "@markPrice") + suffix));
-                ((List<Object>)messageHashes).add(("ticker:" + ((Map<String, Object>)market).get("symbol")));
+                messageHashes.add(("ticker:" + ((Map<String, Object>)market).get("symbol")));
             }
             Object newTicker = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             if (this.newUpdates)
@@ -581,7 +585,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }
             String url = (String) Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public"), type);
             List<Object> subscriptionArgs = new ArrayList<Object>(Arrays.asList());
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "UNSUBSCRIBE" );
                 put( "params", subscriptionArgs );
@@ -591,9 +595,13 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                String suffix = (((java.util.Objects.equals(use1sFreq, true)))) ? "@1s" : "";
+                String suffix = "";
+                if (java.util.Objects.equals(use1sFreq, true))
+                {
+                    suffix = "@1s";
+                }
                 ((List<Object>)subscriptionArgs).add(((this.safeStringLower(market, "id") + "@markPrice") + suffix));
-                ((List<Object>)messageHashes).add(("unsubscribe:ticker:" + ((Map<String, Object>)market).get("symbol")));
+                messageHashes.add(("unsubscribe:ticker:" + ((Map<String, Object>)market).get("symbol")));
             }
             return (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
         });
@@ -742,7 +750,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }
             String url = (String) Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public"), type);
             List<Object> subscriptionArgs = new ArrayList<Object>(Arrays.asList());
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "SUBSCRIBE" );
                 put( "params", subscriptionArgs );
@@ -752,7 +760,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 ((List<Object>)subscriptionArgs).add((this.safeStringLower(market, "id") + "@bookTicker"));
-                ((List<Object>)messageHashes).add(("bidask:" + ((Map<String, Object>)market).get("symbol")));
+                messageHashes.add(("bidask:" + ((Map<String, Object>)market).get("symbol")));
             }
             Object newTicker = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             if (this.newUpdates)
@@ -817,7 +825,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }
             String url = (String) Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public"), type);
             List<Object> subscriptionArgs = new ArrayList<Object>(Arrays.asList());
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "UNSUBSCRIBE" );
                 put( "params", subscriptionArgs );
@@ -827,7 +835,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 ((List<Object>)subscriptionArgs).add((this.safeStringLower(market, "id") + "@bookTicker"));
-                ((List<Object>)messageHashes).add(("unsubscribe:bidask:" + ((Map<String, Object>)market).get("symbol")));
+                messageHashes.add(("unsubscribe:bidask:" + ((Map<String, Object>)market).get("symbol")));
             }
             return (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
         });
@@ -886,9 +894,14 @@ public class Aster extends io.github.ccxt.exchanges.Aster
     public Object parseWsBidAsk(Map<String, Object> message, Map<String, Object> market)
     {
         Long timestamp = this.safeInteger(message, "T");
-        Object bidAskSymbol = (((!java.util.Objects.equals(market, null)))) ? ((Map<String, Object>)market).get("symbol") : null;
+        Object bidAskSymbol = null;
+        if (!java.util.Objects.equals(market, null))
+        {
+            bidAskSymbol = ((Map<String, Object>)market).get("symbol");
+        }
+        final Object finalBidAskSymbol = bidAskSymbol;
         return this.safeTicker(new HashMap<String, Object>() {{
-            put( "symbol", bidAskSymbol );
+            put( "symbol", finalBidAskSymbol );
             put( "timestamp", timestamp );
             put( "datetime", Aster.this.iso8601(timestamp) );
             put( "ask", Aster.this.safeString(message, "a") );
@@ -1022,7 +1035,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }
             String url = (String) Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public"), type);
             List<Object> subscriptionArgs = new ArrayList<Object>(Arrays.asList());
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "SUBSCRIBE" );
                 put( "params", subscriptionArgs );
@@ -1034,7 +1047,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 String marketId = this.safeStringLower(market, "id");
                 ((List<Object>)subscriptionArgs).add((marketId + "@aggTrade"));
-                ((List<Object>)messageHashes).add(("trade::" + ((Map<String, Object>)market).get("symbol")));
+                messageHashes.add(("trade::" + ((Map<String, Object>)market).get("symbol")));
             }
             List<Object> trades = (this.<List<Object>>watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             if (this.newUpdates)
@@ -1101,7 +1114,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }
             String url = (String) Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public"), type);
             List<Object> subscriptionArgs = new ArrayList<Object>(Arrays.asList());
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "UNSUBSCRIBE" );
                 put( "params", subscriptionArgs );
@@ -1111,7 +1124,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 ((List<Object>)subscriptionArgs).add((this.safeStringLower(market, "id") + "@aggTrade"));
-                ((List<Object>)messageHashes).add(("unsubscribe:trade:" + ((Map<String, Object>)market).get("symbol")));
+                messageHashes.add(("unsubscribe:trade:" + ((Map<String, Object>)market).get("symbol")));
             }
             return (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
         });
@@ -1168,7 +1181,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        stored.append(parsed);
         client.resolve(stored, ("trade::" + symbol));
     }
 
@@ -1287,7 +1300,14 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }
         }
         String marketId = this.safeString(trade, "s");
-        Object defaultType = (((java.util.Objects.equals(market, null)))) ? this.safeString(this.options, "defaultType", "spot") : ((Map<String, Object>)market).get("type");
+        Object defaultType = null;
+        if (java.util.Objects.equals(market, null))
+        {
+            defaultType = this.safeString(this.options, "defaultType", "spot");
+        } else
+        {
+            defaultType = ((Map<String, Object>)market).get("type");
+        }
         String symbol = this.safeSymbol(marketId, market, null, defaultType);
         String side = this.safeStringLower(trade, "S");
         String takerOrMaker = null;
@@ -1463,7 +1483,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }
             String url = (String) Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public"), type);
             List<Object> subscriptionArgs = new ArrayList<Object>(Arrays.asList());
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "SUBSCRIBE" );
                 put( "params", subscriptionArgs );
@@ -1477,10 +1497,10 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 ((List<Object>)subscriptionArgs).add(Helpers.add((this.safeStringLower(market, "id") + "@depth"), String.valueOf(limit)));
-                ((List<Object>)messageHashes).add(("orderbook:" + ((Map<String, Object>)market).get("symbol")));
+                messageHashes.add(("orderbook:" + ((Map<String, Object>)market).get("symbol")));
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -1541,7 +1561,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }
             String url = (String) Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public"), type);
             List<Object> subscriptionArgs = new ArrayList<Object>(Arrays.asList());
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "UNSUBSCRIBE" );
                 put( "params", subscriptionArgs );
@@ -1557,7 +1577,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 ((List<Object>)subscriptionArgs).add(Helpers.add((this.safeStringLower(market, "id") + "@depth"), limit));
-                ((List<Object>)messageHashes).add(("unsubscribe:orderbook:" + ((Map<String, Object>)market).get("symbol")));
+                messageHashes.add(("unsubscribe:orderbook:" + ((Map<String, Object>)market).get("symbol")));
             }
             return (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
         });
@@ -1622,7 +1642,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "b", "a");
-        Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+        orderbook.reset(snapshot);
         String messageHash = (("orderbook" + ":") + symbol);
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         client.resolve(orderbook, messageHash);
@@ -1745,20 +1765,20 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
             }
-            Object symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
-            Object marketSymbols = this.marketSymbols(symbols, null, false, true, true);
+            List<Object> symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
+            List<Object> marketSymbols = this.marketSymbols(symbols, null, false, true, true);
             Map<String, Object> firstMarket = (Map<String, Object>) this.market((marketSymbols == null || 0 >= ((List<?>)marketSymbols).size() ? null : ((List<?>)marketSymbols).get(0)));
             String type = this.safeString(firstMarket, "type", "swap");
             String url = (String) Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public"), type);
             List<Object> subscriptionArgs = new ArrayList<Object>(Arrays.asList());
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "SUBSCRIBE" );
                 put( "params", subscriptionArgs );
             }};
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object data = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
+                List<Object> data = (List<Object>) this.safeList(symbolsAndTimeframes, i);
                 String symbolString = this.safeString(data, 0);
                 if (java.util.Objects.equals(symbolString, null))
                 {
@@ -1767,9 +1787,16 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 Map<String, Object> market = (Map<String, Object>) this.market(symbolString);
                 symbolString = this.safeString(market, "symbol");
                 String unfiedTimeframe = this.safeString(data, 1);
-                String timeframeId = (((java.util.Objects.equals(unfiedTimeframe, null)))) ? null : this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
+                String timeframeId = null;
+                if (java.util.Objects.equals(unfiedTimeframe, null))
+                {
+                    timeframeId = null;
+                } else
+                {
+                    timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
+                }
                 ((List<Object>)subscriptionArgs).add(((this.safeStringLower(market, "id") + "@kline_") + timeframeId));
-                ((List<Object>)messageHashes).add(((("ohlcv:" + ((Map<String, Object>)market).get("symbol")) + ":") + unfiedTimeframe));
+                messageHashes.add(((("ohlcv:" + ((Map<String, Object>)market).get("symbol")) + ":") + unfiedTimeframe));
             }
             var symboltimeframestoredVariable = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             var symbol = ((List<Object>) symboltimeframestoredVariable).get(0);
@@ -1830,20 +1857,20 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
             }
-            Object symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
-            Object marketSymbols = this.marketSymbols(symbols, null, false, true, true);
+            List<Object> symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
+            List<Object> marketSymbols = this.marketSymbols(symbols, null, false, true, true);
             Map<String, Object> firstMarket = (Map<String, Object>) this.market((marketSymbols == null || 0 >= ((List<?>)marketSymbols).size() ? null : ((List<?>)marketSymbols).get(0)));
             String type = this.safeString(firstMarket, "type", "swap");
             String url = (String) Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public"), type);
             List<Object> subscriptionArgs = new ArrayList<Object>(Arrays.asList());
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "UNSUBSCRIBE" );
                 put( "params", subscriptionArgs );
             }};
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object data = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
+                List<Object> data = (List<Object>) this.safeList(symbolsAndTimeframes, i);
                 String symbolString = this.safeString(data, 0);
                 if (java.util.Objects.equals(symbolString, null))
                 {
@@ -1852,9 +1879,16 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 Map<String, Object> market = (Map<String, Object>) this.market(symbolString);
                 symbolString = this.safeString(market, "symbol");
                 String unfiedTimeframe = this.safeString(data, 1);
-                String timeframeId = (((java.util.Objects.equals(unfiedTimeframe, null)))) ? null : this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
+                String timeframeId = null;
+                if (java.util.Objects.equals(unfiedTimeframe, null))
+                {
+                    timeframeId = null;
+                } else
+                {
+                    timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
+                }
                 ((List<Object>)subscriptionArgs).add(((this.safeStringLower(market, "id") + "@kline_") + timeframeId));
-                ((List<Object>)messageHashes).add(((("unsubscribe:ohlcv:" + ((Map<String, Object>)market).get("symbol")) + ":") + unfiedTimeframe));
+                messageHashes.add(((("unsubscribe:ohlcv:" + ((Map<String, Object>)market).get("symbol")) + ":") + unfiedTimeframe));
             }
             return (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
         });
@@ -1931,7 +1965,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
         Object parsed = this.parseWsOHLCV(kline);
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        stored.append(parsed);
         String messageHash = ((("ohlcv:" + symbol) + ":") + timeframe);
         List<Object> resolveData = new ArrayList<Object>(Arrays.asList(symbol, timeframe, stored));
         client.resolve(resolveData, messageHash);
@@ -2376,7 +2410,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Object cache = this.positions;
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
-                Object position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
+                Position position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 Double contracts = this.safeNumber(position, "contracts", 0);
                 if ((!java.util.Objects.equals(contracts, null)) && (Helpers.isGreaterThan(contracts, 0)))
                 {
@@ -2690,9 +2724,14 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         if (java.util.Objects.equals(executionType, "TRADE"))
         {
             Boolean isSwap = ((String)client.url).indexOf("fstream") >= 0;
-            String type = ((Boolean.TRUE.equals(isSwap))) ? "swap" : "spot";
+            String type = "spot";
+            if (Boolean.TRUE.equals(isSwap))
+            {
+                type = "swap";
+            }
+            final String finalType = type;
             Map<String, Object> fakeMarket = (Map<String, Object>) this.safeMarketStructure(new HashMap<String, Object>() {{
-                put( "type", type );
+                put( "type", finalType );
             }});
             Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message), fakeMarket);
             String orderId = this.safeString(trade, "order");

@@ -27,7 +27,7 @@ public class TestFetchCurrencies extends BaseTest {
         // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
         Object numInactiveCurrencies = 0;
         Object maxInactiveCurrenciesPercentage = exchange.safeInteger(skippedProperties, "maxInactiveCurrenciesPercentage", 50); // no more than X% currencies should be inactive
-        List<Object> requiredActiveCurrencies = new ArrayList<Object>(Arrays.asList("BTC", "ETH", "USDT", "USDC"));
+        List<String> requiredActiveCurrencies = new ArrayList<String>(Arrays.asList("BTC", "ETH", "USDT", "USDC"));
         Object features = exchange.features;
         Object featuresSpot = exchange.safeDict(features, "spot", new HashMap<String, Object>() {{}});
         Object fetchCurrencies = exchange.safeDict(featuresSpot, "fetchCurrencies", new HashMap<String, Object>() {{}});

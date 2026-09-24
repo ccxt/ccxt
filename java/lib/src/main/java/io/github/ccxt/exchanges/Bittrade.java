@@ -2198,11 +2198,19 @@ public class Bittrade extends BittradeApi
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            Object feeCurrency = (((java.util.Objects.equals(side, "sell")))) ? ((Map<String, Object>)market).get("quote") : ((Map<String, Object>)market).get("base");
+            Object feeCurrency = null;
+            if (java.util.Objects.equals(side, "sell"))
+            {
+                feeCurrency = ((Map<String, Object>)market).get("quote");
+            } else
+            {
+                feeCurrency = ((Map<String, Object>)market).get("base");
+            }
             final String finalFeeCost = feeCost;
+            final Object finalFeeCurrency = feeCurrency;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
-                put( "currency", feeCurrency );
+                put( "currency", finalFeeCurrency );
             }};
         }
         final Map<String, Object> finalMarket = market;
@@ -2663,7 +2671,7 @@ public class Bittrade extends BittradeApi
         return this.cancelAllOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseDepositAddress(Object depositAddress, Map<String, Object> currency)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         //
         //     {
@@ -2692,7 +2700,7 @@ public class Bittrade extends BittradeApi
             put( "info", depositAddress );
         }};
     }
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Object... optionalArgs)
     {
         return this.parseDepositAddress(depositAddress, Helpers.getArgMap(optionalArgs, 0, null));
     }

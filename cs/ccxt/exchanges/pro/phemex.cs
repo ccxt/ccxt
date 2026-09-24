@@ -398,7 +398,7 @@ public partial class phemex : ccxt.phemex
         ((IDictionary<string,object>)this.balance)["info"] = message;
         for (int i = 0; i < getArrayLength(message); i++)
         {
-            object balance = getValue(message, i);
+            IDictionary<string, object> balance = this.safeDict(message, i);
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             IDictionary<string, object> currency = this.safeDict(this.currencies, code, new Dictionary<string, object>() {});
@@ -478,7 +478,7 @@ public partial class phemex : ccxt.phemex
         IList<object> parsed = this.parseTrades(trades, market);
         for (int i = 0; i < (parsed?.Count ?? 0); i++)
         {
-            callDynamically(stored, "append", new object[] {parsed[i]});
+            stored.append(parsed[i]);
         }
         client.resolve(stored, messageHash);
     }
@@ -538,7 +538,7 @@ public partial class phemex : ccxt.phemex
             for (int i = 0; i < (ohlcvs?.Count ?? 0); i++)
             {
                 object candle = ohlcvs[i];
-                callDynamically(stored, "append", new object[] {candle});
+                stored.append(candle);
             }
             client.resolve(stored, messageHash);
         }
@@ -667,7 +667,11 @@ public partial class phemex : ccxt.phemex
         bool? isSwap = ((bool?)(market.ContainsKey("swap") ? market["swap"] : null));
         bool settleIsUSDT = (((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT");
         bool isUsdtSwap = ((isSwap == true)) && settleIsUSDT;
-        string name = isUsdtSwap ? "trade_p" : "trade";
+        string name = "trade";
+        if (isUsdtSwap)
+        {
+            name = "trade_p";
+        }
         string messageHash = ("trade:" + (symbolVar));
         string method = (name + ".subscribe");
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
@@ -712,7 +716,11 @@ public partial class phemex : ccxt.phemex
         bool? isSwap = ((bool?)(market.ContainsKey("swap") ? market["swap"] : null));
         bool settleIsUSDT = (((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT");
         bool isUsdtSwap = ((isSwap == true)) && settleIsUSDT;
-        string name = isUsdtSwap ? "orderbook_p" : "orderbook";
+        string name = "orderbook";
+        if (isUsdtSwap)
+        {
+            name = "orderbook_p";
+        }
         string messageHash = ("orderbook:" + (symbolVar));
         string method = (name + ".subscribe");
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
@@ -757,7 +765,11 @@ public partial class phemex : ccxt.phemex
         bool? isSwap = ((bool?)(market.ContainsKey("swap") ? market["swap"] : null));
         bool settleIsUSDT = (((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT");
         bool isUsdtSwap = ((isSwap == true)) && settleIsUSDT;
-        string name = isUsdtSwap ? "kline_p" : "kline";
+        string name = "kline";
+        if (isUsdtSwap)
+        {
+            name = "kline_p";
+        }
         string messageHash = ((("kline:" + (timeframeVar)) + ":") + (symbolVar));
         string method = (name + ".subscribe");
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
@@ -1033,7 +1045,7 @@ public partial class phemex : ccxt.phemex
             string? marketId = this.safeString(rawTrade, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
             Dictionary<string, object> parsed = this.parseTrade(rawTrade);
-            callDynamically(cachedTrades, "append", new object[] {parsed});
+            cachedTrades.append(parsed);
             string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
             if ((type == null))
             {
@@ -1316,7 +1328,7 @@ public partial class phemex : ccxt.phemex
         for (int i = 0; i < (parsedOrders?.Count ?? 0); i++)
         {
             Dictionary<string, object> parsed = ((Dictionary<string, object>)parsedOrders[i]);
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
             object symbol = (parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null);
             Dictionary<string, object> market = this.market(symbol);
             if ((type == null))
@@ -1647,7 +1659,11 @@ public partial class phemex : ccxt.phemex
         }
         if (((message != null && ((IDictionary<string, object>)message).ContainsKey("accounts"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("accounts_p"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("wallets"))))
         {
-            string type = ((message != null && ((IDictionary<string, object>)message).ContainsKey("accounts"))) ? "swap" : "spot";
+            string type = "spot";
+            if ((message != null && ((IDictionary<string, object>)message).ContainsKey("accounts")))
+            {
+                type = "swap";
+            }
             if ((message != null && ((IDictionary<string, object>)message).ContainsKey("accounts_p")))
             {
                 type = "perpetual";

@@ -117,7 +117,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         return "ping";
     }
 
-    public Map<String, Object> handlePong(Client client, Map<String, Object> message)
+    public Object handlePong(Client client, Object message)
     {
         client.lastPong = ((Number)this.milliseconds()).longValue();
         return message;
@@ -635,7 +635,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         if (!java.util.Objects.equals(data, null))
         {
             Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data), market);
-            Helpers.callDynamically(strored, "append", new Object[]{trade});
+            strored.append(trade);
         }
         String messageHash = (("trades" + "::") + symbol);
         client.resolve(strored, messageHash);
@@ -883,7 +883,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         if (!java.util.Objects.equals(data, null))
         {
             Object ohlcv = this.parseWsOHLCV(data, market);
-            Helpers.callDynamically(stored, "append", new Object[]{ohlcv});
+            stored.append(ohlcv);
         }
         String messageHash = (((("ohlcv" + "::") + symbol) + "::") + timeframe);
         client.resolve(stored, messageHash);
@@ -1023,9 +1023,9 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         // itself was accepted on 116 and 117 of them, and the handful whose
         // tick was rejected accepted the next coarser level
         String symbol = this.safeString(market, "symbol");
-        Object aggregation = null;
-        List<Object> aggregationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "aggregation");
-        aggregation = ((List<Object>) aggregationparametersVariable).get(0);
+        String aggregation = null;
+        List<Object> aggregationparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, (String) (methodName), "aggregation");
+        aggregation = (String) ((List<Object>) aggregationparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) aggregationparametersVariable).get(1);
         if (java.util.Objects.equals(aggregation, null))
         {
@@ -1108,7 +1108,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         }};
         for (var i = 0; i < ((List<?>)entries).size(); i++)
         {
-            Object entry = (entries == null || i < 0 || i >= entries.size() ? null : entries.get(i));
+            Map<String, Object> entry = (Map<String, Object>) this.safeDict(entries, i);
             Map<String, Object> entryData = (Map<String, Object>) this.safeDict(entry, "d", new HashMap<String, Object>() {{}});
             String side = this.safeString(entryData, "D");
             Double price = this.safeNumber(entryData, "P");
@@ -1125,7 +1125,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         }
         Long timestamp = this.safeInteger(message, "mt", 0);
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderedEntries, symbol, timestamp);
-        Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+        orderbook.reset(snapshot);
         Object cachedMessages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));
         for (var j = 0; j < ((List<?>)cachedMessages).size(); j++)
         {
@@ -1660,9 +1660,12 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
 
     public void handleMessage(Client client, Object message)
     {
-        if (java.util.Objects.equals(message, "pong"))
+        if ((message instanceof String))
         {
-            this.handlePong(client, (Map<String, Object>) (message));
+            if (java.util.Objects.equals(message, "pong"))
+            {
+                this.handlePong(client, message);
+            }
         } else
         {
             String m = this.safeString(message, "m");

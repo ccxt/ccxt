@@ -472,7 +472,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         Helpers.addElementToObject(this.balance, "info", message);
         for (var i = 0; i < ((List<?>)message).size(); i++)
         {
-            Object balance = (message == null || i < 0 || i >= ((List<?>)message).size() ? null : ((List<?>)message).get(i));
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(message, i);
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode((String) (currencyId));
             Map<String, Object> currency = (Map<String, Object>) this.safeDict(this.currencies, code, new HashMap<String, Object>() {{}});
@@ -552,7 +552,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         List<Object> parsed = this.parseTrades(trades, market);
         for (var i = 0; i < ((List<?>)parsed).size(); i++)
         {
-            Helpers.callDynamically(stored, "append", new Object[]{(parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i))});
+            stored.append((parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i)));
         }
         client.resolve(stored, messageHash);
     }
@@ -612,7 +612,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             for (var i = 0; i < ((List<?>)ohlcvs).size(); i++)
             {
                 Object candle = (ohlcvs == null || i < 0 || i >= ohlcvs.size() ? null : ohlcvs.get(i));
-                Helpers.callDynamically(stored, "append", new Object[]{candle});
+                stored.append(candle);
             }
             client.resolve(stored, messageHash);
         }
@@ -711,10 +711,10 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Long requestId = this.requestId();
             String subscriptionHash = (name + ".subscribe");
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                ((List<Object>)messageHashes).add(("ticker:" + (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i))));
+                messageHashes.add(("ticker:" + (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i))));
             }
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", subscriptionHash );
@@ -781,7 +781,11 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Boolean isSwap = (Boolean) ((Map<String, Object>)market).get("swap");
             Boolean settleIsUSDT = java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT");
             Boolean isUsdtSwap = (java.util.Objects.equals(isSwap, true)) && Boolean.TRUE.equals(settleIsUSDT);
-            String name = ((Boolean.TRUE.equals(isUsdtSwap))) ? "trade_p" : "trade";
+            String name = "trade";
+            if (Boolean.TRUE.equals(isUsdtSwap))
+            {
+                name = "trade_p";
+            }
             String messageHash = ("trade:" + symbol);
             String method = (name + ".subscribe");
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
@@ -846,7 +850,11 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Boolean isSwap = (Boolean) ((Map<String, Object>)market).get("swap");
             Boolean settleIsUSDT = java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT");
             Boolean isUsdtSwap = (java.util.Objects.equals(isSwap, true)) && Boolean.TRUE.equals(settleIsUSDT);
-            String name = ((Boolean.TRUE.equals(isUsdtSwap))) ? "orderbook_p" : "orderbook";
+            String name = "orderbook";
+            if (Boolean.TRUE.equals(isUsdtSwap))
+            {
+                name = "orderbook_p";
+            }
             String messageHash = ("orderbook:" + symbol);
             String method = (name + ".subscribe");
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
@@ -856,7 +864,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }};
             Map<String,Object> request = this.deepExtend(subscribe, parameters);
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, request, messageHash, null)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -910,7 +918,11 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Boolean isSwap = (Boolean) ((Map<String, Object>)market).get("swap");
             Boolean settleIsUSDT = java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT");
             Boolean isUsdtSwap = (java.util.Objects.equals(isSwap, true)) && Boolean.TRUE.equals(settleIsUSDT);
-            String name = ((Boolean.TRUE.equals(isUsdtSwap))) ? "kline_p" : "kline";
+            String name = "kline";
+            if (Boolean.TRUE.equals(isUsdtSwap))
+            {
+                name = "kline_p";
+            }
             String messageHash = ((("kline:" + timeframe) + ":") + symbol);
             String method = (name + ".subscribe");
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
@@ -1875,7 +1887,11 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         }
         if ((((Map<?, ?>)message).containsKey("accounts")) || (((Map<?, ?>)message).containsKey("accounts_p")) || (((Map<?, ?>)message).containsKey("wallets")))
         {
-            String type = (((((Map<?, ?>)message).containsKey("accounts")))) ? "swap" : "spot";
+            String type = "spot";
+            if (((Map<?, ?>)message).containsKey("accounts"))
+            {
+                type = "swap";
+            }
             if (((Map<?, ?>)message).containsKey("accounts_p"))
             {
                 type = "perpetual";

@@ -98,12 +98,10 @@ func (this *Woo) WatchPublicAsync(messageHash any, message any) <-chan any {
 func (this *Woo) watchPublicBody(ch chan any, messageHash any, message any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var urlUid any = func() any {
-		if this.Uid != "" {
-			return ccxt.Add("/", this.Uid)
-		}
-		return ""
-	}()
+	var urlUid any = ""
+	if this.Uid != "" {
+		urlUid = ccxt.Add("/", this.Uid)
+	}
 	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), urlUid)
 	var requestId int64 = this.RequestId(url)
 	var subscribe map[string]any = map[string]any{
@@ -124,12 +122,10 @@ func (this *Woo) unwatchPublicBody(ch chan any, subHash any, symbol any, topic a
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var urlUid any = func() any {
-		if this.Uid != "" {
-			return ccxt.Add("/", this.Uid)
-		}
-		return ""
-	}()
+	var urlUid any = ""
+	if this.Uid != "" {
+		urlUid = ccxt.Add("/", this.Uid)
+	}
 	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), urlUid)
 	var requestId int64 = this.RequestId(url)
 	var unsubHash any = ccxt.Add("unsubscribe::", subHash)
@@ -190,12 +186,10 @@ func (this *Woo) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	params = ccxt.MapTyped(ccxt.GetValue(methodparamsVariable, 1))
 	var market map[string]any = this.Market(symbol)
 	var topic any = ccxt.Add(ccxt.Add(market["id"], "@"), method)
-	var urlUid any = func() any {
-		if this.Uid != "" {
-			return ccxt.Add("/", this.Uid)
-		}
-		return ""
-	}()
+	var urlUid any = ""
+	if this.Uid != "" {
+		urlUid = ccxt.Add("/", this.Uid)
+	}
 	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), urlUid)
 	var requestId int64 = this.RequestId(url)
 	var request map[string]any = map[string]any{
@@ -565,7 +559,7 @@ func (this *Woo) HandleTicker(client any, message map[string]any) any {
 	//     }
 	//
 	var data any = this.SafeValue(message, "data")
-	var topic any = this.SafeValue(message, "topic")
+	var topic *string = this.SafeString(message, "topic")
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var timestamp *int64 = this.SafeInteger(message, "ts")
@@ -682,7 +676,7 @@ func (this *Woo) HandleTickers(client any, message map[string]any) {
 	//         ]
 	//     }
 	//
-	var topic any = this.SafeValue(message, "topic")
+	var topic *string = this.SafeString(message, "topic")
 	var data any = this.SafeValue(message, "data")
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var result []any = []any{}
@@ -795,7 +789,7 @@ func (this *Woo) HandleBidAsk(client any, message map[string]any) {
 	//     }
 	//
 	var topic *string = this.SafeString(message, "topic")
-	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var data []any = ccxt.SafeListTyped(message, "data")
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
@@ -945,7 +939,7 @@ func (this *Woo) HandleOHLCV(client any, message map[string]any) {
 	//     }
 	//
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
-	var topic any = this.SafeValue(message, "topic")
+	var topic *string = this.SafeString(message, "topic")
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -1286,12 +1280,10 @@ func (this *Woo) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger", false)
-	var topic string = func() string {
-		if trigger != nil && *trigger == true {
-			return "algoexecutionreportv2"
-		}
-		return "executionreport"
-	}()
+	var topic string = "executionreport"
+	if trigger != nil && *trigger == true {
+		topic = "algoexecutionreportv2"
+	}
 	params = ccxt.MapTyped(this.Omit(params, []any{"stop", "trigger"}))
 	var messageHash any = topic
 	if symbol != nil {
@@ -1348,12 +1340,10 @@ func (this *Woo) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger", false)
-	var topic string = func() string {
-		if trigger != nil && *trigger == true {
-			return "algoexecutionreportv2"
-		}
-		return "executionreport"
-	}()
+	var topic string = "executionreport"
+	if trigger != nil && *trigger == true {
+		topic = "algoexecutionreportv2"
+	}
 	params = ccxt.MapTyped(this.Omit(params, []any{"stop", "trigger"}))
 	var messageHash any = "myTrades"
 	if symbol != nil {
@@ -1847,7 +1837,7 @@ func (this *Woo) HandleBalance(client any, message map[string]any) {
 	//
 	//    }
 	//
-	var data any = this.SafeValue(message, "data")
+	var data any = this.SafeDict(message, "data")
 	var balances any = this.SafeValue(data, "balances")
 	var keys []string = ccxt.ObjectKeys(balances)
 	var ts *int64 = this.SafeInteger(message, "ts")
@@ -1856,7 +1846,7 @@ func (this *Woo) HandleBalance(client any, message map[string]any) {
 	ccxt.AddElementToObject(this.Balance, "datetime", this.Iso8601(ts))
 	for i := 0; i < len(keys); i++ {
 		var key string = ccxt.GetValue(keys, i).(string)
-		var value map[string]any = ccxt.MapTyped(ccxt.GetValue(balances, key))
+		var value map[string]any = ccxt.SafeMapTyped(balances, key)
 		var code *string = this.SafeCurrencyCode(key)
 		var account any = this.Account()
 		if (code != nil) && (ccxt.InOp(this.Balance, code)) {

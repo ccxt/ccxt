@@ -217,7 +217,7 @@ public partial class bittrade : ccxt.bittrade
         for (int i = 0; i < data.Count; i++)
         {
             Dictionary<string, object> trade = this.parseTrade(data[i], market);
-            callDynamically(tradesCache, "append", new object[] {trade});
+            tradesCache.append(trade);
         }
         client.resolve(tradesCache, ch);
         return message;
@@ -313,7 +313,7 @@ public partial class bittrade : ccxt.bittrade
         }
         IDictionary<string, object> tick = ((IDictionary<string, object>)this.safeValue(message, "tick"));
         IList<object> parsed = this.parseOHLCV(tick, market);
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         client.resolve(stored, ch);
     }
 

@@ -682,7 +682,14 @@ public partial class opinion : PredictionExchange
         string? eventId = this.safeString(rawEvent, "marketId");
         string? slug = this.safeString(rawEvent, "slug");
         string? title = this.safeString(rawEvent, "marketTitle");
-        string eventHandle = ((title != null)) ? this.shortenSlug(title) : this.shortenSlug(slug);
+        string? eventHandle = null;
+        if ((title != null))
+        {
+            eventHandle = this.shortenSlug(title);
+        } else
+        {
+            eventHandle = this.shortenSlug(slug);
+        }
         List<object> rawChildren = this.safeList(rawEvent, "childMarkets", new List<object>() {});
         int rawChildrenLength = rawChildren.Count;
         List<object> marketsList = new List<object>() {};
@@ -953,7 +960,7 @@ public partial class opinion : PredictionExchange
         int historyLength = history.Count;
         for (int i = 0; i < historyLength; i++)
         {
-            object point = getValue(history, i);
+            IDictionary<string, object> point = this.safeDict(history, i);
             double? price = this.safeNumber(point, "p");
             Int64? timestamp = this.safeTimestamp(point, "t");
             if (((price != null)) && ((timestamp != null)))
@@ -1637,7 +1644,7 @@ public partial class opinion : PredictionExchange
         int balancesLength = balances.Count;
         for (int i = 0; i < balancesLength; i++)
         {
-            object balance = getValue(balances, i);
+            IDictionary<string, object> balance = this.safeDict(balances, i);
             string? code = this.safeString(balance, "symbol", "USDT");
             result[(string)code] = new Dictionary<string, object>() {
                 { "free", this.safeNumber(balance, "availableBalance") },
@@ -1995,7 +2002,7 @@ public partial class opinion : PredictionExchange
         int marketKeysLength = marketKeys.Count;
         for (int i = 0; i < marketKeysLength; i++)
         {
-            object market = getValue(this.markets, getValue(marketKeys, i));
+            IDictionary<string, object> market = this.safeDict(this.markets, getValue(marketKeys, i));
             IDictionary<string, object> info = this.safeDict(market, "info", new Dictionary<string, object>() {});
             if (isEqual(this.safeInteger(info, "marketId"), marketId))
             {
@@ -2221,7 +2228,7 @@ public partial class opinion : PredictionExchange
             ((IDictionary<string,object>)this.trades)[(string)sym] = new ArrayCache(tradesLimit);
         }
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(this.trades, sym));
-        callDynamically(stored, "append", new object[] {trade});
+        stored.append(trade);
         client.resolve(stored, ("trades::" + sym));
     }
 
@@ -2317,9 +2324,17 @@ public partial class opinion : PredictionExchange
         // unlike the REST order body (0 buy / 1 sell), the websocket channel uses 1 buy / 2 sell
         // per the docs and confirmed live
         Int64? sideInt = this.safeInteger(message, "side");
-        string side = ((sideInt == 1)) ? "buy" : "sell";
+        string side = "sell";
+        if ((sideInt == 1))
+        {
+            side = "buy";
+        }
         Int64? tradingMethod = this.safeInteger(message, "tradingMethod");
-        string type = ((tradingMethod == 1)) ? "market" : "limit";
+        string type = "limit";
+        if ((tradingMethod == 1))
+        {
+            type = "market";
+        }
         Dictionary<string, object> order = this.safePredictionOrder(new Dictionary<string, object>() {
             { "id", this.safeString(message, "orderId") },
             { "clientOrderId", null },
@@ -2347,7 +2362,7 @@ public partial class opinion : PredictionExchange
             this.orders = new ArrayCacheByOutcomeById(limit);
         }
         ccxt.pro.ArrayCache stored = this.orders;
-        callDynamically(stored, "append", new object[] {order});
+        stored.append(order);
         client.resolve(stored, "orders");
     }
 
@@ -2433,7 +2448,7 @@ public partial class opinion : PredictionExchange
             this.myTrades = new ArrayCacheByOutcomeById(myTradesLimit);
         }
         ccxt.pro.ArrayCache stored = this.myTrades;
-        callDynamically(stored, "append", new object[] {trade});
+        stored.append(trade);
         client.resolve(stored, "myTrades");
     }
 

@@ -108,7 +108,10 @@ class hitbtc extends \ccxt\async\hitbtc {
         if ($authenticated === null) {
             $timestamp = $this->milliseconds();
             $timestampString = $this->number_to_string($timestamp);
-            $timestampEncoded = ($timestampString === null) ? '' : $timestampString;
+            $timestampEncoded = $timestampString;
+            if ($timestampString === null) {
+                $timestampEncoded = '';
+            }
             $signature = $this->hmac($this->encode($timestampEncoded), $this->encode($this->secret), 'sha256', 'hex');
             $request = array(
                 'method' => 'login',
@@ -297,7 +300,10 @@ class hitbtc extends \ccxt\async\hitbtc {
         //
         $snapshot = $this->safe_dict($message, 'snapshot');
         $data = $this->safe_dict_2($message, 'snapshot', 'update', array());
-        $type = ($snapshot !== null && $snapshot !== null) ? 'snapshot' : 'update';
+        $type = 'update';
+        if ($snapshot !== null && $snapshot !== null) {
+            $type = 'snapshot';
+        }
         $marketIds = is_array($data) ? array_keys($data) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
@@ -605,7 +611,10 @@ class hitbtc extends \ccxt\async\hitbtc {
 
     public function parse_ws_bid_ask(array $ticker, ?array $market = null): array {
         $timestamp = $this->safe_integer($ticker, 't');
-        $bidAskSymbol = ($market !== null) ? $market['symbol'] : null;
+        $bidAskSymbol = null;
+        if ($market !== null) {
+            $bidAskSymbol = $market['symbol'];
+        }
         return $this->safe_ticker(array(
             'symbol' => $bidAskSymbol,
             'timestamp' => $timestamp,

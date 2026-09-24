@@ -391,7 +391,10 @@ impl HitbtcCore {
         if (authenticated == Value::Null) {
             let mut timestamp: Value = self.milliseconds();
             let mut timestampString: Value = self.number_to_string(timestamp.clone());
-            let mut timestampEncoded: Value = (if (timestampString == Value::Null) { Value::Str("".into()) } else { timestampString });
+            let mut timestampEncoded: Value = timestampString.clone();
+            if (timestampString == Value::Null) {
+                timestampEncoded = Value::Str("".into());
+            }
             let mut signature: Value = self.hmac(self.encode(timestampEncoded), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -602,7 +605,10 @@ impl HitbtcCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut type_var: Value = (if ((snapshot != Value::Null) && (snapshot != Value::Null)) { Value::Str("snapshot".into()) } else { Value::Str("update".into()) });
+        let mut type_var: Value = Value::Str("update".into());
+        if (snapshot != Value::Null) && (snapshot != Value::Null) {
+            type_var = Value::Str("snapshot".into());
+        }
         let mut marketIds: Value = object_keys(&data);
         {
                         let mut i: Value = Value::Int(0);
@@ -984,7 +990,10 @@ impl HitbtcCore {
     pub fn parse_ws_bid_ask(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "t", &[]);
-        let mut bidAskSymbol: Value = (if (market != Value::Null) { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut bidAskSymbol: Value = Value::Null;
+        if (market != Value::Null) {
+            bidAskSymbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), bidAskSymbol);

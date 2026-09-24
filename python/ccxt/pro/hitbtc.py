@@ -101,7 +101,9 @@ class hitbtc(ccxt.async_support.hitbtc):
         if authenticated is None:
             timestamp = self.milliseconds()
             timestampString = self.number_to_string(timestamp)
-            timestampEncoded = '' if (timestampString is None) else timestampString
+            timestampEncoded = timestampString
+            if timestampString is None:
+                timestampEncoded = ''
             signature = self.hmac(self.encode(timestampEncoded), self.encode(self.secret), hashlib.sha256, 'hex')
             request = {
                 'method': 'login',
@@ -261,7 +263,9 @@ class hitbtc(ccxt.async_support.hitbtc):
         #
         snapshot = self.safe_dict(message, 'snapshot')
         data = self.safe_dict_2(message, 'snapshot', 'update', {})
-        type = 'snapshot' if (snapshot is not None and snapshot is not None) else 'update'
+        type = 'update'
+        if snapshot is not None and snapshot is not None:
+            type = 'snapshot'
         marketIds = list(data.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
@@ -533,7 +537,9 @@ class hitbtc(ccxt.async_support.hitbtc):
 
     def parse_ws_bid_ask(self, ticker: dict, market: Market = None) -> Ticker:
         timestamp = self.safe_integer(ticker, 't')
-        bidAskSymbol = market['symbol'] if (market is not None) else None
+        bidAskSymbol = None
+        if market is not None:
+            bidAskSymbol = market['symbol']
         return self.safe_ticker({
             'symbol': bidAskSymbol,
             'timestamp': timestamp,

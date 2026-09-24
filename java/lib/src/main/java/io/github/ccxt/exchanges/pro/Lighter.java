@@ -259,7 +259,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         {
             Map<String, Object> parsed = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size");
             ((Map<String, Object>)parsed).put("nonce", this.safeInteger(data, "offset"));
-            Helpers.callDynamically(orderbook, "reset", new Object[]{parsed});
+            orderbook.reset(parsed);
         } else if (java.util.Objects.equals(type, "update/order_book"))
         {
             this.handleOrderBookMessage(client, (Map<String, Object>) (message), orderbook);
@@ -827,7 +827,12 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "size");
         Boolean isMakerAsk = (Boolean) this.safeBool(trade, "is_maker_ask");
-        String side = (((java.util.Objects.equals(isMakerAsk, true)))) ? "buy" : "sell";
+        String side = "sell";
+        if (java.util.Objects.equals(isMakerAsk, true))
+        {
+            side = "buy";
+        }
+        final String finalSide = side;
         return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", tradeId );
@@ -836,7 +841,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             put( "datetime", Lighter.this.iso8601(timestamp) );
             put( "symbol", Lighter.this.safeSymbol(null, market) );
             put( "type", null );
-            put( "side", side );
+            put( "side", finalSide );
             put( "takerOrMaker", "taker" );
             put( "price", priceString );
             put( "amount", amountString );
@@ -911,7 +916,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         {
             Object iReversed = Helpers.subtract((((long) dataLength) - 1L), i);
             Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (Helpers.GetValue(data, iReversed)), market);
-            Helpers.callDynamically(stored, "append", new Object[]{trade});
+            stored.append(trade);
         }
         String messageHash = this.getMessageHash("trade", symbol);
         client.resolve(stored, messageHash);
@@ -1074,7 +1079,14 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(takerOrMaker, null))
         {
-            String feeRateRaw = (((java.util.Objects.equals(takerOrMaker, "maker")))) ? this.safeString(trade, "maker_fee") : this.safeString(trade, "taker_fee");
+            String feeRateRaw = null;
+            if (java.util.Objects.equals(takerOrMaker, "maker"))
+            {
+                feeRateRaw = this.safeString(trade, "maker_fee");
+            } else
+            {
+                feeRateRaw = this.safeString(trade, "taker_fee");
+            }
             String feeRate = (((!java.util.Objects.equals(feeRateRaw, null)))) ? Precise.stringDiv(feeRateRaw, "1000000") : "0";
             String feeAmount = Precise.stringMul(costString, feeRate);
             fee = new HashMap<String, Object>() {{
@@ -1336,7 +1348,11 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         //
         Long timestamp = this.safeInteger(liquidation, "timestamp");
         Boolean isMakerAsk = (Boolean) this.safeBool(liquidation, "is_maker_ask");
-        String side = (((java.util.Objects.equals(isMakerAsk, true)))) ? "buy" : "sell";
+        String side = "sell";
+        if (java.util.Objects.equals(isMakerAsk, true))
+        {
+            side = "buy";
+        }
         String contracts = this.safeString(liquidation, "size");
         String contractSize = this.safeString(market, "contractSize");
         String price = this.safeString(liquidation, "price");
@@ -1347,13 +1363,14 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             return null;
         }
         final Map<String, Object> finalMarket = market;
+        final String finalSide = side;
         return this.safeLiquidation((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", liquidation );
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
             put( "contracts", contracts );
             put( "contractSize", contractSize );
             put( "price", price );
-            put( "side", side );
+            put( "side", finalSide );
             put( "baseValue", baseValue );
             put( "quoteValue", quoteValue );
             put( "timestamp", timestamp );
@@ -1597,7 +1614,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             for (var i = 0; i < ((List<?>)assetIds).size(); i++)
             {
                 String assetId = (assetIds == null || i < 0 || i >= assetIds.size() ? null : assetIds.get(i));
-                Object asset = (assets == null || assetId == null ? null : assets.get(assetId));
+                Map<String, Object> asset = (Map<String, Object>) this.safeDict(assets, assetId);
                 String codeId = this.safeString(asset, "symbol");
                 String code = this.safeCurrencyCode((String) (codeId));
                 Map<String, Object> account = (Map<String, Object>) this.account();

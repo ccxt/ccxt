@@ -22,8 +22,8 @@ public class TestFeatures extends BaseTest {
 
         return BaseExchange.supplyAsync(() -> {
 
-        List<Object> marketTypes = new ArrayList<Object>(Arrays.asList("spot", "swap", "future", "option"));
-        List<Object> subTypes = new ArrayList<Object>(Arrays.asList("linear", "inverse"));
+        List<String> marketTypes = new ArrayList<String>(Arrays.asList("spot", "swap", "future", "option"));
+        List<String> subTypes = new ArrayList<String>(Arrays.asList("linear", "inverse"));
         Object features = exchange.features;
         List<String> keys = new ArrayList<String>(((Map<String, Object>)features).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)

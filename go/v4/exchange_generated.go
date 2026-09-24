@@ -2497,10 +2497,15 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 		var resultingCurrencies []any = []any{}
 		for i := 0; i < len(codes); i++ {
 			var code string = GetValue(codes, i).(string)
-			var groupedCurrenciesCode any = this.SafeList(groupedCurrencies, code, []any{})
+			var groupedCurrenciesCode []any = SafeListTyped(groupedCurrencies, code)
 			var highestPrecisionCurrency any = this.SafeValue(groupedCurrenciesCode, 0)
-			for j := 1; j < GetArrayLength(groupedCurrenciesCode); j++ {
-				var currentCurrency any = GetValue(groupedCurrenciesCode, j)
+			for j := 1; j < len(groupedCurrenciesCode); j++ {
+				var currentCurrency any = func() any {
+					if j >= 0 && j < len(groupedCurrenciesCode) {
+						return DerefScalar(groupedCurrenciesCode[j])
+					}
+					return nil
+				}()
 				if IsEqual(this.PrecisionMode, TICK_SIZE) {
 					highestPrecisionCurrency = func() any {
 						if IsLessThan(GetValue(currentCurrency, "precision"), GetValue(highestPrecisionCurrency, "precision")) {
@@ -3598,12 +3603,12 @@ func (this *BaseExchange) ConvertTradingViewToOHLCV(ohlcvs any, optionalArgs ...
 	var ms bool = GetArgBool(optionalArgs, 6, false)
 	_ = ms
 	var result []any = []any{}
-	var timestamps []any = SafeListTypedDefault(ohlcvs, timestamp, []any{})
-	var opens []any = SafeListTypedDefault(ohlcvs, open, []any{})
-	var highs []any = SafeListTypedDefault(ohlcvs, high, []any{})
-	var lows []any = SafeListTypedDefault(ohlcvs, low, []any{})
-	var closes []any = SafeListTypedDefault(ohlcvs, close, []any{})
-	var volumes []any = SafeListTypedDefault(ohlcvs, volume, []any{})
+	var timestamps []any = SafeListTyped(ohlcvs, timestamp)
+	var opens []any = SafeListTyped(ohlcvs, open)
+	var highs []any = SafeListTyped(ohlcvs, high)
+	var lows []any = SafeListTyped(ohlcvs, low)
+	var closes []any = SafeListTyped(ohlcvs, close)
+	var volumes []any = SafeListTyped(ohlcvs, volume)
 	for i := 0; i < len(timestamps); i++ {
 		result = append(result, []any{func() any {
 			if ms == true {

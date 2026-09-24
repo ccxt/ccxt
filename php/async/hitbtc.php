@@ -835,7 +835,7 @@ class hitbtc extends Exchange {
             if (str_ends_with($id, '_BQX')) {
                 continue; // seems like an invalid symbol and if we try to access it individually we get: {"timestamp":"2023-09-02T14:38:20.351Z","error":{"description":"Try get /public/symbol, to get list of all available symbols.","code":2001,"message":"No such symbol: EOSUSD_BQX"},"path":"/api/3/public/symbol/EOSUSD_BQX","requestId":"e1e9fce6-16374591"}
             }
-            $market = $this->safe_value($response, $id);
+            $market = $this->safe_dict($response, $id);
             $marketType = $this->safe_string($market, 'type');
             $expiry = $this->safe_integer($market, 'expiry');
             $contract = ($marketType === 'futures');
@@ -1138,7 +1138,7 @@ class hitbtc extends Exchange {
     public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
-            $entry = $response[$i];
+            $entry = $this->safe_dict($response, $i);
             $currencyId = $this->safe_string($entry, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -1495,6 +1495,7 @@ class hitbtc extends Exchange {
         $fee = null;
         $feeCostString = $this->safe_string($trade, 'fee');
         $taker = $this->safe_bool($trade, 'taker');
+        $takerOrMaker = null;
         if ($taker !== null) {
             $takerOrMaker = ($taker === true) ? 'taker' : 'maker';
         } else {
@@ -1949,7 +1950,7 @@ class hitbtc extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 1000));
         }
@@ -2736,7 +2737,7 @@ class hitbtc extends Exchange {
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
-        $postOnly = $this->safe_value($order, 'post_only');
+        $postOnly = $this->safe_bool($order, 'post_only');
         $timeInForce = $this->safe_string($order, 'time_in_force');
         $rawTrades = $this->safe_list($order, 'trades');
         return $this->safe_order(array(
@@ -2754,7 +2755,7 @@ class hitbtc extends Exchange {
             'side' => $side,
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
-            'reduceOnly' => $this->safe_value($order, 'reduce_only'),
+            'reduceOnly' => $this->safe_bool($order, 'reduce_only'),
             'filled' => $filled,
             'remaining' => null,
             'cost' => null,
@@ -3058,7 +3059,7 @@ class hitbtc extends Exchange {
             if ($marketId === null) {
                 continue;
             }
-            $rawFundingRate = $this->safe_value($response, $marketId);
+            $rawFundingRate = $this->safe_dict($response, $marketId);
             $marketInner = $this->market($marketId);
             $symbol = $marketInner['symbol'];
             $fundingRate = $this->parse_funding_rate($rawFundingRate, $marketInner);
@@ -3089,7 +3090,7 @@ class hitbtc extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params, 1000));
         }
@@ -3350,7 +3351,7 @@ class hitbtc extends Exchange {
         $entryPrice = null;
         $contracts = null;
         for ($i = 0; $i < count($positions); $i++) {
-            $entry = $positions[$i];
+            $entry = $this->safe_dict($positions, $i);
             $liquidationPrice = $this->safe_number($entry, 'price_liquidation');
             $entryPrice = $this->safe_number($entry, 'price_entry');
             $contracts = $this->safe_number($entry, 'quantity');
@@ -3358,7 +3359,7 @@ class hitbtc extends Exchange {
         $currencies = $this->safe_list($position, 'currencies', array());
         $collateral = null;
         for ($i = 0; $i < count($currencies); $i++) {
-            $entry = $currencies[$i];
+            $entry = $this->safe_dict($currencies, $i);
             $collateral = $this->safe_number($entry, 'margin_balance');
         }
         $marketId = $this->safe_string($position, 'symbol');
@@ -3952,7 +3953,7 @@ class hitbtc extends Exchange {
         $networks = $this->safe_list($fee, 'networks', array());
         $result = $this->deposit_withdraw_fee($fee);
         for ($j = 0; $j < count($networks); $j++) {
-            $networkEntry = $networks[$j];
+            $networkEntry = $this->safe_dict($networks, $j);
             $networkId = $this->safe_string($networkEntry, 'network');
             $code = $this->safe_string($currency, 'code');
             $networkCode = $this->network_id_to_code($networkId, $code);

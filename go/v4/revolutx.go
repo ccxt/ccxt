@@ -660,7 +660,7 @@ func (this *Revolutx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//         "metadata": { "timestamp": 1785313433816 }
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var metadata map[string]any = SafeMapTyped(response, "metadata")
 	var timestamp *int64 = this.SafeInteger(metadata, "timestamp")
 	var result map[string]any = map[string]any{}
@@ -991,7 +991,7 @@ func (this *Revolutx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	//         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
 		var trade map[string]any = MapTyped(this.SafeDict(data, i, map[string]any{}))
@@ -1469,7 +1469,7 @@ func (this *Revolutx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	//         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
 		var order map[string]any = MapTyped(this.SafeDict(data, i, map[string]any{}))
@@ -1556,7 +1556,7 @@ func (this *Revolutx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGet10OrdersHistorical(this.Extend(request, this.Omit(params, []any{"until", "cursor", "orderStates", "order_states", "orderTypes", "order_types"})))).Raw))
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
 		var order map[string]any = MapTyped(this.SafeDict(data, i, map[string]any{}))
@@ -1730,7 +1730,7 @@ func (this *Revolutx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
 		var trade map[string]any = MapTyped(this.SafeDict(data, i, map[string]any{}))

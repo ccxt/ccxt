@@ -756,7 +756,11 @@ public partial class bitrue : Exchange
         //
         List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
         int keysLength = keys.Count;
-        string formattedStatus = (keysLength > 0) ? "maintenance" : "ok";
+        string formattedStatus = "ok";
+        if (keysLength > 0)
+        {
+            formattedStatus = "maintenance";
+        }
         return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", formattedStatus },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
     }
 
@@ -1186,7 +1190,7 @@ public partial class bitrue : Exchange
         List<object> balances = this.safeList2(response, "balances", "account", new List<object>() {});
         for (int i = 0; i < balances.Count; i++)
         {
-            object balance = balances[i];
+            IDictionary<string, object> balance = this.safeDict(balances, i);
             string? currencyId = this.safeString2(balance, "asset", "marginCoin");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -2215,7 +2219,11 @@ public partial class bitrue : Exchange
                     string? amountString = this.numberToString(amount);
                     string? priceString = this.numberToString(price);
                     string? quoteAmount = Precise.stringMul(amountString, priceString);
-                    string? requestAmount = ((cost != null)) ? cost : quoteAmount;
+                    string? requestAmount = quoteAmount;
+                    if ((cost != null))
+                    {
+                        requestAmount = cost;
+                    }
                     request["amount"] = this.costToPrecision(symbol, requestAmount);
                     request["volume"] = this.costToPrecision(symbol, requestAmount);
                 }
@@ -3044,7 +3052,11 @@ public partial class bitrue : Exchange
         Int64? updated = this.safeInteger(transaction, "updatedAt");
         bool payAmount = ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("payAmount")));
         bool ctime = ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("ctime")));
-        string type = (payAmount || ctime) ? "withdrawal" : "deposit";
+        string type = "deposit";
+        if (payAmount || ctime)
+        {
+            type = "withdrawal";
+        }
         object status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
         double? amount = this.safeNumber(transaction, "amount");
         string? network = null;
@@ -3183,7 +3195,7 @@ public partial class bitrue : Exchange
         {
             for (int i = 0; i < chainDetailLength; i++)
             {
-                object chainDetail = getValue(chainDetails, i);
+                IDictionary<string, object> chainDetail = this.safeDict(chainDetails, i);
                 string? networkId = this.safeString(chainDetail, "chain");
                 string? currencyCode = this.safeString(currency, "code");
                 string? networkCode = this.networkIdToCode(networkId, currencyCode);

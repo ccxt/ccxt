@@ -506,7 +506,7 @@ public partial class coinbase : ccxt.coinbase
         List<object> newTickers = new List<object>() {};
         for (int i = 0; i < events.Count; i++)
         {
-            object tickersObj = events[i];
+            IDictionary<string, object> tickersObj = this.safeDict(events, i);
             List<object> tickers = this.safeList(tickersObj, "tickers", new List<object>() {});
             for (int j = 0; j < tickers.Count; j++)
             {
@@ -840,7 +840,7 @@ public partial class coinbase : ccxt.coinbase
         }
         for (int i = 0; i < events.Count; i++)
         {
-            object currentEvent = events[i];
+            IDictionary<string, object> currentEvent = this.safeDict(events, i);
             List<object> currentTrades = this.safeList(currentEvent, "trades");
             if ((currentTrades == null))
             {
@@ -851,7 +851,7 @@ public partial class coinbase : ccxt.coinbase
             for (object j = 0; isLessThan(j, tradesLength); postFixIncrement(ref j))
             {
                 object item = getValue(currentTrades, subtract(subtract(tradesLength, j), 1));
-                callDynamically(tradesArray, "append", new object[] {this.parseTrade(item)});
+                tradesArray.append(this.parseTrade(item));
             }
         }
         client.resolve(tradesArray, messageHash);
@@ -901,7 +901,7 @@ public partial class coinbase : ccxt.coinbase
         }
         for (int i = 0; i < events.Count; i++)
         {
-            object eventVar = events[i];
+            IDictionary<string, object> eventVar = this.safeDict(events, i);
             List<object> responseOrders = this.safeList(eventVar, "orders");
             if ((responseOrders == null))
             {
@@ -920,7 +920,7 @@ public partial class coinbase : ccxt.coinbase
                         marketIds.Add(marketId);
                     }
                 }
-                callDynamically(cachedOrders, "append", new object[] {parsed});
+                cachedOrders.append(parsed);
             }
         }
         for (int i = 0; i < (marketIds?.Count ?? 0); i++)
@@ -990,7 +990,7 @@ public partial class coinbase : ccxt.coinbase
     {
         for (int i = 0; i < getArrayLength(updates); i++)
         {
-            object trade = getValue(updates, i);
+            IDictionary<string, object> trade = this.safeDict(updates, i);
             string? sideId = this.safeString(trade, "side");
             string? side = this.safeString((this.options.ContainsKey("sides") ? this.options["sides"] : null), sideId);
             double? price = this.safeNumber(trade, "price_level");
@@ -1038,7 +1038,7 @@ public partial class coinbase : ccxt.coinbase
         string? datetime = this.safeString(message, "timestamp");
         for (int i = 0; i < events.Count; i++)
         {
-            object eventVar = events[i];
+            IDictionary<string, object> eventVar = this.safeDict(events, i);
             List<object> updates = this.safeList(eventVar, "updates", new List<object>() {});
             string? marketId = this.safeString(eventVar, "product_id");
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
@@ -1156,7 +1156,11 @@ public partial class coinbase : ccxt.coinbase
         {
             string? errorMessage = this.safeString(message, "message");
             // ternary (not ||) so the ast-transpiler emits a value-typed conditional, not a boolean
-            string? errorMessageValue = ((errorMessage != null)) ? errorMessage : "unknown error";
+            string? errorMessageValue = "unknown error";
+            if ((errorMessage != null))
+            {
+                errorMessageValue = errorMessage;
+            }
             throw new ExchangeError (errorMessageValue) ;
         }
         Delegate method = ((Delegate)this.safeValue(methods, channel));

@@ -475,7 +475,7 @@ func (this *Bydfi) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes an
 	var channels []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
-		var symbolAndTimeframe any = ccxt.GetValue(symbolsAndTimeframes, i)
+		var symbolAndTimeframe []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
 		var marketId *string = this.SafeString(symbolAndTimeframe, 0)
 		var market map[string]any = this.Market(marketId)
 		var tf *string = this.SafeString(symbolAndTimeframe, 1)
@@ -525,7 +525,7 @@ func (this *Bydfi) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 	var channels []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
-		var symbolAndTimeframe any = ccxt.GetValue(symbolsAndTimeframes, i)
+		var symbolAndTimeframe []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
 		var marketId *string = this.SafeString(symbolAndTimeframe, 0)
 		var market map[string]any = this.Market(marketId)
 		var tf *string = this.SafeString(symbolAndTimeframe, 1)
@@ -1061,7 +1061,7 @@ func (this *Bydfi) HandlePositions(client any, message any) {
 	//     }
 	//
 	var data map[string]any = ccxt.SafeMapTyped(message, "a")
-	var positionsData []any = ccxt.SafeListTypedDefault(data, "p", []any{})
+	var positionsData []any = ccxt.SafeListTyped(data, "p")
 	var rawPosition map[string]any = ccxt.MapTyped(this.SafeDict(positionsData, 0, map[string]any{}))
 	var marketId *string = this.SafeString(rawPosition, "s")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
@@ -1265,12 +1265,7 @@ func (this *Bydfi) HandleBalance(client any, message any) {
 			"datetime":  this.Iso8601(timestamp),
 		}
 		for i := 0; i < len(balances); i++ {
-			var balance map[string]any = ccxt.MapTyped(func() any {
-				if i >= 0 && i < len(balances) {
-					return ccxt.DerefScalar(balances[i])
-				}
-				return nil
-			}())
+			var balance map[string]any = ccxt.SafeMapTyped(balances, i)
 			var currencyId *string = this.SafeString(balance, "a")
 			var code *string = this.SafeCurrencyCode(currencyId)
 			var account map[string]any = this.Account()

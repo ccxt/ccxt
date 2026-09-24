@@ -106,7 +106,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             }};
             Map<String, Object> message = this.extend(request, parameters);
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, message, messageHash, null)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -305,7 +305,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
     public Object getCacheIndex(Object orderbook, Object deltas)
     {
         // we will consider it a fail
-        Object firstElement = Helpers.GetValue(deltas, 0);
+        Map<String, Object> firstElement = (Map<String, Object>) this.safeDict(deltas, 0);
         Long firstElementNonce = this.safeInteger(firstElement, "microtimestamp");
         if (java.util.Objects.equals(firstElementNonce, null))
         {
@@ -318,7 +318,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         }
         for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
         {
-            Object delta = Helpers.GetValue(deltas, i);
+            Map<String, Object> delta = (Map<String, Object>) this.safeDict(deltas, i);
             Long deltaNonce = this.safeInteger(delta, "microtimestamp");
             if ((deltaNonce != null && nonce != null && deltaNonce == nonce))
             {
@@ -456,7 +456,12 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         }
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Long sideRaw = this.safeInteger(trade, "type");
-        String side = ((((sideRaw != null && sideRaw == 0)))) ? "buy" : "sell";
+        String side = "sell";
+        if ((sideRaw != null && sideRaw == 0))
+        {
+            side = "buy";
+        }
+        final String finalSide = side;
         return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -466,7 +471,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             put( "order", null );
             put( "type", null );
             put( "takerOrMaker", null );
-            put( "side", side );
+            put( "side", finalSide );
             put( "price", price );
             put( "amount", amount );
             put( "cost", null );
@@ -519,7 +524,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             tradesArray = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, tradesArray);
         }
-        Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
+        tradesArray.append(trade);
         client.resolve(tradesArray, messageHash);
     }
 
@@ -1002,7 +1007,11 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         //
         String id = this.safeString(order, "id_str");
         String orderTypeRaw = this.safeStringLower(order, "order_type");
-        String side = (((java.util.Objects.equals(orderTypeRaw, "1")))) ? "sell" : "buy";
+        String side = "buy";
+        if (java.util.Objects.equals(orderTypeRaw, "1"))
+        {
+            side = "sell";
+        }
         String orderSubTypeRaw = this.safeStringLower(order, "order_subtype"); // https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
         String orderType = null;
         String timeInForce = null;
@@ -1054,6 +1063,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         final String finalOrderType = orderType;
         final String finalTimeInForce = timeInForce;
+        final String finalSide = side;
         final String finalAmount = amount;
         final String finalRemaining = remaining;
         final String finalStatus = status;
@@ -1068,7 +1078,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             put( "type", finalOrderType );
             put( "timeInForce", finalTimeInForce );
             put( "postOnly", null );
-            put( "side", side );
+            put( "side", finalSide );
             put( "price", price );
             put( "stopPrice", triggerPrice );
             put( "triggerPrice", triggerPrice );

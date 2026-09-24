@@ -487,7 +487,7 @@ public partial class woofipro : ccxt.woofipro
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
             }
         }
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         client.resolve(stored, topic);
     }
 
@@ -557,7 +557,7 @@ public partial class woofipro : ccxt.woofipro
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
         ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
-        callDynamically(trades, "append", new object[] {trade});
+        trades.append(trade);
         ((IDictionary<string,object>)this.trades)[(string)symbol] = trades;
         client.resolve(trades, topic);
     }
@@ -752,7 +752,11 @@ public partial class woofipro : ccxt.woofipro
             await this.loadMarkets();
         }
         bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
-        string topic = ((trigger == true)) ? "algoexecutionreport" : "executionreport";
+        string topic = "executionreport";
+        if ((trigger == true))
+        {
+            topic = "algoexecutionreport";
+        }
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         string messageHash = topic;
         if ((symbolVar != null))
@@ -797,7 +801,11 @@ public partial class woofipro : ccxt.woofipro
             await this.loadMarkets();
         }
         bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
-        string topic = ((trigger == true)) ? "algoexecutionreport" : "executionreport";
+        string topic = "executionreport";
+        if ((trigger == true))
+        {
+            topic = "algoexecutionreport";
+        }
         parameters = this.omit(parameters, "stop");
         string messageHash = "myTrades";
         if ((symbolVar != null))
@@ -1031,7 +1039,7 @@ public partial class woofipro : ccxt.woofipro
                 parsed["timestamp"] = this.safeInteger(order, "timestamp");
                 parsed["datetime"] = this.safeString(order, "datetime");
             }
-            callDynamically(cachedOrders, "append", new object[] {parsed});
+            cachedOrders.append(parsed);
             client.resolve(this.orders, topic);
             object messageHashSymbol = add(add(topic, ":"), symbol);
             client.resolve(this.orders, messageHashSymbol);
@@ -1080,7 +1088,7 @@ public partial class woofipro : ccxt.woofipro
             trades = new ArrayCacheBySymbolById(limit);
             this.myTrades = trades;
         }
-        callDynamically(trades, "append", new object[] {trade});
+        trades.append(trade);
         client.resolve(trades, messageHash);
         string symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(trades, symbolSpecificMessageHash);
@@ -1175,7 +1183,7 @@ public partial class woofipro : ccxt.woofipro
             string? contracts = this.safeString(position, "contracts", "0");
             if (Precise.stringGt(contracts, "0"))
             {
-                callDynamically(cache, "append", new object[] {position});
+                cache.append(position);
             }
         }
         // don't remove the future from the .futures cache
@@ -1236,7 +1244,7 @@ public partial class woofipro : ccxt.woofipro
             Dictionary<string, object> market = this.safeMarket(marketId);
             Dictionary<string, object> position = this.parseWsPosition(rawPosition, market);
             newPositions.Add(position);
-            callDynamically(cache, "append", new object[] {position});
+            cache.append(position);
             string messageHash = ("positions::" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
             client.resolve(position, messageHash);
         }
@@ -1383,7 +1391,7 @@ public partial class woofipro : ccxt.woofipro
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            object value = getValue(balances, key);
+            IDictionary<string, object> value = this.safeDict(balances, key);
             string? code = this.safeCurrencyCode(key);
             object account = this.account();
             if (((code != null)) && (inOp(this.balance, code)))

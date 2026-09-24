@@ -453,7 +453,9 @@ class nado(Exchange, ImplicitAPI):
         if isStopOrder:
             triggerDirection = None
             triggerDirection, params = self.handle_trigger_direction_and_params(params)
-            directionSuffix = 'above' if (triggerDirection == 'ascending') else 'below'
+            directionSuffix = 'below'
+            if triggerDirection == 'ascending':
+                directionSuffix = 'above'
             triggerPriceX18 = self.convert_to_x18(triggerPrice)
             priceRequirement = {}
             priceRequirement['oracle_price_' + directionSuffix] = triggerPriceX18
@@ -1576,7 +1578,9 @@ class nado(Exchange, ImplicitAPI):
             pair = self.safe_dict(pairsById, id, {})
             asset = self.safe_dict(assetsById, id, {})
             rawType = self.safe_string(market, 'type')
-            type = 'swap' if (rawType == 'perp') else rawType
+            type = rawType
+            if rawType == 'perp':
+                type = 'swap'
             contract = (type == 'swap')
             tickerId = self.safe_string_2(pair, 'ticker_id', 'tickerId')
             if tickerId is None:
@@ -2396,7 +2400,7 @@ class nado(Exchange, ImplicitAPI):
         }
         balances = self.safe_list(response, 'spot_balances', [])
         for i in range(0, len(balances)):
-            rawBalance = balances[i]
+            rawBalance = self.safe_dict(balances, i)
             currencyId = self.safe_string(rawBalance, 'product_id')
             code = self.safe_currency_code(currencyId)
             if code == '0':
@@ -2826,7 +2830,11 @@ class nado(Exchange, ImplicitAPI):
         if length is None:
             raise ArgumentsRequired(self.id + ' padHex() requires length')
         zeros = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
-        padded = (zeros + value) if left else (value + zeros)
+        padded = None
+        if left:
+            padded = (zeros + value)
+        else:
+            padded = (value + zeros)
         if left:
             start = len(padded) - length
             return padded[start:len(padded)]

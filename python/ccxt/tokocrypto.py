@@ -1570,7 +1570,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         balances = self.safe_list(data, 'accountAssets', [])
         for i in range(0, len(balances)):
-            balance = balances[i]
+            balance = self.safe_dict(balances, i)
             currencyId = self.safe_string(balance, 'asset')
             code = self.safe_currency_code(currencyId)
             account = self.account()

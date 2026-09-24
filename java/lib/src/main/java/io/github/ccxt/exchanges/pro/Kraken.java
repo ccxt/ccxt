@@ -189,11 +189,31 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         Boolean isTrailingLimitAmountOrder = !java.util.Objects.equals(trailingLimitAmount, null);
         Boolean isTrailingLimitPercentOrder = !java.util.Objects.equals(trailingLimitPercent, null);
         String offset = this.safeString(parameters, "offset", ""); // can set this to - for minus
-        Object trailingAmountString = (((!java.util.Objects.equals(trailingAmount, null)))) ? (offset + this.numberToString(trailingAmount)) : null;
-        Object trailingPercentString = (((!java.util.Objects.equals(trailingPercent, null)))) ? (offset + this.numberToString(trailingPercent)) : null;
-        Object trailingLimitAmountString = (((!java.util.Objects.equals(trailingLimitAmount, null)))) ? (offset + this.numberToString(trailingLimitAmount)) : null;
-        Object trailingLimitPercentString = (((!java.util.Objects.equals(trailingLimitPercent, null)))) ? (offset + this.numberToString(trailingLimitPercent)) : null;
-        String priceType = (((Boolean.TRUE.equals(isTrailingPercentOrder) || Boolean.TRUE.equals(isTrailingLimitPercentOrder)))) ? "pct" : "quote";
+        Object trailingAmountString = null;
+        if (!java.util.Objects.equals(trailingAmount, null))
+        {
+            trailingAmountString = (offset + this.numberToString(trailingAmount));
+        }
+        Object trailingPercentString = null;
+        if (!java.util.Objects.equals(trailingPercent, null))
+        {
+            trailingPercentString = (offset + this.numberToString(trailingPercent));
+        }
+        Object trailingLimitAmountString = null;
+        if (!java.util.Objects.equals(trailingLimitAmount, null))
+        {
+            trailingLimitAmountString = (offset + this.numberToString(trailingLimitAmount));
+        }
+        Object trailingLimitPercentString = null;
+        if (!java.util.Objects.equals(trailingLimitPercent, null))
+        {
+            trailingLimitPercentString = (offset + this.numberToString(trailingLimitPercent));
+        }
+        String priceType = "quote";
+        if (Boolean.TRUE.equals(isTrailingPercentOrder) || Boolean.TRUE.equals(isTrailingLimitPercentOrder))
+        {
+            priceType = "pct";
+        }
         if (java.util.Objects.equals(method, "createOrderWs"))
         {
             Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly");
@@ -695,7 +715,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         //     }
         //
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Object ticker = (data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0));
+        Map<String, Object> ticker = (Map<String, Object>) this.safeDict(data, 0);
         String symbol = this.safeString(ticker, "symbol");
         String messageHash = this.getMessageHash("ticker", null, symbol);
         String vwap = this.safeString(ticker, "vwap");
@@ -755,7 +775,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         //     }
         //
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Object trade = (data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0));
+        Map<String, Object> trade = (Map<String, Object>) this.safeDict(data, 0);
         String symbol = this.safeString(trade, "symbol");
         String messageHash = this.getMessageHash("trade", null, symbol);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
@@ -769,7 +789,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         List<Object> parsed = this.parseTrades(data, market);
         for (var i = 0; i < ((List<?>)parsed).size(); i++)
         {
-            Helpers.callDynamically(stored, "append", new Object[]{(parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i))});
+            stored.append((parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i)));
         }
         client.resolve(stored, messageHash);
     }
@@ -799,7 +819,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         //     }
         //
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Object first = (data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0));
+        Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0);
         String marketId = this.safeString(first, "symbol");
         String symbol = this.safeSymbol(marketId);
         if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
@@ -820,11 +840,11 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         Integer ohlcvsLength = ((List<?>)data).size();
         for (var i = 0; Helpers.isLessThan(i, ohlcvsLength); i++)
         {
-            Object candle = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+            Map<String, Object> candle = (Map<String, Object>) this.safeDict(data, i);
             String datetime = this.safeString(candle, "interval_begin");
             Long timestamp = this.parse8601(datetime);
             List<Object> parsed = new ArrayList<Object>(Arrays.asList(timestamp, this.safeNumber(candle, "open"), this.safeNumber(candle, "high"), this.safeNumber(candle, "low"), this.safeNumber(candle, "close"), this.safeNumber(candle, "volume")));
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
         }
         client.resolve(stored, messageHash);
     }
@@ -1353,7 +1373,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             Integer depth = ((List<?>)a).size();
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, depth));
             orderbook = ((Map<?, ?>)this.orderbooks).get(symbol);
-            List<Object> keys = new ArrayList<Object>(Arrays.asList("asks", "bids"));
+            List<String> keys = new ArrayList<String>(Arrays.asList("asks", "bids"));
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 String key = (String) Helpers.GetValue(keys, i);
@@ -1411,7 +1431,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         // const sortOrder = (key === 'bids') ? true : false;
         for (var j = 0; j < ((List<?>)deltas).size(); j++)
         {
-            Object delta = (deltas == null || j < 0 || j >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(j));
+            Map<String, Object> delta = (Map<String, Object>) this.safeDict(deltas, j);
             Double price = this.safeNumber(delta, "price");
             Double amount = this.safeNumber(delta, "qty");
             Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
@@ -1738,8 +1758,13 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         }
         String datetime = this.safeString(trade, "timestamp");
         String liquidityIndicator = this.safeString(trade, "liquidity_ind");
-        String takerOrMaker = (((java.util.Objects.equals(liquidityIndicator, "t")))) ? "taker" : "maker";
+        String takerOrMaker = "maker";
+        if (java.util.Objects.equals(liquidityIndicator, "t"))
+        {
+            takerOrMaker = "taker";
+        }
         final String finalSymbol = symbol;
+        final String finalTakerOrMaker = takerOrMaker;
         final Map<String, Object> finalFee = fee;
         return new HashMap<String, Object>() {{
             put( "info", trade );
@@ -1750,7 +1775,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             put( "symbol", finalSymbol );
             put( "type", Kraken.this.safeString(trade, "order_type") );
             put( "side", Kraken.this.safeString(trade, "side") );
-            put( "takerOrMaker", takerOrMaker );
+            put( "takerOrMaker", finalTakerOrMaker );
             put( "price", Kraken.this.safeNumber(trade, "last_price") );
             put( "amount", Kraken.this.safeNumber(trade, "last_qty") );
             put( "cost", Kraken.this.safeNumber(trade, "cost") );

@@ -57,12 +57,12 @@ public class TestTicker extends BaseTest {
             put( "quoteVolume", exchange.parseNumber("1.234") );
         }};
         // todo: atm, many exchanges fail, so temporarily decrease stict mode
-        List<Object> emptyAllowedFor = new ArrayList<Object>(Arrays.asList("timestamp", "datetime", "open", "high", "low", "close", "last", "baseVolume", "quoteVolume", "previousClose", "bidVolume", "askVolume", "vwap", "change", "percentage", "average"));
+        List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("timestamp", "datetime", "open", "high", "low", "close", "last", "baseVolume", "quoteVolume", "previousClose", "bidVolume", "askVolume", "vwap", "change", "percentage", "average"));
         // trick csharp-transpiler for string
         if (!Helpers.isTrue((String.valueOf(method).contains("BidsAsks"))))
         {
-            ((List<Object>)emptyAllowedFor).add("bid");
-            ((List<Object>)emptyAllowedFor).add("ask");
+            emptyAllowedFor.add("bid");
+            emptyAllowedFor.add("ask");
         }
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry);

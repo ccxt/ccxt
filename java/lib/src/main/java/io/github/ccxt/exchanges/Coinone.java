@@ -506,8 +506,13 @@ public class Coinone extends CoinoneApi
         String code = this.safeCurrencyCode(id);
         Boolean isWithdrawEnabled = java.util.Objects.equals(this.safeString(rawCurrency, "withdraw_status", ""), "normal");
         Boolean isDepositEnabled = java.util.Objects.equals(this.safeString(rawCurrency, "deposit_status", ""), "normal");
-        String type = (((!java.util.Objects.equals(code, "KRW")))) ? "crypto" : "fiat";
+        String type = "fiat";
+        if (!java.util.Objects.equals(code, "KRW"))
+        {
+            type = "crypto";
+        }
         final String finalCode = code;
+        final String finalType = type;
         return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "code", finalCode );
@@ -529,7 +534,7 @@ public class Coinone extends CoinoneApi
                 }} );
             }} );
             put( "networks", new HashMap<String, Object>() {{}} );
-            put( "type", type );
+            put( "type", finalType );
         }}));
     }
 
@@ -672,7 +677,7 @@ public class Coinone extends CoinoneApi
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
             Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
-            Object balance = Helpers.GetValue(balances, currencyId);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, currencyId);
             String code = this.safeCurrencyCode((String) (currencyId));
             Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", this.safeString(balance, "avail"));
@@ -1066,12 +1071,20 @@ public class Coinone extends CoinoneApi
             feeCostString = Precise.stringAbs(feeCostString);
             String feeRateString = this.safeString(trade, "feeRate");
             feeRateString = Precise.stringAbs(feeRateString);
-            Object feeCurrencyCode = (((java.util.Objects.equals(side, "sell")))) ? ((Map<String, Object>)market).get("quote") : ((Map<String, Object>)market).get("base");
+            Object feeCurrencyCode = null;
+            if (java.util.Objects.equals(side, "sell"))
+            {
+                feeCurrencyCode = ((Map<String, Object>)market).get("quote");
+            } else
+            {
+                feeCurrencyCode = ((Map<String, Object>)market).get("base");
+            }
             final String finalFeeCostString = feeCostString;
+            final Object finalFeeCurrencyCode = feeCurrencyCode;
             final String finalFeeRateString = feeRateString;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
-                put( "currency", feeCurrencyCode );
+                put( "currency", finalFeeCurrencyCode );
                 put( "rate", finalFeeRateString );
             }};
         }
@@ -1424,12 +1437,17 @@ public class Coinone extends CoinoneApi
         String feeCostString = this.safeString(order, "fee");
         if (!java.util.Objects.equals(feeCostString, null))
         {
-            String feeCurrencyCode = (((java.util.Objects.equals(side, "sell")))) ? quote : base;
+            String feeCurrencyCode = base;
+            if (java.util.Objects.equals(side, "sell"))
+            {
+                feeCurrencyCode = quote;
+            }
             final String finalFeeCostString = feeCostString;
+            final String finalFeeCurrencyCode = feeCurrencyCode;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
                 put( "rate", Coinone.this.safeString2(order, "feeRate", "fee_rate") );
-                put( "currency", feeCurrencyCode );
+                put( "currency", finalFeeCurrencyCode );
             }};
         }
         final Long finalTimestamp = timestamp;
@@ -1636,7 +1654,7 @@ public class Coinone extends CoinoneApi
             final Double finalPrice = price;
             final Double finalQty = qty;
             final Long finalIsAsk = isAsk;
-            final Object finalSymbol = symbol;
+            final String finalSymbol = symbol;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "order_id", id );
                 put( "price", finalPrice );

@@ -64,7 +64,11 @@ public partial class backpack : ccxt.backpack
             await this.loadMarkets();
         }
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
-        string method = isTrue(unwatch) ? "UNSUBSCRIBE" : "SUBSCRIBE";
+        string method = "SUBSCRIBE";
+        if (isTrue(unwatch))
+        {
+            method = "UNSUBSCRIBE";
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", method },
             { "params", topics },
@@ -86,7 +90,11 @@ public partial class backpack : ccxt.backpack
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"));
         string instruction = "subscribe";
         string ts = this.nonce().ToString();
-        string method = isTrue(unwatch) ? "UNSUBSCRIBE" : "SUBSCRIBE";
+        string method = "SUBSCRIBE";
+        if (isTrue(unwatch))
+        {
+            method = "UNSUBSCRIBE";
+        }
         string? recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
         string payload = (((((("instruction=" + instruction) + "&") + "timestamp=") + ts) + "&window=") + recvWindow);
         byte[] secretBytes = this.base64ToBinary(this.secret);
@@ -562,7 +570,7 @@ public partial class backpack : ccxt.backpack
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbolsAndTimeframes); i++)
         {
-            object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
+            List<object> symbolAndTimeframe = this.safeList(symbolsAndTimeframes, i);
             string? marketId = this.safeString(symbolAndTimeframe, 0);
             Dictionary<string, object> market = this.market(marketId);
             string? tf = this.safeString(symbolAndTimeframe, 1);
@@ -607,7 +615,7 @@ public partial class backpack : ccxt.backpack
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbolsAndTimeframes?.Count ?? 0); i++)
         {
-            object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
+            List<object> symbolAndTimeframe = this.safeList(symbolsAndTimeframes, i);
             string? marketId = this.safeString(symbolAndTimeframe, 0);
             Dictionary<string, object> market = this.market(marketId);
             string? tf = this.safeString(symbolAndTimeframe, 1);
@@ -658,7 +666,7 @@ public partial class backpack : ccxt.backpack
         }
         ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)getValue(getValue(this.ohlcvs, symbol), timeframe));
         List<object> parsed = this.parseWsOHLCV(data);
-        callDynamically(ohlcv, "append", new object[] {parsed});
+        ohlcv.append(parsed);
         string messageHash = ((("candles:" + symbol) + ":") + timeframe);
         client.resolve(new List<object>() {symbol, timeframe, ohlcv}, messageHash);
     }
@@ -826,7 +834,7 @@ public partial class backpack : ccxt.backpack
         }
         ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
         Dictionary<string, object> trade = this.parseWsTrade(data, market);
-        callDynamically(cache, "append", new object[] {trade});
+        cache.append(trade);
         string messageHash = ("trades:" + symbol);
         client.resolve(cache, messageHash);
         client.resolve(cache, "trades");
@@ -1087,7 +1095,7 @@ public partial class backpack : ccxt.backpack
         }
         for (int i = 0; i < getArrayLength(cache); i++)
         {
-            object delta = getValue(cache, i);
+            IDictionary<string, object> delta = this.safeDict(cache, i);
             Int64? deltaStart = this.safeInteger(delta, "U");
             Int64? deltaEnd = this.safeInteger(delta, "u");
             if (((deltaStart == null)) || ((deltaEnd == null)))
@@ -1215,7 +1223,7 @@ public partial class backpack : ccxt.backpack
             orders = new ArrayCacheBySymbolById(limit);
             this.orders = orders;
         }
-        callDynamically(orders, "append", new object[] {parsed});
+        orders.append(parsed);
         client.resolve(orders, messageHash);
         string symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(orders, symbolSpecificMessageHash);
@@ -1436,7 +1444,7 @@ public partial class backpack : ccxt.backpack
         Int64? timestamp = this.parseToInt((microseconds / 1000));
         parsedPosition["timestamp"] = timestamp;
         parsedPosition["datetime"] = this.iso8601(timestamp);
-        callDynamically(cache, "append", new object[] {parsedPosition});
+        cache.append(parsedPosition);
         string symbolSpecificMessageHash = ((messageHash + ":") + ((parsedPosition != null && ((IDictionary<string, object>)parsedPosition).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedPosition)["symbol"] : null)));
         client.resolve(new List<object>() {parsedPosition}, messageHash);
         client.resolve(new List<object>() {parsedPosition}, symbolSpecificMessageHash);

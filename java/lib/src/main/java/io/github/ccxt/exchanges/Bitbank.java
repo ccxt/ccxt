@@ -885,7 +885,7 @@ public class Bitbank extends BitbankApi
         List<Object> assets = (List<Object>) this.safeList(data, "assets", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)assets).size(); i++)
         {
-            Object balance = (assets == null || i < 0 || i >= assets.size() ? null : assets.get(i));
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(assets, i);
             String currencyId = this.safeString(balance, "asset");
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
@@ -1601,7 +1601,7 @@ public class Bitbank extends BitbankApi
             return null;
         }
         Long success = this.safeInteger(response, "success");
-        Object data = this.safeValue(response, "data");
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
         if ((java.util.Objects.equals(success, null) || (success != null && success == 0)) || (java.util.Objects.equals(data, null)))
         {
             Map<String, Object> errorMessages = new HashMap<String, Object>() {{

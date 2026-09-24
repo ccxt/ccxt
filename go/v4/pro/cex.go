@@ -482,7 +482,7 @@ func (this *Cex) ParseWsTicker(ticker map[string]any, optionalArgs ...any) any {
 	//    }
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var pair []any = ccxt.SafeListTypedDefault(ticker, "pair", []any{})
+	var pair []any = ccxt.SafeListTyped(ticker, "pair")
 	var baseId *string = this.SafeString(ticker, "symbol1")
 	if baseId == nil {
 		baseId = this.SafeString(pair, 0)

@@ -144,7 +144,7 @@ public partial class whitebit : ccxt.whitebit
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))["unknown"] = stored;
             }
             ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)getValue(getValue(this.ohlcvs, symbol), "unknown"));
-            callDynamically(ohlcv, "append", new object[] {parsed});
+            ohlcv.append(parsed);
             client.resolve(ohlcv, messageHash);
         }
         return message;
@@ -457,7 +457,7 @@ public partial class whitebit : ccxt.whitebit
         IList<object> parsedTrades = this.parseTrades(data, market);
         for (int j = 0; j < (parsedTrades?.Count ?? 0); j++)
         {
-            callDynamically(stored, "append", new object[] {parsedTrades[j]});
+            stored.append(parsedTrades[j]);
         }
         string messageHash = ("trades:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         client.resolve(stored, messageHash);
@@ -529,7 +529,7 @@ public partial class whitebit : ccxt.whitebit
         }
         ccxt.pro.ArrayCache stored = this.myTrades;
         Dictionary<string, object> parsed = this.parseWsTrade(trade);
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
         string messageHash = ("myTrades:" + symbol);
         client.resolve(stored, messageHash);
@@ -564,7 +564,14 @@ public partial class whitebit : ccxt.whitebit
         if ((feeCost != null))
         {
             string? feeCurrencyId = this.safeString(trade, 10);
-            object feeCurrencyCode = ((feeCurrencyId != null)) ? this.safeCurrencyCode(feeCurrencyId) : getValue(market, "quote");
+            object feeCurrencyCode = null;
+            if ((feeCurrencyId != null))
+            {
+                feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            } else
+            {
+                feeCurrencyCode = getValue(market, "quote");
+            }
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
                 { "currency", feeCurrencyCode },
@@ -682,7 +689,7 @@ public partial class whitebit : ccxt.whitebit
         Dictionary<string, object> parsed = this.parseWsOrder(this.extend(data, new Dictionary<string, object>() {
             { "status", status },
         }));
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
         string messageHash = ("orders:" + symbol);
         client.resolve(this.orders, messageHash);
@@ -738,7 +745,11 @@ public partial class whitebit : ccxt.whitebit
         Int64? lastTradeTimestamp = this.safeTimestamp(order, "mtime");
         string? symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
         Int64? rawSide = this.safeInteger(order, "side");
-        string side = ((rawSide == 1)) ? "sell" : "buy";
+        string side = "buy";
+        if ((rawSide == 1))
+        {
+            side = "sell";
+        }
         string? dealFee = this.safeString(order, "deal_fee");
         Dictionary<string, object> fee = null;
         if ((dealFee != null))
@@ -841,15 +852,15 @@ public partial class whitebit : ccxt.whitebit
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         var client = this.client(url);
         this.setBalanceCache(client, type, messageHash);
-        object fetchBalanceSnapshot = null;
-        object awaitBalanceSnapshot = null;
+        bool? fetchBalanceSnapshot = null;
+        bool? awaitBalanceSnapshot = null;
         IList<object> fetchBalanceSnapshotparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
-        fetchBalanceSnapshot = fetchBalanceSnapshotparametersVariable[0];
+        fetchBalanceSnapshot = (bool?)fetchBalanceSnapshotparametersVariable[0];
         parameters = fetchBalanceSnapshotparametersVariable[1];
         IList<object> awaitBalanceSnapshotparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "watchBalance", "awaitBalanceSnapshot", true);
-        awaitBalanceSnapshot = awaitBalanceSnapshotparametersVariable[0];
+        awaitBalanceSnapshot = (bool?)awaitBalanceSnapshotparametersVariable[0];
         parameters = awaitBalanceSnapshotparametersVariable[1];
-        if (isTrue(fetchBalanceSnapshot) && isTrue(awaitBalanceSnapshot))
+        if ((fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true))
         {
             await client.future(add(type, ":fetchBalanceSnapshot"));
         }
@@ -1259,7 +1270,7 @@ public partial class whitebit : ccxt.whitebit
             { "balanceMargin_update", this.handleBalance },
             { "deals_update", this.handleMyTrades },
         };
-        object topic = this.safeValue(message, "method");
+        string? topic = this.safeString(message, "method");
         Delegate method = ((Delegate)this.safeValue(methods, topic));
         if ((method != null))
         {

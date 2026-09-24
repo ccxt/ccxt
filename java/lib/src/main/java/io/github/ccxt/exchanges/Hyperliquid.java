@@ -777,7 +777,7 @@ public class Hyperliquid extends HyperliquidApi
             {
                 Object dexName = (fetchDexesList == null || i < 0 || i >= ((List<?>)fetchDexesList).size() ? null : ((List<?>)fetchDexesList).get(i));
                 Object offset = (perpDexesOffset == null || !(dexName instanceof String) ? null : perpDexesOffset.get(dexName));
-                Object response = (promises == null || i < 0 || i >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(i));
+                List<Object> response = (List<Object>) this.safeList(promises, i);
                 Map<String, Object> meta = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
                 String collateralToken = this.safeString(meta, "collateralToken");
                 List<Object> universe = (List<Object>) this.safeList(meta, "universe", new ArrayList<Object>(Arrays.asList()));
@@ -1201,8 +1201,16 @@ public class Hyperliquid extends HyperliquidApi
         //     }
         //
         String collateralTokenCode = this.safeString(market, "collateralTokenName");
-        String quoteId = (((java.util.Objects.equals(collateralTokenCode, null)))) ? "USDC" : collateralTokenCode;
-        String settleId = (((java.util.Objects.equals(collateralTokenCode, null)))) ? "USDC" : collateralTokenCode;
+        String quoteId = collateralTokenCode;
+        if (java.util.Objects.equals(collateralTokenCode, null))
+        {
+            quoteId = "USDC";
+        }
+        String settleId = collateralTokenCode;
+        if (java.util.Objects.equals(collateralTokenCode, null))
+        {
+            settleId = "USDC";
+        }
         String baseName = this.safeString(market, "name");
         Object base = this.safeCurrencyCode(baseName);
         if (java.util.Objects.equals(base, null))
@@ -1243,6 +1251,8 @@ public class Hyperliquid extends HyperliquidApi
         }
         final String finalSymbol = symbol;
         final Object finalBase = base;
+        final String finalQuoteId = quoteId;
+        final String finalSettleId = settleId;
         final Boolean finalActive = active;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", baseId );
@@ -1252,8 +1262,8 @@ public class Hyperliquid extends HyperliquidApi
             put( "settle", settle );
             put( "baseId", baseId );
             put( "baseName", baseName );
-            put( "quoteId", quoteId );
-            put( "settleId", settleId );
+            put( "quoteId", finalQuoteId );
+            put( "settleId", finalSettleId );
             put( "type", "swap" );
             put( "spot", false );
             put( "margin", null );
@@ -1398,7 +1408,7 @@ public class Hyperliquid extends HyperliquidApi
                 }};
                 for (var i = 0; i < ((List<?>)balances).size(); i++)
                 {
-                    Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
+                    Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i);
                     String unifiedCode = this.safeCurrencyCode(this.safeString(balance, "coin"));
                     Object code = (((java.util.Objects.equals(isSpot, true)))) ? this.updateSpotCurrencyCode(unifiedCode) : unifiedCode;
                     Map<String, Object> account = (Map<String, Object>) this.account();
@@ -2488,7 +2498,7 @@ public class Hyperliquid extends HyperliquidApi
                 parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
             }
             Object enableUnifiedMargin = null;
-            List<Object> enableUnifiedMarginparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "enableUnifiedMargin");
+            List<Object> enableUnifiedMarginparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, (String) (method), "enableUnifiedMargin");
             enableUnifiedMargin = ((List<Object>) enableUnifiedMarginparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) enableUnifiedMarginparametersVariable).get(1);
             if (java.util.Objects.equals(enableUnifiedMargin, null) || Helpers.isTrue(shouldRefresh))
@@ -2831,7 +2841,7 @@ public class Hyperliquid extends HyperliquidApi
             Object vaultAddress = null;
             Boolean randomize = (Boolean) this.safeBool(parameters, "randomize", false);
             parameters = (Map<String, Object>) this.omit(parameters, "randomize");
-            List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "vaultAddress");
+            List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "vaultAddress");
             vaultAddress = ((List<Object>) vaultAddressparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) vaultAddressparametersVariable).get(1);
             vaultAddress = this.formatVaultAddress(vaultAddress);
@@ -3003,7 +3013,11 @@ public class Hyperliquid extends HyperliquidApi
         Boolean isBuy = (java.util.Objects.equals(side, "BUY"));
         String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
         String slippage = this.safeString(parameters, "slippage");
-        String defaultTimeInForce = ((Boolean.TRUE.equals(isMarket))) ? "ioc" : "gtc";
+        String defaultTimeInForce = "gtc";
+        if (Boolean.TRUE.equals(isMarket))
+        {
+            defaultTimeInForce = "ioc";
+        }
         Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
         if (java.util.Objects.equals(postOnly, true))
         {
@@ -3042,12 +3056,17 @@ public class Hyperliquid extends HyperliquidApi
             {
                 triggerPrice = this.priceToPrecision(symbol, stopLossPrice);
             }
-            String tpSlType = ((Boolean.TRUE.equals(isTp))) ? "tp" : "sl";
+            String tpSlType = "sl";
+            if (Boolean.TRUE.equals(isTp))
+            {
+                tpSlType = "tp";
+            }
             final String finalTriggerPrice = triggerPrice;
+            final String finalTpSlType = tpSlType;
             ((Map<String, Object>)orderType).put("trigger", new HashMap<String, Object>() {{
     put( "isMarket", isMarket );
     put( "triggerPx", finalTriggerPrice );
-    put( "tpsl", tpSlType );
+    put( "tpsl", finalTpSlType );
 }});
         } else
         {
@@ -3093,7 +3112,7 @@ public class Hyperliquid extends HyperliquidApi
         Boolean hasClientOrderId = false;
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
-            Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+            Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i);
             Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
             String clientOrderId = this.safeString2(orderParams, "clientOrderId", "client_id");
             if (!java.util.Objects.equals(clientOrderId, null))
@@ -3105,7 +3124,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i);
                 Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 String clientOrderId = this.safeString2(orderParams, "clientOrderId", "client_id");
                 if (java.util.Objects.equals(clientOrderId, null))
@@ -3120,7 +3139,7 @@ public class Hyperliquid extends HyperliquidApi
         String grouping = "na";
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
-            Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+            Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i);
             String marketId = this.safeString(rawOrder, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.market(marketId);
             String symbol = (String) ((Map<String, Object>)market).get("symbol");
@@ -3190,7 +3209,7 @@ public class Hyperliquid extends HyperliquidApi
             }
         }
         Object vaultAddress = null;
-        List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "vaultAddress");
+        List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "vaultAddress");
         vaultAddress = ((List<Object>) vaultAddressparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) vaultAddressparametersVariable).get(1);
         vaultAddress = this.formatVaultAddress(vaultAddress);
@@ -3392,7 +3411,7 @@ public class Hyperliquid extends HyperliquidApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object vaultAddress = null;
-            List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelTwapOrder", "vaultAddress");
+            List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "cancelTwapOrder", "vaultAddress");
             vaultAddress = ((List<Object>) vaultAddressparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) vaultAddressparametersVariable).get(1);
             vaultAddress = this.formatVaultAddress(vaultAddress);
@@ -3514,7 +3533,7 @@ final Object finalClientOrderId = clientOrderId;
         }
         ((Map<String, Object>)cancelAction).put("cancels", cancelReq);
         Object vaultAddress = null;
-        List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "cancelOrders", "vaultAddress", "subAccountAddress");
+        List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionStringAndParams2(parameters, "cancelOrders", "vaultAddress", "subAccountAddress");
         vaultAddress = ((List<Object>) vaultAddressparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) vaultAddressparametersVariable).get(1);
         vaultAddress = this.formatVaultAddress(vaultAddress);
@@ -3568,7 +3587,7 @@ final Object finalClientOrderId = clientOrderId;
             Boolean cancelByCloid = false;
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object order = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+                Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, i);
                 String clientOrderId = this.safeString(order, "clientOrderId");
                 if (!java.util.Objects.equals(clientOrderId, null))
                 {
@@ -3595,7 +3614,7 @@ final Object finalClientOrderId = clientOrderId;
             ((Map<String, Object>)cancelAction).put("type", ((Boolean.TRUE.equals(cancelByCloid))) ? "cancelByCloid" : "cancel");
             ((Map<String, Object>)cancelAction).put("cancels", cancelReq);
             Object vaultAddress = null;
-            List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "cancelOrdersForSymbols", "vaultAddress", "subAccountAddress");
+            List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionStringAndParams2(parameters, "cancelOrdersForSymbols", "vaultAddress", "subAccountAddress");
             vaultAddress = ((List<Object>) vaultAddressparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) vaultAddressparametersVariable).get(1);
             vaultAddress = this.formatVaultAddress(vaultAddress);
@@ -3676,7 +3695,7 @@ final Object finalClientOrderId = clientOrderId;
                 put( "time", Helpers.add(finalNonce, timeout) );
             }};
             Object vaultAddress = null;
-            List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "cancelAllOrdersAfter", "vaultAddress", "subAccountAddress");
+            List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionStringAndParams2(parameters, "cancelAllOrdersAfter", "vaultAddress", "subAccountAddress");
             vaultAddress = ((List<Object>) vaultAddressparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) vaultAddressparametersVariable).get(1);
             vaultAddress = this.formatVaultAddress(vaultAddress);
@@ -3720,7 +3739,7 @@ final Object finalClientOrderId = clientOrderId;
         Boolean hasClientOrderId = false;
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
-            Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+            Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i);
             Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
             String clientOrderId = this.safeString2(orderParams, "clientOrderId", "client_id");
             if (!java.util.Objects.equals(clientOrderId, null))
@@ -3732,7 +3751,7 @@ final Object finalClientOrderId = clientOrderId;
         {
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i);
                 Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 String clientOrderId = this.safeString2(orderParams, "clientOrderId", "client_id");
                 if (java.util.Objects.equals(clientOrderId, null))
@@ -3745,7 +3764,7 @@ final Object finalClientOrderId = clientOrderId;
         List<Object> modifies = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
-            Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+            Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i);
             String id = this.safeString(rawOrder, "id");
             String marketId = this.safeString(rawOrder, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.market(marketId);
@@ -3759,7 +3778,11 @@ final Object finalClientOrderId = clientOrderId;
             Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
             String defaultSlippage = this.safeString(this.options, "defaultSlippage");
             String slippage = this.safeString(orderParams, "slippage", defaultSlippage);
-            String defaultTimeInForce = ((Boolean.TRUE.equals(isMarket))) ? "ioc" : "gtc";
+            String defaultTimeInForce = "gtc";
+            if (Boolean.TRUE.equals(isMarket))
+            {
+                defaultTimeInForce = "ioc";
+            }
             Boolean postOnly = (Boolean) this.safeBool(orderParams, "postOnly", false);
             if (java.util.Objects.equals(postOnly, true))
             {
@@ -3796,12 +3819,17 @@ final Object finalClientOrderId = clientOrderId;
                 {
                     triggerPrice = this.priceToPrecision(symbol, stopLossPrice);
                 }
-                String tpSlType = ((Boolean.TRUE.equals(isTp))) ? "tp" : "sl";
+                String tpSlType = "sl";
+                if (Boolean.TRUE.equals(isTp))
+                {
+                    tpSlType = "tp";
+                }
                 final String finalTriggerPrice = triggerPrice;
+                final String finalTpSlType = tpSlType;
                 ((Map<String, Object>)orderType).put("trigger", new HashMap<String, Object>() {{
     put( "isMarket", isMarket );
     put( "triggerPx", finalTriggerPrice );
-    put( "tpsl", tpSlType );
+    put( "tpsl", finalTpSlType );
 }});
             } else
             {
@@ -3839,7 +3867,7 @@ final Object finalClientOrderId = clientOrderId;
             put( "modifies", modifies );
         }};
         Object vaultAddress = null;
-        List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "editOrder", "vaultAddress");
+        List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "editOrder", "vaultAddress");
         vaultAddress = ((List<Object>) vaultAddressparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) vaultAddressparametersVariable).get(1);
         vaultAddress = this.formatVaultAddress(vaultAddress);
@@ -4138,7 +4166,7 @@ final Object finalClientOrderId = clientOrderId;
             }
             for (var i = 0; i < ((List<?>)fundings).size(); i++)
             {
-                Object entry = (fundings == null || i < 0 || i >= ((List<?>)fundings).size() ? null : ((List<?>)fundings).get(i));
+                Map<String, Object> entry = (Map<String, Object>) this.safeDict(fundings, i);
                 Long timestamp = this.safeInteger(entry, "time");
                 ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "info", entry );
@@ -4255,7 +4283,7 @@ final Object finalClientOrderId = clientOrderId;
             }
             for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
             {
-                Object order = (rawOrders == null || i < 0 || i >= ((List<?>)rawOrders).size() ? null : ((List<?>)rawOrders).get(i));
+                Map<String, Object> order = (Map<String, Object>) this.safeDict(rawOrders, i);
                 Map<String, Object> extendOrder = new HashMap<String, Object>() {{}};
                 if (java.util.Objects.equals(this.safeString(order, "status"), null))
                 {
@@ -4308,7 +4336,7 @@ final Object finalClientOrderId = clientOrderId;
                 (this.loadMarkets()).join();
             }
             List<Order> orders = (this.fetchOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(parameters))).join(); // don't filter here because we don't want to catch open orders
-            Object closedOrders = this.filterByArray(orders, "status", new ArrayList<Object>(Arrays.asList("closed")), false);
+            List<Object> closedOrders = (List<Object>) this.filterByArray(orders, "status", new ArrayList<Object>(Arrays.asList("closed")), false);
             return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -4350,7 +4378,7 @@ final Object finalClientOrderId = clientOrderId;
                 (this.loadMarkets()).join();
             }
             List<Order> orders = (this.fetchOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(parameters))).join(); // don't filter here because we don't want to catch open orders
-            Object closedOrders = this.filterByArray(orders, "status", new ArrayList<Object>(Arrays.asList("canceled")), false);
+            List<Object> closedOrders = (List<Object>) this.filterByArray(orders, "status", new ArrayList<Object>(Arrays.asList("canceled")), false);
             return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -4392,7 +4420,7 @@ final Object finalClientOrderId = clientOrderId;
                 (this.loadMarkets()).join();
             }
             List<Order> orders = (this.fetchOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(parameters))).join(); // don't filter here because we don't want to catch open orders
-            Object closedOrders = this.filterByArray(orders, "status", new ArrayList<Object>(Arrays.asList("canceled", "closed", "rejected")), false);
+            List<Object> closedOrders = (List<Object>) this.filterByArray(orders, "status", new ArrayList<Object>(Arrays.asList("canceled", "closed", "rejected")), false);
             return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -5360,15 +5388,15 @@ final Object finalClientOrderId = clientOrderId;
                 put( "isCross", isCross );
                 put( "leverage", finalLeverage );
             }};
-            Object vaultAddress = null;
-            List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "setMarginMode", "vaultAddress", "subAccountAddress");
-            vaultAddress = ((List<Object>) vaultAddressparametersVariable).get(0);
+            String vaultAddress = null;
+            List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionStringAndParams2(parameters, "setMarginMode", "vaultAddress", "subAccountAddress");
+            vaultAddress = (String) ((List<Object>) vaultAddressparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) vaultAddressparametersVariable).get(1);
             if (!java.util.Objects.equals(vaultAddress, null))
             {
-                if (Helpers.isTrue(((String)vaultAddress).startsWith("0x")))
+                if (Helpers.isTrue(vaultAddress.startsWith(((String)"0x"))))
                 {
-                    vaultAddress = Helpers.replace(((String)vaultAddress), "0x", "");
+                    vaultAddress = Helpers.replace(vaultAddress, (String)"0x", (String)"");
                 }
             }
             Object signature = this.signL1Action(updateAction, nonce, vaultAddress);
@@ -5449,7 +5477,7 @@ final Object finalClientOrderId = clientOrderId;
                 put( "leverage", leverage );
             }};
             Object vaultAddress = null;
-            List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "setLeverage", "vaultAddress", "subAccountAddress");
+            List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionStringAndParams2(parameters, "setLeverage", "vaultAddress", "subAccountAddress");
             vaultAddress = ((List<Object>) vaultAddressparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) vaultAddressparametersVariable).get(1);
             vaultAddress = this.formatVaultAddress(vaultAddress);
@@ -5595,7 +5623,7 @@ final Object finalClientOrderId = clientOrderId;
                 put( "ntli", finalSz );
             }};
             Object vaultAddress = null;
-            List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "modifyMargin", "vaultAddress", "subAccountAddress");
+            List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionStringAndParams2(parameters, "modifyMargin", "vaultAddress", "subAccountAddress");
             vaultAddress = ((List<Object>) vaultAddressparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) vaultAddressparametersVariable).get(1);
             vaultAddress = this.formatVaultAddress(vaultAddress);
@@ -5884,7 +5912,7 @@ final Object finalClientOrderId = clientOrderId;
                 }
             }
             Object vaultAddress = null;
-            List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "withdraw", "vaultAddress");
+            List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "withdraw", "vaultAddress");
             vaultAddress = ((List<Object>) vaultAddressparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) vaultAddressparametersVariable).get(1);
             vaultAddress = this.formatVaultAddress(vaultAddress);
@@ -6362,7 +6390,7 @@ final Object finalClientOrderId = clientOrderId;
             }
             Object records = this.extractTypeFromDelta(depositLedger);
             Object vaultAddress = null;
-            List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "vaultAddress");
+            List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchDepositsWithdrawals", "vaultAddress");
             vaultAddress = ((List<Object>) vaultAddressparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) vaultAddressparametersVariable).get(1);
             vaultAddress = this.formatVaultAddress(vaultAddress);
@@ -6471,7 +6499,7 @@ final Object finalClientOrderId = clientOrderId;
             }
             Object records = this.extractTypeFromDelta(withdrawalLedger);
             Object vaultAddress = null;
-            List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "vaultAddress");
+            List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchDepositsWithdrawals", "vaultAddress");
             vaultAddress = ((List<Object>) vaultAddressparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) vaultAddressparametersVariable).get(1);
             vaultAddress = this.formatVaultAddress(vaultAddress);
@@ -6716,7 +6744,7 @@ final Object finalClientOrderId = clientOrderId;
         return this.fetchFundingHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseIncome(Object income, Map<String, Object> market)
+    public Object parseIncome(Map<String, Object> income, Map<String, Object> market)
     {
         //
         // {
@@ -6757,7 +6785,7 @@ final Object finalClientOrderId = clientOrderId;
             put( "rate", rate );
         }};
     }
-    public Object parseIncome(Object income, Object... optionalArgs)
+    public Object parseIncome(Map<String, Object> income, Object... optionalArgs)
     {
         return this.parseIncome(income, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -6889,12 +6917,12 @@ final Object finalClientOrderId = clientOrderId;
 
     public Object handlePublicAddress(Object methodName, Map<String, Object> parameters)
     {
-        Object userAux = null;
-        List<Object> userAuxparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, methodName, "user", "subAccountAddress");
-        userAux = ((List<Object>) userAuxparametersVariable).get(0);
+        String userAux = null;
+        List<Object> userAuxparametersVariable = (List<Object>) this.handleOptionStringAndParams2(parameters, methodName, "user", "subAccountAddress");
+        userAux = (String) ((List<Object>) userAuxparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) userAuxparametersVariable).get(1);
         Object user = userAux;
-        List<Object> userparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, (String) (methodName), "address", (String) (userAux));
+        List<Object> userparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, (String) (methodName), "address", userAux);
         user = ((List<Object>) userparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) userparametersVariable).get(1);
         if ((!java.util.Objects.equals(user, null)) && (!java.util.Objects.equals(user, "")))
@@ -7046,7 +7074,7 @@ final Object finalClientOrderId = clientOrderId;
     {
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Object vaultAddress = null;
-        List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "createOrder", "vaultAddress", "subAccountAddress");
+        List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionStringAndParams2(parameters, "createOrder", "vaultAddress", "subAccountAddress");
         vaultAddress = ((List<Object>) vaultAddressparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) vaultAddressparametersVariable).get(1);
         vaultAddress = this.formatVaultAddress(vaultAddress);

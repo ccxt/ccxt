@@ -1267,7 +1267,9 @@ class aster(Exchange, ImplicitAPI):
         #
         id = self.safe_string_2(trade, 'id', 'a')
         marketId = self.safe_string(trade, 'symbol')
-        marketType = 'swap' if ('positionSide' in trade) else 'spot'
+        marketType = 'spot'
+        if 'positionSide' in trade:
+            marketType = 'swap'
         market = self.safe_market(marketId, market, None, marketType)
         currencyId = self.safe_string_2(trade, 'commissionAsset', 'marginAsset')
         currencyCode = self.safe_currency_code(currencyId)
@@ -1721,7 +1723,7 @@ class aster(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         return self.filter_by_array(results, 'symbol', symbols)
 
-    def parse_last_price(self, entry: object, market: Market = None) -> LastPrice:
+    def parse_last_price(self, entry: dict, market: Market = None) -> LastPrice:
         #
         # spot & swap
         #
@@ -2030,7 +2032,7 @@ class aster(Exchange, ImplicitAPI):
     def parse_balance(self, response: object) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
-            balance = response[i]
+            balance = self.safe_dict(response, i)
             currencyId = self.safe_string(balance, 'asset')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -2103,7 +2105,9 @@ class aster(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
-        strValue = 'true' if hedged else 'false'
+        strValue = 'false'
+        if hedged:
+            strValue = 'true'
         request = {
             'dualSidePosition': strValue,
         }
@@ -2238,7 +2242,9 @@ class aster(Exchange, ImplicitAPI):
         #
         info = order
         positionSide = self.safe_string(order, 'positionSide')
-        defaultType = 'swap' if (positionSide is not None) else 'spot'
+        defaultType = 'spot'
+        if positionSide is not None:
+            defaultType = 'swap'
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market, None, defaultType)
         side = self.safe_string_lower(order, 'side')
@@ -2607,7 +2613,7 @@ class aster(Exchange, ImplicitAPI):
         if len(orders) > 5:
             raise InvalidOrder(self.id + ' createOrders() order list max 5 orders')
         for i in range(0, len(orders)):
-            rawOrder = orders[i]
+            rawOrder = self.safe_dict(orders, i)
             marketId = self.safe_string(rawOrder, 'symbol')
             currentMarket = self.market(marketId)
             orderSymbols.append(currentMarket['symbol'])
@@ -2786,7 +2792,7 @@ class aster(Exchange, ImplicitAPI):
                 request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
         if timeInForceIsRequired and (self.safe_string(params, 'timeInForce') is None) and (self.safe_string(request, 'timeInForce') is None):
             tif = None
-            tif, params = self.handle_option_and_params(params, 'createOrder', 'timeInForce')
+            tif, params = self.handle_option_string_and_params(params, 'createOrder', 'timeInForce')
             request['timeInForce'] = tif
         requestParams = self.omit(params, ['newClientOrderId', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'trailingDelta', 'stopPrice', 'stopLossPrice', 'takeProfitPrice'])
         if (self.safe_bool(self.options, 'builderFee') is True) and (market['swap'] is True):
@@ -3237,7 +3243,7 @@ class aster(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, amount, 1, params)
 
-    def parse_income(self, income: object, market: Market = None) -> object:
+    def parse_income(self, income: dict, market: Market = None) -> object:
         #
         #     {
         #       "symbol": "ETHUSDT",
@@ -3603,7 +3609,7 @@ class aster(Exchange, ImplicitAPI):
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         defaultMethod = None
-        defaultMethod, params = self.handle_option_and_params(params, 'fetchPositions', 'method')
+        defaultMethod, params = self.handle_option_string_and_params(params, 'fetchPositions', 'method')
         if defaultMethod is None:
             options = self.safe_dict(self.options, 'fetchPositions')
             if options is None:
@@ -3622,7 +3628,7 @@ class aster(Exchange, ImplicitAPI):
         assets = self.safe_list(account, 'assets', [])
         balances = {}
         for i in range(0, len(assets)):
-            entry = assets[i]
+            entry = self.safe_dict(assets, i)
             currencyId = self.safe_string(entry, 'asset')
             code = self.safe_currency_code(currencyId)
             crossWalletBalance = self.safe_string(entry, 'crossWalletBalance')
@@ -3860,13 +3866,13 @@ class aster(Exchange, ImplicitAPI):
             self.options['leverageBrackets'] = self.create_safe_dictionary()
             entries = self.to_array(response)
             for i in range(0, len(entries)):
-                entry = entries[i]
+                entry = self.safe_dict(entries, i)
                 marketId = self.safe_string(entry, 'symbol')
                 symbol = self.safe_symbol(marketId, None, None, 'contract')
                 brackets = self.safe_list(entry, 'brackets', [])
                 result = []
                 for j in range(0, len(brackets)):
-                    bracket = brackets[j]
+                    bracket = self.safe_dict(brackets, j)
                     floorValue = self.safe_string(bracket, 'notionalFloor')
                     maintenanceMarginPercentage = self.safe_string(bracket, 'maintMarginRatio')
                     result.append([floorValue, maintenanceMarginPercentage])

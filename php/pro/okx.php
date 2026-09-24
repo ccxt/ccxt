@@ -118,7 +118,10 @@ class okx extends \ccxt\async\okx {
             throw new ArgumentsRequired($this->id . ' getUrl() requires a $channel argument');
         }
         $isSandbox = $this->options['sandboxMode'];
-        $sandboxSuffix = ($isSandbox === true) ? '?brokerId=9999' : '';
+        $sandboxSuffix = '';
+        if ($isSandbox === true) {
+            $sandboxSuffix = '?brokerId=9999';
+        }
         $isBusiness = ($access === 'business');
         $isPublic = ($access === 'public');
         $url = $this->urls['api']['ws'];
@@ -468,7 +471,7 @@ class okx extends \ccxt\async\okx {
         //
         $data = $this->safe_list($message, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
-            $rawfr = $data[$i];
+            $rawfr = $this->safe_dict($data, $i);
             $fundingRate = $this->parse_funding_rate($rawfr);
             $symbol = $fundingRate['symbol'];
             if ($symbol !== null) {
@@ -944,7 +947,10 @@ class okx extends \ccxt\async\okx {
         }
         $isTrigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
         $params = $this->omit($params, array( 'stop', 'trigger' ));
-        $accessType = ($isTrigger === true) ? 'business' : 'private';
+        $accessType = 'private';
+        if ($isTrigger === true) {
+            $accessType = 'business';
+        }
         Async\await($this->authenticate(array( 'access' => $accessType )));
         $symbols = $this->market_symbols($symbols, null, true, true);
         $messageHash = 'myLiquidations';
@@ -1895,9 +1901,15 @@ class okx extends \ccxt\async\okx {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $access = ($isTrigger === true) ? 'business' : 'private';
+        $access = 'private';
+        if ($isTrigger === true) {
+            $access = 'business';
+        }
         Async\await($this->authenticate(array( 'access' => $access )));
-        $channel = ($isTrigger === true) ? 'orders-algo' : 'orders';
+        $channel = 'orders';
+        if ($isTrigger === true) {
+            $channel = 'orders-algo';
+        }
         $messageHash = $channel . '::myTrades';
         $market = null;
         if ($symbol !== null) {
@@ -2102,7 +2114,10 @@ class okx extends \ccxt\async\okx {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $accessType = ($isTrigger === true) ? 'business' : 'private';
+        $accessType = 'private';
+        if ($isTrigger === true) {
+            $accessType = 'business';
+        }
         Async\await($this->authenticate(array( 'access' => $accessType )));
         $market = null;
         if ($symbol !== null) {
@@ -2127,7 +2142,10 @@ class okx extends \ccxt\async\okx {
         $request = array(
             'instType' => $uppercaseType,
         );
-        $channel = ($isTrigger === true) ? 'orders-algo' : 'orders';
+        $channel = 'orders';
+        if ($isTrigger === true) {
+            $channel = 'orders-algo';
+        }
         $orders = Async\await($this->subscribe('private', $channel, $channel, $symbol, $this->extend($request, $params)));
         if ($this->newUpdates) {
             $limit = $orders->getLimit($symbol, $limit);
@@ -2645,7 +2663,7 @@ class okx extends \ccxt\async\okx {
                 } else {
                     $data = $this->safe_list($message, 'data', array());
                     for ($i = 0; $i < count($data); $i++) {
-                        $d = $data[$i];
+                        $d = $this->safe_dict($data, $i);
                         $errorCode = $this->safe_string($d, 'sCode');
                         if ($errorCode !== null) {
                             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
@@ -2724,8 +2742,10 @@ class okx extends \ccxt\async\okx {
         //
         //
         //
-        if ($message === 'pong') {
-            $this->handle_pong($client, $message);
+        if (gettype($message) === 'string') {
+            if ($message === 'pong') {
+                $this->handle_pong($client, $message);
+            }
             return;
         }
         // const table = this.safeString (message, 'table');

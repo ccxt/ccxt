@@ -429,7 +429,7 @@ func (this *Hollaex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var result []any = []any{}
 	for i := 0; i < len(keys); i++ {
 		var key string = GetValue(keys, i).(string)
-		var market any = pairs[key]
+		var market map[string]any = SafeMapTyped(pairs, key)
 		var baseId *string = this.SafeString(market, "pair_base")
 		var quoteId *string = this.SafeString(market, "pair_2")
 		var base any = this.CommonCurrencyCode(ToUpper(baseId))
@@ -584,14 +584,12 @@ func (this *Hollaex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 func (this *Hollaex) ParseCurrency(rawCurrency any) any {
 	var id *string = this.SafeString(rawCurrency, "symbol")
 	var code *string = this.SafeCurrencyCode(id)
-	var withdrawalLimits []any = SafeListTypedDefault(rawCurrency, "withdrawal_limits", []any{})
+	var withdrawalLimits []any = SafeListTyped(rawCurrency, "withdrawal_limits")
 	var rawType *string = this.SafeString(rawCurrency, "type")
-	var typeVar string = func() string {
-		if rawType != nil && *rawType == "blockchain" {
-			return "crypto"
-		}
-		return "other"
-	}()
+	var typeVar string = "other"
+	if rawType != nil && *rawType == "blockchain" {
+		typeVar = "crypto"
+	}
 	var rawNetworks map[string]any = SafeMapTyped(rawCurrency, "withdrawal_fees")
 	var networks map[string]any = map[string]any{}
 	var networkIds []string = ObjectKeys(rawNetworks)
@@ -1147,8 +1145,8 @@ func (this *Hollaex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate == true {
 
-		var retRes94919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))))
-		ch <- BoxAbsent(retRes94919)
+		var retRes95219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))))
+		ch <- BoxAbsent(retRes95219)
 		return nil
 	}
 	var until any = this.SafeInteger(params, "until")
@@ -1356,8 +1354,8 @@ func (this *Hollaex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"open": true,
 	}
 
-	var retRes111615 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes111615)
+	var retRes111915 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes111915)
 	return nil
 }
 
@@ -1392,8 +1390,8 @@ func (this *Hollaex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 		"open": false,
 	}
 
-	var retRes113415 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes113415)
+	var retRes113715 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes113715)
 	return nil
 }
 
@@ -1977,12 +1975,12 @@ func (this *Hollaex) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 	//     }
 	//
 	var wallet any = this.SafeList(response, "wallet", []any{})
-	var addresses any = func() any {
-		if network == nil {
-			return wallet
-		}
-		return this.FilterBy(wallet, "network", network)
-	}()
+	var addresses any = nil
+	if network == nil {
+		addresses = wallet
+	} else {
+		addresses = this.FilterBy(wallet, "network", network)
+	}
 
 	ch <- this.ParseDepositAddresses(addresses, codes, false)
 	return nil
@@ -2121,7 +2119,7 @@ func (this *Hollaex) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...an
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var transaction map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 
 	ch <- this.ParseTransaction(transaction, currency)
@@ -2423,12 +2421,7 @@ func (this *Hollaex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 		var keysLength int = len(keys)
 		for i := 0; i < keysLength; i++ {
 			var key *string = SafeStringPtr(GetValue(keys, i))
-			var value map[string]any = MapTyped(func() any {
-				if key == nil {
-					return nil
-				}
-				return withdrawalFees[*key]
-			}())
+			var value map[string]any = SafeMapTyped(withdrawalFees, key)
 			var currencyId *string = this.SafeString(value, "symbol")
 			var currencyCode *string = this.SafeCurrencyCode(currencyId)
 			var networkCode *string = this.NetworkIdToCode(key, currencyCode)

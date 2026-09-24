@@ -1059,7 +1059,7 @@ func (this *Bydfi) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	}
 	var maxLimit int = 500 // docs says max 1500, but in practice only 500 works
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -1229,7 +1229,7 @@ func (this *Bydfi) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1FapiMarketTicker24hr(this.Extend(request, params))).Raw))
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var ticker map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 
 	ch <- this.ParseTicker(ticker, market)
@@ -1710,7 +1710,7 @@ func (this *Bydfi) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 	}
 	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
+		var rawOrder map[string]any = SafeMapTyped(orders, i)
 		var symbol *string = this.SafeString(rawOrder, "symbol")
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
@@ -1814,7 +1814,7 @@ func (this *Bydfi) editOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 	}
 	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
+		var rawOrder map[string]any = SafeMapTyped(orders, i)
 		var id *string = this.SafeString(rawOrder, "id")
 		var symbol *string = this.SafeString(rawOrder, "symbol")
 		var side *string = this.SafeString(rawOrder, "side")
@@ -2101,7 +2101,7 @@ func (this *Bydfi) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) 
 
 		response = MapTyped(PanicOnError((<-this.PrivateGetV1FapiTradePlanOrder(this.Extend(request, params))).Raw))
 	}
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var order map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 
 	ch <- this.ParseOrder(order, market)
@@ -3064,12 +3064,10 @@ func (this *Bydfi) setPositionModeBody(ch chan any, hedged any, optionalArgs ...
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var positionType string = func() string {
-		if EvalTruthy(hedged) {
-			return "HEDGE"
-		}
-		return "ONEWAY"
-	}()
+	var positionType string = "ONEWAY"
+	if EvalTruthy(hedged) {
+		positionType = "HEDGE"
+	}
 	var wallet any = "W001"
 	var walletparamsVariable []any = this.HandleOptionStringAndParams(params, "setPositionMode", "wallet", wallet)
 	wallet = GetValue(walletparamsVariable, 0)
@@ -3211,7 +3209,7 @@ func (this *Bydfi) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var wallet any = nil
-	var walletparamsVariable []any = this.HandleOptionAndParams(params, "fetchBalance", "wallet")
+	var walletparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchBalance", "wallet")
 	wallet = GetValue(walletparamsVariable, 0)
 	params = MapTyped(GetValue(walletparamsVariable, 1))
 	var request map[string]any = map[string]any{}
@@ -3283,7 +3281,7 @@ func (this *Bydfi) ParseBalance(response any) any {
 		"datetime":  nil,
 	}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var balance map[string]any = MapTyped(GetValue(response, i))
+		var balance map[string]any = SafeMapTyped(response, i)
 		var symbol *string = this.SafeString(balance, "asset")
 		var code *string = this.SafeCurrencyCode(symbol)
 		var account map[string]any = this.Account()
@@ -3571,12 +3569,10 @@ func (this *Bydfi) FetchTransactionsHelperAsync(typeVar any, code any, since any
 func (this *Bydfi) fetchTransactionsHelperBody(ch chan any, typeVar any, code any, since any, limit any, params any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var methodName string = func() string {
-		if IsEqual(typeVar, "deposit") {
-			return "fetchDeposits"
-		}
-		return "fetchWithdrawals"
-	}()
+	var methodName string = "fetchWithdrawals"
+	if IsEqual(typeVar, "deposit") {
+		methodName = "fetchDeposits"
+	}
 	if IsEqual(code, nil) {
 		panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a code argument"))
 	}

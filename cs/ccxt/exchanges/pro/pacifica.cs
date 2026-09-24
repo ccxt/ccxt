@@ -117,7 +117,11 @@ public partial class pacifica : ccxt.pacifica
         var operationType = ((IList<object>) requestoperationTypeVariable)[1];
         parameters = this.omit(parameters, new List<object>() {"reduceOnly", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow", "agentAddress", "originAddress"});
         bool isTestnet = this.isSandboxModeEnabled;
-        string urlKey = isTestnet ? "test" : "api";
+        string urlKey = "api";
+        if (isTestnet)
+        {
+            urlKey = "test";
+        }
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
         Dictionary<string, object> wsRequest = this.wrapAsPostAction(operationType, request);
         string? requestId = this.safeString(wsRequest, "id");
@@ -206,7 +210,11 @@ public partial class pacifica : ccxt.pacifica
         Dictionary<string, object> request = this.editOrderRequest(id, symbol, type, side, amount, price, market, parameters);
         parameters = this.omit(parameters, new List<object>() {"originAddress", "agentAddress", "expiryWindow", "clientOrderId"});
         bool isTestnet = this.isSandboxModeEnabled;
-        string urlKey = isTestnet ? "test" : "api";
+        string urlKey = "api";
+        if (isTestnet)
+        {
+            urlKey = "test";
+        }
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
         Dictionary<string, object> wsRequest = this.wrapAsPostAction(batchOperationType, request);
         string? requestId = this.safeString(wsRequest, "id");
@@ -272,7 +280,11 @@ public partial class pacifica : ccxt.pacifica
         Dictionary<string, object> request = this.cancelOrdersRequest(ids, symbol, parameters);
         parameters = this.omit(parameters, new List<object>() {"originAddress", "agentAddress", "expiryWindow", "clientOrderIds"});
         bool isTestnet = this.isSandboxModeEnabled;
-        string urlKey = isTestnet ? "test" : "api";
+        string urlKey = "api";
+        if (isTestnet)
+        {
+            urlKey = "test";
+        }
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
         Dictionary<string, object> wsRequest = this.wrapAsPostAction(batchOperationType, request);
         string? requestId = this.safeString(wsRequest, "id");
@@ -305,7 +317,7 @@ public partial class pacifica : ccxt.pacifica
         List<object> ordersToReturn = new List<object>() {};
         for (int i = 0; i < results.Count; i++)
         {
-            object order = results[i];
+            IDictionary<string, object> order = this.safeDict(results, i);
             string? error = this.safeString(order, "error");
             bool? success = this.safeBool(order, "success", false);
             string? marketId = this.safeString(order, "symbol");
@@ -361,7 +373,11 @@ public partial class pacifica : ccxt.pacifica
         Dictionary<string, object> request = this.cancelOrderRequest(id, symbol, parameters);
         parameters = this.omit(parameters, new List<object>() {"originAddress", "agentAddress", "expiryWindow", "trigger", "stop", "clientOrderId"});
         bool isTestnet = this.isSandboxModeEnabled;
-        string urlKey = isTestnet ? "test" : "api";
+        string urlKey = "api";
+        if (isTestnet)
+        {
+            urlKey = "test";
+        }
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
         Dictionary<string, object> wsRequest = this.wrapAsPostAction(operationType, request);
         string? requestId = this.safeString(wsRequest, "id");
@@ -423,7 +439,11 @@ public partial class pacifica : ccxt.pacifica
         Dictionary<string, object> request = this.cancelAllOrdersRequest(symbol, parameters);
         parameters = this.omit(parameters, new List<object>() {"excludeReduceOnly", "agentAddress", "originAddress", "expiryWindow"});
         bool isTestnet = this.isSandboxModeEnabled;
-        string urlKey = isTestnet ? "test" : "api";
+        string urlKey = "api";
+        if (isTestnet)
+        {
+            urlKey = "test";
+        }
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
         Dictionary<string, object> wsRequest = this.wrapAsPostAction(operationType, request);
         string? requestId = this.safeString(wsRequest, "id");
@@ -467,7 +487,11 @@ public partial class pacifica : ccxt.pacifica
         parameters = aggLevelparametersVariable[1];
         string messageHash = ("orderbook:" + symbol);
         bool isTestnet = this.isSandboxModeEnabled;
-        string urlKey = isTestnet ? "test" : "api";
+        string urlKey = "api";
+        if (isTestnet)
+        {
+            urlKey = "test";
+        }
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -507,7 +531,11 @@ public partial class pacifica : ccxt.pacifica
         string subMessageHash = ("orderbook:" + (symbol));
         string messageHash = ("unsubscribe:" + subMessageHash);
         bool isTestnet = this.isSandboxModeEnabled;
-        string urlKey = isTestnet ? "test" : "api";
+        string urlKey = "api";
+        if (isTestnet)
+        {
+            urlKey = "test";
+        }
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
@@ -619,7 +647,11 @@ public partial class pacifica : ccxt.pacifica
         symbols = this.marketSymbols(symbols, null, true);
         string messageHash = "tickers";
         bool isTestnet = this.isSandboxModeEnabled;
-        string urlKey = isTestnet ? "test" : "api";
+        string urlKey = "api";
+        if (isTestnet)
+        {
+            urlKey = "test";
+        }
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -655,7 +687,11 @@ public partial class pacifica : ccxt.pacifica
         string subMessageHash = "tickers";
         string messageHash = ("unsubscribe:" + subMessageHash);
         bool isTestnet = this.isSandboxModeEnabled;
-        string urlKey = isTestnet ? "test" : "api";
+        string urlKey = "api";
+        if (isTestnet)
+        {
+            urlKey = "test";
+        }
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
@@ -698,7 +734,11 @@ public partial class pacifica : ccxt.pacifica
             messageHash = messageHash + (":" + (symbolVar));
         }
         bool isTestnet = this.isSandboxModeEnabled;
-        string urlKey = isTestnet ? "test" : "api";
+        string urlKey = "api";
+        if (isTestnet)
+        {
+            urlKey = "test";
+        }
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -743,7 +783,11 @@ public partial class pacifica : ccxt.pacifica
         parameters = userAddressparametersVariable[1];
         string messageHash = "unsubscribe:myTrades";
         bool isTestnet = this.isSandboxModeEnabled;
-        string urlKey = isTestnet ? "test" : "api";
+        string urlKey = "api";
+        if (isTestnet)
+        {
+            urlKey = "test";
+        }
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
@@ -848,7 +892,7 @@ public partial class pacifica : ccxt.pacifica
             {
                 symbols[(string)symbol] = true;
             }
-            callDynamically(trades, "append", new object[] {parsed});
+            trades.append(parsed);
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
         for (int i = 0; i < keys.Count; i++)
@@ -885,7 +929,11 @@ public partial class pacifica : ccxt.pacifica
         symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("trade:" + (symbolVar));
         bool isTestnet = this.isSandboxModeEnabled;
-        string urlKey = isTestnet ? "test" : "api";
+        string urlKey = "api";
+        if (isTestnet)
+        {
+            urlKey = "test";
+        }
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -925,7 +973,11 @@ public partial class pacifica : ccxt.pacifica
         string subMessageHash = ("trade:" + (symbolVar));
         string messageHash = ("unsubscribe:" + subMessageHash);
         bool isTestnet = this.isSandboxModeEnabled;
-        string urlKey = isTestnet ? "test" : "api";
+        string urlKey = "api";
+        if (isTestnet)
+        {
+            urlKey = "test";
+        }
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
@@ -973,7 +1025,7 @@ public partial class pacifica : ccxt.pacifica
         {
             IDictionary<string, object> data = this.safeDict(entry, i, new Dictionary<string, object>() {});
             Dictionary<string, object> trade = this.parseWsTrade(data);
-            callDynamically(trades, "append", new object[] {trade});
+            trades.append(trade);
         }
         string messageHash = ("trade:" + symbol);
         client.resolve(trades, messageHash);
@@ -1096,7 +1148,11 @@ public partial class pacifica : ccxt.pacifica
         symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         bool isTestnet = this.isSandboxModeEnabled;
         string? parsedTf = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        string urlKey = isTestnet ? "test" : "api";
+        string urlKey = "api";
+        if (isTestnet)
+        {
+            urlKey = "test";
+        }
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -1138,7 +1194,11 @@ public partial class pacifica : ccxt.pacifica
         Dictionary<string, object> market = this.market(symbol);
         symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
         bool isTestnet = this.isSandboxModeEnabled;
-        string urlKey = isTestnet ? "test" : "api";
+        string urlKey = "api";
+        if (isTestnet)
+        {
+            urlKey = "test";
+        }
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
@@ -1234,7 +1294,11 @@ public partial class pacifica : ccxt.pacifica
             messageHash = ((messageHash + ":") + (symbolVar));
         }
         bool isTestnet = this.isSandboxModeEnabled;
-        string urlKey = isTestnet ? "test" : "api";
+        string urlKey = "api";
+        if (isTestnet)
+        {
+            urlKey = "test";
+        }
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -1275,7 +1339,11 @@ public partial class pacifica : ccxt.pacifica
         }
         string messageHash = "unsubscribe:order";
         bool isTestnet = this.isSandboxModeEnabled;
-        string urlKey = isTestnet ? "test" : "api";
+        string urlKey = "api";
+        if (isTestnet)
+        {
+            urlKey = "test";
+        }
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
         string? userAddress = null;
         IList<object> userAddressparametersVariable = (IList<object>)this.handleOriginAndSingleAddress("unWatchOrders", parameters);
@@ -1339,7 +1407,7 @@ public partial class pacifica : ccxt.pacifica
         {
             object rawOrder = data[i];
             Dictionary<string, object> order = this.parseOrder(rawOrder);
-            callDynamically(stored, "append", new object[] {order});
+            stored.append(order);
             string? symbol = this.safeString(order, "symbol");
             if ((symbol != null))
             {

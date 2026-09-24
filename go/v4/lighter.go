@@ -2409,21 +2409,11 @@ func (this *Lighter) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var accounts []any = SafeListTyped(response, "accounts")
 	for i := 0; i < len(accounts); i++ {
-		var account map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(accounts) {
-				return DerefScalar(accounts[i])
-			}
-			return nil
-		}())
+		var account map[string]any = SafeMapTyped(accounts, i)
 		if typeVar != nil && *typeVar == "spot" {
 			var assets []any = SafeListTyped(account, "assets")
 			for j := 0; j < len(assets); j++ {
-				var asset map[string]any = MapTyped(func() any {
-					if j >= 0 && j < len(assets) {
-						return DerefScalar(assets[j])
-					}
-					return nil
-				}())
+				var asset map[string]any = SafeMapTyped(assets, j)
 				var codeId *string = this.SafeString(asset, "symbol")
 				var code *string = this.SafeCurrencyCode(codeId)
 				var balance any = this.SafeDict(result, code, this.Account())
@@ -2566,12 +2556,7 @@ func (this *Lighter) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var allPositions []any = []any{}
 	var accounts []any = SafeListTyped(response, "accounts")
 	for i := 0; i < len(accounts); i++ {
-		var account map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(accounts) {
-				return DerefScalar(accounts[i])
-			}
-			return nil
-		}())
+		var account map[string]any = SafeMapTyped(accounts, i)
 		var positions []any = SafeListTyped(account, "positions")
 		for j := 0; j < len(positions); j++ {
 			allPositions = append(allPositions, func() any {
@@ -3132,7 +3117,7 @@ func (this *Lighter) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Lighter) ParseOrderType(typeVar any) *string {
+func (this *Lighter) ParseOrderType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"limit":             "limit",
 		"market":            "market",
@@ -3312,7 +3297,7 @@ func (this *Lighter) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTransfers", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchTransfers", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
@@ -3448,7 +3433,7 @@ func (this *Lighter) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchDeposits", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchDeposits", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
@@ -3457,9 +3442,9 @@ func (this *Lighter) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes267719)
 		return nil
 	}
-	var address any = nil
-	var addressparamsVariable []any = this.HandleOptionAndParams2(params, "fetchDeposits", "address", "l1_address")
-	address = GetValue(addressparamsVariable, 0)
+	var address *string = nil
+	var addressparamsVariable []any = this.HandleOptionStringAndParams2(params, "fetchDeposits", "address", "l1_address")
+	address = SafeStringPtr(GetValue(addressparamsVariable, 0))
 	params = GetValue(addressparamsVariable, 1)
 	if address == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDeposits() requires an address parameter"))
@@ -3544,7 +3529,7 @@ func (this *Lighter) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchWithdrawals", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
@@ -3784,7 +3769,7 @@ func (this *Lighter) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
@@ -3978,7 +3963,7 @@ func (this *Lighter) setLeverageBody(ch chan any, leverage any, optionalArgs ...
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires a symbol argument"))
 	}
 	var marginMode any = nil
-	var marginModeparamsVariable []any = this.HandleOptionAndParams2(params, "setLeverage", "marginMode", "margin_mode")
+	var marginModeparamsVariable []any = this.HandleOptionStringAndParams2(params, "setLeverage", "marginMode", "margin_mode")
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	if marginMode == nil {

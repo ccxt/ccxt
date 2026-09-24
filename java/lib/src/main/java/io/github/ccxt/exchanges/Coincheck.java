@@ -430,7 +430,7 @@ public class Coincheck extends CoincheckApi
             Long updated = null;
             for (var i = 0; i < ((List<?>)exchangeStatuses).size(); i++)
             {
-                Object exchangeStatus = (exchangeStatuses == null || i < 0 || i >= exchangeStatuses.size() ? null : exchangeStatuses.get(i));
+                Map<String, Object> exchangeStatus = (Map<String, Object>) this.safeDict(exchangeStatuses, i);
                 String rawStatus = this.safeString(exchangeStatus, "status");
                 if (java.util.Objects.equals(updated, null))
                 {

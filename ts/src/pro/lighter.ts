@@ -712,10 +712,7 @@ export default class lighter extends lighterRest {
             } else {
                 feeRateRaw = this.safeString (trade, 'taker_fee');
             }
-            let feeRate: Str = '0';
-            if (feeRateRaw !== undefined) {
-                feeRate = Precise.stringDiv (feeRateRaw, '1000000');
-            }
+            const feeRate = (feeRateRaw !== undefined) ? Precise.stringDiv (feeRateRaw, '1000000') : '0';
             const feeAmount = Precise.stringMul (costString, feeRate);
             fee = {
                 'cost': feeAmount,

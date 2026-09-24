@@ -171,36 +171,26 @@ func (this *Kraken) OrderRequestWs(method any, symbol any, typeVar any, request 
 	var isTrailingLimitAmountOrder bool = (trailingLimitAmount != nil)
 	var isTrailingLimitPercentOrder bool = (trailingLimitPercent != nil)
 	var offset *string = this.SafeString(params, "offset", "") // can set this to - for minus
-	var trailingAmountString any = func() any {
-		if trailingAmount != nil {
-			return ccxt.Add(offset, this.NumberToString(trailingAmount))
-		}
-		return nil
-	}()
-	var trailingPercentString any = func() any {
-		if trailingPercent != nil {
-			return ccxt.Add(offset, this.NumberToString(trailingPercent))
-		}
-		return nil
-	}()
-	var trailingLimitAmountString any = func() any {
-		if trailingLimitAmount != nil {
-			return ccxt.Add(offset, this.NumberToString(trailingLimitAmount))
-		}
-		return nil
-	}()
-	var trailingLimitPercentString any = func() any {
-		if trailingLimitPercent != nil {
-			return ccxt.Add(offset, this.NumberToString(trailingLimitPercent))
-		}
-		return nil
-	}()
-	var priceType string = func() string {
-		if isTrailingPercentOrder || isTrailingLimitPercentOrder {
-			return "pct"
-		}
-		return "quote"
-	}()
+	var trailingAmountString any = nil
+	if trailingAmount != nil {
+		trailingAmountString = ccxt.Add(offset, this.NumberToString(trailingAmount))
+	}
+	var trailingPercentString any = nil
+	if trailingPercent != nil {
+		trailingPercentString = ccxt.Add(offset, this.NumberToString(trailingPercent))
+	}
+	var trailingLimitAmountString any = nil
+	if trailingLimitAmount != nil {
+		trailingLimitAmountString = ccxt.Add(offset, this.NumberToString(trailingLimitAmount))
+	}
+	var trailingLimitPercentString any = nil
+	if trailingLimitPercent != nil {
+		trailingLimitPercentString = ccxt.Add(offset, this.NumberToString(trailingLimitPercent))
+	}
+	var priceType string = "quote"
+	if isTrailingPercentOrder || isTrailingLimitPercentOrder {
+		priceType = "pct"
+	}
 	if ccxt.IsEqual(method, "createOrderWs") {
 		var reduceOnly *bool = this.SafeBool(params, "reduceOnly")
 		if reduceOnly != nil && *reduceOnly == true {
@@ -628,12 +618,7 @@ func (this *Kraken) HandleTicker(client any, message map[string]any) {
 	//     }
 	//
 	var data []any = ccxt.SafeListTyped(message, "data")
-	var ticker any = func() any {
-		if 0 >= 0 && 0 < len(data) {
-			return ccxt.DerefScalar(data[0])
-		}
-		return nil
-	}()
+	var ticker any = this.SafeDict(data, 0)
 	var symbol *string = this.SafeString(ticker, "symbol")
 	var messageHash any = this.GetMessageHash("ticker", nil, symbol)
 	var vwap *string = this.SafeString(ticker, "vwap")
@@ -687,12 +672,7 @@ func (this *Kraken) HandleTrades(client any, message map[string]any) {
 	//     }
 	//
 	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
-	var trade map[string]any = ccxt.MapTyped(func() any {
-		if 0 >= 0 && 0 < len(data) {
-			return ccxt.DerefScalar(data[0])
-		}
-		return nil
-	}())
+	var trade map[string]any = ccxt.SafeMapTyped(data, 0)
 	var symbol *string = this.SafeString(trade, "symbol")
 	var messageHash any = this.GetMessageHash("trade", nil, symbol)
 	var stored any = this.SafeValue(this.Trades, symbol)
@@ -732,12 +712,7 @@ func (this *Kraken) HandleOHLCV(client any, message map[string]any) {
 	//     }
 	//
 	var data []any = ccxt.SafeListTyped(message, "data")
-	var first map[string]any = ccxt.MapTyped(func() any {
-		if 0 >= 0 && 0 < len(data) {
-			return ccxt.DerefScalar(data[0])
-		}
-		return nil
-	}())
+	var first map[string]any = ccxt.SafeMapTyped(data, 0)
 	var marketId *string = this.SafeString(first, "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
@@ -755,12 +730,7 @@ func (this *Kraken) HandleOHLCV(client any, message map[string]any) {
 	}
 	var ohlcvsLength int = len(data)
 	for i := 0; i < ohlcvsLength; i++ {
-		var candle map[string]any = ccxt.MapTyped(func() any {
-			if i >= 0 && i < len(data) {
-				return ccxt.DerefScalar(data[i])
-			}
-			return nil
-		}())
+		var candle map[string]any = ccxt.SafeMapTyped(data, i)
 		var datetime *string = this.SafeString(candle, "interval_begin")
 		var timestamp *int64 = this.Parse8601(datetime)
 		var parsed []any = []any{timestamp, this.SafeNumber(candle, "open"), this.SafeNumber(candle, "high"), this.SafeNumber(candle, "low"), this.SafeNumber(candle, "close"), this.SafeNumber(candle, "volume")}
@@ -1205,7 +1175,7 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 	//     }
 	//
 	var typeVar *string = this.SafeString(message, "type")
-	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var data []any = ccxt.SafeListTyped(message, "data")
 	var first map[string]any = ccxt.SafeMapTyped(data, 0)
 	var symbol *string = this.SafeString(first, "symbol")
 	var a []any = ccxt.SafeListTypedDefault(first, "asks", []any{})
@@ -1285,7 +1255,7 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 func (this *Kraken) CustomHandleDeltas(bookside any, deltas any) {
 	// const sortOrder = (key === 'bids') ? true : false
 	for j := 0; j < ccxt.GetArrayLength(deltas); j++ {
-		var delta map[string]any = ccxt.MapTyped(ccxt.GetValue(deltas, j))
+		var delta map[string]any = ccxt.SafeMapTyped(deltas, j)
 		var price *float64 = this.SafeNumber(delta, "price")
 		var amount *float64 = this.SafeNumber(delta, "qty")
 		bookside.(ccxt.IOrderBookSide).Store(price, amount)
@@ -1545,7 +1515,7 @@ func (this *Kraken) HandleMyTrades(client any, message map[string]any, optionalA
 	//
 	var subscription map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = subscription
-	var allTrades []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var allTrades []any = ccxt.SafeListTyped(message, "data")
 	var allTradesLength int = len(allTrades)
 	if allTradesLength > 0 {
 		if ccxt.IsEqual(this.MyTrades, nil) {
@@ -1603,7 +1573,7 @@ func (this *Kraken) ParseWsTrade(trade any, optionalArgs ...any) any {
 	}
 	var fee map[string]any = nil
 	if ccxt.InOp(trade, "fees") {
-		var fees []any = ccxt.SafeListTypedDefault(trade, "fees", []any{})
+		var fees []any = ccxt.SafeListTyped(trade, "fees")
 		var firstFee map[string]any = ccxt.SafeMapTyped(fees, 0)
 		fee = map[string]any{
 			"cost":     this.SafeNumber(firstFee, "qty"),
@@ -1612,12 +1582,10 @@ func (this *Kraken) ParseWsTrade(trade any, optionalArgs ...any) any {
 	}
 	var datetime *string = this.SafeString(trade, "timestamp")
 	var liquidityIndicator *string = this.SafeString(trade, "liquidity_ind")
-	var takerOrMaker string = func() string {
-		if liquidityIndicator != nil && *liquidityIndicator == "t" {
-			return "taker"
-		}
-		return "maker"
-	}()
+	var takerOrMaker string = "maker"
+	if liquidityIndicator != nil && *liquidityIndicator == "t" {
+		takerOrMaker = "taker"
+	}
 	return map[string]any{
 		"info":         trade,
 		"id":           this.SafeString(trade, "exec_id"),
@@ -1663,11 +1631,11 @@ func (this *Kraken) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes130715 := (<-this.WatchPrivateAsync("orders", symbol, since, limit, this.Extend(params, map[string]any{
+	retRes132515 := (<-this.WatchPrivateAsync("orders", symbol, since, limit, this.Extend(params, map[string]any{
 		"snap_orders": true,
 	})))
-	ccxt.PanicOnError(retRes130715)
-	ch <- retRes130715
+	ccxt.PanicOnError(retRes132515)
+	ch <- retRes132515
 	return nil
 }
 func (this *Kraken) HandleOrders(client any, message map[string]any, optionalArgs ...any) {
@@ -1700,7 +1668,7 @@ func (this *Kraken) HandleOrders(client any, message map[string]any, optionalArg
 	//
 	var subscription map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = subscription
-	var allOrders []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var allOrders []any = ccxt.SafeListTyped(message, "data")
 	var allOrdersLength int = len(allOrders)
 	if allOrdersLength > 0 {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
@@ -2043,7 +2011,7 @@ func (this *Kraken) HandleMessage(client any, message any) {
 	var channel *string = this.SafeString(message, "channel")
 	if channel != nil {
 		if channel != nil && *channel == "executions" {
-			var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+			var data []any = ccxt.SafeListTyped(message, "data")
 			var first map[string]any = ccxt.SafeMapTyped(data, 0)
 			var execType *string = this.SafeString(first, "exec_type")
 			channel = ccxt.SafeStringPtr(func() string {

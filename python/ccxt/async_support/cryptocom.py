@@ -966,7 +966,7 @@ class cryptocom(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOrders', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchOrders', symbol, since, limit, params)
         market = None
@@ -1043,7 +1043,7 @@ class cryptocom(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchTrades', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchTrades', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, params)
         market = self.market(symbol)
@@ -1201,7 +1201,7 @@ class cryptocom(Exchange, ImplicitAPI):
         positionBalances = self.safe_list(data[0], 'position_balances', [])
         result = {'info': response}
         for i in range(0, len(positionBalances)):
-            balance = positionBalances[i]
+            balance = self.safe_dict(positionBalances, i)
             currencyId = self.safe_string(balance, 'instrument_name')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -1463,7 +1463,7 @@ class cryptocom(Exchange, ImplicitAPI):
             await self.load_markets()
         ordersRequests = []
         for i in range(0, len(orders)):
-            rawOrder = orders[i]
+            rawOrder = self.safe_dict(orders, i)
             marketId = self.safe_string(rawOrder, 'symbol')
             type = self.safe_string(rawOrder, 'type')
             side = self.safe_string(rawOrder, 'side')
@@ -1767,7 +1767,7 @@ class cryptocom(Exchange, ImplicitAPI):
             await self.load_markets()
         orderRequests = []
         for i in range(0, len(orders)):
-            order = orders[i]
+            order = self.safe_dict(orders, i)
             id = self.safe_string(order, 'id')
             symbol = self.safe_string(order, 'symbol')
             market = self.market(symbol)
@@ -1862,7 +1862,7 @@ class cryptocom(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params, 100)
         request = {}
@@ -2577,7 +2577,7 @@ class cryptocom(Exchange, ImplicitAPI):
         }
         if networkList is not None:
             for i in range(0, networkListLength):
-                networkInfo = networkList[i]
+                networkInfo = self.safe_dict(networkList, i)
                 networkId = self.safe_string(networkInfo, 'network_id')
                 currencyCode = self.safe_string(currency, 'code')
                 networkCode = self.network_id_to_code(networkId, currencyCode)
@@ -3008,7 +3008,7 @@ class cryptocom(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params)
         market = self.market(symbol)
@@ -3363,8 +3363,12 @@ class cryptocom(Exchange, ImplicitAPI):
             symbol = self.symbols[i]
             market = self.market(symbol)
             isSwap = market['swap']
-            takerFeeKey = 'effective_deriv_taker_rate_bps' if (isSwap is True) else 'effective_spot_taker_rate_bps'
-            makerFeeKey = 'effective_deriv_maker_rate_bps' if (isSwap is True) else 'effective_spot_maker_rate_bps'
+            takerFeeKey = 'effective_spot_taker_rate_bps'
+            if isSwap is True:
+                takerFeeKey = 'effective_deriv_taker_rate_bps'
+            makerFeeKey = 'effective_spot_maker_rate_bps'
+            if isSwap is True:
+                makerFeeKey = 'effective_deriv_maker_rate_bps'
             tradingFee = {
                 'info': response,
                 'symbol': symbol,

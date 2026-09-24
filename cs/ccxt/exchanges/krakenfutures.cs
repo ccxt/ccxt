@@ -984,7 +984,7 @@ public partial class krakenfutures : Exchange
         string? takerFee = null;
         for (int i = 0; i < tiers.Count; i++)
         {
-            object tier = tiers[i];
+            IDictionary<string, object> tier = this.safeDict(tiers, i);
             string? tierVolume = this.safeString(tier, "usdVolume");
             if (((volume == null)) || Precise.stringGe(volume, tierVolume))
             {
@@ -1032,8 +1032,8 @@ public partial class krakenfutures : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -1130,8 +1130,8 @@ public partial class krakenfutures : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -1218,7 +1218,7 @@ public partial class krakenfutures : Exchange
             for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
             {
                 object index = subtract((length - 1), i);
-                object element = getValue(elements, index);
+                IDictionary<string, object> element = this.safeDict(elements, index);
                 IDictionary<string, object> eventVar = this.safeDict(element, "event", new Dictionary<string, object>() {});
                 IDictionary<string, object> executionContainer = this.safeDict(eventVar, "Execution", new Dictionary<string, object>() {});
                 IDictionary<string, object> rawTrade = this.safeDict(executionContainer, "execution", new Dictionary<string, object>() {});
@@ -1474,7 +1474,7 @@ public partial class krakenfutures : Exchange
         bool isTakeProfitTriggerOrder = (takeProfitTriggerPrice != null);
         bool isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         string? triggerSignal = this.safeString(parameters, "triggerSignal", "last");
-        object reduceOnly = this.safeValue(parameters, "reduceOnly");
+        bool? reduceOnly = this.safeBool(parameters, "reduceOnly");
         if (isStopLossOrTakeProfitTrigger || isTriggerOrder)
         {
             request["triggerSignal"] = triggerSignal;
@@ -1496,7 +1496,7 @@ public partial class krakenfutures : Exchange
                 request["stopPrice"] = this.priceToPrecision(symbolVar, takeProfitTriggerPrice);
             }
         }
-        if (isEqual(reduceOnly, true))
+        if ((reduceOnly == true))
         {
             request["reduceOnly"] = true;
         }
@@ -1637,7 +1637,7 @@ public partial class krakenfutures : Exchange
         List<object> ordersRequests = new List<object>() {};
         for (int i = 0; i < getArrayLength(orders); i++)
         {
-            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
+            IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
             string? type = this.safeString(rawOrder, "type");
             string? side = this.safeString(rawOrder, "side");
@@ -2055,7 +2055,7 @@ public partial class krakenfutures : Exchange
         List<object> closedOrders = new List<object>() {};
         for (int i = 0; i < allOrders.Count; i++)
         {
-            object order = allOrders[i];
+            IDictionary<string, object> order = this.safeDict(allOrders, i);
             IDictionary<string, object> eventVar = this.safeDict(order, "event", new Dictionary<string, object>() {});
             IDictionary<string, object> orderPlaced = this.safeDict2(eventVar, "OrderPlaced", "OrderTriggerActivated");
             IDictionary<string, object> orderUpdated = this.safeDict(eventVar, "OrderUpdated");
@@ -2129,7 +2129,7 @@ public partial class krakenfutures : Exchange
         List<object> canceledAndRejected = new List<object>() {};
         for (int i = 0; i < allOrders.Count; i++)
         {
-            object order = allOrders[i];
+            IDictionary<string, object> order = this.safeDict(allOrders, i);
             IDictionary<string, object> eventVar = this.safeDict(order, "event", new Dictionary<string, object>() {});
             bool isCancelledTriggerOrder = (eventVar.ContainsKey("OrderTriggerCancelled"));
             IDictionary<string, object> orderPlaced = this.safeDict2(eventVar, "OrderPlaced", "OrderTriggerCancelled");
@@ -2665,7 +2665,7 @@ public partial class krakenfutures : Exchange
             string vwapSum = "0.0";
             for (int i = 0; i < (trades?.Count ?? 0); i++)
             {
-                IDictionary<string, object> trade = ((IDictionary<string, object>)trades[i]);
+                IDictionary<string, object> trade = this.safeDict(trades, i);
                 string? tradeAmount = this.safeString(trade, "amount");
                 string? tradePrice = this.safeString(trade, "price");
                 filled2 = Precise.stringAdd(filled2, tradeAmount);
@@ -2707,7 +2707,11 @@ public partial class krakenfutures : Exchange
         string? cost = null;
         if (((filled != null)) && ((market != null)))
         {
-            string? whichPrice = ((average != null)) ? average : price;
+            string? whichPrice = price;
+            if ((average != null))
+            {
+                whichPrice = average;
+            }
             if ((whichPrice != null))
             {
                 if (isEqual(getValue(market, "linear"), true))
@@ -3377,7 +3381,7 @@ public partial class krakenfutures : Exchange
         List<object> fundingRates = new List<object>() {};
         for (int i = 0; i < tickers.Count; i++)
         {
-            object entry = tickers[i];
+            IDictionary<string, object> entry = this.safeDict(tickers, i);
             string? entry_symbol = this.safeString(entry, "symbol");
             if ((marketIds != null))
             {
@@ -3513,7 +3517,7 @@ public partial class krakenfutures : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(rates); i++)
         {
-            object item = getValue(rates, i);
+            IDictionary<string, object> item = this.safeDict(rates, i);
             string? datetime = this.safeString(item, "timestamp");
             result.Add(new Dictionary<string, object>() {
                 { "info", item },

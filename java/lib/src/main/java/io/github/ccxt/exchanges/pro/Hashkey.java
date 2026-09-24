@@ -218,7 +218,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         {
             Map<String, Object> candle = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
             Object parsed = this.parseWsOHLCV(candle, market);
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
         }
         String messageHash = ((("ohlcv:" + symbol) + ":") + timeframe);
         client.resolve(stored, messageHash);
@@ -429,7 +429,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             {
                 Map<String, Object> trade = (Map<String, Object>) this.safeDict(data, i);
                 Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (trade), market);
-                Helpers.callDynamically(stored, "append", new Object[]{parsed});
+                stored.append(parsed);
             }
         }
         String messageHash = (("trades" + ":") + symbol);
@@ -522,7 +522,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         Map<String, Object> dataEntry = (Map<String, Object>) this.safeDict(data, 0);
         Long timestamp = this.safeInteger(dataEntry, "t");
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(dataEntry, symbol, timestamp, "b", "a");
-        Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+        orderbook.reset(snapshot);
         Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(message, "id"));
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         client.resolve(orderbook, messageHash);
@@ -1120,7 +1120,11 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         List<Object> data = (List<Object>) this.safeList(message, "B", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> balanceUpdate = (Map<String, Object>) this.safeDict(data, 0);
         Boolean isSpot = java.util.Objects.equals(eventVar, "outboundAccountInfo");
-        String type = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "swap";
+        String type = "swap";
+        if (Boolean.TRUE.equals(isSpot))
+        {
+            type = "spot";
+        }
         if (!(((Map<?, ?>)this.balance).containsKey(type)))
         {
             Helpers.addElementToObject(this.balance, type, new HashMap<String, Object>() {{}});
