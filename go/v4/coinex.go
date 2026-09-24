@@ -3455,7 +3455,7 @@ func (this *Coinex) editOrdersBody(ch chan any, orders any, optionalArgs ...any)
 		var entry map[string]any = SafeMapTyped(data, i)
 		var code *string = this.SafeString(entry, "code")
 		var message *string = this.SafeString(entry, "message", "")
-		if (code == nil || *code != "0") || ((message == nil || *message != "Success") && (message == nil || *message != "Succeeded") && (ToLower(message) != "ok") && (IsEqual(data, nil))) {
+		if (code == nil || *code != "0") || ((message == nil || *message != "Success") && (message == nil || *message != "Succeeded") && (ToLower(message) != "ok") && ((data == nil))) {
 			var feedback string = this.Id + " " + *message
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)

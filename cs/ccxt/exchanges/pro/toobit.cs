@@ -796,10 +796,6 @@ public partial class toobit : ccxt.toobit
         {
             subscriptionHash = spotSubHash;
         }
-        if ((subscriptionHash == null))
-        {
-            throw new ArgumentsRequired ((this.id + " watchBalance() requires a subscription hash")) ;
-        }
         string? url = this.getUserStreamUrl();
         var client = this.client(url);
         this.setBalanceCache(client, marketType, subscriptionHash, parameters);
@@ -886,7 +882,7 @@ public partial class toobit : ccxt.toobit
             account["info"] = balance;
             account["used"] = this.safeString(balance, "l");
             account["free"] = this.safeString(balance, "f");
-            if (((type != null)) && ((code != null)))
+            if ((code != null))
             {
                 ((IDictionary<string,object>)getValue(this.balance, type))[(string)code] = account;
             }

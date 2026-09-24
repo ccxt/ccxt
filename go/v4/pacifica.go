@@ -1185,7 +1185,7 @@ func (this *Pacifica) fetchLeverageBody(ch chan any, symbol any, optionalArgs ..
 		PanicOnError(settings)
 	}
 	var setting map[string]any = SafeMapTyped(settings, symbol)
-	if IsEqual(setting, nil) {
+	if setting == nil {
 
 		// NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
 		// When querying this endpoint, all markets with default margin and leverage settings on this account will return blank.
@@ -1364,7 +1364,7 @@ func (this *Pacifica) fetchMarginModeBody(ch chan any, symbol any, optionalArgs 
 	//    },
 	// }
 	var setting map[string]any = SafeMapTyped(settings, symbol)
-	if IsEqual(setting, nil) {
+	if setting == nil {
 
 		// NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
 		// When querying this endpoint, all markets with default margin and leverage settings on this account will return blank.

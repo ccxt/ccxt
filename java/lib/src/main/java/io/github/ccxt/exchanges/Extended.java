@@ -3944,7 +3944,13 @@ public class Extended extends ExtendedApi
                     ((Map<String, Object>)request).put("trigger", trigger);
                 } else if (Boolean.TRUE.equals(isStopLossOrder) || Boolean.TRUE.equals(isTakeProfitOrder))
                 {
-                    triggerPriceStr = ((Boolean.TRUE.equals(isStopLossOrder))) ? stopLossTriggerPrice : takeProfitTriggerPrice;
+                    if (Boolean.TRUE.equals(isStopLossOrder))
+                    {
+                        triggerPriceStr = stopLossTriggerPrice;
+                    } else
+                    {
+                        triggerPriceStr = takeProfitTriggerPrice;
+                    }
                     final String finalTriggerPriceStr_2 = triggerPriceStr;
                     Map<String, Object> trigger = new HashMap<String, Object>() {{
                         put( "triggerPrice", Extended.this.priceToPrecision(symbol, finalTriggerPriceStr_2) );

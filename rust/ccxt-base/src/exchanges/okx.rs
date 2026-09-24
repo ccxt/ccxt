@@ -8735,7 +8735,11 @@ impl OkxCore {
         let mut addressTo: Value = self.safe_string_k(transaction.clone(), "to", &[]);
         let mut address: Value = addressTo.clone();
         let mut tagTo: Value = self.safe_string2(transaction.clone(), Value::Str("tag".into()), Value::Str("memo".into()), &[]);
-        tagTo = (if (tagTo == Value::Null) { self.safe_string_k(transaction.clone(), "pmtId", &[]) } else { self.safe_string2(transaction.clone(), Value::Str("pmtId".into()), tagTo.clone(), &[]) });
+        if (tagTo == Value::Null) {
+            tagTo = self.safe_string_k(transaction.clone(), "pmtId", &[]);
+        }  else {
+            tagTo = self.safe_string2(transaction.clone(), Value::Str("pmtId".into()), tagTo.clone(), &[]);
+        }
         if (withdrawalId != Value::Null) {
             type_var = Value::Str("withdrawal".into());
             id = withdrawalId;
@@ -8752,9 +8756,7 @@ impl OkxCore {
             let mut chainParts: Value = split(&chain, &Value::Str("-".into()));
             let mut networkParts: Value = self.array_slice(chainParts, Value::Int(1), &[]);
             let mut networkId: Value = join(&networkParts, &Value::Str("-".into()));
-            if (networkId != Value::Null) {
-                network = self.network_id_to_code(&[networkId, code.clone()]);
-            }
+            network = self.network_id_to_code(&[networkId, code.clone()]);
         }
         let mut amount: Value = self.safe_number_k(transaction.clone(), "amt", &[]);
         let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "state", &[]));

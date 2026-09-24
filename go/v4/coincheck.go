@@ -414,7 +414,7 @@ func (this *Coincheck) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < len(exchangeStatuses); i++ {
 		var exchangeStatus map[string]any = SafeMapTyped(exchangeStatuses, i)
 		var rawStatus *string = this.SafeString(exchangeStatus, "status")
-		if IsEqual(updated, nil) {
+		if updated == nil {
 			updated = this.SafeTimestamp(exchangeStatus, "timestamp")
 		}
 		if rawStatus == nil || *rawStatus != "available" {

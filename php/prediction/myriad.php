@@ -2074,7 +2074,7 @@ class myriad extends Exchange {
     public function hex_to_decimal_string(string $hexValue): ?string {
         // portable hex -> decimal string (avoids convertToBigInt, which is not uniform across languages)
         $stripped = $this->remove0x_prefix($hexValue);
-        if (($stripped === null) || ($stripped === '')) {
+        if ($stripped === '') {
             return null;
         }
         $chars = $this->string_to_chars_array(strtolower($stripped));

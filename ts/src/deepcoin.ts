@@ -1232,7 +1232,9 @@ export default class deepcoin extends Exchange {
         let network = this.safeString (params, 'network');
         const defaultNetworks = this.safeDict (this.options, 'defaultNetworks', {});
         const defaultNetwork = this.safeString (defaultNetworks, code);
-        network = (network !== undefined && network !== '') ? network : defaultNetwork;
+        if ((network === undefined) || (network === '')) {
+            network = defaultNetwork;
+        }
         if (network !== undefined) {
             params = this.omit (params, 'network');
         }

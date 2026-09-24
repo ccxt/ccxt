@@ -997,10 +997,6 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             {
                 subscriptionHash = spotSubHash;
             }
-            if (java.util.Objects.equals(subscriptionHash, null))
-            {
-                throw new ArgumentsRequired((this.id + " watchBalance() requires a subscription hash")) ;
-            }
             Object url = this.getUserStreamUrl();
             Client client = this.client(url);
             this.setBalanceCache(client, marketType, subscriptionHash, parameters);
@@ -1105,7 +1101,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             ((Map<String, Object>)account).put("info", balance);
             ((Map<String, Object>)account).put("used", this.safeString(balance, "l"));
             ((Map<String, Object>)account).put("free", this.safeString(balance, "f"));
-            if ((!java.util.Objects.equals(type, null)) && (!java.util.Objects.equals(code, null)))
+            if (!java.util.Objects.equals(code, null))
             {
                 Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), code, account);
             }

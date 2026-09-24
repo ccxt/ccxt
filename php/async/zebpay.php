@@ -2067,7 +2067,7 @@ class zebpay extends Exchange {
         $access = $this->safe_string($api, 0, 'public');
         if ($access === 'public') {
             if ($method === 'GET' || $method === 'DELETE') {
-                if (($queryLength !== null) && ($queryLength !== 0)) {
+                if ($queryLength !== 0) {
                     $url .= '?' . $this->urlencode($query);
                 }
             } else {

@@ -4310,7 +4310,10 @@ class bybit(Exchange, ImplicitAPI):
                 request['triggerDirection'] = 1 if isStopLossOrder else 2
             else:
                 request['triggerDirection'] = 2 if isStopLossOrder else 1
-            triggerPrice = stopLossTriggerPrice if isStopLossOrder else takeProfitTriggerPrice
+            if isStopLossOrder:
+                triggerPrice = stopLossTriggerPrice
+            else:
+                triggerPrice = takeProfitTriggerPrice
             request['triggerPrice'] = self.get_price(symbol, triggerPrice)
             request['reduceOnly'] = True
         if (hasStopLoss or hasTakeProfit) and not endpointIsTradingStop:
@@ -4482,7 +4485,10 @@ class bybit(Exchange, ImplicitAPI):
         hasStopLoss = stopLoss is not None
         hasTakeProfit = takeProfit is not None
         if isStopLossOrder or isTakeProfitOrder:
-            triggerPrice = stopLossTriggerPrice if isStopLossOrder else takeProfitTriggerPrice
+            if isStopLossOrder:
+                triggerPrice = stopLossTriggerPrice
+            else:
+                triggerPrice = takeProfitTriggerPrice
         if triggerPrice is not None:
             triggerPriceRequest = triggerPrice if (triggerPrice == '0') else self.get_price(symbol, triggerPrice)
             request['triggerPrice'] = triggerPriceRequest

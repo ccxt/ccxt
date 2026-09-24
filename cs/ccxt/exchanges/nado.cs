@@ -511,7 +511,13 @@ public partial class nado : Exchange
             {
                 oracleSide = isStopLossOrder ? "below" : "above";
             }
-            triggerPrice = isStopLossOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
+            if (isStopLossOrder)
+            {
+                triggerPrice = stopLossTriggerPrice;
+            } else
+            {
+                triggerPrice = takeProfitTriggerPrice;
+            }
             string? triggerPriceX18 = this.convertToX18(triggerPrice);
             Dictionary<string, object> priceRequirement = new Dictionary<string, object>() {};
             priceRequirement[(string)("oracle_price_" + oracleSide)] = triggerPriceX18;

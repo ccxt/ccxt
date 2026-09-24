@@ -881,9 +881,6 @@ func (this *Toobit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	if isSpot {
 		subscriptionHash = spotSubHash
 	}
-	if ccxt.IsEqual(subscriptionHash, nil) {
-		panic(ccxt.ArgumentsRequired(this.Id + " watchBalance() requires a subscription hash"))
-	}
 	var url any = this.GetUserStreamUrl()
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetBalanceCache(client, marketType, subscriptionHash, params)
@@ -965,7 +962,7 @@ func (this *Toobit) HandleBalance(client any, message map[string]any) {
 		account["info"] = balance
 		account["used"] = this.SafeString(balance, "l")
 		account["free"] = this.SafeString(balance, "f")
-		if (!ccxt.IsEqual(typeVar, nil)) && (code != nil) {
+		if code != nil {
 			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
 		}
 	}

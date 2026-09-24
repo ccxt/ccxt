@@ -8411,7 +8411,10 @@ public class Bingx extends BingxApi
     {
         String marketId = this.safeString(marginMode, "symbol");
         String marginType = this.safeStringLower(marginMode, "marginType");
-        marginType = (((java.util.Objects.equals(marginType, "crossed")))) ? "cross" : marginType;
+        if (java.util.Objects.equals(marginType, "crossed"))
+        {
+            marginType = "cross";
+        }
         final String finalMarginType = marginType;
         return new HashMap<String, Object>() {{
             put( "info", marginMode );

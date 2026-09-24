@@ -1047,7 +1047,7 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan any, optionalArgs ...any) an
 					return nil
 				}()
 				var pairInfo []any = SafeListTyped(indexedTradingPairs, ToUpper(marketId))
-				if !IsEqual(pairInfo, nil) && !this.InArray(marketId, brokenPairs) {
+				if (pairInfo != nil) && !this.InArray(marketId, brokenPairs) {
 					result = append(result, this.ParseMarket(pairInfo))
 				}
 			}

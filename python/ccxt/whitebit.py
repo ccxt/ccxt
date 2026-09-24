@@ -521,7 +521,8 @@ class whitebit(Exchange, ImplicitAPI):
         id = self.safe_string(market, 'name')
         baseId = self.safe_string(market, 'stock')
         quoteId = self.safe_string(market, 'money')
-        quoteId = 'USDT' if (quoteId == 'PERP') else quoteId
+        if quoteId == 'PERP':
+            quoteId = 'USDT'
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         active = self.safe_bool(market, 'tradesEnabled')

@@ -1949,7 +1949,7 @@ func (this *Modetrade) ParseOrder(order any, optionalArgs ...any) any {
 	var takeProfitPrice *float64 = nil
 	var stopLossPrice *float64 = nil
 	var childOrders []any = SafeListTyped(order, "childOrders")
-	if !IsEqual(childOrders, nil) {
+	if childOrders != nil {
 		var first map[string]any = SafeMapTyped(childOrders, 0)
 		var innerChildOrders []any = SafeListTyped(first, "childOrders")
 		var innerChildOrdersLength int = len(innerChildOrders)

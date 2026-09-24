@@ -465,7 +465,11 @@ export default class nado extends Exchange {
             } else {
                 oracleSide = isStopLossOrder ? 'below' : 'above';
             }
-            triggerPrice = isStopLossOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
+            if (isStopLossOrder) {
+                triggerPrice = stopLossTriggerPrice;
+            } else {
+                triggerPrice = takeProfitTriggerPrice;
+            }
             const triggerPriceX18 = this.convertToX18 (triggerPrice);
             const priceRequirement: Dict = {};
             priceRequirement['oracle_price_' + oracleSide] = triggerPriceX18;

@@ -2215,7 +2215,7 @@ func (this *Derive) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		"subaccount_id": subaccountId,
 	}
 	var response map[string]any = nil
-	if !IsEqual(market, nil) {
+	if market != nil {
 		request["instrument_name"] = GetValue(market, "id")
 
 		response = MapTyped(PanicOnError((<-this.PrivatePostCancelByInstrument(this.Extend(request, params))).Raw))
@@ -3487,7 +3487,7 @@ func (this *Derive) HandleErrors(httpCode any, reason any, url any, method any, 
 		return nil // fallback to default error handler
 	}
 	var error map[string]any = SafeMapTyped(response, "error")
-	if !IsEqual(error, nil) {
+	if error != nil {
 		var errorCode *string = this.SafeString(error, "code")
 		var feedback any = Add(this.Id+" ", this.Json(response))
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)

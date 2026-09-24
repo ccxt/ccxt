@@ -6901,7 +6901,9 @@ class bingx extends Exchange {
     public function parse_margin_mode(array $marginMode, ?array $market = null): array {
         $marketId = $this->safe_string($marginMode, 'symbol');
         $marginType = $this->safe_string_lower($marginMode, 'marginType');
-        $marginType = ($marginType === 'crossed') ? 'cross' : $marginType;
+        if ($marginType === 'crossed') {
+            $marginType = 'cross';
+        }
         return array(
             'info' => $marginMode,
             'symbol' => $this->safe_symbol($marketId, $market, '-', 'swap'),

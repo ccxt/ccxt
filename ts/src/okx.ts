@@ -5986,7 +5986,11 @@ export default class okx extends Exchange {
         const addressTo = this.safeString (transaction, 'to');
         const address = addressTo;
         let tagTo = this.safeString2 (transaction, 'tag', 'memo');
-        tagTo = (tagTo === undefined) ? this.safeString (transaction, 'pmtId') : this.safeString2 (transaction, 'pmtId', tagTo);
+        if (tagTo === undefined) {
+            tagTo = this.safeString (transaction, 'pmtId');
+        } else {
+            tagTo = this.safeString2 (transaction, 'pmtId', tagTo);
+        }
         if (withdrawalId !== undefined) {
             type = 'withdrawal';
             id = withdrawalId;
@@ -6003,9 +6007,7 @@ export default class okx extends Exchange {
             const chainParts = chain.split ('-');
             const networkParts = this.arraySlice (chainParts, 1);
             const networkId = networkParts.join ('-');
-            if (networkId !== undefined) {
-                network = this.networkIdToCode (networkId, code);
-            }
+            network = this.networkIdToCode (networkId, code);
         }
         const amount = this.safeNumber (transaction, 'amt');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));

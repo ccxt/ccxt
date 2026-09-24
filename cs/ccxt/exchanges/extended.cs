@@ -3153,7 +3153,13 @@ public partial class extended : Exchange
                 request["trigger"] = trigger;
             } else if (isStopLossOrder || isTakeProfitOrder)
             {
-                triggerPriceStr = isStopLossOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
+                if (isStopLossOrder)
+                {
+                    triggerPriceStr = stopLossTriggerPrice;
+                } else
+                {
+                    triggerPriceStr = takeProfitTriggerPrice;
+                }
                 Dictionary<string, object> trigger = new Dictionary<string, object>() {
                     { "triggerPrice", this.priceToPrecision(symbol, triggerPriceStr) },
                 };

@@ -439,7 +439,7 @@ class mudrex(Exchange, ImplicitAPI):
                 items = self.safe_list(data, 'items', [])
                 # hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                 itemsLength = len(items)
-                if (itemsLength is None) or (itemsLength == 0):
+                if itemsLength == 0:
                     items = self.safe_list(data, 'results', [])
                     itemsLength = len(items)
                 if (itemsLength == 0) and ('symbol' in data):
@@ -447,7 +447,7 @@ class mudrex(Exchange, ImplicitAPI):
             else:
                 items = self.to_array(data)
             numItems = len(items)
-            if (numItems is None) or (numItems == 0):
+            if numItems == 0:
                 paging = False
                 break
             for i in range(0, numItems):

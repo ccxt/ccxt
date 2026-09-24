@@ -2980,7 +2980,7 @@ public class Myriad extends MyriadApi
     {
         // portable hex -> decimal string (avoids convertToBigInt, which is not uniform across languages)
         Object stripped = this.remove0xPrefix(hexValue);
-        if ((java.util.Objects.equals(stripped, null)) || (java.util.Objects.equals(stripped, "")))
+        if (java.util.Objects.equals(stripped, ""))
         {
             return null;
         }

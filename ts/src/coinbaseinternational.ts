@@ -1860,7 +1860,9 @@ export default class coinbaseinternational extends Exchange {
             }
             tif = 'IOC';
         } else {
-            tif = (tif === undefined) ? 'GTC' : tif;
+            if (tif === undefined) {
+                tif = 'GTC';
+            }
         }
         if (postOnly !== undefined) {
             request['post_only'] = postOnly;

@@ -2089,7 +2089,7 @@ func (this *Dydx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var clientOrderIds []any = SafeListTyped(params, "clientOrderIds")
-	if IsEqual(clientOrderIds, nil) {
+	if clientOrderIds == nil {
 		panic(NotSupported(this.Id + " cancelOrders only support clientOrderIds."))
 	}
 	var subAccountId any = 0
@@ -2340,7 +2340,7 @@ func (this *Dydx) estimateTxFeeBody(ch chan any, message any, memo any, account 
 	// }
 	//
 	var gasInfo map[string]any = SafeMapTyped(response, "gas_info")
-	if IsEqual(gasInfo, nil) {
+	if gasInfo == nil {
 		panic(ExchangeError(this.Id + " failed to simulate transaction."))
 	}
 	var gasUsed *string = this.SafeString(gasInfo, "gas_used")

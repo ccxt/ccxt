@@ -15714,7 +15714,10 @@ final Object finalMinNotional = minNotional;
     public Object parseMarginMode(Map<String, Object> marginMode, Map<String, Object> market)
     {
         String marginType = this.safeString(marginMode, "marginMode");
-        marginType = (((java.util.Objects.equals(marginType, "crossed")))) ? "cross" : marginType;
+        if (java.util.Objects.equals(marginType, "crossed"))
+        {
+            marginType = "cross";
+        }
         final String finalMarginType = marginType;
         return new HashMap<String, Object>() {{
             put( "info", marginMode );

@@ -1223,7 +1223,9 @@ class deepcoin extends Exchange {
         $network = $this->safe_string($params, 'network');
         $defaultNetworks = $this->safe_dict($this->options, 'defaultNetworks', array());
         $defaultNetwork = $this->safe_string($defaultNetworks, $code);
-        $network = ($network !== null && $network !== '') ? $network : $defaultNetwork;
+        if (($network === null) || ($network === '')) {
+            $network = $defaultNetwork;
+        }
         if ($network !== null) {
             $params = $this->omit($params, 'network');
         }

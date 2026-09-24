@@ -2793,7 +2793,11 @@ class extended extends Exchange {
                 $request['type'] = 'CONDITIONAL';
                 $request['trigger'] = $trigger;
             } elseif ($isStopLossOrder || $isTakeProfitOrder) {
-                $triggerPriceStr = $isStopLossOrder ? $stopLossTriggerPrice : $takeProfitTriggerPrice;
+                if ($isStopLossOrder) {
+                    $triggerPriceStr = $stopLossTriggerPrice;
+                } else {
+                    $triggerPriceStr = $takeProfitTriggerPrice;
+                }
                 $trigger = array(
                     'triggerPrice' => $this->price_to_precision($symbol, $triggerPriceStr),
                 );

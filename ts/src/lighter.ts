@@ -1213,7 +1213,9 @@ export default class lighter extends Exchange {
             const market = markets[i];
             const id = this.safeString (market, 'market_id');
             let type = this.safeString (market, 'market_type');
-            type = (type === 'perp') ? 'swap' : type;
+            if (type === 'perp') {
+                type = 'swap';
+            }
             let baseId = this.safeString (market, 'symbol');
             if (baseId !== undefined && baseId.indexOf ('/') !== -1) {
                 baseId = baseId.split ('/')[0];

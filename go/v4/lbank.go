@@ -1630,7 +1630,7 @@ func (this *Lbank) ParseBalance(response any) any {
 	}
 	// from spotPrivatePostSupplementUserInfoAccount
 	var balances []any = SafeListTyped(data, "balances")
-	if !IsEqual(balances, nil) {
+	if balances != nil {
 		for i := 0; i < len(balances); i++ {
 			var item map[string]any = SafeMapTyped(balances, i)
 			var currencyId *string = this.SafeString(item, "asset")
@@ -3697,7 +3697,7 @@ func (this *Lbank) ParsePublicDepositWithdrawFees(response []any, optionalArgs .
 				var withdrawFee *float64 = this.SafeNumber(fee, "fee")
 				if withdrawFee != nil {
 					var resultValue map[string]any = SafeMapTyped(result, code)
-					if IsEqual(resultValue, nil) {
+					if resultValue == nil {
 						AddElementToObject(result, code, this.DepositWithdrawFee([]any{fee}))
 					} else {
 						var resultCodeInfo any = GetValue(func() any {

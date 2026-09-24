@@ -1617,7 +1617,7 @@ class weex(ccxt.async_support.weex):
             account['free'] = self.safe_string_2(entry, 'available', 'amount')
             account['used'] = self.safe_string(entry, 'frozen')
             account['total'] = self.safe_string_2(entry, 'equity', 'legacyAmount')
-            if (accountType is not None) and (code is not None):
+            if code is not None:
                 self.balance[accountType][code] = account
         timestamp = self.safe_integer(message, 'E')
         self.balance[accountType]['timestamp'] = timestamp

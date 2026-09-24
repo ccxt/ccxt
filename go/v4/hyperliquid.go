@@ -1294,7 +1294,7 @@ func (this *Hyperliquid) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	//     }
 	//
 	var balances []any = SafeListTyped(response, "balances")
-	if !IsEqual(balances, nil) {
+	if balances != nil {
 		var spotBalances map[string]any = map[string]any{
 			"info": response,
 		}
@@ -2935,8 +2935,8 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) an
 		AddElementToObject(orderParams, "slippage", slippage)
 		var stopLoss map[string]any = SafeMapTyped(orderParams, "stopLoss")
 		var takeProfit map[string]any = SafeMapTyped(orderParams, "takeProfit")
-		var hasStopLoss bool = (!IsEqual(stopLoss, nil))
-		var hasTakeProfit bool = (!IsEqual(takeProfit, nil))
+		var hasStopLoss bool = ((stopLoss != nil))
+		var hasTakeProfit bool = ((takeProfit != nil))
 		orderParams = this.Omit(orderParams, []any{"stopLoss", "takeProfit"})
 		var mainOrderObj any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, orderParams)
 		if hasStopLoss || hasTakeProfit {
@@ -6348,7 +6348,7 @@ func (this *Hyperliquid) HandleErrors(code any, reason any, url any, method any,
 		if func() bool { _, ok := data["status"]; return ok }() {
 			var errorStatus map[string]any = MapTyped(this.SafeDict(data, "status", map[string]any{}))
 			var errorMsg *string = this.SafeString(errorStatus, "error")
-			if !IsEqual(errorStatus, nil) {
+			if errorStatus != nil {
 				message = errorMsg
 			}
 		}

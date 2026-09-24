@@ -2184,7 +2184,7 @@ func (this *Paradex) ParseOrder(order any, optionalArgs ...any) any {
 	var lastUpdateTimestamp *int64 = this.SafeInteger(order, "last_updated_at")
 	var flags []any = SafeListTyped(order, "flags")
 	var reduceOnly any = nil
-	if !IsEqual(flags, nil) {
+	if flags != nil {
 		reduceOnly = this.InArray("REDUCE_ONLY", flags)
 	}
 	return this.SafeOrder(map[string]any{

@@ -1797,7 +1797,7 @@ class myriad(PredictionExchange, ImplicitAPI):
     def hex_to_decimal_string(self, hexValue: str) -> Str:
         # portable hex -> decimal string (avoids convertToBigInt, which is not uniform across languages)
         stripped = self.remove0x_prefix(hexValue)
-        if (stripped is None) or (stripped == ''):
+        if stripped == '':
             return None
         chars = self.string_to_chars_array(stripped.lower())
         n = len(chars)

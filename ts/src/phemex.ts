@@ -1182,7 +1182,7 @@ export default class phemex extends Exchange {
         let minAmount: Num = undefined;
         let maxAmount: Num = undefined;
         let precision: Num = undefined;
-        if (valueScale !== undefined) {
+        if (valueScaleString !== undefined) {
             const precisionString = this.parsePrecision (valueScaleString);
             precision = this.parseNumber (precisionString);
             minAmount = this.parseNumber (Precise.stringMul (minValueEv, precisionString));

@@ -369,7 +369,7 @@ public class Hyperliquid extends HyperliquidApi
                     }
                     Integer thresholdsLength = ((List<?>)thresholds).size();
                     Long index = this.parseToInt(indexStr);
-                    if (Helpers.isGreaterThan(thresholdsLength, 0) && !java.util.Objects.equals(index, null))
+                    if (Helpers.isGreaterThan(thresholdsLength, 0))
                     {
                         String bucketLabel = null;
                         if (Helpers.isLessThanOrEqual(index, 0))
@@ -1580,11 +1580,8 @@ public class Hyperliquid extends HyperliquidApi
         {
             ((List<Object>)candidates).add(("#" + outcomeInput)); // encoding id without #
             Long numeric = this.parseToInt(outcomeInput);
-            if (!java.util.Objects.equals(numeric, null))
-            {
-                ((List<Object>)candidates).add(this.outcomeCoin(this.outcomeEncoding(numeric, 0))); // raw outcome id -> YES encoding
-                ((List<Object>)candidates).add(this.outcomeCoin(this.outcomeEncoding(numeric, 1))); // raw outcome id -> NO encoding
-            }
+            ((List<Object>)candidates).add(this.outcomeCoin(this.outcomeEncoding(numeric, 0))); // raw outcome id -> YES encoding
+            ((List<Object>)candidates).add(this.outcomeCoin(this.outcomeEncoding(numeric, 1))); // raw outcome id -> NO encoding
         }
         for (var i = 0; i < ((List<?>)candidates).size(); i++)
         {

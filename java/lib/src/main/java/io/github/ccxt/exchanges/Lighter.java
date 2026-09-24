@@ -1711,7 +1711,10 @@ public class Lighter extends LighterApi
                 Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String id = this.safeString(market, "market_id");
                 String type = this.safeString(market, "market_type");
-                type = (((java.util.Objects.equals(type, "perp")))) ? "swap" : type;
+                if (java.util.Objects.equals(type, "perp"))
+                {
+                    type = "swap";
+                }
                 Object baseId = this.safeString(market, "symbol");
                 if (!java.util.Objects.equals(baseId, null) && (((String)baseId).indexOf("/") != -1))
                 {

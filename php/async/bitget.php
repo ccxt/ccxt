@@ -11789,7 +11789,9 @@ class bitget extends Exchange {
 
     public function parse_margin_mode(array $marginMode, ?array $market = null): array {
         $marginType = $this->safe_string($marginMode, 'marginMode');
-        $marginType = ($marginType === 'crossed') ? 'cross' : $marginType;
+        if ($marginType === 'crossed') {
+            $marginType = 'cross';
+        }
         return array(
             'info' => $marginMode,
             'symbol' => $this->safe_string($market, 'symbol'),
