@@ -11808,6 +11808,9 @@ function stringProducerLocal (printer, node) {
         || !(declaration.parent.flags & ts.NodeFlags.Const)) {
         return false;
     }
+    if (isStaticallyStringExpression (printer, init, undefined)) {
+        return true; // e.g. the base safeString accessors, declared String
+    }
     const name = init.expression.name.escapedText;
     if (!(JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CAST.has (name))) {
         return false;
