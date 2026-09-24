@@ -4423,7 +4423,7 @@ func (this *Bitget) ParseCurrency(rawCurrency any) any {
 		if network == nil {
 			panic(ArgumentsRequired(this.Id + " requires a network argument"))
 		}
-		network = SafeStringPtr(ToUpper(network))
+		network = SafeStringPtr(strings.ToUpper(*network))
 		var withdrawable bool = (this.SafeString(chain, "withdrawable") != nil && *this.SafeString(chain, "withdrawable") == "true")
 		var rechargeable bool = (this.SafeString(chain, "rechargeable") != nil && *this.SafeString(chain, "rechargeable") == "true")
 		withdraw = func() any {

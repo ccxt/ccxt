@@ -716,7 +716,7 @@ func (this *Sxbet) MatchesEventQuery(raw any, queries any) any {
 			if field == nil {
 				continue
 			}
-			var fieldLower string = ccxt.ToLower(field)
+			var fieldLower string = strings.ToLower(*field)
 			if (strings.Index(query, fieldLower) >= 0) || (strings.Index(fieldLower, query) >= 0) {
 				return true
 			}
@@ -3050,7 +3050,7 @@ func (this *Sxbet) HandleCentrifugoFrame(client any, msg any) {
 	} else {
 		rows = []any{data}
 	}
-	var parts []string = ccxt.Split(channel, ":")
+	var parts []string = strings.Split(*channel, ":")
 	var channelType *string = this.SafeString(parts, 0)
 	if channelType != nil && *channelType == "orderbook_v3" {
 		this.HandleOrderBook(client, rows)

@@ -5300,7 +5300,7 @@ func (this *Binance) ParseMarket(market any) any {
 	if id == nil {
 		panic(ExchangeError(this.Id + " parseMarket() missing id"))
 	}
-	var optionParts []string = Split(id, "-")
+	var optionParts []string = strings.Split(*id, "-")
 	var optionBase *string = this.SafeString(optionParts, 0)
 	var lowercaseId *string = this.SafeStringLower(market, "symbol")
 	var baseId *string = this.SafeString(market, "baseAsset", optionBase)
@@ -6946,7 +6946,7 @@ func (this *Binance) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		panic(ExchangeError(this.Id + " fetchOHLCV() missing marketId"))
 	}
 	if price != nil && *price == "index" {
-		var parts []string = Split(marketId, "_")
+		var parts []string = strings.Split(*marketId, "_")
 		var pair *string = this.SafeString(parts, 0)
 		request["pair"] = pair // Index price takes this argument instead of symbol
 	} else {
@@ -12303,7 +12303,7 @@ func (this *Binance) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var toAccount any = nil
 	var accountsById map[string]any = SafeMapTyped(this.Options, "accountsById")
 	if typeVar != nil {
-		var parts []string = Split(typeVar, "_")
+		var parts []string = strings.Split(*typeVar, "_")
 		fromAccount = DerefScalar(this.SafeString(parts, 0))
 		toAccount = DerefScalar(this.SafeString(parts, 1))
 		fromAccount = DerefScalar(this.SafeString(accountsById, fromAccount, fromAccount))

@@ -1269,7 +1269,7 @@ func (this *Weex) ParseMarket(market any) any {
 	}
 	return this.SafeMarketStructure(map[string]any{
 		"id":          id,
-		"lowercaseId": ToLower(id),
+		"lowercaseId": strings.ToLower(*id),
 		"numericId":   this.SafeInteger(market, "contractId"),
 		"symbol":      symbol,
 		"base":        base,

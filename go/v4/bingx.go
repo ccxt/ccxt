@@ -1518,7 +1518,7 @@ func (this *Bingx) fetchInverseSwapMarketsBody(ch chan any, params any) any {
 }
 func (this *Bingx) ParseMarket(market any) any {
 	var id *string = this.SafeString(market, "symbol")
-	var symbolParts []string = Split(id, "-")
+	var symbolParts []string = strings.Split(*id, "-")
 	var baseId *string = SafeStringPtr(GetValue(symbolParts, 0))
 	var quoteId *string = SafeStringPtr(GetValue(symbolParts, 1))
 	var base *string = this.SafeCurrencyCode(baseId)
@@ -3194,7 +3194,7 @@ func (this *Bingx) ParseTicker(ticker any, optionalArgs ...any) any {
 	var baseVolume *string = this.SafeString(ticker, "volume")
 	var percentage *string = this.SafeString(ticker, "priceChangePercent")
 	if percentage != nil {
-		percentage = SafeStringPtr(Replace(percentage, "%", ""))
+		percentage = SafeStringPtr(strings.Replace(*percentage, "%", "", 1))
 	}
 	var change *string = this.SafeString(ticker, "priceChange")
 	var ts *int64 = this.SafeInteger(ticker, "closeTime")
@@ -3693,7 +3693,7 @@ func (this *Bingx) ParsePosition(position any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol", "")
-	marketId = SafeStringPtr(Replace(marketId, "/", "-")) // standard return different format
+	marketId = SafeStringPtr(strings.Replace(*marketId, "/", "-", 1)) // standard return different format
 	var isolated *bool = this.SafeBool(position, "isolated")
 	var marginMode any = nil
 	if isolated != nil {
@@ -5140,7 +5140,7 @@ func (this *Bingx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 	var parsedIds []any = []any{}
 	for i := 0; i < GetArrayLength(idsToParse); i++ {
 		var id *string = SafeStringPtr(GetValue(idsToParse, i))
-		var stringId string = ToString(id)
+		var stringId string = *id
 		parsedIds = append(parsedIds, stringId)
 	}
 	var response map[string]any = nil
@@ -6416,7 +6416,7 @@ func (this *Bingx) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	if (code != nil) && (network != nil) && (code != network && (code == nil || network == nil || *code != *network)) && (GetIndexOf(code, network) >= 0) {
 		if network != nil {
-			code = SafeStringPtr(Replace(code, network, ""))
+			code = SafeStringPtr(strings.Replace(*code, *network, "", 1))
 		}
 	}
 	var rawType *string = this.SafeString(transaction, "transferType")
@@ -7838,7 +7838,7 @@ func (this *Bingx) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
 	for i := 0; i < GetArrayLength(info); i++ {
 		var tier map[string]any = SafeMapTyped(info, i)
 		var tierString *string = this.SafeString(tier, "tier")
-		var tierParts []string = Split(tierString, " ")
+		var tierParts []string = strings.Split(*tierString, " ")
 		var marketId *string = this.SafeString(tier, "symbol")
 		market = MapTyped(this.SafeMarket(marketId, market, nil, "swap"))
 		tiers = append(tiers, map[string]any{

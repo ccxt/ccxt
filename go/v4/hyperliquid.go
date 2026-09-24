@@ -551,9 +551,9 @@ func (this *Hyperliquid) ParseCurrency(rawCurrency any) any {
 	// add in wrapped map
 	var fullName *string = this.SafeString(rawCurrency, "fullName")
 	if (fullName != nil) && (name != nil) {
-		var isWrapped bool = StartsWith(fullName, "Unit ") && StartsWith(name, "U")
+		var isWrapped bool = strings.HasPrefix(*fullName, "Unit ") && strings.HasPrefix(*name, "U")
 		if isWrapped {
-			var parts []string = Split(name, "U")
+			var parts []string = strings.Split(*name, "U")
 			var nameWithoutU any = ""
 			for j := 0; j < len(parts); j++ {
 				nameWithoutU = Add(nameWithoutU, GetValue(parts, j))
@@ -736,7 +736,7 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan any, optionalArgs ...any) 
 					if safeCode == nil {
 						return name
 					}
-					return SafeStringPtr(Replace(safeCode, ":", "-"))
+					return SafeStringPtr(strings.Replace(*safeCode, ":", "-", 1))
 				}()
 				AddElementToObject(GetValue(this.Options, "hip3TokensByName"), name, map[string]any{
 					"quote": collateralTokenCode,
@@ -867,7 +867,7 @@ func (this *Hyperliquid) CalculatePricePrecision(price any, amountPrecision any,
 	if priceStr == nil {
 		return 0
 	}
-	var priceSplitted []string = Split(priceStr, ".")
+	var priceSplitted []string = strings.Split(*priceStr, ".")
 	if Precise.StringEq(priceStr, "0") {
 		// Significant digits is always 5 in this case
 		var significantDigits int = 5
@@ -1112,7 +1112,7 @@ func (this *Hyperliquid) ParseMarket(market any) any {
 	if base == nil {
 		panic(ExchangeError(this.Id + " parseMarket() missing base currency"))
 	}
-	base = SafeStringPtr(Replace(base, ":", "-")) // handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
+	base = SafeStringPtr(strings.Replace(*base, ":", "-", 1)) // handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var baseId *string = this.SafeString(market, "baseId")
 	var settle *string = this.SafeCurrencyCode(settleId)
@@ -3865,7 +3865,7 @@ func (this *Hyperliquid) fetchFundingRateHistoryBody(ch chan any, optionalArgs .
 }
 func (this *Hyperliquid) GetDexFromHip3Symbol(market any) any {
 	var baseName *string = this.SafeString(market, "baseName", "")
-	var part []string = Split(baseName, ":")
+	var part []string = strings.Split(*baseName, ":")
 	var partsLength int = len(part)
 	if partsLength > 1 {
 		return this.SafeString(part, 0)
@@ -4493,10 +4493,10 @@ func (this *Hyperliquid) ParseOrderStatus(status *string) any {
 		"rejected":       "rejected",
 		"marginCanceled": "canceled",
 	}
-	if EndsWith(status, "Rejected") {
+	if strings.HasSuffix(*status, "Rejected") {
 		return "rejected"
 	}
-	if EndsWith(status, "Canceled") {
+	if strings.HasSuffix(*status, "Canceled") {
 		return "canceled"
 	}
 	return this.SafeString(statuses, status, status)

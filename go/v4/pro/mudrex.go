@@ -288,7 +288,7 @@ func (this *Mudrex) HandleOHLCV(client any, message any) {
 	if stream == nil {
 		return
 	}
-	var parts []string = ccxt.Split(stream, "@")
+	var parts []string = strings.Split(*stream, "@")
 	var interval *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 1))
 	var tf *string = this.FindTimeframe(interval)
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
@@ -296,7 +296,7 @@ func (this *Mudrex) HandleOHLCV(client any, message any) {
 	if s == nil {
 		return
 	}
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(ccxt.ToUpper(s)))
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(strings.ToUpper(*s)))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var parsed []any = []any{this.SafeTimestamp(data, "t"), this.SafeNumber(data, "o"), this.SafeNumber(data, "h"), this.SafeNumber(data, "l"), this.SafeNumber(data, "c"), this.SafeNumber(data, "v")}
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
@@ -325,7 +325,7 @@ func (this *Mudrex) HandleTicker(client any, message any) {
 		if s == nil {
 			continue
 		}
-		var market map[string]any = ccxt.MapTyped(this.SafeMarket(ccxt.ToUpper(s)))
+		var market map[string]any = ccxt.MapTyped(this.SafeMarket(strings.ToUpper(*s)))
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var timestamp int64 = this.Milliseconds()
 		var last *float64 = this.SafeNumber(t, "p")

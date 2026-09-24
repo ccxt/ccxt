@@ -290,8 +290,8 @@ func (this *Btcbox) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var symbolParts []string = strings.Split(marketId, "_")
 		var baseCurr *string = this.SafeString(symbolParts, 0, "")
 		var quote *string = this.SafeString(symbolParts, 1, "")
-		var quoteId string = ToLower(quote)
-		var id string = ToLower(baseCurr)
+		var quoteId string = strings.ToLower(*quote)
+		var id string = strings.ToLower(*baseCurr)
 		var res map[string]any = MapTyped(this.SafeDict(response1, marketId, map[string]any{}))
 		var symbol string = *baseCurr + "/" + *quote
 		var fee *float64 = func() *float64 {

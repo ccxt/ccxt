@@ -708,7 +708,7 @@ func (this *Extended) ParseMarket(market any) any {
 		}
 		return strings.Index(*baseId, "SPOT")
 	}() >= 0 {
-		baseId = SafeStringPtr(Replace(baseId, "SPOT", ""))
+		baseId = SafeStringPtr(strings.Replace(*baseId, "SPOT", "", 1))
 	}
 	var quoteId *string = this.SafeString(market, "collateralAssetName")
 	var base *string = this.SafeCurrencyCode(baseId)
@@ -879,7 +879,7 @@ func (this *Extended) ParseCurrency(currency any) any {
 		}
 		return strings.Index(*currencyId, "SPOT")
 	}() >= 0) {
-		currencyId = SafeStringPtr(Replace(currencyId, "SPOT", ""))
+		currencyId = SafeStringPtr(strings.Replace(*currencyId, "SPOT", "", 1))
 	}
 	var code *string = this.SafeCurrencyCode(currencyId)
 	if currencyId != nil && *currencyId == "USD" {
@@ -1524,7 +1524,7 @@ func (this *Extended) ParseTrade(trade any, optionalArgs ...any) any {
 	var sideRaw *string = this.SafeString2(trade, "S", "side")
 	var side *string = func() *string {
 		if sideRaw != nil {
-			return SafeStringPtr(ToLower(sideRaw))
+			return SafeStringPtr(strings.ToLower(*sideRaw))
 		}
 		return nil
 	}()
