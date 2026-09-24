@@ -2625,14 +2625,14 @@ class bybit(Exchange, ImplicitAPI):
                 else:
                     market = self.market(symbol)
                 if currentType is None:
-                    currentType = market['type']
+                    currentType = self.safe_string(market, 'type')
                 elif market['type'] != currentType:
                     raise BadRequest(self.id + ' fetchTickers can only accept a list of symbols of the same type')
                 if market['option'] is True:
                     if code is not None and code != market['base']:
                         raise BadRequest(self.id + ' fetchTickers the base currency must be the same for all symbols, self endpoint only supports one base currency at a time. Read more about it here: https://bybit-exchange.github.io/docs/v5/market/tickers')
                     if code is None:
-                        code = market['base']
+                        code = self.safe_string(market, 'base')
                     params = self.omit(params, ['code', 'currency'])
                 parsedSymbols.append(market['symbol'])
         request = {

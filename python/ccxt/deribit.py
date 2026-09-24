@@ -1374,8 +1374,8 @@ class deribit(Exchange, ImplicitAPI):
                 if code is not None and code != market['base']:
                     raise BadRequest(self.id + ' fetchTickers the base currency must be the same for all symbols, self endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency')
                 if code is None:
-                    code = market['base']
-                    type = market['type']
+                    code = self.safe_string(market, 'base')
+                    type = self.safe_string(market, 'type')
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for')
         currency = self.currency(code)

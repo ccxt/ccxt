@@ -929,11 +929,11 @@ class blofin(Exchange, ImplicitAPI):
         feeCurrency = self.safe_string(trade, 'feeCurrency')
         isSpot = feeCurrency is not None
         if feeCurrency is None:
-            feeCurrency = market['settle']
+            feeCurrency = self.safe_string(market, 'settle')
         elif feeCurrency == 'base_currency':
-            feeCurrency = market['base']
+            feeCurrency = self.safe_string(market, 'base')
         elif feeCurrency == 'quote_currency':
-            feeCurrency = market['quote']
+            feeCurrency = self.safe_string(market, 'quote')
         if feeCost is not None:
             fee = {
                 'cost': feeCost,

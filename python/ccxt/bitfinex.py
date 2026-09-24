@@ -2469,7 +2469,7 @@ class bitfinex(Exchange, ImplicitAPI):
             data = self.safe_list(transaction, 4, [])
             timestamp = self.safe_integer(transaction, 0)
             if currency is not None:
-                code = currency['code']
+                code = self.safe_string(currency, 'code')
             feeCost = self.safe_string(data, 8)
             if feeCost is not None:
                 feeCost = Precise.string_abs(feeCost)

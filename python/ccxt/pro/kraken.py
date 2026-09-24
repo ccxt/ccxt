@@ -1175,7 +1175,7 @@ class kraken(ccxt.async_support.kraken):
         #
         symbol = self.safe_string(trade, 'symbol')
         if market is not None:
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol')
         fee = None
         if 'fees' in trade:
             fees = self.safe_list(trade, 'fees', [])

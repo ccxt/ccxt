@@ -1566,7 +1566,7 @@ class hitbtc(Exchange, ImplicitAPI):
         addressTo = address
         tag = self.safe_string(native, 'payment_id')
         tagTo = tag
-        sender = self.safe_value(native, 'senders')
+        sender = self.safe_list(native, 'senders')
         addressFrom = self.safe_string(sender, 0)
         amount = self.safe_number(native, 'amount')
         subType = self.safe_string(transaction, 'subtype')
@@ -2502,7 +2502,7 @@ class hitbtc(Exchange, ImplicitAPI):
         symbol = market['symbol']
         postOnly = self.safe_value(order, 'post_only')
         timeInForce = self.safe_string(order, 'time_in_force')
-        rawTrades = self.safe_value(order, 'trades')
+        rawTrades = self.safe_list(order, 'trades')
         return self.safe_order({
             'info': order,
             'id': id,

@@ -10594,7 +10594,7 @@ class binance(Exchange, ImplicitAPI):
             bracket = leverageBracket[i]
             if Precise.string_lt(notionalStringAbs, bracket[0]):
                 break
-            maintenanceMarginPercentageString = bracket[1]
+            maintenanceMarginPercentageString = self.safe_string(bracket, 1)
         maintenanceMarginPercentage = self.parse_number(maintenanceMarginPercentageString)
         unrealizedPnlString = self.safe_string(position, 'unrealizedProfit')
         unrealizedPnl = self.parse_number(unrealizedPnlString)
@@ -10804,7 +10804,7 @@ class binance(Exchange, ImplicitAPI):
             bracket = leverageBracket[i]
             if Precise.string_lt(notionalStringAbs, bracket[0]):
                 break
-            maintenanceMarginPercentageString = bracket[1]
+            maintenanceMarginPercentageString = self.safe_string(bracket, 1)
         notional = self.parse_number(notionalStringAbs)
         contractsAbs = Precise.string_abs(self.safe_string(position, 'positionAmt'))
         contracts = self.parse_number(contractsAbs)
@@ -12526,10 +12526,10 @@ class binance(Exchange, ImplicitAPI):
         response = None
         code = None
         if market['linear'] is True:
-            code = market['quote']
+            code = self.safe_string(market, 'quote')
             response = await self.fapiPrivatePostPositionMargin(self.extend(request, params))
         else:
-            code = market['base']
+            code = self.safe_string(market, 'base')
             response = await self.dapiPrivatePostPositionMargin(self.extend(request, params))
         #
         #     {

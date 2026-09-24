@@ -5457,7 +5457,7 @@ class kucoin(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            marketType = market['type']
+            marketType = self.safe_string(market, 'type')
             request['symbol'] = market['id']
         else:
             marketType = self.safe_string(params, 'marketType')
@@ -5644,7 +5644,7 @@ class kucoin(Exchange, ImplicitAPI):
             marketType, params = self.handle_market_type_and_params('fetchOrder', None, params)
         else:
             market = self.market(symbol)
-            marketType = market['type']
+            marketType = self.safe_string(market, 'type')
         if (marketType == 'spot') or (marketType == 'margin'):
             return await self.fetch_spot_order(id, symbol, params)
         else:

@@ -1818,7 +1818,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                 account = self.safe_dict(accountsByCurrencyCode, code)
                 if account is None:
                     raise ExchangeError(self.id + ' fetchDepositsWithdrawals() could not find account id for ' + code)
-                id = account['id']
+                id = self.safe_string(account, 'id')
         request = {}
         if id is not None:
             request['id'] = id

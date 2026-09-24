@@ -1737,9 +1737,9 @@ class weex(Exchange, ImplicitAPI):
             feeCurrency = self.safe_currency_code(commissionAsset)
             if isSpot is True:
                 if side == 'buy':
-                    feeCurrency = market['base']
+                    feeCurrency = self.safe_string(market, 'base')
                 else:
-                    feeCurrency = market['quote']
+                    feeCurrency = self.safe_string(market, 'quote')
             fee = {
                 'cost': commission,
                 'currency': feeCurrency,

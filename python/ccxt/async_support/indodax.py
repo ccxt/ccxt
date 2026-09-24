@@ -796,7 +796,7 @@ class indodax(Exchange, ImplicitAPI):
         #
         side = None
         if 'type' in order:
-            side = order['type']
+            side = self.safe_string(order, 'type')
         status = self.parse_order_status(self.safe_string(order, 'status', 'open'))
         symbol = None
         cost = None

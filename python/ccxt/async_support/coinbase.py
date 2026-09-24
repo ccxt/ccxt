@@ -805,7 +805,7 @@ class coinbase(Exchange, ImplicitAPI):
             for i in range(0, len(self.accounts)):
                 account = self.accounts[i]
                 if account['code'] == code and account['type'] == 'wallet':
-                    accountId = account['id']
+                    accountId = self.safe_string(account, 'id')
                     break
         if accountId is None:
             raise ExchangeError(self.id + ' createDepositAddress() could not find the account with matching currency code ' + code + ', specify an `account_id` extra param to target specific wallet')
@@ -1298,7 +1298,7 @@ class coinbase(Exchange, ImplicitAPI):
         feeCurrencyId = self.safe_string(feeObject, 'currency')
         feeCost = self.safe_number(feeObject, 'amount', self.parse_number(v3FeeCost))
         if (feeCurrencyId is None) and (market is not None) and (feeCost is not None):
-            feeCurrencyId = market['quote']
+            feeCurrencyId = self.safe_string(market, 'quote')
         datetime = self.safe_string_n(trade, ['created_at', 'trade_time', 'time'])
         side = self.safe_string_lower_2(trade, 'resource', 'side')
         takerOrMaker = self.safe_string_lower(trade, 'liquidity_indicator')
@@ -3240,7 +3240,7 @@ class coinbase(Exchange, ImplicitAPI):
         totalFees = self.safe_string(order, 'total_fees')
         currencyFee = None
         if (totalFees is not None) and (market is not None):
-            currencyFee = market['quote']
+            currencyFee = self.safe_string(market, 'quote')
         return self.safe_order({
             'info': order,
             'id': self.safe_string(order, 'order_id'),

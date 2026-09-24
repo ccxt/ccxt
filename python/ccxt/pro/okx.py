@@ -1670,7 +1670,7 @@ class okx(ccxt.async_support.okx):
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
-            type = market['type']
+            type = self.safe_string(market, 'type')
             messageHash = messageHash + '::' + symbol
         if type == 'future':
             type = 'futures'
@@ -1850,7 +1850,7 @@ class okx(ccxt.async_support.okx):
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
-            type = market['type']
+            type = self.safe_string(market, 'type')
         if type == 'future':
             type = 'futures'
         if type is None:

@@ -813,7 +813,7 @@ class htx(ccxt.async_support.htx):
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
-            type = market['type']
+            type = self.safe_string(market, 'type')
             subType = 'linear' if (market['linear'] is True) else 'inverse'
             marketId = market['lowercaseId']
         else:
@@ -928,7 +928,7 @@ class htx(ccxt.async_support.htx):
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
-            type = market['type']
+            type = self.safe_string(market, 'type')
             suffix = market['lowercaseId']
             subType = 'linear' if (market['linear'] is True) else 'inverse'
         else:
@@ -1506,7 +1506,7 @@ class htx(ccxt.async_support.htx):
         type = None
         subType = None
         if market is not None:
-            type = market['type']
+            type = self.safe_string(market, 'type')
             subType = 'linear' if (market['linear'] is True) else 'inverse'
         else:
             type, params = self.handle_market_type_and_params('watchPositions', market, params)
