@@ -3819,7 +3819,11 @@ export class BaseExchange {
     parseMarkets (markets: any): Market[] {
         const result: Market[] = [];
         for (let i = 0; i < markets.length; i++) {
-            result.push (this.parseMarket (markets[i]));
+            const market = this.parseMarket (markets[i]);
+            // parseMarket returns undefined for a market it cannot build (e.g. unknown base or quote)
+            if (market !== undefined) {
+                result.push (market);
+            }
         }
         return result;
     }
