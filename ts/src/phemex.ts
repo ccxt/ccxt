@@ -3997,7 +3997,7 @@ export default class phemex extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const positions = this.safeList (data, 'positions', []);
+        const positions: Dict[] = this.safeList (data, 'positions', []);
         const result: Position[] = [];
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
@@ -5710,7 +5710,7 @@ export default class phemex extends Exchange {
             //
         }
         const data = this.safeDict (response, 'data', {});
-        const ranks = this.safeList (data, 'positions', []);
+        const ranks: Dict[] = this.safeList (data, 'positions', []);
         const result: ADL[] = [];
         for (let i = 0; i < ranks.length; i++) {
             const rank = ranks[i];

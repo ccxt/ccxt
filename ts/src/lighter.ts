@@ -2435,7 +2435,7 @@ export default class lighter extends Exchange {
         return this.safeString (statuses, (status as string), status);
     }
 
-    parseOrderType (type: any) {
+    parseOrderType (type: Str): Str {
         const types: Dict = {
             'limit': 'limit',
             'market': 'market',
@@ -2450,7 +2450,7 @@ export default class lighter extends Exchange {
         return this.safeString (types, (type as string), type);
     }
 
-    parseOrderTypeInteger (typeInteger: any) {
+    parseOrderTypeInteger (typeInteger: Int): Str {
         if (typeInteger === undefined) {
             return undefined;
         }
@@ -2468,7 +2468,7 @@ export default class lighter extends Exchange {
         return this.safeString (types, typeInteger.toString ());
     }
 
-    parseOrderTimeInForce (tif: any) {
+    parseOrderTimeInForce (tif: Str): Str {
         const timeInForces: Dict = {
             'immediate-or-cancel': 'IOC',
             'good-till-time': 'GTC',
