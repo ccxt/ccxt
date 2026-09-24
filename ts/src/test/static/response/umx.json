@@ -6081,6 +6081,373 @@
                     }
                 ]
             }
+        ],
+        "fetchDepositWithdrawFee": [
+            {
+                "description": "the chains of USDT mapped to unified network codes",
+                "method": "fetchDepositWithdrawFee",
+                "input": [
+                    "USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": {
+                        "accountName": "1000000000000000000",
+                        "pid": "1000000000000000000",
+                        "uid": "100000000000001",
+                        "cid": "100000000000002",
+                        "currency": "USDT",
+                        "chains": [
+                            {
+                                "chainType": "eth",
+                                "minDep": "0.1",
+                                "minWd": "10",
+                                "maxWd": "10000000",
+                                "withdrawFee": "0.3"
+                            },
+                            {
+                                "chainType": "trx",
+                                "minDep": "0.01",
+                                "minWd": "10",
+                                "maxWd": "10000000",
+                                "withdrawFee": "2"
+                            },
+                            {
+                                "chainType": "sol",
+                                "minDep": "0.1",
+                                "minWd": "9",
+                                "maxWd": "10000000",
+                                "withdrawFee": "0.3"
+                            },
+                            {
+                                "chainType": "bnb",
+                                "minDep": "0.01",
+                                "minWd": "9.5",
+                                "maxWd": "10000000",
+                                "withdrawFee": "0.01"
+                            }
+                        ]
+                    },
+                    "msg": "Success",
+                    "ts": "1790244568362",
+                    "traceId": "3f854d58efa764cbc316a6ecb3dd9091"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "accountName": "1000000000000000000",
+                        "pid": "1000000000000000000",
+                        "uid": "100000000000001",
+                        "cid": "100000000000002",
+                        "currency": "USDT",
+                        "chains": [
+                            {
+                                "chainType": "eth",
+                                "minDep": "0.1",
+                                "minWd": "10",
+                                "maxWd": "10000000",
+                                "withdrawFee": "0.3"
+                            },
+                            {
+                                "chainType": "trx",
+                                "minDep": "0.01",
+                                "minWd": "10",
+                                "maxWd": "10000000",
+                                "withdrawFee": "2"
+                            },
+                            {
+                                "chainType": "sol",
+                                "minDep": "0.1",
+                                "minWd": "9",
+                                "maxWd": "10000000",
+                                "withdrawFee": "0.3"
+                            },
+                            {
+                                "chainType": "bnb",
+                                "minDep": "0.01",
+                                "minWd": "9.5",
+                                "maxWd": "10000000",
+                                "withdrawFee": "0.01"
+                            }
+                        ]
+                    },
+                    "withdraw": {
+                        "fee": null,
+                        "percentage": null
+                    },
+                    "deposit": {
+                        "fee": null,
+                        "percentage": null
+                    },
+                    "networks": {
+                        "ERC20": {
+                            "deposit": {
+                                "fee": null,
+                                "percentage": null
+                            },
+                            "withdraw": {
+                                "fee": 0.3,
+                                "percentage": false
+                            }
+                        },
+                        "TRC20": {
+                            "deposit": {
+                                "fee": null,
+                                "percentage": null
+                            },
+                            "withdraw": {
+                                "fee": 2,
+                                "percentage": false
+                            }
+                        },
+                        "SOL": {
+                            "deposit": {
+                                "fee": null,
+                                "percentage": null
+                            },
+                            "withdraw": {
+                                "fee": 0.3,
+                                "percentage": false
+                            }
+                        },
+                        "BEP20": {
+                            "deposit": {
+                                "fee": null,
+                                "percentage": null
+                            },
+                            "withdraw": {
+                                "fee": 0.01,
+                                "percentage": false
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchConvertQuote": [
+            {
+                "description": "the quoted conversion of USDT into ETH",
+                "method": "fetchConvertQuote",
+                "input": [
+                    "USDT",
+                    "ETH",
+                    5.5
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": {
+                        "clientRequestId": null,
+                        "quoteTxId": "1552744826664841216",
+                        "side": "buy",
+                        "baseCurrency": "ETH",
+                        "quoteCurrency": "USDT",
+                        "baseQty": "0.002",
+                        "quoteQty": "5.5",
+                        "convertRate": "2637.78",
+                        "expireTime": 1790244830398,
+                        "cid": "100000000000002",
+                        "pid": "1000000000000000000",
+                        "uid": "100000000000001",
+                        "accountName": "1000000000000000000",
+                        "loanTrans": false
+                    },
+                    "ts": "1790244815435"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "clientRequestId": null,
+                        "quoteTxId": "1552744826664841216",
+                        "side": "buy",
+                        "baseCurrency": "ETH",
+                        "quoteCurrency": "USDT",
+                        "baseQty": "0.002",
+                        "quoteQty": "5.5",
+                        "convertRate": "2637.78",
+                        "expireTime": 1790244830398,
+                        "cid": "100000000000002",
+                        "pid": "1000000000000000000",
+                        "uid": "100000000000001",
+                        "accountName": "1000000000000000000",
+                        "loanTrans": false
+                    },
+                    "timestamp": null,
+                    "datetime": null,
+                    "id": "1552744826664841216",
+                    "fromCurrency": "USDT",
+                    "fromAmount": 5.5,
+                    "toCurrency": "ETH",
+                    "toAmount": 0.002,
+                    "price": 2637.78,
+                    "fee": null
+                }
+            }
+        ],
+        "createConvertTrade": [
+            {
+                "description": "the accepted conversion still pending",
+                "method": "createConvertTrade",
+                "input": [
+                    "1552745025575464960",
+                    "USDT",
+                    "ETH"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": {
+                        "clientRequestId": "",
+                        "quoteTxId": "1552745025575464960",
+                        "convertStatus": "pending",
+                        "cid": "100000000000002",
+                        "pid": "1000000000000000000",
+                        "uid": "100000000000001",
+                        "accountName": "1000000000000000000"
+                    },
+                    "ts": "1790244865894"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "clientRequestId": "",
+                        "quoteTxId": "1552745025575464960",
+                        "convertStatus": "pending",
+                        "cid": "100000000000002",
+                        "pid": "1000000000000000000",
+                        "uid": "100000000000001",
+                        "accountName": "1000000000000000000"
+                    },
+                    "timestamp": null,
+                    "datetime": null,
+                    "id": "1552745025575464960",
+                    "fromCurrency": "USDT",
+                    "fromAmount": null,
+                    "toCurrency": "ETH",
+                    "toAmount": null,
+                    "price": null,
+                    "fee": null
+                }
+            }
+        ],
+        "fetchConvertTrade": [
+            {
+                "description": "the venue reported failure here although the conversion had settled, see the docstring",
+                "method": "fetchConvertTrade",
+                "input": [
+                    "1552745025575464960"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": {
+                        "quoteTxId": "1552745025575464960",
+                        "side": "1",
+                        "baseCurrency": "ETH",
+                        "quoteCurrency": "USDT",
+                        "baseQty": "0.002000000000000000",
+                        "quoteQty": "5.500000000000000000",
+                        "convertRate": "2636.450000000000000000",
+                        "expiredTime": "15000",
+                        "convertStatus": "failure",
+                        "createTime": "1790244862707",
+                        "cid": "100000000000002",
+                        "pid": "1000000000000000000",
+                        "uid": "100000000000001",
+                        "accountName": "1000000000000000000"
+                    },
+                    "ts": "1790244875976"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "quoteTxId": "1552745025575464960",
+                        "side": "1",
+                        "baseCurrency": "ETH",
+                        "quoteCurrency": "USDT",
+                        "baseQty": "0.002000000000000000",
+                        "quoteQty": "5.500000000000000000",
+                        "convertRate": "2636.450000000000000000",
+                        "expiredTime": "15000",
+                        "convertStatus": "failure",
+                        "createTime": "1790244862707",
+                        "cid": "100000000000002",
+                        "pid": "1000000000000000000",
+                        "uid": "100000000000001",
+                        "accountName": "1000000000000000000"
+                    },
+                    "timestamp": 1790244862707,
+                    "datetime": "2026-09-24T10:14:22.707Z",
+                    "id": "1552745025575464960",
+                    "fromCurrency": "USDT",
+                    "fromAmount": 5.5,
+                    "toCurrency": "ETH",
+                    "toAmount": 0.002,
+                    "price": 2636.45,
+                    "fee": null
+                }
+            }
+        ],
+        "fetchConvertTradeHistory": [
+            {
+                "description": "the filled conversion as the history reports it",
+                "method": "fetchConvertTradeHistory",
+                "input": [],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "quoteTxId": "1552745025575464960",
+                            "orderId": "1552745038863015936",
+                            "side": "buy",
+                            "baseCurrency": "ETH",
+                            "quoteCurrency": "USDT",
+                            "baseQty": "0.002000000000000000",
+                            "quoteQty": "5.500000000000000000",
+                            "convertRate": "2750.0000000000",
+                            "expiredTime": "1790244877734",
+                            "convertStatus": "filled",
+                            "createTime": "1790244865874",
+                            "cid": "100000000000002",
+                            "pid": "1000000000000000000",
+                            "uid": "100000000000001",
+                            "accountName": "1000000000000000000",
+                            "rfqType": "rfq",
+                            "loanTrans": null
+                        }
+                    ],
+                    "ts": "1790244889543"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "quoteTxId": "1552745025575464960",
+                            "orderId": "1552745038863015936",
+                            "side": "buy",
+                            "baseCurrency": "ETH",
+                            "quoteCurrency": "USDT",
+                            "baseQty": "0.002000000000000000",
+                            "quoteQty": "5.500000000000000000",
+                            "convertRate": "2750.0000000000",
+                            "expiredTime": "1790244877734",
+                            "convertStatus": "filled",
+                            "createTime": "1790244865874",
+                            "cid": "100000000000002",
+                            "pid": "1000000000000000000",
+                            "uid": "100000000000001",
+                            "accountName": "1000000000000000000",
+                            "rfqType": "rfq",
+                            "loanTrans": null
+                        },
+                        "timestamp": 1790244865874,
+                        "datetime": "2026-09-24T10:14:25.874Z",
+                        "id": "1552745025575464960",
+                        "fromCurrency": "USDT",
+                        "fromAmount": 5.5,
+                        "toCurrency": "ETH",
+                        "toAmount": 0.002,
+                        "price": 2750,
+                        "fee": null
+                    }
+                ]
+            }
         ]
     }
 }

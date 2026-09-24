@@ -1170,6 +1170,95 @@
                 "input": [],
                 "output": "{}"
             }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "the whole borrow interest history",
+                "method": "fetchBorrowInterest",
+                "url": "https://api.umx.com/api/v1/account/interest/history",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "borrow interest of one currency with since and limit, the limit stays off the wire when since is present",
+                "method": "fetchBorrowInterest",
+                "url": "https://api.umx.com/api/v1/account/interest/history?currencyList=USDT&beginTime=1790150400000",
+                "input": [
+                    "USDT",
+                    null,
+                    1790150400000,
+                    5
+                ],
+                "output": null
+            }
+        ],
+        "fetchDepositWithdrawFee": [
+            {
+                "description": "deposit and withdrawal fees of one currency",
+                "method": "fetchDepositWithdrawFee",
+                "url": "https://api.umx.com/api/v2/asset/chains?currency=USDT",
+                "input": [
+                    "USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchConvertQuote": [
+            {
+                "description": "a quote for converting the quote currency of a listed pair, the buy path",
+                "method": "fetchConvertQuote",
+                "url": "https://api.umx.com/api/v1/account/convert/getQuote",
+                "input": [
+                    "USDT",
+                    "ETH",
+                    5.5
+                ],
+                "output": "{\"baseCurrency\":\"ETH\",\"quoteCurrency\":\"USDT\",\"side\":\"buy\",\"quoteQty\":\"5.5\"}"
+            }
+        ],
+        "createConvertTrade": [
+            {
+                "description": "accept a quote by its id",
+                "method": "createConvertTrade",
+                "url": "https://api.umx.com/api/v1/account/convert/acceptQuote",
+                "input": [
+                    "1552745025575464960",
+                    "USDT",
+                    "ETH"
+                ],
+                "output": "{\"quoteTxId\":\"1552745025575464960\"}"
+            }
+        ],
+        "fetchConvertTrade": [
+            {
+                "description": "the state of one conversion",
+                "method": "fetchConvertTrade",
+                "url": "https://api.umx.com/api/v1/account/convert/orderStatus?quoteTxId=1552745025575464960",
+                "input": [
+                    "1552745025575464960"
+                ],
+                "output": null
+            }
+        ],
+        "fetchConvertTradeHistory": [
+            {
+                "description": "the whole conversion history",
+                "method": "fetchConvertTradeHistory",
+                "url": "https://api.umx.com/api/v1/account/convert/history/orders",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "conversion history with a code, since and limit, the code filter is client side and the limit stays off the wire when since is present",
+                "method": "fetchConvertTradeHistory",
+                "url": "https://api.umx.com/api/v1/account/convert/history/orders?beginTime=1790150400000",
+                "input": [
+                    "USDT",
+                    1790150400000,
+                    5
+                ],
+                "output": null
+            }
         ]
     },
     "outputType": "both"

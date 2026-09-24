@@ -5,7 +5,7 @@ import Exchange from './abstract/umx.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, NotSupported, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Bool, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, DepositAddresses, Dict, Endpoint, Fee, FundingRate, FundingRateHistory, FundingRates, Int, Leverage, List, MarginMode, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, Bool, BorrowInterest, Conversion, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, DepositAddresses, DepositWithdrawFee, Dict, Endpoint, Fee, FundingRate, FundingRateHistory, FundingRates, Int, Leverage, List, MarginMode, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -41,6 +41,7 @@ export default class umx extends Exchange {
                 'cancelOrders': true,
                 'closeAllPositions': true,
                 'closePosition': true,
+                'createConvertTrade': true,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': true,
                 'createMarketSellOrderWithCost': true,
@@ -56,16 +57,19 @@ export default class umx extends Exchange {
                 'editOrder': false,
                 'fetchAccounts': false,
                 'fetchBalance': true,
-                'fetchBorrowInterest': false,
+                'fetchBorrowInterest': true,
                 'fetchCanceledAndClosedOrders': true,
                 'fetchClosedOrders': true,
+                'fetchConvertQuote': true,
+                'fetchConvertTrade': true,
+                'fetchConvertTradeHistory': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': true,
                 'fetchCurrencies': true, // private
                 'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
-                'fetchDepositWithdrawFee': false,
+                'fetchDepositWithdrawFee': true,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': true,
@@ -1667,6 +1671,68 @@ export default class umx extends Exchange {
 
     /**
      * @method
+     * @name umx#fetchBorrowInterest
+     * @description fetch the interest the account accrued on its borrowed cross margin funds, the venue bills it hourly
+     * @see https://www.umx.com/docs/coin-apis/trading-account-information/asset-information/get-borrowing-interest-history
+     * @param {string} [code] unified currency code
+     * @param {string} [symbol] not used by umx.fetchBorrowInterest, the borrowing is account wide
+     * @param {int} [since] timestamp in ms of the earliest entry to fetch
+     * @param {int} [limit] the maximum amount of entries to return, the venue defaults to 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry to fetch
+     * @param {boolean} [params.paginate] default false, when true fetches the entries in multiple calls, walking backwards from the newest entry
+     * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+     */
+    override async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<BorrowInterest[]> {
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchBorrowInterest', 'paginate');
+        if (paginate) {
+            // the venue documents beginId and endId cursors on the history endpoints, but the
+            // family proved broken venue side, so the pagination walks on endTime, see fetchTransfers
+            return await this.fetchPaginatedCallDynamic ('fetchBorrowInterest', code, since, limit, params, 100) as BorrowInterest[];
+        }
+        let currency: Currency = undefined;
+        let request: Dict = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currencyList'] = currency['id'];
+        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        if (since === undefined) {
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+        } else {
+            request['beginTime'] = since;
+            // limit keeps the newest entries of the requested range rather than the ones that
+            // follow since, so it is left out here and applied to the parsed result instead
+        }
+        const response = await this.privateGetV1AccountInterestHistory (this.extend (request, params));
+        const data = this.safeList (response, 'data', []);
+        const interests = this.parseBorrowInterests (data, undefined);
+        const filtered = this.filterByCurrencySinceLimit (interests, code, since, limit);
+        return filtered as BorrowInterest[];
+    }
+
+    override parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {
+        const timestamp = this.safeInteger (info, 'interestTime');
+        const currencyId = this.safeString (info, 'currency');
+        return {
+            'info': info,
+            'symbol': undefined,
+            'currency': this.safeCurrencyCode (currencyId),
+            'interest': this.safeNumber (info, 'interest'),
+            'interestRate': this.safeNumber (info, 'interestRate'),
+            'amountBorrowed': this.safeNumber (info, 'borrowAmount'),
+            'marginMode': 'cross',
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+    }
+
+    /**
+     * @method
      * @name umx#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, close price, and the volume of a market
      * @see https://www.umx.com/docs/coin-apis/ticker/get-kline-data
@@ -2358,6 +2424,166 @@ export default class umx extends Exchange {
             'fail': 'failed',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name umx#fetchConvertQuote
+     * @description request a quote for converting one currency into another, the venue calls it block trade spot
+     * @see https://www.umx.com/docs/coin-apis/trading/block-spot-trade/block-trade-spot-rfq
+     * @param {string} fromCode the currency to sell
+     * @param {string} toCode the currency to buy
+     * @param {float} [amount] the amount of fromCode to sell
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientRequestId] a client side identifier of the request
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     */
+    override async fetchConvertQuote (fromCode: string, toCode: string, amount: Num = undefined, params: Dict = {}): Promise<Conversion> {
+        await this.loadMarkets ();
+        const fromCurrency = this.currency (fromCode);
+        const toCurrency = this.currency (toCode);
+        const amountString = this.numberToString (amount);
+        // the venue quotes a base against a quote currency, so selling the base of a listed
+        // pair is a sell of that pair and selling its quote currency is a buy of it
+        const sellSymbol = fromCurrency['code'] + '/' + toCurrency['code'];
+        const sellMarket = this.safeDict (this.markets, sellSymbol);
+        const request: Dict = {};
+        if (sellMarket !== undefined) {
+            request['baseCurrency'] = fromCurrency['id'];
+            request['quoteCurrency'] = toCurrency['id'];
+            request['side'] = 'sell';
+            request['baseQty'] = amountString;
+        } else {
+            request['baseCurrency'] = toCurrency['id'];
+            request['quoteCurrency'] = fromCurrency['id'];
+            request['side'] = 'buy';
+            request['quoteQty'] = amountString;
+        }
+        const response = await this.privatePostV1AccountConvertGetQuote (this.extend (request, params));
+        const data = this.safeDict (response, 'data', {});
+        return this.parseConversion (data, fromCurrency, toCurrency);
+    }
+
+    /**
+     * @method
+     * @name umx#createConvertTrade
+     * @description accept a conversion quote obtained through fetchConvertQuote
+     * @see https://www.umx.com/docs/coin-apis/trading/block-spot-trade/confirm-block-trade-spot-quote
+     * @param {string} id the quoteTxId of the quote
+     * @param {string} fromCode the currency the quote sells
+     * @param {string} toCode the currency the quote buys
+     * @param {float} [amount] not used by umx.createConvertTrade, the quote already carries the amount
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     */
+    override async createConvertTrade (id: string, fromCode: string, toCode: string, amount: Num = undefined, params: Dict = {}): Promise<Conversion> {
+        await this.loadMarkets ();
+        const fromCurrency = this.currency (fromCode);
+        const toCurrency = this.currency (toCode);
+        const request: Dict = {
+            'quoteTxId': id,
+        };
+        const response = await this.privatePostV1AccountConvertAcceptQuote (this.extend (request, params));
+        const data = this.safeDict (response, 'data', {});
+        return this.parseConversion (data, fromCurrency, toCurrency);
+    }
+
+    /**
+     * @method
+     * @name umx#fetchConvertTrade
+     * @description fetch the state of a conversion by the id of its quote, take the answer with a grain of salt, during the integration the venue reported failure for a conversion that its history reported as filled and that had visibly settled, fetchConvertTradeHistory is the reliable source
+     * @see https://www.umx.com/docs/coin-apis/trading/block-spot-trade/get-block-trade-spot-trading-order-status
+     * @param {string} id the quoteTxId of the conversion
+     * @param {string} [code] not used by umx.fetchConvertTrade
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     */
+    override async fetchConvertTrade (id: string, code: Str = undefined, params: Dict = {}): Promise<Conversion> {
+        await this.loadMarkets ();
+        const request: Dict = {
+            'quoteTxId': id,
+        };
+        const response = await this.privateGetV1AccountConvertOrderStatus (this.extend (request, params));
+        const data = this.safeDict (response, 'data', {});
+        return this.parseConversion (data);
+    }
+
+    /**
+     * @method
+     * @name umx#fetchConvertTradeHistory
+     * @description fetch the history of conversions, the venue keeps 90 days of them
+     * @see https://www.umx.com/docs/coin-apis/trading/block-spot-trade/get-block-trade-spot-history
+     * @param {string} [code] unified currency code to filter either side of the conversions by
+     * @param {int} [since] timestamp in ms of the earliest conversion to fetch
+     * @param {int} [limit] the maximum amount of entries to return, the venue defaults to 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest conversion to fetch
+     * @param {boolean} [params.paginate] default false, when true fetches the entries in multiple calls, walking backwards from the newest entry
+     * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     */
+    override async fetchConvertTradeHistory (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Conversion[]> {
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchConvertTradeHistory', 'paginate');
+        if (paginate) {
+            // the venue documents beginId and endId cursors on the history endpoints, but the
+            // family proved broken venue side, so the pagination walks on endTime, see fetchTransfers
+            return await this.fetchPaginatedCallDynamic ('fetchConvertTradeHistory', code, since, limit, params, 100) as Conversion[];
+        }
+        let request: Dict = {};
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        if (since === undefined) {
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+        } else {
+            request['beginTime'] = since;
+            // limit keeps the newest entries of the requested range rather than the ones that
+            // follow since, so it is left out here and applied to the parsed result instead
+        }
+        const response = await this.privateGetV1AccountConvertHistoryOrders (this.extend (request, params));
+        const data = this.safeList (response, 'data', []);
+        return this.parseConversions (data, code, 'baseCurrency', 'quoteCurrency', since, limit);
+    }
+
+    override parseConversion (conversion: Dict, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
+        const sides: Dict = {
+            '1': 'buy',
+            '2': 'sell',
+        };
+        const sideRaw = this.safeString (conversion, 'side');
+        const side = this.safeString (sides, sideRaw, sideRaw);
+        const baseCode = this.safeCurrencyCode (this.safeString (conversion, 'baseCurrency'));
+        const quoteCode = this.safeCurrencyCode (this.safeString (conversion, 'quoteCurrency'));
+        let fromCode = this.safeString (fromCurrency, 'code');
+        let toCode = this.safeString (toCurrency, 'code');
+        let fromAmountKey = 'baseQty';
+        let toAmountKey = 'quoteQty';
+        if (side === 'buy') {
+            // a buy converts the quote currency into the base currency
+            fromAmountKey = 'quoteQty';
+            toAmountKey = 'baseQty';
+            if (baseCode !== undefined) {
+                fromCode = quoteCode;
+                toCode = baseCode;
+            }
+        } else if (baseCode !== undefined) {
+            fromCode = baseCode;
+            toCode = quoteCode;
+        }
+        const timestamp = this.safeInteger (conversion, 'createTime');
+        return {
+            'info': conversion,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': this.safeString (conversion, 'quoteTxId'),
+            'fromCurrency': fromCode,
+            'fromAmount': this.safeNumber (conversion, fromAmountKey),
+            'toCurrency': toCode,
+            'toAmount': this.safeNumber (conversion, toAmountKey),
+            'price': this.safeNumber (conversion, 'convertRate'),
+            'fee': undefined,
+        } as Conversion;
     }
 
     /**
@@ -3965,6 +4191,61 @@ export default class umx extends Exchange {
             'filled': 'closed',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name umx#fetchDepositWithdrawFee
+     * @description fetch the deposit and withdrawal fees and limits of a currency on every chain it lives on
+     * @see https://www.umx.com/docs/coin-apis/funding-account/get-asset-chains
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
+    override async fetchDepositWithdrawFee (code: string, params: Dict = {}): Promise<DepositWithdrawFee> {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request: Dict = {
+            'currency': currency['id'],
+        };
+        const response = await this.privateGetV2AssetChains (this.extend (request, params));
+        const data = this.safeDict (response, 'data', {});
+        return this.parseDepositWithdrawFee (data, currency);
+    }
+
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined): DepositWithdrawFee {
+        //
+        //     {
+        //         "chains": [
+        //             {
+        //                 "chainType": "trx",
+        //                 "minDep": "0.01",
+        //                 "minWd": "10",
+        //                 "maxWd": "10000000",
+        //                 "withdrawFee": "2"
+        //             }
+        //         ]
+        //     }
+        //
+        const result = this.depositWithdrawFee (fee);
+        const chains = this.safeList (fee, 'chains', []);
+        const currencyCode = this.safeString (currency, 'code');
+        for (let i = 0; i < chains.length; i++) {
+            const chain = chains[i];
+            const networkId = this.safeString (chain, 'chainType');
+            const networkCode = this.networkIdToCode (networkId, currencyCode) as string;
+            result['networks'][networkCode] = {
+                'deposit': {
+                    'fee': undefined,
+                    'percentage': undefined,
+                },
+                'withdraw': {
+                    'fee': this.safeNumber (chain, 'withdrawFee'),
+                    'percentage': false,
+                },
+            };
+        }
+        return this.assignDefaultDepositWithdrawFees (result, currency) as DepositWithdrawFee;
     }
 
     /**
