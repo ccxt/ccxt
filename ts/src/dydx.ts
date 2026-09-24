@@ -1515,7 +1515,7 @@ export default class dydx extends Exchange {
      * @param {bool} [params.postOnly] true or false whether the order is post-only
      * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
      * @param {float} [params.goodTillBlock] expired block number for the order, required for market order and non limit GTT order, default value is latestBlockHeight + 20
-     * @param {float} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
+     * @param {int} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
@@ -1570,7 +1570,7 @@ export default class dydx extends Exchange {
      * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @param {float} [params.orderFlags] default is 64, orderFlags for the order, market order and non limit GTT order is 0, limit GTT order is 64 and conditional order is 32
      * @param {float} [params.goodTillBlock] expired block number for the order, required for market order and non limit GTT order (orderFlags = 0), default value is latestBlockHeight + 20
-     * @param {float} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days
+     * @param {int} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days
      * @param {int} [params.subAccountId] sub account id, default is 0
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
