@@ -696,7 +696,7 @@ export default class woofipro extends Exchange {
         //   }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
+        const rows: Dict[] = this.safeList (data, 'rows', []);
         return this.parseMarkets (rows);
     }
 
@@ -931,7 +931,7 @@ export default class woofipro extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
+        const rows: Dict[] = this.safeList (data, 'rows', []);
         return this.parseTrades (rows, market, since, limit);
     }
 
@@ -1071,7 +1071,7 @@ export default class woofipro extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
+        const rows: Dict[] = this.safeList (data, 'rows', []);
         return this.parseFundingRates (rows, symbols);
     }
 
@@ -1503,7 +1503,7 @@ export default class woofipro extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
+        const rows: Dict[] = this.safeList (data, 'rows', []);
         return this.parseIncomes (rows, market, since, limit);
     }
 
@@ -2060,7 +2060,7 @@ export default class woofipro extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
+        const rows: Dict[] = this.safeList (data, 'rows', []);
         return this.parseOrders (rows);
     }
 
@@ -2588,7 +2588,7 @@ export default class woofipro extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const trades = this.safeList (data, 'rows', []);
+        const trades: Dict[] = this.safeList (data, 'rows', []);
         return this.parseTrades (trades, market, since, limit, params);
     }
 
@@ -2657,7 +2657,7 @@ export default class woofipro extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const trades = this.safeList (data, 'rows', []);
+        const trades: Dict[] = this.safeList (data, 'rows', []);
         return this.parseTrades (trades, market, since, limit, params);
     }
 
@@ -3090,7 +3090,7 @@ export default class woofipro extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
+        const rows: Dict[] = this.safeList (data, 'rows', []);
         return this.parseMarginModes (rows, symbols, 'symbol') as MarginModes;
     }
 
@@ -3489,7 +3489,7 @@ export default class woofipro extends Exchange {
         // }
         //
         const result = this.safeDict (response, 'data', {});
-        const positions = this.safeList (result, 'rows', []);
+        const positions: Dict[] = this.safeList (result, 'rows', []);
         return this.parsePositions (positions, symbols);
     }
 

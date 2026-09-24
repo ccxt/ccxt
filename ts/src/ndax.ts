@@ -2246,7 +2246,7 @@ export default class ndax extends Exchange {
         //     ]
         //
         const grouped = this.groupBy (response, 'ChangeReason');
-        const trades = this.safeList (grouped, 'Trade', []);
+        const trades: Dict[] = this.safeList (grouped, 'Trade', []);
         return this.parseTrades (trades, market, since, limit);
     }
 

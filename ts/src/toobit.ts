@@ -2191,7 +2191,7 @@ export default class toobit extends Exchange {
             //
             // or empty array if no orders were canceled
         }
-        const result = this.safeList (response, 'result', []);
+        const result: Dict[] = this.safeList (response, 'result', []);
         return this.parseOrders (result, market);
     }
 

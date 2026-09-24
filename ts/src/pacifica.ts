@@ -643,7 +643,7 @@ export default class pacifica extends Exchange {
         //   "error": null,
         //   "code": null
         // }
-        const markets = this.safeList (response, 'data', []);
+        const markets: Dict[] = this.safeList (response, 'data', []);
         return this.parseMarkets (markets);
     }
 
@@ -1169,7 +1169,7 @@ export default class pacifica extends Exchange {
         //     "code": null
         //   }
         //
-        const result = this.safeList (response, 'data', []);
+        const result: Dict[] = this.safeList (response, 'data', []);
         return this.parseFundingRates (result, symbols);
     }
 
@@ -1360,7 +1360,7 @@ export default class pacifica extends Exchange {
         //   "last_order_id": 1557404170
         // }
         //
-        const recentTrades = this.safeList (response, 'data', []);
+        const recentTrades: Dict[] = this.safeList (response, 'data', []);
         return this.parseTrades (recentTrades, market, since, limit);
     }
 
@@ -2358,7 +2358,7 @@ export default class pacifica extends Exchange {
         //   "last_order_id": 1557370337
         // }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -3010,7 +3010,7 @@ export default class pacifica extends Exchange {
         }
         symbols = this.marketSymbols (symbols);
         const response = await this.publicGetInfoPrices (params);
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseOpenInterests (data, symbols) as OpenInterests;
     }
 

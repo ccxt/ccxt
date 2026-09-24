@@ -1821,7 +1821,7 @@ export default class onetrading extends Exchange {
         //         "cursor": "string"
         //     }
         //
-        const tradeHistory = this.safeList (response, 'trade_history', []);
+        const tradeHistory: Dict[] = this.safeList (response, 'trade_history', []);
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);

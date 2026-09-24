@@ -886,7 +886,7 @@ export default class luno extends Exchange {
             request['pair'] = market['id'];
         }
         const response = await this.privateGetListorders (this.extend (request, params));
-        const orders = this.safeList (response, 'orders', []);
+        const orders: Dict[] = this.safeList (response, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1159,7 +1159,7 @@ export default class luno extends Exchange {
         //          ]
         //      }
         //
-        const trades = this.safeList (response, 'trades', []);
+        const trades: Dict[] = this.safeList (response, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1280,7 +1280,7 @@ export default class luno extends Exchange {
         //          ]
         //      }
         //
-        const trades = this.safeList (response, 'trades', []);
+        const trades: Dict[] = this.safeList (response, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1467,7 +1467,7 @@ export default class luno extends Exchange {
             'max_row': max_row,
         };
         const response = await this.privateGetAccountsIdTransactions (this.extend (params, request));
-        const entries = this.safeList (response, 'transactions', []);
+        const entries: Dict[] = this.safeList (response, 'transactions', []);
         return this.parseLedger (entries, currency, since, limit);
     }
 

@@ -2413,7 +2413,7 @@ export default class okx extends Exchange {
         //         ]
         //     }
         //
-        const tickers = this.safeList (response, 'data', []);
+        const tickers: Dict[] = this.safeList (response, 'data', []);
         return this.parseTickers (tickers, symbols);
     }
 
@@ -2483,7 +2483,7 @@ export default class okx extends Exchange {
             }
         }
         const response = await this.publicGetPublicMarkPrice (this.extend (request, params));
-        const tickers = this.safeList (response, 'data', []);
+        const tickers: Dict[] = this.safeList (response, 'data', []);
         return this.parseTickers (tickers, symbols);
     }
 
@@ -8425,7 +8425,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const settlements = this.parseSettlements (data, market);
         const sorted = this.sortBy (settlements, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
@@ -9501,7 +9501,7 @@ export default class okx extends Exchange {
         //        msg: ''
         //    }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const positions = this.parsePositions (data, symbols, params);
         return this.filterBySinceLimit (positions, since, limit);
     }
