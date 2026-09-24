@@ -1259,7 +1259,7 @@ export default class poloniex extends Exchange {
         const id = this.safeString (entry, 'coin');
         const code = this.safeCurrencyCode (id);
         const networks: Dict = {};
-        const chains = this.safeList (entry, 'networkList', []);
+        const chains: Dict[] = this.safeList (entry, 'networkList', []);
         const chainsLength = chains.length;
         for (let j = 0; j < chainsLength; j++) {
             const chain = chains[j];
@@ -2476,7 +2476,7 @@ export default class poloniex extends Exchange {
             const ts = this.safeInteger (response, 'uTime');
             result['timestamp'] = ts;
             result['datetime'] = this.iso8601 (ts);
-            const details = this.safeList (response, 'details', []);
+            const details: Dict[] = this.safeList (response, 'details', []);
             for (let i = 0; i < details.length; i++) {
                 const balance = details[i];
                 const currencyId = this.safeString (balance, 'ccy');
@@ -3386,7 +3386,7 @@ export default class poloniex extends Exchange {
         let longLeverage: Int = undefined;
         let marketId: Str = undefined;
         let marginMode: Str = undefined;
-        const data = this.safeList (leverage, 'data', []);
+        const data: Dict[] = this.safeList (leverage, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             marketId = this.safeString (entry, 'symbol');

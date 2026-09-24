@@ -1853,11 +1853,11 @@ export default class lighter extends Exchange {
         //     }
         //
         const result: Dict = { 'info': response };
-        const accounts = this.safeList (response, 'accounts', []);
+        const accounts: Dict[] = this.safeList (response, 'accounts', []);
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];
             if (type === 'spot') {
-                const assets = this.safeList (account, 'assets', []);
+                const assets: Dict[] = this.safeList (account, 'assets', []);
                 for (let j = 0; j < assets.length; j++) {
                     const asset = assets[j];
                     const codeId = this.safeString (asset, 'symbol');
@@ -1971,7 +1971,7 @@ export default class lighter extends Exchange {
         //     }
         //
         const allPositions: List = [];
-        const accounts = this.safeList (response, 'accounts', []);
+        const accounts: Dict[] = this.safeList (response, 'accounts', []);
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];
             const positions = this.safeList (account, 'positions', []);

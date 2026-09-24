@@ -1180,7 +1180,7 @@ export default class mexc extends Exchange {
         const id = this.safeString (rawCurrency, 'coin');
         const code = this.safeCurrencyCode (id);
         const networks: Dict = {};
-        const chains = this.safeList (rawCurrency, 'networkList', []);
+        const chains: Dict[] = this.safeList (rawCurrency, 'networkList', []);
         for (let j = 0; j < chains.length; j++) {
             const chain = chains[j];
             const networkId = this.safeString2 (chain, 'netWork', 'network');
@@ -1298,7 +1298,7 @@ export default class mexc extends Exchange {
         // Notes:
         // - 'quoteAssetPrecision' & 'baseAssetPrecision' are not currency's real blockchain precision (to view currency's actual individual precision, refer to fetchCurrencies() method).
         //
-        const data = this.safeList (response, 'symbols', []);
+        const data: Dict[] = this.safeList (response, 'symbols', []);
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -1430,7 +1430,7 @@ export default class mexc extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -3828,7 +3828,7 @@ export default class mexc extends Exchange {
             await this.loadMarkets ();
         }
         const response = await this.fetchAccountHelper (marketType, query);
-        const data = this.safeList (response, 'balances', []);
+        const data: Dict[] = this.safeList (response, 'balances', []);
         const result: Account[] = [];
         for (let i = 0; i < data.length; i++) {
             const account = data[i];
@@ -4480,7 +4480,7 @@ export default class mexc extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const resultList = this.safeList (data, 'resultList', []);
+        const resultList: Dict[] = this.safeList (data, 'resultList', []);
         const result: Dict[] = [];
         for (let i = 0; i < resultList.length; i++) {
             const entry = resultList[i];
@@ -4653,7 +4653,7 @@ export default class mexc extends Exchange {
         //    }
         //
         const data = this.safeDict (response, 'data');
-        const result = this.safeList (data, 'resultList', []);
+        const result: Dict[] = this.safeList (data, 'resultList', []);
         const rates: FundingRateHistory[] = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
@@ -5954,7 +5954,7 @@ export default class mexc extends Exchange {
         //        ]
         //    }
         //
-        const networkList = this.safeList (transaction, 'networkList', []);
+        const networkList: Dict[] = this.safeList (transaction, 'networkList', []);
         const result: Dict = {};
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
@@ -6039,7 +6039,7 @@ export default class mexc extends Exchange {
         //        ]
         //    }
         //
-        const networkList = this.safeList (fee, 'networkList', []);
+        const networkList: Dict[] = this.safeList (fee, 'networkList', []);
         const result = this.depositWithdrawFee (fee);
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];

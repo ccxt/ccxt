@@ -1205,7 +1205,7 @@ export default class onetrading extends Exchange {
     }
 
     override parseBalance (response: any): Balances {
-        const balances = this.safeList (response, 'balances', []);
+        const balances: Dict[] = this.safeList (response, 'balances', []);
         const result: Dict = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];

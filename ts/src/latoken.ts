@@ -609,7 +609,7 @@ export default class latoken extends Exchange {
         const types = this.safeDict (this.options, 'types', {});
         const accountType = this.safeString (types, type, type);
         const balancesByType = this.groupBy (response, 'type');
-        const balances = this.safeList (balancesByType, accountType, []);
+        const balances: Dict[] = this.safeList (balancesByType, accountType, []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
@@ -681,8 +681,8 @@ export default class latoken extends Exchange {
         // observed live on 2026-08-17 with bestAskQuantity -0.1791852 served
         // for over half an hour - such a level is a deleted level their
         // aggregation failed to drop, so it is removed here
-        const rawAsks = this.safeList (response, 'ask', []);
-        const rawBids = this.safeList (response, 'bid', []);
+        const rawAsks: Dict[] = this.safeList (response, 'ask', []);
+        const rawBids: Dict[] = this.safeList (response, 'bid', []);
         const asks = [];
         const bids = [];
         for (let i = 0; i < rawAsks.length; i++) {
