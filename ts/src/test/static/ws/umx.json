@@ -611,6 +611,185 @@
                     }
                 ]
             }
+        ],
+        "watchBidsAsks": [
+            {
+                "description": "the best bid and offer of a linear perpetual",
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "url": "wss://stream.umx.com/ws/public/v1/market",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "data": [
+                            {
+                                "businessType": "linear_perpetual",
+                                "symbol": "ETH-USDT-PERP",
+                                "stream": "orderBook",
+                                "message": "成功",
+                                "code": 0
+                            }
+                        ],
+                        "ts": 1790257010431
+                    },
+                    {
+                        "businessType": "linear_perpetual",
+                        "symbol": "ETH-USDT-PERP",
+                        "stream": "orderBook",
+                        "data": [
+                            {
+                                "symbol": "ETH-USDT-PERP",
+                                "lastUpdateId": "12480866377",
+                                "preUpdateId": "12480866375",
+                                "bids": [
+                                    [
+                                        "2666.67",
+                                        "90.948"
+                                    ]
+                                ],
+                                "asks": [
+                                    [
+                                        "2666.85",
+                                        "40.5"
+                                    ]
+                                ]
+                            }
+                        ],
+                        "ts": 1790257010431
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "data": [
+                            {
+                                "stream": "orderBook",
+                                "businessType": "linear_perpetual",
+                                "symbol": "ETH-USDT-PERP"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "ETH/USDT:USDT": {
+                            "symbol": "ETH/USDT:USDT",
+                            "timestamp": 1790257010431,
+                            "datetime": "2026-09-24T13:36:50.431Z",
+                            "bid": 2666.67,
+                            "bidVolume": 90.948,
+                            "ask": 2666.85,
+                            "askVolume": 40.5,
+                            "info": {
+                                "symbol": "ETH-USDT-PERP",
+                                "lastUpdateId": "12480866377",
+                                "preUpdateId": "12480866375",
+                                "bids": [
+                                    [
+                                        "2666.67",
+                                        "90.948"
+                                    ]
+                                ],
+                                "asks": [
+                                    [
+                                        "2666.85",
+                                        "40.5"
+                                    ]
+                                ]
+                            },
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    }
+                ]
+            }
+        ],
+        "watchOHLCV": [
+            {
+                "description": "a one minute spot candle",
+                "input": [
+                    "ETH/USDT",
+                    "1m"
+                ],
+                "url": "wss://stream.umx.com/ws/public/v1/market",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "data": [
+                            {
+                                "businessType": "spot",
+                                "symbol": "ETH-USDT",
+                                "stream": "kline#1m",
+                                "message": "成功",
+                                "code": 0
+                            }
+                        ],
+                        "ts": 1790257010431
+                    },
+                    {
+                        "businessType": "spot",
+                        "symbol": "ETH-USDT",
+                        "stream": "kline#1m",
+                        "data": [
+                            {
+                                "symbol": "ETH-USDT",
+                                "period": "1m",
+                                "openTime": "1790256960000",
+                                "closeTime": "1790257012114",
+                                "openPrice": "2666.13",
+                                "closePrice": "2667.66",
+                                "highPrice": "2668.38",
+                                "lowPrice": "2665.03",
+                                "volume": "0.0582",
+                                "quoteVolume": "155.191325",
+                                "count": "15",
+                                "priceChange": "1.53",
+                                "priceChangePercent": "0.0005"
+                            }
+                        ],
+                        "ts": 1790257012121
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "data": [
+                            {
+                                "stream": "kline#1m",
+                                "businessType": "spot",
+                                "symbol": "ETH-USDT"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        [
+                            1790256960000,
+                            2666.13,
+                            2668.38,
+                            2665.03,
+                            2667.66,
+                            0.0582
+                        ]
+                    ]
+                ]
+            }
         ]
     }
 }

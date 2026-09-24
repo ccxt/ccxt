@@ -3,8 +3,8 @@
 
 import umxRest from '../umx.js';
 import { BadRequest, ExchangeError } from '../base/errors.js';
-import { ArrayCache } from '../base/ws/Cache.js';
-import type { Dict, Int, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import type { Dict, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -15,9 +15,11 @@ export default class umx extends umxRest {
             'has': {
                 'ws': true,
                 'watchBalance': false,
-                'watchBidsAsks': false,
+                'watchBidsAsks': true,
+                'unWatchBidsAsks': true,
                 'watchMyTrades': false,
-                'watchOHLCV': false,
+                'watchOHLCV': true,
+                'unWatchOHLCV': true,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'unWatchOrderBook': true,
@@ -657,6 +659,270 @@ export default class umx extends umxRest {
     }
 
     /**
+     * @method
+     * @name umx#watchBidsAsks
+     * @description watches the best bid and ask prices and volumes of multiple markets
+     * @see https://www.umx.com/docs/coin-apis/websocket-stream/public-channel/best-bid-and-offer-channel
+     * @param {string[]} [symbols] unified symbols of the markets to watch, every market of every instrument type is streamed when left out
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    override async watchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const messageHashes = [];
+        const topics = [];
+        if (symbols === undefined) {
+            messageHashes.push ('bidasks');
+            const businessTypes = [ 'spot', 'linear_perpetual', 'linear_futures' ];
+            for (let i = 0; i < businessTypes.length; i++) {
+                topics.push ({
+                    'stream': 'orderBook',
+                    'businessType': businessTypes[i],
+                });
+            }
+        } else {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const messageHash = 'bidask::' + symbol;
+                if (!this.inArray (messageHash, messageHashes)) {
+                    messageHashes.push (messageHash);
+                    topics.push (this.subscriptionTopic ('orderBook', symbol));
+                }
+            }
+        }
+        const url = this.urls['api']['ws']['public'];
+        const message: Dict = {
+            'event': 'subscribe',
+            'data': topics,
+        };
+        const newTicker = await this.watchMultiple (url, messageHashes, this.deepExtend (message, params), messageHashes);
+        if (this.newUpdates) {
+            const result: Dict = {};
+            result[newTicker['symbol']] = newTicker;
+            return result;
+        }
+        return this.filterByArray (this.bidsasks, 'symbol', symbols);
+    }
+
+    /**
+     * @method
+     * @name umx#unWatchBidsAsks
+     * @description unsubscribes from the best bid and ask channel of multiple markets
+     * @see https://www.umx.com/docs/coin-apis/websocket-stream/public-channel/best-bid-and-offer-channel
+     * @param {string[]} [symbols] unified symbols of the markets to stop watching, the all pairs subscriptions are dropped when left out
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} the result of the unwatch operation
+     */
+    override async unWatchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const subMessageHashes = [];
+        const messageHashes = [];
+        const topics = [];
+        if (symbols === undefined) {
+            subMessageHashes.push ('bidasks');
+            messageHashes.push ('unsubscribe::bidasks');
+            const businessTypes = [ 'spot', 'linear_perpetual', 'linear_futures' ];
+            for (let i = 0; i < businessTypes.length; i++) {
+                topics.push ({
+                    'stream': 'orderBook',
+                    'businessType': businessTypes[i],
+                });
+            }
+        } else {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const subMessageHash = 'bidask::' + symbol;
+                if (!this.inArray (subMessageHash, subMessageHashes)) {
+                    subMessageHashes.push (subMessageHash);
+                    messageHashes.push ('unsubscribe::bidask::' + symbol);
+                    topics.push (this.subscriptionTopic ('orderBook', symbol));
+                }
+            }
+        }
+        const url = this.urls['api']['ws']['public'];
+        const message: Dict = {
+            'event': 'unsubscribe',
+            'data': topics,
+        };
+        const subscription: Dict = {
+            'unsubscribe': true,
+            'symbols': symbols,
+            'messageHashes': messageHashes,
+            'subMessageHashes': subMessageHashes,
+            'topic': 'bidsasks',
+        };
+        return await this.watchMultiple (url, messageHashes, this.deepExtend (message, params), messageHashes, subscription);
+    }
+
+    handleBidsAsks (client: Client, message: Dict) {
+        //
+        //     {
+        //         "businessType": "linear_perpetual",
+        //         "symbol": "ETH-USDT-PERP",
+        //         "stream": "orderBook",
+        //         "data": [
+        //             {
+        //                 "symbol": "ETH-USDT-PERP",
+        //                 "lastUpdateId": "12480866377",
+        //                 "preUpdateId": "12480866375",
+        //                 "bids": [ [ "2666.67", "90.948" ] ],
+        //                 "asks": [ [ "2666.85", "40.5" ] ]
+        //             }
+        //         ],
+        //         "ts": 1790257010431
+        //     }
+        //
+        const ts = this.safeInteger (message, 'ts');
+        const data = this.safeList (message, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const row = this.safeDict (data, i, {});
+            const marketId = this.safeString (row, 'symbol');
+            const market = this.safeMarket (marketId);
+            const symbol = market['symbol'] as string;
+            const bids = this.safeList (row, 'bids', []);
+            const asks = this.safeList (row, 'asks', []);
+            const bestBid = this.safeList (bids, 0, []);
+            const bestAsk = this.safeList (asks, 0, []);
+            const ticker = this.safeTicker ({
+                'symbol': symbol,
+                'timestamp': ts,
+                'datetime': this.iso8601 (ts),
+                'bid': this.safeString (bestBid, 0),
+                'bidVolume': this.safeString (bestBid, 1),
+                'ask': this.safeString (bestAsk, 0),
+                'askVolume': this.safeString (bestAsk, 1),
+                'info': row,
+            }, market);
+            this.bidsasks[symbol] = ticker;
+            client.resolve (ticker, 'bidask::' + symbol);
+            client.resolve (ticker, 'bidasks');
+        }
+    }
+
+    /**
+     * @method
+     * @name umx#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low and close price and the volume of a market
+     * @see https://www.umx.com/docs/coin-apis/websocket-stream/public-channel/kline-channel
+     * @param {string} symbol unified symbol of the market to watch the ohlcv for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    override async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
+        const url = this.urls['api']['ws']['public'];
+        const messageHash = 'ohlcv::' + symbol + '::' + timeframe;
+        const message: Dict = {
+            'event': 'subscribe',
+            'data': [ this.subscriptionTopic ('kline#' + interval, symbol) ],
+        };
+        const ohlcv = await this.watch (url, messageHash, this.deepExtend (message, params), messageHash);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
+    /**
+     * @method
+     * @name umx#unWatchOHLCV
+     * @description unsubscribes from the candles channel of a market
+     * @see https://www.umx.com/docs/coin-apis/websocket-stream/public-channel/kline-channel
+     * @param {string} symbol unified symbol of the market to stop watching the candles of
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} the result of the unwatch operation
+     */
+    override async unWatchOHLCV (symbol: string, timeframe = '1m', params: Dict = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
+        const url = this.urls['api']['ws']['public'];
+        const subMessageHash = 'ohlcv::' + symbol + '::' + timeframe;
+        const messageHash = 'unsubscribe::' + subMessageHash;
+        const message: Dict = {
+            'event': 'unsubscribe',
+            'data': [ this.subscriptionTopic ('kline#' + interval, symbol) ],
+        };
+        const subscription: Dict = {
+            'unsubscribe': true,
+            'symbolsAndTimeframes': [ [ symbol, timeframe ] ],
+            'messageHashes': [ messageHash ],
+            'subMessageHashes': [ subMessageHash ],
+            'topic': 'ohlcv',
+        };
+        return await this.watch (url, messageHash, this.deepExtend (message, params), messageHash, subscription);
+    }
+
+    handleOHLCV (client: Client, message: Dict) {
+        //
+        //     {
+        //         "businessType": "spot",
+        //         "symbol": "ETH-USDT",
+        //         "stream": "kline#1m",
+        //         "data": [
+        //             {
+        //                 "symbol": "ETH-USDT",
+        //                 "period": "1m",
+        //                 "openTime": "1790256960000",
+        //                 "closeTime": "1790257012114",
+        //                 "openPrice": "2666.13",
+        //                 "closePrice": "2667.66",
+        //                 "highPrice": "2668.38",
+        //                 "lowPrice": "2665.03",
+        //                 "volume": "0.0582",
+        //                 "quoteVolume": "155.191325",
+        //                 "count": "15",
+        //                 "priceChange": "1.53",
+        //                 "priceChangePercent": "0.0005"
+        //             }
+        //         ],
+        //         "ts": 1790257012121
+        //     }
+        //
+        const marketId = this.safeString (message, 'symbol');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'] as string;
+        const data = this.safeList (message, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const row = this.safeDict (data, i, {});
+            const interval = this.safeString (row, 'period');
+            const timeframe = this.findTimeframe (interval) as string;
+            if (!(symbol in this.ohlcvs)) {
+                this.ohlcvs[symbol] = {};
+            }
+            if (!(timeframe in this.ohlcvs[symbol])) {
+                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+                this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
+            }
+            const stored = this.ohlcvs[symbol][timeframe];
+            const parsed = this.parseWsOHLCV (row, market);
+            stored.append (parsed);
+            client.resolve (stored, 'ohlcv::' + symbol + '::' + timeframe);
+        }
+    }
+
+    override parseWsOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
+        return [
+            this.safeInteger (ohlcv, 'openTime'),
+            this.safeNumber (ohlcv, 'openPrice'),
+            this.safeNumber (ohlcv, 'highPrice'),
+            this.safeNumber (ohlcv, 'lowPrice'),
+            this.safeNumber (ohlcv, 'closePrice'),
+            this.safeNumber (ohlcv, 'volume'),
+        ];
+    }
+
+    /**
      * @ignore
      * @method
      * @name umx#subscriptionTopic
@@ -741,16 +1007,27 @@ export default class umx extends umxRest {
             const stream = this.safeString (entry, 'stream', '');
             const marketId = this.safeString (entry, 'symbol');
             const symbol = this.safeSymbol (marketId);
-            let channel = stream;
-            if (stream.startsWith ('depth')) {
+            const parts = stream.split ('#');
+            const streamName = this.safeString (parts, 0, '');
+            let channel = streamName;
+            if (streamName.startsWith ('depth')) {
                 channel = 'orderbook';
-            } else if (stream === 'ticker24hr') {
+            } else if (streamName === 'ticker24hr') {
                 channel = 'ticker';
+            } else if (streamName === 'orderBook') {
+                channel = 'bidask';
+            } else if (streamName === 'kline') {
+                channel = 'ohlcv';
             }
-            // the ticker channel accepts a subscription without a symbol
+            // some channels accept a subscription without a symbol
             let messageHash = channel + 's';
             if (marketId !== undefined) {
                 messageHash = channel + '::' + symbol;
+                if (streamName === 'kline') {
+                    const interval = this.safeString (parts, 1, '');
+                    const timeframe = this.findTimeframe (interval);
+                    messageHash = messageHash + '::' + timeframe;
+                }
             }
             const code = this.safeString (entry, 'code');
             if ((code !== undefined) && (code !== '0')) {
@@ -811,6 +1088,10 @@ export default class umx extends umxRest {
             this.handleOrderBook (client, message);
         } else if (stream === 'ticker24hr') {
             this.handleTicker (client, message);
+        } else if (stream === 'orderBook') {
+            this.handleBidsAsks (client, message);
+        } else if (stream.startsWith ('kline')) {
+            this.handleOHLCV (client, message);
         }
     }
 }
