@@ -544,7 +544,7 @@
 
 import { NodeFlags, SyntaxKind } from 'typescript/unstable/ast';
 import { IndexKind, ObjectFlags, TypeFlags } from 'typescript/unstable/sync';
-import { isArrayLiteralExpression, isBooleanLiteral, isCallExpression, isIdentifier, isInterfaceDeclaration, isMethodDeclaration, isNumericLiteral, isObjectLiteralExpression, isPropertyAccessExpression, isStringLiteral, isStringLiteralLikeNode, isTypeLiteralNode, isTypeReferenceNode } from 'typescript/unstable/ast/is';
+import { isArrayLiteralExpression, isBooleanLiteral, isCallExpression, isIdentifier, isInterfaceDeclaration, isMethodDeclaration, isNumericLiteral, isObjectLiteralExpression, isPropertyAccessExpression, isStringLiteral as ts7IsStringLiteral, isStringLiteralLikeNode, isTypeLiteralNode, isTypeReferenceNode } from 'typescript/unstable/ast/is';
 import { findAncestor, isFunctionLike } from 'ast-transpiler/tsUtils';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -14784,7 +14784,7 @@ function csharpParameterDefaultPrintsNull (initializer) {
         return false;
     }
     return isArrayLiteralExpression (initializer) || isObjectLiteralExpression (initializer)
-        || isStringLiteral (initializer) || isNumericLiteral (initializer)
+        || ts7IsStringLiteral (initializer) || isNumericLiteral (initializer)
         || (isBooleanLiteral !== undefined && isBooleanLiteral (initializer))
         || (initializer.kind === SyntaxKind.NullKeyword)
         || ((initializer.kind === SyntaxKind.Identifier) && (initializer.text === 'undefined'));
