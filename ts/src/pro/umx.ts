@@ -1011,10 +1011,10 @@ export default class umx extends umxRest {
         const url = this.urls['api']['ws']['private'];
         const client = this.client (url);
         const messageHash = 'authenticated';
-        const future = client.future (messageHash);
+        const future = client.reusableFuture (messageHash);
         const isAuthenticated = this.safeValue (client.subscriptions, messageHash);
         if (isAuthenticated === undefined) {
-            const timestamp = this.numberToString (this.milliseconds ());
+            const timestamp = this.numberToString (this.nonce ());
             const request: Dict = {
                 'type': 'Token',
                 'accessKey': this.apiKey,
@@ -1024,7 +1024,12 @@ export default class umx extends umxRest {
             // api uses, with an empty query string, and requires the field order type, accessKey,
             // accessTimestamp, the signed body is spelled out because the maps of some ports
             // (go, java) do not keep the insertion order when serialized
-            const signedData = '{"type":"Token","accessKey":"' + this.apiKey + '","accessTimestamp":"' + timestamp + '"}';
+            // a closing brace followed by a quote would be read by the php transpiler as the end
+            // of an array, so it is cut out of a literal padded with a space
+            const openBrace = '{';
+            let closeBrace = '} ';
+            closeBrace = closeBrace.slice (0, 1);
+            const signedData = openBrace + '"type":"Token","accessKey":"' + this.apiKey + '","accessTimestamp":"' + timestamp + '"' + closeBrace;
             const payload = timestamp + 'POST' + '/v2/notification' + signedData;
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'hex');
             const message: Dict = {
@@ -1746,13 +1751,18 @@ export default class umx extends umxRest {
         const url = this.urls['api']['ws']['trade'];
         const client = this.client (url);
         const messageHash = 'tradeAuthenticated';
-        const future = client.future (messageHash);
+        const future = client.reusableFuture (messageHash);
         const isAuthenticated = this.safeValue (client.subscriptions, messageHash);
         if (isAuthenticated === undefined) {
-            const timestamp = this.numberToString (this.milliseconds ());
+            const timestamp = this.numberToString (this.nonce ());
             // signed like the notification socket, over the same path, but the signature travels
             // inside the body and the body is signed without it, the key order is required
-            const signedData = '{"type":"Token","accessKey":"' + this.apiKey + '","accessTimestamp":"' + timestamp + '"}';
+            // a closing brace followed by a quote would be read by the php transpiler as the end
+            // of an array, so it is cut out of a literal padded with a space
+            const openBrace = '{';
+            let closeBrace = '} ';
+            closeBrace = closeBrace.slice (0, 1);
+            const signedData = openBrace + '"type":"Token","accessKey":"' + this.apiKey + '","accessTimestamp":"' + timestamp + '"' + closeBrace;
             const payload = timestamp + 'POST' + '/v2/notification' + signedData;
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'hex');
             const body: Dict = {

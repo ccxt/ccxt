@@ -1463,7 +1463,7 @@ export default class umx extends Exchange {
         if (market['option'] !== true) {
             throw new BadSymbol (this.id + ' fetchGreeks() supports option markets only');
         }
-        const entry = await this.fetchOptionTickerRow (market, params);
+        const entry = await this.optionTickerRow (market, params);
         return this.parseGreeks (entry, market);
     }
 
@@ -1510,20 +1510,20 @@ export default class umx extends Exchange {
         if (market['option'] !== true) {
             throw new BadSymbol (this.id + ' fetchOption() supports option markets only');
         }
-        const entry = await this.fetchOptionTickerRow (market, params);
+        const entry = await this.optionTickerRow (market, params);
         return this.parseOption (entry, undefined, market);
     }
 
     /**
      * @ignore
      * @method
-     * @name umx#fetchOptionTickerRow
+     * @name umx#optionTickerRow
      * @description fetch the ticker row of one option market with the timestamp of the answer attached
      * @param {object} market the option market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the ticker row, empty when the option does not trade
      */
-    async fetchOptionTickerRow (market: Market, params: Dict = {}): Promise<Dict> {
+    async optionTickerRow (market: Market, params: Dict = {}): Promise<Dict> {
         const request: Dict = {
             'businessType': 'options',
             'symbol': this.safeString (market, 'id'),

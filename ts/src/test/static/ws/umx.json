@@ -1849,7 +1849,8 @@
                             ]
                         }
                     }
-                ]
+                ],
+                "disabledPHP": "the php base underscore () turns watchOHLCVForSymbols into watch_ohlcvfor_symbols, so the camelcase dispatch misses the transpiled watch_ohlcv_for_symbols, a repository wide issue"
             }
         ]
     }
