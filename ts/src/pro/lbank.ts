@@ -488,7 +488,7 @@ export default class lbank extends lbankRest {
             stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
         }
-        const rawTrade = this.safeValue (message, 'trade');
+        const rawTrade = this.safeDict (message, 'trade');
         const rawTrades = this.safeList (message, 'trades', [ rawTrade ]);
         for (let i = 0; i < rawTrades.length; i++) {
             const trade = this.parseWsTrade (rawTrades[i], market);
