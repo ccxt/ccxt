@@ -6,7 +6,7 @@ import phemexRest from '../phemex.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Strings, Tickers, Num, Market, List } from '../base/types.js';
-import { AuthenticationError } from '../base/errors.js';
+import { AuthenticationError, BadResponse } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -299,7 +299,10 @@ export default class phemex extends phemexRest {
         }
         for (let i = 0; i < tickers.length; i++) {
             const ticker = tickers[i];
-            const symbol = ticker['symbol'];
+            const symbol = this.safeString (ticker, 'symbol');
+            if (symbol === undefined) {
+                throw new BadResponse (this.id + ' handleTicker() parsed ticker has no symbol');
+            }
             const messageHash = 'ticker:' + symbol;
             const timestamp = this.safeIntegerProduct (message, 'timestamp', 0.000001);
             ticker['timestamp'] = timestamp;
