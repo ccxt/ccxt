@@ -50,7 +50,11 @@ export default class bitopro extends bitoproRest {
     }
 
     async watchPublic (path: string, messageHash: string, marketId: Str) {
-        const url = this.urls['ws']['public'] + '/' + path + '/' + marketId;
+        const wsUrl = this.safeString (this.urls['ws'], 'public');
+        if (wsUrl === undefined) {
+            throw new ExchangeError (this.id + ' watchPublic() has no public websocket url');
+        }
+        const url = wsUrl + '/' + path + '/' + marketId;
         return await this.watch (url, messageHash, undefined, messageHash);
     }
 
@@ -208,7 +212,11 @@ export default class bitopro extends bitoproRest {
             const market = this.market (symbol);
             messageHash = messageHash + ':' + market['symbol'];
         }
-        const url = this.urls['ws']['private'] + '/' + 'user-trades';
+        const wsUrl = this.safeString (this.urls['ws'], 'private');
+        if (wsUrl === undefined) {
+            throw new ExchangeError (this.id + ' watchMyTrades() has no private websocket url');
+        }
+        const url = wsUrl + '/' + 'user-trades';
         this.authenticate (url);
         const trades = await this.watch (url, messageHash, undefined, messageHash);
         if (this.newUpdates) {
@@ -438,7 +446,11 @@ export default class bitopro extends bitoproRest {
             await this.loadMarkets ();
         }
         const messageHash = 'ACCOUNT_BALANCE';
-        const url = this.urls['ws']['private'] + '/' + 'account-balance';
+        const wsUrl = this.safeString (this.urls['ws'], 'private');
+        if (wsUrl === undefined) {
+            throw new ExchangeError (this.id + ' watchBalance() has no private websocket url');
+        }
+        const url = wsUrl + '/' + 'account-balance';
         this.authenticate (url);
         return await this.watch (url, messageHash, undefined, messageHash);
     }

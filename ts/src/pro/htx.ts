@@ -2558,7 +2558,7 @@ export default class htx extends htxRest {
                 }
             }
             if ('ch' in message) {
-                if (message['ch'] === 'auth') {
+                if (this.safeString (message, 'ch') === 'auth') {
                     this.handleAuthenticate (client, message);
                     return;
                 } else {

@@ -1188,7 +1188,7 @@ export default class toobit extends toobitRest {
         const time = this.milliseconds ();
         const lastAuthenticatedTime = this.safeInteger (this.options['ws'], 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options['ws'], 'listenKeyRefreshRate', 1200000);
-        const delay = this.sum (listenKeyRefreshRate, 10000);
+        const delay = listenKeyRefreshRate + 10000;
         if (time - lastAuthenticatedTime > delay) {
             this.checkRequiredCredentials ();
             // single-flight leader election on a never-dialed client, see
