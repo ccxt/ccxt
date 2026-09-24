@@ -2004,7 +2004,8 @@ func GetArgStringSlice(args []any, index int, def []string) []string {
 	if list, isList := val.([]any); isList {
 		res := make([]string, 0, len(list))
 		for _, item := range list {
-			str, isStr := item.(string)
+			// MarketSymbols returns a []any of *string (SafeString results)
+			str, isStr := derefScalar(item).(string)
 			if !isStr {
 				goArgPanic("GetArgStringSlice", index, val)
 			}

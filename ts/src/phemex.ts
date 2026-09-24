@@ -1305,7 +1305,7 @@ export default class phemex extends Exchange {
         return orderbook as OrderBook;
     }
 
-    toEn (n: any, scale: any) {
+    toEn (n: any, scale: Int) {
         if ((n === undefined) || (scale === undefined)) {
             return undefined;
         }
@@ -2769,7 +2769,7 @@ export default class phemex extends Exchange {
             if (qtyType === 'ByQuote') {
                 let cost = this.safeNumber (params, 'cost');
                 params = this.omit (params, 'cost');
-                if (this.options['createOrderByQuoteRequiresPrice'] === true) {
+                if (this.safeBool (this.options, 'createOrderByQuoteRequiresPrice') === true) {
                     if (price !== undefined) {
                         const amountString = this.numberToString (amount);
                         const priceString = this.numberToString (price);

@@ -105,7 +105,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             messageHash = name + '::' + market['symbol'];
             productIds = [ (market['id'] as string) ];
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         if (url === undefined) {
             throw new NotSupported (this.id + ' is not supported in sandbox environment');
         }
@@ -158,7 +158,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             productIds.push (marketId);
             messageHashes.push (name + '::' + symbol);
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         if (url === undefined) {
             throw new NotSupported (this.id + ' is not supported in sandbox environment');
         }

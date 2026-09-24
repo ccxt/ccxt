@@ -357,7 +357,11 @@ export default class latoken extends Exchange {
     }
 
     override nonce (): number {
-        return this.milliseconds () - this.options['timeDifference'];
+        const timeDifference = this.safeInteger (this.options, 'timeDifference');
+        if (timeDifference === undefined) {
+            throw new ExchangeError (this.id + ' nonce() requires a numeric options["timeDifference"]');
+        }
+        return this.milliseconds () - timeDifference;
     }
 
     /**
@@ -1884,7 +1888,11 @@ export default class latoken extends Exchange {
                 body = this.json (query);
             }
         }
-        const url = this.urls['api']['rest'] + requestString;
+        const apiUrl = this.safeString (this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + requestString;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 

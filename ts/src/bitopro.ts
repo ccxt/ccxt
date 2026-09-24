@@ -945,7 +945,7 @@ export default class bitopro extends Exchange {
         return this.insertMissingCandles (sparse, timeframeInSeconds, alignedSince, limit) as OHLCV[];
     }
 
-    insertMissingCandles (candles: any, distance: any, since: any, limit: any) {
+    insertMissingCandles (candles: any, distance: number, since: Int, limit: number) {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
         const length = candles.length;
@@ -1947,7 +1947,11 @@ export default class bitopro extends Exchange {
                 url += '?' + this.urlencode (query);
             }
         }
-        url = this.urls['api']['rest'] + url;
+        const apiUrl = this.safeString (this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        url = apiUrl + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 

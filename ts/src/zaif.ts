@@ -850,7 +850,8 @@ export default class zaif extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let url = this.urls['api']['rest'] + '/';
+        const baseUrl: string = this.urls['api']['rest'];
+        let url = baseUrl + '/';
         if (api === 'public') {
             url += 'api/' + this.version + '/' + this.implodeParams (path, params);
         } else if (api === 'fapi') {

@@ -987,7 +987,7 @@ export default class kraken extends krakenRest {
         }
         orderbook.limit ();
         // checksum temporarily disabled because the exchange checksum was not reliable
-        const checksum = this.handleOption ('watchOrderBook', 'checksum', false);
+        const checksum: Bool = this.handleOption ('watchOrderBook', 'checksum', false);
         if (checksum === true) {
             const payloadArray: string[] = [];
             if (c !== undefined) {

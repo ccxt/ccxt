@@ -715,7 +715,7 @@ export default class weex extends Exchange {
     }
 
     override nonce (): number {
-        return this.milliseconds () - this.options['timeDifference'];
+        return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
     /**
@@ -965,7 +965,7 @@ export default class weex extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        if (this.options['adjustForTimeDifference'] === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference', false) === true) {
             await this.loadTimeDifference ();
         }
         const promises = [
@@ -4425,7 +4425,8 @@ export default class weex extends Exchange {
                 'User-Agent': 'ccxt',
             };
         }
-        const url = this.urls['api'][api] + '/' + endpoint;
+        const baseUrl: string = this.urls['api'][api];
+        const url = baseUrl + '/' + endpoint;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 

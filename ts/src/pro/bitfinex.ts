@@ -49,7 +49,7 @@ export default class bitfinex extends bitfinexRest {
         });
     }
 
-    async subscribe (channel: any, symbol: any, params: Dict = {}) {
+    async subscribe (channel: string, symbol: string, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -78,7 +78,7 @@ export default class bitfinex extends bitfinexRest {
         return result;
     }
 
-    async unSubscribe (channel: any, topic: any, symbol: any, params: Dict = {}) {
+    async unSubscribe (channel: string, topic: string, symbol: string, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -899,7 +899,7 @@ export default class bitfinex extends bitfinexRest {
         //       null
         //   ]
         //
-        const updateType = this.safeValue (message, 1);
+        const updateType = this.safeString (message, 1);
         let data: any[] = [];
         if (updateType === 'ws') {
             data = this.safeList (message, 2) as List;

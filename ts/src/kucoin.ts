@@ -1514,7 +1514,7 @@ export default class kucoin extends Exchange {
     }
 
     override nonce (): number {
-        return this.milliseconds () - this.options['timeDifference'];
+        return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
     /**
@@ -1864,7 +1864,7 @@ export default class kucoin extends Exchange {
             const contractMarkets = this.safeList (responses, contractIndex, []);
             result = this.arrayConcat (result, contractMarkets);
         }
-        if (this.options['adjustForTimeDifference'] === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference') === true) {
             await this.loadTimeDifference ();
         }
         return result;
@@ -2206,7 +2206,7 @@ export default class kucoin extends Exchange {
                 'info': market,
             });
         }
-        if (this.options['adjustForTimeDifference'] === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference') === true) {
             await this.loadTimeDifference ();
         }
         return result;
@@ -5531,7 +5531,7 @@ export default class kucoin extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let lowercaseStatus = status.toLowerCase ();
+        let lowercaseStatus: string = status.toLowerCase ();
         const until = this.safeInteger (params, 'until');
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
         let hf: Bool = undefined;
@@ -5814,7 +5814,7 @@ export default class kucoin extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        let lowercaseStatus = status.toLowerCase ();
+        let lowercaseStatus: string = status.toLowerCase ();
         if (lowercaseStatus === 'open') {
             lowercaseStatus = 'active';
         } else if (lowercaseStatus === 'closed') {
@@ -6852,7 +6852,7 @@ export default class kucoin extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const method = this.options['fetchMyTradesMethod'];
+        const method = this.safeString (this.options, 'fetchMyTradesMethod');
         let parseResponseData = false;
         let response = undefined;
         [ request, params ] = this.handleUntilOption ('endAt', request, params);
@@ -11764,7 +11764,11 @@ export default class kucoin extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         let endpart = '';
         headers = (headers !== undefined) ? headers : {};
-        let url = this.urls['api'][api];
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl;
         const tradeType = this.safeString (query, 'tradeType');
         if (!this.isEmpty (query)) {
             if (((method === 'GET') || (method === 'DELETE')) && (path !== 'orders/multi-cancel')) {

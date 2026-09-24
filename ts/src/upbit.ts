@@ -821,7 +821,7 @@ export default class upbit extends Exchange {
                     quoteIds.push (quoteId);
                 }
             }
-            const sortedQuoteIds = this.sort (quoteIds); // market iteration order differs per language
+            const sortedQuoteIds: string[] = this.sort (quoteIds); // market iteration order differs per language
             let quoteCurrencies = '';
             for (let i = 0; i < sortedQuoteIds.length; i++) {
                 if (quoteCurrencies !== '') {
@@ -1346,7 +1346,7 @@ export default class upbit extends Exchange {
             request['identifier'] = clientOrderId;
         }
         if (postOnly) {
-            if (request['ord_type'] !== 'limit') {
+            if (this.safeString (request, 'ord_type') !== 'limit') {
                 throw new InvalidOrder (this.id + ' postOnly orders are only supported for limit orders');
             }
             request['time_in_force'] = 'post_only';
@@ -1356,7 +1356,7 @@ export default class upbit extends Exchange {
                 request['time_in_force'] = timeInForce;
             }
         }
-        if (request['ord_type'] === 'best' && timeInForce === undefined) {
+        if (this.safeString (request, 'ord_type') === 'best' && timeInForce === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a timeInForce parameter for best type orders');
         }
         let response: Dict;
@@ -1515,7 +1515,7 @@ export default class upbit extends Exchange {
             request['new_smp_type'] = selfTradePrevention;
         }
         if (postOnly) {
-            if (request['new_ord_type'] !== 'limit') {
+            if (this.safeString (request, 'new_ord_type') !== 'limit') {
                 throw new InvalidOrder (this.id + ' postOnly orders are only supported for limit orders');
             }
             request['new_time_in_force'] = 'post_only';
@@ -1525,7 +1525,7 @@ export default class upbit extends Exchange {
                 request['new_time_in_force'] = timeInForce;
             }
         }
-        if (request['new_ord_type'] === 'best' && timeInForce === undefined) {
+        if (this.safeString (request, 'new_ord_type') === 'best' && timeInForce === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires a timeInForce parameter for best type orders');
         }
         params = this.omit (params, [ 'newTimeInForce', 'new_time_in_force', 'postOnly', 'newClientOrderId', 'cost', 'selfTradePrevention', 'new_smp_type' ]);

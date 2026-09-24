@@ -1006,7 +1006,7 @@ export default class deribit extends Exchange {
                     inverse = (quote !== settle);
                     linear = (settle === quote);
                 }
-                const parsedMarketValue = this.safeValue (parsedMarkets, symbol);
+                const parsedMarketValue = this.safeBool (parsedMarkets, symbol);
                 if (parsedMarketValue !== undefined) {
                     continue;
                 }
@@ -2122,7 +2122,7 @@ export default class deribit extends Exchange {
         };
         const trigger = this.safeString (params, 'trigger', 'last_price');
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
-        const reduceOnly = this.safeValue2 (params, 'reduceOnly', 'reduce_only');
+        const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         // only stop loss sell orders are allowed when price crossed from above
         const stopLossPrice = this.safeValue (params, 'stopLossPrice');
         // only take profit buy orders are allowed when price crossed from below
@@ -4020,7 +4020,11 @@ export default class deribit extends Exchange {
                 'Authorization': 'deri-hmac-sha256 id=' + this.apiKey + ',ts=' + timestamp + ',sig=' + signature + ',' + 'nonce=' + nonce,
             };
         }
-        const url = this.urls['api']['rest'] + request;
+        const apiUrl = this.safeString (this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + request;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 

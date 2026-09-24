@@ -96,7 +96,7 @@ export default class apex extends apexRest {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            const topic = 'recentlyTrade.H.' + (market as Dict)['id2'];
+            const topic = 'recentlyTrade.H.' + this.safeString (market, 'id2');
             topics.push (topic);
             const messageHash = 'trade:' + symbol;
             messageHashes.push (messageHash);
@@ -235,7 +235,7 @@ export default class apex extends apexRest {
             if (limit === undefined) {
                 limit = 25;
             }
-            const topic = 'orderBook' + limit.toString () + '.H.' + (market as Dict)['id2'];
+            const topic = 'orderBook' + limit.toString () + '.H.' + this.safeString (market, 'id2');
             topics.push (topic);
             const messageHash = 'orderbook:' + symbol;
             messageHashes.push (messageHash);
@@ -278,7 +278,7 @@ export default class apex extends apexRest {
         let url = this.safeString (this.options, 'wsPublicUrl');
         if (url === undefined) {
             const timeStamp = this.milliseconds ().toString ();
-            url = this.urls['api']['ws']['public'] + '&timestamp=' + timeStamp;
+            url = this.safeString (this.urls['api']['ws'], 'public') + '&timestamp=' + timeStamp;
             this.options['wsPublicUrl'] = url;
         }
         return url;
@@ -288,7 +288,7 @@ export default class apex extends apexRest {
         let url = this.safeString (this.options, 'wsPrivateUrl');
         if (url === undefined) {
             const timeStamp = this.milliseconds ().toString ();
-            url = this.urls['api']['ws']['private'] + '&timestamp=' + timeStamp;
+            url = this.safeString (this.urls['api']['ws'], 'private') + '&timestamp=' + timeStamp;
             this.options['wsPrivateUrl'] = url;
         }
         return url;
@@ -383,7 +383,7 @@ export default class apex extends apexRest {
         symbol = market['symbol'];
         const url = this.getWsPublicUrl ();
         const messageHash = 'ticker:' + symbol;
-        const topic = 'instrumentInfo' + '.H.' + (market as Dict)['id2'];
+        const topic = 'instrumentInfo' + '.H.' + this.safeString (market, 'id2');
         const topics = [ topic ];
         return await this.watchTopics (url, [ messageHash ], topics, params);
     }
@@ -408,7 +408,7 @@ export default class apex extends apexRest {
         for (let i = 0; i < (symbols as string[]).length; i++) {
             const symbol = (symbols as string[])[i];
             const market = this.market (symbol);
-            const topic = 'instrumentInfo' + '.H.' + (market as Dict)['id2'];
+            const topic = 'instrumentInfo' + '.H.' + this.safeString (market, 'id2');
             topics.push (topic);
             const messageHash = 'ticker:' + symbol;
             messageHashes.push (messageHash);

@@ -1476,10 +1476,10 @@ export default class gemini extends Exchange {
         const remaining = this.safeString (order, 'remaining_amount');
         const filled = this.safeString (order, 'executed_amount');
         let status = 'closed';
-        if (order['is_live'] === true) {
+        if (this.safeBool (order, 'is_live') === true) {
             status = 'open';
         }
-        if (order['is_cancelled'] === true) {
+        if (this.safeBool (order, 'is_cancelled') === true) {
             status = 'canceled';
         }
         const price = this.safeString (order, 'price');
@@ -2060,7 +2060,11 @@ export default class gemini extends Exchange {
                 url += '?' + this.urlencode (query);
             }
         }
-        url = this.urls['api'][api] + url;
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        url = apiUrl + url;
         if ((method === 'POST') || (method === 'DELETE')) {
             body = this.json (query);
         }

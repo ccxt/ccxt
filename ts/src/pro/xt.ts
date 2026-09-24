@@ -78,7 +78,7 @@ export default class xt extends xtRest {
         if (isContract) {
             tradeType = 'contract';
         }
-        let url = this.urls['api']['ws'][tradeType];
+        let url = this.safeString (this.urls['api']['ws'], tradeType);
         if (!isContract) {
             url = url + '/private';
         }
@@ -238,7 +238,7 @@ export default class xt extends xtRest {
         const subscription: Dict = {
             'id': id,
         };
-        const url = this.urls['api']['ws'][tradeType] + '/' + tail;
+        const url = this.safeString (this.urls['api']['ws'], tradeType) + '/' + tail;
         return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
@@ -291,7 +291,7 @@ export default class xt extends xtRest {
         if (isContract) {
             tail = privateAccess ? 'user' : 'market';
         }
-        const url = this.urls['api']['ws'][tradeType] + '/' + tail;
+        const url = this.safeString (this.urls['api']['ws'], tradeType) + '/' + tail;
         const subscription: Dict = {
             'unsubscribe': true,
             'id': id,
@@ -651,7 +651,7 @@ export default class xt extends xtRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const url = this.urls['api']['ws']['contract'] + '/' + 'user';
+        const url = this.safeString (this.urls['api']['ws'], 'contract') + '/' + 'user';
         const client = this.client (url);
         this.setPositionsCache (client);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);

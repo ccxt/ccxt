@@ -325,7 +325,7 @@ export default class zebpay extends Exchange {
         const defaultMarkets = [ 'spot', 'swap' ];
         const types = this.safeList (fetchMarketsOptions, 'types', defaultMarkets);
         for (let i = 0; i < types.length; i++) {
-            const type = types[i];
+            const type = this.safeString (types, i);
             if (type === 'spot') {
                 promisesUnresolved.push (this.fetchSpotMarkets (params));
             } else if (type === 'swap') {
@@ -1941,7 +1941,7 @@ export default class zebpay extends Exchange {
         if (isV1) {
             marketType = 'swap';
         }
-        let url = this.urls['api'][marketType];
+        let url: string = this.urls['api'][marketType];
         const tail = '/api/' + this.implodeParams (path, params);
         url += tail;
         const timestamp = this.milliseconds ().toString ();

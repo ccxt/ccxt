@@ -3243,7 +3243,8 @@ export default class toobit extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
+        const baseUrl: string = this.urls['api'][api];
+        let url = baseUrl + '/' + this.implodeParams (path, params);
         const isPost = method === 'POST';
         const isDelete = method === 'DELETE';
         const extraQuery: Dict = {};

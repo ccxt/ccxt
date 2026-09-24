@@ -1254,7 +1254,7 @@ export default class coinone extends Exchange {
         const result: Dict = {};
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const value = walletAddress[key];
+            const value = this.safeString (walletAddress, key);
             if ((value === undefined) || (value === null) || (value === '') || (value === '-1')) {
                 continue;
             }
@@ -1290,14 +1290,30 @@ export default class coinone extends Exchange {
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const request = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api']['rest'] + '/';
+        const apiUrl = this.safeString (this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/';
         if (api === 'v2Public') {
-            url = this.urls['api']['v2Public'] + '/';
+            const apiUrl2 = this.safeString (this.urls['api'], 'v2Public');
+            if (apiUrl2 === undefined) {
+                throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+            }
+            url = apiUrl2 + '/';
             api = 'public';
         } else if (api === 'v2Private') {
-            url = this.urls['api']['v2Private'] + '/';
+            const apiUrl3 = this.safeString (this.urls['api'], 'v2Private');
+            if (apiUrl3 === undefined) {
+                throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+            }
+            url = apiUrl3 + '/';
         } else if (api === 'v2_1Private') {
-            url = this.urls['api']['v2_1Private'] + '/';
+            const apiUrl4 = this.safeString (this.urls['api'], 'v2_1Private');
+            if (apiUrl4 === undefined) {
+                throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+            }
+            url = apiUrl4 + '/';
         }
         if (api === 'public') {
             url += request;
