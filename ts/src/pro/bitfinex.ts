@@ -438,7 +438,7 @@ export default class bitfinex extends bitfinexRest {
         const messageLength = message.length;
         if (messageLength === 2) {
             // initial snapshot
-            const trades = this.safeList (message, 1, []);
+            const trades: Dict[] = this.safeList (message, 1, []);
             // needs to be reversed to make chronological order
             const length = trades.length;
             for (let i = 0; i < length; i++) {
@@ -592,7 +592,7 @@ export default class bitfinex extends bitfinexRest {
         client.resolve (parsed, messageHash);
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     [
         //         236.62,        // 1 BID float Price of last highest bid
@@ -970,8 +970,8 @@ export default class bitfinex extends bitfinexRest {
         const subMessageHash = this.safeString (client.subscriptions, unSubChannel);
         const subscription = this.safeDict (client.subscriptions, 'unsubscribe:' + subMessageHash);
         delete client.subscriptions[unSubChannel];
-        const messageHashes = this.safeList (subscription, 'messageHashes', []);
-        const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+        const messageHashes: string[] = this.safeList (subscription, 'messageHashes', []);
+        const subMessageHashes: string[] = this.safeList (subscription, 'subMessageHashes', []);
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
             const subHash = subMessageHashes[i];

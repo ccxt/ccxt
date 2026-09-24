@@ -377,7 +377,7 @@ export default class woo extends wooRest {
         return await this.unwatchPublic (subHash, market['symbol'], topic, params);
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "symbol": "PERP_BTC_USDT",
@@ -1585,8 +1585,8 @@ export default class woo extends wooRest {
         const subscribeHash = this.safeString (message, 'data');
         const unsubscribeHash = 'unsubscribe::' + subscribeHash;
         const subscription = this.safeDict (client.subscriptions, unsubscribeHash, {});
-        const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
-        const unsubMessageHashes = this.safeList (subscription, 'unsubMessageHashes', []);
+        const subMessageHashes: string[] = this.safeList (subscription, 'subMessageHashes', []);
+        const unsubMessageHashes: string[] = this.safeList (subscription, 'unsubMessageHashes', []);
         for (let i = 0; i < subMessageHashes.length; i++) {
             const subHash = subMessageHashes[i];
             const unsubHash = unsubMessageHashes[i];

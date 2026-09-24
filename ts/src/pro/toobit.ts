@@ -519,7 +519,7 @@ export default class toobit extends toobitRest {
         client.resolve (newTickers, 'tickers');
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
         return this.parseTicker (ticker, market);
     }
 

@@ -176,7 +176,7 @@ export default class bitvavo extends bitvavoRest {
         //
         this.handleBidAsk (client, message);
         const event = this.safeString (message, 'event');
-        const tickers = this.safeList (message, 'data', []);
+        const tickers: Dict[] = this.safeList (message, 'data', []);
         const result: List = [];
         for (let i = 0; i < tickers.length; i++) {
             const data = tickers[i];

@@ -485,7 +485,7 @@ export default class coinbase extends coinbaseRest {
         }
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "type": "ticker",
@@ -995,8 +995,8 @@ export default class coinbase extends coinbaseRest {
         const subKeysLength = subKeys.length;
         if (isUnsub && subKeysLength === 0) {
             const unSubObject = this.safeDict (this.options, 'unSubscription', {});
-            const messageHashes = this.safeList (unSubObject, 'messageHashes', []);
-            const subMessageHashes = this.safeList (unSubObject, 'subMessageHashes', []);
+            const messageHashes: string[] = this.safeList (unSubObject, 'messageHashes', []);
+            const subMessageHashes: string[] = this.safeList (unSubObject, 'subMessageHashes', []);
             for (let i = 0; i < messageHashes.length; i++) {
                 const messageHash = messageHashes[i];
                 const subHash = subMessageHashes[i];

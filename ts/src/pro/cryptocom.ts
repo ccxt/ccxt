@@ -717,7 +717,7 @@ export default class cryptocom extends cryptocomRest {
         client.resolve (parsedTicker, messageHash);
     }
 
-    parseWsBidAsk (ticker: Dict, market: Market = undefined) {
+    parseWsBidAsk (ticker: Dict, market: Market = undefined): Ticker {
         const marketId = this.safeString (ticker, 'i');
         market = this.safeMarket (marketId, market);
         const symbol = this.safeString (market, 'symbol');
@@ -1098,7 +1098,7 @@ export default class cryptocom extends cryptocomRest {
         //
         const messageHash = this.safeString (message, 'subscription');
         const data = this.safeList (message, 'data', []);
-        const positionBalances = this.safeList (data[0], 'position_balances', []);
+        const positionBalances: Dict[] = this.safeList (data[0], 'position_balances', []);
         this.balance['info'] = data;
         for (let i = 0; i < positionBalances.length; i++) {
             const balance = positionBalances[i];
@@ -1502,8 +1502,8 @@ export default class cryptocom extends cryptocomRest {
                 if (id !== subId) {
                     continue;
                 }
-                const messageHashes = this.safeList (subscription, 'messageHashes', []);
-                const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+                const messageHashes: string[] = this.safeList (subscription, 'messageHashes', []);
+                const subMessageHashes: string[] = this.safeList (subscription, 'subMessageHashes', []);
                 for (let j = 0; j < messageHashes.length; j++) {
                     const unsubHash = messageHashes[j];
                     const subHash = subMessageHashes[j];

@@ -1184,7 +1184,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    handleSubscriptionStatus (client: Client, message: Dict) {
+    handleSubscriptionStatus (client: Client, message: Dict): Dict {
         //
         //     {
         //         "result": null,
@@ -1206,8 +1206,8 @@ export default class binance extends binanceRest {
     }
 
     handleUnSubscription (client: Client, subscription: Dict) {
-        const messageHashes = this.safeList (subscription, 'messageHashes', []);
-        const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+        const messageHashes: string[] = this.safeList (subscription, 'messageHashes', []);
+        const subMessageHashes: string[] = this.safeList (subscription, 'subMessageHashes', []);
         for (let j = 0; j < messageHashes.length; j++) {
             const unsubHash = messageHashes[j];
             const subHash = subMessageHashes[j];
@@ -2484,7 +2484,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    parseWsTicker (message: any, marketType: any) {
+    parseWsTicker (message: any, marketType: any): Ticker {
         // markPrice
         //   {
         //       "e": "markPriceUpdate",   // Event type

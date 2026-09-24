@@ -1870,8 +1870,8 @@ export default class kucoin extends kucoinRest {
         }
         const isUnSub = this.safeBool (subscription, 'unsubscribe', false);
         if (isUnSub === true) {
-            const messageHashes = this.safeList (subscription, 'messageHashes', []);
-            const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+            const messageHashes: string[] = this.safeList (subscription, 'messageHashes', []);
+            const subMessageHashes: string[] = this.safeList (subscription, 'subMessageHashes', []);
             for (let i = 0; i < messageHashes.length; i++) {
                 const messageHash = messageHashes[i];
                 const subHash = subMessageHashes[i];

@@ -673,7 +673,7 @@ export default class upbit extends upbitRest {
         //     "stream_type": "REALTIME"
         // }
         //
-        const data = this.safeList (message, 'assets', []);
+        const data: Dict[] = this.safeList (message, 'assets', []);
         const timestamp = this.safeInteger (message, 'timestamp');
         this.balance['timestamp'] = timestamp;
         this.balance['datetime'] = this.iso8601 (timestamp);

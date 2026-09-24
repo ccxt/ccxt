@@ -386,7 +386,7 @@ export default class cex extends cexRest {
         }
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //  public
         //    {
@@ -1233,7 +1233,7 @@ export default class cex extends cexRest {
         //         "pair": "BTC:USD"
         //     }
         //
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         const pair = this.safeString (message, 'pair');
         const symbol = this.pairToSymbol (pair);
         const messageHash = 'ohlcv:' + symbol;

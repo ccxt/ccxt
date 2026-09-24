@@ -2024,8 +2024,8 @@ export default class gate extends gateRest {
                 if (id !== subId) {
                     continue;
                 }
-                const messageHashes = this.safeList (subscription, 'messageHashes', []);
-                const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+                const messageHashes: string[] = this.safeList (subscription, 'messageHashes', []);
+                const subMessageHashes: string[] = this.safeList (subscription, 'subMessageHashes', []);
                 for (let j = 0; j < messageHashes.length; j++) {
                     const unsubHash = messageHashes[j];
                     const subHash = subMessageHashes[j];

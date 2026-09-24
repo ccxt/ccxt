@@ -357,7 +357,7 @@ export default class mexc extends mexcRest {
         client.resolve (result, topic);
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
         // protobuf ticker
         // "bidprice": "93387.28",  // Best bid price
         // "bidquantity": "3.73485", // Best bid quantity
