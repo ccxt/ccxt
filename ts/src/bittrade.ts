@@ -1516,7 +1516,12 @@ export default class bittrade extends Exchange {
         const feeCost = this.safeString2 (order, 'filled-fees', 'field-fees'); // typo in their API, filled fees
         let fee: FeeString = undefined;
         if (feeCost !== undefined) {
-            const feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
+            let feeCurrency: Str = undefined;
+            if (side === 'sell') {
+                feeCurrency = market['quote'];
+            } else {
+                feeCurrency = market['base'];
+            }
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
@@ -1843,7 +1848,7 @@ export default class bittrade extends Exchange {
         ];
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "currency": "usdt",

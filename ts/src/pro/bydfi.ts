@@ -349,7 +349,7 @@ export default class bydfi extends bydfiRest {
         const channels: string[] = [];
         const messageHashes: string[] = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const symbolAndTimeframe = symbolsAndTimeframes[i];
+            const symbolAndTimeframe = this.safeList (symbolsAndTimeframes, i);
             const marketId = this.safeString (symbolAndTimeframe, 0);
             const market = this.market (marketId);
             const tf = this.safeString (symbolAndTimeframe, 1);
@@ -384,7 +384,7 @@ export default class bydfi extends bydfiRest {
         const channels: string[] = [];
         const messageHashes: string[] = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const symbolAndTimeframe = symbolsAndTimeframes[i];
+            const symbolAndTimeframe = this.safeList (symbolsAndTimeframes, i);
             const marketId = this.safeString (symbolAndTimeframe, 0);
             const market = this.market (marketId);
             const tf = this.safeString (symbolAndTimeframe, 1);
@@ -986,7 +986,7 @@ export default class bydfi extends bydfiRest {
                 'datetime': this.iso8601 (timestamp),
             };
             for (let i = 0; i < balances.length; i++) {
-                const balance = balances[i];
+                const balance = this.safeDict (balances, i);
                 const currencyId = this.safeString (balance, 'a');
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();

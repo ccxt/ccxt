@@ -300,7 +300,7 @@ export default class coinspot extends Exchange {
                 const currencyIds = Object.keys (currencies);
                 for (let j = 0; j < currencyIds.length; j++) {
                     const currencyId = currencyIds[j];
-                    const balance = currencies[currencyId];
+                    const balance = this.safeDict (currencies, currencyId);
                     const code = this.safeCurrencyCode (currencyId);
                     const account = this.account ();
                     account['total'] = this.safeString (balance, 'balance');
@@ -766,7 +766,10 @@ export default class coinspot extends Exchange {
         const version = isVersionedApi ? api[0] : undefined;
         const accessType = isVersionedApi ? api[1] : api;
         const endpoint = '/' + this.implodeParams (path, params);
-        const fullPath = (version !== undefined) ? '/' + version + endpoint : endpoint;
+        let fullPath: Str = endpoint;
+        if (version !== undefined) {
+            fullPath = '/' + version + endpoint;
+        }
         const url = this.urls['api'][accessType] + fullPath;
         if (accessType === 'private') {
             this.checkRequiredCredentials ();

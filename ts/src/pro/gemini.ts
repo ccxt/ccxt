@@ -503,7 +503,7 @@ export default class gemini extends geminiRest {
         const messageHash = 'bidsasks:' + symbol;
         // last update always overwrites the previous state and is the latest state
         for (let i = 0; i < rawBidAskChanges.length; i++) {
-            const entry = rawBidAskChanges[i];
+            const entry = this.safeDict (rawBidAskChanges, i);
             const rawSide = this.safeString (entry, 'side');
             const price = this.safeNumber (entry, 'price');
             const sizeString = this.safeString (entry, 'remaining');
@@ -589,7 +589,7 @@ export default class gemini extends geminiRest {
         const bids = orderbook['bids'];
         const asks = orderbook['asks'];
         for (let i = 0; i < rawOrderBookChanges.length; i++) {
-            const entry = rawOrderBookChanges[i];
+            const entry = this.safeDict (rawOrderBookChanges, i);
             const price = this.safeNumber (entry, 'price');
             const size = this.safeNumber (entry, 'remaining');
             const rawSide = this.safeString (entry, 'side');

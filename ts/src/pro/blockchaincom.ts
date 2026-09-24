@@ -110,7 +110,7 @@ export default class blockchaincom extends blockchaincomRest {
         const result: Dict = { 'info': message };
         const balances: Dict[] = this.safeList (message, 'balances', []);
         for (let i = 0; i < balances.length; i++) {
-            const entry = balances[i];
+            const entry = this.safeDict (balances, i);
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();

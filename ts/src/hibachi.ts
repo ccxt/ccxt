@@ -986,7 +986,7 @@ export default class hibachi extends Exchange {
         const nonce = this.incrementingNonce ();
         const requestOrders: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const symbol = this.safeString (rawOrder, 'symbol');
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
@@ -1092,7 +1092,7 @@ export default class hibachi extends Exchange {
         const nonce = this.incrementingNonce ();
         const requestOrders: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const id = this.safeString (rawOrder, 'id');
             const symbol = this.safeString (rawOrder, 'symbol');
             const type = this.safeString (rawOrder, 'type');
@@ -1955,7 +1955,7 @@ export default class hibachi extends Exchange {
             this.privateGetTradeAccountTradingHistory (this.extend (request, params)),
         ];
         const promises = await Promise.all (rawPromises);
-        const responseCapitalHistory = promises[0];
+        const responseCapitalHistory = this.safeDict (promises, 0);
         //
         // {
         //     "transactions": [
@@ -2010,7 +2010,7 @@ export default class hibachi extends Exchange {
         // }
         //
         const rowsCapitalHistory = this.safeList (responseCapitalHistory, 'transactions', []);
-        const responseTradingHistory = promises[1];
+        const responseTradingHistory = this.safeDict (promises, 1);
         //
         // {
         //     "tradingHistory": [

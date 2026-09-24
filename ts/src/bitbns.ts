@@ -306,7 +306,10 @@ export default class bitbns extends Exchange {
             const costLimits = this.safeDict (marketLimits, 'cost', {});
             const usdt = (quoteId === 'USDT');
             // INR markets don't need a _INR prefix
-            const uppercaseId = usdt ? (baseId + '_' + quoteId) : baseId;
+            let uppercaseId: Str = baseId;
+            if (usdt) {
+                uppercaseId = (baseId + '_' + quoteId);
+            }
             result.push ({
                 'id': id,
                 'uppercaseId': uppercaseId,
@@ -855,7 +858,10 @@ export default class bitbns extends Exchange {
         const market = this.market (symbol);
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'trigger', 'stop' ]);
-        const quoteSide = (market['quoteId'] === 'USDT') ? 'usdtListOpen' : 'listOpen';
+        let quoteSide: Str = 'listOpen';
+        if (market['quoteId'] === 'USDT') {
+            quoteSide = 'usdtListOpen';
+        }
         const request: Dict = {
             'symbol': market['uppercaseId'],
             'page': 0,
@@ -1151,7 +1157,7 @@ export default class bitbns extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    parseTransactionStatusByType (status: any, type: Str = undefined) {
+    parseTransactionStatusByType (status: Str, type: Str = undefined) {
         const statusesByType: Dict = {
             'deposit': {
                 '0': 'pending',

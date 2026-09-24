@@ -121,7 +121,12 @@ export default class luno extends lunoRest {
         //       "order_id": "BXEEU4S2BWF5WRB"
         //     }
         //
-        const symbol = (market === undefined) ? undefined : market['symbol'];
+        let symbol: Str = undefined;
+        if (market === undefined) {
+            symbol = undefined;
+        } else {
+            symbol = market['symbol'];
+        }
         return this.safeTrade ({
             'info': trade,
             'id': undefined,

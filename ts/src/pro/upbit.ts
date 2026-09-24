@@ -273,7 +273,7 @@ export default class upbit extends upbitRest {
         const asks = orderbook['asks'];
         const data: Dict[] = this.safeList (message, 'orderbook_units', []);
         for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
+            const entry = this.safeDict (data, i);
             const ask_price = this.safeFloat (entry, 'ask_price');
             const ask_size = this.safeFloat (entry, 'ask_size');
             const bid_price = this.safeFloat (entry, 'bid_price');
@@ -678,7 +678,7 @@ export default class upbit extends upbitRest {
         this.balance['timestamp'] = timestamp;
         this.balance['datetime'] = this.iso8601 (timestamp);
         for (let i = 0; i < data.length; i++) {
-            const balance = data[i];
+            const balance = this.safeDict (data, i);
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const available = this.safeString (balance, 'balance');

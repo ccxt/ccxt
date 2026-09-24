@@ -611,7 +611,7 @@ export default class latoken extends Exchange {
         const balancesByType = this.groupBy (response, 'type');
         const balances: Dict[] = this.safeList (balancesByType, accountType, []);
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict (balances, i);
             const currencyId = this.safeString (balance, 'currency');
             const timestamp = this.safeInteger (balance, 'timestamp');
             if (timestamp !== undefined) {

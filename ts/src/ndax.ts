@@ -525,7 +525,10 @@ export default class ndax extends Exchange {
         const id = this.safeString (rawCurrency, 'ProductId');
         const code = this.safeCurrencyCode (this.safeString (rawCurrency, 'Product'));
         const ProductType = this.safeString (rawCurrency, 'ProductType');
-        let type = (ProductType === 'NationalCurrency') ? 'fiat' : 'crypto';
+        let type: Str = 'crypto';
+        if (ProductType === 'NationalCurrency') {
+            type = 'fiat';
+        }
         if (ProductType === 'Unknown') {
             // such currency is just a blanket entry
             type = 'other';
@@ -1266,7 +1269,7 @@ export default class ndax extends Exchange {
             'datetime': undefined,
         };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict (response, i);
             const currencyId = this.safeString (balance, 'ProductId');
             if ((currencyId !== undefined) && (this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id)) {
                 const code = this.safeCurrencyCode (currencyId);
@@ -2290,7 +2293,7 @@ export default class ndax extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         // fetchDepositAddress, createDepositAddress
         //

@@ -822,7 +822,12 @@ export default class sxbet extends Exchange {
         const nonceCallData = '0x7ecebe00' + this.padHexAddress (owner); // nonces(address)
         const nonceResult = await this.ethRpc (rpcUrl, 'eth_call', [ { 'to': tokenAddress, 'data': nonceCallData }, 'latest' ]);
         const nonceHex = this.hexToRlpBytes (nonceResult);
-        const nonce = (nonceHex === '') ? '0' : this.numberToString (this.hexToInt (nonceHex));
+        let nonce: Str = undefined;
+        if (nonceHex === '') {
+            nonce = '0';
+        } else {
+            nonce = this.numberToString (this.hexToInt (nonceHex));
+        }
         const tokenName = await this.fetchErc20Name (rpcUrl, tokenAddress);
         const defaultDeadlineSeconds = this.safeInteger (this.options, 'approveDeadlineSeconds', 7200);
         const deadline = this.safeInteger (params, 'deadline', this.sum (this.seconds (), defaultDeadlineSeconds));
@@ -906,7 +911,12 @@ export default class sxbet extends Exchange {
         // matches the normalize-to-one-book convention used by other prediction venues
         const isMakerBettingOutcomeOne = (isBuy) ? isOutcomeOne : !isOutcomeOne;
         const priceStr = this.numberToString (price);
-        const probability = (isBuy) ? priceStr : Precise.stringSub ('1', priceStr);
+        let probability: Str = undefined;
+        if (isBuy) {
+            probability = priceStr;
+        } else {
+            probability = Precise.stringSub ('1', priceStr);
+        }
         const obv3 = await this.loadSxObv3Metadata ();
         const domain = this.safeDict (obv3, 'domain', {});
         const activeAsset = this.safeDict (obv3, 'activeAsset', {});
@@ -925,7 +935,10 @@ export default class sxbet extends Exchange {
         const saltHex = '0x' + saltHexPadded;
         const defaultExpirySeconds = this.safeInteger (this.options, 'defaultOrderExpirySeconds', 86400);
         const expiry = this.safeInteger (params, 'expiry', this.sum (this.seconds (), defaultExpirySeconds));
-        const defaultTif = (type === 'limit') ? 'GTC' : 'IOC';
+        let defaultTif: Str = 'IOC';
+        if (type === 'limit') {
+            defaultTif = 'GTC';
+        }
         let timeInForce = undefined;
         [ timeInForce, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce', defaultTif);
         // an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
@@ -1233,7 +1246,12 @@ export default class sxbet extends Exchange {
         const orderId = this.safeString2 (order, 'id', 'orderId');
         const marketHash = this.safeString (order, 'marketHash', '');
         const isBettingOutcomeOne = this.safeBool (order, 'isBettingOutcomeOne', true);
-        const outcomeId = (isBettingOutcomeOne) ? marketHash : (marketHash + '-2');
+        let outcomeId: Str = undefined;
+        if (isBettingOutcomeOne) {
+            outcomeId = marketHash;
+        } else {
+            outcomeId = (marketHash + '-2');
+        }
         const outcomeObj = this.safeOutcome (outcomeId, market as any);
         const oneDenom = '100000000000000000000';
         const usdcDecimals = '1000000';
@@ -1445,7 +1463,10 @@ export default class sxbet extends Exchange {
             trades.push (this.parseSxbetV3Fill (rawFills[i]));
         }
         trades = this.sortBy (trades, 'timestamp');
-        const sym = (outcomeObj !== undefined) ? this.safeString (outcomeObj, 'outcome') : undefined;
+        let sym: Str = undefined;
+        if (outcomeObj !== undefined) {
+            sym = this.safeString (outcomeObj, 'outcome');
+        }
         return this.filterByValueSinceLimit (trades, 'outcome', sym, since, limit, 'timestamp', true) as PredictionTrade[];
     }
 
@@ -1475,7 +1496,12 @@ export default class sxbet extends Exchange {
         //
         const marketHash = this.safeString (fill, 'marketHash', '');
         const isBettingOutcomeOne = this.safeBool (fill, 'isBettingOutcomeOne', true);
-        const outcomeId = (isBettingOutcomeOne) ? marketHash : (marketHash + '-2');
+        let outcomeId: Str = undefined;
+        if (isBettingOutcomeOne) {
+            outcomeId = marketHash;
+        } else {
+            outcomeId = (marketHash + '-2');
+        }
         const outcomeObj = this.safeOutcome (outcomeId, market as any);
         const oneDenom = '100000000000000000000';
         const usdcDecimals = '1000000';
@@ -1536,7 +1562,7 @@ export default class sxbet extends Exchange {
         const usdcDecimals = '1000000';
         const balancesLength = balances.length;
         for (let i = 0; i < balancesLength; i++) {
-            const row = balances[i];
+            const row = this.safeDict (balances, i);
             const tokenAddress = this.safeStringLower (row, 'tokenAddress', '');
             // every sxbet market is denominated in the active base token, surfaced under 'USDC';
             // rows of any other token keep their contract address for the code
@@ -1621,12 +1647,22 @@ export default class sxbet extends Exchange {
         //
         const marketHash = this.safeString (raw, 'marketHash', '');
         const isOutcomeOneMaxWin = this.safeBool (raw, 'isOutcomeOneMaxWin', true);
-        const outcomeId = (isOutcomeOneMaxWin) ? marketHash : (marketHash + '-2');
+        let outcomeId: Str = undefined;
+        if (isOutcomeOneMaxWin) {
+            outcomeId = marketHash;
+        } else {
+            outcomeId = (marketHash + '-2');
+        }
         const outcomeObj = this.safeOutcome (outcomeId);
         const oneDenom = '100000000000000000000';
         const usdcDecimals = '1000000';
         const odds = this.safeDict (raw, 'odds', {});
-        const ownOdds = (isOutcomeOneMaxWin) ? this.safeString (odds, 'outcomeOne') : this.safeString (odds, 'outcomeTwo');
+        let ownOdds: Str = undefined;
+        if (isOutcomeOneMaxWin) {
+            ownOdds = this.safeString (odds, 'outcomeOne');
+        } else {
+            ownOdds = this.safeString (odds, 'outcomeTwo');
+        }
         const entryPrice = (ownOdds !== undefined) ? this.parseNumber (Precise.stringDiv (ownOdds, oneDenom)) : undefined;
         const totalStake = this.safeString (raw, 'totalStake', '0');
         const pnl = this.safeString (raw, 'pnl');
@@ -1716,7 +1752,12 @@ export default class sxbet extends Exchange {
         //
         const marketHash = this.safeString (trade, 'marketHash', '');
         const isBettingOutcomeOne = this.safeBool (trade, 'isBettingOutcomeOne', true);
-        const outcomeId = (isBettingOutcomeOne) ? marketHash : (marketHash + '-2');
+        let outcomeId: Str = undefined;
+        if (isBettingOutcomeOne) {
+            outcomeId = marketHash;
+        } else {
+            outcomeId = (marketHash + '-2');
+        }
         const outcomeObj = this.safeOutcome (outcomeId, market as any);
         const settlement = this.safeDict (trade, 'settlement', {});
         const winner = this.safeInteger (settlement, 'outcome');
@@ -1736,7 +1777,10 @@ export default class sxbet extends Exchange {
             resultLabel = 'VOID';
         } else if (winner !== undefined) {
             const info = this.safeDict (outcomeObj, 'info', {});
-            const labelKey = (winner === 1) ? 'outcomeOneName' : 'outcomeTwoName';
+            let labelKey: Str = 'outcomeTwoName';
+            if (winner === 1) {
+                labelKey = 'outcomeOneName';
+            }
             resultLabel = this.safeString (info, labelKey, this.numberToString (winner));
         }
         const timestamp = this.parse8601 (this.safeString (settlement, 'settleDate'));
@@ -1951,8 +1995,14 @@ export default class sxbet extends Exchange {
         const isOutcomeOne = (outcomeId === marketHash);
         const outcomeOneOdds = this.safeDict (raw, 'outcomeOne', {});
         const outcomeTwoOdds = this.safeDict (raw, 'outcomeTwo', {});
-        const ownOdds = (isOutcomeOne) ? outcomeOneOdds : outcomeTwoOdds;
-        const oppositeOdds = (isOutcomeOne) ? outcomeTwoOdds : outcomeOneOdds;
+        let ownOdds: Dict = outcomeTwoOdds;
+        if (isOutcomeOne) {
+            ownOdds = outcomeOneOdds;
+        }
+        let oppositeOdds: Dict = outcomeOneOdds;
+        if (isOutcomeOne) {
+            oppositeOdds = outcomeTwoOdds;
+        }
         // percentageOdds is the maker's own implied probability * 1e20 (sx.bet protocol format);
         // the opposite side's best resting maker mirrors into this outcome's ask via 1 - p
         const oneDenom = '100000000000000000000';
@@ -2056,7 +2106,7 @@ export default class sxbet extends Exchange {
         const bids: any[] = [];
         const ownLevelsLength = ownLevels.length;
         for (let i = 0; i < ownLevelsLength; i++) {
-            const level = ownLevels[i];
+            const level = this.safeDict (ownLevels, i);
             const percentageOdds = this.safeString (level, 'percentageOdds');
             const size = this.safeString (level, 'size', '0');
             const price = this.parseNumber (Precise.stringDiv (percentageOdds, oneDenom));
@@ -2066,7 +2116,7 @@ export default class sxbet extends Exchange {
         const asks: any[] = [];
         const oppositeLevelsLength = oppositeLevels.length;
         for (let i = 0; i < oppositeLevelsLength; i++) {
-            const level = oppositeLevels[i];
+            const level = this.safeDict (oppositeLevels, i);
             const percentageOdds = this.safeString (level, 'percentageOdds');
             const size = this.safeString (level, 'size', '0');
             // the opposite side's resting stake mirrors into this outcome's ask - the price is the
@@ -2451,7 +2501,7 @@ export default class sxbet extends Exchange {
         const watchedSyms = Object.keys (watchedTickers);
         const rowsLength = rows.length;
         for (let i = 0; i < rowsLength; i++) {
-            const entry = rows[i];
+            const entry = this.safeDict (rows, i);
             const marketHash = this.safeString (entry, 'marketHash');
             if (marketHash === undefined) {
                 continue;
@@ -2510,7 +2560,12 @@ export default class sxbet extends Exchange {
     parseSxbetV3PublicTrade (trade: Dict): PredictionTrade {
         const marketHash = this.safeString (trade, 'marketHash', '');
         const isBettingOutcomeOne = this.safeBool (trade, 'isBettingOutcomeOne', true);
-        const outcomeId = (isBettingOutcomeOne) ? marketHash : (marketHash + '-2');
+        let outcomeId: Str = undefined;
+        if (isBettingOutcomeOne) {
+            outcomeId = marketHash;
+        } else {
+            outcomeId = (marketHash + '-2');
+        }
         const outcomeObj = this.safeOutcome (outcomeId);
         const oneDenom = '100000000000000000000';
         const usdcDecimals = '1000000';

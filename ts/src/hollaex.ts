@@ -6,7 +6,7 @@ import Exchange from './abstract/hollaex.js';
 import { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderNotFound, InsufficientFunds, InvalidNonce, OrderImmediatelyFillable, ExchangeError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Dictionary, Fee, FeeString, Int, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, OrderBooks, DepositWithdrawFees, Endpoint } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Dictionary, Fee, FeeString, Int, List, NullableList, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, OrderBooks, DepositWithdrawFees, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -361,7 +361,7 @@ export default class hollaex extends Exchange {
         const result: List = [];
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const market = pairs[key];
+            const market = this.safeDict (pairs, key);
             const baseId = this.safeString (market, 'pair_base');
             const quoteId = this.safeString (market, 'pair_2');
             const base = this.commonCurrencyCode ((baseId as string).toUpperCase ());
@@ -505,7 +505,10 @@ export default class hollaex extends Exchange {
         const code = this.safeCurrencyCode (id);
         const withdrawalLimits = this.safeList (rawCurrency, 'withdrawal_limits', []);
         const rawType = this.safeString (rawCurrency, 'type');
-        const type = (rawType === 'blockchain') ? 'crypto' : 'other';
+        let type: Str = 'other';
+        if (rawType === 'blockchain') {
+            type = 'crypto';
+        }
         const rawNetworks = this.safeDict (rawCurrency, 'withdrawal_fees', {});
         const networks: Dict = {};
         const networkIds = Object.keys (rawNetworks);
@@ -1528,7 +1531,7 @@ export default class hollaex extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "currency":"usdt",
@@ -1621,7 +1624,12 @@ export default class hollaex extends Exchange {
         //     }
         //
         const wallet = this.safeList (response, 'wallet', []);
-        const addresses = (network === undefined) ? wallet : this.filterBy (wallet, 'network', network);
+        let addresses: NullableList = undefined;
+        if (network === undefined) {
+            addresses = wallet;
+        } else {
+            addresses = this.filterBy (wallet, 'network', network);
+        }
         return this.parseDepositAddresses (addresses, codes, false) as DepositAddress[];
     }
 
@@ -2001,7 +2009,7 @@ export default class hollaex extends Exchange {
             const keysLength = keys.length;
             for (let i = 0; i < keysLength; i++) {
                 const key = keys[i];
-                const value = withdrawalFees[key];
+                const value = this.safeDict (withdrawalFees, key);
                 const currencyId = this.safeString (value, 'symbol');
                 const currencyCode = this.safeCurrencyCode (currencyId);
                 const networkCode = this.networkIdToCode (key, currencyCode);

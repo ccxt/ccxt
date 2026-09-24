@@ -445,7 +445,10 @@ export default class nado extends Exchange {
         if (isStopOrder) {
             let triggerDirection: Str = undefined;
             [ triggerDirection, params ] = this.handleTriggerDirectionAndParams (params);
-            const directionSuffix = (triggerDirection === 'ascending') ? 'above' : 'below';
+            let directionSuffix: Str = 'below';
+            if (triggerDirection === 'ascending') {
+                directionSuffix = 'above';
+            }
             const triggerPriceX18 = this.convertToX18 (triggerPrice);
             const priceRequirement: Dict = {};
             priceRequirement['oracle_price_' + directionSuffix] = triggerPriceX18;
@@ -1660,7 +1663,10 @@ export default class nado extends Exchange {
             const pair = this.safeDict (pairsById, id, {});
             const asset = this.safeDict (assetsById, id, {});
             const rawType = this.safeString (market, 'type');
-            const type = (rawType === 'perp') ? 'swap' : rawType;
+            let type: Str = rawType;
+            if (rawType === 'perp') {
+                type = 'swap';
+            }
             const contract = (type === 'swap');
             const tickerId = this.safeString2 (pair, 'ticker_id', 'tickerId');
             if (tickerId === undefined) {
@@ -2529,7 +2535,7 @@ export default class nado extends Exchange {
         };
         const balances: Dict[] = this.safeList (response, 'spot_balances', []);
         for (let i = 0; i < balances.length; i++) {
-            const rawBalance = balances[i];
+            const rawBalance = this.safeDict (balances, i);
             const currencyId = this.safeString (rawBalance, 'product_id');
             let code = this.safeCurrencyCode (currencyId);
             if (code === '0') {
@@ -3008,7 +3014,12 @@ export default class nado extends Exchange {
             throw new ArgumentsRequired (this.id + ' padHex() requires length');
         }
         const zeros = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
-        const padded = left ? (zeros + value) : (value + zeros);
+        let padded: Str = undefined;
+        if (left) {
+            padded = (zeros + value);
+        } else {
+            padded = (value + zeros);
+        }
         if (left) {
             const start = padded.length - length;
             return padded.slice (start, padded.length);

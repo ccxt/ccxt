@@ -1420,7 +1420,10 @@ export default class woo extends Exchange {
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower (params, 'timeInForce');
         const postOnly = this.isPostOnly (isMarket, undefined, params);
-        const clientOrderIdKey = isConditional ? 'clientAlgoOrderId' : 'clientOrderId';
+        let clientOrderIdKey: Str = 'clientOrderId';
+        if (isConditional) {
+            clientOrderIdKey = 'clientAlgoOrderId';
+        }
         request['type'] = orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if (!isConditional) {
             if (postOnly) {
@@ -1489,7 +1492,10 @@ export default class woo extends Exchange {
                 'childOrders': [],
             };
             const childOrders = outterOrder['childOrders'];
-            const closeSide = (orderSide === 'BUY') ? 'SELL' : 'BUY';
+            let closeSide: Str = 'BUY';
+            if (orderSide === 'BUY') {
+                closeSide = 'SELL';
+            }
             if (hasStopLoss) {
                 const stopLossPrice = this.safeString (stopLoss, 'triggerPrice', stopLoss);
                 const stopLossOrder: Dict = {
@@ -1935,7 +1941,7 @@ export default class woo extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchOrders', symbol, since, limit, params, 'page', 500) as Order[];
         }
@@ -2632,7 +2638,7 @@ export default class woo extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, params, 'page', 500) as Trade[];
         }
@@ -2840,7 +2846,7 @@ export default class woo extends Exchange {
         };
         const balances: Dict[] = this.safeList (response, 'holding', []);
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict (balances, i);
             const code = this.safeCurrencyCode (this.safeString (balance, 'token'));
             const account = this.account ();
             account['total'] = this.safeString (balance, 'holding');
@@ -2901,7 +2907,7 @@ export default class woo extends Exchange {
         return [ currentyNetworkId, params ];
     }
 
-    override parseDepositAddress (depositEntry: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositEntry: Dict, currency: Currency = undefined): DepositAddress {
         const address = this.safeString (depositEntry, 'address');
         this.checkAddress (address);
         const networkId = this.safeString (depositEntry, 'network');
@@ -3026,7 +3032,10 @@ export default class woo extends Exchange {
         currency = this.safeCurrency (code, currency);
         const amount = this.safeNumber (item, 'amount');
         const side = this.safeString (item, 'tokenSide');
-        const direction = (side === 'DEPOSIT') ? 'in' : 'out';
+        let direction: Str = 'out';
+        if (side === 'DEPOSIT') {
+            direction = 'in';
+        }
         const timestamp = this.safeTimestamp (item, 'createdTime');
         const fee = this.parseTokenAndFeeTemp (item, [ 'feeToken' ], [ 'feeAmount' ]);
         return this.safeLedgerEntry ({
@@ -3576,7 +3585,7 @@ export default class woo extends Exchange {
         return undefined;
     }
 
-    override parseIncome (income: any, market: Market = undefined): object {
+    override parseIncome (income: Dict, market: Market = undefined): object {
         //
         //     {
         //         "id": 1286360,
@@ -3629,7 +3638,7 @@ export default class woo extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchFundingHistory', symbol, since, limit, params, 'page', 500) as FundingHistory[];
         }
@@ -3851,7 +3860,7 @@ export default class woo extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchFundingRateHistory', symbol, since, limit, params, 'page', 25) as FundingRateHistory[];
         }

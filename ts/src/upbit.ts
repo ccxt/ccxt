@@ -595,7 +595,7 @@ export default class upbit extends Exchange {
             'datetime': undefined,
         };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict (response, i);
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -730,7 +730,7 @@ export default class upbit extends Exchange {
      */
     override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         const orderbooks = await this.fetchOrderBooks ([ symbol ], limit, params);
-        return this.safeValue (orderbooks, symbol) as OrderBook;
+        return this.safeDict (orderbooks, symbol) as OrderBook;
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -910,7 +910,7 @@ export default class upbit extends Exchange {
      */
     override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         const tickers = await this.fetchTickers ([ symbol ], params);
-        return this.safeValue (tickers, symbol) as Ticker;
+        return this.safeDict (tickers, symbol) as Ticker;
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -1949,7 +1949,7 @@ export default class upbit extends Exchange {
             }
             cost = '0';
             for (let i = 0; i < numTrades; i++) {
-                const trade = trades[i];
+                const trade = this.safeDict (trades, i);
                 cost = Precise.stringAdd (cost, this.safeString (trade, 'cost'));
                 if (getFeesFromTrades) {
                     const tradeFee = this.safeDict (trades[i], 'fee', {});
@@ -2264,7 +2264,7 @@ export default class upbit extends Exchange {
         return this.parseDepositAddresses (response, codes, false);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //    {
         //        currency: 'XRP',

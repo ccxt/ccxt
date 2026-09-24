@@ -305,7 +305,7 @@ export default class toobit extends toobitRest {
         const marketIds: List = [];
         let selectedTimeframe: Str = undefined;
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const data = symbolsAndTimeframes[i];
+            const data = this.safeList (symbolsAndTimeframes, i);
             const symbolStr = this.safeString (data, 0);
             const market = this.market (symbolStr);
             const marketId = market['id'];
@@ -612,7 +612,7 @@ export default class toobit extends toobitRest {
         const symbol = market['symbol'];
         const data: Dict[] = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
+            const entry = this.safeDict (data, i);
             const messageHash = 'orderBook::' + symbol + '::' + 'diffDepth';
             if (!(symbol in this.orderbooks)) {
                 const limit = this.safeInteger (this.options['ws'], 'orderBookLimit', 1000);
@@ -668,7 +668,7 @@ export default class toobit extends toobitRest {
             return;
         }
         for (let i = 0; i < length; i++) {
-            const entry = data[i];
+            const entry = this.safeDict (data, i);
             const marketId = this.safeString (entry, 's');
             const symbol = this.safeSymbol (marketId);
             const messageHash = 'orderBook::' + symbol + '::' + channel;
@@ -701,13 +701,22 @@ export default class toobit extends toobitRest {
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const isSpot = (marketType === 'spot');
-        const type = isSpot ? 'spot' : 'contract';
+        let type: Str = 'contract';
+        if (isSpot) {
+            type = 'spot';
+        }
         const spotSubHash = 'spot:balance';
         const swapSubHash = 'contract:private';
         const spotMessageHash = 'spot:balance';
         const swapMessageHash = 'contract:balance';
-        const messageHash = isSpot ? spotMessageHash : swapMessageHash;
-        const subscriptionHash = isSpot ? spotSubHash : swapSubHash;
+        let messageHash: Str = swapMessageHash;
+        if (isSpot) {
+            messageHash = spotMessageHash;
+        }
+        let subscriptionHash: Str = swapSubHash;
+        if (isSpot) {
+            subscriptionHash = spotSubHash;
+        }
         if (subscriptionHash === undefined) {
             throw new ArgumentsRequired (this.id + ' watchBalance() requires a subscription hash');
         }
@@ -722,7 +731,10 @@ export default class toobit extends toobitRest {
         if ((subscriptionHash === undefined) || (subscriptionHash in client.subscriptions)) {
             return;
         }
-        const type = (marketType === 'spot') ? 'spot' : 'contract';
+        let type: Str = 'contract';
+        if (marketType === 'spot') {
+            type = 'spot';
+        }
         const messageHash = type + ':fetchBalanceSnapshot';
         if (!(messageHash in client.futures)) {
             client.future (messageHash);
@@ -767,7 +779,10 @@ export default class toobit extends toobitRest {
         const channel = this.safeString (message, 'e');
         const data = this.safeList (message, 'B', []);
         const timestamp = this.safeInteger (message, 'E');
-        const type = (channel === 'outboundContractAccountInfo') ? 'contract' : 'spot';
+        let type: Str = 'spot';
+        if (channel === 'outboundContractAccountInfo') {
+            type = 'contract';
+        }
         if (!(type in this.balance)) {
             this.balance[type] = {};
         }
@@ -792,7 +807,10 @@ export default class toobit extends toobitRest {
 
     async loadBalanceSnapshot (client: Client, messageHash: string, marketType: Str) {
         const response = await this.fetchBalance ({ 'type': marketType });
-        const type = (marketType === 'spot') ? 'spot' : 'contract';
+        let type: Str = 'contract';
+        if (marketType === 'spot') {
+            type = 'spot';
+        }
         this.balance[type] = this.extend (response, this.safeDict (this.balance, type, {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
@@ -991,7 +1009,10 @@ export default class toobit extends toobitRest {
         const marketId = this.safeString (trade, 's');
         const ts = this.safeString (trade, 't');
         const isMaker = (this.safeBool (trade, 'm') === true);
-        const takerOrMaker = isMaker ? 'maker' : 'taker';
+        let takerOrMaker: Str = 'taker';
+        if (isMaker) {
+            takerOrMaker = 'maker';
+        }
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString (trade, 'T'),

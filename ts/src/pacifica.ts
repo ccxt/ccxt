@@ -859,7 +859,7 @@ export default class pacifica extends Exchange {
         result['USDC'] = usdcAccount;
         const spotBalances: Dict[] = this.safeList (data, 'spot_balances', []);
         for (let i = 0; i < spotBalances.length; i++) {
-            const balance = spotBalances[i];
+            const balance = this.safeDict (spotBalances, i);
             const currencyId = this.safeString (balance, 'symbol');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -926,7 +926,10 @@ export default class pacifica extends Exchange {
         // }
         const isIsolated = this.safeBool (setting, 'isolated', false);
         const leverage = this.safeInteger (setting, 'leverage');
-        const marginMode = (isIsolated === true) ? 'isolated' : 'cross';
+        let marginMode: Str = 'cross';
+        if (isIsolated === true) {
+            marginMode = 'isolated';
+        }
         return {
             'info': setting,
             'symbol': symbol,
@@ -1061,7 +1064,10 @@ export default class pacifica extends Exchange {
         //
         // }
         const isIsolated = this.safeBool (setting, 'isolated', false);
-        const marginMode = (isIsolated === true) ? 'isolated' : 'cross';
+        let marginMode: Str = 'cross';
+        if (isIsolated === true) {
+            marginMode = 'isolated';
+        }
         return {
             'symbol': symbol,
             'marginMode': marginMode,
@@ -1744,7 +1750,7 @@ export default class pacifica extends Exchange {
         const actions: Dict[] = [];
         const timestamp = this.milliseconds (); // unified sequence
         for (let i = 0; i < orders.length; i++) {
-            const order = orders[i];
+            const order = this.safeDict (orders, i);
             const symbol = this.safeString (order, 'symbol');
             const side = this.safeString (order, 'side');
             const price = this.safeString (order, 'price');
@@ -1999,7 +2005,10 @@ export default class pacifica extends Exchange {
         // }
         //
         const success = this.safeBool (response, 'success', false);
-        const status = (success === true) ? 'canceled' : 'closed';
+        let status: Str = 'closed';
+        if (success === true) {
+            status = 'canceled';
+        }
         return this.safeOrder ({ 'id': id, 'status': status, 'info': response, 'symbol': symbol });
     }
 
@@ -3238,7 +3247,7 @@ export default class pacifica extends Exchange {
         return this.parseIncomes (data, market, since, limit);
     }
 
-    override parseIncome (income: any, market: Market = undefined): object {
+    override parseIncome (income: Dict, market: Market = undefined): object {
         //
         //     {
         //       "history_id": 2287920,
@@ -3360,7 +3369,7 @@ export default class pacifica extends Exchange {
     override async createSubAccount (name: string, params: Dict = {}) {
         const finalHeaders: Dict = { };
         let agentAddress: Str = undefined;
-        [ agentAddress, params ] = this.handleOptionAndParams (params, 'createSubAccount', 'agentAddress');
+        [ agentAddress, params ] = this.handleOptionStringAndParams (params, 'createSubAccount', 'agentAddress');
         let originAddress: Str = undefined;
         [ originAddress, params ] = this.handleOriginAndSingleAddress ('createSubAccount', params);
         if (originAddress === undefined) {
@@ -3370,9 +3379,9 @@ export default class pacifica extends Exchange {
             finalHeaders['agent_wallet'] = agentAddress;
         }
         let subAccountAddress: Str = undefined;
-        [ subAccountAddress, params ] = this.handleOptionAndParams (params, 'createSubAccount', 'subAccountAddress');
+        [ subAccountAddress, params ] = this.handleOptionStringAndParams (params, 'createSubAccount', 'subAccountAddress');
         let subAccountPrivateKey: Str = undefined;
-        [ subAccountPrivateKey, params ] = this.handleOptionAndParams (params, 'createSubAccount', 'subAccountPrivateKey');
+        [ subAccountPrivateKey, params ] = this.handleOptionStringAndParams (params, 'createSubAccount', 'subAccountPrivateKey');
         if (subAccountAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' createSubAccount() requires a "subAccountAddress"!');
         }
@@ -3530,7 +3539,10 @@ export default class pacifica extends Exchange {
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
+        let urlKey: Str = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
         const host = this.implodeHostname (this.urls[urlKey][api]);
         let url = host + '/api/' + this.version + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
@@ -3638,7 +3650,7 @@ export default class pacifica extends Exchange {
         const signature = this.signMessage (signatureHeader, sigPayload, this.privateKey);
         const finalHeaders: Dict = { };
         let agentAddress: Str = undefined;
-        [ agentAddress, params ] = this.handleOptionAndParams (params, 'postActionRequest', 'agentAddress');
+        [ agentAddress, params ] = this.handleOptionStringAndParams (params, 'postActionRequest', 'agentAddress');
         let originAddress: Str = undefined;
         [ originAddress, params ] = this.handleOriginAndSingleAddress ('postActionRequest', params);
         if (originAddress === undefined) {

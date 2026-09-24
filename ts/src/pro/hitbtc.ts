@@ -99,7 +99,10 @@ export default class hitbtc extends hitbtcRest {
         if (authenticated === undefined) {
             const timestamp = this.milliseconds ();
             const timestampString = this.numberToString (timestamp);
-            const timestampEncoded = (timestampString === undefined) ? '' : timestampString;
+            let timestampEncoded: Str = timestampString;
+            if (timestampString === undefined) {
+                timestampEncoded = '';
+            }
             const signature = this.hmac (this.encode (timestampEncoded), this.encode (this.secret), sha256, 'hex');
             const request: Dict = {
                 'method': 'login',
@@ -275,7 +278,10 @@ export default class hitbtc extends hitbtcRest {
         //
         const snapshot = this.safeDict (message, 'snapshot');
         const data = this.safeDict2 (message, 'snapshot', 'update', {});
-        const type = (snapshot !== undefined && snapshot !== null) ? 'snapshot' : 'update';
+        let type: Str = 'update';
+        if (snapshot !== undefined && snapshot !== null) {
+            type = 'snapshot';
+        }
         const marketIds = Object.keys (data);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -573,7 +579,10 @@ export default class hitbtc extends hitbtcRest {
 
     parseWsBidAsk (ticker: Dict, market: Market = undefined): Ticker {
         const timestamp = this.safeInteger (ticker, 't');
-        const bidAskSymbol = (market !== undefined) ? market['symbol'] : undefined;
+        let bidAskSymbol: Str = undefined;
+        if (market !== undefined) {
+            bidAskSymbol = market['symbol'];
+        }
         return this.safeTicker ({
             'symbol': bidAskSymbol,
             'timestamp': timestamp,

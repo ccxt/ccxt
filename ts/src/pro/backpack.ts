@@ -65,7 +65,10 @@ export default class backpack extends backpackRest {
             await this.loadMarkets ();
         }
         const url = this.urls['api']['ws']['public'];
-        const method = unwatch ? 'UNSUBSCRIBE' : 'SUBSCRIBE';
+        let method: Str = 'SUBSCRIBE';
+        if (unwatch) {
+            method = 'UNSUBSCRIBE';
+        }
         const request: Dict = {
             'method': method,
             'params': topics,
@@ -83,7 +86,10 @@ export default class backpack extends backpackRest {
         const url = this.urls['api']['ws']['private'];
         const instruction = 'subscribe';
         const ts = this.nonce ().toString ();
-        const method = unwatch ? 'UNSUBSCRIBE' : 'SUBSCRIBE';
+        let method: Str = 'SUBSCRIBE';
+        if (unwatch) {
+            method = 'UNSUBSCRIBE';
+        }
         const recvWindow = this.safeString2 (this.options, 'recvWindow', 'X-Window', '5000');
         const payload = 'instruction=' + instruction + '&' + 'timestamp=' + ts + '&window=' + recvWindow;
         const secretBytes = this.base64ToBinary (this.secret);
@@ -495,7 +501,7 @@ export default class backpack extends backpackRest {
         const topics: string[] = [];
         const messageHashes: string[] = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const symbolAndTimeframe = symbolsAndTimeframes[i];
+            const symbolAndTimeframe = this.safeList (symbolsAndTimeframes, i);
             const marketId = this.safeString (symbolAndTimeframe, 0);
             const market = this.market (marketId);
             const tf = this.safeString (symbolAndTimeframe, 1);
@@ -531,7 +537,7 @@ export default class backpack extends backpackRest {
         const topics: string[] = [];
         const messageHashes: string[] = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const symbolAndTimeframe = symbolsAndTimeframes[i];
+            const symbolAndTimeframe = this.safeList (symbolsAndTimeframes, i);
             const marketId = this.safeString (symbolAndTimeframe, 0);
             const market = this.market (marketId);
             const tf = this.safeString (symbolAndTimeframe, 1);
@@ -965,7 +971,7 @@ export default class backpack extends backpackRest {
             return -1;
         }
         for (let i = 0; i < cache.length; i++) {
-            const delta = cache[i];
+            const delta = this.safeDict (cache, i);
             const deltaStart = this.safeInteger (delta, 'U');
             const deltaEnd = this.safeInteger (delta, 'u');
             if ((deltaStart === undefined) || (deltaEnd === undefined)) {

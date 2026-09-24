@@ -863,7 +863,7 @@ export default class dydx extends Exchange {
 
     handlePublicAddress (methodName: Str, params: Dict): [Str, Dict] {
         let userAux: Str = undefined;
-        [ userAux, params ] = this.handleOptionAndParams (params, methodName, 'user');
+        [ userAux, params ] = this.handleOptionStringAndParams (params, methodName, 'user');
         let user = userAux;
         [ user, params ] = this.handleOptionStringAndParams (params, methodName, 'address', userAux);
         if ((user !== undefined) && (user !== '')) {

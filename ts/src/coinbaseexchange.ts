@@ -787,7 +787,7 @@ export default class coinbaseexchange extends Exchange {
     override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict (response, i);
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -1085,7 +1085,10 @@ export default class coinbaseexchange extends Exchange {
             'rate': feeRate,
         };
         const id = this.safeString (trade, 'trade_id');
-        let side = (trade['side'] === 'buy') ? 'sell' : 'buy';
+        let side: Str = 'buy';
+        if (trade['side'] === 'buy') {
+            side = 'sell';
+        }
         const orderId = this.safeString (trade, 'order_id');
         // Coinbase Pro returns inverted side to fetchMyTrades vs fetchTrades
         const makerOrderId = this.safeString (trade, 'maker_order_id');
@@ -1131,7 +1134,7 @@ export default class coinbaseexchange extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params, 100) as Trade[];
         }
@@ -1513,7 +1516,7 @@ export default class coinbaseexchange extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOpenOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchOpenOrders', symbol, since, limit, params, 100) as Order[];
         }

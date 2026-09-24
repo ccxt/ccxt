@@ -996,7 +996,10 @@ export default class hyperliquid extends hyperliquidRest {
         params = this.safeDict (unifiedResult, 1, params);
         const dex = this.safeString (params, 'dex');
         const isSpot = ((type === 'spot') || (isUnifiedEnabled === true)) && (dex === undefined);
-        const topic = (isSpot === true) ? 'spotState' : 'clearinghouseState';
+        let topic: Str = 'clearinghouseState';
+        if (isSpot === true) {
+            topic = 'spotState';
+        }
         const messageHash = topic + '::balance';
         const url = this.urls['api']['ws']['public'];
         const subscription: Dict = {
@@ -1045,7 +1048,10 @@ export default class hyperliquid extends hyperliquidRest {
         params = this.safeDict (unifiedResult, 1, params);
         const dex = this.safeString (params, 'dex');
         const isSpot = ((type === 'spot') || (isUnifiedEnabled === true)) && (dex === undefined);
-        const topic = (isSpot === true) ? 'spotState' : 'clearinghouseState';
+        let topic: Str = 'clearinghouseState';
+        if (isSpot === true) {
+            topic = 'spotState';
+        }
         const messageHash = 'unsubscribe' + ':' + topic;
         const request: Dict = {
             'method': 'unsubscribe',

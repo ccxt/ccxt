@@ -310,7 +310,10 @@ export default class aster extends asterRest {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            const suffix = (use1sFreq === true) ? '@1s' : '';
+            let suffix: Str = '';
+            if (use1sFreq === true) {
+                suffix = '@1s';
+            }
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@markPrice' + suffix);
             messageHashes.push ('ticker:' + market['symbol']);
         }
@@ -362,7 +365,10 @@ export default class aster extends asterRest {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            const suffix = (use1sFreq === true) ? '@1s' : '';
+            let suffix: Str = '';
+            if (use1sFreq === true) {
+                suffix = '@1s';
+            }
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@markPrice' + suffix);
             messageHashes.push ('unsubscribe:ticker:' + market['symbol']);
         }
@@ -572,7 +578,10 @@ export default class aster extends asterRest {
 
     parseWsBidAsk (message: Dict, market: Market = undefined): Ticker {
         const timestamp = this.safeInteger (message, 'T');
-        const bidAskSymbol = (market !== undefined) ? market['symbol'] : undefined;
+        let bidAskSymbol: Str = undefined;
+        if (market !== undefined) {
+            bidAskSymbol = market['symbol'];
+        }
         return this.safeTicker ({
             'symbol': bidAskSymbol,
             'timestamp': timestamp,
@@ -853,7 +862,12 @@ export default class aster extends asterRest {
             }
         }
         const marketId = this.safeString (trade, 's');
-        const defaultType = (market === undefined) ? this.safeString (this.options, 'defaultType', 'spot') : market['type'];
+        let defaultType: Str = undefined;
+        if (market === undefined) {
+            defaultType = this.safeString (this.options, 'defaultType', 'spot');
+        } else {
+            defaultType = market['type'];
+        }
         const symbol = this.safeSymbol (marketId, market, undefined, defaultType);
         let side = this.safeStringLower (trade, 'S');
         let takerOrMaker: Str = undefined;
@@ -1138,7 +1152,7 @@ export default class aster extends asterRest {
             'params': subscriptionArgs,
         };
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const data = symbolsAndTimeframes[i];
+            const data = this.safeList (symbolsAndTimeframes, i);
             let symbolString = this.safeString (data, 0);
             if (symbolString === undefined) {
                 continue;
@@ -1146,7 +1160,12 @@ export default class aster extends asterRest {
             const market = this.market (symbolString);
             symbolString = this.safeString (market, 'symbol');
             const unfiedTimeframe = this.safeString (data, 1);
-            const timeframeId = (unfiedTimeframe === undefined) ? undefined : this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            let timeframeId: Str = undefined;
+            if (unfiedTimeframe === undefined) {
+                timeframeId = undefined;
+            } else {
+                timeframeId = this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            }
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@kline_' + timeframeId);
             messageHashes.push ('ohlcv:' + market['symbol'] + ':' + unfiedTimeframe);
         }
@@ -1191,7 +1210,7 @@ export default class aster extends asterRest {
             'params': subscriptionArgs,
         };
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const data = symbolsAndTimeframes[i];
+            const data = this.safeList (symbolsAndTimeframes, i);
             let symbolString = this.safeString (data, 0);
             if (symbolString === undefined) {
                 continue;
@@ -1199,7 +1218,12 @@ export default class aster extends asterRest {
             const market = this.market (symbolString);
             symbolString = this.safeString (market, 'symbol');
             const unfiedTimeframe = this.safeString (data, 1);
-            const timeframeId = (unfiedTimeframe === undefined) ? undefined : this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            let timeframeId: Str = undefined;
+            if (unfiedTimeframe === undefined) {
+                timeframeId = undefined;
+            } else {
+                timeframeId = this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            }
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@kline_' + timeframeId);
             messageHashes.push ('unsubscribe:ohlcv:' + market['symbol'] + ':' + unfiedTimeframe);
         }
@@ -1800,7 +1824,10 @@ export default class aster extends asterRest {
         const executionType = this.safeString (message, 'x');
         if (executionType === 'TRADE') {
             const isSwap = client.url.indexOf ('fstream') >= 0;
-            const type = isSwap ? 'swap' : 'spot';
+            let type: Str = 'spot';
+            if (isSwap) {
+                type = 'swap';
+            }
             const fakeMarket = this.safeMarketStructure ({ 'type': type });
             const trade = this.parseWsTrade (message, fakeMarket);
             const orderId = this.safeString (trade, 'order');

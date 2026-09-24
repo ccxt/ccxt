@@ -556,7 +556,10 @@ export default class blofin extends blofinRest {
         }
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
-        const channel = (trigger === true) ? 'orders-algo' : 'orders';
+        let channel: Str = 'orders';
+        if (trigger === true) {
+            channel = 'orders-algo';
+        }
         const orders = await this.watchMultipleWrapper (false, channel, 'watchOrdersForSymbols', symbols, params);
         if (this.newUpdates) {
             const first = this.safeDict (orders, 0);
@@ -758,7 +761,10 @@ export default class blofin extends blofinRest {
             rawSubscriptions = [ { 'channel': channelName } ];
         }
         const request = this.getSubscriptionRequest (rawSubscriptions);
-        const privateOrPublic = isPublic ? 'public' : 'private';
+        let privateOrPublic: Str = 'private';
+        if (isPublic) {
+            privateOrPublic = 'public';
+        }
         const url = (this.urls['api'])['ws'][marketType][privateOrPublic];
         return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
     }

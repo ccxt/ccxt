@@ -1079,7 +1079,10 @@ export default class bingx extends Exchange {
         if (quantityPrecision === undefined) {
             quantityPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityPrecision')));
         }
-        const type = (settle !== undefined) ? 'swap' : 'spot';
+        let type: Str = 'spot';
+        if (settle !== undefined) {
+            type = 'swap';
+        }
         const spot = type === 'spot';
         const swap = type === 'swap';
         let symbol = base + '/' + quote;
@@ -1872,7 +1875,7 @@ export default class bingx extends Exchange {
             throw new NotSupported (this.id + ' fetchFundingRateHistory() is not supported for inverse swap markets');
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params) as FundingRateHistory[];
         }
@@ -1951,7 +1954,7 @@ export default class bingx extends Exchange {
             throw new NotSupported (this.id + ' fetchFundingHistory() is not supported for inverse swap markets');
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingHistory', symbol, since, limit, '24h', params) as FundingHistory[];
         }
@@ -1993,7 +1996,7 @@ export default class bingx extends Exchange {
         return this.parseIncomes (data, market, since, limit) as FundingHistory[];
     }
 
-    override parseIncome (income: any, market: Market = undefined): object {
+    override parseIncome (income: Dict, market: Market = undefined): object {
         // {
         //     "symbol": "LDO-USDT",
         //     "incomeType": "FUNDING_FEE",
@@ -2433,7 +2436,10 @@ export default class bingx extends Exchange {
         const lastQty = this.safeString (ticker, 'lastQty');
         // in spot markets, lastQty is not present
         // it's (bad, but) the only way we can check the tickers origin
-        const type = (lastQty === undefined) ? 'spot' : 'swap';
+        let type: Str = 'swap';
+        if (lastQty === undefined) {
+            type = 'spot';
+        }
         market = this.safeMarket (marketId, market, undefined, type);
         const symbol = market['symbol'];
         const open = this.safeString (ticker, 'openPrice');
@@ -2693,7 +2699,7 @@ export default class bingx extends Exchange {
         const spotBalances = this.safeList2 (spotData, 'balances', 'assets', []) as List;
         if (isContract) {
             for (let i = 0; i < contractBalances.length; i++) {
-                const balance = contractBalances[i];
+                const balance = this.safeDict (contractBalances, i);
                 const currencyId = this.safeString (balance, 'asset');
                 if (currencyId === undefined) { // linear v3 returns empty asset
                     break;
@@ -2709,7 +2715,7 @@ export default class bingx extends Exchange {
             }
         } else {
             for (let i = 0; i < spotBalances.length; i++) {
-                const balance = spotBalances[i];
+                const balance = this.safeDict (spotBalances, i);
                 const currencyId = this.safeString (balance, 'asset');
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
@@ -3191,7 +3197,10 @@ export default class bingx extends Exchange {
         const isTriggerOrder = triggerPrice !== undefined;
         const isStopLossPriceOrder = stopLossPrice !== undefined;
         const isTakeProfitPriceOrder = takeProfitPrice !== undefined;
-        const exchangeClientOrderId = isSpot ? 'newClientOrderId' : 'clientOrderID';
+        let exchangeClientOrderId: Str = 'clientOrderID';
+        if (isSpot) {
+            exchangeClientOrderId = 'newClientOrderId';
+        }
         const clientOrderId = this.safeString2 (params, exchangeClientOrderId, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request[exchangeClientOrderId] = clientOrderId;
@@ -3232,7 +3241,10 @@ export default class bingx extends Exchange {
                     request['type'] = 'TRIGGER_MARKET';
                 }
             } else if ((stopLossPrice !== undefined) || (takeProfitPrice !== undefined)) {
-                const stopTakePrice = (stopLossPrice !== undefined) ? stopLossPrice : takeProfitPrice;
+                let stopTakePrice: Str = takeProfitPrice;
+                if (stopLossPrice !== undefined) {
+                    stopTakePrice = stopLossPrice;
+                }
                 if (type === 'LIMIT') {
                     request['type'] = 'TAKE_STOP_LIMIT';
                 } else if (type === 'MARKET') {
@@ -3567,7 +3579,7 @@ export default class bingx extends Exchange {
         const ordersRequests: Dict[] = [];
         const marketIds: string[] = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const marketId = this.safeString (rawOrder, 'symbol', '');
             const type = this.safeString (rawOrder, 'type');
             marketIds.push (marketId);
@@ -3971,7 +3983,10 @@ export default class bingx extends Exchange {
             order = newOrder;
         }
         const positionSide = this.safeString2 (order, 'positionSide', 'ps');
-        const marketType = (positionSide === undefined) ? 'spot' : 'swap';
+        let marketType: Str = 'swap';
+        if (positionSide === undefined) {
+            marketType = 'spot';
+        }
         const marketId = this.safeString2 (order, 'symbol', 's');
         if (market === undefined) {
             market = this.safeMarket (marketId, undefined, undefined, marketType);
@@ -4451,7 +4466,10 @@ export default class bingx extends Exchange {
         }
         let response: Dict;
         if (market['spot'] === true) {
-            const spotReqKey = areClientOrderIds ? 'clientOrderIDs' : 'orderIds';
+            let spotReqKey: Str = 'orderIds';
+            if (areClientOrderIds) {
+                spotReqKey = 'clientOrderIDs';
+            }
             request[spotReqKey] = parsedIds.join (',');
             response = await this.spotV1PrivatePostTradeCancelOrders (this.extend (request, params));
             //
@@ -5527,7 +5545,7 @@ export default class bingx extends Exchange {
         }
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         // {
         //     "coinId":"4",
@@ -5735,7 +5753,10 @@ export default class bingx extends Exchange {
             }
         }
         const rawType = this.safeString (transaction, 'transferType');
-        const type = (rawType === '0') ? 'deposit' : 'withdrawal';
+        let type: Str = 'withdrawal';
+        if (rawType === '0') {
+            type = 'deposit';
+        }
         return {
             'info': transaction,
             'id': id,
@@ -6137,7 +6158,10 @@ export default class bingx extends Exchange {
             request['symbol'] = market['id'];
             const now = this.milliseconds ();
             if (since !== undefined) {
-                const startTimeReq = (market['spot'] === true) ? 'startTime' : 'startTs';
+                let startTimeReq: Str = 'startTs';
+                if (market['spot'] === true) {
+                    startTimeReq = 'startTime';
+                }
                 request[startTimeReq] = since;
             } else if (market['swap'] === true) {
                 request['startTs'] = now - 30 * 24 * 60 * 60 * 1000; // 30 days for swap
@@ -6145,7 +6169,10 @@ export default class bingx extends Exchange {
             const until = this.safeInteger (params, 'until');
             params = this.omit (params, 'until');
             if (until !== undefined) {
-                const endTimeReq = (market['spot'] === true) ? 'endTime' : 'endTs';
+                let endTimeReq: Str = 'endTs';
+                if (market['spot'] === true) {
+                    endTimeReq = 'endTime';
+                }
                 request[endTimeReq] = until;
             } else if (market['swap'] === true) {
                 request['endTs'] = now;
@@ -6235,7 +6262,7 @@ export default class bingx extends Exchange {
         if (networksLength !== 0) {
             for (let i = 0; i < networksLength; i++) {
                 const networkCode = networkCodes[i];
-                const network = networks[networkCode];
+                const network = this.safeDict (networks, networkCode);
                 result['networks'][networkCode] = {
                     'deposit': { 'fee': undefined, 'percentage': undefined },
                     'withdraw': { 'fee': this.safeNumber (network, 'fee'), 'percentage': false },
@@ -6268,7 +6295,7 @@ export default class bingx extends Exchange {
         for (let i = 0; i < responseCodes.length; i++) {
             const code = responseCodes[i];
             if ((codes === undefined) || (this.inArray (code, codes))) {
-                const entry = response[code];
+                const entry = this.safeDict (response, code);
                 depositWithdrawFees[code] = this.parseDepositWithdrawFee (entry);
             }
         }

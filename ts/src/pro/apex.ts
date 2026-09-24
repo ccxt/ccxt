@@ -508,7 +508,7 @@ export default class apex extends apexRest {
         const rawHashes: string[] = [];
         const messageHashes: string[] = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const data = symbolsAndTimeframes[i];
+            const data = this.safeList (symbolsAndTimeframes, i);
             let symbolString = this.safeString (data, 0);
             const market = this.market (symbolString);
             symbolString = (market as Dict)['id2'];
@@ -556,7 +556,10 @@ export default class apex extends apexRest {
         const timeframe = this.findTimeframe (timeframeId);
         const marketId = this.safeString (topicParts, topicLength - 1);
         const isSpot = client.url.indexOf ('spot') > -1;
-        const marketType = isSpot ? 'spot' : 'contract';
+        let marketType: Str = 'contract';
+        if (isSpot) {
+            marketType = 'spot';
+        }
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         if (!(symbol in this.ohlcvs)) {

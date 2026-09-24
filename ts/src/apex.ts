@@ -518,10 +518,10 @@ export default class apex extends Exchange {
         const networks: Dict = {};
         const chains = this.options['_temp_currencies_chains'];
         for (let j = 0; j < chains.length; j++) {
-            const chain = chains[j];
+            const chain = this.safeDict (chains, j);
             const tokens: Dict[] = this.safeList (chain, 'tokens', []);
             for (let f = 0; f < tokens.length; f++) {
-                const token = tokens[f];
+                const token = this.safeDict (tokens, f);
                 const tokenName = this.safeString (token, 'token');
                 if (tokenName === currencyId) {
                     const networkId = this.safeString (chain, 'chainId');
@@ -1312,7 +1312,12 @@ export default class apex extends Exchange {
 
     generateRandomClientIdOmni (_accountId: Str) {
         const hasAccountId = (_accountId !== undefined) && (_accountId !== '');
-        const accountId = hasAccountId ? _accountId : this.randNumber (12).toString ();
+        let accountId: Str = undefined;
+        if (hasAccountId) {
+            accountId = _accountId;
+        } else {
+            accountId = this.randNumber (12).toString ();
+        }
         return 'apexomni-' + accountId + '-' + this.milliseconds ().toString () + '-' + this.randNumber (6).toString ();
     }
 
@@ -1875,7 +1880,7 @@ export default class apex extends Exchange {
         return this.parseIncomes (fundingValues, market, since, limit);
     }
 
-    override parseIncome (income: any, market: Market = undefined): object {
+    override parseIncome (income: Dict, market: Market = undefined): object {
         //
         // {
         //     "id": "1234",

@@ -1175,7 +1175,7 @@ export default class alpaca extends Exchange {
         };
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stop_price');
         if (triggerPrice !== undefined) {
-            let newType: string;
+            let newType: Str = undefined;
             if (type.indexOf ('limit') >= 0) {
                 newType = 'stop_limit';
             } else {
@@ -1195,7 +1195,7 @@ export default class alpaca extends Exchange {
             request['qty'] = this.amountToPrecision (symbol, amount);
         }
         let defaultTIF: Str = undefined;
-        [ defaultTIF, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce');
+        [ defaultTIF, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'timeInForce');
         if (defaultTIF !== undefined) {
             // the venue only accepts lowercase values, normalize the unified uppercase spellings
             defaultTIF = defaultTIF.toLowerCase ();
@@ -1760,7 +1760,7 @@ export default class alpaca extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
@@ -1872,7 +1872,10 @@ export default class alpaca extends Exchange {
                 const activityType = this.safeString (entry, 'activity_type');
                 const amount = this.safeString (entry, 'net_amount');
                 const isIncoming = (activityType === 'CSD') || ((activityType === 'TRANS') && !Precise.stringLt (amount, '0'));
-                const entryDirection = isIncoming ? 'INCOMING' : 'OUTGOING';
+                let entryDirection: Str = 'OUTGOING';
+                if (isIncoming) {
+                    entryDirection = 'INCOMING';
+                }
                 if ((type === 'BOTH') || (entryDirection === type)) {
                     filtered.push (entry);
                 }
@@ -2203,7 +2206,7 @@ export default class alpaca extends Exchange {
             result[code] = cashAccount;
         }
         for (let i = 0; i < positions.length; i++) {
-            const position = positions[i];
+            const position = this.safeDict (positions, i);
             const positionSymbol = this.safeString (position, 'symbol');
             if (positionSymbol === undefined) {
                 continue;

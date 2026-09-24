@@ -778,7 +778,7 @@ export default class onetrading extends Exchange {
         const takerFees: List = [];
         const makerFees: List = [];
         for (let i = 0; i < feeTiers.length; i++) {
-            const tier = feeTiers[i];
+            const tier = this.safeDict (feeTiers, i);
             const volume = this.safeNumber (tier, 'volume');
             let taker = this.safeString (tier, 'taker_fee');
             let maker = this.safeString (tier, 'maker_fee');
@@ -1208,7 +1208,7 @@ export default class onetrading extends Exchange {
         const balances: Dict[] = this.safeList (response, 'balances', []);
         const result: Dict = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict (balances, i);
             const currencyId = this.safeString (balance, 'currency_code');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();

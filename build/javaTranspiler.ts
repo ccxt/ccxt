@@ -19,7 +19,7 @@ import { execFileSync } from 'child_process';
 import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
-import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, javaStringParamPositions, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, javaVenueAsyncReturnTable, javaIsTypedMapDto, patchJavaOmitLocalTypes, patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists } from './java-local-types.js';
+import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, javaStringParamPositions, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, javaVenueAsyncReturnTable, javaIsTypedMapDto, patchJavaOmitLocalTypes, patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists, patchJavaTupleHolderElementLocals } from './java-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose } from "./javaTypedCore.js";
 import { applyJavaImports, shortenJavaReferences, ensureJavaImports } from "./javaUtilImports.js";
@@ -311,7 +311,9 @@ function retypeMentionContextsOk (code: string, name: string, token: string | un
         if (callee !== undefined && RETYPE_AUDITED_CALLEES.test (callee)) continue;
         const adjacentPlus = /\+\s*$/.test (pre) || /^\s*\+/.test (code.slice (m.index + name.length));
         if (adjacentPlus && /"/.test (line)) continue;
-        const cast = pre.match (/\(([\w$.<>, ]+)\)\s*$/);
+        // `(T) name` or the printer's parenthesised `(T) (name)`
+        const wrapped = /^\s*\)/.test (code.slice (m.index + name.length));
+        const cast = pre.match (/\(([\w$.<>, ]+)\)\s*$/) ?? (wrapped ? pre.match (/\(([\w$.<>, ]+)\)\s*\(\s*$/) : null);
         if (cast !== null && (cast[1].trim () === (token ?? '') || cast[1].trim () === 'Object' || cast[1].trim () === 'java.lang.Object')) continue;
         return false;
     }
@@ -2115,6 +2117,8 @@ class NewTranspiler {
         // element reads of awaited qualified DTO lists (section 27; also in java-worker.ts)
         patchJavaQualifiedDtoListElementLocals(this.transpiler);
         patchJavaStringAccumulatorLists(this.transpiler);
+        // element reads of audited handle* tuple holders (section 28; also in java-worker.ts)
+        patchJavaTupleHolderElementLocals(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a

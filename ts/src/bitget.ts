@@ -2734,7 +2734,7 @@ export default class bitget extends Exchange {
             deposit = false;
         }
         for (let j = 0; j < chainsLength; j++) {
-            const chain = chains[j];
+            const chain = this.safeDict (chains, j);
             const networkId = this.safeString (chain, 'chain');
             let network = this.networkIdToCode (networkId, code);
             if (network === undefined) {
@@ -3030,7 +3030,7 @@ export default class bitget extends Exchange {
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchDeposits', false);
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchDeposits', 'paginate', false);
         if (paginate) {
             if (uta === true) {
                 return await this.fetchPaginatedCallCursor ('fetchDeposits', undefined, since, limit, params, 'orderId', 'cursor', undefined, 100) as Transaction[];
@@ -3229,7 +3229,7 @@ export default class bitget extends Exchange {
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchWithdrawals', false);
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchWithdrawals', 'paginate', false);
         if (paginate) {
             if (uta === true) {
                 return await this.fetchPaginatedCallCursor ('fetchWithdrawals', undefined, since, limit, params, 'orderId', 'cursor', undefined, 100) as Transaction[];
@@ -3506,7 +3506,7 @@ export default class bitget extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "coin": "BTC",
@@ -3596,8 +3596,14 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const bidsKey = (uta === true) ? 'b' : 'bids';
-        const asksKey = (uta === true) ? 'a' : 'asks';
+        let bidsKey: Str = 'bids';
+        if (uta === true) {
+            bidsKey = 'b';
+        }
+        let asksKey: Str = 'asks';
+        if (uta === true) {
+            asksKey = 'a';
+        }
         const timestamp = this.safeInteger (data, 'ts');
         return this.parseOrderBook (data, market['symbol'], timestamp, bidsKey, asksKey);
     }
@@ -3711,7 +3717,7 @@ export default class bitget extends Exchange {
         const timestamp = this.safeIntegerOmitZero (ticker, 'ts'); // exchange bitget provided 0
         const category = this.safeString (ticker, 'category');
         const markPrice = this.safeString (ticker, 'markPrice');
-        let marketType: string;
+        let marketType: Str = undefined;
         if ((markPrice !== undefined) && (category !== 'SPOT')) {
             marketType = 'contract';
         } else {
@@ -4284,7 +4290,7 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchTrades', symbol, since, limit, params, 'idLessThan', 'idLessThan') as Trade[];
         }
@@ -4717,7 +4723,7 @@ export default class bitget extends Exchange {
         const useHistoryEndpoint = this.safeBool (params, 'useHistoryEndpoint', false);
         const useHistoryEndpointForPagination = this.safeBool (params, 'useHistoryEndpointForPagination', true);
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             const limitForPagination = (useHistoryEndpointForPagination === true) ? maxLimitForHistoryEndpoint : maxLimitForRecentEndpoint;
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, limitForPagination);
@@ -4750,7 +4756,10 @@ export default class bitget extends Exchange {
         // retrievable periods listed here:
         // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
         // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
-        const key = (market['spot'] === true) ? 'spot' : 'swap';
+        let key: Str = 'swap';
+        if (market['spot'] === true) {
+            key = 'spot';
+        }
         const ohlcOptions = this.safeDict (this.options['fetchOHLCV'], key, {});
         const maxLimitPerTimeframe = this.safeDict (ohlcOptions, 'maxLimitPerTimeframe', {});
         const maxLimitForThisTimeframe = this.safeInteger (maxLimitPerTimeframe, timeframe, limit);
@@ -5098,7 +5107,7 @@ export default class bitget extends Exchange {
         //     }
         //
         for (let i = 0; i < balance.length; i++) {
-            const entry = balance[i];
+            const entry = this.safeDict (balance, i);
             const account = this.account ();
             const currencyId = this.safeString (entry, 'coin');
             const code = this.safeCurrencyCode (currencyId);
@@ -5163,7 +5172,7 @@ export default class bitget extends Exchange {
         //       }
         //
         for (let i = 0; i < balance.length; i++) {
-            const entry = balance[i];
+            const entry = this.safeDict (balance, i);
             const account = this.account ();
             const currencyId = this.safeString2 (entry, 'marginCoin', 'coin');
             const code = this.safeCurrencyCode (currencyId);
@@ -5440,7 +5449,10 @@ export default class bitget extends Exchange {
         }
         const posSide = this.safeString (order, 'posSide');
         const isContractOrder = (posSide !== undefined);
-        let marketType = isContractOrder ? 'contract' : 'spot';
+        let marketType: Str = 'spot';
+        if (isContractOrder) {
+            marketType = 'contract';
+        }
         if (market !== undefined) {
             marketType = market['type'];
         }
@@ -5474,7 +5486,7 @@ export default class bitget extends Exchange {
                 let feeObject: NullableDict = undefined;
                 for (let i = 0; i < feeValues.length; i++) {
                     const feeValue = feeValues[i];
-                    if (this.safeValue (feeValue, 'feeCoinCode') !== undefined) {
+                    if (this.safeString (feeValue, 'feeCoinCode') !== undefined) {
                         feeObject = feeValue as Dict;
                         break;
                     }
@@ -5786,7 +5798,7 @@ export default class bitget extends Exchange {
             let postOnly: Bool = undefined;
             [ postOnly, params ] = this.handlePostOnly (isMarketOrder, exchangeSpecificTifParam === 'post_only', params);
             let timeInForce: Str = undefined;
-            [ timeInForce, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce');
+            [ timeInForce, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'timeInForce');
             if (timeInForce !== undefined) {
                 timeInForce = timeInForce.toUpperCase ();
             }
@@ -5805,14 +5817,20 @@ export default class bitget extends Exchange {
         [ hedged, params ] = this.handleParamBool (params, 'hedged', false);
         if (reduceOnly === true) {
             if ((hedged === true) || isStopLossOrTakeProfitTrigger) {
-                const reduceOnlyPosSide = (side === 'sell') ? 'long' : 'short';
+                let reduceOnlyPosSide: Str = 'short';
+                if (side === 'sell') {
+                    reduceOnlyPosSide = 'long';
+                }
                 request['posSide'] = reduceOnlyPosSide;
             } else if (!isStopLossOrTakeProfitTrigger) {
                 request['reduceOnly'] = 'yes';
             }
         } else {
             if (hedged === true) {
-                const posSide = (side === 'buy') ? 'long' : 'short';
+                let posSide: Str = 'short';
+                if (side === 'buy') {
+                    posSide = 'long';
+                }
                 request['posSide'] = posSide;
             }
         }
@@ -5880,7 +5898,7 @@ export default class bitget extends Exchange {
         let postOnly: Bool = undefined;
         [ postOnly, params ] = this.handlePostOnly (isMarketOrder, exchangeSpecificTifParam === 'post_only', params);
         let timeInForce: Str = undefined;
-        [ timeInForce, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce');
+        [ timeInForce, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'timeInForce');
         if (timeInForce !== undefined) {
             timeInForce = timeInForce.toUpperCase ();
         }
@@ -5987,7 +6005,10 @@ export default class bitget extends Exchange {
                 if (marginMode === undefined) {
                     marginMode = 'cross';
                 }
-                const marginModeRequest = (marginMode === 'cross') ? 'crossed' : 'isolated';
+                let marginModeRequest: Str = 'isolated';
+                if (marginMode === 'cross') {
+                    marginModeRequest = 'crossed';
+                }
                 request['marginMode'] = marginModeRequest;
                 let requestSide = side;
                 if (reduceOnly === true) {
@@ -6073,7 +6094,7 @@ export default class bitget extends Exchange {
         let symbol: Str = undefined;
         let marginMode: Str = undefined;
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const marketId = this.safeString (rawOrder, 'symbol');
             if (symbol === undefined) {
                 symbol = marketId;
@@ -6147,7 +6168,7 @@ export default class bitget extends Exchange {
         let symbol: Str = undefined;
         let marginMode: Str = undefined;
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const marketId = this.safeString (rawOrder, 'symbol');
             if (symbol === undefined) {
                 symbol = marketId;
@@ -6185,7 +6206,10 @@ export default class bitget extends Exchange {
             if (marginMode === undefined) {
                 marginMode = 'cross';
             }
-            const marginModeRequest = (marginMode === 'cross') ? 'crossed' : 'isolated';
+            let marginModeRequest: Str = 'isolated';
+            if (marginMode === 'cross') {
+                marginModeRequest = 'crossed';
+            }
             request['marginMode'] = marginModeRequest;
             request['marginCoin'] = market['settleId'];
             let productType: Str = undefined;
@@ -6352,7 +6376,10 @@ export default class bitget extends Exchange {
                 } else {
                     const amountString = this.numberToString (amount);
                     const priceString = this.numberToString (price);
-                    const finalCost = (cost === undefined) ? (Precise.stringMul (amountString, priceString)) : cost;
+                    let finalCost: Str = cost;
+                    if (cost === undefined) {
+                        finalCost = (Precise.stringMul (amountString, priceString));
+                    }
                     request['size'] = this.priceToPrecision (symbol, finalCost);
                 }
             } else {
@@ -7103,14 +7130,17 @@ export default class bitget extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
             const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
-            const marketType = ('type' in market) ? market['type'] : defaultType;
+            let marketType: Str = defaultType;
+            if ('type' in market) {
+                marketType = market['type'];
+            }
             type = this.safeString (params, 'type', marketType);
         } else {
             const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
             type = this.safeString (params, 'type', defaultType);
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOpenOrders', 'paginate', false);
         if (paginate) {
             let cursorReceived: Str = undefined;
             let cursorSent: Str = undefined;
@@ -7576,7 +7606,7 @@ export default class bitget extends Exchange {
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchCanceledAndClosedOrders', params);
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchCanceledAndClosedOrders', 'paginate', false);
         if (paginate) {
             let cursorReceived: Str = undefined;
             if (marketType === 'spot') {
@@ -7866,7 +7896,7 @@ export default class bitget extends Exchange {
             'category': productType,
         };
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchCanceledAndClosedOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchCanceledAndClosedOrders', symbol, since, limit, params, 'cursor', 'cursor') as Order[];
         }
@@ -8008,7 +8038,7 @@ export default class bitget extends Exchange {
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchLedger', false);
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchLedger', 'paginate', false);
         if (paginate) {
             if (uta === true) {
                 // re-inject the resolved modes, the handle* helpers stripped them from params and the recursive paginated calls would silently fall back to the defaults
@@ -8507,7 +8537,7 @@ export default class bitget extends Exchange {
         }
         let paginate = false;
         let marginMode: Str = undefined;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
         if (paginate) {
             let cursorReceived: Str = undefined;
@@ -8826,7 +8856,7 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchPositions', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchPositions', undefined, undefined, undefined, params, 'endId', 'idLessThan') as Position[];
         }
@@ -9280,7 +9310,7 @@ export default class bitget extends Exchange {
             result = this.safeList (data, 'resultList', []);
         } else {
             let paginate = false;
-            [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+            [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
             if (paginate) {
                 return await this.fetchPaginatedCallIncremental ('fetchFundingRateHistory', symbol, since, limit, params, 'pageNo', 100) as FundingRateHistory[];
             }
@@ -9634,7 +9664,7 @@ export default class bitget extends Exchange {
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchFundingHistory', false);
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingHistory', 'paginate', false);
         if (paginate) {
             if (uta === true) {
                 return await this.fetchPaginatedCallCursor ('fetchFundingHistory', symbol, since, limit, params, 'cursor', 'cursor') as FundingHistory[];
@@ -9720,7 +9750,7 @@ export default class bitget extends Exchange {
         return this.parseFundingHistories (bills, market, since, limit);
     }
 
-    parseFundingHistory (contract: Dict, market: Market = undefined) {
+    parseFundingHistory (contract: NullableDict, market: Market = undefined) {
         //
         //     {
         //         "billId": "1111499428100472833",
@@ -9762,7 +9792,7 @@ export default class bitget extends Exchange {
     parseFundingHistories (contracts: Dict[], market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingHistory[] {
         const result: List = [];
         for (let i = 0; i < contracts.length; i++) {
-            const contract = contracts[i];
+            const contract = this.safeDict (contracts, i);
             // for non-uta, we've set bussinessType in request payload. Not sure why this existed.
             // const business = this.safeString (contract, 'businessType');
             // if (business !== 'contract_settle_fee') {
@@ -9821,7 +9851,10 @@ export default class bitget extends Exchange {
         //     }
         //
         const errorCode = this.safeString (data, 'code');
-        const status = (errorCode === '00000') ? 'ok' : 'failed';
+        let status: Str = 'failed';
+        if (errorCode === '00000') {
+            status = 'ok';
+        }
         return {
             'info': data,
             'symbol': this.safeString (market, 'symbol'),
@@ -9931,8 +9964,14 @@ export default class bitget extends Exchange {
 
     override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const isCrossMarginMode = this.safeString (leverage, 'marginMode') === 'crossed';
-        const longLevKey = isCrossMarginMode ? 'crossedMarginLeverage' : 'isolatedLongLever';
-        const shortLevKey = isCrossMarginMode ? 'crossedMarginLeverage' : 'isolatedShortLever';
+        let longLevKey: Str = 'isolatedLongLever';
+        if (isCrossMarginMode) {
+            longLevKey = 'crossedMarginLeverage';
+        }
+        let shortLevKey: Str = 'isolatedShortLever';
+        if (isCrossMarginMode) {
+            shortLevKey = 'crossedMarginLeverage';
+        }
         return {
             'info': leverage,
             'symbol': this.safeString (market, 'symbol'),
@@ -10083,7 +10122,10 @@ export default class bitget extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const posMode = hedged ? 'hedge_mode' : 'one_way_mode';
+        let posMode: Str = 'one_way_mode';
+        if (hedged) {
+            posMode = 'hedge_mode';
+        }
         const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -10447,7 +10489,7 @@ export default class bitget extends Exchange {
             'networks': {},
         };
         for (let i = 0; i < chainsLength; i++) {
-            const chain = chains[i];
+            const chain = this.safeDict (chains, i);
             const networkId = this.safeString (chain, 'chain');
             const currencyCode = this.safeString (currency, 'code');
             const networkCode = this.networkIdToCode (networkId, currencyCode);
@@ -10741,7 +10783,7 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyLiquidations', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyLiquidations', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchMyLiquidations', symbol, since, limit, params, 'minId', 'idLessThan') as Liquidation[];
         }
@@ -11136,7 +11178,7 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchBorrowInterest', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchBorrowInterest', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchBorrowInterest', symbol, since, limit, params, 'minId', 'idLessThan') as BorrowInterest[];
         }
@@ -11257,7 +11299,10 @@ export default class bitget extends Exchange {
         //
         const marketId = this.safeString (info, 'symbol');
         market = this.safeMarket (marketId, market);
-        const marginMode = (marketId !== undefined) ? 'isolated' : 'cross';
+        let marginMode: Str = 'cross';
+        if (marketId !== undefined) {
+            marginMode = 'isolated';
+        }
         const timestamp = this.safeInteger (info, 'cTime');
         return {
             'info': info,

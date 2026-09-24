@@ -118,7 +118,10 @@ export default class grvt extends grvtRest {
             'params': request,
             'id': this.requestId (),
         };
-        const apiPart = publicOrPrivate ? 'publicMarket' : 'privateTrading';
+        let apiPart: Str = 'privateTrading';
+        if (publicOrPrivate) {
+            apiPart = 'publicMarket';
+        }
         return await this.watchMultiple (this.urls['api']['ws'][apiPart], messageHashes, payload, rawHashes);
     }
 
@@ -423,7 +426,7 @@ export default class grvt extends grvtRest {
         const rawHashes: string[] = [];
         const messageHashes: string[] = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const data = symbolsAndTimeframes[i];
+            const data = this.safeList (symbolsAndTimeframes, i);
             const symbolString = this.safeString (data, 0);
             const market = this.market (symbolString);
             const marketId = market['id'];
@@ -539,7 +542,12 @@ export default class grvt extends grvtRest {
         let interval = 500;
         [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', interval);
         symbols = this.marketSymbols (symbols);
-        const extraPart = isSnapshot ? (interval.toString () + '-' + limit.toString ()) : interval.toString ();
+        let extraPart: Str = undefined;
+        if (isSnapshot) {
+            extraPart = (interval.toString () + '-' + limit.toString ());
+        } else {
+            extraPart = interval.toString ();
+        }
         const rawHashes: string[] = [];
         const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {

@@ -515,7 +515,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const stored = this.ohlcvs[symbol][(timeframe as string)];
         const data: Dict[] = this.safeList (message, 'candles', []);
         for (let i = 0; i < data.length; i++) {
-            const tick = data[i];
+            const tick = this.safeDict (data, i);
             const parsed = this.parseOHLCV (tick, market);
             stored.append (parsed);
         }
@@ -714,7 +714,10 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
 
     override handleDelta (orderbook: any, delta: any) {
         const rawSide = this.safeStringLower (delta, 0);
-        const side = (rawSide === 'buy') ? 'bids' : 'asks';
+        let side: Str = 'asks';
+        if (rawSide === 'buy') {
+            side = 'bids';
+        }
         const price = this.safeFloat (delta, 1);
         const amount = this.safeFloat (delta, 2);
         const bookside = orderbook[side];

@@ -1062,7 +1062,7 @@ export default class indodax extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
-        const side = this.safeValue (params, 'side');
+        const side = this.safeString (params, 'side');
         if (side === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires an extra "side" param');
         }

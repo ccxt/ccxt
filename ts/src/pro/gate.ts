@@ -233,7 +233,12 @@ export default class gate extends gateRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        let market: Market = undefined;
+        if (symbol === undefined) {
+            market = undefined;
+        } else {
+            market = this.market (symbol);
+        }
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         const messageType = this.getTypeByMarket (market);
         let channel = messageType + '.order_cancel_cp';
@@ -263,7 +268,12 @@ export default class gate extends gateRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        let market: Market = undefined;
+        if (symbol === undefined) {
+            market = undefined;
+        } else {
+            market = this.market (symbol);
+        }
         const trigger = this.safeBoolN (params, [ 'is_stop_order', 'stop', 'trigger' ], false);
         params = this.omit (params, [ 'is_stop_order', 'stop', 'trigger' ]);
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
@@ -325,7 +335,12 @@ export default class gate extends gateRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        let market: Market = undefined;
+        if (symbol === undefined) {
+            market = undefined;
+        } else {
+            market = this.market (symbol);
+        }
         const [ request, requestParams ] = this.fetchOrderRequest (id, symbol, params);
         const messageType = this.getTypeByMarket (market);
         const channel = messageType + '.order_status';
@@ -427,7 +442,10 @@ export default class gate extends gateRest {
         const url = this.getUrlByMarket (market);
         const isEuUrl = url.indexOf ('gateeu') >= 0;
         const isNonEuSpot = (market['spot'] === true) && !isEuUrl;
-        const intervalDefault = isNonEuSpot ? '50' : '100ms';
+        let intervalDefault: Str = '100ms';
+        if (isNonEuSpot) {
+            intervalDefault = '50';
+        }
         const [ interval, query ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', intervalDefault);
         const messageType = this.getTypeByMarket (market);
         const messageHash = 'orderbook' + ':' + symbol;
@@ -486,7 +504,10 @@ export default class gate extends gateRest {
         const marketId = market['id'];
         const isEuUrl = url.indexOf ('gateeu') >= 0;
         const isNonEuSpot = (market['spot'] === true) && !isEuUrl;
-        const intervalDefault = isNonEuSpot ? '50' : '100ms';
+        let intervalDefault: Str = '100ms';
+        if (isNonEuSpot) {
+            intervalDefault = '50';
+        }
         let interval = intervalDefault;
         [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', interval);
         const messageType = this.getTypeByMarket (market);
@@ -645,7 +666,10 @@ export default class gate extends gateRest {
         const channelParts = channel.split ('.');
         const rawMarketType = this.safeString (channelParts, 0);
         const isSpot = rawMarketType === 'spot';
-        const marketType = isSpot ? 'spot' : 'contract';
+        let marketType: Str = 'contract';
+        if (isSpot) {
+            marketType = 'spot';
+        }
         const delta = this.safeDict (message, 'result');
         const deltaStart = this.safeInteger (delta, 'U');
         const deltaEnd = this.safeInteger (delta, 'u');
@@ -663,7 +687,7 @@ export default class gate extends gateRest {
             const waitAmount = isSpot ? snapshotDelay : 0;
             if (cacheLength === waitAmount) {
                 // max limit is 100
-                const subscription = client.subscriptions[messageHash];
+                const subscription = this.safeDict (client.subscriptions, messageHash);
                 const limit = this.safeInteger (subscription, 'limit');
                 this.spawn (this.loadOrderBook, client, messageHash, symbol, limit, {}); // needed for c#, number of args needs to match
             }
@@ -687,13 +711,13 @@ export default class gate extends gateRest {
 
     override getCacheIndex (orderBook: any, cache: any): number {
         const nonce = this.safeInteger (orderBook, 'nonce');
-        const firstDelta = cache[0];
+        const firstDelta = this.safeDict (cache, 0);
         const firstDeltaStart = this.safeInteger (firstDelta, 'U');
         if ((nonce !== undefined) && (firstDeltaStart !== undefined) && (nonce < firstDeltaStart)) {
             return -1;
         }
         for (let i = 0; i < cache.length; i++) {
-            const delta = cache[i];
+            const delta = this.safeDict (cache, i);
             const deltaStart = this.safeInteger (delta, 'U');
             const deltaEnd = this.safeInteger (delta, 'u');
             if ((nonce !== undefined) && (deltaStart !== undefined) && (deltaEnd !== undefined) && (nonce >= deltaStart - 1) && (nonce < deltaEnd)) {
@@ -834,14 +858,17 @@ export default class gate extends gateRest {
         const messageType = this.getTypeByMarket (market);
         const marketIds = this.marketIds (symbols);
         let channelName: Str = undefined;
-        [ channelName, params ] = this.handleOptionAndParams (params, callerMethodName, 'method');
+        [ channelName, params ] = this.handleOptionStringAndParams (params, callerMethodName, 'method');
         const url = this.getUrlByMarket (market);
         const channel = messageType + '.' + channelName;
         if (callerMethodName === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a callerMethodName argument');
         }
         const isWatchTickers = callerMethodName.indexOf ('watchTicker') >= 0;
-        const prefix = isWatchTickers ? 'ticker' : 'bidask';
+        let prefix: Str = 'bidask';
+        if (isWatchTickers) {
+            prefix = 'ticker';
+        }
         const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
@@ -861,7 +888,10 @@ export default class gate extends gateRest {
         const channel = this.safeString (message, 'channel') as string;
         const parts = channel.split ('.');
         const rawMarketType = this.safeString (parts, 0);
-        const marketType = (rawMarketType === 'futures') ? 'contract' : 'spot';
+        let marketType: Str = 'spot';
+        if (rawMarketType === 'futures') {
+            marketType = 'contract';
+        }
         const result = this.safeValue (message, 'result');
         let results: Dict[] = [];
         if (Array.isArray (result)) {
@@ -1081,7 +1111,10 @@ export default class gate extends gateRest {
         const channel = this.safeString (message, 'channel') as string;
         const channelParts = channel.split ('.');
         const rawMarketType = this.safeString (channelParts, 0);
-        const marketType = (rawMarketType === 'spot') ? 'spot' : 'contract';
+        let marketType: Str = 'contract';
+        if (rawMarketType === 'spot') {
+            marketType = 'spot';
+        }
         let result = this.safeValue (message, 'result');
         if (!Array.isArray (result)) {
             result = [ result ];
@@ -1326,7 +1359,7 @@ export default class gate extends gateRest {
         const result: Dict[] = this.safeList (message, 'result', []);
         this.balance['info'] = result;
         for (let i = 0; i < result.length; i++) {
-            const rawBalance = result[i];
+            const rawBalance = this.safeDict (result, i);
             const account = this.account ();
             const currencyId = this.safeString (rawBalance, 'currency', 'USDT'); // when not present it is USDT
             const code = this.safeCurrencyCode (currencyId);
@@ -1581,7 +1614,10 @@ export default class gate extends gateRest {
             suffix = (typeId === 'spot') ? '.priceorders' : '.autoorders';
         }
         const channel = typeId + suffix;
-        let messageHash = (isTrigger === true) ? 'triggerOrders' : 'orders';
+        let messageHash: Str = 'orders';
+        if (isTrigger === true) {
+            messageHash = 'triggerOrders';
+        }
         let payload = [ '!' + 'all' ];
         if (market !== undefined) {
             messageHash += ':' + market['id'];
@@ -1649,7 +1685,10 @@ export default class gate extends gateRest {
         const orders = this.safeList (message, 'result', []);
         const channel = this.safeString (message, 'channel', '');
         const isTrigger = (channel.indexOf ('autoorders') >= 0) || (channel.indexOf ('priceorders') >= 0);
-        const hashPrefix = isTrigger ? 'triggerOrders' : 'orders';
+        let hashPrefix: Str = 'orders';
+        if (isTrigger) {
+            hashPrefix = 'triggerOrders';
+        }
         const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
         if (this.orders === undefined) {
             this.orders = new ArrayCacheBySymbolById (limit);
@@ -1945,7 +1984,12 @@ export default class gate extends gateRest {
                     const parsedChannel = channel.split ('.');
                     const payload = this.safeList (message, 'payload', []);
                     for (let i = 0; i < payload.length; i++) {
-                        const marketType = parsedChannel[0] === 'futures' ? 'swap' : parsedChannel[0];
+                        let marketType: Str = undefined;
+                        if (parsedChannel[0] === 'futures') {
+                            marketType = 'swap';
+                        } else {
+                            marketType = parsedChannel[0];
+                        }
                         const symbol = this.safeSymbol (payload[i], undefined, '_', marketType);
                         const messageHashSymbol = parsedChannel[1] + ':' + symbol;
                         if ((messageHashSymbol !== undefined) && (messageHashSymbol in client.subscriptions)) {

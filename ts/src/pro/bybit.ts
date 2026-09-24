@@ -183,7 +183,10 @@ export default class bybit extends bybitRest {
     }
 
     async getUrlByMarketType (symbol: Str = undefined, isPrivate: Bool = false, method: Str = undefined, params: Dict = {}): Promise<string> {
-        const accessibility = isPrivate ? 'private' : 'public';
+        let accessibility: Str = 'public';
+        if (isPrivate) {
+            accessibility = 'private';
+        }
         if (method === undefined) {
             method = '';
         }
@@ -417,7 +420,7 @@ export default class bybit extends bybitRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false) as string[];
+        symbols = this.marketSymbols (symbols, undefined, false);
         const messageHashes: string[] = [];
         const url = await this.getUrlByMarketType (symbols[0], false, 'watchTickers', params);
         params = this.cleanParams (params);
@@ -453,7 +456,7 @@ export default class bybit extends bybitRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false) as string[];
+        symbols = this.marketSymbols (symbols, undefined, false);
         const options = this.safeDict (this.options, 'watchTickers', {});
         const topic = this.safeString (options, 'name', 'tickers');
         const messageHashes: string[] = [];
@@ -604,7 +607,10 @@ export default class bybit extends bybitRest {
         const updateType = this.safeString (message, 'type', '');
         const data = this.safeDict (message, 'data', {});
         const isSpot = this.safeString (data, 'usdIndexPrice') !== undefined;
-        const type = isSpot ? 'spot' : 'contract';
+        let type: Str = 'contract';
+        if (isSpot) {
+            type = 'spot';
+        }
         let symbol: Str = undefined;
         let parsed: Ticker | undefined = undefined;
         if ((updateType === 'snapshot')) {
@@ -646,7 +652,7 @@ export default class bybit extends bybitRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false) as string[];
+        symbols = this.marketSymbols (symbols, undefined, false);
         const messageHashes: string[] = [];
         const url = await this.getUrlByMarketType (symbols[0], false, 'watchBidsAsks', params);
         params = this.cleanParams (params);
@@ -828,7 +834,10 @@ export default class bybit extends bybitRest {
         }
         const marketId = this.safeString (topicParts, topicLength - 1);
         const isSpot = client.url.indexOf ('spot') > -1;
-        const marketType = isSpot ? 'spot' : 'contract';
+        let marketType: Str = 'contract';
+        if (isSpot) {
+            marketType = 'spot';
+        }
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         const ohlcvsByTimeframe = this.safeDict (this.ohlcvs, symbol);
@@ -866,7 +875,10 @@ export default class bybit extends bybitRest {
         //     }
         //
         const isInverse = (this.safeBool (market, 'inverse') === true);
-        const volumeIndex = isInverse ? 'turnover' : 'volume';
+        let volumeIndex: Str = 'volume';
+        if (isInverse) {
+            volumeIndex = 'turnover';
+        }
         return [
             this.safeInteger (ohlcv, 'start'),
             this.safeNumber (ohlcv, 'open'),
@@ -1038,7 +1050,10 @@ export default class bybit extends bybitRest {
         const isSnapshot = (type === 'snapshot');
         const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 's');
-        const marketType = isSpot ? 'spot' : 'contract';
+        let marketType: Str = 'contract';
+        if (isSpot) {
+            marketType = 'spot';
+        }
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (message, 'ts');
@@ -1205,7 +1220,10 @@ export default class bybit extends bybitRest {
         const trades = data;
         const parts = topic.split ('.');
         const isSpot = client.url.indexOf ('spot') >= 0;
-        const marketType = (isSpot) ? 'spot' : 'contract';
+        let marketType: Str = 'contract';
+        if (isSpot) {
+            marketType = 'spot';
+        }
         const marketId = this.safeString (parts, 1);
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
@@ -1257,7 +1275,10 @@ export default class bybit extends bybitRest {
         //
         const id = this.safeStringN (trade, [ 'i', 'T', 'v' ]);
         const isContract = ('BT' in trade);
-        let marketType = isContract ? 'contract' : 'spot';
+        let marketType: Str = 'spot';
+        if (isContract) {
+            marketType = 'contract';
+        }
         if (market !== undefined) {
             marketType = market['type'];
         }
@@ -1784,7 +1805,7 @@ export default class bybit extends bybitRest {
         if (Array.isArray (message['data'])) {
             const rawLiquidations: Dict[] = this.safeList (message, 'data', []);
             for (let i = 0; i < rawLiquidations.length; i++) {
-                const rawLiquidation = rawLiquidations[i];
+                const rawLiquidation = this.safeDict (rawLiquidations, i);
                 const marketId = this.safeString (rawLiquidation, 's');
                 const market = this.safeMarket (marketId, undefined, '', 'contract');
                 const symbol = market['symbol'];
@@ -1815,7 +1836,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    parseWsLiquidation (liquidation: Dict, market: Market = undefined) {
+    parseWsLiquidation (liquidation: NullableDict, market: Market = undefined) {
         //
         //     {
         //         "price": "0.03803",

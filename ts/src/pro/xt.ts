@@ -74,7 +74,10 @@ export default class xt extends xtRest {
      */
     async getListenKey (isContract: boolean): Promise<Str> {
         this.checkRequiredCredentials ();
-        const tradeType = isContract ? 'contract' : 'spot';
+        let tradeType: Str = 'spot';
+        if (isContract) {
+            tradeType = 'contract';
+        }
         let url = this.urls['api']['ws'][tradeType];
         if (!isContract) {
             url = url + '/private';
@@ -152,7 +155,7 @@ export default class xt extends xtRest {
             return -1;
         }
         for (let i = 0; i < cache.length; i++) {
-            const delta = cache[i];
+            const delta = this.safeDict (cache, i);
             const deltaNonce = this.safeInteger2 (delta, 'i', 'u');
             if ((deltaNonce !== undefined) && (nonce !== undefined) && (deltaNonce >= nonce)) {
                 return i;
@@ -168,13 +171,13 @@ export default class xt extends xtRest {
         const bids = orderbook['bids'];
         const asks = orderbook['asks'];
         for (let i = 0; i < obBids.length; i++) {
-            const bid = obBids[i];
+            const bid = this.safeList (obBids, i);
             const price = this.safeNumber (bid, 0);
             const quantity = this.safeNumber (bid, 1);
             bids.store (price, quantity);
         }
         for (let i = 0; i < obAsks.length; i++) {
-            const ask = obAsks[i];
+            const ask = this.safeList (obAsks, i);
             const price = this.safeNumber (ask, 0);
             const quantity = this.safeNumber (ask, 1);
             asks.store (price, quantity);
@@ -219,7 +222,10 @@ export default class xt extends xtRest {
         } else {
             subscribe['params'] = [ name ];
         }
-        const tradeType = isContract ? 'contract' : 'spot';
+        let tradeType: Str = 'spot';
+        if (isContract) {
+            tradeType = 'contract';
+        }
         let messageHash = name + '::' + tradeType;
         if (symbols !== undefined) {
             messageHash = messageHash + '::' + symbols.join (',');
@@ -275,7 +281,10 @@ export default class xt extends xtRest {
         } else {
             unsubscribe['params'] = [ name ];
         }
-        const tradeType = isContract ? 'contract' : 'spot';
+        let tradeType: Str = 'spot';
+        if (isContract) {
+            tradeType = 'contract';
+        }
         const subMessageHash = name + '::' + tradeType;
         const request = this.extend (unsubscribe, params);
         let tail = access;
@@ -892,7 +901,10 @@ export default class xt extends xtRest {
                 this.tickers[symbol] = ticker;
             }
             const event = this.safeString (message, 'event');
-            const messageHashTail = isSpot ? 'spot' : 'contract';
+            let messageHashTail: Str = 'contract';
+            if (isSpot) {
+                messageHashTail = 'spot';
+            }
             const messageHash = event + '::' + messageHashTail;
             client.resolve (ticker, messageHash);
         }
@@ -970,7 +982,10 @@ export default class xt extends xtRest {
         const data = this.safeList (message, 'data', []);
         const firstTicker = this.safeDict (data, 0);
         const spotTest = this.safeString2 (firstTicker, 'cv', 'aq');
-        const tradeType = (spotTest !== undefined) ? 'spot' : 'contract';
+        let tradeType: Str = 'contract';
+        if (spotTest !== undefined) {
+            tradeType = 'spot';
+        }
         const newTickers: Ticker[] = [];
         for (let i = 0; i < data.length; i++) {
             const tickerData = data[i];
@@ -1041,7 +1056,10 @@ export default class xt extends xtRest {
         const marketId = this.safeString (data, 's');
         if (marketId !== undefined) {
             const timeframe = this.safeString (data, 'i', '');
-            const tradeType = ('q' in data) ? 'spot' : 'contract';
+            let tradeType: Str = 'contract';
+            if ('q' in data) {
+                tradeType = 'spot';
+            }
             const market = this.safeMarket (marketId, undefined, undefined, tradeType);
             const symbol = market['symbol'];
             const parsed = this.parseOHLCV (data, market);
@@ -1096,7 +1114,10 @@ export default class xt extends xtRest {
         if (marketId !== undefined) {
             const trade = this.parseTrade (data);
             const i = this.safeString (data, 'i');
-            const tradeType = (i !== undefined) ? 'spot' : 'contract';
+            let tradeType: Str = 'contract';
+            if (i !== undefined) {
+                tradeType = 'spot';
+            }
             const market = this.safeMarket (marketId, undefined, undefined, tradeType);
             const symbol = market['symbol'];
             const event = this.safeString (message, 'event');
@@ -1207,7 +1228,7 @@ export default class xt extends xtRest {
             if (obAsks !== undefined) {
                 const asks = orderbook['asks'];
                 for (let i = 0; i < obAsks.length; i++) {
-                    const ask = obAsks[i];
+                    const ask = this.safeList (obAsks, i);
                     const price = this.safeNumber (ask, 0);
                     const quantity = this.safeNumber (ask, 1);
                     asks.store (price, quantity);
@@ -1216,7 +1237,7 @@ export default class xt extends xtRest {
             if (obBids !== undefined) {
                 const bids = orderbook['bids'];
                 for (let i = 0; i < obBids.length; i++) {
-                    const bid = obBids[i];
+                    const bid = this.safeList (obBids, i);
                     const price = this.safeNumber (bid, 0);
                     const quantity = this.safeNumber (bid, 1);
                     bids.store (price, quantity);
@@ -1265,7 +1286,10 @@ export default class xt extends xtRest {
         //    }
         //
         const marketId = this.safeString (trade, 's');
-        const tradeType = ('symbol' in trade) ? 'contract' : 'spot';
+        let tradeType: Str = 'spot';
+        if ('symbol' in trade) {
+            tradeType = 'contract';
+        }
         market = this.safeMarket (marketId, market, undefined, tradeType);
         const timestamp = this.safeString (trade, 't');
         return this.safeTrade ({
@@ -1333,7 +1357,10 @@ export default class xt extends xtRest {
         //    }
         //
         const marketId = this.safeString2 (order, 's', 'symbol');
-        const tradeType = ('symbol' in order) ? 'contract' : 'spot';
+        let tradeType: Str = 'spot';
+        if ('symbol' in order) {
+            tradeType = 'contract';
+        }
         market = this.safeMarket (marketId, market, undefined, tradeType);
         const timestamp = this.safeInteger2 (order, 'ct', 'createTime');
         return this.safeOrder ({
@@ -1418,7 +1445,10 @@ export default class xt extends xtRest {
         const order = this.safeDict (message, 'data', {});
         const marketId = this.safeString2 (order, 's', 'symbol');
         if (marketId !== undefined) {
-            const tradeType = ('symbol' in order) ? 'contract' : 'spot';
+            let tradeType: Str = 'spot';
+            if ('symbol' in order) {
+                tradeType = 'contract';
+            }
             const market = this.safeMarket (marketId, undefined, undefined, tradeType);
             const parsed = this.parseWsOrder (order, market);
             orders.append (parsed);
@@ -1473,7 +1503,10 @@ export default class xt extends xtRest {
             this.balance[code] = account;
         }
         this.balance = this.safeBalance (this.balance);
-        const tradeType = ('coin' in data) ? 'contract' : 'spot';
+        let tradeType: Str = 'spot';
+        if ('coin' in data) {
+            tradeType = 'contract';
+        }
         client.resolve (this.balance, 'balance::' + tradeType);
     }
 
@@ -1526,7 +1559,10 @@ export default class xt extends xtRest {
         }
         const market = this.market (tradeSymbol);
         stored.append (parsedTrade);
-        const tradeType = (market['contract'] === true) ? 'contract' : 'spot';
+        let tradeType: Str = 'spot';
+        if (market['contract'] === true) {
+            tradeType = 'contract';
+        }
         client.resolve (stored, 'trade::' + tradeType);
     }
 

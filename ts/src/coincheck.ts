@@ -314,7 +314,7 @@ export default class coincheck extends Exchange {
         let status = 'ok';
         let updated: Int = undefined;
         for (let i = 0; i < exchangeStatuses.length; i++) {
-            const exchangeStatus = exchangeStatuses[i];
+            const exchangeStatus = this.safeDict (exchangeStatuses, i);
             const rawStatus = this.safeString (exchangeStatus, 'status');
             if (updated === undefined) {
                 updated = this.safeTimestamp (exchangeStatus, 'timestamp');

@@ -974,7 +974,7 @@ export default class bullish extends Exchange {
         }
         const maxLimit = 100;
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchTrades', 'paginate', false);
         if (paginate) {
             params = this.handlePaginationParams ('fetchTrades', since, params);
             return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params, maxLimit) as Trade[];
@@ -1038,7 +1038,7 @@ export default class bullish extends Exchange {
             response = await this.privateGetV1TradesClientOrderIdClientOrderId (this.extend (request, params));
         } else {
             let paginate = false;
-            [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+            [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
             if (paginate) {
                 params = this.handlePaginationParams ('fetchMyTrades', since, params);
                 return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params, 100) as Trade[];
@@ -1364,7 +1364,7 @@ export default class bullish extends Exchange {
         const market = this.market (symbol);
         const maxLimit = 100;
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
         }
@@ -1439,7 +1439,7 @@ export default class bullish extends Exchange {
         }
         const maxLimit = 100;
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
             params = this.handlePaginationParams ('fetchFundingRateHistory', since, params);
             return await this.fetchPaginatedCallDynamic ('fetchFundingRateHistory', symbol, since, limit, params, maxLimit) as FundingRateHistory[];
@@ -2268,7 +2268,7 @@ export default class bullish extends Exchange {
             const response = await this.privateGetV1AccountsTradingAccounts (params);
             const accounts = this.toArray (response);
             for (let i = 0; i < accounts.length; i++) {
-                const account = accounts[i];
+                const account = this.safeDict (accounts, i);
                 const name = this.safeString (account, 'tradingAccountName');
                 if (name === 'Primary Account') {
                     tradingAccountId = this.safeString (account, 'tradingAccountId');
@@ -2442,7 +2442,7 @@ export default class bullish extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         const id = this.safeString (depositAddress, 'symbol');
         const network = this.safeString (depositAddress, 'network');
         const code = this.safeCurrencyCode (id, currency);
@@ -2514,7 +2514,7 @@ export default class bullish extends Exchange {
             'info': response,
         };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict (response, i);
             const symbol = this.safeString (balance, 'assetSymbol');
             const code = this.safeCurrencyCode (symbol);
             const account = this.account ();
@@ -2652,7 +2652,7 @@ export default class bullish extends Exchange {
         const tradingAccountId = await this.loadAccount (params);
         const maxLimit = 100;
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchTransfers', 'paginate', false);
         if (paginate) {
             params = this.handlePaginationParams ('fetchTransfers', since, params);
             return await this.fetchPaginatedCallDynamic ('fetchTransfers', code, since, limit, params, maxLimit) as TransferEntry[];

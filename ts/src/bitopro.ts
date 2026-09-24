@@ -999,7 +999,7 @@ export default class bitopro extends Exchange {
             'info': response,
         };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict (response, i);
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const amount = this.safeString (balance, 'amount');

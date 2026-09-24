@@ -597,7 +597,7 @@ export default class grvt extends Exchange {
         //     }]
         // }
         //
-        const currentBuilders = results[0];
+        const currentBuilders = this.safeDict (results, 0);
         const approvedBuilder = this.safeList (currentBuilders, 'results', []);
         const length = approvedBuilder.length;
         let found = false;
@@ -685,7 +685,7 @@ export default class grvt extends Exchange {
             promises.push (this.signIn ());
         }
         const results = await Promise.all (promises);
-        const response = results[0];
+        const response = this.safeDict (results, 0);
         const result = this.safeList (response, 'result', []) as List;
         return this.parseMarkets (result);
     }
@@ -1262,7 +1262,7 @@ export default class grvt extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params) as FundingRateHistory[];
         }
@@ -1414,7 +1414,7 @@ export default class grvt extends Exchange {
         const spotBalances: Dict[] = this.safeList (response, 'spot_balances', []);
         const availableBalance = this.safeString (response, 'available_balance');
         for (let i = 0; i < spotBalances.length; i++) {
-            const balance = spotBalances[i];
+            const balance = this.safeDict (spotBalances, i);
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -2281,7 +2281,7 @@ export default class grvt extends Exchange {
     override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         await this.loadMarketsAndSignIn ();
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
         }
@@ -2423,7 +2423,10 @@ export default class grvt extends Exchange {
         const timestamp = this.safeIntegerProduct (position, 'event_time', 0.000001);
         const sizeRaw = this.safeString (position, 'size');
         const isLong = (Precise.stringGe (sizeRaw, '0'));
-        const side = isLong ? 'long' : 'short';
+        let side: Str = 'short';
+        if (isLong) {
+            side = 'long';
+        }
         return this.safePosition ({
             'info': position,
             'id': undefined,
@@ -2611,7 +2614,7 @@ export default class grvt extends Exchange {
     override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingHistory[]> {
         await this.loadMarketsAndSignIn ();
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchFundingHistory', symbol, since, limit, params, 1000) as FundingHistory[];
         }
@@ -2654,7 +2657,7 @@ export default class grvt extends Exchange {
         return this.parseIncomes (result, market, since, limit);
     }
 
-    override parseIncome (income: any, market: Market = undefined) {
+    override parseIncome (income: Dict, market: Market = undefined) {
         //
         //            {
         //                "event_time": "1765267200004987902",
@@ -3021,7 +3024,10 @@ export default class grvt extends Exchange {
             });
         }
         const isMarket = this.safeBool (order, 'is_market');
-        const orderType = (isMarket === true) ? 'market' : 'limit';
+        let orderType: Str = 'limit';
+        if (isMarket === true) {
+            orderType = 'market';
+        }
         const isPostOnly = this.safeBool (order, 'post_only');
         const isReduceOnly = this.safeBool (order, 'reduce_only');
         const timeInForceRaw = this.safeString (order, 'time_in_force');

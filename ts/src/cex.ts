@@ -370,14 +370,17 @@ export default class cex extends Exchange {
         const id = this.safeString (rawCurrency, 'currency');
         const code = this.safeCurrencyCode (id);
         const isFiat = (this.safeBool (rawCurrency, 'fiat') === true);
-        const type = isFiat ? 'fiat' : 'crypto';
+        let type: Str = 'crypto';
+        if (isFiat) {
+            type = 'fiat';
+        }
         const currencyPrecision = this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'precision')));
         const networks: Dict = {};
         const rawNetworks = this.safeDict (rawCurrency, 'blockchains', {});
         const keys = Object.keys (rawNetworks);
         for (let j = 0; j < keys.length; j++) {
             const networkId = keys[j];
-            const rawNetwork = rawNetworks[networkId];
+            const rawNetwork = this.safeDict (rawNetworks, networkId);
             const networkCode = this.networkIdToCode (networkId, code);
             const deposit = this.safeString (rawNetwork, 'deposit') === 'enabled';
             const withdraw = this.safeString (rawNetwork, 'withdrawal') === 'enabled';
@@ -782,7 +785,7 @@ export default class cex extends Exchange {
      */
     override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         let dataType: Str = undefined;
-        [ dataType, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'dataType');
+        [ dataType, params ] = this.handleOptionStringAndParams (params, 'fetchOHLCV', 'dataType');
         if (dataType === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a parameter "dataType" to be either "bestBid" or "bestAsk"');
         }
@@ -1594,7 +1597,10 @@ export default class cex extends Exchange {
     override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         const currencyId = this.safeString (transaction, 'currency');
         const direction = this.safeString (transaction, 'direction');
-        const type = (direction === 'withdraw') ? 'withdrawal' : 'deposit';
+        let type: Str = 'deposit';
+        if (direction === 'withdraw') {
+            type = 'withdrawal';
+        }
         const code = this.safeCurrencyCode (currencyId, currency);
         const updatedAt = this.safeString (transaction, 'updatedAt');
         const timestamp = this.parse8601 (updatedAt);
@@ -1667,7 +1673,10 @@ export default class cex extends Exchange {
         }
         const currency = this.currency (code);
         const fromMain = (fromAccount === '');
-        const targetAccount = fromMain ? toAccount : fromAccount;
+        let targetAccount: Str = fromAccount;
+        if (fromMain) {
+            targetAccount = toAccount;
+        }
         const guid = this.safeString (params, 'guid', this.uuid ());
         const request: Dict = {
             'currency': currency['id'],
@@ -1803,7 +1812,7 @@ export default class cex extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         const address = this.safeString (depositAddress, 'address');
         const currencyId = this.safeString (depositAddress, 'currency');
         currency = this.safeCurrency (currencyId, currency);

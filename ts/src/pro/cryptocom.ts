@@ -814,7 +814,7 @@ export default class cryptocom extends cryptocomRest {
         }
         const data: any[] = this.safeValue (message, 'data');
         for (let i = 0; i < data.length; i++) {
-            const tick = data[i];
+            const tick = this.safeDict (data, i);
             const parsed = this.parseOHLCV (tick, market);
             stored.append (parsed);
         }
@@ -1101,7 +1101,7 @@ export default class cryptocom extends cryptocomRest {
         const positionBalances: Dict[] = this.safeList (data[0], 'position_balances', []);
         this.balance['info'] = data;
         for (let i = 0; i < positionBalances.length; i++) {
-            const balance = positionBalances[i];
+            const balance = this.safeDict (positionBalances, i);
             const currencyId = this.safeString (balance, 'instrument_name');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();

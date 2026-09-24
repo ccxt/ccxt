@@ -328,7 +328,7 @@ export default class btcturk extends Exchange {
         let maxAmount: Num = undefined;
         let minCost: Num = undefined;
         for (let j = 0; j < filters.length; j++) {
-            const filter = filters[j];
+            const filter = this.safeDict (filters, j);
             const filterType = this.safeString (filter, 'filterType');
             if (filterType === 'PRICE_FILTER') {
                 minPrice = this.safeNumber (filter, 'minPrice');
@@ -398,7 +398,7 @@ export default class btcturk extends Exchange {
             'datetime': undefined,
         };
         for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
+            const entry = this.safeDict (data, i);
             const currencyId = this.safeString (entry, 'asset');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -1105,7 +1105,10 @@ export default class btcturk extends Exchange {
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         const errorCode = this.safeString (response, 'code', '0');
         const message = this.safeString (response, 'message');
-        const output = (message === undefined) ? body : message;
+        let output: Str = message;
+        if (message === undefined) {
+            output = body;
+        }
         this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + output);
         if ((errorCode !== '0') && (errorCode !== 'SUCCESS')) {
             throw new ExchangeError (this.id + ' ' + output);

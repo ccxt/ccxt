@@ -476,7 +476,7 @@ export default class bitvavo extends Exchange {
         const result: Market[] = [];
         const fees = this.fees;
         for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
+            const market = this.safeDict (markets, i);
             const id = this.safeString (market, 'market');
             const baseId = this.safeString (market, 'base');
             const quoteId = this.safeString (market, 'quote');
@@ -824,7 +824,7 @@ export default class bitvavo extends Exchange {
         }
         const market = this.market (symbol);
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params) as Trade[];
         }
@@ -1159,7 +1159,7 @@ export default class bitvavo extends Exchange {
         }
         const market = this.market (symbol);
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1440) as OHLCV[];
         }
@@ -1182,7 +1182,7 @@ export default class bitvavo extends Exchange {
             'datetime': undefined,
         };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict (response, i);
             const currencyId = this.safeString (balance, 'symbol');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -1568,7 +1568,7 @@ export default class bitvavo extends Exchange {
             throw new ArgumentsRequired (this.id + ' createOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
         }
         let selfTradePrevention: Str = undefined;
-        [ selfTradePrevention, params ] = this.handleOptionAndParams (params, 'createOrder', 'selfTradePrevention');
+        [ selfTradePrevention, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'selfTradePrevention');
         if (selfTradePrevention !== undefined) {
             if (selfTradePrevention === 'EXPIRE_BOTH') {
                 request['selfTradePrevention'] = 'cancelBoth';
@@ -1938,7 +1938,7 @@ export default class bitvavo extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, params) as Order[];
         }
@@ -2210,7 +2210,7 @@ export default class bitvavo extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
         }
