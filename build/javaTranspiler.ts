@@ -99,9 +99,10 @@ function splitTopLevelArgs(s: string): string[] {
 // `Helpers.callDynamically(x, "<m>", new Object[]{...})` on a local whose declaration (the last one in
 // the same member) names a hand-written ws class binds the method that class declares:
 // ws/ArrayCache.java `void append(Object)`, ws/WsOrderBook.java `void reset(Object)` / `WsOrderBook limit()`.
-const JAVA_WS_NATIVE_METHODS: { [cls: string]: { [method: string]: { argc: number, value: boolean } } } = {
-    'io.github.ccxt.ws.ArrayCache': { 'append': { argc: 1, value: false } },
-    'io.github.ccxt.ws.WsOrderBook': { 'reset': { argc: 1, value: false }, 'limit': { argc: 0, value: true } },
+const JAVA_WS_NATIVE_METHODS: { [cls: string]: { [method: string]: { argc: number[], value: boolean } } } = {
+    'io.github.ccxt.ws.ArrayCache': { 'append': { argc: [1], value: false } },
+    'io.github.ccxt.ws.WsOrderBook': { 'reset': { argc: [1], value: false }, 'limit': { argc: [0], value: true } },
+    'io.github.ccxt.ws.OrderBookSide': { 'store': { argc: [2, 3], value: false }, 'storeArray': { argc: [1], value: false }, 'limit': { argc: [0], value: false } },
 };
 const JAVA_MEMBER_START_RE = /^    (?:public|private|protected)\b/;
 
@@ -153,7 +154,7 @@ export function nativeJavaWsCacheCalls (content: string): string {
             const argc = args === '' ? 0 : splitTopLevelArgs(args).length;
             // void methods only in statement position: the helper's Object result is unused there
             const statement = /^\s*$/.test(line.slice(0, m.index)) && /^\s*;/.test(line.slice(j + 1));
-            if (argc !== spec.argc || (!spec.value && !statement)) {
+            if (!spec.argc.includes(argc) || (!spec.value && !statement)) {
                 continue;
             }
             out += line.slice(cursor, m.index) + m[1] + '.' + m[2] + '(' + args + ')';

@@ -1187,10 +1187,42 @@ const ARRAYCACHE_CONSTRUCTORS = new Set ([
     'ArrayCache', 'ArrayCacheByTimestamp', 'ArrayCacheBySymbolById', 'ArrayCacheBySymbolBySide',
 ]);
 
+const ORDERBOOKSIDE_TYPE = 'io.github.ccxt.ws.OrderBookSide';
+
 const WS_TYPES = new Set ([
-    ARRAYCACHE_TYPE, ORDERBOOK_TYPE,
+    ARRAYCACHE_TYPE, ORDERBOOK_TYPE, ORDERBOOKSIDE_TYPE,
     ORDERBOOK_TYPE + '.IndexedOrderBook', ORDERBOOK_TYPE + '.CountedOrderBook',
 ]);
+
+// TS class (declared in ts/src/base/ws/**) -> the hand-written Java class every instance prints as
+const WS_TS_CLASS_JAVA_TYPES = {
+    'ArrayCache': ARRAYCACHE_TYPE, 'ArrayCacheByTimestamp': ARRAYCACHE_TYPE,
+    'ArrayCacheBySymbolById': ARRAYCACHE_TYPE, 'ArrayCacheBySymbolBySide': ARRAYCACHE_TYPE,
+    'OrderBook': ORDERBOOK_TYPE, 'IndexedOrderBook': ORDERBOOK_TYPE, 'CountedOrderBook': ORDERBOOK_TYPE,
+    'IOrderBookSide': ORDERBOOKSIDE_TYPE, 'OrderBookSide': ORDERBOOKSIDE_TYPE, 'Asks': ORDERBOOKSIDE_TYPE, 'Bids': ORDERBOOKSIDE_TYPE,
+    'IndexedOrderBookSide': ORDERBOOKSIDE_TYPE, 'IndexedAsks': ORDERBOOKSIDE_TYPE, 'IndexedBids': ORDERBOOKSIDE_TYPE,
+};
+const WS_BASE_SOURCE_FILE = /[\\/]ts[\\/]src[\\/]base[\\/](ws[\\/]\w+|Exchange)\.ts$/;
+
+// Java type of a local whose checker type (undefined stripped) is one ws class of ts/src/base/ws
+function wsCheckerLocalType (printer, initializer) {
+    let type;
+    try {
+        type = printer.getChecker ().getNonNullableType (printer.getChecker ().getTypeAtLocation (initializer));
+    } catch (e) {
+        return undefined;
+    }
+    const symbol = type?.getSymbol ();
+    if (symbol === undefined || type.isUnion () || type.flags & ts.TypeFlags.Any) {
+        return undefined;
+    }
+    const javaType = WS_TS_CLASS_JAVA_TYPES[String (symbol.escapedName)];
+    const decl = symbol.declarations?.[0];
+    if (javaType === undefined || decl === undefined || !WS_BASE_SOURCE_FILE.test (decl.getSourceFile ().fileName)) {
+        return undefined;
+    }
+    return javaType;
+}
 
 function isWsType (javaType) {
     return WS_TYPES.has (javaType);
@@ -2620,6 +2652,10 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
             const prefixes = ts.isElementAccessExpression (initializer)
                 ? [ 'Helpers.', '((java.util.Map<?, ?>)this.', '((Map<?, ?>)this.' ] : [ 'this.' ];
             return { type: readType, cast: '(' + readType + ')', valuePrefixes: prefixes, skipInheritedAsyncGuard: true };
+        }
+        const checkerType = wsCheckerLocalType (printer, initializer);
+        if (checkerType !== undefined) {
+            return { type: checkerType, cast: '(' + checkerType + ')', anyValueShape: true, skipInheritedAsyncGuard: true };
         }
         if (/^messageHash\d*$/.test (declaration.name.escapedText)
             && isProvablyStringExpression (printer, initializer, declaration.name.escapedText, narrowed)) {
