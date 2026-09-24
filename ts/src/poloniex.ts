@@ -3,7 +3,7 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/poloniex.js';
-import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, OnMaintenance, BadSymbol, BadRequest, RateLimitExceeded, MarketClosed, OperationRejected, DuplicateOrderId } from './base/errors.js';
+import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, OnMaintenance, BadSymbol, BadRequest, RateLimitExceeded, MarketClosed, OperationRejected, DuplicateOrderId, BadResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { TransferEntry, Int, Bool, Leverage, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, CurrencyInterface, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position, NullableDict, FeeString, List, DepositWithdrawFees, PositionModeInfo, Endpoint } from './base/types.js';
@@ -2493,7 +2493,10 @@ export default class poloniex extends Exchange {
         // for spot
         for (let i = 0; i < response.length; i++) {
             const account = this.safeDict (response, i, {});
-            const balances = this.safeValue (account, 'balances');
+            const balances = this.safeList (account, 'balances');
+            if (balances === undefined) {
+                throw new BadResponse (this.id + ' parseBalance() account has no balances');
+            }
             for (let j = 0; j < balances.length; j++) {
                 const balance = this.safeDict (balances, j);
                 const currencyId = this.safeString (balance, 'currency');
@@ -2674,8 +2677,11 @@ export default class poloniex extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (response, 'time');
-        const asks = this.safeValue (response, 'asks');
-        const bids = this.safeValue (response, 'bids');
+        const asks = this.safeList (response, 'asks');
+        const bids = this.safeList (response, 'bids');
+        if (asks === undefined || bids === undefined) {
+            throw new BadResponse (this.id + ' fetchOrderBook() response has no asks or bids');
+        }
         const asksResult: List = [];
         const bidsResult: List = [];
         for (let i = 0; i < asks.length; i++) {
@@ -3106,7 +3112,10 @@ export default class poloniex extends Exchange {
             if ((code !== undefined) && ((codes === undefined) || (this.inArray (code, codes)))) {
                 const currency = this.currency (code);
                 depositWithdrawFees[code] = this.parseDepositWithdrawFee (feeInfo, currency);
-                const childChains = this.safeValue (feeInfo, 'childChains');
+                const childChains = this.safeList (feeInfo, 'childChains');
+                if (childChains === undefined) {
+                    throw new BadResponse (this.id + ' fetchDepositWithdrawFees() response has no childChains for ' + code);
+                }
                 const chainsLength = childChains.length;
                 if (chainsLength > 0) {
                     for (let j = 0; j < childChains.length; j++) {

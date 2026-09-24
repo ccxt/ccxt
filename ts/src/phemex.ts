@@ -3,7 +3,7 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/phemex.js';
-import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DuplicateOrderId, RateLimitExceeded } from './base/errors.js';
+import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DuplicateOrderId, RateLimitExceeded, BadResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { TransferEntry, Balances, Currency, CurrencyInterface, Fee, FeeString, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, NullableDict, List, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress, Conversion, Position, Dictionary, ADL, Endpoint } from './base/types.js';
@@ -1231,7 +1231,10 @@ export default class phemex extends Exchange {
         for (let i = 0; i < sides.length; i++) {
             const side = sides[i];
             const orders: Num[][] = [];
-            const bidasks = this.safeValue (orderbook, side);
+            const bidasks = this.safeList (orderbook, side);
+            if (bidasks === undefined) {
+                throw new BadResponse (this.id + ' customParseOrderBook() response has no ' + side);
+            }
             for (let k = 0; k < bidasks.length; k++) {
                 orders.push (this.customParseBidAsk (bidasks[k], priceKey, amountKey, market));
             }
@@ -4716,7 +4719,10 @@ export default class phemex extends Exchange {
         //
         const marketId = this.safeString (info, 'symbol');
         market = this.safeMarket (marketId, market);
-        const riskLimits = (market['info']['riskLimits']);
+        const riskLimits = this.safeList (market['info'], 'riskLimits');
+        if (riskLimits === undefined) {
+            throw new BadResponse (this.id + ' parseMarketLeverageTiers() market info has no riskLimits');
+        }
         const tiers: LeverageTier[] = [];
         let minNotional: Int = 0;
         for (let i = 0; i < riskLimits.length; i++) {
@@ -5108,7 +5114,10 @@ export default class phemex extends Exchange {
         //    }
         //
         const data = this.safeDict (response, 'data', {});
-        const rates = this.safeValue (data, 'rows');
+        const rates = this.safeList (data, 'rows');
+        if (rates === undefined) {
+            throw new BadResponse (this.id + ' fetchFundingRateHistory() response has no rows');
+        }
         const result: FundingRateHistory[] = [];
         for (let i = 0; i < rates.length; i++) {
             const item = rates[i];

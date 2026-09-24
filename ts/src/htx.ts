@@ -1914,6 +1914,9 @@ export default class htx extends Exchange {
             const info = this.safeDict (market, 'info', {});
             const contractType = this.safeString (info, 'contract_type');
             const contractSuffix = this.safeString (futuresCharsMaps, contractType);
+            if (contractSuffix === undefined) {
+                continue; // unknown contract_type: no id to construct
+            }
             // see comment on formats a bit above
             const constructedId = (market['linear'] === true) ? market['base'] + '-' + market['quote'] + '-' + contractSuffix : market['base'] + '_' + contractSuffix;
             if (constructedId === symbolOrMarketId) {
