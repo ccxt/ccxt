@@ -5905,10 +5905,22 @@ function installCcxtGoGetArgAddArithmetic (goTranspiler) {
         return;
     }
     const shipped = goTranspiler.goGetArgPointerInHelperArithmetic;
-    // parent `+` -> printed as Add(...); a re-entrant query (printing the parent) answers false
+    // parent `+` -> printed as Add(...), memoised; any query made while a parent is being printed
+    // (by this probe or the shipped one) answers false, so probes never nest
     const addParents = new WeakMap ();
+    let probing = false;
     goTranspiler.goGetArgPointerInHelperArithmetic = function (n) {
-        if (shipped.call (this, n)) {
+        if (probing) {
+            return false;
+        }
+        let viaShipped;
+        probing = true;
+        try {
+            viaShipped = shipped.call (this, n);
+        } finally {
+            probing = false;
+        }
+        if (viaShipped) {
             return true;
         }
         const parent = n.parent;
@@ -5918,8 +5930,13 @@ function installCcxtGoGetArgAddArithmetic (goTranspiler) {
         if (addParents.has (parent)) {
             return addParents.get (parent);
         }
-        addParents.set (parent, false);
-        const printed = (this.printNode (parent, 0) ?? '').trim ();
+        probing = true;
+        let printed;
+        try {
+            printed = (this.printNode (parent, 0) ?? '').trim ();
+        } finally {
+            probing = false;
+        }
         const isAdd = /^(?:\(\s*)*(?:ccxt\.)?Add\(/.test (printed);
         addParents.set (parent, isAdd);
         return isAdd;
