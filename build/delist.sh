@@ -91,9 +91,9 @@ rust/ccxt-pro/src/pro/${EXCHANGE}.rs
 rust/ccxt-pro/src/pro_typed/${EXCHANGE}_typed.rs
 EOF
 
-# drop the id from the generated Rust module registries, otherwise the crates
-# reference a module whose file is gone and `cargo build` fails until the next
-# full transpile (rust.yml) rewrites them
+# drop the id from the generated Rust registries, otherwise the crates still
+# declare a module whose file is gone and `cargo build` fails (E0583) until the
+# next full transpile (rust.yml) rewrites them
 filter_lines() {
     file="$1"
     pattern="$2"
@@ -110,10 +110,11 @@ filter_lines() {
         fi
     fi
 }
-filter_lines rust/ccxt-base/src/exchanges/mod.rs "^pub mod ${EXCHANGE};\$"
+# module declarations: `pub mod <id>;` plus `pub mod <id>_api;` for the REST crate
+filter_lines rust/ccxt-base/src/exchanges/mod.rs "^pub mod ${EXCHANGE}(_api)?;\$"
 filter_lines rust/ccxt-pro/src/pro/mod.rs "^pub mod ${EXCHANGE};\$"
-# rust/tests/src/generated_cores.rs lists every core twice (REST + WS): as a
-# `<id>::<Id>Core,` import and as a `$cb!(<id>, <Id>Core);` macro arm
+# the test registry lists every core twice (REST + WS): as a `<id>::<Id>Core,`
+# import and as a `$cb!(<id>, <Id>Core);` macro arm
 filter_lines rust/tests/src/generated_cores.rs "^[[:space:]]*(${EXCHANGE}::|\\\$cb!\\(${EXCHANGE},)"
 # the typed aggregators re-export the wrapper (`pub use ...::<id>_typed::<Id>;`)
 # and construct it by id in a `"<id>" => Some(Box::new(...))` match arm
