@@ -2674,7 +2674,7 @@ export default class polymarket extends Exchange {
         return undefined;
     }
 
-    override nonce () {
+    override nonce (): number {
         // the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
         // unique when two identical orders are signed within the same millisecond
         return this.milliseconds ();
