@@ -1866,8 +1866,6 @@ export default class bitget extends Exchange {
                     'STARKNET': 'Starknet',
                     'VIC': 'VICTION',
                 },
-                'networksById': {
-                },
                 'fetchPositions': {
                     'method': 'privateMixGetV2MixPositionAllPosition', // or privateMixGetV2MixPositionHistoryPosition
                 },
