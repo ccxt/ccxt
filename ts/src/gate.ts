@@ -6851,7 +6851,7 @@ export default class gate extends Exchange {
         let minNotional = 0;
         const tiers: object[] = [];
         for (let i = 0; i < info.length; i++) {
-            const item = info[i];
+            const item = this.safeDict (info, i);
             const maxNotional = this.safeNumber (item, 'risk_limit');
             tiers.push ({
                 'tier': this.sum (i, 1),

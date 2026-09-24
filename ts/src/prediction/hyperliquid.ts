@@ -1036,7 +1036,7 @@ export default class hyperliquid extends Exchange {
             this.publicPostInfo ({ 'type': 'allMids' }),
         ];
         const results = await Promise.all (promises);
-        const response = results[0];
+        const response = this.safeDict (results, 0);
         const midsResponse = results[1];
         const balances = this.safeList (response, 'balances', []);
         let allMids: Dict = {};

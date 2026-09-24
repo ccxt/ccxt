@@ -528,7 +528,7 @@ export default class kraken extends krakenRest {
         //     }
         //
         const data = this.safeList (message, 'data', []) as List;
-        const ticker = data[0];
+        const ticker = this.safeDict (data, 0);
         const symbol = this.safeString (ticker, 'symbol') as string;
         const messageHash = this.getMessageHash ('ticker', undefined, symbol);
         const vwap = this.safeString (ticker, 'vwap');

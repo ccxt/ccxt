@@ -9024,7 +9024,7 @@ export default class bybit extends Exchange {
         //
         const tiers: List = [];
         for (let i = 0; i < info.length; i++) {
-            const tier = info[i];
+            const tier = this.safeDict (info, i);
             const marketId = this.safeString (info, 'symbol');
             market = this.safeMarket (marketId);
             let minNotional: Num = this.parseNumber ('0');

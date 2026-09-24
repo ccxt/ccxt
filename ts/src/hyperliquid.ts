@@ -3120,7 +3120,7 @@ export default class hyperliquid extends Exchange {
             fundings = response;
         }
         for (let i = 0; i < fundings.length; i++) {
-            const entry = fundings[i];
+            const entry = this.safeDict (fundings, i);
             const timestamp = this.safeInteger (entry, 'time');
             result.push ({
                 'info': entry,
@@ -3200,7 +3200,7 @@ export default class hyperliquid extends Exchange {
             rawOrders = response;
         }
         for (let i = 0; i < rawOrders.length; i++) {
-            const order = rawOrders[i];
+            const order = this.safeDict (rawOrders, i);
             const extendOrder: Dict = {};
             if (this.safeString (order, 'status') === undefined) {
                 extendOrder['ccxtStatus'] = 'open';

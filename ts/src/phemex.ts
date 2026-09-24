@@ -4720,7 +4720,7 @@ export default class phemex extends Exchange {
         const tiers: LeverageTier[] = [];
         let minNotional: Int = 0;
         for (let i = 0; i < riskLimits.length; i++) {
-            const tier = riskLimits[i];
+            const tier = this.safeDict (riskLimits, i);
             const maxNotional = this.safeInteger (tier, 'limit');
             const minNotionalResponse = minNotional; // java req
             tiers.push ({

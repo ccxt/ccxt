@@ -3171,7 +3171,7 @@ export default class krakenfutures extends Exchange {
         const rates = this.safeValue (response, 'rates');
         const result: FundingRateHistory[] = [];
         for (let i = 0; i < rates.length; i++) {
-            const item = rates[i];
+            const item = this.safeDict (rates, i);
             const datetime = this.safeString (item, 'timestamp');
             result.push ({
                 'info': item,

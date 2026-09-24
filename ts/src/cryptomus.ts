@@ -437,7 +437,7 @@ export default class cryptomus extends Exchange {
         let code: Str = undefined;
         const networks: Dict = {};
         for (let i = 0; i < (rawCurrency as List).length; i++) {
-            const networkEntry = rawCurrency[i];
+            const networkEntry = this.safeDict (rawCurrency, i);
             // set ID on first loop
             if (id === undefined) {
                 id = this.safeString (networkEntry, 'currency_code');

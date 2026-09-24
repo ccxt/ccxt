@@ -2350,7 +2350,7 @@ export default class kucoin extends Exchange {
         const chains = this.safeList2 (entry, 'chains', 'items', []);
         const chainsLength = chains.length;
         for (let j = 0; j < chainsLength; j++) {
-            const chain = chains[j];
+            const chain = this.safeDict (chains, j);
             const chainId = this.safeString (chain, 'chainId');
             const networkCode = this.networkIdToCode (chainId, code);
             if (networkCode !== undefined) {

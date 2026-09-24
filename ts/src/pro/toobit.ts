@@ -668,7 +668,7 @@ export default class toobit extends toobitRest {
             return;
         }
         for (let i = 0; i < length; i++) {
-            const entry = data[i];
+            const entry = this.safeDict (data, i);
             const marketId = this.safeString (entry, 's');
             const symbol = this.safeSymbol (marketId);
             const messageHash = 'orderBook::' + symbol + '::' + channel;

@@ -518,7 +518,7 @@ export default class apex extends Exchange {
         const networks: Dict = {};
         const chains = this.options['_temp_currencies_chains'];
         for (let j = 0; j < chains.length; j++) {
-            const chain = chains[j];
+            const chain = this.safeDict (chains, j);
             const tokens = this.safeList (chain, 'tokens', []);
             for (let f = 0; f < tokens.length; f++) {
                 const token = this.safeDict (tokens, f);

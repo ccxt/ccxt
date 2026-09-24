@@ -2734,7 +2734,7 @@ export default class bitget extends Exchange {
             deposit = false;
         }
         for (let j = 0; j < chainsLength; j++) {
-            const chain = chains[j];
+            const chain = this.safeDict (chains, j);
             const networkId = this.safeString (chain, 'chain');
             let network = this.networkIdToCode (networkId, code);
             if (network === undefined) {

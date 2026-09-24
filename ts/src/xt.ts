@@ -4761,7 +4761,7 @@ export default class xt extends Exchange {
         const tiers: List = [];
         const brackets = this.safeList (info, 'leverageBrackets', []);
         for (let i = 0; i < brackets.length; i++) {
-            const tier = brackets[i];
+            const tier = this.safeDict (brackets, i);
             const marketId = this.safeString (info, 'symbol');
             market = this.safeMarket (marketId, market, '_', 'contract');
             const minNotional = this.safeNumber (brackets[i - 1], 'maxNominalValue', 0);

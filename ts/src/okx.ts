@@ -2106,7 +2106,7 @@ export default class okx extends Exchange {
         let type = 'crypto';
         const chainsLength = (chains as List).length;
         for (let j = 0; j < chainsLength; j++) {
-            const chain = chains[j];
+            const chain = this.safeDict (chains, j);
             // allow empty string for rare fiat-currencies, e.g. TRY
             const networkId = this.safeString (chain, 'chain', ''); // USDT-BEP20, USDT-Avalance-C, etc
             if (networkId === '') {
@@ -7781,7 +7781,7 @@ export default class okx extends Exchange {
         //
         const tiers: List = [];
         for (let i = 0; i < info.length; i++) {
-            const tier = info[i];
+            const tier = this.safeDict (info, i);
             const marketId = this.safeString (tier, 'instId');
             tiers.push ({
                 'tier': this.safeInteger (tier, 'tier'),

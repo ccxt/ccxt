@@ -1271,7 +1271,7 @@ export default class poloniex extends Exchange {
         const chains = this.safeList (entry, 'networkList', []);
         const chainsLength = chains.length;
         for (let j = 0; j < chainsLength; j++) {
-            const chain = chains[j];
+            const chain = this.safeDict (chains, j);
             const chainId = this.safeString (chain, 'blockchain');
             const networkCode = this.networkIdToCode (chainId, code);
             if (networkCode !== undefined) {

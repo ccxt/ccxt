@@ -866,7 +866,7 @@ export default class bitfinex extends Exchange {
         };
         const indexedNetworks: Dict = {};
         for (let i = 0; i < indexed['networks'].length; i++) {
-            const networkObj = indexed['networks'][i];
+            const networkObj = this.safeList (indexed['networks'], i);
             const networkId = this.safeString (networkObj, 0);
             const valuesList = this.safeList (networkObj, 1);
             const networkName = this.safeString (valuesList, 0);
@@ -3829,7 +3829,7 @@ export default class bitfinex extends Exchange {
         //         ]
         //     ]
         //
-        const entry = liquidation[0];
+        const entry = this.safeList (liquidation, 0);
         const timestamp = this.safeInteger (entry, 2);
         const marketId = this.safeString (entry, 4);
         const contracts = Precise.stringAbs (this.safeString (entry, 5));
