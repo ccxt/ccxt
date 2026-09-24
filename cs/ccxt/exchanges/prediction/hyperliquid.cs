@@ -346,7 +346,7 @@ public partial class hyperliquid : PredictionExchange
                         string? bucketLabel = null;
                         if (isLessThanOrEqual(index, 0))
                         {
-                            bucketLabel = ("BELOW_" + (getValue(thresholds, 0)));
+                            bucketLabel = ("BELOW_" + ((thresholds != null && 0 < thresholds.Count ? thresholds[0] : null)));
                         } else if (isGreaterThanOrEqual(index, thresholdsLength))
                         {
                             object lastIdx = (thresholdsLength - 1);
@@ -761,7 +761,7 @@ public partial class hyperliquid : PredictionExchange
             await this.loadOutcomes(outcomes);
             for (int i = 0; i < (outcomes?.Count ?? 0); i++)
             {
-                string? requested = ((string)getValue(outcomes, i));
+                string? requested = ((string)(outcomes != null && i < outcomes.Count ? outcomes[i] : null));
                 IDictionary<string, object> requestedOutcomeObj = this.safeOutcome(requested);
                 string? requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
                 requestedOutcomeSymbols[(string)requestedOutcome] = true;
@@ -1142,7 +1142,7 @@ public partial class hyperliquid : PredictionExchange
 })};
         List<object> results = await promiseAll(promises);
         IDictionary<string, object> response = this.safeDict(results, 0);
-        object midsResponse = getValue(results, 1);
+        object midsResponse = (results != null && 1 < results.Count ? results[1] : null);
         List<object> balances = this.safeList(response, "balances", new List<object>() {});
         object allMids = new Dictionary<string, object>() {};
         if ((!(midsResponse is string)) && !((midsResponse is IList<object>) || (midsResponse.GetType().IsGenericType && midsResponse.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
@@ -2211,7 +2211,7 @@ public partial class hyperliquid : PredictionExchange
                     bool allWords = true;
                     for (int wi = 0; wi < wordsLength; wi++)
                     {
-                        string? word = ((string)getValue(words, wi));
+                        string? word = ((string)(words != null && wi < words.Count ? words[wi] : null));
                         // `< 0` (not `=== -1`) — the php transpiler maps `< 0` to `=== false`
                         if ((word != "") && (haystack.IndexOf(word, StringComparison.Ordinal) < 0))
                         {
@@ -2282,7 +2282,7 @@ public partial class hyperliquid : PredictionExchange
         IList<object> markets = (IList<object>)(this.safeList(raw, "markets", new List<object>() {}));
         // Extract info from first market
         int marketsLength = (markets?.Count ?? 0);
-        object firstMarket = (marketsLength > 0) ? getValue(markets, 0) : new Dictionary<string, object>() {};
+        object firstMarket = (marketsLength > 0) ? (markets != null && 0 < markets.Count ? markets[0] : null) : new Dictionary<string, object>() {};
         IDictionary<string, object> firstInfo = this.safeDict(firstMarket, "info", new Dictionary<string, object>() {});
         IDictionary<string, object> desc = this.safeDict(firstInfo, "parsedDescription", new Dictionary<string, object>() {});
         string? underlying = this.safeString(desc, "underlying");

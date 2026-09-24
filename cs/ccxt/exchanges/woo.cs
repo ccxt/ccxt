@@ -2729,7 +2729,7 @@ public partial class woo : Exchange
                 // BadRequest, so callers (and the live test harness) can tell "wrong market
                 // type" apart from a malformed request, marketSymbols still enforces that the
                 // rest of the list matches
-                Dictionary<string, object> firstMarket = this.market(getValue(symbols, 0));
+                Dictionary<string, object> firstMarket = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
                 if ((((firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("swap") ? ((IDictionary<string, object>)firstMarket)["swap"] : null) as bool?) != true))
                 {
                     throw new NotSupported ((this.id + " fetchTickers() supports swap markets only")) ;
@@ -5135,7 +5135,7 @@ public partial class woo : Exchange
             int symbolsLength = symbols?.Count ?? 0;
             if ((symbolsLength == 1))
             {
-                Dictionary<string, object> market = this.market(getValue(symbols, 0));
+                Dictionary<string, object> market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
                 request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             }
         }

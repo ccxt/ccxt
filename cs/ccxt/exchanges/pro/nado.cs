@@ -184,7 +184,7 @@ public partial class nado : ccxt.nado
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            Dictionary<string, object> market = this.market(getValue(symbols, i));
+            Dictionary<string, object> market = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
             markets.Add(market);
             messageHashes.Add(("trade:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
         }
@@ -294,7 +294,7 @@ public partial class nado : ccxt.nado
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            Dictionary<string, object> market = this.market(getValue(symbols, i));
+            Dictionary<string, object> market = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
             markets.Add(market);
             messageHashes.Add(("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
         }
@@ -413,7 +413,7 @@ public partial class nado : ccxt.nado
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !((getValue(symbolsAndTimeframes, 0) is IList<object>) || (getValue(symbolsAndTimeframes, 0).GetType().IsGenericType && getValue(symbolsAndTimeframes, 0).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null) is IList<object>) || ((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().IsGenericType && (symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             throw new ArgumentsRequired ((this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]")) ;
         }
@@ -534,7 +534,7 @@ public partial class nado : ccxt.nado
             int symbolsLength = symbols?.Count ?? 0;
             if ((symbolsLength == 1))
             {
-                market = this.market(getValue(symbols, 0));
+                market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
                 messageHash = ("ticker:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
                 streamType = "best_bid_offer";
             }
@@ -605,7 +605,7 @@ public partial class nado : ccxt.nado
             int symbolsLength = symbols?.Count ?? 0;
             if ((symbolsLength == 1))
             {
-                market = this.market(getValue(symbols, 0));
+                market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
                 messageHash = ("bidask:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
                 streamType = "best_bid_offer";
             }
@@ -865,7 +865,7 @@ public partial class nado : ccxt.nado
             int symbolsLength = symbols?.Count ?? 0;
             if ((symbolsLength == 1))
             {
-                Dictionary<string, object> market = this.market(getValue(symbols, 0));
+                Dictionary<string, object> market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
                 messageHash = messageHash + (":" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
                 productId = this.parseToInt((market.ContainsKey("id") ? market["id"] : null));
             }
@@ -1377,11 +1377,11 @@ public partial class nado : ccxt.nado
         List<object> results = new List<object>() {};
         for (int i = 0; i < (messageHashes?.Count ?? 0); i++)
         {
-            string? messageHash = ((string)getValue(messageHashes, i));
+            string? messageHash = ((string)(messageHashes != null && i < messageHashes.Count ? messageHashes[i] : null));
             Int64 id = this.requestId();
             string unsubscribeHash = ("unsubscribe:" + messageHash);
-            object requestParams = ((subscriptionParams == null)) ? parameters : getValue(subscriptionParams, i);
-            Dictionary<string, object> request = this.createPublicSubscriptionRequest("unsubscribe", streamType, getValue(markets, i), id, requestParams);
+            object requestParams = ((subscriptionParams == null)) ? parameters : (subscriptionParams != null && i < subscriptionParams.Count ? subscriptionParams[i] : null);
+            Dictionary<string, object> request = this.createPublicSubscriptionRequest("unsubscribe", streamType, (markets != null && i < markets.Count ? markets[i] : null), id, requestParams);
             Dictionary<string, object> subscription = new Dictionary<string, object>() {
                 { "id", id },
                 { "messageHash", messageHash },

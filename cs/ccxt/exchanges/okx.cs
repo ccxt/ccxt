@@ -3666,7 +3666,7 @@ public partial class okx : Exchange
         //     ]
         //
         List<object> res = this.handleMarketTypeAndParams("fetchOHLCV", market, null);
-        object type = getValue(res, 0);
+        object type = (res != null && 0 < res.Count ? res[0] : null);
         int volumeIndex = (isEqual(type, "spot")) ? 5 : 6;
         return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, volumeIndex)};
     }
@@ -8333,13 +8333,13 @@ public partial class okx : Exchange
         {
             for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
-                Dictionary<string, object> market = this.market(getValue(symbols, i));
+                Dictionary<string, object> market = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
                 IDictionary<string, object> marketInfo = this.safeDict(market, "info", new Dictionary<string, object>() {});
                 string? ruleType = this.safeString(marketInfo, "ruleType");
                 bool isExtendedPerpetual = (ruleType == "xperp"); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
                 if (((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true)) && !isExtendedPerpetual)
                 {
-                    throw new BadRequest ((((this.id + " fetchFundingRates() symbols must be swap markets or XPERP futures, ") + (getValue(symbols, i))) + " is not")) ;
+                    throw new BadRequest ((((this.id + " fetchFundingRates() symbols must be swap markets or XPERP futures, ") + ((symbols != null && i < symbols.Count ? symbols[i] : null))) + " is not")) ;
                 }
             }
         }
@@ -8582,7 +8582,7 @@ public partial class okx : Exchange
             }
         } else
         {
-            selectedAccount = getValue(accounts, 0);
+            selectedAccount = (accounts != null && 0 < accounts.Count ? accounts[0] : null);
         }
         object mainAccount = getValue(selectedAccount, "info");
         string? posMode = this.safeString(mainAccount, "posMode"); // long_short_mode, net_mode
@@ -9456,7 +9456,7 @@ public partial class okx : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOpenInterest(this.parseOpenInterest(getValue(data, 0), market));
+        return ccxt.BaseExchange.ToOpenInterest(this.parseOpenInterest((data != null && 0 < data.Count ? data[0] : null), market));
     }
 
     /**
@@ -9482,7 +9482,7 @@ public partial class okx : Exchange
         IDictionary<string, object> market = null;
         if ((symbols != null))
         {
-            market = this.market(getValue(symbols, 0));
+            market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
         }
         string? marketType = null;
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("fetchOpenInterests", market, parameters, "swap");
@@ -10003,7 +10003,7 @@ public partial class okx : Exchange
         //     }
         //
         List<object> underlyings = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToStringList(getValue(underlyings, 0));
+        return ccxt.BaseExchange.ToStringList((underlyings != null && 0 < underlyings.Count ? underlyings[0] : null));
     }
 
     /**
@@ -10120,7 +10120,7 @@ public partial class okx : Exchange
         {
             if ((symbolsLength == 1))
             {
-                market = this.market(getValue(symbols, 0));
+                market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
                 string? marketId = this.safeString(market, "id", "");
                 List<object> optionParts = marketId.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
                 request["uly"] = getValue((market.ContainsKey("info") ? market["info"] : null), "uly");
@@ -11026,7 +11026,7 @@ public partial class okx : Exchange
             int symbolsLength = symbols?.Count ?? 0;
             if ((symbolsLength == 1))
             {
-                Dictionary<string, object> market = this.market(getValue(symbols, 0));
+                Dictionary<string, object> market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
                 request["instId"] = (market.ContainsKey("id") ? market["id"] : null);
             }
         }

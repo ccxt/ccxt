@@ -2154,7 +2154,7 @@ public partial class hollaex : Exchange
             int keysLength = keys.Count;
             for (int i = 0; i < keysLength; i++)
             {
-                string? key = ((string)getValue(keys, i));
+                string? key = ((string)(keys != null && i < keys.Count ? keys[i] : null));
                 IDictionary<string, object> value = this.safeDict(withdrawalFees, key);
                 string? currencyId = this.safeString(value, "symbol");
                 string? currencyCode = this.safeCurrencyCode(currencyId);

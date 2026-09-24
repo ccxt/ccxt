@@ -248,7 +248,7 @@ public partial class aster : ccxt.aster
         };
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
             Dictionary<string, object> market = this.market(symbol);
             subscriptionArgs.Add((this.safeStringLower(market, "id") + "@ticker"));
             messageHashes.Add(("unsubscribe:ticker:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
@@ -344,7 +344,7 @@ public partial class aster : ccxt.aster
         bool? use1sFreq = this.safeBool(parameters, "use1sFreq", true);
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
             Dictionary<string, object> market = this.market(symbol);
             string suffix = "";
             if ((use1sFreq == true))
@@ -409,7 +409,7 @@ public partial class aster : ccxt.aster
         bool? use1sFreq = this.safeBool(parameters, "use1sFreq", true);
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
             Dictionary<string, object> market = this.market(symbol);
             string suffix = "";
             if ((use1sFreq == true))
@@ -605,7 +605,7 @@ public partial class aster : ccxt.aster
         };
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
             Dictionary<string, object> market = this.market(symbol);
             subscriptionArgs.Add((this.safeStringLower(market, "id") + "@bookTicker"));
             messageHashes.Add(("unsubscribe:bidask:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
@@ -799,7 +799,7 @@ public partial class aster : ccxt.aster
         };
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
             Dictionary<string, object> market = this.market(symbol);
             subscriptionArgs.Add((this.safeStringLower(market, "id") + "@aggTrade"));
             messageHashes.Add(("unsubscribe:trade:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
@@ -1151,7 +1151,7 @@ public partial class aster : ccxt.aster
         }
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
             Dictionary<string, object> market = this.market(symbol);
             subscriptionArgs.Add(((this.safeStringLower(market, "id") + "@depth") + (limit)));
             messageHashes.Add(("unsubscribe:orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
@@ -1282,7 +1282,7 @@ public partial class aster : ccxt.aster
         }
         List<object> symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
         IList<object> marketSymbols = this.marketSymbols(symbols, null, false, true, true);
-        Dictionary<string, object> firstMarket = this.market(getValue(marketSymbols, 0));
+        Dictionary<string, object> firstMarket = this.market((marketSymbols != null && 0 < marketSymbols.Count ? marketSymbols[0] : null));
         string? type = this.safeString(firstMarket, "type", "swap");
         object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
         List<object> subscriptionArgs = new List<object>() {};
@@ -1354,7 +1354,7 @@ public partial class aster : ccxt.aster
         }
         List<object> symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
         IList<object> marketSymbols = this.marketSymbols(symbols, null, false, true, true);
-        Dictionary<string, object> firstMarket = this.market(getValue(marketSymbols, 0));
+        Dictionary<string, object> firstMarket = this.market((marketSymbols != null && 0 < marketSymbols.Count ? marketSymbols[0] : null));
         string? type = this.safeString(firstMarket, "type", "swap");
         object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), type);
         List<object> subscriptionArgs = new List<object>() {};

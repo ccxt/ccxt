@@ -1630,7 +1630,7 @@ public partial class toobit : Exchange
             int length = symbols?.Count ?? 0;
             if ((length == 1))
             {
-                Dictionary<string, object> market = this.market(getValue(symbols, 0));
+                Dictionary<string, object> market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
                 request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             }
         }
@@ -1684,7 +1684,7 @@ public partial class toobit : Exchange
             int length = symbols?.Count ?? 0;
             if ((length == 1))
             {
-                Dictionary<string, object> market = this.market(getValue(symbols, 0));
+                Dictionary<string, object> market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
                 request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             }
         }
@@ -1759,7 +1759,7 @@ public partial class toobit : Exchange
             int length = symbols?.Count ?? 0;
             if ((length == 1))
             {
-                Dictionary<string, object> market = this.market(getValue(symbols, 0));
+                Dictionary<string, object> market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
                 request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             }
         }
@@ -2088,8 +2088,8 @@ public partial class toobit : Exchange
             request["timeInForce"] = "LIMIT_MAKER";
         }
         List<object> values = this.handleTriggerPricesAndParams(symbol, parameters);
-        object triggerPrice = getValue(values, 0);
-        parameters = getValue(values, 3);
+        object triggerPrice = (values != null && 0 < values.Count ? values[0] : null);
+        parameters = (values != null && 3 < values.Count ? values[3] : null);
         if ((triggerPrice != null))
         {
             request["stopPrice"] = triggerPrice;

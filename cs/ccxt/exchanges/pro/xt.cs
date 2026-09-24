@@ -1820,7 +1820,7 @@ public partial class xt : ccxt.xt
         for (int j = 0; j < messageHashes.Count; j++)
         {
             object unsubHash = messageHashes[j];
-            string? subHash = ((string)getValue(subMessageHashes, j));
+            string? subHash = ((string)(subMessageHashes != null && j < subMessageHashes.Count ? subMessageHashes[j] : null));
             this.cleanUnsubscription(client, subHash, unsubHash);
         }
         this.cleanCache(subscription);

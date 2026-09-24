@@ -1470,7 +1470,7 @@ public partial class deepcoin : Exchange
         {
             for (int i = 0; i < length; i++)
             {
-                object entry = getValue(addressess, i);
+                object entry = (addressess != null && i < addressess.Count ? addressess[i] : null);
                 if (isEqual(getValue(entry, "network"), network))
                 {
                     address = entry;

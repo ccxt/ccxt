@@ -1976,7 +1976,7 @@ public partial class digifinex : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         List<object> marginResult = this.handleMarginModeAndParams("createOrder", parameters);
-        object marginMode = getValue(marginResult, 0);
+        object marginMode = (marginResult != null && 0 < marginResult.Count ? marginResult[0] : null);
         Dictionary<string, object> request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         Dictionary<string, object> response = null;
         if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
@@ -2060,7 +2060,7 @@ public partial class digifinex : Exchange
             object price = this.safeValue(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             List<object> marginResult = this.handleMarginModeAndParams("createOrders", orderParams);
-            object currentMarginMode = getValue(marginResult, 0);
+            object currentMarginMode = (marginResult != null && 0 < marginResult.Count ? marginResult[0] : null);
             if ((currentMarginMode != null))
             {
                 if ((marginMode == null))
@@ -2124,7 +2124,7 @@ public partial class digifinex : Exchange
         {
             IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             Dictionary<string, object> individualOrder = new Dictionary<string, object>() {};
-            individualOrder["order_id"] = getValue(data, i);
+            individualOrder["order_id"] = (data != null && i < data.Count ? data[i] : null);
             individualOrder["instrument_id"] = (market.ContainsKey("id") ? market["id"] : null);
             individualOrder["amount"] = this.safeNumber(rawOrder, "amount");
             individualOrder["price"] = this.safeNumber(rawOrder, "price");

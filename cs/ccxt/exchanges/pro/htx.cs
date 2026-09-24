@@ -2458,7 +2458,7 @@ public partial class htx : ccxt.htx
         for (int i = 0; i < messageHashes.Count; i++)
         {
             object unsubHash = messageHashes[i];
-            string? subHash = ((string)getValue(subMessageHashes, i));
+            string? subHash = ((string)(subMessageHashes != null && i < subMessageHashes.Count ? subMessageHashes[i] : null));
             this.cleanUnsubscription(client, subHash, unsubHash);
         }
         this.cleanCache(subscription);

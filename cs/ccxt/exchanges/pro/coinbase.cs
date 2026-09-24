@@ -249,7 +249,7 @@ public partial class coinbase : ccxt.coinbase
         symbols = this.marketSymbols(symbols, null, false);
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
             Dictionary<string, object> market = this.market(symbol);
             string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
             productIds.Add(marketId);
@@ -1110,7 +1110,7 @@ public partial class coinbase : ccxt.coinbase
             for (int i = 0; i < messageHashes.Count; i++)
             {
                 object messageHash = messageHashes[i];
-                string? subHash = ((string)getValue(subMessageHashes, i));
+                string? subHash = ((string)(subMessageHashes != null && i < subMessageHashes.Count ? subMessageHashes[i] : null));
                 this.cleanUnsubscription(client, subHash, messageHash);
             }
             this.cleanCache(unSubObject);

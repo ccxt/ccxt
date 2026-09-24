@@ -719,7 +719,7 @@ public partial class hibachi : Exchange
         };
         List<object> rawPromises = new List<object> {this.publicGetMarketDataPrices(this.extend(request, parameters)), this.publicGetMarketDataStats(this.extend(request, parameters))};
         List<object> promises = await promiseAll(rawPromises);
-        object pricesResponse = getValue(promises, 0);
+        object pricesResponse = (promises != null && 0 < promises.Count ? promises[0] : null);
         // {
         //     "askPrice": "3514.650296",
         //     "bidPrice": "3513.596112",
@@ -732,7 +732,7 @@ public partial class hibachi : Exchange
         //     "symbol": "ETH/USDT-P",
         //     "tradePrice": "2372.746570"
         // }
-        object statsResponse = getValue(promises, 1);
+        object statsResponse = (promises != null && 1 < promises.Count ? promises[1] : null);
         // {
         //     "high24h": "3819.507827",
         //     "low24h": "3754.474162",
