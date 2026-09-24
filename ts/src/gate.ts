@@ -4444,7 +4444,7 @@ export default class gate extends Exchange {
         const trigger = this.safeValue (params, 'trigger');
         const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
-        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const isStopLossOrder = stopLossPrice !== undefined;
         const isTakeProfitOrder = takeProfitPrice !== undefined;
         const isTpsl = isStopLossOrder || isTakeProfitOrder;
@@ -4653,7 +4653,7 @@ export default class gate extends Exchange {
             }
         }
         if (contract === true) {
-            const isClose = this.safeValue (params, 'close');
+            const isClose = this.safeBool (params, 'close');
             if (isClose === true) {
                 amount = 0;
             } else {

@@ -1951,7 +1951,7 @@ export default class kucoin extends Exchange {
                 symbol = symbol + '-' + this.yymmdd (expiry, '');
                 type = 'future';
             }
-            const inverse = this.safeValue (market, 'isInverse');
+            const inverse = this.safeBool (market, 'isInverse');
             const status = this.safeString (market, 'status');
             const multiplier = this.safeString (market, 'multiplier');
             const tickSize = this.safeNumber (market, 'tickSize');
@@ -4381,7 +4381,7 @@ export default class kucoin extends Exchange {
         }
         const iceberg = this.safeValue (params, 'iceberg');
         if ((iceberg !== undefined) && (iceberg !== false)) {
-            const visibleSize = this.safeValue (params, 'visibleSize');
+            const visibleSize = this.safeString (params, 'visibleSize');
             if (visibleSize === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a visibleSize parameter for iceberg orders');
             }
