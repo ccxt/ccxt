@@ -7433,7 +7433,8 @@ function ccxtGoProducerDeclarationType (goTranspiler, declaration, family) {
         return undefined; // older printer without the container read scans: nothing to extend
     }
     const neverAbsent = dictLike && ((CCXT_GO_PRODUCER_NEVER_ABSENT.indexOf (goName) >= 0)
-        || ((goName === 'Omit') && ccxtGoProducerArgIsMap (goTranspiler, initializer.arguments[0])));
+        || ((goName === 'Omit') && ccxtGoProducerArgIsMap (goTranspiler, initializer.arguments[0]))
+        || ((CCXT_GO_PRODUCER_NEVER_ABSENT_IF_DICT.indexOf (goName) >= 0) && ccxtGoProducerDeclaredDict (goTranspiler, callee)));
     const readsTheValue = neverAbsent
         ? (n) => !ccxtGoProducerUseRebinds (n)
         : (dictLike
@@ -7447,6 +7448,20 @@ function ccxtGoProducerDeclarationType (goTranspiler, declaration, family) {
 const CCXT_GO_PRODUCER_NEVER_ABSENT = [ 'ParseOrder', 'ParseTrade', 'ParseTicker', 'ParsePosition', 'ParseTransaction', 'ParseWsOrder', 'ParseWsTicker', 'ParseWsTrade',
     // safeMarket: every override returns super.safeMarket or createExpiredOptionMarket (a dict literal)
     'SafeMarket' ];
+
+// request builders: every override annotated `Dict` returns extend(...) or a dict literal;
+// tuple/list overrides (dydx, hitbtc, lighter, pacifica, toobit) fail the Dict check below
+const CCXT_GO_PRODUCER_NEVER_ABSENT_IF_DICT = [ 'CreateOrderRequest' ];
+
+function ccxtGoProducerDeclaredDict (goTranspiler, callee) {
+    let declaration = undefined;
+    try {
+        declaration = goTranspiler.getChecker ().getSymbolAtLocation (callee.name)?.valueDeclaration;
+    } catch (e) {
+        return false;
+    }
+    return (declaration?.type?.getText?. () ?? '').trim () === 'Dict';
+}
 
 // Omit rebuilds a map argument into a fresh map (OmitMap/OmitN), even a nil typed one
 function ccxtGoProducerArgIsMap (goTranspiler, arg) {
