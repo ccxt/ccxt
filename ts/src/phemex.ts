@@ -3573,10 +3573,10 @@ export default class phemex extends Exchange {
         //
         let data: List;
         if (isUSDTSettled) {
-            data = this.safeValue (response, 'data', []);
+            data = this.safeList (response, 'data', []);
         } else {
             data = this.safeValue (response, 'data', {});
-            data = this.safeValue (data, 'rows', []);
+            data = this.safeList (data, 'rows', []);
         }
         return this.parseTrades (data, market, since, limit);
     }

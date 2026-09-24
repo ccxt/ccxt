@@ -1739,7 +1739,7 @@ export default class woofipro extends Exchange {
         const remaining = Precise.stringSub (amount, filled);
         const fee = this.safeValue2 (order, 'total_fee', 'totalFee');
         const feeCurrency = this.safeString2 (order, 'fee_asset', 'feeAsset');
-        const transactions = this.safeValue (order, 'Transactions');
+        const transactions = this.safeList (order, 'Transactions');
         const triggerPrice = this.safeNumber (order, 'triggerPrice');
         let takeProfitPrice: Num = undefined;
         let stopLossPrice: Num = undefined;
