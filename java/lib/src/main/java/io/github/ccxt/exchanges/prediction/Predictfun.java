@@ -3988,7 +3988,7 @@ final Object finalSubHash = subHash;
             Object orders = (this.watchWalletEvents(messageHash, parameters)).join();
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(orders, "getLimit", new Object[]{outcome, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, outcome, limit);
             }
             return this.filterByOutcomeSinceLimit(orders, outcome, since, limit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
@@ -4044,7 +4044,7 @@ final Object finalSubHash = subHash;
             Object trades = (this.watchWalletEvents(messageHash, parameters)).join();
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(trades, "getLimit", new Object[]{outcome, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, outcome, limit);
             }
             return this.filterByOutcomeSinceLimit(trades, outcome, since, limit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));

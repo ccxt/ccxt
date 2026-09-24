@@ -395,7 +395,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             Object trades = (this.watch(url, messageHash, request, subscribeHash, request)).join();
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbol, limit);
             }
             trades = this.filterBySymbolSinceLimit(trades, symbol, since, limit);
             Integer numTrades = Helpers.getArrayLength(trades);
@@ -621,7 +621,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             Object orders = (this.watch(url, messageHash, request, subscribeHash, request)).join();
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbol, limit);
             }
             orders = this.filterBySymbolSinceLimit(orders, symbol, since, limit);
             Integer numOrders = Helpers.getArrayLength(orders);
@@ -1352,7 +1352,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, this.deepExtend(request, parameters), subscriptionHash, subscription)).join();
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbol, limit);
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));

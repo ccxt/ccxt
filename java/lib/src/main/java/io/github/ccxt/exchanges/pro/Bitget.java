@@ -729,7 +729,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Object ohlcv = (this.watchPublic(uta, messageHash, (Map<String, Object>) (args), parameters)).join();
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbol, limit);
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
@@ -1488,7 +1488,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
-                limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, tradeSymbol, limit);
             }
             List<Object> result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
             if (java.util.Objects.equals(this.handleOption("watchTrades", "ignoreDuplicates", true), true))
@@ -2228,7 +2228,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Object orders = (this.watchPrivate(uta, messageHash, subscriptionHash, (Map<String, Object>) (args), parameters)).join();
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbol, limit);
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -2806,7 +2806,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Object trades = (this.watchPrivate(uta, messageHash, subscriptionHash, (Map<String, Object>) (args), parameters)).join();
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbol, limit);
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));

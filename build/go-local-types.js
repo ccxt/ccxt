@@ -5933,6 +5933,7 @@ export function installCcxtGoLocalTypes (goTranspiler) {
     installCcxtGoScalarElementReads (goTranspiler);
     installCcxtGoTupleStringJoin (goTranspiler);
     installCcxtGoElement1Params (goTranspiler);
+    installCcxtGoLimitLocals (goTranspiler);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -7855,4 +7856,112 @@ function installCcxtGoTernaryLiftJoin (goTranspiler) {
         return lines.join ('\n');
     };
     goTranspiler.__ccxtGoTernaryLiftJoinInstalled = true;
+}
+
+// ------------------------- ws cache limit locals: `let limitResolved: Int = limit` -------------------------
+// A local seeded with an Int parameter whose only writes are `cache.getLimit (..)` (typed *int64,
+// exchange_cache.go) and whose only reads are filterBy*SinceLimit / getLimit arguments (both
+// bind the limit through GetArg / GetArgInt64Ptr) holds the same Int as a *int64.
+const CCXT_GO_LIMIT_LOCAL_READS = [ 'filterBySinceLimit', 'filterBySymbolSinceLimit', 'filterByOutcomeSinceLimit' ];
+
+function ccxtGoIsGetLimitCall (node) {
+    return (node?.kind === ts.SyntaxKind.CallExpression) && (node.expression?.kind === ts.SyntaxKind.PropertyAccessExpression)
+        && (node.expression.expression?.kind === ts.SyntaxKind.Identifier) && (node.expression.name?.escapedText === 'getLimit')
+        && (node.arguments.length === 2);
+}
+
+function ccxtGoLimitLocalUseIsSafe (n) {
+    const parent = n.parent;
+    if ((parent?.kind === ts.SyntaxKind.BinaryExpression) && (parent.left === n)
+        && (parent.operatorToken.kind === ts.SyntaxKind.EqualsToken)) {
+        return ccxtGoIsGetLimitCall (parent.right);
+    }
+    if ((parent?.kind !== ts.SyntaxKind.CallExpression) || (parent.expression === n)) {
+        return false;
+    }
+    if (ccxtGoIsGetLimitCall (parent)) {
+        return parent.arguments[1] === n;
+    }
+    const callee = parent.expression;
+    return (callee?.kind === ts.SyntaxKind.PropertyAccessExpression) && (callee.expression?.kind === ts.SyntaxKind.ThisKeyword)
+        && CCXT_GO_LIMIT_LOCAL_READS.includes (String (callee.name?.escapedText));
+}
+
+// the Go initializer text for a proven limit local, or undefined
+function ccxtGoLimitLocalInitializer (goTranspiler, declaration) {
+    const seed = declaration.initializer;
+    if ((declaration.name?.kind !== ts.SyntaxKind.Identifier) || (seed?.kind !== ts.SyntaxKind.Identifier)
+        || !ccxtGoWsListSourceFile (declaration)
+        || ((declaration.type !== undefined) && (declaration.type.getText () !== 'Int'))) {
+        return undefined;
+    }
+    let seedDeclaration;
+    try {
+        seedDeclaration = goTranspiler.getChecker ().getSymbolAtLocation (seed)?.valueDeclaration;
+    } catch (e) {
+        return undefined;
+    }
+    const seedIsIntParameter = (seedDeclaration?.kind === ts.SyntaxKind.Parameter) && (seedDeclaration.type?.getText () === 'Int');
+    const seedType = goTranspiler.goDeclaredTypeOfIdentifier (seed);
+    if (!seedIsIntParameter && (seedType !== '*int64')) {
+        return undefined;
+    }
+    const scope = goTranspiler.goEnclosingFunction (declaration);
+    if ((scope === undefined) || goTranspiler.goTypeNameIsShadowed (scope, '*int64')) {
+        return undefined;
+    }
+    const name = declaration.name.escapedText;
+    let writes = 0;
+    let unsafe = false;
+    const visit = (n) => {
+        if (unsafe) {
+            return;
+        }
+        if ((n.kind === ts.SyntaxKind.Identifier) && (n.escapedText === name) && (n !== declaration.name)) {
+            if (!ccxtGoLimitLocalUseIsSafe (n)) {
+                unsafe = true;
+            } else if (n.parent.kind === ts.SyntaxKind.BinaryExpression) {
+                writes += 1;
+            }
+            return;
+        }
+        ts.forEachChild (n, visit);
+    };
+    ts.forEachChild (scope, visit);
+    if (unsafe || (writes === 0)) {
+        return undefined;
+    }
+    const seedText = goTranspiler.printNode (seed, 0).trim ();
+    return (seedType === '*int64') ? seedText : ('Int64PtrTyped(' + seedText + ')');
+}
+
+export function installCcxtGoLimitLocals (goTranspiler) {
+    if ((goTranspiler === undefined) || goTranspiler.__ccxtGoLimitLocalsInstalled
+        || (typeof goTranspiler.printVariableDeclarationList !== 'function') || (typeof goTranspiler.goDeclaredTypeOfIdentifier !== 'function')
+        || (typeof goTranspiler.goEnclosingFunction !== 'function') || (typeof goTranspiler.goTypeNameIsShadowed !== 'function')) {
+        return;
+    }
+    const upstream = goTranspiler.printVariableDeclarationList.bind (goTranspiler);
+    goTranspiler.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        if ((typeof printed !== 'string') || (node?.declarations?.length !== 1)) {
+            return printed;
+        }
+        const declaration = node.declarations[0];
+        if (declaration.initializer === undefined) {
+            return printed;
+        }
+        const head = this.getIden (identation) + 'var ' + (this.printNode (declaration.name, 0) ?? '').trim () + ' any = ';
+        if (!printed.startsWith (head) || (printed.substring (head.length).trim () !== (this.printNode (declaration.initializer, 0) ?? '').trim ())) {
+            return printed;
+        }
+        let value;
+        try {
+            value = ccxtGoLimitLocalInitializer (this, declaration);
+        } catch (e) {
+            return printed;
+        }
+        return (value === undefined) ? printed : (head.replace (/ any = $/, ' *int64 = ') + value);
+    };
+    goTranspiler.__ccxtGoLimitLocalsInstalled = true;
 }

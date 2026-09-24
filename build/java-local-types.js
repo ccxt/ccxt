@@ -5653,6 +5653,8 @@ export function installJavaLocalTypes (transpiler) {
     patchJavaUrlsDescribeStringLocals (transpiler);
     // (15) copies of base fields the hand-written BaseExchange declares concretely (section 21)
     patchJavaBaseFieldLocalTypes (transpiler);
+    // (16) ws cache limit locals (section 22)
+    patchJavaLimitLocalTypes (transpiler);
 }
 
 // ===== 4. dataflow engine: accumulators, local propagation, ternary arms, scope safety =====
@@ -11148,4 +11150,90 @@ export function patchJavaBaseFieldLocalTypes (transpiler) {
         }
         return baseFieldLocalType (printer, declaration);
     });
+}
+
+// ===== 22. ws cache limit locals: `let limitResolved: Int = limit` =====
+// Seeded with a Long-printed Int parameter, written only by `cache.getLimit (..)` (printed
+// ArrayCache.getLimitOf, which returns Long) and read only as a filterBy*SinceLimit limit: Long.
+const JAVA_LIMIT_LOCAL_READS = new Set ([ 'filterBySinceLimit', 'filterBySymbolSinceLimit', 'filterByOutcomeSinceLimit' ]);
+
+function javaIsGetLimitCall (node) {
+    return node !== undefined && ts.isCallExpression (node) && ts.isPropertyAccessExpression (node.expression)
+        && ts.isIdentifier (node.expression.expression) && node.expression.name.escapedText === 'getLimit'
+        && node.arguments.length === 2;
+}
+
+function javaLimitLocalUseIsSafe (n) {
+    const parent = n.parent;
+    if (parent !== undefined && ts.isBinaryExpression (parent) && parent.left === n
+        && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+        return javaIsGetLimitCall (parent.right);
+    }
+    if (parent === undefined || !ts.isCallExpression (parent) || parent.expression === n) {
+        return false;
+    }
+    if (javaIsGetLimitCall (parent)) {
+        return parent.arguments[1] === n;
+    }
+    return isThisCall (parent) && JAVA_LIMIT_LOCAL_READS.has (String (parent.expression.name.escapedText));
+}
+
+function javaLimitLocalType (printer, declaration) {
+    const seed = declaration.initializer;
+    const fileName = declaration.getSourceFile ().fileName;
+    if (!ts.isIdentifier (declaration.name) || seed === undefined || !ts.isIdentifier (seed)
+        || !/[\\/](pro|prediction)[\\/]/.test (fileName) || /[\\/]test[\\/]/.test (fileName)
+        || (declaration.type !== undefined && declaration.type.getText () !== 'Int')
+        || typeof printer.javaArgumentHasType !== 'function' || !printer.javaArgumentHasType (seed, 'Long')) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const index = identifierIndex (scope);
+    if (index.has ('Long')) {
+        return undefined;
+    }
+    let writes = 0;
+    for (const n of (index.get (declaration.name.escapedText) ?? [])) {
+        if (n === declaration.name) {
+            continue;
+        }
+        if (!javaLimitLocalUseIsSafe (n)) {
+            return undefined;
+        }
+        writes += ts.isBinaryExpression (n.parent) ? 1 : 0;
+    }
+    return writes > 0 ? 'Long' : undefined;
+}
+
+export function patchJavaLimitLocalTypes (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaLimitLocalPatched) {
+        return;
+    }
+    printer._javaLimitLocalPatched = true;
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1) {
+            return printed;
+        }
+        let type;
+        try {
+            type = javaLimitLocalType (printer, declaration);
+        } catch (e) {
+            return printed;
+        }
+        if (type === undefined) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const printedName = printer.printNode (declaration.name, 0);
+        const marker = `${iden}${printer.VAR_TOKEN} ${printedName} = `;
+        const at = printed.lastIndexOf (marker);
+        return at === -1 ? printed : printed.slice (0, at) + `${iden}${type} ${printedName} = ` + printed.slice (at + marker.length);
+    };
 }

@@ -1735,7 +1735,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
-                limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, tradeSymbol, limit);
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -2316,7 +2316,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 var stockCandles = ((List<Object>) stockSymbolstockTimeframestockCandlesVariable).get(2);
                 if (this.newUpdates)
                 {
-                    limit = Helpers.callDynamically(stockCandles, "getLimit", new Object[]{stockSymbol, limit});
+                    limit = io.github.ccxt.ws.ArrayCache.getLimitOf(stockCandles, stockSymbol, limit);
                 }
                 List<Object> stockFiltered = this.filterBySinceLimit(stockCandles, since, limit, 0, true);
                 return this.createOHLCVObject(stockSymbol, stockTimeframe, stockFiltered);
@@ -2388,7 +2388,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             var candles = ((List<Object>) symboltimeframecandlesVariable).get(2);
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(candles, "getLimit", new Object[]{symbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(candles, symbol, limit);
             }
             List<Object> filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
             return this.createOHLCVObject(symbol, timeframe, filtered);
@@ -6128,7 +6128,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 List<Object> stockOrders = (this.<List<Object>>watch(stockUrl, stockMessageHash, this.extend(stockRequest, stockQuery), stockMessageHash, stockSubscribe)).join();
                 if (this.newUpdates)
                 {
-                    limit = Helpers.callDynamically(stockOrders, "getLimit", new Object[]{symbol, limit});
+                    limit = io.github.ccxt.ws.ArrayCache.getLimitOf(stockOrders, symbol, limit);
                 }
                 return this.filterBySymbolSinceLimit(stockOrders, symbol, since, limit, true);
             }
@@ -6196,7 +6196,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             List<Object> orders = (this.<List<Object>>watch(url, messageHash, message, type, null)).join();
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbol, limit);
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -7510,7 +7510,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             List<Object> trades = (this.<List<Object>>watch(url, messageHash, message, type, null)).join();
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbol, limit);
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
