@@ -2909,7 +2909,7 @@ export default class hashkey extends Exchange {
             }
             ordersRequests.push (orderRequest);
         }
-        const firstOrder = ordersRequests[0];
+        const firstOrder = this.safeDict (ordersRequests, 0);
         const firstSymbol = this.safeString (firstOrder, 'symbol');
         const market = this.market (firstSymbol);
         const request: Dict = {

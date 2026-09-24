@@ -1507,8 +1507,8 @@ export default class bybit extends Exchange {
             }
             const rawPromises = [ this.privateGetV5UserQueryApi (params), this.privateGetV5AccountInfo (params) ];
             const promises = await Promise.all (rawPromises);
-            const response = promises[0];
-            const accountInfo = promises[1];
+            const response = this.safeDict (promises, 0);
+            const accountInfo = this.safeDict (promises, 1);
             //
             //     {
             //         "retCode": 0,

@@ -599,7 +599,7 @@ export default class kraken extends Exchange {
             promises.push (this.loadTimeDifference ());
         }
         const responses = await Promise.all (promises);
-        const assetsResponse = responses[0];
+        const assetsResponse = this.safeDict (responses, 0);
         //
         //     {
         //         "error": [],

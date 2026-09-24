@@ -3048,7 +3048,7 @@ export default class krakenfutures extends Exchange {
         const tickers = this.safeList (response, 'tickers', []);
         const fundingRates: FundingRate[] = [];
         for (let i = 0; i < tickers.length; i++) {
-            const entry = tickers[i];
+            const entry = this.safeDict (tickers, i);
             const entry_symbol = this.safeString (entry, 'symbol');
             if (marketIds !== undefined) {
                 if (!this.inArray (entry_symbol, marketIds)) {

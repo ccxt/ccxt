@@ -711,7 +711,7 @@ export default class gate extends gateRest {
 
     override getCacheIndex (orderBook: any, cache: any): number {
         const nonce = this.safeInteger (orderBook, 'nonce');
-        const firstDelta = cache[0];
+        const firstDelta = this.safeDict (cache, 0);
         const firstDeltaStart = this.safeInteger (firstDelta, 'U');
         if ((nonce !== undefined) && (firstDeltaStart !== undefined) && (nonce < firstDeltaStart)) {
             return -1;

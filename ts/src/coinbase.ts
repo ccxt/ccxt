@@ -5248,7 +5248,7 @@ export default class coinbase extends Exchange {
     }
 
     parsePortfolioDetails (portfolioData: Dict) {
-        const breakdown = portfolioData['breakdown'];
+        const breakdown = this.safeDict (portfolioData, 'breakdown');
         const portfolioInfo = this.safeDict (breakdown, 'portfolio', {});
         const portfolioName = this.safeString (portfolioInfo, 'name', 'Unknown');
         const portfolioUuid = this.safeString (portfolioInfo, 'uuid', '');

@@ -597,8 +597,8 @@ export default class digifinex extends Exchange {
         }
         promisesRaw.push (this.publicSwapGetPublicInstruments (params));
         const promises = await Promise.all (promisesRaw);
-        const spotMarkets = promises[0];
-        const swapMarkets = promises[1];
+        const spotMarkets = this.safeDict (promises, 0);
+        const swapMarkets = this.safeDict (promises, 1);
         //
         // spot and margin
         //

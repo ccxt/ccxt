@@ -1955,7 +1955,7 @@ export default class hibachi extends Exchange {
             this.privateGetTradeAccountTradingHistory (this.extend (request, params)),
         ];
         const promises = await Promise.all (rawPromises);
-        const responseCapitalHistory = promises[0];
+        const responseCapitalHistory = this.safeDict (promises, 0);
         //
         // {
         //     "transactions": [
@@ -2010,7 +2010,7 @@ export default class hibachi extends Exchange {
         // }
         //
         const rowsCapitalHistory = this.safeList (responseCapitalHistory, 'transactions', []);
-        const responseTradingHistory = promises[1];
+        const responseTradingHistory = this.safeDict (promises, 1);
         //
         // {
         //     "tradingHistory": [

@@ -9537,7 +9537,7 @@ export default class htx extends Exchange {
         //
         const result: List = [];
         for (let i = 0; i < settlements.length; i++) {
-            const settlement = settlements[i];
+            const settlement = this.safeDict (settlements, i);
             const list = this.safeList (settlement, 'list');
             if (market['linear'] === true) {
                 const parsedSettlement = this.parseSettlement (settlement, market);
@@ -9549,7 +9549,7 @@ export default class htx extends Exchange {
                     'datetime': this.iso8601 (timestamp),
                 };
                 for (let j = 0; j < list.length; j++) {
-                    const item = list[j];
+                    const item = this.safeDict (list, j);
                     const parsedSettlement = this.parseSettlement (item, market);
                     result.push (this.extend (parsedSettlement, timestampDetails));
                 }

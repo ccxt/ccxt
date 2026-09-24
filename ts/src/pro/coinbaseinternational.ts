@@ -515,7 +515,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const stored = this.ohlcvs[symbol][(timeframe as string)];
         const data = this.safeList (message, 'candles', []);
         for (let i = 0; i < data.length; i++) {
-            const tick = data[i];
+            const tick = this.safeDict (data, i);
             const parsed = this.parseOHLCV (tick, market);
             stored.append (parsed);
         }

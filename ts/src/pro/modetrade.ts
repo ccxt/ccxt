@@ -1129,7 +1129,7 @@ export default class modetrade extends modetradeRest {
         const cache = this.positions;
         const newPositions: Position[] = [];
         for (let i = 0; i < rawPositions.length; i++) {
-            const rawPosition = rawPositions[i];
+            const rawPosition = this.safeDict (rawPositions, i);
             const marketId = this.safeString (rawPosition, 'symbol');
             const market = this.safeMarket (marketId);
             const position = this.parseWsPosition (rawPosition, market);
