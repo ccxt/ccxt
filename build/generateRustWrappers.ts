@@ -1053,6 +1053,106 @@ function main() {
         generateDomain(cfg, methods, baseMethods, onlyId);
     }
     writeTestCoreRegistry();
+    if (!onlyId) {
+        writeCargoFeatures();
+    }
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Per-exchange cargo features
+//
+// Every transpiled Core is declared behind `#[cfg(feature = "<id>")]` (see
+// `writeModFile` in build/rustTranspiler.ts and the typed mod.rs/aggregator
+// writers above), so a consumer can compile the venues it uses instead of all
+// 200+ — that split is what brings a single-exchange build from tens of GB of
+// RAM down to a few hundred MB. The feature lists live in each crate's
+// Cargo.toml between the `BEGIN/END GENERATED FEATURES` markers, which this
+// function rewrites; everything outside the markers is hand-written.
+//
+//   ccxt-base        <id> = []                 (or ["<parent>"] for a derived venue)
+//                    prediction-<id> = []      prediction ids overlap REST ids
+//                    all-exchanges / all-prediction = [every id]
+//   ccxt             <id> = ["ccxt-base/<id>"]              all = [every id]
+//   ccxt-prediction  <id> = ["ccxt-base/prediction-<id>"]   all = [every id]
+//   ccxt-pro         <id> = ["ccxt-base/<id>", "<pro parent>"?]   all = [every id]
+//
+// `default = ["all"]` on the three typed crates keeps `cargo add ccxt` building
+// everything, as before; `default-features = false, features = ["binance"]`
+// opts into the lean build.
+
+// Same rule as `rustFeatureName` in build/rustTranspiler.ts (kept local so this
+// script does not import the transpiler module and its side effects).
+function rustFeatureName(id: string, prediction = false): string {
+    return prediction ? `prediction-${id}` : id;
+}
+
+function coreIds(folder: string): string[] {
+    if (!fs.existsSync(folder)) return [];
+    return fs.readdirSync(folder)
+        .filter(f => f.endsWith('.rs') && !f.endsWith('_api.rs') && !f.endsWith('_typed.rs') && f !== 'mod.rs')
+        .filter(f => !['cache.rs', 'order_book.rs', 'ws_client.rs'].includes(f))
+        .map(f => f.replace(/\.rs$/, ''))
+        .sort();
+}
+
+function replaceGeneratedFeatures(manifest: string, lines: string[]): void {
+    const src = fs.readFileSync(manifest, 'utf-8');
+    const begin = src.indexOf('# BEGIN GENERATED FEATURES');
+    const end = src.indexOf('# END GENERATED FEATURES');
+    if (begin === -1 || end === -1 || end < begin) {
+        throw new Error(`${manifest}: missing BEGIN/END GENERATED FEATURES markers`);
+    }
+    const beginLineEnd = src.indexOf('\n', begin) + 1;
+    const out = src.slice(0, beginLineEnd) + lines.join('\n') + '\n' + src.slice(end);
+    if (out !== src) {
+        fs.writeFileSync(manifest, out, 'utf-8');
+    }
+    console.log(`Wrote ${lines.length} feature line(s) into ${manifest}`);
+}
+
+function writeCargoFeatures(): void {
+    const restIds = coreIds(EXCHANGES_FOLDER);
+    const restParents = parseParents(EXCHANGES_FOLDER, 'exchanges');
+    const predictionFolder = './rust/ccxt-base/src/prediction/';
+    const predictionIds = coreIds(predictionFolder);
+    const proFolder = './rust/ccxt-pro/src/pro/';
+    const proIds = coreIds(proFolder);
+    const proParents = parseParents(proFolder, 'pro');
+    const list = (ids: string[]) => `[${ids.map(i => JSON.stringify(i)).join(', ')}]`;
+
+    // ccxt-base: one feature per Core, a derived venue pulls in its parent
+    const base: string[] = [];
+    for (const id of restIds) {
+        const parent = restParents.get(id);
+        base.push(`${id} = ${parent ? list([parent]) : '[]'}`);
+    }
+    for (const id of predictionIds) {
+        base.push(`${rustFeatureName(id, true)} = []`);
+    }
+    base.push(`all-exchanges = ${list(restIds)}`);
+    base.push(`all-prediction = ${list(predictionIds.map(id => rustFeatureName(id, true)))}`);
+    replaceGeneratedFeatures('./rust/ccxt-base/Cargo.toml', base);
+
+    // ccxt: forward to the engine Core
+    const rest = restIds.map(id => `${id} = ${list([`ccxt-base/${id}`])}`);
+    rest.push(`all = ${list(restIds)}`);
+    replaceGeneratedFeatures('./rust/ccxt/Cargo.toml', rest);
+
+    // ccxt-prediction: forward to the prefixed engine Core
+    const prediction = predictionIds.map(id => `${id} = ${list([`ccxt-base/${rustFeatureName(id, true)}`])}`);
+    prediction.push(`all = ${list(predictionIds)}`);
+    replaceGeneratedFeatures('./rust/ccxt-prediction/Cargo.toml', prediction);
+
+    // ccxt-pro: a WS venue embeds its REST Core (engine feature) and, when it
+    // derives from another WS venue, that venue's pro feature
+    const pro = proIds.map(id => {
+        const deps = [`ccxt-base/${id}`];
+        const parent = proParents.get(id);
+        if (parent && parent !== id) deps.push(parent);
+        return `${id} = ${list(deps)}`;
+    });
+    pro.push(`all = ${list(proIds)}`);
+    replaceGeneratedFeatures('./rust/ccxt-pro/Cargo.toml', pro);
 }
 
 interface DomainCfg {
@@ -1172,6 +1272,7 @@ function generateDomain(cfg: DomainCfg, methods: MethodInfo[], baseMethods: Set<
     // factory that builds a boxed wrapper by exchange id for dynamic selection.
     const aggLines: string[] = [genTypedExchangeTrait(domainMethods)];
     for (const id of allTyped) {
+        aggLines.push(`#[cfg(feature = ${JSON.stringify(id)})]`);
         aggLines.push(`pub use crate::${cfg.wrapperModule}::${id}_typed::${capitalize(id)};`);
     }
     aggLines.push('');
@@ -1182,6 +1283,7 @@ function generateDomain(cfg: DomainCfg, methods: MethodInfo[], baseMethods: Set<
     aggLines.push('pub fn from_id(id: &str, config: Option<crate::Value>) -> Option<Box<dyn TypedExchange>> {');
     aggLines.push('    match id {');
     for (const id of allTyped) {
+        aggLines.push(`        #[cfg(feature = ${JSON.stringify(id)})]`);
         aggLines.push(`        ${JSON.stringify(id)} => Some(Box::new(${capitalize(id)}::new(config))),`);
     }
     aggLines.push('        _ => None,');
@@ -1219,7 +1321,7 @@ function writeTypedModFile(outFolder: string, ids: string[], modReExport: string
         lines.push(`pub use ${modReExport};`);
     }
     lines.push('');
-    lines.push(...[...ids].sort().map(id => `pub mod ${id}_typed;`));
+    lines.push(...[...ids].sort().map(id => `#[cfg(feature = ${JSON.stringify(id)})]\npub mod ${id}_typed;`));
     lines.push('');
     fs.writeFileSync(modPath, lines.join('\n'), 'utf-8');
     console.log(`Wrote ${modPath} with ${ids.length} 'pub mod <id>_typed;' decl(s)`);

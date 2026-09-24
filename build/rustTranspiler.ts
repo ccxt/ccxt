@@ -73,6 +73,12 @@ const EXCHANGES_WS_FOLDER    = `${RUST_PRO_BASE}/pro`;
 // Prediction venues live in their own module so ids that also exist as a
 // regular exchange (e.g. `hyperliquid`) don't clobber each other.
 const PREDICTION_EXCHANGES_FOLDER = `${RUST_BASE}/prediction`;
+
+// Cargo feature that gates a transpiled Core in ccxt-base. Shared with
+// build/generateRustWrappers.ts, which emits the matching [features] entries.
+export function rustFeatureName (id: string, prediction = false): string {
+    return prediction ? `prediction-${id}` : id;
+}
 const BASE_TESTS_FOLDER      = './rust/tests/base';
 const BASE_TESTS_WS_FOLDER   = './rust/tests/base_ws';
 const GENERATED_TESTS_FOLDER = './rust/tests/exchange';
@@ -9142,10 +9148,11 @@ impl std::ops::DerefMut for ${coreName} {
                 '// Re-export the hand-written pro infra (cache / order_book /',
                 '// ws_client and their public items) from the base crate so the',
                 "// venue files' `crate::pro::*` paths resolve. The venue modules",
-                '// themselves live in this crate.',
+                '// themselves live in this crate, one per `<id>` cargo feature',
+                '// (see the generated [features] block in ccxt-pro/Cargo.toml).',
                 'pub use ccxt_base::pro::*;',
                 '',
-                ...venues.map(n => `pub mod ${n};`),
+                ...venues.map(n => `#[cfg(feature = "${n}")]\npub mod ${n};`),
             ];
             const wsContent = [
                 ...this.createGeneratedHeader(),
@@ -9183,12 +9190,16 @@ impl std::ops::DerefMut for ${coreName} {
                 lines.push(`pub mod ${sibling};`);
             }
         }
-        // WS per-exchange files are still WIP — gate them behind the
-        // `transpiled-ws` feature so the default build (REST + hand-
-        // written pro::cache / order_book) keeps compiling.
-        const isProFolder = folder.endsWith('/pro');
-        const gate = isProFolder ? '#[cfg(feature = "transpiled-ws")]\n' : '';
+        // Every Core sits behind its own cargo feature so a consumer that
+        // asks for `features = ["binance"]` compiles one venue, not 200+.
+        // REST features are the bare id; prediction Cores share ids with REST
+        // venues (binance, hyperliquid, …) so theirs carry a `prediction-`
+        // prefix. The feature lists themselves are emitted into each crate's
+        // Cargo.toml by build/generateRustWrappers.ts (rustFeatureName is the
+        // shared naming rule).
+        const isPredictionFolder = folder === PREDICTION_EXCHANGES_FOLDER;
         for (const n of baseNames) {
+            const gate = `#[cfg(feature = "${rustFeatureName(n, isPredictionFolder)}")]\n`;
             lines.push(`${gate}pub mod ${n};`);
             if (fs.existsSync(`${folder}/${n}_api.rs`)) {
                 lines.push(`${gate}pub mod ${n}_api;`);

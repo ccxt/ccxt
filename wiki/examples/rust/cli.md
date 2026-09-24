@@ -7,6 +7,10 @@
 //   npm run cli.rs -- binance fetchTicker BTC/USDT
 //   npm run cli.rs -- bybit  fetchOHLCV  BTC/USDT 1h
 //   npm run cli.rs -- okx    fetchMarkets --verbose
+//
+// This bin requires the `all-venues` feature (every exchange compiled in),
+// which `npm run cli.rs` passes; the other examples build only the venues
+// listed on the ccxt dependencies in examples/rust/Cargo.toml.
 //   npm run cli.rs -- gate   fetchTrades BTC/USDT null 5
 //
 // `watch*` methods stream over WebSocket (via the `ccxt_pro` crate) and keep
@@ -255,7 +259,7 @@ async fn run_rest(id: &str, m: &str, args: Vec<Value>, testnet: bool, demo: bool
     let result = panic::AssertUnwindSafe(async move {
         let mut ex: Box<dyn TypedExchange> = match ccxt::from_id(id, Some(Value::Map(config))) {
             Some(e) => e,
-            None => panic!("{RED}exchange not transpiled yet: {id}{RESET}"),
+            None => panic!("{RED}exchange not compiled in: {id} (build with --features all-venues){RESET}"),
         };
         // --testnet / --demo route through the runtime dispatch, same as any method.
         if testnet { let _ = ex.call_raw("set_sandbox_mode", vec![Value::Bool(true)]).await; }
@@ -288,7 +292,7 @@ async fn run_ws(id: &str, m: &str, args: Vec<Value>, testnet: bool, demo: bool, 
     let mut ex: Box<dyn TypedExchange> = match ccxt_pro::from_id(id, Some(Value::Map(config))) {
         Some(e) => e,
         None => {
-            eprintln!("\n{RED}error:{RESET} no WebSocket (pro) venue for exchange: {id}");
+            eprintln!("\n{RED}error:{RESET} no WebSocket (pro) venue compiled in for exchange: {id} (build with --features ws,all-venues)");
             std::process::exit(1);
         }
     };

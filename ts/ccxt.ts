@@ -64,7 +64,6 @@ import bitfinex from  './src/bitfinex.js'
 import bitflyer from  './src/bitflyer.js'
 import bitget from  './src/bitget.js'
 import bithumb from  './src/bithumb.js'
-import bitmex from  './src/bitmex.js'
 import bitopro from  './src/bitopro.js'
 import bitrue from  './src/bitrue.js'
 import bitso from  './src/bitso.js'
@@ -167,7 +166,6 @@ import bingxPro from  './src/pro/bingx.js'
 import bitfinexPro from  './src/pro/bitfinex.js'
 import bitgetPro from  './src/pro/bitget.js'
 import bithumbPro from  './src/pro/bithumb.js'
-import bitmexPro from  './src/pro/bitmex.js'
 import bitoproPro from  './src/pro/bitopro.js'
 import bitruePro from  './src/pro/bitrue.js'
 import bitstampPro from  './src/pro/bitstamp.js'
@@ -261,7 +259,6 @@ const exchanges = {
     'bitflyer':               bitflyer,
     'bitget':                 bitget,
     'bithumb':                bithumb,
-    'bitmex':                 bitmex,
     'bitopro':                bitopro,
     'bitrue':                 bitrue,
     'bitso':                  bitso,
@@ -364,7 +361,6 @@ const pro = {
     'bitfinex':               bitfinexPro,
     'bitget':                 bitgetPro,
     'bithumb':                bithumbPro,
-    'bitmex':                 bitmexPro,
     'bitopro':                bitoproPro,
     'bitrue':                 bitruePro,
     'bitstamp':               bitstampPro,
@@ -632,7 +628,6 @@ export {
     bitflyer,
     bitget,
     bithumb,
-    bitmex,
     bitopro,
     bitrue,
     bitso,

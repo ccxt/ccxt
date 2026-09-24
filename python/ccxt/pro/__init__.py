@@ -70,7 +70,6 @@ from ccxt.pro.bingx import bingx                                          # noqa
 from ccxt.pro.bitfinex import bitfinex                                    # noqa: F401
 from ccxt.pro.bitget import bitget                                        # noqa: F401
 from ccxt.pro.bithumb import bithumb                                      # noqa: F401
-from ccxt.pro.bitmex import bitmex                                        # noqa: F401
 from ccxt.pro.bitopro import bitopro                                      # noqa: F401
 from ccxt.pro.bitrue import bitrue                                        # noqa: F401
 from ccxt.pro.bitstamp import bitstamp                                    # noqa: F401
@@ -149,7 +148,6 @@ exchanges = [
     'bitfinex',
     'bitget',
     'bithumb',
-    'bitmex',
     'bitopro',
     'bitrue',
     'bitstamp',
