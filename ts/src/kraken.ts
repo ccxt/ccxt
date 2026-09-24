@@ -595,7 +595,7 @@ export default class kraken extends Exchange {
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const promises: List = [];
         promises.push (this.publicGetAssetPairs (params));
-        if (this.options['adjustForTimeDifference'] === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference') === true) {
             promises.push (this.loadTimeDifference ());
         }
         const responses = await Promise.all (promises);
@@ -3723,7 +3723,7 @@ export default class kraken extends Exchange {
     }
 
     override nonce (): number {
-        return this.milliseconds () - this.options['timeDifference'];
+        return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

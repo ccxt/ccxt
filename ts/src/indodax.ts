@@ -313,7 +313,7 @@ export default class indodax extends Exchange {
     }
 
     override nonce (): number {
-        return this.milliseconds () - this.options['timeDifference'];
+        return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
     /**
