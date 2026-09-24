@@ -129,7 +129,10 @@ class grvt extends \ccxt\async\grvt {
             'params' => $request,
             'id' => $this->request_id(),
         );
-        $apiPart = $publicOrPrivate ? 'publicMarket' : 'privateTrading';
+        $apiPart = 'privateTrading';
+        if ($publicOrPrivate) {
+            $apiPart = 'publicMarket';
+        }
         return Async\await($this->watch_multiple($this->urls['api']['ws'][$apiPart], $messageHashes, $payload, $rawHashes));
     }
 
@@ -454,7 +457,7 @@ class grvt extends \ccxt\async\grvt {
         $rawHashes = array();
         $messageHashes = array();
         for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-            $data = $symbolsAndTimeframes[$i];
+            $data = $this->safe_list($symbolsAndTimeframes, $i);
             $symbolString = $this->safe_string($data, 0);
             $market = $this->market($symbolString);
             $marketId = $market['id'];

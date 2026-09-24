@@ -810,7 +810,11 @@ public class Ndax extends NdaxApi
         String id = this.safeString(rawCurrency, "ProductId");
         String code = this.safeCurrencyCode(this.safeString(rawCurrency, "Product"));
         String ProductType = this.safeString(rawCurrency, "ProductType");
-        String type = (((java.util.Objects.equals(ProductType, "NationalCurrency")))) ? "fiat" : "crypto";
+        String type = "crypto";
+        if (java.util.Objects.equals(ProductType, "NationalCurrency"))
+        {
+            type = "fiat";
+        }
         if (java.util.Objects.equals(ProductType, "Unknown"))
         {
             // such currency is just a blanket entry
@@ -1749,7 +1753,7 @@ public class Ndax extends NdaxApi
         }};
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
-            Object balance = Helpers.GetValue(response, i);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i);
             String currencyId = this.safeString(balance, "ProductId");
             if ((!java.util.Objects.equals(currencyId, null)) && (!java.util.Objects.equals(this.currencies_by_id, null)) && (((Map<?, ?>)this.currencies_by_id).containsKey(currencyId)))
             {
@@ -1846,7 +1850,7 @@ public class Ndax extends NdaxApi
         return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseLedgerEntryType(Object type)
+    public Object parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "Trade", "trade" );
@@ -3067,7 +3071,7 @@ public class Ndax extends NdaxApi
             //         "DepositInfo":"[\"0x8A27564b5c30b91C93B1591821642420F323a210\"]"
             //     }
             //
-            return this.parseDepositAddress(response, currency);
+            return this.parseDepositAddress((Map<String, Object>) (response), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -3084,7 +3088,7 @@ public class Ndax extends NdaxApi
         return this.fetchDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseDepositAddress(Object depositAddress, Map<String, Object> currency)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         //
         // fetchDepositAddress, createDepositAddress
@@ -3122,7 +3126,7 @@ public class Ndax extends NdaxApi
             put( "tag", tag );
         }};
     }
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Object... optionalArgs)
     {
         return this.parseDepositAddress(depositAddress, Helpers.getArgMap(optionalArgs, 0, null));
     }

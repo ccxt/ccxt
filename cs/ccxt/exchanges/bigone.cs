@@ -671,7 +671,7 @@ public partial class bigone : Exchange
         parameters ??= new Dictionary<string, object>();
         List<object> promises = new List<object> {this.publicGetAssetPairs(parameters), this.contractPublicGetSymbols(parameters)};
         List<object> promisesResult = await promiseAll(promises);
-        object response = getValue(promisesResult, 0);
+        IDictionary<string, object> response = this.safeDict(promisesResult, 0);
         object contractResponse = getValue(promisesResult, 1);
         //
         //     {
@@ -899,7 +899,11 @@ public partial class bigone : Exchange
         //        "openInterest": 1141372.0
         //    }
         //
-        string marketType = ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("asset_pair_name"))) ? "spot" : "swap";
+        string marketType = "swap";
+        if ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("asset_pair_name")))
+        {
+            marketType = "spot";
+        }
         string? marketId = this.safeString2(ticker, "asset_pair_name", "symbol");
         string? symbol = this.safeSymbol(marketId, market, "-", marketType);
         string? close = this.safeString2(ticker, "close", "latestPrice");
@@ -1529,7 +1533,7 @@ public partial class bigone : Exchange
         List<object> balances = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < balances.Count; i++)
         {
-            object balance = balances[i];
+            IDictionary<string, object> balance = this.safeDict(balances, i);
             string? symbol = this.safeString(balance, "asset_symbol");
             string? code = this.safeCurrencyCode(symbol);
             Dictionary<string, object> account = this.account();
@@ -1731,7 +1735,11 @@ public partial class bigone : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         bool isBuy = ((side == "buy"));
-        string requestSide = isBuy ? "BID" : "ASK";
+        string requestSide = "ASK";
+        if (isBuy)
+        {
+            requestSide = "BID";
+        }
         string uppercaseType = type.ToUpper();
         bool isLimit = uppercaseType == "LIMIT";
         bool? exchangeSpecificParam = this.safeBool(parameters, "post_only", false);
@@ -2309,7 +2317,11 @@ public partial class bigone : Exchange
         string? txid = this.safeString(transaction, "txid");
         string? address = this.safeString(transaction, "target_address");
         string? tag = this.safeString(transaction, "memo");
-        string type = ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("customer_id"))) ? "withdrawal" : "deposit";
+        string type = "deposit";
+        if ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("customer_id")))
+        {
+            type = "withdrawal";
+        }
         bool? intern = this.safeBool(transaction, "is_internal");
         return new Dictionary<string, object>() {
             { "info", transaction },

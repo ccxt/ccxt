@@ -1515,8 +1515,8 @@ class bybit(Exchange, ImplicitAPI):
                 return [self.options['enableUnifiedMargin'], self.options['enableUnifiedAccount']]
             rawPromises = [self.privateGetV5UserQueryApi(params), self.privateGetV5AccountInfo(params)]
             promises = await asyncio.gather(*rawPromises)
-            response = promises[0]
-            accountInfo = promises[1]
+            response = self.safe_dict(promises, 0)
+            accountInfo = self.safe_dict(promises, 1)
             #
             #     {
             #         "retCode": 0,
@@ -1763,7 +1763,7 @@ class bybit(Exchange, ImplicitAPI):
         eta = None
         url = None
         for i in range(0, len(list)):
-            event = list[i]
+            event = self.safe_dict(list, i)
             state = self.safe_string(event, 'state')
             if state == 'ongoing':
                 status = 'maintenance'
@@ -2177,7 +2177,9 @@ class bybit(Exchange, ImplicitAPI):
             id = self.safe_string(market, 'symbol')
             baseId = self.safe_string(market, 'baseCoin')
             quoteId = self.safe_string(market, 'quoteCoin')
-            defaultSettledId = quoteId if linear else baseId
+            defaultSettledId = baseId
+            if linear:
+                defaultSettledId = quoteId
             settleId = self.safe_string(market, 'settleCoin', defaultSettledId)
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
@@ -2487,7 +2489,9 @@ class bybit(Exchange, ImplicitAPI):
         isSpot = self.safe_string(ticker, 'openInterestValue') is None
         timestamp = self.safe_integer(ticker, 'time')
         marketId = self.safe_string(ticker, 'symbol')
-        type = 'spot' if isSpot else 'contract'
+        type = 'contract'
+        if isSpot:
+            type = 'spot'
         market = self.safe_market(marketId, market, None, type)
         symbol = self.safe_symbol(marketId, market, None, type)
         last = self.safe_string(ticker, 'lastPrice')
@@ -2751,7 +2755,7 @@ class bybit(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1000)
         market = self.market(symbol)
@@ -2992,7 +2996,7 @@ class bybit(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, params, 200)
         if limit is None:
@@ -3212,7 +3216,9 @@ class bybit(Exchange, ImplicitAPI):
         #
         id = self.safe_string_n(trade, ['execId', 'id', 'tradeId'])
         marketId = self.safe_string(trade, 'symbol')
-        marketType = 'contract' if ('createType' in trade) else 'spot'
+        marketType = 'spot'
+        if 'createType' in trade:
+            marketType = 'contract'
         category = self.safe_string(trade, 'category')
         if category is not None:
             marketType = 'spot' if (category == 'spot') else 'contract'
@@ -3527,13 +3533,13 @@ class bybit(Exchange, ImplicitAPI):
             result[code] = account
         else:
             for i in range(0, len(currencyList)):
-                entry = currencyList[i]
+                entry = self.safe_dict(currencyList, i)
                 accountType = self.safe_string(entry, 'accountType')
                 if accountType == 'UNIFIED' or accountType == 'CONTRACT' or accountType == 'SPOT':
                     coins = self.safe_list(entry, 'coin', [])
                     for j in range(0, len(coins)):
                         account = self.account()
-                        coinEntry = coins[j]
+                        coinEntry = self.safe_dict(coins, j)
                         loan = self.safe_string(coinEntry, 'borrowAmount')
                         interest = self.safe_string(coinEntry, 'accruedInterest')
                         if (loan is not None) and (interest is not None):
@@ -3873,7 +3879,9 @@ class bybit(Exchange, ImplicitAPI):
         if code is not None:
             if code != '0':
                 category = self.safe_string(order, 'category')
-                inferredMarketType = 'spot' if (category == 'spot') else 'contract'
+                inferredMarketType = 'contract'
+                if category == 'spot':
+                    inferredMarketType = 'spot'
                 return self.safe_order({
                     'info': order,
                     'status': 'rejected',
@@ -4262,13 +4270,15 @@ class bybit(Exchange, ImplicitAPI):
             # classic accounts
             # for market buy it requires the amount of quote currency to spend
             createMarketBuyOrderRequiresPrice = True
-            createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice')
+            createMarketBuyOrderRequiresPrice, params = self.handle_option_bool_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', False)
             if createMarketBuyOrderRequiresPrice:
                 if (price is None) and (cost is None):
                     raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
                 else:
                     quoteAmount = Precise.string_mul(self.number_to_string(amount), priceString)
-                    costRequest = cost if (cost is not None) else quoteAmount
+                    costRequest = quoteAmount
+                    if cost is not None:
+                        costRequest = cost
                     request['qty'] = self.get_cost(symbol, costRequest)
             else:
                 if cost is not None:
@@ -4360,7 +4370,7 @@ class bybit(Exchange, ImplicitAPI):
         ordersRequests = []
         orderSymbols = []
         for i in range(0, len(orders)):
-            rawOrder = orders[i]
+            rawOrder = self.safe_dict(orders, i)
             marketId = self.safe_string(rawOrder, 'symbol')
             orderSymbols.append(marketId)
             type = self.safe_string(rawOrder, 'type')
@@ -4564,7 +4574,7 @@ class bybit(Exchange, ImplicitAPI):
         ordersRequests = []
         orderSymbols = []
         for i in range(0, len(orders)):
-            rawOrder = orders[i]
+            rawOrder = self.safe_dict(orders, i)
             symbol = self.safe_string(rawOrder, 'symbol')
             orderSymbols.append(symbol)
             id = self.safe_string(rawOrder, 'id')
@@ -4829,7 +4839,7 @@ class bybit(Exchange, ImplicitAPI):
         ordersRequests = []
         category = None
         for i in range(0, len(orders)):
-            order = orders[i]
+            order = self.safe_dict(orders, i)
             symbol = self.safe_string(order, 'symbol')
             market = self.market(symbol)
             currentCategory = None
@@ -5017,7 +5027,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if not isUnifiedAccount:
             return await self.fetch_order_classic(id, symbol, params)
         acknowledge = False
-        acknowledge, params = self.handle_option_and_params(params, 'fetchOrder', 'acknowledged')
+        acknowledge, params = self.handle_option_bool_and_params(params, 'fetchOrder', 'acknowledged', False)
         if not acknowledge:
             raise ArgumentsRequired(self.id + ' fetchOrder() can only access an order if it is in last 500 orders (of any status) for your account. Set params["acknowledged"] = True to hide self warning. Alternatively, we suggest to use fetchOpenOrder or fetchClosedOrder')
         market = self.market(symbol)
@@ -5088,7 +5098,9 @@ classic accounts only/ spot not supported*  fetches information on an order made
         # see https://github.com/ccxt/ccxt/pull/29602
         innerListLength = len(innerList)
         if innerListLength == 0:
-            extra = '' if (isTrigger is True) else ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = True'
+            extra = ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = True'
+            if isTrigger is True:
+                extra = ''
             raise OrderNotFound('Order ' + str(id) + ' was not found.' + extra)
         order = self.safe_dict(innerList, 0, {})
         return self.parse_order(order, market)
@@ -5115,7 +5127,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOrdersClassic', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOrdersClassic', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchOrdersClassic', symbol, since, limit, params, 'nextPageCursor', 'cursor', None, 50)
         request = {}
@@ -5281,7 +5293,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchCanceledAndClosedOrders', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchCanceledAndClosedOrders', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchCanceledAndClosedOrders', symbol, since, limit, params, 'nextPageCursor', 'cursor', None, 50)
         request = {}
@@ -5448,7 +5460,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOpenOrders', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchOpenOrders', symbol, since, limit, params, 'nextPageCursor', 'cursor', None, 50)
         request = {}
@@ -5579,7 +5591,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchMyTrades', symbol, since, limit, params, 'nextPageCursor', 'cursor', None, 100)
         request = {
@@ -5641,7 +5653,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         trades = self.add_pagination_cursor_to_result(response)
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "chainType": "ERC20",
@@ -5748,7 +5760,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchDeposits', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchDeposits', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchDeposits', code, since, limit, params, 'nextPageCursor', 'cursor', None, 50)
         request = {
@@ -5813,7 +5825,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchWithdrawals', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchWithdrawals', code, since, limit, params, 'nextPageCursor', 'cursor', None, 50)
         request = {
@@ -5941,7 +5953,9 @@ classic accounts only/ spot not supported*  fetches information on an order made
         updated = self.safe_integer(transaction, 'updateTime')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         feeCost = self.safe_number_2(transaction, 'depositFee', 'withdrawFee')
-        type = 'deposit' if ('depositFee' in transaction) else 'withdrawal'
+        type = 'withdrawal'
+        if 'depositFee' in transaction:
+            type = 'deposit'
         fee = None
         if feeCost is not None:
             fee = {
@@ -5990,7 +6004,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchLedger', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchLedger', code, since, limit, params, 'nextPageCursor', 'cursor', None, 50)
         request = {
@@ -6186,12 +6200,18 @@ classic accounts only/ spot not supported*  fetches information on an order made
         currency = self.safe_currency(currencyId, currency)
         amountString = self.safe_string_2(item, 'amount', 'change')
         afterString = self.safe_string_2(item, 'wallet_balance', 'cashBalance')
-        direction = 'out' if Precise.string_lt(amountString, '0') else 'in'
+        direction = 'in'
+        if Precise.string_lt(amountString, '0'):
+            direction = 'out'
         before = None
         after = None
         amount = None
         if afterString is not None and amountString is not None:
-            difference = amountString if (direction == 'out') else Precise.string_neg(amountString)
+            difference = None
+            if direction == 'out':
+                difference = amountString
+            else:
+                difference = Precise.string_neg(amountString)
             before = self.parse_to_numeric(Precise.string_add(afterString, difference))
             after = self.parse_to_numeric(afterString)
             amount = self.parse_to_numeric(Precise.string_abs(amountString))
@@ -6219,7 +6239,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             },
         }, currency)
 
-    def parse_ledger_entry_type(self, type: object):
+    def parse_ledger_entry_type(self, type: Str):
         types = {
             'Deposit': 'transaction',
             'Withdraw': 'transaction',
@@ -6262,7 +6282,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         accountType = None
         accounts = await self.is_unified_enabled()
         isUta = accounts[1]
-        accountType, params = self.handle_option_and_params(params, 'withdraw', 'accountType')
+        accountType, params = self.handle_option_string_and_params(params, 'withdraw', 'accountType')
         if accountType is None:
             accountType = 'UTA' if (isUta is True) else 'SPOT'
         if self.markets is None:
@@ -6387,7 +6407,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchPositions', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchPositions', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchPositions', symbols, None, None, params, 'nextPageCursor', 'cursor', None, 200)
         symbol = None
@@ -6647,7 +6667,9 @@ classic accounts only/ spot not supported*  fetches information on an order made
             if market['settle'] == 'USDC':
                 #  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
                 useMarkPrice = self.safe_bool(self.options, 'useMarkPriceForPositionCollateral', False)
-                price = markPrice if useMarkPrice else entryPrice
+                price = entryPrice
+                if useMarkPrice:
+                    price = markPrice
                 difference = Precise.string_abs(Precise.string_sub(price, liquidationPrice))
                 collateralString = Precise.string_add(Precise.string_add(Precise.string_mul(difference, size), maintenanceMarginString), unrealisedPnl)
             else:
@@ -6909,7 +6931,9 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        subType = 'linear' if (market['linear'] is True) else 'inverse'
+        subType = 'inverse'
+        if market['linear'] is True:
+            subType = 'linear'
         category = self.safe_string(params, 'category', subType)
         intervals = self.safe_dict(self.options, 'intervals')
         interval = self.safe_string(intervals, timeframe)  # 5min,15min,30min,1h,4h,1d
@@ -6985,7 +7009,9 @@ classic accounts only/ spot not supported*  fetches information on an order made
         interval = self.safe_string(intervals, timeframe)  # 5min,15min,30min,1h,4h,1d
         if interval is None:
             raise BadRequest(self.id + ' fetchOpenInterest() cannot use the ' + timeframe + ' timeframe')
-        subType = 'linear' if (market['linear'] is True) else 'inverse'
+        subType = 'inverse'
+        if market['linear'] is True:
+            subType = 'linear'
         category = self.safe_string(params, 'category', subType)
         request = {
             'symbol': market['id'],
@@ -7359,7 +7385,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchTransfers', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchTransfers', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchTransfers', code, since, limit, params, 'nextPageCursor', 'cursor', None, 50)
         currency = None
@@ -7468,7 +7494,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'amount': amount,
         })
 
-    def parse_margin_loan(self, info: object, currency: Currency = None) -> MarginLoan:
+    def parse_margin_loan(self, info: dict, currency: Currency = None) -> MarginLoan:
         #
         # borrowCrossMargin
         #
@@ -7609,7 +7635,9 @@ classic accounts only/ spot not supported*  fetches information on an order made
         #     }
         #
         marketId = self.safe_string(fee, 'symbol')
-        defaultType = market['type'] if (market is not None) else 'contract'
+        defaultType = 'contract'
+        if market is not None:
+            defaultType = market['type']
         symbol = self.safe_symbol(marketId, market, None, defaultType)
         return {
             'info': fee,
@@ -7743,7 +7771,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         }
         if chainsLength != 0:
             for i in range(0, chainsLength):
-                chain = chains[i]
+                chain = self.safe_dict(chains, i)
                 networkId = self.safe_string(chain, 'chain')
                 currencyCode = self.safe_string(currency, 'code')
                 networkCode = self.network_id_to_code(networkId, currencyCode)
@@ -7918,7 +7946,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         sorted = self.sort_by(settlements, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
 
-    def parse_settlement(self, settlement: dict, market: object) -> dict:
+    def parse_settlement(self, settlement: dict, market: Market) -> dict:
         #
         # fetchSettlementHistory
         #
@@ -7951,7 +7979,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'datetime': self.iso8601(timestamp),
         }
 
-    def parse_settlements(self, settlements: list[object], market: object) -> list:
+    def parse_settlements(self, settlements: list[object], market: Market) -> list:
         #
         # fetchSettlementHistory
         #
@@ -8029,7 +8057,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         #
         result = []
         for i in range(0, len(volatility)):
-            entry = volatility[i]
+            entry = self.safe_dict(volatility, i)
             timestamp = self.safe_integer(entry, 'time')
             result.append({
                 'info': volatility,
@@ -8248,7 +8276,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchMyLiquidations', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchMyLiquidations', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchMyLiquidations', symbol, since, limit, params, 'nextPageCursor', 'cursor', None, 100)
         request = {
@@ -8365,7 +8393,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if symbol is not None:
             market = self.market(symbol)
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'getLeverageTiersPaginated', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'getLeverageTiersPaginated', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('getLeverageTiersPaginated', symbol, None, None, params, 'nextPageCursor', 'cursor', None, 100)
         subType = None
@@ -8458,7 +8486,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         #
         tiers = []
         for i in range(0, len(info)):
-            tier = info[i]
+            tier = self.safe_dict(info, i)
             marketId = self.safe_string(info, 'symbol')
             market = self.safe_market(marketId)
             minNotional = self.parse_number('0')
@@ -8492,7 +8520,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingHistory', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchFundingHistory', symbol, since, limit, params, 'nextPageCursor', 'cursor', None, 100)
         request = {
@@ -8518,7 +8546,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         fundings = self.add_pagination_cursor_to_result(response)
         return self.parse_incomes(fundings, market, since, limit)
 
-    def parse_income(self, income: object, market: Market = None) -> object:
+    def parse_income(self, income: dict, market: Market = None) -> object:
         #
         # {
         #     "symbol": "XMRUSDT",
@@ -8841,7 +8869,9 @@ classic accounts only/ spot not supported*  fetches information on an order made
         accountType = None
         enableUnifiedMargin, enableUnifiedAccount = await self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin is True) or (enableUnifiedAccount is True)
-        accountTypeDefault = 'eb_convert_uta' if isUnifiedAccount else 'eb_convert_spot'
+        accountTypeDefault = 'eb_convert_spot'
+        if isUnifiedAccount:
+            accountTypeDefault = 'eb_convert_uta'
         accountType, params = self.handle_option_string_and_params(params, 'fetchConvertCurrencies', 'accountType', accountTypeDefault)
         request = {
             'accountType': accountType,
@@ -8939,7 +8969,9 @@ classic accounts only/ spot not supported*  fetches information on an order made
         accountType = None
         enableUnifiedMargin, enableUnifiedAccount = await self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin is True) or (enableUnifiedAccount is True)
-        accountTypeDefault = 'eb_convert_uta' if isUnifiedAccount else 'eb_convert_spot'
+        accountTypeDefault = 'eb_convert_spot'
+        if isUnifiedAccount:
+            accountTypeDefault = 'eb_convert_uta'
         accountType, params = self.handle_option_string_and_params(params, 'fetchConvertQuote', 'accountType', accountTypeDefault)
         request = {
             'fromCoin': fromCode,
@@ -9027,7 +9059,9 @@ classic accounts only/ spot not supported*  fetches information on an order made
         accountType = None
         enableUnifiedMargin, enableUnifiedAccount = await self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin is True) or (enableUnifiedAccount is True)
-        accountTypeDefault = 'eb_convert_uta' if isUnifiedAccount else 'eb_convert_spot'
+        accountTypeDefault = 'eb_convert_spot'
+        if isUnifiedAccount:
+            accountTypeDefault = 'eb_convert_uta'
         accountType, params = self.handle_option_string_and_params(params, 'fetchConvertTrade', 'accountType', accountTypeDefault)
         request = {
             'quoteTxId': id,

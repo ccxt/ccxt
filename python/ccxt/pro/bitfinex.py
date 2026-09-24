@@ -462,7 +462,9 @@ class bitfinex(ccxt.async_support.bitfinex):
         #
         numFields = len(trade)
         isPublic = numFields <= 8
-        marketId = self.safe_string(trade, 1) if (not isPublic) else None
+        marketId = None
+        if not isPublic:
+            marketId = self.safe_string(trade, 1)
         market = self.safe_market(marketId, market)
         createdKey = 1 if isPublic else 2
         priceKey = 3 if isPublic else 5
@@ -474,7 +476,9 @@ class bitfinex(ccxt.async_support.bitfinex):
                 type = 'limit'
             elif type.find('MARKET') > -1:
                 type = 'market'
-        orderId = self.safe_string(trade, 3) if (not isPublic) else None
+        orderId = None
+        if not isPublic:
+            orderId = self.safe_string(trade, 3)
         id = self.safe_string(trade, 0)
         timestamp = self.safe_integer(trade, createdKey)
         price = self.safe_string(trade, priceKey)
@@ -663,7 +667,7 @@ class bitfinex(ccxt.async_support.bitfinex):
             else:
                 deltas = message[1]
                 for i in range(0, len(deltas)):
-                    delta = deltas[i]
+                    delta = self.safe_list(deltas, i)
                     amount = self.safe_number(delta, 2)
                     if amount is None:
                         continue

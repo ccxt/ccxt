@@ -952,7 +952,7 @@ class deepcoin(Exchange, ImplicitAPI):
         }
         balances = self.safe_list(response, 'data', [])
         for i in range(0, len(balances)):
-            balance = balances[i]
+            balance = self.safe_dict(balances, i)
             symbol = self.safe_string(balance, 'ccy')
             code = self.safe_currency_code(symbol)
             account = self.account()
@@ -1183,7 +1183,7 @@ class deepcoin(Exchange, ImplicitAPI):
                     address = entry
         return address
 
-    def parse_deposit_address(self, response: object, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, response: dict, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "chain": "TRC20",
@@ -1292,7 +1292,9 @@ class deepcoin(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(item, 'ts')
         change = self.safe_string(item, 'balChg')
         amount = Precise.string_abs(change)
-        direction = 'out' if Precise.string_lt(change, '0') else 'in'
+        direction = 'in'
+        if Precise.string_lt(change, '0'):
+            direction = 'out'
         currencyId = self.safe_string(item, 'ccy')
         currency = self.safe_currency(currencyId, currency)
         type = self.safe_string(item, 'type')
@@ -1819,7 +1821,7 @@ class deepcoin(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchCanceledAndClosedOrders', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchCanceledAndClosedOrders', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchCanceledAndClosedOrders', symbol, since, limit, params)
         trigger = self.safe_bool(params, 'trigger', False)
@@ -2753,7 +2755,7 @@ class deepcoin(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params)
         market = None

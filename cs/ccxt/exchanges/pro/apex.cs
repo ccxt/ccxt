@@ -563,7 +563,7 @@ public partial class apex : ccxt.apex
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbolsAndTimeframes); i++)
         {
-            object data = getValue(symbolsAndTimeframes, i);
+            List<object> data = this.safeList(symbolsAndTimeframes, i);
             object symbolString = this.safeString(data, 0);
             Dictionary<string, object> market = this.market(symbolString);
             symbolString = (market != null && market.ContainsKey("id2") ? market["id2"] : null);
@@ -616,7 +616,11 @@ public partial class apex : ccxt.apex
         string? timeframe = this.findTimeframe(timeframeId);
         string? marketId = this.safeString(topicParts, (topicLength - 1));
         bool isSpot = ((string)client.url).IndexOf("spot", StringComparison.Ordinal) > -1;
-        string marketType = isSpot ? "spot" : "contract";
+        string marketType = "contract";
+        if (isSpot)
+        {
+            marketType = "spot";
+        }
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         if (!(inOp(this.ohlcvs, symbol)))

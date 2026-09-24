@@ -543,7 +543,7 @@ public partial class binance : PredictionExchange
             int responseLength = (response?.Count ?? 0);
             for (int i = 0; i < responseLength; i++)
             {
-                object rawTopic = getValue(response, i);
+                IDictionary<string, object> rawTopic = this.safeDict(response, i);
                 string? topicId = this.safeString(rawTopic, "marketTopicId");
                 if ((topicId != null))
                 {
@@ -731,7 +731,7 @@ public partial class binance : PredictionExchange
         int rawOutcomesLength = (rawOutcomes?.Count ?? 0);
         for (int oi = 0; oi < rawOutcomesLength; oi++)
         {
-            object rawOutcome = getValue(rawOutcomes, oi);
+            IDictionary<string, object> rawOutcome = this.safeDict(rawOutcomes, oi);
             string? label = this.safeStringUpper(rawOutcome, "name");
             string? tokenId = this.safeString(rawOutcome, "tokenId");
             string? outcomeHandle = ((string)add(add(marketSymbol, ":"), label));
@@ -1055,7 +1055,7 @@ public partial class binance : PredictionExchange
         List<object> balances = this.safeList(response, "items", new List<object>() {});
         for (int i = 0; i < balances.Count; i++)
         {
-            object balance = balances[i];
+            IDictionary<string, object> balance = this.safeDict(balances, i);
             string? accountType = this.safeString(balance, "accountType");
             if (isEqual(accountType, type))
             {
@@ -1190,8 +1190,8 @@ public partial class binance : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         object maxEntriesPerRequest = null;
         IList<object> maxEntriesPerRequestparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOpenOrders", "maxEntriesPerRequest", 100);
@@ -1283,8 +1283,8 @@ public partial class binance : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         object maxEntriesPerRequest = null;
         IList<object> maxEntriesPerRequestparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrders", "maxEntriesPerRequest", 100);
@@ -1573,8 +1573,8 @@ public partial class binance : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         object maxEntriesPerRequest = null;
         IList<object> maxEntriesPerRequestparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "maxEntriesPerRequest", 100);
@@ -2070,7 +2070,7 @@ public partial class binance : PredictionExchange
             string failedDetails = "";
             for (int i = 0; i < failedOrdersLength; i++)
             {
-                object failedOrder = getValue(failedOrders, i);
+                IDictionary<string, object> failedOrder = this.safeDict(failedOrders, i);
                 string? failedOrderId = this.safeString(failedOrder, "orderId");
                 string? failedReason = this.safeString(failedOrder, "reason");
                 if (i > 0)

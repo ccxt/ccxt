@@ -742,7 +742,10 @@ class woofipro extends \ccxt\async\woofipro {
             Async\await($this->load_markets());
         }
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
-        $topic = ($trigger === true) ? 'algoexecutionreport' : 'executionreport';
+        $topic = 'executionreport';
+        if ($trigger === true) {
+            $topic = 'algoexecutionreport';
+        }
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         $messageHash = $topic;
         if ($symbol !== null) {
@@ -784,7 +787,10 @@ class woofipro extends \ccxt\async\woofipro {
             Async\await($this->load_markets());
         }
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
-        $topic = ($trigger === true) ? 'algoexecutionreport' : 'executionreport';
+        $topic = 'executionreport';
+        if ($trigger === true) {
+            $topic = 'algoexecutionreport';
+        }
         $params = $this->omit($params, 'stop');
         $messageHash = 'myTrades';
         if ($symbol !== null) {
@@ -1334,7 +1340,7 @@ class woofipro extends \ccxt\async\woofipro {
         $this->balance['datetime'] = $this->iso8601($ts);
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            $value = $balances[$key];
+            $value = $this->safe_dict($balances, $key);
             $code = $this->safe_currency_code($key);
             $account = $this->account();
             if (($code !== null) && (is_array($this->balance) && array_key_exists($code ?? '', $this->balance))) {

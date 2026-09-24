@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.htx import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, ADL, Balances, BorrowInterest, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, FundingHistory, Int, IsolatedBorrowRate, IsolatedBorrowRates, LastPrice, LastPrices, LedgerEntry, LeverageTier, LeverageTiers, Liquidation, MarginLoan, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Account, ADL, Balances, BorrowInterest, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, FundingHistory, Int, IsolatedBorrowRate, IsolatedBorrowRates, LastPrice, LastPrices, LedgerEntry, LeverageTier, LeverageTiers, Liquidation, MarginLoan, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, FundingRateHistory, MarketInterface, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -1885,7 +1885,11 @@ class htx(Exchange, ImplicitAPI):
             contractType = self.safe_string(info, 'contract_type')
             contractSuffix = self.safe_string(futuresCharsMaps, contractType)
             # see comment on formats a bit above
-            constructedId = market['base'] + '-' + market['quote'] + '-' + contractSuffix if (market['linear'] is True) else market['base'] + '_' + contractSuffix
+            constructedId = None
+            if market['linear'] is True:
+                constructedId = market['base'] + '-' + market['quote'] + '-' + contractSuffix
+            else:
+                constructedId = market['base'] + '_' + contractSuffix
             if constructedId == symbolOrMarketId:
                 symbol = market['symbol']
                 self.options['futureMarketIdsForSymbols'][symbolOrMarketId] = symbol
@@ -2279,7 +2283,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_list(tick, 'data', [])
         return self.parse_last_prices(data, symbols)
 
-    def parse_last_price(self, entry: object, market: Market = None) -> LastPrice:
+    def parse_last_price(self, entry: dict, market: Market = None) -> LastPrice:
         # example responses are documented in fetchLastPrices
         marketId = self.safe_string_2(entry, 'symbol', 'contract_code')
         market = self.safe_market(marketId, market)
@@ -2611,7 +2615,7 @@ class htx(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params)
         market = None
@@ -2774,7 +2778,7 @@ class htx(Exchange, ImplicitAPI):
         #
         trades = self.safe_value(response, 'data')
         if not isinstance(trades, list):
-            trades = self.safe_value(trades, 'trades')
+            trades = self.safe_list(trades, 'trades')
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = 1000, params: dict = {}) -> list[Trade]:
@@ -2895,7 +2899,7 @@ class htx(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1000)
         market = self.market(symbol)
@@ -3072,7 +3076,7 @@ class htx(Exchange, ImplicitAPI):
         if symbol is not None:
             marketId = self.market_id(symbol)
         for i in range(0, len(accounts)):
-            account = accounts[i]
+            account = self.safe_dict(accounts, i)
             info = self.safe_dict(account, 'info')
             subtype = self.safe_string(info, 'subtype')
             typeFromAccount = self.safe_string(account, 'type')
@@ -3143,7 +3147,9 @@ class htx(Exchange, ImplicitAPI):
         currencyId = self.safe_string(rawCurrency, 'currency')
         code = self.safe_currency_code(currencyId)
         assetType = self.safe_string(rawCurrency, 'assetType')
-        type = 'crypto' if (assetType == '1') else 'fiat'
+        type = 'fiat'
+        if assetType == '1':
+            type = 'crypto'
         if code is not None:
             self.options['networkChainIdsByNames'][code] = {}
         chains = self.safe_list(rawCurrency, 'chains', [])
@@ -3438,7 +3444,7 @@ class htx(Exchange, ImplicitAPI):
         if isMultiAssetMode or (linear and (swap or future)):
             details = self.safe_list(data, 'details', [])
             for i in range(0, len(details)):
-                balance = details[i]
+                balance = self.safe_dict(details, i)
                 currencyId = self.safe_string(balance, 'currency')
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
@@ -3450,7 +3456,7 @@ class htx(Exchange, ImplicitAPI):
         elif spot or margin:
             if isolated:
                 for i in range(0, len(data)):
-                    entry = data[i]
+                    entry = self.safe_dict(data, i)
                     balances = self.safe_value(entry, 'list')
                     subResult = {}
                     for j in range(0, len(balances)):
@@ -3475,7 +3481,7 @@ class htx(Exchange, ImplicitAPI):
                 result = self.safe_balance(result)
         elif inverse:
             for i in range(0, len(data)):
-                balance = data[i]
+                balance = self.safe_dict(data, i)
                 currencyId = self.safe_string(balance, 'symbol')
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
@@ -3689,7 +3695,7 @@ class htx(Exchange, ImplicitAPI):
         #
         order = self.safe_value(response, 'data')
         if isinstance(order, list):
-            order = self.safe_value(order, 0)
+            order = self.safe_dict(order, 0)
         return self.parse_order(order, market)
 
     def parse_margin_balance_helper(self, balance: dict, code: str, result: dict):
@@ -4007,7 +4013,7 @@ class htx(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchCanceledOrders', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchCanceledOrders', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchCanceledOrders', symbol, since, limit, params, 100)
         market = None
@@ -4058,7 +4064,7 @@ class htx(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchClosedOrders', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchClosedOrders', symbol, since, limit, params, 100)
         market = None
@@ -4840,7 +4846,9 @@ class htx(Exchange, ImplicitAPI):
             if orderType in stopOrderTypes:
                 raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice for a trigger order')
         else:
-            defaultOperator = 'lte' if (side == 'sell') else 'gte'
+            defaultOperator = 'gte'
+            if side == 'sell':
+                defaultOperator = 'lte'
             stopOperator = self.safe_string(params, 'operator', defaultOperator)
             request['stop-price'] = self.price_to_precision(symbol, triggerPrice)
             request['operator'] = stopOperator
@@ -5276,7 +5284,7 @@ class htx(Exchange, ImplicitAPI):
         market = None
         marginMode = None
         for i in range(0, len(orders)):
-            rawOrder = orders[i]
+            rawOrder = self.safe_dict(orders, i)
             marketId = self.safe_string(rawOrder, 'symbol')
             if symbol is None:
                 symbol = marketId
@@ -5962,7 +5970,7 @@ class htx(Exchange, ImplicitAPI):
         #
         return response
 
-    def parse_deposit_address(self, depositAddress: object, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None):
         #
         #     {
         #         "currency": "usdt",
@@ -6678,7 +6686,7 @@ class htx(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, params, 'current_page', 'page_index', 1, 50)
         if self.markets is None:
@@ -7013,7 +7021,7 @@ class htx(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         interest = self.parse_borrow_interests(data, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
@@ -7060,7 +7068,9 @@ class htx(Exchange, ImplicitAPI):
         #   }
         #
         marketId = self.safe_string(info, 'symbol')
-        marginMode = 'cross' if (marketId is None) else 'isolated'
+        marginMode = 'isolated'
+        if marketId is None:
+            marginMode = 'cross'
         market = self.safe_market(marketId)
         symbol = self.safe_string(market, 'symbol')
         timestamp = self.safe_integer(info, 'accrued-at')
@@ -7402,7 +7412,7 @@ class htx(Exchange, ImplicitAPI):
             raise NullResponse(self.id + ' setLeverage() returned empty response')
         return response
 
-    def parse_income(self, income: object, market: Market = None) -> dict:
+    def parse_income(self, income: dict, market: Market = None) -> dict:
         #
         #     {
         #       "id": "1667161118",
@@ -7509,7 +7519,9 @@ class htx(Exchange, ImplicitAPI):
         entryPrice = self.safe_number_2(position, 'cost_open', 'open_avg_price')
         initialMargin = self.safe_string_2(position, 'position_margin', 'initial_margin')
         rawSide = self.safe_string(position, 'direction')
-        directionSide = 'long' if (rawSide == 'buy') else 'short'
+        directionSide = 'short'
+        if rawSide == 'buy':
+            directionSide = 'long'
         rawPositionSide = self.safe_string(position, 'position_side')
         # in one-way mode, "position_side" is "both" and the actual long/short signal is only present in "direction"
         side = directionSide
@@ -7877,7 +7889,7 @@ class htx(Exchange, ImplicitAPI):
         parsed['datetime'] = self.iso8601(timestamp)
         return parsed
 
-    def parse_ledger_entry_type(self, type: object):
+    def parse_ledger_entry_type(self, type: Str):
         types = {
             'trade': 'trade',
             'etf': 'trade',
@@ -7952,7 +7964,7 @@ class htx(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchLedger', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchLedger', code, since, limit, params, 500)
         accountId = await self.fetch_account_id_by_type('spot', None, None, params)
@@ -8059,7 +8071,7 @@ class htx(Exchange, ImplicitAPI):
         tiers = []
         brackets = self.safe_list(info, 'list', [])
         for i in range(0, len(brackets)):
-            item = brackets[i]
+            item = self.safe_dict(brackets, i)
             leverage = self.safe_string(item, 'lever_rate')
             ladders = self.safe_list(item, 'ladders', [])
             for k in range(0, len(ladders)):
@@ -8724,7 +8736,7 @@ class htx(Exchange, ImplicitAPI):
             settlementsLinear = self.parse_settlements(dataLinear, market)
             return self.sort_by(settlementsLinear, 'timestamp')
         data = self.safe_dict(response, 'data')
-        settlementRecord = self.safe_value(data, 'settlement_record')
+        settlementRecord = self.safe_list(data, 'settlement_record')
         settlements = self.parse_settlements(settlementRecord, market)
         return self.sort_by(settlements, 'timestamp')
 
@@ -8816,7 +8828,7 @@ class htx(Exchange, ImplicitAPI):
         code = self.safe_string(currency, 'code')
         result = self.deposit_withdraw_fee(fee)
         for j in range(0, len(chains)):
-            chainEntry = chains[j]
+            chainEntry = self.safe_dict(chains, j)
             networkId = self.safe_string(chainEntry, 'chain')
             withdrawFeeType = self.safe_string(chainEntry, 'withdrawFeeType')
             networkCode = self.network_id_to_code(networkId, code)
@@ -8845,7 +8857,7 @@ class htx(Exchange, ImplicitAPI):
             result = self.assign_default_deposit_withdraw_fees(result, currency)
         return result
 
-    def parse_settlements(self, settlements: object, market: object):
+    def parse_settlements(self, settlements: object, market: MarketInterface):
         #
         # coin-m swap, fetchSettlementHistory
         #
@@ -8896,7 +8908,7 @@ class htx(Exchange, ImplicitAPI):
         #
         result = []
         for i in range(0, len(settlements)):
-            settlement = settlements[i]
+            settlement = self.safe_dict(settlements, i)
             list = self.safe_list(settlement, 'list')
             if market['linear'] is True:
                 parsedSettlement = self.parse_settlement(settlement, market)
@@ -8908,14 +8920,14 @@ class htx(Exchange, ImplicitAPI):
                     'datetime': self.iso8601(timestamp),
                 }
                 for j in range(0, len(list)):
-                    item = list[j]
+                    item = self.safe_dict(list, j)
                     parsedSettlement = self.parse_settlement(item, market)
                     result.append(self.extend(parsedSettlement, timestampDetails))
             else:
                 result.append(self.parse_settlement(settlements[i], market))
         return result
 
-    def parse_settlement(self, settlement: object, market: object):
+    def parse_settlement(self, settlement: dict, market: Market):
         #
         # coin-m swap, fetchSettlementHistory
         #
@@ -9175,7 +9187,9 @@ class htx(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        posMode = 'dual_side' if hedged else 'single_side'
+        posMode = 'single_side'
+        if hedged:
+            posMode = 'dual_side'
         market = None
         if symbol is not None:
             market = self.market(symbol)

@@ -1436,7 +1436,7 @@ class coinsph extends Exchange {
             'datetime' => null,
         );
         for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+            $balance = $this->safe_dict($balances, $i);
             $currencyId = $this->safe_string($balance, 'asset');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -2334,7 +2334,7 @@ class coinsph extends Exchange {
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "coin": "ETH",

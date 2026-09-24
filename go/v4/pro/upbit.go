@@ -377,12 +377,7 @@ func (this *Upbit) HandleOrderBook(client any, message map[string]any) {
 	var asks any = ccxt.GetValue(orderbook, "asks")
 	var data []any = ccxt.SafeListTyped(message, "orderbook_units")
 	for i := 0; i < len(data); i++ {
-		var entry map[string]any = ccxt.MapTyped(func() any {
-			if i >= 0 && i < len(data) {
-				return ccxt.DerefScalar(data[i])
-			}
-			return nil
-		}())
+		var entry map[string]any = ccxt.SafeMapTyped(data, i)
 		var ask_price *float64 = this.SafeFloat(entry, "ask_price")
 		var ask_size *float64 = this.SafeFloat(entry, "ask_size")
 		var bid_price *float64 = this.SafeFloat(entry, "bid_price")
@@ -867,12 +862,7 @@ func (this *Upbit) HandleBalance(client any, message map[string]any) {
 	ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
 	ccxt.AddElementToObject(this.Balance, "datetime", this.Iso8601(timestamp))
 	for i := 0; i < len(data); i++ {
-		var balance map[string]any = ccxt.MapTyped(func() any {
-			if i >= 0 && i < len(data) {
-				return ccxt.DerefScalar(data[i])
-			}
-			return nil
-		}())
+		var balance map[string]any = ccxt.SafeMapTyped(data, i)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var available *string = this.SafeString(balance, "balance")

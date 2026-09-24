@@ -931,7 +931,9 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         params = self.safe_dict(unifiedResult, 1, params)
         dex = self.safe_string(params, 'dex')
         isSpot = ((type == 'spot') or (isUnifiedEnabled is True)) and (dex is None)
-        topic = 'spotState' if (isSpot is True) else 'clearinghouseState'
+        topic = 'clearinghouseState'
+        if isSpot is True:
+            topic = 'spotState'
         messageHash = topic + '::balance'
         url = self.urls['api']['ws']['public']
         subscription = {
@@ -975,7 +977,9 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         params = self.safe_dict(unifiedResult, 1, params)
         dex = self.safe_string(params, 'dex')
         isSpot = ((type == 'spot') or (isUnifiedEnabled is True)) and (dex is None)
-        topic = 'spotState' if (isSpot is True) else 'clearinghouseState'
+        topic = 'clearinghouseState'
+        if isSpot is True:
+            topic = 'spotState'
         messageHash = 'unsubscribe' + ':' + topic
         request = {
             'method': 'unsubscribe',

@@ -1304,8 +1304,8 @@ func (this *Indodax) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
-	var side any = this.SafeValue(params, "side")
-	if IsEqual(side, nil) {
+	var side *string = this.SafeString(params, "side")
+	if side == nil {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires an extra \"side\" param"))
 	}
 	if this.Markets == nil {

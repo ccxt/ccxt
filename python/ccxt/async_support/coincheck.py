@@ -312,7 +312,7 @@ class coincheck(Exchange, ImplicitAPI):
         status = 'ok'
         updated = None
         for i in range(0, len(exchangeStatuses)):
-            exchangeStatus = exchangeStatuses[i]
+            exchangeStatus = self.safe_dict(exchangeStatuses, i)
             rawStatus = self.safe_string(exchangeStatus, 'status')
             if updated is None:
                 updated = self.safe_timestamp(exchangeStatus, 'timestamp')

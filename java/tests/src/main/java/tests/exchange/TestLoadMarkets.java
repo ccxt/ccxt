@@ -37,7 +37,7 @@ public class TestLoadMarkets extends BaseTest {
             TestMarket.testMarket(exchange, skippedProperties, method, (marketValues == null || i < 0 || i >= ((List<?>)marketValues).size() ? null : ((List<?>)marketValues).get(i)));
         }
         // market-type coverage (inlined: a nested helper breaks Java emit into a missing TestLoadedMarketTypes class)
-        List<Object> marketTypes = new ArrayList<Object>(Arrays.asList("spot", "swap", "future", "option", "index"));
+        List<String> marketTypes = new ArrayList<String>(Arrays.asList("spot", "swap", "future", "option", "index"));
         List<Object> collectedTypes = new ArrayList<Object>(Arrays.asList());
         Object allMarkets = Helpers.objectValues(exchange.markets);
         for (var i = 0; i < ((List<?>)allMarkets).size(); i++)

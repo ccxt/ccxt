@@ -470,7 +470,7 @@ class bitvavo extends Exchange {
         $result = array();
         $fees = $this->fees;
         for ($i = 0; $i < count($markets); $i++) {
-            $market = $markets[$i];
+            $market = $this->safe_dict($markets, $i);
             $id = $this->safe_string($market, 'market');
             $baseId = $this->safe_string($market, 'base');
             $quoteId = $this->safe_string($market, 'quote');
@@ -818,7 +818,7 @@ class bitvavo extends Exchange {
         }
         $market = $this->market($symbol);
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchTrades', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchTrades', $symbol, $since, $limit, $params);
         }
@@ -1153,7 +1153,7 @@ class bitvavo extends Exchange {
         }
         $market = $this->market($symbol);
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 1440);
         }
@@ -1176,7 +1176,7 @@ class bitvavo extends Exchange {
             'datetime' => null,
         );
         for ($i = 0; $i < count($response); $i++) {
-            $balance = $response[$i];
+            $balance = $this->safe_dict($response, $i);
             $currencyId = $this->safe_string($balance, 'symbol');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -1562,7 +1562,7 @@ class bitvavo extends Exchange {
             throw new ArgumentsRequired($this->id . ' createOrder() requires an $operatorId in $params or options, eg => exchange.options[\'operatorId\'] = 1234567890');
         }
         $selfTradePrevention = null;
-        list($selfTradePrevention, $params) = $this->handle_option_and_params($params, 'createOrder', 'selfTradePrevention');
+        list($selfTradePrevention, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'selfTradePrevention');
         if ($selfTradePrevention !== null) {
             if ($selfTradePrevention === 'EXPIRE_BOTH') {
                 $request['selfTradePrevention'] = 'cancelBoth';
@@ -1932,7 +1932,7 @@ class bitvavo extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOrders', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchOrders', $symbol, $since, $limit, $params);
         }
@@ -2136,7 +2136,7 @@ class bitvavo extends Exchange {
         }
         $rawTrades = $this->safe_list($order, 'fills', array());
         $timeInForce = $this->safe_string($order, 'timeInForce');
-        $postOnly = $this->safe_value($order, 'postOnly');
+        $postOnly = $this->safe_bool($order, 'postOnly');
         // https://github.com/ccxt/ccxt/issues/8489
         return $this->safe_order(array(
             'info' => $order,
@@ -2204,7 +2204,7 @@ class bitvavo extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params);
         }

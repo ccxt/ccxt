@@ -1042,7 +1042,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         }};
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
-            Object balance = Helpers.GetValue(response, i);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i);
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
@@ -1444,7 +1444,11 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             put( "rate", finalFeeRate );
         }};
         String id = this.safeString(trade, "trade_id");
-        String side = (((java.util.Objects.equals(((Map<String, Object>)trade).get("side"), "buy")))) ? "sell" : "buy";
+        String side = "buy";
+        if (java.util.Objects.equals(((Map<String, Object>)trade).get("side"), "buy"))
+        {
+            side = "sell";
+        }
         String orderId = this.safeString(trade, "order_id");
         // Coinbase Pro returns inverted side to fetchMyTrades vs fetchTrades
         String makerOrderId = this.safeString(trade, "maker_order_id");
@@ -1510,8 +1514,8 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 throw new ArgumentsRequired((this.id + " fetchMyTrades() requires a symbol argument")) ;
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -2109,8 +2113,8 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -2939,13 +2943,13 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
 
     public String parseTransactionStatus(Map<String, Object> transaction)
     {
-        Object canceled = this.safeValue(transaction, "canceled_at");
+        String canceled = this.safeString(transaction, "canceled_at");
         if ((!java.util.Objects.equals(canceled, null)) && (!java.util.Objects.equals(canceled, null)))
         {
             return "canceled";
         }
-        Object processed = this.safeValue(transaction, "processed_at");
-        Object completed = this.safeValue(transaction, "completed_at");
+        String processed = this.safeString(transaction, "processed_at");
+        String completed = this.safeString(transaction, "completed_at");
         if ((!java.util.Objects.equals(completed, null)) && (!java.util.Objects.equals(completed, null)))
         {
             return "ok";

@@ -115,11 +115,11 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             String messageHash = "balance";
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             List<Object> currencies = (List<Object>) this.safeList(this.options, "currencies", new ArrayList<Object>(Arrays.asList()));
-            List<Object> channels = new ArrayList<Object>(Arrays.asList());
+            List<String> channels = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)currencies).size(); i++)
             {
                 Object currencyCode = (currencies == null || i < 0 || i >= currencies.size() ? null : currencies.get(i));
-                ((List<Object>)channels).add(Helpers.add("user.portfolio.", currencyCode));
+                channels.add(Helpers.add("user.portfolio.", currencyCode));
             }
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
@@ -300,11 +300,11 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             {
                 (this.authenticate()).join();
             }
-            List<Object> channels = new ArrayList<Object>(Arrays.asList());
+            List<String> channels = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)(List<String>)(symbols)).size(); i++)
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue((List<String>)(symbols), i));
-                ((List<Object>)channels).add(((("ticker." + ((Map<String, Object>)market).get("id")) + ".") + interval));
+                channels.add(((("ticker." + ((Map<String, Object>)market).get("id")) + ".") + interval));
             }
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
@@ -402,11 +402,11 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             }
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, false));
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            List<Object> channels = new ArrayList<Object>(Arrays.asList());
+            List<String> channels = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)(List<String>)(symbols)).size(); i++)
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue((List<String>)(symbols), i));
-                ((List<Object>)channels).add(("quote." + ((Map<String, Object>)market).get("id")));
+                channels.add(("quote." + ((Map<String, Object>)market).get("id")));
             }
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );

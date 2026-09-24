@@ -855,7 +855,7 @@ class pacifica(Exchange, ImplicitAPI):
         result['USDC'] = usdcAccount
         spotBalances = self.safe_list(data, 'spot_balances', [])
         for i in range(0, len(spotBalances)):
-            balance = spotBalances[i]
+            balance = self.safe_dict(spotBalances, i)
             currencyId = self.safe_string(balance, 'symbol')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -915,7 +915,9 @@ class pacifica(Exchange, ImplicitAPI):
         # }
         isIsolated = self.safe_bool(setting, 'isolated', False)
         leverage = self.safe_integer(setting, 'leverage')
-        marginMode = 'isolated' if (isIsolated is True) else 'cross'
+        marginMode = 'cross'
+        if isIsolated is True:
+            marginMode = 'isolated'
         return {
             'info': setting,
             'symbol': symbol,
@@ -1039,7 +1041,9 @@ class pacifica(Exchange, ImplicitAPI):
         #
         # }
         isIsolated = self.safe_bool(setting, 'isolated', False)
-        marginMode = 'isolated' if (isIsolated is True) else 'cross'
+        marginMode = 'cross'
+        if isIsolated is True:
+            marginMode = 'isolated'
         return {
             'symbol': symbol,
             'marginMode': marginMode,
@@ -1671,7 +1675,7 @@ class pacifica(Exchange, ImplicitAPI):
         actions = []
         timestamp = self.milliseconds()  # unified sequence
         for i in range(0, len(orders)):
-            order = orders[i]
+            order = self.safe_dict(orders, i)
             symbol = self.safe_string(order, 'symbol')
             side = self.safe_string(order, 'side')
             price = self.safe_string(order, 'price')
@@ -1904,7 +1908,9 @@ class pacifica(Exchange, ImplicitAPI):
         # }
         #
         success = self.safe_bool(response, 'success', False)
-        status = 'canceled' if (success is True) else 'closed'
+        status = 'closed'
+        if success is True:
+            status = 'canceled'
         return self.safe_order({'id': id, 'status': status, 'info': response, 'symbol': symbol})
 
     def cancel_order_request(self, id: object, symbol: Str = None, params: dict = {}) -> dict:
@@ -3055,7 +3061,7 @@ class pacifica(Exchange, ImplicitAPI):
         data = self.add_pagination_cursor_to_result(response)
         return self.parse_incomes(data, market, since, limit)
 
-    def parse_income(self, income: object, market: Market = None) -> object:
+    def parse_income(self, income: dict, market: Market = None) -> object:
         #
         #     {
         #       "history_id": 2287920,
@@ -3172,7 +3178,7 @@ class pacifica(Exchange, ImplicitAPI):
         """
         finalHeaders = {}
         agentAddress = None
-        agentAddress, params = self.handle_option_and_params(params, 'createSubAccount', 'agentAddress')
+        agentAddress, params = self.handle_option_string_and_params(params, 'createSubAccount', 'agentAddress')
         originAddress = None
         originAddress, params = self.handle_origin_and_single_address('createSubAccount', params)
         if originAddress is None:
@@ -3180,9 +3186,9 @@ class pacifica(Exchange, ImplicitAPI):
         if agentAddress is not None:
             finalHeaders['agent_wallet'] = agentAddress
         subAccountAddress = None
-        subAccountAddress, params = self.handle_option_and_params(params, 'createSubAccount', 'subAccountAddress')
+        subAccountAddress, params = self.handle_option_string_and_params(params, 'createSubAccount', 'subAccountAddress')
         subAccountPrivateKey = None
-        subAccountPrivateKey, params = self.handle_option_and_params(params, 'createSubAccount', 'subAccountPrivateKey')
+        subAccountPrivateKey, params = self.handle_option_string_and_params(params, 'createSubAccount', 'subAccountPrivateKey')
         if subAccountAddress is None:
             raise ArgumentsRequired(self.id + ' createSubAccount() requires a "subAccountAddress"!')
         if subAccountPrivateKey is None:
@@ -3322,7 +3328,9 @@ class pacifica(Exchange, ImplicitAPI):
 
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
         host = self.implode_hostname(self.urls[urlKey][api])
         url = host + '/api/' + self.version + '/' + self.implode_params(path, params)
         params = self.omit(params, self.extract_params(path))
@@ -3411,7 +3419,7 @@ class pacifica(Exchange, ImplicitAPI):
         signature = self.sign_message(signatureHeader, sigPayload, self.privateKey)
         finalHeaders = {}
         agentAddress = None
-        agentAddress, params = self.handle_option_and_params(params, 'postActionRequest', 'agentAddress')
+        agentAddress, params = self.handle_option_string_and_params(params, 'postActionRequest', 'agentAddress')
         originAddress = None
         originAddress, params = self.handle_origin_and_single_address('postActionRequest', params)
         if originAddress is None:

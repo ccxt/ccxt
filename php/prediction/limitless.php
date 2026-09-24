@@ -296,7 +296,10 @@ class limitless extends Exchange {
         for ($i = 0; $i < count($expandedRaw); $i++) {
             $raw = $expandedRaw[$i];
             $groupId = $this->safe_string_n($raw, array( 'groupSlug', 'groupId' ), $this->safe_string($raw, 'slug'));
-            $eventKey = ($groupId !== null && $groupId !== '') ? $this->shorten_slug($groupId) : null;
+            $eventKey = null;
+            if ($groupId !== null && $groupId !== '') {
+                $eventKey = $this->shorten_slug($groupId);
+            }
             $m = $this->parse_market($raw);
             $markets[] = $m;
             if (($eventKey !== null) && ($eventKey !== '')) {
@@ -825,7 +828,10 @@ class limitless extends Exchange {
         $endDate = $this->safe_string($event, 'deadline', $this->safe_string($event, 'expiresAt'));
         $title = $this->safe_string($event, 'title', $groupId);
         $hasGroupId = ($groupId !== null) && ($groupId !== '');
-        $eventSlug = $hasGroupId ? $this->shorten_slug($groupId) : null;
+        $eventSlug = null;
+        if ($hasGroupId) {
+            $eventSlug = $this->shorten_slug($groupId);
+        }
         $hasEndDate = ($endDate !== null) && ($endDate !== '');
         $endTimestamp = $hasEndDate ? $this->parse8601($endDate) : null;
         $markets = array();
@@ -1316,8 +1322,14 @@ class limitless extends Exchange {
         $rawBids = $this->safe_list($response, 'bids', array());
         $rawAsks = $this->safe_list($response, 'asks', array());
         // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price with bids and asks swapped
-        $bidsSource = ($isYes) ? $rawBids : $rawAsks;
-        $asksSource = ($isYes) ? $rawAsks : $rawBids;
+        $bidsSource = $rawAsks;
+        if ($isYes) {
+            $bidsSource = $rawBids;
+        }
+        $asksSource = $rawBids;
+        if ($isYes) {
+            $asksSource = $rawAsks;
+        }
         $bids = array();
         $asks = array();
         for ($bi = 0; $bi < count($bidsSource); $bi++) {
@@ -1442,7 +1454,7 @@ class limitless extends Exchange {
         // timeframe-aligned candles (single points would carry unaligned timestamps)
         $pseudoTrades = array();
         for ($i = 0; $i < count($history); $i++) {
-            $point = $history[$i];
+            $point = $this->safe_dict($history, $i);
             $pointPrice = $this->safe_number($point, 'price');
             $pointTs = $this->safe_integer($point, 'timestamp');
             if ($pointTs === null) {
@@ -1465,7 +1477,7 @@ class limitless extends Exchange {
         $candles = array();
         $bucketOrder = array();
         for ($i = 0; $i < count($sorted); $i++) {
-            $point = $sorted[$i];
+            $point = $this->safe_dict($sorted, $i);
             $pTs = $this->safe_integer($point, 'timestamp');
             $pPrice = $this->safe_number($point, 'price');
             if ($pTs === null) {
@@ -1900,7 +1912,11 @@ class limitless extends Exchange {
         $rawSide = $this->safe_string($rawOrder, 'side');
         $side = $this->parse_order_side($rawSide);
         $price = $this->safe_string($rawOrder, 'price');
-        $amountKey = ($side === 'buy') ? 'takerAmount' : 'makerAmount'; // todo check
+        // todo check
+        $amountKey = 'makerAmount';
+        if ($side === 'buy') {
+            $amountKey = 'takerAmount';
+        }
         $amount = $this->safe_string($rawOrder, $amountKey);
         $remaining = $this->safe_string($rawOrder, 'remainingSize');
         $datetime = $this->safe_string($rawOrder, 'createdAt');
@@ -2076,8 +2092,16 @@ class limitless extends Exchange {
         // smartWallet field can stay populated after switching to eoa, so key off the option here
         $tradeWalletOption = $this->safe_string($accountInfo, 'tradeWalletOption');
         $usesSmartWallet = ($tradeWalletOption === 'smartWallet');
-        $walletFromAccount = ($usesSmartWallet) ? $this->safe_string($accountInfo, 'smartWallet') : $this->safe_string($accountInfo, 'account');
-        $maker = ($this->walletAddress !== '') ? $this->walletAddress : $walletFromAccount;
+        $walletFromAccount = null;
+        if ($usesSmartWallet) {
+            $walletFromAccount = $this->safe_string($accountInfo, 'smartWallet');
+        } else {
+            $walletFromAccount = $this->safe_string($accountInfo, 'account');
+        }
+        $maker = $walletFromAccount;
+        if ($this->walletAddress !== '') {
+            $maker = $this->walletAddress;
+        }
         list($maker, $params) = $this->handle_option_and_params($params, 'createOrder', 'maker', $maker);
         try {
             $this->check_address($maker);
@@ -2153,7 +2177,7 @@ class limitless extends Exchange {
         $marketSymbol = $this->safe_string($outcomeObj, 'market');
         if ($isMarket && ($side === 'buy')) {
             $createMarketBuyOrderRequiresPrice = true;
-            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_bool_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
             $cost = $this->safe_number($params, 'cost');
             $params = $this->omit($params, 'cost');
             if ($createMarketBuyOrderRequiresPrice) {
@@ -2684,7 +2708,10 @@ class limitless extends Exchange {
             throw new ExchangeError($this->id . ' parsePredictionTrade() missing rawSide');
         }
         $sellIndex = mb_strpos($rawSide, 'sell');
-        $side = ($sellIndex >= 0) ? 'sell' : 'buy';
+        $side = 'buy';
+        if ($sellIndex >= 0) {
+            $side = 'sell';
+        }
         $type = null;
         $takerOrMaker = null;
         if ($rawSide === null) {
@@ -2703,7 +2730,10 @@ class limitless extends Exchange {
         $rawMarket = $this->safe_dict($trade, 'market', array());
         $slug = $this->safe_string($rawMarket, 'slug');
         $outcomeIndex = $this->safe_integer($trade, 'outcomeIndex');
-        $label = ($outcomeIndex === 0) ? 'yes' : 'no';
+        $label = 'no';
+        if ($outcomeIndex === 0) {
+            $label = 'yes';
+        }
         $outcome = $this->get_outcome_by_slug_and_label($slug, $label, $market);
         $tradeOutcome = $this->safe_string($outcome, 'outcome');
         return $this->safe_prediction_trade(array(
@@ -3020,7 +3050,10 @@ class limitless extends Exchange {
         for ($i = 0; $i < $rawMarketsLength; $i++) {
             $raw = $expandedMarkets[$i];
             $groupId = $this->safe_string_n($raw, array( 'groupSlug', 'groupId' ), $this->safe_string($raw, 'slug'));
-            $eventKey = ($groupId !== null && $groupId !== '') ? $this->shorten_slug($groupId) : null;
+            $eventKey = null;
+            if ($groupId !== null && $groupId !== '') {
+                $eventKey = $this->shorten_slug($groupId);
+            }
             $m = $this->parse_market($raw);
             if ($m === null) {
                 throw new ExchangeError($this->id . ' fetchEvents() missing m');
@@ -3133,7 +3166,7 @@ class limitless extends Exchange {
         $categoryIds = array();
         $categoriesLength = count($categories);
         for ($i = 0; $i < $categoriesLength; $i++) {
-            $category = $categories[$i];
+            $category = $this->safe_dict($categories, $i);
             $name = $this->safe_string_lower($category, 'name', '');
             $categoryId = $this->safe_string($category, 'id');
             $matched = false;

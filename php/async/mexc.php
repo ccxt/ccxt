@@ -2728,7 +2728,7 @@ class mexc extends Exchange {
         $ordersRequests = array();
         $symbol = null;
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $marketId = $this->safe_string($rawOrder, 'symbol');
             $market = $this->market($marketId);
             if ($market['spot'] !== true) {
@@ -4082,7 +4082,7 @@ class mexc extends Exchange {
         $result = array( 'info' => $response );
         if ($marketType === 'margin') {
             for ($i = 0; $i < count($wallet); $i++) {
-                $entry = $wallet[$i];
+                $entry = $this->safe_dict($wallet, $i);
                 $base = $this->safe_dict($entry, 'baseAsset', array());
                 $quote = $this->safe_dict($entry, 'quoteAsset', array());
                 $baseCode = $this->safe_currency_code($this->safe_string($base, 'asset'));
@@ -4097,7 +4097,7 @@ class mexc extends Exchange {
             return $this->safe_balance($result);
         } elseif ($marketType === 'swap') {
             for ($i = 0; $i < count($wallet); $i++) {
-                $entry = $wallet[$i];
+                $entry = $this->safe_dict($wallet, $i);
                 $currencyId = $this->safe_string($entry, 'currency');
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
@@ -4110,7 +4110,7 @@ class mexc extends Exchange {
             return $this->safe_balance($result);
         } else {
             for ($i = 0; $i < count($wallet); $i++) {
-                $entry = $wallet[$i];
+                $entry = $this->safe_dict($wallet, $i);
                 $currencyId = $this->safe_string($entry, 'asset');
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
@@ -4991,7 +4991,7 @@ class mexc extends Exchange {
         return $tiers;
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         //
         //    {
         //        coin: "USDT",
@@ -5714,7 +5714,7 @@ class mexc extends Exchange {
             $currency = $this->currency($code);
         }
         $fromAccountType = null;
-        list($fromAccountType, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'fromAccountType');
+        list($fromAccountType, $params) = $this->handle_option_string_and_params($params, 'fetchTransfers', 'fromAccountType');
         $accountTypes = array(
             'spot' => 'SPOT',
             'swap' => 'FUTURES',
@@ -5728,7 +5728,7 @@ class mexc extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a $fromAccountType parameter, one of "SPOT", "FUTURES"');
         }
         $toAccountType = null;
-        list($toAccountType, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'toAccountType');
+        list($toAccountType, $params) = $this->handle_option_string_and_params($params, 'fetchTransfers', 'toAccountType');
         if ($toAccountType !== null) {
             $request['toAccountType'] = $this->safe_string($accountTypes, $toAccountType, $toAccountType);
         } else {
@@ -6186,7 +6186,7 @@ class mexc extends Exchange {
         $networkList = $this->safe_list($transaction, 'networkList', array());
         $result = array();
         for ($j = 0; $j < count($networkList); $j++) {
-            $networkEntry = $networkList[$j];
+            $networkEntry = $this->safe_dict($networkList, $j);
             $networkId = $this->safe_string($networkEntry, 'network');
             $networkCode = $this->safe_string($this->options['networks'], $networkId, $networkId);
             $fee = $this->safe_number($networkEntry, 'withdrawFee');
@@ -6275,7 +6275,7 @@ class mexc extends Exchange {
         $networkList = $this->safe_list($fee, 'networkList', array());
         $result = $this->deposit_withdraw_fee($fee);
         for ($j = 0; $j < count($networkList); $j++) {
-            $networkEntry = $networkList[$j];
+            $networkEntry = $this->safe_dict($networkList, $j);
             $networkId = $this->safe_string($networkEntry, 'network');
             $networkCode = $this->network_id_to_code($networkId, $this->safe_string($currency, 'code'));
             if ($networkCode !== null) {
@@ -6355,7 +6355,7 @@ class mexc extends Exchange {
         $longLeverage = null;
         $shortLeverage = null;
         for ($i = 0; $i < count($leverage); $i++) {
-            $entry = $leverage[$i];
+            $entry = $this->safe_dict($leverage, $i);
             $openType = $this->safe_integer($entry, 'openType');
             $positionType = $this->safe_integer($entry, 'positionType');
             if ($positionType === 1) {

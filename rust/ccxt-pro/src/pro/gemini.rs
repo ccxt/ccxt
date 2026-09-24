@@ -836,7 +836,7 @@ impl GeminiCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_347: bool = true;
             while { if !__for_first_347 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_347 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawBidAskChanges.len() as i64) as f64) } {
-            let mut entry: Value = rawBidAskChanges.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = self.safe_dict(rawBidAskChanges.clone(), i.clone(), &[]);
             let mut rawSide: Option<String> = self.safe_string_k(entry.clone(), "side", &[]).as_str().map(str::to_owned);
             let mut price: Value = self.safe_number_k(entry.clone(), "price", &[]);
             let mut sizeString: Value = self.safe_string_k(entry, "remaining", &[]);
@@ -940,7 +940,7 @@ impl GeminiCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_349: bool = true;
             while { if !__for_first_349 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_349 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawOrderBookChanges.len() as i64) as f64) } {
-            let mut entry: Value = rawOrderBookChanges.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = self.safe_dict(rawOrderBookChanges.clone(), i.clone(), &[]);
             let mut price: Value = self.safe_number_k(entry.clone(), "price", &[]);
             let mut size: Value = self.safe_number_k(entry.clone(), "remaining", &[]);
             let mut rawSide: Option<String> = self.safe_string_k(entry, "side", &[]).as_str().map(str::to_owned);

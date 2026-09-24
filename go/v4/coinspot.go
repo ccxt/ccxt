@@ -599,7 +599,7 @@ func (this *Coinspot) ParseBalance(response any) any {
 			var currencyIds []string = ObjectKeys(currencies)
 			for j := 0; j < len(currencyIds); j++ {
 				var currencyId string = GetValue(currencyIds, j).(string)
-				var balance map[string]any = MapTyped(GetValue(currencies, currencyId))
+				var balance map[string]any = SafeMapTyped(currencies, currencyId)
 				var code *string = this.SafeCurrencyCode(currencyId)
 				var account map[string]any = this.Account()
 				account["total"] = this.SafeString(balance, "balance")
@@ -1208,12 +1208,10 @@ func (this *Coinspot) Sign(path any, optionalArgs ...any) any {
 		return api
 	}()
 	var endpoint any = Add("/", this.ImplodeParams(path, params))
-	var fullPath any = func() any {
-		if !IsEqual(version, nil) {
-			return Add(Add("/", version), endpoint)
-		}
-		return endpoint
-	}()
+	var fullPath any = endpoint
+	if !IsEqual(version, nil) {
+		fullPath = Add(Add("/", version), endpoint)
+	}
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), accessType), fullPath)
 	if IsEqual(accessType, "private") {
 		this.CheckRequiredCredentials()

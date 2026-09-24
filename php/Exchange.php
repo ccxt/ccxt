@@ -4130,7 +4130,7 @@ class BaseExchange {
         throw new NotSupported($this->id . ' parseTicker() is not supported yet');
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null) {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null) {
         throw new NotSupported($this->id . ' parseDepositAddress() is not supported yet');
     }
 
@@ -7527,7 +7527,7 @@ class BaseExchange {
         throw new NotSupported($this->id . ' fetchFundingHistory() is not supported yet');
     }
 
-    public function parse_last_price(mixed $price, ?array $market = null) {
+    public function parse_last_price(array $price, ?array $market = null) {
         throw new NotSupported($this->id . ' parseLastPrice() is not supported yet');
     }
 
@@ -8491,7 +8491,7 @@ class BaseExchange {
         return $fee;
     }
 
-    public function parse_income(mixed $info, ?array $market = null) {
+    public function parse_income(array $info, ?array $market = null) {
         throw new NotSupported($this->id . ' parseIncome () is not supported yet');
     }
 

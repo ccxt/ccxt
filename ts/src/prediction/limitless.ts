@@ -1060,10 +1060,7 @@ export default class limitless extends Exchange {
             raw = this.safeDict (ticker, 'market', {});
             book = this.safeDict (ticker, 'book');
         }
-        let rawLabel: Str = 'yes';
-        if (market !== undefined) {
-            rawLabel = this.safeString (market, 'label', this.safeString (market['info'], 'outcomeLabel', 'yes'));
-        }
+        const rawLabel = (market !== undefined) ? this.safeString (market, 'label', this.safeString (market['info'], 'outcomeLabel', 'yes')) : 'yes';
         const isYes = rawLabel.toLowerCase () !== 'no';
         let bidStr: Str = undefined;
         let askStr: Str = undefined;

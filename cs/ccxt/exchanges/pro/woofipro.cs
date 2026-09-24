@@ -752,7 +752,11 @@ public partial class woofipro : ccxt.woofipro
             await this.loadMarkets();
         }
         bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
-        string topic = ((trigger == true)) ? "algoexecutionreport" : "executionreport";
+        string topic = "executionreport";
+        if ((trigger == true))
+        {
+            topic = "algoexecutionreport";
+        }
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         string messageHash = topic;
         if ((symbolVar != null))
@@ -797,7 +801,11 @@ public partial class woofipro : ccxt.woofipro
             await this.loadMarkets();
         }
         bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
-        string topic = ((trigger == true)) ? "algoexecutionreport" : "executionreport";
+        string topic = "executionreport";
+        if ((trigger == true))
+        {
+            topic = "algoexecutionreport";
+        }
         parameters = this.omit(parameters, "stop");
         string messageHash = "myTrades";
         if ((symbolVar != null))
@@ -1383,7 +1391,7 @@ public partial class woofipro : ccxt.woofipro
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            object value = getValue(balances, key);
+            IDictionary<string, object> value = this.safeDict(balances, key);
             string? code = this.safeCurrencyCode(key);
             object account = this.account();
             if (((code != null)) && (inOp(this.balance, code)))

@@ -2423,12 +2423,7 @@ export default class bitget extends bitgetRest {
         if (!uta) {
             args['coin'] = 'default';
         }
-        let instTypeLower: Str = undefined;
-        if (instType === undefined) {
-            instTypeLower = '';
-        } else {
-            instTypeLower = instType.toLowerCase ();
-        }
+        const instTypeLower = (instType === undefined) ? '' : instType.toLowerCase ();
         const messageHash = 'balance:' + instTypeLower;
         return await this.watchPrivate (uta, messageHash, messageHash, args, paramsRequest);
     }

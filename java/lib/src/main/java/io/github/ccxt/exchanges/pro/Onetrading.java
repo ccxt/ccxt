@@ -1174,7 +1174,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         {
             String orderId = this.safeString(update, "order_id");
             String datetime = this.safeString2(update, "time", "timestamp");
-            Object previousOrderArray = this.filterByArray(this.orders, "id", orderId, false);
+            List<Object> previousOrderArray = (List<Object>) this.filterByArray(this.orders, "id", orderId, false);
             Map<String, Object> previousOrder = (Map<String, Object>) this.safeDict(previousOrderArray, 0, new HashMap<String, Object>() {{}});
             symbol = this.safeString(previousOrder, "symbol");
             String filled = this.safeString(update, "filled_amount");
@@ -1202,7 +1202,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         client.resolve(this.orders, ("orders:" + symbol));
         client.resolve(this.orders, "orders");
         // update balance
-        List<Object> balanceKeys = new ArrayList<Object>(Arrays.asList("locked", "unlocked", "spent", "spent_on_fees", "credited", "deducted"));
+        List<String> balanceKeys = new ArrayList<String>(Arrays.asList("locked", "unlocked", "spent", "spent_on_fees", "credited", "deducted"));
         for (var i = 0; i < ((List<?>)balanceKeys).size(); i++)
         {
             Object newBalance = this.safeValue(update, Helpers.GetValue(balanceKeys, i));

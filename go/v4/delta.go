@@ -452,12 +452,10 @@ func (this *Delta) CreateExpiredOptionMarket(symbol any) any {
 	var strike *string = this.SafeString(optionParts, 2)
 	var datetime any = this.ConvertExpireDate(expiry)
 	var timestamp *int64 = this.Parse8601(datetime)
-	var optionTypeUnified string = func() string {
-		if IsEqual(optionType, "C") {
-			return "call"
-		}
-		return "put"
-	}()
+	var optionTypeUnified string = "put"
+	if IsEqual(optionType, "C") {
+		optionTypeUnified = "call"
+	}
 	return this.SafeMarketStructure(map[string]any{
 		"id":             Add(Add(Add(Add(Add(Add(optionType, "-"), base), "-"), strike), "-"), expiry),
 		"symbol":         Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(base, "/"), quote), ":"), settle), "-"), expiry), "-"), strike), "-"), optionType),
@@ -621,12 +619,10 @@ func (this *Delta) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
 	var underMaintenance *string = this.SafeString(result, "under_maintenance")
-	var status string = func() string {
-		if underMaintenance != nil && *underMaintenance == "true" {
-			return "maintenance"
-		}
-		return "ok"
-	}()
+	var status string = "ok"
+	if underMaintenance != nil && *underMaintenance == "true" {
+		status = "maintenance"
+	}
 	var updated *int64 = this.SafeIntegerProduct(result, "server_time", 0.001, this.Milliseconds())
 
 	ch <- map[string]any{
@@ -1988,12 +1984,7 @@ func (this *Delta) ParseBalance(response any) any {
 	}
 	var currenciesByNumericId map[string]any = SafeMapTyped(this.Options, "currenciesByNumericId")
 	for i := 0; i < len(balances); i++ {
-		var balance map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(balances) {
-				return DerefScalar(balances[i])
-			}
-			return nil
-		}())
+		var balance map[string]any = SafeMapTyped(balances, i)
 		var currencyId *string = this.SafeString(balance, "asset_id")
 		var currency map[string]any = SafeMapTyped(currenciesByNumericId, currencyId)
 		var code any = func() any {
@@ -2311,12 +2302,12 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(order, "product_id")
 	var marketsByNumericId map[string]any = SafeMapTyped(this.Options, "marketsByNumericId")
 	market = this.SafeValue(marketsByNumericId, marketId, market)
-	var symbol any = func() any {
-		if market == nil {
-			return marketId
-		}
-		return GetValue(market, "symbol")
-	}()
+	var symbol any = nil
+	if market == nil {
+		symbol = marketId
+	} else {
+		symbol = GetValue(market, "symbol")
+	}
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "state"))
 	var side *string = this.SafeString(order, "side")
 	var typeVar *string = this.SafeString(order, "order_type")
@@ -2747,8 +2738,8 @@ func (this *Delta) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes231815 []any = ListTyped(PanicOnError((<-this.FetchOrdersWithMethodAsync("privateGetOrders", symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes231815)
+	var retRes232915 []any = ListTyped(PanicOnError((<-this.FetchOrdersWithMethodAsync("privateGetOrders", symbol, since, limit, params))))
+	ch <- BoxAbsent(retRes232915)
 	return nil
 }
 
@@ -2780,8 +2771,8 @@ func (this *Delta) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes233315 []any = ListTyped(PanicOnError((<-this.FetchOrdersWithMethodAsync("privateGetOrdersHistory", symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes233315)
+	var retRes234415 []any = ListTyped(PanicOnError((<-this.FetchOrdersWithMethodAsync("privateGetOrdersHistory", symbol, since, limit, params))))
+	ch <- BoxAbsent(retRes234415)
 	return nil
 }
 func (this *Delta) FetchOrdersWithMethodAsync(method any, optionalArgs ...any) <-chan any {
@@ -3011,7 +3002,7 @@ func (this *Delta) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseLedger(result, currency, since, limit)
 	return nil
 }
-func (this *Delta) ParseLedgerEntryType(typeVar any) *string {
+func (this *Delta) ParseLedgerEntryType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"pnl":               "pnl",
 		"deposit":           "transaction",
@@ -3426,8 +3417,8 @@ func (this *Delta) addMarginBody(ch chan any, symbol any, amount any, optionalAr
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes288815 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))))
-	ch <- BoxAbsent(retRes288815)
+	var retRes289915 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))))
+	ch <- BoxAbsent(retRes289915)
 	return nil
 }
 
@@ -3452,8 +3443,8 @@ func (this *Delta) reduceMarginBody(ch chan any, symbol any, amount any, optiona
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes290215 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))))
-	ch <- BoxAbsent(retRes290215)
+	var retRes291315 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))))
+	ch <- BoxAbsent(retRes291315)
 	return nil
 }
 func (this *Delta) ModifyMarginHelperAsync(symbol any, amount any, typeVar any, optionalArgs ...any) <-chan any {

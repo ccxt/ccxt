@@ -639,7 +639,7 @@ public class Lbank extends LbankApi
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)networksRaw).size(); j++)
         {
-            Object networkEntry = Helpers.GetValue(networksRaw, j);
+            Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(networksRaw, j);
             String networkId = this.safeString(networkEntry, "chain");
             if (java.util.Objects.equals(networkId, null))
             {
@@ -1028,7 +1028,7 @@ public class Lbank extends LbankApi
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 Tickers responseForSwap = (this.fetchTickers((Object)(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol")))), (Object)(parameters))).join();
-                return this.safeValue(responseForSwap, ((Map<String, Object>)market).get("symbol"));
+                return this.safeDict(responseForSwap, ((Map<String, Object>)market).get("symbol"));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -1744,7 +1744,7 @@ public class Lbank extends LbankApi
         {
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
-                Object item = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
+                Map<String, Object> item = (Map<String, Object>) this.safeDict(balances, i);
                 String currencyId = this.safeString(item, "asset");
                 String codeInner = this.safeCurrencyCode(currencyId);
                 Map<String, Object> account = (Map<String, Object>) this.account();
@@ -1763,7 +1763,7 @@ public class Lbank extends LbankApi
         {
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object item = (data == null || i < 0 || i >= ((List<?>)data).size() ? null : ((List<?>)data).get(i));
+                Map<String, Object> item = (Map<String, Object>) this.safeDict(data, i);
                 String currencyId = this.safeString(item, "coin");
                 String codeInner = this.safeCurrencyCode(currencyId);
                 Map<String, Object> account = (Map<String, Object>) this.account();
@@ -1854,7 +1854,7 @@ public class Lbank extends LbankApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             FundingRates responseForSwap = (this.fetchFundingRates((Object)(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol")))), (Object)(parameters))).join();
-            return this.safeValue(responseForSwap, ((Map<String, Object>)market).get("symbol"));
+            return this.safeDict(responseForSwap, ((Map<String, Object>)market).get("symbol"));
         }).thenApply(FundingRate::new);
 
     }
@@ -3691,7 +3691,7 @@ public class Lbank extends LbankApi
             Map<String, Object> withdrawFees = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
-                Object entry = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
+                Map<String, Object> entry = (Map<String, Object>) this.safeDict(result, i);
                 String currencyId = this.safeString(entry, "coin");
                 String code = this.safeCurrencyCode(currencyId);
                 List<Object> networkList = (List<Object>) this.safeList(entry, "networkList", new ArrayList<Object>(Arrays.asList()));
@@ -3701,7 +3701,7 @@ public class Lbank extends LbankApi
                 }
                 for (var j = 0; j < ((List<?>)networkList).size(); j++)
                 {
-                    Object networkEntry = (networkList == null || j < 0 || j >= networkList.size() ? null : networkList.get(j));
+                    Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(networkList, j);
                     Double fee = this.safeNumber(networkEntry, "withdrawFee");
                     if (!java.util.Objects.equals(fee, null))
                     {
@@ -3774,7 +3774,7 @@ public class Lbank extends LbankApi
             Map<String, Object> withdrawFees = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
-                Object item = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
+                Map<String, Object> item = (Map<String, Object>) this.safeDict(result, i);
                 String canWithdraw = this.safeString(item, "canWithDraw");
                 if (java.util.Objects.equals(canWithdraw, "true"))
                 {
@@ -4072,7 +4072,7 @@ public class Lbank extends LbankApi
         List<Object> networkList = (List<Object>) this.safeList(fee, "networkList", new ArrayList<Object>(Arrays.asList()));
         for (var j = 0; j < ((List<?>)networkList).size(); j++)
         {
-            Object networkEntry = (networkList == null || j < 0 || j >= networkList.size() ? null : networkList.get(j));
+            Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(networkList, j);
             String networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"), code);
             Double withdrawFee = this.safeNumber(networkEntry, "withdrawFee");
             Boolean isDefault = (Boolean) this.safeBool(networkEntry, "isDefault");

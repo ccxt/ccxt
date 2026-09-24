@@ -1749,7 +1749,7 @@ public class Blockchaincom extends BlockchaincomApi
             }};
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
-                Object entry = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
+                Map<String, Object> entry = (Map<String, Object>) this.safeDict(balances, i);
                 String currencyId = this.safeString(entry, "currency");
                 String code = this.safeCurrencyCode(currencyId);
                 Map<String, Object> account = (Map<String, Object>) this.account();

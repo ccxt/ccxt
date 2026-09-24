@@ -772,7 +772,7 @@ class onetrading(Exchange, ImplicitAPI):
         takerFees = []
         makerFees = []
         for i in range(0, len(feeTiers)):
-            tier = feeTiers[i]
+            tier = self.safe_dict(feeTiers, i)
             volume = self.safe_number(tier, 'volume')
             taker = self.safe_string(tier, 'taker_fee')
             maker = self.safe_string(tier, 'maker_fee')
@@ -1179,7 +1179,7 @@ class onetrading(Exchange, ImplicitAPI):
         balances = self.safe_list(response, 'balances', [])
         result = {'info': response}
         for i in range(0, len(balances)):
-            balance = balances[i]
+            balance = self.safe_dict(balances, i)
             currencyId = self.safe_string(balance, 'currency_code')
             code = self.safe_currency_code(currencyId)
             account = self.account()

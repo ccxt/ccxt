@@ -765,7 +765,10 @@ impl CoinoneCore {
         let mut code: Value = self.safe_currency_code(id.clone(), &[]);
         let mut isWithdrawEnabled: Value = Value::Bool(self.safe_string_k(rawCurrency.clone(), "withdraw_status", &[Value::Str("".into())]).as_str() == Some("normal"));
         let mut isDepositEnabled: Value = Value::Bool(self.safe_string_k(rawCurrency.clone(), "deposit_status", &[Value::Str("".into())]).as_str() == Some("normal"));
-        let mut type_var: Value = (if (code.as_str() != Some("KRW")) { Value::Str("crypto".into()) } else { Value::Str("fiat".into()) });
+        let mut type_var: Value = Value::Str("fiat".into());
+        if (code.as_str() != Some("KRW")) {
+            type_var = Value::Str("crypto".into());
+        }
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
@@ -952,8 +955,7 @@ impl CoinoneCore {
             let mut __for_first_569: bool = true;
             while { if !__for_first_569 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_569 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencyIds.len() as i64) as f64) } {
             let mut currencyId: Value = currencyIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut balance: Value = get_value(&balances, &currencyId);
-            let mut balance: Value = get_value(&balances, &currencyId);
+            let mut balance: Value = self.safe_dict(balances.clone(), currencyId.clone(), &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut account: Value = self.account();
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(balance.clone(), "avail", &[])); }
@@ -1301,7 +1303,12 @@ impl CoinoneCore {
             feeCostString = crate::precise::Precise::stringAbs(&feeCostString);
             let mut feeRateString: Value = self.safe_string_k(trade.clone(), "feeRate", &[]);
             feeRateString = crate::precise::Precise::stringAbs(&feeRateString);
-            let mut feeCurrencyCode: Value = (if (side.as_str() == Some("sell")) { market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null) });
+            let mut feeCurrencyCode: Value = Value::Null;
+            if (side.as_str() == Some("sell")) {
+                feeCurrencyCode = market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
+            }  else {
+                feeCurrencyCode = market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null);
+            }
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeCostString);
@@ -1579,7 +1586,10 @@ impl CoinoneCore {
         let mut fee: Value = Value::Null;
         let mut feeCostString: Value = self.safe_string_k(order.clone(), "fee", &[]);
         if (feeCostString != Value::Null) {
-            let mut feeCurrencyCode: Value = (if (side.as_str() == Some("sell")) { quote } else { base });
+            let mut feeCurrencyCode: Value = base;
+            if (side.as_str() == Some("sell")) {
+                feeCurrencyCode = quote;
+            }
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeCostString);

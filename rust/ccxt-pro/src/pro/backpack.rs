@@ -358,7 +358,10 @@ impl BackpackCore {
             self.load_markets(&[]).await;
         }
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
-        let mut method: Value = (if is_true(&unwatch) { Value::Str("UNSUBSCRIBE".into()) } else { Value::Str("SUBSCRIBE".into()) });
+        let mut method: Value = Value::Str("SUBSCRIBE".into());
+        if is_true(&unwatch) {
+            method = Value::Str("UNSUBSCRIBE".into());
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), method);
@@ -385,7 +388,10 @@ impl BackpackCore {
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private");
         let mut instruction: Value = Value::Str("subscribe".into());
         let mut ts: Value = to_string_val(&self.nonce());
-        let mut method: Value = (if is_true(&unwatch) { Value::Str("UNSUBSCRIBE".into()) } else { Value::Str("SUBSCRIBE".into()) });
+        let mut method: Value = Value::Str("SUBSCRIBE".into());
+        if is_true(&unwatch) {
+            method = Value::Str("UNSUBSCRIBE".into());
+        }
         let mut recvWindow: Value = self.safe_string2(self.options.clone(), Value::Str("recvWindow".into()), Value::Str("X-Window".into()), &[Value::Str("5000".into())]);
         let mut payload: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("instruction=".into()), instruction).into()), Value::Str("&".into())).into()), Value::Str("timestamp=".into())).into()), ts).into()), Value::Str("&window=".into())).into()), recvWindow).into());
         let mut secretBytes: Value = self.base64_to_binary(self.secret.clone(), &[]);
@@ -914,7 +920,7 @@ impl BackpackCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_45: bool = true;
             while { if !__for_first_45 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_45 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsAndTimeframes.len() as i64) as f64) } {
-            let mut symbolAndTimeframe: Value = symbolsAndTimeframes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut symbolAndTimeframe: Value = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]);
             let mut marketId: Value = self.safe_string(symbolAndTimeframe.clone(), Value::Int(0), &[]);
             let mut market: Value = self.market(marketId);
             let mut tf: Value = self.safe_string(symbolAndTimeframe, Value::Int(1), &[]);
@@ -963,7 +969,7 @@ impl BackpackCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_46: bool = true;
             while { if !__for_first_46 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_46 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsAndTimeframes.len() as i64) as f64) } {
-            let mut symbolAndTimeframe: Value = symbolsAndTimeframes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut symbolAndTimeframe: Value = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]);
             let mut marketId: Value = self.safe_string(symbolAndTimeframe.clone(), Value::Int(0), &[]);
             let mut market: Value = self.market(marketId);
             let mut tf: Value = self.safe_string(symbolAndTimeframe, Value::Int(1), &[]);
@@ -1485,8 +1491,7 @@ impl BackpackCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_52: bool = true;
             while { if !__for_first_52 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_52 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&cache).as_f64().unwrap_or(f64::NAN) } {
-            let mut delta: Value = get_value(&cache, &i);
-            let mut delta: Value = get_value(&cache, &i);
+            let mut delta: Value = self.safe_dict(cache.clone(), i.clone(), &[]);
             let mut deltaStart: Value = self.safe_integer_k(delta.clone(), "U", &[]);
             let mut deltaEnd: Value = self.safe_integer_k(delta, "u", &[]);
             if (deltaStart == Value::Null) || (deltaEnd == Value::Null) {

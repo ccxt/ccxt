@@ -734,7 +734,11 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         //
         Integer numFields = Helpers.getArrayLength(trade);
         Boolean isPublic = Helpers.isLessThanOrEqual(numFields, 8);
-        Object marketId = ((Helpers.isTrue((!Boolean.TRUE.equals(isPublic))))) ? this.safeString(trade, 1) : null;
+        Object marketId = null;
+        if (!Boolean.TRUE.equals(isPublic))
+        {
+            marketId = this.safeString(trade, 1);
+        }
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
         Integer createdKey = ((Boolean.TRUE.equals(isPublic))) ? 1 : 2;
         Integer priceKey = ((Boolean.TRUE.equals(isPublic))) ? 3 : 5;
@@ -751,7 +755,11 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 type = "market";
             }
         }
-        String orderId = ((Helpers.isTrue((!Boolean.TRUE.equals(isPublic))))) ? this.safeString(trade, 3) : null;
+        String orderId = null;
+        if (!Boolean.TRUE.equals(isPublic))
+        {
+            orderId = this.safeString(trade, 3);
+        }
         String id = this.safeString(trade, 0);
         Long timestamp = this.safeInteger(trade, createdKey);
         String price = this.safeString(trade, priceKey);
@@ -781,6 +789,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         {
             takerOrMaker = ((((maker != null && maker == -1)))) ? "taker" : "maker";
         }
+        final String finalOrderId = orderId;
         final String finalType = type;
         final String finalTakerOrMaker = takerOrMaker;
         final String finalSide = side;
@@ -792,7 +801,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             put( "datetime", Bitfinex.this.iso8601(timestamp) );
             put( "symbol", symbol );
             put( "id", id );
-            put( "order", orderId );
+            put( "order", finalOrderId );
             put( "type", finalType );
             put( "takerOrMaker", finalTakerOrMaker );
             put( "side", finalSide );
@@ -1003,7 +1012,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 Object deltas = (message == null || 1 >= ((List<?>)message).size() ? null : ((List<?>)message).get(1));
                 for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
                 {
-                    Object delta = Helpers.GetValue(deltas, i);
+                    List<Object> delta = (List<Object>) this.safeList(deltas, i);
                     Double amount = this.safeNumber(delta, 2);
                     if (java.util.Objects.equals(amount, null))
                     {

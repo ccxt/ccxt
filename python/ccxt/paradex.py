@@ -623,7 +623,9 @@ class paradex(Exchange, ImplicitAPI):
         isOptionPerpetual = (assetKind == 'PERP_OPTION')
         isOptionDelivery = (assetKind == 'OPTION')
         isOption = isOptionPerpetual or isOptionDelivery
-        type = 'option' if (isOption) else 'swap'
+        type = 'swap'
+        if isOption:
+            type = 'option'
         isSwap = (type == 'swap')
         marketId = self.safe_string(market, 'symbol')
         quoteId = self.safe_string(market, 'quote_currency')
@@ -1187,7 +1189,7 @@ class paradex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchTrades', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchTrades', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchTrades', symbol, since, limit, params, 'next', 'cursor', None, 100)
         market = self.market(symbol)
@@ -1263,7 +1265,9 @@ class paradex(Exchange, ImplicitAPI):
         side = self.safe_string_lower(trade, 'side')
         liability = self.safe_string_lower(trade, 'liquidity', 'taker')
         isTaker = liability == 'taker'
-        takerOrMaker = 'taker' if (isTaker) else 'maker'
+        takerOrMaker = 'maker'
+        if isTaker:
+            takerOrMaker = 'taker'
         currencyId = self.safe_string(trade, 'fee_currency')
         code = self.safe_currency_code(currencyId)
         return self.safe_trade({
@@ -1891,7 +1895,7 @@ class paradex(Exchange, ImplicitAPI):
             self.load_markets()
         ordersRequests = []
         for i in range(0, len(orders)):
-            rawOrder = orders[i]
+            rawOrder = self.safe_dict(orders, i)
             symbol = self.safe_string(rawOrder, 'symbol')
             type = self.safe_string(rawOrder, 'type')
             side = self.safe_string(rawOrder, 'side')
@@ -2137,7 +2141,7 @@ class paradex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOrders', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchOrders', symbol, since, limit, params, 'next', 'cursor', None, 50)
         request = {}
@@ -2307,7 +2311,7 @@ class paradex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchMyTrades', symbol, since, limit, params, 'next', 'cursor', None, 100)
         request = {}
@@ -2544,7 +2548,7 @@ class paradex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchDeposits', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchDeposits', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchDeposits', code, since, limit, params, 'next', 'cursor', None, 100)
         request = {}
@@ -2601,7 +2605,7 @@ class paradex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchWithdrawals', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchWithdrawals', code, since, limit, params, 'next', 'cursor', None, 100)
         request = {}
@@ -2658,7 +2662,7 @@ class paradex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchTransfers', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchTransfers', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchTransfers', code, since, limit, params, 'next', 'cursor', None, 100)
         request = {}
@@ -3133,7 +3137,7 @@ class paradex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingHistory', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchFundingHistory', symbol, since, limit, params, 'next', 'cursor', None, 100)
         market = self.market(symbol)
@@ -3168,7 +3172,7 @@ class paradex(Exchange, ImplicitAPI):
         results = self.safe_list(response, 'results', [])
         return self.parse_incomes(results, market, since, limit)
 
-    def parse_income(self, income: object, market: Market = None) -> object:
+    def parse_income(self, income: dict, market: Market = None) -> object:
         #
         #     {
         #         "account": "string",

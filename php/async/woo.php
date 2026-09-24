@@ -1472,7 +1472,10 @@ class woo extends Exchange {
         $isMarket = $orderType === 'MARKET';
         $timeInForce = $this->safe_string_lower($params, 'timeInForce');
         $postOnly = $this->is_post_only($isMarket, null, $params);
-        $clientOrderIdKey = $isConditional ? 'clientAlgoOrderId' : 'clientOrderId';
+        $clientOrderIdKey = 'clientOrderId';
+        if ($isConditional) {
+            $clientOrderIdKey = 'clientAlgoOrderId';
+        }
         $request['type'] = $orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if (!$isConditional) {
             if ($postOnly) {
@@ -1541,7 +1544,10 @@ class woo extends Exchange {
                 'childOrders' => array(),
             );
             $childOrders = $outterOrder['childOrders'];
-            $closeSide = ($orderSide === 'BUY') ? 'SELL' : 'BUY';
+            $closeSide = 'BUY';
+            if ($orderSide === 'BUY') {
+                $closeSide = 'SELL';
+            }
             if ($hasStopLoss) {
                 $stopLossPrice = $this->safe_string($stopLoss, 'triggerPrice', $stopLoss);
                 $stopLossOrder = array(
@@ -2011,7 +2017,7 @@ class woo extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOrders', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_incremental('fetchOrders', $symbol, $since, $limit, $params, 'page', 500));
         }
@@ -2740,7 +2746,7 @@ class woo extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_incremental('fetchMyTrades', $symbol, $since, $limit, $params, 'page', 500));
         }
@@ -2956,7 +2962,7 @@ class woo extends Exchange {
         );
         $balances = $this->safe_list($response, 'holding', array());
         for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+            $balance = $this->safe_dict($balances, $i);
             $code = $this->safe_currency_code($this->safe_string($balance, 'token'));
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'holding');
@@ -3021,7 +3027,7 @@ class woo extends Exchange {
         return array( $currentyNetworkId, $params );
     }
 
-    public function parse_deposit_address(mixed $depositEntry, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositEntry, ?array $currency = null): array {
         $address = $this->safe_string($depositEntry, 'address');
         $this->check_address($address);
         $networkId = $this->safe_string($depositEntry, 'network');
@@ -3154,7 +3160,10 @@ class woo extends Exchange {
         $currency = $this->safe_currency($code, $currency);
         $amount = $this->safe_number($item, 'amount');
         $side = $this->safe_string($item, 'tokenSide');
-        $direction = ($side === 'DEPOSIT') ? 'in' : 'out';
+        $direction = 'out';
+        if ($side === 'DEPOSIT') {
+            $direction = 'in';
+        }
         $timestamp = $this->safe_timestamp($item, 'createdTime');
         $fee = $this->parse_token_and_fee_temp($item, array( 'feeToken' ), array( 'feeAmount' ));
         return $this->safe_ledger_entry(array(
@@ -3622,7 +3631,7 @@ class woo extends Exchange {
         ));
     }
 
-    public function parse_margin_loan(mixed $info, ?array $currency = null): array {
+    public function parse_margin_loan(array $info, ?array $currency = null): array {
         //
         //     {
         //         "success": true,
@@ -3732,7 +3741,7 @@ class woo extends Exchange {
         return null;
     }
 
-    public function parse_income(mixed $income, ?array $market = null): array {
+    public function parse_income(array $income, ?array $market = null): array {
         //
         //     {
         //         "id": 1286360,
@@ -3789,7 +3798,7 @@ class woo extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingHistory', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_incremental('fetchFundingHistory', $symbol, $since, $limit, $params, 'page', 500));
         }
@@ -4027,7 +4036,7 @@ class woo extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_incremental('fetchFundingRateHistory', $symbol, $since, $limit, $params, 'page', 25));
         }

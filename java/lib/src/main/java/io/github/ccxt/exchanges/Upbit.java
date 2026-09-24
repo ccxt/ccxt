@@ -813,7 +813,7 @@ public class Upbit extends UpbitApi
         }};
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
-            Object balance = Helpers.GetValue(response, i);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i);
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
@@ -1002,7 +1002,7 @@ public class Upbit extends UpbitApi
         return BaseExchange.supplyAsync(() -> {
 
             OrderBooks orderbooks = (this.fetchOrderBooks((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
-            return this.safeValue(orderbooks, symbol);
+            return this.safeDict(orderbooks, symbol);
         }).thenApply(OrderBook::new);
 
     }
@@ -1248,7 +1248,7 @@ public class Upbit extends UpbitApi
         return BaseExchange.supplyAsync(() -> {
 
             Tickers tickers = (this.fetchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
-            return this.safeValue(tickers, symbol);
+            return this.safeDict(tickers, symbol);
         }).thenApply(Ticker::new);
 
     }
@@ -2688,7 +2688,7 @@ public class Upbit extends UpbitApi
             cost = "0";
             for (var i = 0; Helpers.isLessThan(i, numTrades); i++)
             {
-                Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
+                Map<String, Object> trade = (Map<String, Object>) this.safeDict(trades, i);
                 cost = Precise.stringAdd(cost, this.safeString(trade, "cost"));
                 if (Boolean.TRUE.equals(getFeesFromTrades))
                 {
@@ -3161,7 +3161,7 @@ public class Upbit extends UpbitApi
         return this.fetchDepositAddresses(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseDepositAddress(Object depositAddress, Map<String, Object> currency)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         //
         //    {
@@ -3185,7 +3185,7 @@ public class Upbit extends UpbitApi
             put( "tag", tag );
         }};
     }
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Object... optionalArgs)
     {
         return this.parseDepositAddress(depositAddress, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -3219,7 +3219,7 @@ public class Upbit extends UpbitApi
             {
                 throw new ArgumentsRequired((this.id + " fetchDepositAddress requires params[\"network\"]")) ;
             }
-            final Object finalNetworkCode = networkCode;
+            final String finalNetworkCode = networkCode;
             Map<String, Object> response = (this.privateGetDepositsCoinAddress(this.extend(new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "net_type", Upbit.this.networkCodeToId((String) (finalNetworkCode), ((Map<String, Object>)currency).get("code")) );
@@ -3232,7 +3232,7 @@ public class Upbit extends UpbitApi
             //        secondary_address: '167029435'
             //    }
             //
-            return this.parseDepositAddress(response);
+            return this.parseDepositAddress((Map<String, Object>) (response));
         }).thenApply(DepositAddress::new);
 
     }
@@ -3297,7 +3297,7 @@ public class Upbit extends UpbitApi
             {
                 throw new AddressPending((((this.id + " is generating ") + code) + " deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address")) ;
             }
-            return this.parseDepositAddress(response);
+            return this.parseDepositAddress((Map<String, Object>) (response));
         }).thenApply(DepositAddress::new);
 
     }

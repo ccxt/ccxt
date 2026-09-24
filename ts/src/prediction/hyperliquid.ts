@@ -1133,10 +1133,7 @@ export default class hyperliquid extends Exchange {
 
     findOutcomeInMarket (market: Market, sideHint: Str = undefined): Dict {
         const outcomesList = this.safeList (market, 'outcomes', []);
-        let normalizedHint: Str = undefined;
-        if (sideHint !== undefined && sideHint !== '') {
-            normalizedHint = sideHint.toUpperCase ();
-        }
+        const normalizedHint = (sideHint !== undefined && sideHint !== '') ? sideHint.toUpperCase () : undefined;
         if (normalizedHint !== undefined) {
             for (let i = 0; i < outcomesList.length; i++) {
                 const oc = this.safeDict (outcomesList, i, {});
@@ -1728,10 +1725,7 @@ export default class hyperliquid extends Exchange {
             'stop limit': 'limit',
             'stop market': 'market',
         };
-        let statusLower: Str = undefined;
-        if (status !== undefined && status !== '') {
-            statusLower = status.toLowerCase ();
-        }
+        const statusLower = (status !== undefined && status !== '') ? status.toLowerCase () : undefined;
         return this.safeString (statuses, statusLower, statusLower);
     }
 
@@ -1742,10 +1736,7 @@ export default class hyperliquid extends Exchange {
             'fok': 'FOK',
             'alo': 'PO',
         };
-        let tifLower: Str = undefined;
-        if (timeInForce !== undefined && timeInForce !== '') {
-            tifLower = timeInForce.toLowerCase ();
-        }
+        const tifLower = (timeInForce !== undefined && timeInForce !== '') ? timeInForce.toLowerCase () : undefined;
         return this.safeString (statuses, tifLower, timeInForce);
     }
 
@@ -1947,10 +1938,7 @@ export default class hyperliquid extends Exchange {
             // Apply query filter
             if (lowerQueriesLength > 0) {
                 const description = this.safeString (info, 'description', '').toLowerCase ();
-                let parentSymbolOrEmpty: Str = '';
-                if (parentSymbol !== undefined) {
-                    parentSymbolOrEmpty = parentSymbol;
-                }
+                const parentSymbolOrEmpty = (parentSymbol !== undefined) ? parentSymbol : '';
                 const symLower = parentSymbolOrEmpty.toLowerCase ();
                 // the parentSymbol joins words with underscores (BTC_ABOVE_...), so match the haystack word-by-word
                 // and require every word of a query to appear, letting "BTC above" match BTC_ABOVE

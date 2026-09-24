@@ -950,7 +950,10 @@ class sxbet extends Exchange {
         $saltHex = '0x' . $saltHexPadded;
         $defaultExpirySeconds = $this->safe_integer($this->options, 'defaultOrderExpirySeconds', 86400);
         $expiry = $this->safe_integer($params, 'expiry', $this->sum($this->seconds(), $defaultExpirySeconds));
-        $defaultTif = ($type === 'limit') ? 'GTC' : 'IOC';
+        $defaultTif = 'IOC';
+        if ($type === 'limit') {
+            $defaultTif = 'GTC';
+        }
         $timeInForce = null;
         list($timeInForce, $params) = $this->handle_option_and_params($params, 'createOrder', 'timeInForce', $defaultTif);
         // an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
@@ -1266,7 +1269,12 @@ class sxbet extends Exchange {
         $orderId = $this->safe_string_2($order, 'id', 'orderId');
         $marketHash = $this->safe_string($order, 'marketHash', '');
         $isBettingOutcomeOne = $this->safe_bool($order, 'isBettingOutcomeOne', true);
-        $outcomeId = ($isBettingOutcomeOne) ? $marketHash : ($marketHash . '-2');
+        $outcomeId = null;
+        if ($isBettingOutcomeOne) {
+            $outcomeId = $marketHash;
+        } else {
+            $outcomeId = ($marketHash . '-2');
+        }
         $outcomeObj = $this->safe_outcome($outcomeId, $market);
         $oneDenom = '100000000000000000000';
         $usdcDecimals = '1000000';
@@ -1524,7 +1532,12 @@ class sxbet extends Exchange {
         //
         $marketHash = $this->safe_string($fill, 'marketHash', '');
         $isBettingOutcomeOne = $this->safe_bool($fill, 'isBettingOutcomeOne', true);
-        $outcomeId = ($isBettingOutcomeOne) ? $marketHash : ($marketHash . '-2');
+        $outcomeId = null;
+        if ($isBettingOutcomeOne) {
+            $outcomeId = $marketHash;
+        } else {
+            $outcomeId = ($marketHash . '-2');
+        }
         $outcomeObj = $this->safe_outcome($outcomeId, $market);
         $oneDenom = '100000000000000000000';
         $usdcDecimals = '1000000';
@@ -1589,7 +1602,7 @@ class sxbet extends Exchange {
         $usdcDecimals = '1000000';
         $balancesLength = count($balances);
         for ($i = 0; $i < $balancesLength; $i++) {
-            $row = $balances[$i];
+            $row = $this->safe_dict($balances, $i);
             $tokenAddress = $this->safe_string_lower($row, 'tokenAddress', '');
             // every sxbet market is denominated in the active base token, surfaced under 'USDC';
             // rows of any other token keep their contract address for the code
@@ -1676,12 +1689,22 @@ class sxbet extends Exchange {
         //
         $marketHash = $this->safe_string($raw, 'marketHash', '');
         $isOutcomeOneMaxWin = $this->safe_bool($raw, 'isOutcomeOneMaxWin', true);
-        $outcomeId = ($isOutcomeOneMaxWin) ? $marketHash : ($marketHash . '-2');
+        $outcomeId = null;
+        if ($isOutcomeOneMaxWin) {
+            $outcomeId = $marketHash;
+        } else {
+            $outcomeId = ($marketHash . '-2');
+        }
         $outcomeObj = $this->safe_outcome($outcomeId);
         $oneDenom = '100000000000000000000';
         $usdcDecimals = '1000000';
         $odds = $this->safe_dict($raw, 'odds', array());
-        $ownOdds = ($isOutcomeOneMaxWin) ? $this->safe_string($odds, 'outcomeOne') : $this->safe_string($odds, 'outcomeTwo');
+        $ownOdds = null;
+        if ($isOutcomeOneMaxWin) {
+            $ownOdds = $this->safe_string($odds, 'outcomeOne');
+        } else {
+            $ownOdds = $this->safe_string($odds, 'outcomeTwo');
+        }
         $entryPrice = ($ownOdds !== null) ? $this->parse_number(Precise::string_div($ownOdds, $oneDenom)) : null;
         $totalStake = $this->safe_string($raw, 'totalStake', '0');
         $pnl = $this->safe_string($raw, 'pnl');
@@ -1773,7 +1796,12 @@ class sxbet extends Exchange {
         //
         $marketHash = $this->safe_string($trade, 'marketHash', '');
         $isBettingOutcomeOne = $this->safe_bool($trade, 'isBettingOutcomeOne', true);
-        $outcomeId = ($isBettingOutcomeOne) ? $marketHash : ($marketHash . '-2');
+        $outcomeId = null;
+        if ($isBettingOutcomeOne) {
+            $outcomeId = $marketHash;
+        } else {
+            $outcomeId = ($marketHash . '-2');
+        }
         $outcomeObj = $this->safe_outcome($outcomeId, $market);
         $settlement = $this->safe_dict($trade, 'settlement', array());
         $winner = $this->safe_integer($settlement, 'outcome');
@@ -1793,7 +1821,10 @@ class sxbet extends Exchange {
             $resultLabel = 'VOID';
         } elseif ($winner !== null) {
             $info = $this->safe_dict($outcomeObj, 'info', array());
-            $labelKey = ($winner === 1) ? 'outcomeOneName' : 'outcomeTwoName';
+            $labelKey = 'outcomeTwoName';
+            if ($winner === 1) {
+                $labelKey = 'outcomeOneName';
+            }
             $resultLabel = $this->safe_string($info, $labelKey, $this->number_to_string($winner));
         }
         $timestamp = $this->parse8601($this->safe_string($settlement, 'settleDate'));
@@ -2018,8 +2049,14 @@ class sxbet extends Exchange {
         $isOutcomeOne = ($outcomeId === $marketHash);
         $outcomeOneOdds = $this->safe_dict($raw, 'outcomeOne', array());
         $outcomeTwoOdds = $this->safe_dict($raw, 'outcomeTwo', array());
-        $ownOdds = ($isOutcomeOne) ? $outcomeOneOdds : $outcomeTwoOdds;
-        $oppositeOdds = ($isOutcomeOne) ? $outcomeTwoOdds : $outcomeOneOdds;
+        $ownOdds = $outcomeTwoOdds;
+        if ($isOutcomeOne) {
+            $ownOdds = $outcomeOneOdds;
+        }
+        $oppositeOdds = $outcomeOneOdds;
+        if ($isOutcomeOne) {
+            $oppositeOdds = $outcomeTwoOdds;
+        }
         // percentageOdds is the maker's own implied probability * 1e20 (sx.bet protocol format);
         // the opposite side's best resting maker mirrors into this outcome's ask via 1 - p
         $oneDenom = '100000000000000000000';
@@ -2125,7 +2162,7 @@ class sxbet extends Exchange {
         $bids = array();
         $ownLevelsLength = count($ownLevels);
         for ($i = 0; $i < $ownLevelsLength; $i++) {
-            $level = $ownLevels[$i];
+            $level = $this->safe_dict($ownLevels, $i);
             $percentageOdds = $this->safe_string($level, 'percentageOdds');
             $size = $this->safe_string($level, 'size', '0');
             $price = $this->parse_number(Precise::string_div($percentageOdds, $oneDenom));
@@ -2135,7 +2172,7 @@ class sxbet extends Exchange {
         $asks = array();
         $oppositeLevelsLength = count($oppositeLevels);
         for ($i = 0; $i < $oppositeLevelsLength; $i++) {
-            $level = $oppositeLevels[$i];
+            $level = $this->safe_dict($oppositeLevels, $i);
             $percentageOdds = $this->safe_string($level, 'percentageOdds');
             $size = $this->safe_string($level, 'size', '0');
             // the opposite side's resting stake mirrors into this outcome's ask - the price is the
@@ -2540,7 +2577,7 @@ class sxbet extends Exchange {
         $watchedSyms = is_array($watchedTickers) ? array_keys($watchedTickers) : array();
         $rowsLength = count($rows);
         for ($i = 0; $i < $rowsLength; $i++) {
-            $entry = $rows[$i];
+            $entry = $this->safe_dict($rows, $i);
             $marketHash = $this->safe_string($entry, 'marketHash');
             if ($marketHash === null) {
                 continue;
@@ -2601,7 +2638,12 @@ class sxbet extends Exchange {
          */
         $marketHash = $this->safe_string($trade, 'marketHash', '');
         $isBettingOutcomeOne = $this->safe_bool($trade, 'isBettingOutcomeOne', true);
-        $outcomeId = ($isBettingOutcomeOne) ? $marketHash : ($marketHash . '-2');
+        $outcomeId = null;
+        if ($isBettingOutcomeOne) {
+            $outcomeId = $marketHash;
+        } else {
+            $outcomeId = ($marketHash . '-2');
+        }
         $outcomeObj = $this->safe_outcome($outcomeId);
         $oneDenom = '100000000000000000000';
         $usdcDecimals = '1000000';

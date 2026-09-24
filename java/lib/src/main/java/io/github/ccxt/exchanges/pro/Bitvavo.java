@@ -743,7 +743,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets()).join();
             }
             String name = "candles";
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             Map<String, Object> marketIdsByInterval = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
@@ -757,7 +757,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 }
                 Object intervalIds = (marketIdsByInterval == null || interval == null ? null : marketIdsByInterval.get(interval));
                 ((List<Object>)intervalIds).add(((Map<String, Object>)market).get("id"));
-                ((List<Object>)messageHashes).add(((((("multi:" + name) + "@") + ((Map<String, Object>)market).get("id")) + "_") + interval));
+                messageHashes.add(((((("multi:" + name) + "@") + ((Map<String, Object>)market).get("id")) + "_") + interval));
             }
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
             List<String> intervals = new ArrayList<String>(marketIdsByInterval.keySet());
@@ -1367,10 +1367,10 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 put( "action", "unsubscribe" );
                 put( "channels", channels );
             }};
-            List<Object> unsubHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> unsubHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)subMessageHashes).size(); i++)
             {
-                ((List<Object>)unsubHashes).add(("unsubscribe:" + (subMessageHashes == null || i < 0 || i >= ((List<?>)subMessageHashes).size() ? null : ((List<?>)subMessageHashes).get(i))));
+                unsubHashes.add(("unsubscribe:" + (subMessageHashes == null || i < 0 || i >= ((List<?>)subMessageHashes).size() ? null : ((List<?>)subMessageHashes).get(i))));
             }
             Map<String, Object> subscription = this.extend(new HashMap<String, Object>() {{
                 put( "topic", topic );

@@ -1184,7 +1184,7 @@ public partial class deepcoin : Exchange
         List<object> balances = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < (balances?.Count ?? 0); i++)
         {
-            object balance = balances[i];
+            IDictionary<string, object> balance = this.safeDict(balances, i);
             string? symbol = this.safeString(balance, "ccy");
             string? code = this.safeCurrencyCode(symbol);
             Dictionary<string, object> account = this.account();
@@ -1604,7 +1604,11 @@ public partial class deepcoin : Exchange
         Int64? timestamp = this.safeInteger(item, "ts");
         string? change = this.safeString(item, "balChg");
         string? amount = Precise.stringAbs(change);
-        string direction = Precise.stringLt(change, "0") ? "out" : "in";
+        string direction = "in";
+        if (Precise.stringLt(change, "0"))
+        {
+            direction = "out";
+        }
         string? currencyId = this.safeString(item, "ccy");
         currency = this.safeCurrency(currencyId, currency);
         string? type = this.safeString(item, "type");
@@ -2278,8 +2282,8 @@ public partial class deepcoin : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -3406,8 +3410,8 @@ public partial class deepcoin : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {

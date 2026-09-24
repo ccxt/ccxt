@@ -1356,8 +1356,8 @@ public class Cryptocom extends CryptocomApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -1475,8 +1475,8 @@ public class Cryptocom extends CryptocomApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -1737,7 +1737,7 @@ public class Cryptocom extends CryptocomApi
         }};
         for (var i = 0; i < ((List<?>)positionBalances).size(); i++)
         {
-            Object balance = (positionBalances == null || i < 0 || i >= positionBalances.size() ? null : positionBalances.get(i));
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(positionBalances, i);
             String currencyId = this.safeString(balance, "instrument_name");
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
@@ -2148,7 +2148,7 @@ public class Cryptocom extends CryptocomApi
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i);
                 String marketId = this.safeString(rawOrder, "symbol");
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
@@ -2668,7 +2668,7 @@ public class Cryptocom extends CryptocomApi
             List<Object> orderRequests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object order = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+                Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, i);
                 String id = this.safeString(order, "id");
                 String symbol = this.safeString(order, "symbol");
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
@@ -2818,8 +2818,8 @@ public class Cryptocom extends CryptocomApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -3813,7 +3813,7 @@ public class Cryptocom extends CryptocomApi
         {
             for (var i = 0; Helpers.isLessThan(i, networkListLength); i++)
             {
-                Object networkInfo = (networkList == null || i < 0 || i >= networkList.size() ? null : networkList.get(i));
+                Map<String, Object> networkInfo = (Map<String, Object>) this.safeDict(networkList, i);
                 String networkId = this.safeString(networkInfo, "network_id");
                 String currencyCode = this.safeString(currency, "code");
                 String networkCode = this.networkIdToCode(networkId, currencyCode);
@@ -4458,8 +4458,8 @@ public class Cryptocom extends CryptocomApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -5002,13 +5002,23 @@ public class Cryptocom extends CryptocomApi
             Object symbol = (this.symbols == null || i < 0 || i >= ((List<?>)this.symbols).size() ? null : ((List<?>)this.symbols).get(i));
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Boolean isSwap = (Boolean) ((Map<String, Object>)market).get("swap");
-            String takerFeeKey = (((java.util.Objects.equals(isSwap, true)))) ? "effective_deriv_taker_rate_bps" : "effective_spot_taker_rate_bps";
-            String makerFeeKey = (((java.util.Objects.equals(isSwap, true)))) ? "effective_deriv_maker_rate_bps" : "effective_spot_maker_rate_bps";
+            String takerFeeKey = "effective_spot_taker_rate_bps";
+            if (java.util.Objects.equals(isSwap, true))
+            {
+                takerFeeKey = "effective_deriv_taker_rate_bps";
+            }
+            String makerFeeKey = "effective_spot_maker_rate_bps";
+            if (java.util.Objects.equals(isSwap, true))
+            {
+                makerFeeKey = "effective_deriv_maker_rate_bps";
+            }
+            final String finalMakerFeeKey = makerFeeKey;
+            final String finalTakerFeeKey = takerFeeKey;
             Map<String, Object> tradingFee = new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "symbol", symbol );
-                put( "maker", Cryptocom.this.parseNumber(Precise.stringDiv(Cryptocom.this.safeString(response, makerFeeKey), "10000")) );
-                put( "taker", Cryptocom.this.parseNumber(Precise.stringDiv(Cryptocom.this.safeString(response, takerFeeKey), "10000")) );
+                put( "maker", Cryptocom.this.parseNumber(Precise.stringDiv(Cryptocom.this.safeString(response, finalMakerFeeKey), "10000")) );
+                put( "taker", Cryptocom.this.parseNumber(Precise.stringDiv(Cryptocom.this.safeString(response, finalTakerFeeKey), "10000")) );
                 put( "percentage", null );
                 put( "tierBased", null );
             }};

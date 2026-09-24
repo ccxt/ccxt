@@ -323,7 +323,11 @@ public partial class mexc : ccxt.mexc
         bool marketIdIsUndefined = (marketId == null);
         object isSpot = marketIdIsUndefined ? channelStartsWithSpot : (market.ContainsKey("spot") ? market["spot"] : null);
         string spotPrefix = "spot:";
-        string messageHashPrefix = (isEqual(isSpot, true)) ? spotPrefix : "";
+        string messageHashPrefix = "";
+        if (isEqual(isSpot, true))
+        {
+            messageHashPrefix = spotPrefix;
+        }
         string topic = (messageHashPrefix + "ticker");
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
@@ -518,7 +522,11 @@ public partial class mexc : ccxt.mexc
         bool? unsubscribed = this.safeBool(parameters, "unsubscribed", false);
         parameters = this.omit(parameters, new List<object>() {"unsubscribed"});
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "spot"));
-        string method = ((unsubscribed == true)) ? "UNSUBSCRIPTION" : "SUBSCRIPTION";
+        string method = "SUBSCRIPTION";
+        if ((unsubscribed == true))
+        {
+            method = "UNSUBSCRIPTION";
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", method },
             { "params", new List<object>() {channel} },
@@ -855,7 +863,7 @@ public partial class mexc : ccxt.mexc
         }
         for (int i = 0; i < getArrayLength(cache); i++)
         {
-            object delta = getValue(cache, i);
+            IDictionary<string, object> delta = this.safeDict(cache, i);
             Int64? deltaNonce = this.safeIntegerN(delta, new List<object>() {"r", "version", "fromVersion"});
             if ((deltaNonce == null))
             {
@@ -1329,7 +1337,11 @@ public partial class mexc : ccxt.mexc
         string? priceString = this.safeString2(trade, "p", "price");
         string? amountString = this.safeString2(trade, "v", "quantity");
         string? rawSide = this.safeString2(trade, "S", "tradeType");
-        string side = (rawSide == "1") ? "buy" : "sell";
+        string side = "sell";
+        if (rawSide == "1")
+        {
+            side = "buy";
+        }
         Int64? isMaker = this.safeInteger(trade, "m");
         string? feeAmount = this.safeString2(trade, "n", "feeAmount");
         string? feeCurrencyId = this.safeString2(trade, "N", "feeCurrency");
@@ -1735,7 +1747,11 @@ public partial class mexc : ccxt.mexc
         //     }
         //
         string? channel = this.safeString(message, "channel");
-        string type = (channel == "spot@private.account.v3.api.pb") ? "spot" : "swap";
+        string type = "swap";
+        if (channel == "spot@private.account.v3.api.pb")
+        {
+            type = "spot";
+        }
         string messageHash = ("balance:" + type);
         IDictionary<string, object> data = this.safeDictN(message, new List<object>() {"data", "privateAccount"});
         Int64? futuresTimestamp = this.safeInteger2(message, "ts", "createTime");

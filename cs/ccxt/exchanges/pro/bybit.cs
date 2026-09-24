@@ -181,7 +181,11 @@ public partial class bybit : ccxt.bybit
     {
         isPrivate ??= false;
         parameters ??= new Dictionary<string, object>();
-        string accessibility = isTrue(isPrivate) ? "private" : "public";
+        string accessibility = "public";
+        if (isTrue(isPrivate))
+        {
+            accessibility = "private";
+        }
         if ((method == null))
         {
             method = "";
@@ -639,7 +643,11 @@ public partial class bybit : ccxt.bybit
         string? updateType = this.safeString(message, "type", "");
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         bool isSpot = (this.safeString(data, "usdIndexPrice") != null);
-        string type = isSpot ? "spot" : "contract";
+        string type = "contract";
+        if (isSpot)
+        {
+            type = "spot";
+        }
         string? symbol = null;
         Dictionary<string, object> parsed = null;
         if ((updateType == "snapshot"))
@@ -894,7 +902,11 @@ public partial class bybit : ccxt.bybit
         }
         string? marketId = this.safeString(topicParts, (topicLength - 1));
         bool isSpot = ((string)client.url).IndexOf("spot", StringComparison.Ordinal) > -1;
-        string marketType = isSpot ? "spot" : "contract";
+        string marketType = "contract";
+        if (isSpot)
+        {
+            marketType = "spot";
+        }
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         IDictionary<string, object> ohlcvsByTimeframe = this.safeDict(this.ohlcvs, symbol);
@@ -936,7 +948,11 @@ public partial class bybit : ccxt.bybit
         //     }
         //
         bool isInverse = ((this.safeBool(market, "inverse") == true));
-        string volumeIndex = isInverse ? "turnover" : "volume";
+        string volumeIndex = "volume";
+        if (isInverse)
+        {
+            volumeIndex = "turnover";
+        }
         return new List<object> {this.safeInteger(ohlcv, "start"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, volumeIndex)};
     }
 
@@ -1122,7 +1138,11 @@ public partial class bybit : ccxt.bybit
         bool isSnapshot = (type == "snapshot");
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "s");
-        string marketType = isSpot ? "spot" : "contract";
+        string marketType = "contract";
+        if (isSpot)
+        {
+            marketType = "spot";
+        }
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         Int64? timestamp = this.safeInteger(message, "ts");
@@ -1312,7 +1332,11 @@ public partial class bybit : ccxt.bybit
         object trades = data;
         List<object> parts = topic.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         bool isSpot = ((string)client.url).IndexOf("spot", StringComparison.Ordinal) >= 0;
-        string marketType = isSpot ? "spot" : "contract";
+        string marketType = "contract";
+        if (isSpot)
+        {
+            marketType = "spot";
+        }
         string? marketId = this.safeString(parts, 1);
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -1367,7 +1391,11 @@ public partial class bybit : ccxt.bybit
         //
         string? id = this.safeStringN(trade, new List<object>() {"i", "T", "v"});
         bool isContract = ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("BT")));
-        object marketType = isContract ? "contract" : "spot";
+        object marketType = "spot";
+        if (isContract)
+        {
+            marketType = "contract";
+        }
         if ((market != null))
         {
             marketType = getValue(market, "type");
@@ -1970,7 +1998,7 @@ public partial class bybit : ccxt.bybit
             List<object> rawLiquidations = this.safeList(message, "data", new List<object>() {});
             for (int i = 0; i < rawLiquidations.Count; i++)
             {
-                object rawLiquidation = rawLiquidations[i];
+                IDictionary<string, object> rawLiquidation = this.safeDict(rawLiquidations, i);
                 string? marketId = this.safeString(rawLiquidation, "s");
                 Dictionary<string, object> market = this.safeMarket(marketId, null, "", "contract");
                 string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));

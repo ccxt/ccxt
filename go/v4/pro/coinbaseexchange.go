@@ -723,12 +723,10 @@ func (this *Coinbaseexchange) ParseWsTrade(trade any, optionalArgs ...any) any {
 			"sell": "buy",
 		}, currentSide, currentSide))
 	}
-	var idKey string = func() string {
-		if isMaker {
-			return "maker_order_id"
-		}
-		return "taker_order_id"
-	}()
+	var idKey string = "taker_order_id"
+	if isMaker {
+		idKey = "maker_order_id"
+	}
 	ccxt.AddElementToObject(parsed, "order", this.SafeString(trade, idKey))
 	market = this.Market(ccxt.GetValue(parsed, "symbol"))
 	var feeCurrency *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "quote"))
@@ -870,14 +868,14 @@ func (this *Coinbaseexchange) HandleOrder(client any, message any) {
 					if ccxt.IsEqual(ccxt.GetValue(previousOrder, "trades"), nil) {
 						ccxt.AddElementToObject(previousOrder, "trades", []any{})
 					}
-					retRes67924 := ccxt.GetValue(previousOrder, "trades")
-					ccxt.AppendToArray(&retRes67924, trade)
+					retRes68224 := ccxt.GetValue(previousOrder, "trades")
+					ccxt.AppendToArray(&retRes68224, trade)
 					ccxt.AddElementToObject(previousOrder, "lastTradeTimestamp", trade["timestamp"])
 					var totalCost any = "0"
 					var totalAmount any = "0"
 					var trades any = ccxt.GetValue(previousOrder, "trades")
 					for i := 0; i < ccxt.GetArrayLength(trades); i++ {
-						var tradeEntry map[string]any = ccxt.MapTyped(ccxt.GetValue(trades, i))
+						var tradeEntry map[string]any = ccxt.SafeMapTyped(trades, i)
 						totalCost = ccxt.DerefScalar(this.SafeString(tradeEntry, "cost", "0"))
 						totalAmount = ccxt.DerefScalar(this.SafeString(tradeEntry, "amount", "0"))
 					}
@@ -1131,12 +1129,7 @@ func (this *Coinbaseexchange) HandleOrderBook(client any, message map[string]any
 			"buy":  "bids",
 		}
 		for i := 0; i < len(changes); i++ {
-			var change any = func() any {
-				if i >= 0 && i < len(changes) {
-					return ccxt.DerefScalar(changes[i])
-				}
-				return nil
-			}()
+			var change []any = ccxt.SafeListTyped(changes, i)
 			var key *string = this.SafeString(change, 0)
 			var side *string = this.SafeString(sides, key)
 			var price *float64 = this.SafeNumber(change, 1)

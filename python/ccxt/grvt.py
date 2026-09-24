@@ -593,7 +593,7 @@ class grvt(Exchange, ImplicitAPI):
         #     }]
         # }
         #
-        currentBuilders = results[0]
+        currentBuilders = self.safe_dict(results, 0)
         approvedBuilder = self.safe_list(currentBuilders, 'results', [])
         length = len(approvedBuilder)
         found = False
@@ -674,7 +674,7 @@ class grvt(Exchange, ImplicitAPI):
         if not self.is_empty_string(self.apiKey) or not self.is_empty_string(self.privateKey):
             promises.append(self.sign_in())
         results = promises
-        response = results[0]
+        response = self.safe_dict(results, 0)
         result = self.safe_list(response, 'result', [])
         return self.parse_markets(result)
 
@@ -1224,7 +1224,7 @@ class grvt(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params)
         market = self.market(symbol)
@@ -1368,7 +1368,7 @@ class grvt(Exchange, ImplicitAPI):
         spotBalances = self.safe_list(response, 'spot_balances', [])
         availableBalance = self.safe_string(response, 'available_balance')
         for i in range(0, len(spotBalances)):
-            balance = spotBalances[i]
+            balance = self.safe_dict(spotBalances, i)
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -2174,7 +2174,7 @@ class grvt(Exchange, ImplicitAPI):
         """
         self.load_markets_and_sign_in()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params)
         request = {
@@ -2307,7 +2307,9 @@ class grvt(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_product(position, 'event_time', 0.000001)
         sizeRaw = self.safe_string(position, 'size')
         isLong = (Precise.string_ge(sizeRaw, '0'))
-        side = 'long' if isLong else 'short'
+        side = 'short'
+        if isLong:
+            side = 'long'
         return self.safe_position({
             'info': position,
             'id': None,
@@ -2488,7 +2490,7 @@ class grvt(Exchange, ImplicitAPI):
         """
         self.load_markets_and_sign_in()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingHistory', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchFundingHistory', symbol, since, limit, params, 1000)
         request = {
@@ -2526,7 +2528,7 @@ class grvt(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         return self.parse_incomes(result, market, since, limit)
 
-    def parse_income(self, income: object, market: Market = None):
+    def parse_income(self, income: dict, market: Market = None):
         #
         #            {
         #                "event_time": "1765267200004987902",
@@ -2884,7 +2886,9 @@ class grvt(Exchange, ImplicitAPI):
                 'id': None,
             })
         isMarket = self.safe_bool(order, 'is_market')
-        orderType = 'market' if (isMarket is True) else 'limit'
+        orderType = 'limit'
+        if isMarket is True:
+            orderType = 'market'
         isPostOnly = self.safe_bool(order, 'post_only')
         isReduceOnly = self.safe_bool(order, 'reduce_only')
         timeInForceRaw = self.safe_string(order, 'time_in_force')

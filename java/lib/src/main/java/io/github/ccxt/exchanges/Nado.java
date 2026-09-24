@@ -568,7 +568,11 @@ public class Nado extends NadoApi
                 List<Object> triggerDirectionparametersVariable = (List<Object>) this.handleTriggerDirectionAndParams(parameters);
                 triggerDirection = (String) ((List<Object>) triggerDirectionparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) triggerDirectionparametersVariable).get(1);
-                String directionSuffix = (((java.util.Objects.equals(triggerDirection, "ascending")))) ? "above" : "below";
+                String directionSuffix = "below";
+                if (java.util.Objects.equals(triggerDirection, "ascending"))
+                {
+                    directionSuffix = "above";
+                }
                 String triggerPriceX18 = this.convertToX18(triggerPrice);
                 Map<String, Object> priceRequirement = new HashMap<String, Object>() {{}};
                 ((Map<String, Object>)priceRequirement).put((String)("oracle_price_" + directionSuffix), triggerPriceX18);
@@ -2342,7 +2346,11 @@ public class Nado extends NadoApi
                 Map<String, Object> pair = (Map<String, Object>) this.safeDict(pairsById, id, new HashMap<String, Object>() {{}});
                 Map<String, Object> asset = (Map<String, Object>) this.safeDict(assetsById, id, new HashMap<String, Object>() {{}});
                 String rawType = this.safeString(market, "type");
-                String type = (((java.util.Objects.equals(rawType, "perp")))) ? "swap" : rawType;
+                String type = rawType;
+                if (java.util.Objects.equals(rawType, "perp"))
+                {
+                    type = "swap";
+                }
                 Boolean contract = (java.util.Objects.equals(type, "swap"));
                 String tickerId = this.safeString2(pair, "ticker_id", "tickerId");
                 if (java.util.Objects.equals(tickerId, null))
@@ -3539,7 +3547,7 @@ public class Nado extends NadoApi
         List<Object> balances = (List<Object>) this.safeList(response, "spot_balances", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Object rawBalance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
+            Map<String, Object> rawBalance = (Map<String, Object>) this.safeDict(balances, i);
             String currencyId = this.safeString(rawBalance, "product_id");
             String code = this.safeCurrencyCode(currencyId);
             if (java.util.Objects.equals(code, "0"))
@@ -4128,7 +4136,14 @@ public class Nado extends NadoApi
             throw new ArgumentsRequired((this.id + " padHex() requires length")) ;
         }
         Object zeros = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-        Object padded = ((Helpers.isTrue(left))) ? (Helpers.add(zeros, value)) : (Helpers.add(value, zeros));
+        Object padded = null;
+        if (Helpers.isTrue(left))
+        {
+            padded = (Helpers.add(zeros, value));
+        } else
+        {
+            padded = (Helpers.add(value, zeros));
+        }
         if (Helpers.isTrue(left))
         {
             Object start = Helpers.subtract(((String)padded).length(), length);

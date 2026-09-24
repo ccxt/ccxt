@@ -3932,7 +3932,7 @@ func (this *Whitebit) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var subAccounts []any = SafeListTypedDefault(response, "data", []any{})
+	var subAccounts []any = SafeListTyped(response, "data")
 	for i := 0; i < len(subAccounts); i++ {
 		var subAccount map[string]any = MapTyped(this.SafeDict(subAccounts, i, map[string]any{}))
 		var accountId *string = this.SafeString(subAccount, "id")
@@ -4297,7 +4297,7 @@ func (this *Whitebit) fetchDepositBody(ch chan any, id any, optionalArgs ...any)
 	//         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
 	//     }
 	//
-	var records []any = SafeListTypedDefault(response, "records", []any{})
+	var records []any = SafeListTyped(response, "records")
 	var first map[string]any = MapTyped(this.SafeDict(records, 0, map[string]any{}))
 
 	ch <- this.ParseTransaction(first, currency)
@@ -4746,7 +4746,7 @@ func (this *Whitebit) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	ch <- this.ParseFundingHistories(data, market, since, limit)
 	return nil
 }
-func (this *Whitebit) ParseFundingHistory(contract any, optionalArgs ...any) any {
+func (this *Whitebit) ParseFundingHistory(contract map[string]any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "market": "BTC_PERP",
@@ -4781,7 +4781,7 @@ func (this *Whitebit) ParseFundingHistories(contracts any, optionalArgs ...any) 
 	_ = limit
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(contracts); i++ {
-		var contract any = GetValue(contracts, i)
+		var contract map[string]any = SafeMapTyped(contracts, i)
 		result = append(result, this.ParseFundingHistory(contract, market))
 	}
 	var sorted []any = this.SortBy(result, "timestamp")
@@ -5106,7 +5106,7 @@ func (this *Whitebit) ParseConversion(conversion any, optionalArgs ...any) any {
 	_ = fromCurrency
 	var toCurrency map[string]any = GetArgMap(optionalArgs, 1, nil)
 	_ = toCurrency
-	var path []any = SafeListTypedDefault(conversion, "path", []any{})
+	var path []any = SafeListTyped(conversion, "path")
 	var first map[string]any = SafeMapTyped(path, 0)
 	var fromPath *string = this.SafeString(first, "from")
 	var toPath *string = this.SafeString(first, "to")
@@ -5431,7 +5431,7 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	}
 	var maxLimit int = 100
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {

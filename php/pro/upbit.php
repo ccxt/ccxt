@@ -294,7 +294,7 @@ class upbit extends \ccxt\async\upbit {
         $asks = $orderbook['asks'];
         $data = $this->safe_list($message, 'orderbook_units', array());
         for ($i = 0; $i < count($data); $i++) {
-            $entry = $data[$i];
+            $entry = $this->safe_dict($data, $i);
             $ask_price = $this->safe_float($entry, 'ask_price');
             $ask_size = $this->safe_float($entry, 'ask_size');
             $bid_price = $this->safe_float($entry, 'bid_price');
@@ -715,7 +715,7 @@ class upbit extends \ccxt\async\upbit {
         $this->balance['timestamp'] = $timestamp;
         $this->balance['datetime'] = $this->iso8601($timestamp);
         for ($i = 0; $i < count($data); $i++) {
-            $balance = $data[$i];
+            $balance = $this->safe_dict($data, $i);
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $available = $this->safe_string($balance, 'balance');

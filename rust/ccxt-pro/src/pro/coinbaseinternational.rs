@@ -872,7 +872,7 @@ impl CoinbaseinternationalCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_256: bool = true;
             while { if !__for_first_256 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_256 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut tick: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut tick: Value = self.safe_dict(data.clone(), i.clone(), &[]);
             let mut parsed: Value = self.parse_ohlcv(tick, &[market.clone()]);
             stored.append(parsed);
         }
@@ -1116,7 +1116,10 @@ impl CoinbaseinternationalCore {
 
     pub fn handle_delta(&self, mut orderbook: Value, mut delta: Value) {
         let mut rawSide: Option<String> = self.safe_string_lower(delta.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut side: Value = (if (rawSide.as_deref() == Some("buy")) { Value::Str("bids".into()) } else { Value::Str("asks".into()) });
+        let mut side: Value = Value::Str("asks".into());
+        if (rawSide.as_deref() == Some("buy")) {
+            side = Value::Str("bids".into());
+        }
         let mut price: Value = self.safe_float(delta.clone(), Value::Int(1), &[]);
         let mut amount: Value = self.safe_float(delta, Value::Int(2), &[]);
         let mut bookside: Value = get_value(&orderbook, &side);

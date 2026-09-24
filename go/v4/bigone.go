@@ -695,7 +695,7 @@ func (this *Bigone) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var promises []any = []any{EndpointRaw(this.PublicGetAssetPairs(params)), EndpointRaw(this.ContractPublicGetSymbols(params))}
 
 	var promisesResult []any = ListTyped(PanicOnError((<-promiseAll(promises))))
-	var response any = GetValue(promisesResult, 0)
+	var response map[string]any = SafeMapTyped(promisesResult, 0)
 	var contractResponse any = GetValue(promisesResult, 1)
 	//
 	//     {
@@ -933,12 +933,10 @@ func (this *Bigone) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var marketType string = func() string {
-		if InOp(ticker, "asset_pair_name") {
-			return "spot"
-		}
-		return "swap"
-	}()
+	var marketType string = "swap"
+	if InOp(ticker, "asset_pair_name") {
+		marketType = "spot"
+	}
 	var marketId *string = this.SafeString2(ticker, "asset_pair_name", "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market, "-", marketType)
 	var close *string = this.SafeString2(ticker, "close", "latestPrice")
@@ -1616,12 +1614,7 @@ func (this *Bigone) ParseBalance(response any) any {
 	}
 	var balances []any = SafeListTyped(response, "data")
 	for i := 0; i < len(balances); i++ {
-		var balance map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(balances) {
-				return DerefScalar(balances[i])
-			}
-			return nil
-		}())
+		var balance map[string]any = SafeMapTyped(balances, i)
 		var symbol *string = this.SafeString(balance, "asset_symbol")
 		var code *string = this.SafeCurrencyCode(symbol)
 		var account map[string]any = this.Account()
@@ -1797,8 +1790,8 @@ func (this *Bigone) createMarketBuyOrderWithCostBody(ch chan any, symbol any, co
 	}
 	AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
 
-	var retRes157915 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, params))))
-	ch <- BoxAbsent(retRes157915)
+	var retRes158215 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, params))))
+	ch <- BoxAbsent(retRes158215)
 	return nil
 }
 
@@ -1841,12 +1834,10 @@ func (this *Bigone) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var isBuy bool = (IsEqual(side, "buy"))
-	var requestSide string = func() string {
-		if isBuy {
-			return "BID"
-		}
-		return "ASK"
-	}()
+	var requestSide string = "ASK"
+	if isBuy {
+		requestSide = "BID"
+	}
 	var uppercaseType string = ToUpper(typeVar)
 	var isLimit bool = (uppercaseType == "LIMIT")
 	var exchangeSpecificParam *bool = this.SafeBool(params, "post_only", false)
@@ -2299,8 +2290,8 @@ func (this *Bigone) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"state": "PENDING",
 	}
 
-	var retRes194215 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes194215)
+	var retRes194815 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes194815)
 	return nil
 }
 
@@ -2335,8 +2326,8 @@ func (this *Bigone) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 		"state": "FILLED",
 	}
 
-	var retRes196015 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes196015)
+	var retRes196615 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes196615)
 	return nil
 }
 func (this *Bigone) Nonce() any {
@@ -2535,12 +2526,10 @@ func (this *Bigone) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var txid *string = this.SafeString(transaction, "txid")
 	var address *string = this.SafeString(transaction, "target_address")
 	var tag *string = this.SafeString(transaction, "memo")
-	var typeVar string = func() string {
-		if InOp(transaction, "customer_id") {
-			return "withdrawal"
-		}
-		return "deposit"
-	}()
+	var typeVar string = "deposit"
+	if InOp(transaction, "customer_id") {
+		typeVar = "withdrawal"
+	}
 	var internal *bool = this.SafeBool(transaction, "is_internal")
 	return map[string]any{
 		"info":        transaction,

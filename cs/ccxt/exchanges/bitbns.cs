@@ -373,7 +373,11 @@ public partial class bitbns : Exchange
             IDictionary<string, object> costLimits = this.safeDict(marketLimits, "cost", new Dictionary<string, object>() {});
             bool usdt = (quoteId == "USDT");
             // INR markets don't need a _INR prefix
-            object uppercaseId = usdt ? (add(add(baseId, "_"), quoteId)) : baseId;
+            object uppercaseId = baseId;
+            if (usdt)
+            {
+                uppercaseId = (add(add(baseId, "_"), quoteId));
+            }
             result.Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "uppercaseId", uppercaseId },
@@ -959,7 +963,11 @@ public partial class bitbns : Exchange
         Dictionary<string, object> market = this.market(symbol);
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
-        string quoteSide = ((((market.ContainsKey("quoteId") ? market["quoteId"] : null) as string) == "USDT")) ? "usdtListOpen" : "listOpen";
+        string quoteSide = "listOpen";
+        if ((((market.ContainsKey("quoteId") ? market["quoteId"] : null) as string) == "USDT"))
+        {
+            quoteSide = "usdtListOpen";
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("uppercaseId") ? market["uppercaseId"] : null) },
             { "page", 0 },

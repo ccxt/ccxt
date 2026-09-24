@@ -215,7 +215,11 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             String symbol = symbol3;
             String method = method3;
             Map<String, Object> parameters = parameters3;
-            String accessibility = ((Helpers.isTrue(isPrivate))) ? "private" : "public";
+            String accessibility = "public";
+            if (Helpers.isTrue(isPrivate))
+            {
+                accessibility = "private";
+            }
             if (java.util.Objects.equals(method, null))
             {
                 method = "";
@@ -599,7 +603,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 (this.loadMarkets()).join();
             }
-            symbols = Helpers.toStringListArg((List<String>)(this.marketSymbols(symbols, null, false)));
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, false));
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             Object url = (this.getUrlByMarketType((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)), false, "watchTickers", parameters)).join();
             parameters = this.cleanParams((Map<String, Object>) (parameters));
@@ -658,7 +662,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 (this.loadMarkets()).join();
             }
-            symbols = Helpers.toStringListArg((List<String>)(this.marketSymbols(symbols, null, false)));
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, false));
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchTickers", new HashMap<String, Object>() {{}});
             String topic = this.safeString(options, "name", "tickers");
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
@@ -855,7 +859,11 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         String updateType = this.safeString(message, "type", "");
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Boolean isSpot = !java.util.Objects.equals(this.safeString(data, "usdIndexPrice"), null);
-        String type = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "contract";
+        String type = "contract";
+        if (Boolean.TRUE.equals(isSpot))
+        {
+            type = "spot";
+        }
         String symbol = null;
         Object parsed = null;
         if ((java.util.Objects.equals(updateType, "snapshot")))
@@ -907,7 +915,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 (this.loadMarkets()).join();
             }
-            symbols = Helpers.toStringListArg((List<String>)(this.marketSymbols(symbols, null, false)));
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, false));
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             Object url = (this.getUrlByMarketType((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)), false, "watchBidsAsks", parameters)).join();
             parameters = this.cleanParams((Map<String, Object>) (parameters));
@@ -1029,8 +1037,8 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 (this.loadMarkets()).join();
             }
-            Object symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
-            Object marketSymbols = this.marketSymbols(symbols, null, false, true, true);
+            List<Object> symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
+            List<Object> marketSymbols = this.marketSymbols(symbols, null, false, true, true);
             Object firstSymbol = (marketSymbols == null || 0 >= ((List<?>)marketSymbols).size() ? null : ((List<?>)marketSymbols).get(0));
             Object url = (this.getUrlByMarketType(firstSymbol, false, "watchOHLCVForSymbols", parameters)).join();
             List<Object> rawHashes = new ArrayList<Object>(Arrays.asList());
@@ -1095,7 +1103,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 (this.loadMarkets()).join();
             }
             Object symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
-            Object marketSymbols = this.marketSymbols(symbols, null, false, true, true);
+            List<Object> marketSymbols = this.marketSymbols(symbols, null, false, true, true);
             Object firstSymbol = (marketSymbols == null || 0 >= ((List<?>)marketSymbols).size() ? null : ((List<?>)marketSymbols).get(0));
             Object url = (this.getUrlByMarketType(firstSymbol, false, "watchOHLCVForSymbols", parameters)).join();
             List<Object> rawHashes = new ArrayList<Object>(Arrays.asList());
@@ -1211,7 +1219,11 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         }
         String marketId = this.safeString(topicParts, (((long) topicLength) - 1L));
         Boolean isSpot = Helpers.isGreaterThan(((String)client.url).indexOf("spot"), -1);
-        String marketType = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "contract";
+        String marketType = "contract";
+        if (Boolean.TRUE.equals(isSpot))
+        {
+            marketType = "spot";
+        }
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Map<String, Object> ohlcvsByTimeframe = (Map<String, Object>) this.safeDict(this.ohlcvs, symbol);
@@ -1253,7 +1265,11 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         //     }
         //
         Boolean isInverse = (java.util.Objects.equals(this.safeBool(market, "inverse"), true));
-        String volumeIndex = ((Boolean.TRUE.equals(isInverse))) ? "turnover" : "volume";
+        String volumeIndex = "volume";
+        if (Boolean.TRUE.equals(isInverse))
+        {
+            volumeIndex = "turnover";
+        }
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "start"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, volumeIndex)));
     }
     public Object parseWsOHLCV(Object ohlcv, Object... optionalArgs)
@@ -1528,7 +1544,11 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         Boolean isSnapshot = (java.util.Objects.equals(type, "snapshot"));
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "s");
-        String marketType = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "contract";
+        String marketType = "contract";
+        if (Boolean.TRUE.equals(isSpot))
+        {
+            marketType = "spot";
+        }
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Long timestamp = this.safeInteger(message, "ts");
@@ -1801,7 +1821,11 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         Object trades = data;
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
         Boolean isSpot = ((String)client.url).indexOf("spot") >= 0;
-        String marketType = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "contract";
+        String marketType = "contract";
+        if (Boolean.TRUE.equals(isSpot))
+        {
+            marketType = "spot";
+        }
         String marketId = this.safeString(parts, 1);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
@@ -1856,7 +1880,11 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         //
         String id = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("i", "T", "v")));
         Boolean isContract = (trade.containsKey("BT"));
-        Object marketType = ((Boolean.TRUE.equals(isContract))) ? "contract" : "spot";
+        Object marketType = "spot";
+        if (Boolean.TRUE.equals(isContract))
+        {
+            marketType = "contract";
+        }
         if (!java.util.Objects.equals(market, null))
         {
             marketType = ((Map<String, Object>)market).get("type");
@@ -2432,7 +2460,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
-            Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
+            List<Object> positions = (List<Object>) this.filterByArray(newPositions, "symbol", symbols, false);
             if (!this.isEmpty(positions))
             {
                 client.resolve(positions, messageHash);
@@ -2586,7 +2614,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             List<Object> rawLiquidations = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)rawLiquidations).size(); i++)
             {
-                Object rawLiquidation = (rawLiquidations == null || i < 0 || i >= rawLiquidations.size() ? null : rawLiquidations.get(i));
+                Map<String, Object> rawLiquidation = (Map<String, Object>) this.safeDict(rawLiquidations, i);
                 String marketId = this.safeString(rawLiquidation, "s");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "", "contract");
                 String symbol = (String) ((Map<String, Object>)market).get("symbol");

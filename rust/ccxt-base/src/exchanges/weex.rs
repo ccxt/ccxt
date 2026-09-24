@@ -2311,7 +2311,7 @@ impl WeexCore {
         }
         let mut maxHistoricalLimit: Value = Value::Int(100);
         let mut paginate: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_bool_and_params(params.clone(), Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&paginate) {
             params = self.extend(params.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2322,7 +2322,7 @@ impl WeexCore {
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         let mut historical: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOHLCV".into()), Value::Str("historical".into()), &[]); historical = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_bool_and_params(params.clone(), Value::Str("fetchOHLCV".into()), Value::Str("historical".into()), &[Value::Bool(false)]); historical = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut timeframeOption: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2517,7 +2517,10 @@ impl WeexCore {
         if (market == Value::Null) {
             let mut marketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
             let mut realizedPnl: Option<String> = self.safe_string_k(trade.clone(), "realizedPnl", &[]).as_str().map(str::to_owned);
-            let mut marketType: Value = (if (realizedPnl.is_some()) { Value::Str("swap".into()) } else { Value::Str("spot".into()) });
+            let mut marketType: Value = Value::Str("spot".into());
+            if (realizedPnl.is_some()) {
+                marketType = Value::Str("swap".into());
+            }
             market = self.safe_market(&[marketId, Value::Null, Value::Null, marketType.clone()]);
             isSpot = Value::Bool(marketType.as_str() == Some("spot"));
         }  else {
@@ -4105,7 +4108,10 @@ impl WeexCore {
         if (market == Value::Null) {
             let mut marketId: Value = self.from_sandbox_market_id(self.safe_string_k(order.clone(), "symbol", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
             let mut positionSide: Option<String> = self.safe_string_k(order.clone(), "positionSide", &[]).as_str().map(str::to_owned);
-            let mut marketType: Value = (if (positionSide.is_none()) { Value::Str("spot".into()) } else { Value::Str("swap".into()) });
+            let mut marketType: Value = Value::Str("swap".into());
+            if (positionSide.is_none()) {
+                marketType = Value::Str("spot".into());
+            }
             market = self.safe_market(&[marketId, Value::Null, Value::Null, marketType]);
         }
         let mut timestamp: Value = self.safe_integer_n(order.clone(), Value::from(vec![Value::Str("transactTime".into()), Value::Str("time".into()), Value::Str("createTime".into())]), &[]);
@@ -5368,7 +5374,10 @@ impl WeexCore {
         if (marginMode == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setPositionMode() also sets marginMode, so a marginMode parameter is required".into()))));
         }
-        let mut separatedType: Value = (if is_true(&hedged) { Value::Str("SEPARATED".into()) } else { Value::Str("COMBINED".into()) });
+        let mut separatedType: Value = Value::Str("COMBINED".into());
+        if is_true(&hedged) {
+            separatedType = Value::Str("SEPARATED".into());
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -5403,7 +5412,10 @@ impl WeexCore {
                 m.insert("type".to_string(), type_var.clone());
             m
         });
-        let mut parsedType: Value = (if (type_var.as_f64() == Some(1.0)) { Value::Str("add".into()) } else { Value::Str("reduce".into()) });
+        let mut parsedType: Value = Value::Str("reduce".into());
+        if (type_var.as_f64() == Some(1.0)) {
+            parsedType = Value::Str("add".into());
+        }
         let __ws_arg_48 = self.extend(request, &[params]);
         let mut response: Value = self.contract_private_post_capi_v3_account_position_margin(&[__ws_arg_48]).await;
         let __ws_arg_49 = self.parse_margin_modification(response, &[market]);
@@ -5428,7 +5440,10 @@ impl WeexCore {
         //     }
         //
         let mut msg: Option<String> = self.safe_string_k(data.clone(), "msg", &[]).as_str().map(str::to_owned);
-        let mut status: Value = (if (msg.as_deref() == Some("success")) { Value::Str("ok".into()) } else { Value::Str("failed".into()) });
+        let mut status: Value = Value::Str("failed".into());
+        if (msg.as_deref() == Some("success")) {
+            status = Value::Str("ok".into());
+        }
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "requestTime", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

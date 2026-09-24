@@ -725,7 +725,7 @@ public partial class predictfun : PredictionExchange
             int categoriesLength = (categories?.Count ?? 0);
             for (int ci = 0; ci < categoriesLength; ci++)
             {
-                object category = getValue(categories, ci);
+                IDictionary<string, object> category = this.safeDict(categories, ci);
                 string? categorySlug = this.safeString(category, "slug");
                 if ((categorySlug == null))
                 {
@@ -1189,7 +1189,11 @@ public partial class predictfun : PredictionExchange
         string? topicSlug = this.safeString(rawMarket, "categorySlug");
         // the same handle parseEvent () derives for the enclosing event - stamping it here is what
         // lets every outcome-addressed structure (order, ticker, trade, position) report an event
-        string? eventHandle = ((topicSlug != null)) ? this.shortenSlug(topicSlug) : null;
+        string? eventHandle = null;
+        if ((topicSlug != null))
+        {
+            eventHandle = this.shortenSlug(topicSlug);
+        }
         string? title = this.safeString(rawMarket, "title", marketId);
         List<object> topicMarkets = this.safeList(rawTopic, "markets", new List<object>() {});
         int marketCount = topicMarkets.Count;
@@ -1260,7 +1264,11 @@ public partial class predictfun : PredictionExchange
         }
         string? resolvedOutcome = resolvedOutcomeRaw;
         string collateral = "USDT";
-        string marketType = (rawOutcomesLength > 2) ? "categorical" : "binary";
+        string marketType = "binary";
+        if (rawOutcomesLength > 2)
+        {
+            marketType = "categorical";
+        }
         string? createdDatetime = this.safeString(rawMarket, "createdAt");
         return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
             { "id", marketId },
@@ -1378,7 +1386,7 @@ public partial class predictfun : PredictionExchange
             List<object> noAsks = new List<object>() {};
             for (int i = 0; i < bids.Count; i++)
             {
-                object bid = bids[i];
+                List<object> bid = this.safeList(bids, i);
                 string? bidPrice = this.safeString(bid, 0);
                 double? bidSize = this.parseNumber(this.safeString(bid, 1));
                 double? complementPrice = this.parseNumber(Precise.stringSub("1", bidPrice));
@@ -1386,7 +1394,7 @@ public partial class predictfun : PredictionExchange
             }
             for (int i = 0; i < asks.Count; i++)
             {
-                object ask = asks[i];
+                List<object> ask = this.safeList(asks, i);
                 string? askPrice = this.safeString(ask, 0);
                 double? askSize = this.parseNumber(this.safeString(ask, 1));
                 double? complementPrice = this.parseNumber(Precise.stringSub("1", askPrice));
@@ -1698,7 +1706,7 @@ public partial class predictfun : PredictionExchange
         int dataLength = data.Count;
         for (int i = 0; i < dataLength; i++)
         {
-            object entry = getValue(data, i);
+            IDictionary<string, object> entry = this.safeDict(data, i);
             IDictionary<string, object> taker = this.safeDict(entry, "taker", new Dictionary<string, object>() {});
             IDictionary<string, object> takerOutcome = this.safeDict(taker, "outcome", new Dictionary<string, object>() {});
             Int64? takerIndexSet = this.safeInteger(takerOutcome, "indexSet");
@@ -2066,7 +2074,11 @@ public partial class predictfun : PredictionExchange
         {
             throw new ArgumentsRequired (((this.id + " createOrder() could not resolve the on chain token id of ") + outcome)) ;
         }
-        string strategy = ((type == "market")) ? "MARKET" : "LIMIT";
+        string strategy = "LIMIT";
+        if ((type == "market"))
+        {
+            strategy = "MARKET";
+        }
         bool isMarket = (strategy == "MARKET");
         if ((!isMarket) && ((price == null)))
         {
@@ -2085,14 +2097,14 @@ public partial class predictfun : PredictionExchange
         // read through the extractor rather than off the instance, so one call can opt in without
         // reconfiguring the exchange - and so the key is taken out of params instead of riding
         // along into the request body
-        bool warnOnMarketOrderWithoutPrice = true;
-        IList<object> warnOnMarketOrderWithoutPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "warnOnMarketOrderWithoutPrice", true);
-        warnOnMarketOrderWithoutPrice = isTrue(warnOnMarketOrderWithoutPriceparametersVariable[0]);
+        bool? warnOnMarketOrderWithoutPrice = true;
+        IList<object> warnOnMarketOrderWithoutPriceparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "createOrder", "warnOnMarketOrderWithoutPrice", true);
+        warnOnMarketOrderWithoutPrice = (bool?)warnOnMarketOrderWithoutPriceparametersVariable[0];
         parameters = warnOnMarketOrderWithoutPriceparametersVariable[1];
         if ((price == null))
         {
             // a priceless limit order already threw above, so this is a market order
-            if (warnOnMarketOrderWithoutPrice)
+            if ((warnOnMarketOrderWithoutPrice == true))
             {
                 throw new ArgumentsRequired ((this.id + " createOrder() market orders require a \"price\" argument. To use default values turn \"warnOnMarketOrderWithoutPrice\" off in options")) ;
             }
@@ -3722,7 +3734,7 @@ public partial class predictfun : PredictionExchange
         int bidsLength = (rawBids?.Count ?? 0);
         for (int i = 0; i < bidsLength; i++)
         {
-            object bid = getValue(rawBids, i);
+            List<object> bid = this.safeList(rawBids, i);
             string? bidPrice = this.safeString(bid, 0);
             double? bidSize = this.parseNumber(this.safeString(bid, 1));
             yesBids.Add(new List<object> {this.parseNumber(bidPrice), bidSize});
@@ -3732,7 +3744,7 @@ public partial class predictfun : PredictionExchange
         int asksLength = (rawAsks?.Count ?? 0);
         for (int i = 0; i < asksLength; i++)
         {
-            object ask = getValue(rawAsks, i);
+            List<object> ask = this.safeList(rawAsks, i);
             string? askPrice = this.safeString(ask, 0);
             double? askSize = this.parseNumber(this.safeString(ask, 1));
             yesAsks.Add(new List<object> {this.parseNumber(askPrice), askSize});
@@ -3742,7 +3754,7 @@ public partial class predictfun : PredictionExchange
         int outcomesLength = getArrayLength(outcomes);
         for (int i = 0; i < outcomesLength; i++)
         {
-            object outcomeObj = getValue(outcomes, i);
+            IDictionary<string, object> outcomeObj = this.safeDict(outcomes, i);
             IDictionary<string, object> outcomeInfo = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
             bool isYesOutcome = (this.safeInteger(outcomeInfo, "indexSet") == 1);
             string? outcomeHandle = this.safeString(outcomeObj, "outcome");
@@ -3922,7 +3934,11 @@ public partial class predictfun : PredictionExchange
         // undefined rather than guessed - a handle that does not match the one the rest of the api
         // reports is worse than none at all
         string? topicSlug = this.safeString(details, "categorySlug");
-        string? eventHandle = ((topicSlug != null)) ? this.shortenSlug(topicSlug) : null;
+        string? eventHandle = null;
+        if ((topicSlug != null))
+        {
+            eventHandle = this.shortenSlug(topicSlug);
+        }
         string? label = ((string)this.stripPriceFormatting(this.safeStringUpper(details, "outcomeName")));
         return new Dictionary<string, object>() {
             { "outcome", null },

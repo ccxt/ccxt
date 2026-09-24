@@ -1076,7 +1076,7 @@ export default class toobit extends toobitRest {
         return this.filterBySymbolsSinceLimit (cache, symbolsNormalized, since, limit, true);
     }
 
-    setPositionsCache (client: Client, type: string, symbols: Strings = undefined, isPortfolioMargin: Bool = false) {
+    setPositionsCache (client: Client, type: string, symbols: Strings = undefined) {
         if (this.positions === undefined) {
             this.positions = {};
         }
@@ -1088,7 +1088,7 @@ export default class toobit extends toobitRest {
             const messageHash = type + ':fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
-                this.spawn (this.loadPositionsSnapshot, client, messageHash, type, isPortfolioMargin);
+                this.spawn (this.loadPositionsSnapshot, client, messageHash, type);
             }
         } else {
             this.positions[type] = new ArrayCacheBySymbolBySide ();

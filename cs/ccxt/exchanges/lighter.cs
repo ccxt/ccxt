@@ -2150,13 +2150,13 @@ public partial class lighter : Exchange
         List<object> accounts = this.safeList(response, "accounts", new List<object>() {});
         for (int i = 0; i < accounts.Count; i++)
         {
-            object account = accounts[i];
+            IDictionary<string, object> account = this.safeDict(accounts, i);
             if (type == "spot")
             {
                 List<object> assets = this.safeList(account, "assets", new List<object>() {});
                 for (int j = 0; j < assets.Count; j++)
                 {
-                    object asset = assets[j];
+                    IDictionary<string, object> asset = this.safeDict(assets, j);
                     string? codeId = this.safeString(asset, "symbol");
                     string? code = this.safeCurrencyCode(codeId);
                     IDictionary<string, object> balance = this.safeDict(result, code, this.account());
@@ -2280,7 +2280,7 @@ public partial class lighter : Exchange
         List<object> accounts = this.safeList(response, "accounts", new List<object>() {});
         for (int i = 0; i < accounts.Count; i++)
         {
-            object account = accounts[i];
+            IDictionary<string, object> account = this.safeDict(accounts, i);
             List<object> positions = this.safeList(account, "positions", new List<object>() {});
             for (int j = 0; j < positions.Count; j++)
             {
@@ -2939,8 +2939,8 @@ public partial class lighter : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -3058,16 +3058,16 @@ public partial class lighter : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, parameters, "cursor", "cursor", null, 50));
         }
-        object address = null;
-        IList<object> addressparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "fetchDeposits", "address", "l1_address");
-        address = addressparametersVariable[0];
+        string? address = null;
+        IList<object> addressparametersVariable = (IList<object>)this.handleOptionStringAndParams2(parameters, "fetchDeposits", "address", "l1_address");
+        address = (string)addressparametersVariable[0];
         parameters = addressparametersVariable[1];
         if ((address == null))
         {
@@ -3138,8 +3138,8 @@ public partial class lighter : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -3353,8 +3353,8 @@ public partial class lighter : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -3531,9 +3531,9 @@ public partial class lighter : Exchange
         {
             throw new ArgumentsRequired ((this.id + " setLeverage() requires a symbol argument")) ;
         }
-        object marginMode = null;
-        IList<object> marginModeparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "setLeverage", "marginMode", "margin_mode");
-        marginMode = marginModeparametersVariable[0];
+        string? marginMode = null;
+        IList<object> marginModeparametersVariable = (IList<object>)this.handleOptionStringAndParams2(parameters, "setLeverage", "marginMode", "margin_mode");
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         if ((marginMode == null))
         {

@@ -798,7 +798,7 @@ class coinbaseexchange extends Exchange {
     public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
-            $balance = $response[$i];
+            $balance = $this->safe_dict($response, $i);
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -1112,7 +1112,10 @@ class coinbaseexchange extends Exchange {
             'rate' => $feeRate,
         );
         $id = $this->safe_string($trade, 'trade_id');
-        $side = ($trade['side'] === 'buy') ? 'sell' : 'buy';
+        $side = 'buy';
+        if ($trade['side'] === 'buy') {
+            $side = 'sell';
+        }
         $orderId = $this->safe_string($trade, 'order_id');
         // Coinbase Pro returns inverted side to fetchMyTrades vs fetchTrades
         $makerOrderId = $this->safe_string($trade, 'maker_order_id');
@@ -1162,7 +1165,7 @@ class coinbaseexchange extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params, 100));
         }
@@ -1572,7 +1575,7 @@ class coinbaseexchange extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOpenOrders', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_dynamic('fetchOpenOrders', $symbol, $since, $limit, $params, 100));
         }
@@ -2142,12 +2145,12 @@ class coinbaseexchange extends Exchange {
     }
 
     public function parse_transaction_status(array $transaction): string {
-        $canceled = $this->safe_value($transaction, 'canceled_at');
+        $canceled = $this->safe_string($transaction, 'canceled_at');
         if (($canceled !== null) && ($canceled !== null)) {
             return 'canceled';
         }
-        $processed = $this->safe_value($transaction, 'processed_at');
-        $completed = $this->safe_value($transaction, 'completed_at');
+        $processed = $this->safe_string($transaction, 'processed_at');
+        $completed = $this->safe_string($transaction, 'completed_at');
         if (($completed !== null) && ($completed !== null)) {
             return 'ok';
         } elseif (($processed !== null) && ($processed !== null)) {

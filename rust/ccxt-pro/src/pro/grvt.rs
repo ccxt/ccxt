@@ -386,7 +386,10 @@ impl GrvtCore {
                 m.insert("id".to_string(), self.request_id());
             m
         });
-        let mut apiPart: Value = (if is_true(&publicOrPrivate) { Value::Str("publicMarket".into()) } else { Value::Str("privateTrading".into()) });
+        let mut apiPart: Value = Value::Str("privateTrading".into());
+        if is_true(&publicOrPrivate) {
+            apiPart = Value::Str("publicMarket".into());
+        }
         let __ws_arg_0 = crate::value::get_value_k(&self.urls, "api");
         return self.watch_multiple(get_value(&crate::value::get_value_k(&__ws_arg_0, "ws"), &apiPart), messageHashes, &[payload, rawHashes]).await;
 
@@ -779,7 +782,7 @@ impl GrvtCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_354: bool = true;
             while { if !__for_first_354 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_354 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsAndTimeframes.len() as i64) as f64) } {
-            let mut data: Value = symbolsAndTimeframes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut data: Value = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]);
             let mut symbolString: Value = self.safe_string(data.clone(), Value::Int(0), &[]);
             let mut market: Value = self.market(symbolString);
             let mut marketId: Value = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);

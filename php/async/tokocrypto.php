@@ -1644,7 +1644,7 @@ class tokocrypto extends Exchange {
         $data = $this->safe_dict($response, 'data', array());
         $balances = $this->safe_list($data, 'accountAssets', array());
         for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+            $balance = $this->safe_dict($balances, $i);
             $currencyId = $this->safe_string($balance, 'asset');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();

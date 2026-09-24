@@ -398,7 +398,7 @@ public partial class phemex : ccxt.phemex
         ((IDictionary<string,object>)this.balance)["info"] = message;
         for (int i = 0; i < getArrayLength(message); i++)
         {
-            object balance = getValue(message, i);
+            IDictionary<string, object> balance = this.safeDict(message, i);
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             IDictionary<string, object> currency = this.safeDict(this.currencies, code, new Dictionary<string, object>() {});
@@ -667,7 +667,11 @@ public partial class phemex : ccxt.phemex
         bool? isSwap = ((bool?)(market.ContainsKey("swap") ? market["swap"] : null));
         bool settleIsUSDT = (((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT");
         bool isUsdtSwap = ((isSwap == true)) && settleIsUSDT;
-        string name = isUsdtSwap ? "trade_p" : "trade";
+        string name = "trade";
+        if (isUsdtSwap)
+        {
+            name = "trade_p";
+        }
         string messageHash = ("trade:" + (symbolVar));
         string method = (name + ".subscribe");
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
@@ -712,7 +716,11 @@ public partial class phemex : ccxt.phemex
         bool? isSwap = ((bool?)(market.ContainsKey("swap") ? market["swap"] : null));
         bool settleIsUSDT = (((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT");
         bool isUsdtSwap = ((isSwap == true)) && settleIsUSDT;
-        string name = isUsdtSwap ? "orderbook_p" : "orderbook";
+        string name = "orderbook";
+        if (isUsdtSwap)
+        {
+            name = "orderbook_p";
+        }
         string messageHash = ("orderbook:" + (symbolVar));
         string method = (name + ".subscribe");
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
@@ -757,7 +765,11 @@ public partial class phemex : ccxt.phemex
         bool? isSwap = ((bool?)(market.ContainsKey("swap") ? market["swap"] : null));
         bool settleIsUSDT = (((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT");
         bool isUsdtSwap = ((isSwap == true)) && settleIsUSDT;
-        string name = isUsdtSwap ? "kline_p" : "kline";
+        string name = "kline";
+        if (isUsdtSwap)
+        {
+            name = "kline_p";
+        }
         string messageHash = ((("kline:" + (timeframeVar)) + ":") + (symbolVar));
         string method = (name + ".subscribe");
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
@@ -1647,7 +1659,11 @@ public partial class phemex : ccxt.phemex
         }
         if (((message != null && ((IDictionary<string, object>)message).ContainsKey("accounts"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("accounts_p"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("wallets"))))
         {
-            string type = ((message != null && ((IDictionary<string, object>)message).ContainsKey("accounts"))) ? "swap" : "spot";
+            string type = "spot";
+            if ((message != null && ((IDictionary<string, object>)message).ContainsKey("accounts")))
+            {
+                type = "swap";
+            }
             if ((message != null && ((IDictionary<string, object>)message).ContainsKey("accounts_p")))
             {
                 type = "perpetual";

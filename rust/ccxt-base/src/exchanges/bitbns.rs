@@ -663,7 +663,10 @@ impl BitbnsCore {
 })]);
             let mut usdt: bool = quoteId.as_str() == Some("USDT");
             // INR markets don't need a _INR prefix
-            let mut uppercaseId: Value = (if usdt { (Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseId, Value::Str("_".into())).into()), quoteId).into())) } else { baseId.clone() });
+            let mut uppercaseId: Value = baseId.clone();
+            if usdt {
+                uppercaseId = (Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseId, Value::Str("_".into())).into()), quoteId).into()));
+            }
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id);
@@ -1268,7 +1271,10 @@ impl BitbnsCore {
         let mut market: Value = self.market(symbol);
         let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
         params = self.omit(params.clone(), Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
-        let mut quoteSide: Value = (if (market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null).as_str() == Some("USDT")) { Value::Str("usdtListOpen".into()) } else { Value::Str("listOpen".into()) });
+        let mut quoteSide: Value = Value::Str("listOpen".into());
+        if (market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null).as_str() == Some("USDT")) {
+            quoteSide = Value::Str("usdtListOpen".into());
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("uppercaseId")).cloned().unwrap_or(Value::Null));

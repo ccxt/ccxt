@@ -543,7 +543,7 @@ public partial class gemini : ccxt.gemini
         // last update always overwrites the previous state and is the latest state
         for (int i = 0; i < getArrayLength(rawBidAskChanges); i++)
         {
-            object entry = getValue(rawBidAskChanges, i);
+            IDictionary<string, object> entry = this.safeDict(rawBidAskChanges, i);
             string? rawSide = this.safeString(entry, "side");
             double? price = this.safeNumber(entry, "price");
             string? sizeString = this.safeString(entry, "remaining");
@@ -644,7 +644,7 @@ public partial class gemini : ccxt.gemini
         object asks = getValue(orderbook, "asks");
         for (int i = 0; i < getArrayLength(rawOrderBookChanges); i++)
         {
-            object entry = getValue(rawOrderBookChanges, i);
+            IDictionary<string, object> entry = this.safeDict(rawOrderBookChanges, i);
             double? price = this.safeNumber(entry, "price");
             double? size = this.safeNumber(entry, "remaining");
             string? rawSide = this.safeString(entry, "side");

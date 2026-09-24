@@ -408,7 +408,7 @@ public class Btcturk extends BtcturkApi
         Double minCost = null;
         for (var j = 0; j < ((List<?>)filters).size(); j++)
         {
-            Object filter = (filters == null || j < 0 || j >= filters.size() ? null : filters.get(j));
+            Map<String, Object> filter = (Map<String, Object>) this.safeDict(filters, j);
             String filterType = this.safeString(filter, "filterType");
             if (java.util.Objects.equals(filterType, "PRICE_FILTER"))
             {
@@ -488,7 +488,7 @@ public class Btcturk extends BtcturkApi
         }};
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+            Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i);
             String currencyId = this.safeString(entry, "asset");
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
@@ -1505,7 +1505,11 @@ public class Btcturk extends BtcturkApi
     {
         String errorCode = this.safeString(response, "code", "0");
         String message = this.safeString(response, "message");
-        Object output = (((java.util.Objects.equals(message, null)))) ? body : message;
+        Object output = message;
+        if (java.util.Objects.equals(message, null))
+        {
+            output = body;
+        }
         this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, ((this.id + " ") + output));
         if ((!java.util.Objects.equals(errorCode, "0")) && (!java.util.Objects.equals(errorCode, "SUCCESS")))
         {

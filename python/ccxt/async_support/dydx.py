@@ -843,7 +843,7 @@ class dydx(Exchange, ImplicitAPI):
 
     def handle_public_address(self, methodName: Str, params: dict) -> list:
         userAux = None
-        userAux, params = self.handle_option_and_params(params, methodName, 'user')
+        userAux, params = self.handle_option_string_and_params(params, methodName, 'user')
         user = userAux
         user, params = self.handle_option_string_and_params(params, methodName, 'address', userAux)
         if (user is not None) and (user != ''):

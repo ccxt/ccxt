@@ -815,7 +815,7 @@ impl BithumbCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_128: bool = true;
             while { if !__for_first_128 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_128 = false; i.as_f64().unwrap_or(f64::NAN) < ((units.len() as i64) as f64) } {
-            let mut entry: Value = units.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = self.safe_dict(units.clone(), i.clone(), &[]);
             let mut bidPrice: Value = self.safe_number_k(entry.clone(), "bid_price", &[]);
             let mut bidSize: Value = self.safe_number_k(entry.clone(), "bid_size", &[]);
             let mut askPrice: Value = self.safe_number_k(entry.clone(), "ask_price", &[]);
@@ -853,7 +853,10 @@ impl BithumbCore {
         //    }
         //
         let mut sideId: Option<String> = self.safe_string_k(delta.clone(), "orderType", &[]).as_str().map(str::to_owned);
-        let mut side: Value = (if (sideId.as_deref() == Some("bid")) { Value::Str("bids".into()) } else { Value::Str("asks".into()) });
+        let mut side: Value = Value::Str("asks".into());
+        if (sideId.as_deref() == Some("bid")) {
+            side = Value::Str("bids".into());
+        }
         let mut bidAsk: Value = self.parse_order_book_bid_ask(delta, &[Value::Str("price".into()), Value::Str("quantity".into())]);
         let mut orderbookSide: Value = get_value(&orderbook, &side);
         let mut orderbookSide: Value = get_value(&orderbook, &side);
@@ -1190,7 +1193,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: Value = Value::Int(0);
             let mut __for_first_131: bool = true;
             while { if !__for_first_131 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_131 = false; i.as_f64().unwrap_or(f64::NAN) < ((assets.len() as i64) as f64) } {
-            let mut asset: Value = assets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut asset: Value = self.safe_dict(assets.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(asset.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut account: Value = self.account();

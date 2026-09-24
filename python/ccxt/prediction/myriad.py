@@ -847,7 +847,9 @@ class myriad(PredictionExchange, ImplicitAPI):
         sideStr = side.lower()
         sideInt = 0 if (sideStr == 'buy') else 1
         isMarket = (typeStr == 'market')
-        defaultTif = 'FOK' if isMarket else 'GTC'
+        defaultTif = 'GTC'
+        if isMarket:
+            defaultTif = 'FOK'
         timeInForce = self.safe_string_upper(params, 'timeInForce', defaultTif)
         priceValue = price
         if priceValue is None:
@@ -907,7 +909,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         await self.load_outcomes(orderOutcomes)
         result = []
         for i in range(0, ordersLength):
-            o = orders[i]
+            o = self.safe_dict(orders, i)
             outcome = self.safe_string(o, 'outcome')
             type = self.safe_string(o, 'type')
             side = self.safe_string(o, 'side')
@@ -1168,7 +1170,9 @@ class myriad(PredictionExchange, ImplicitAPI):
         inner = self.safe_dict(order, 'order', {})
         orderHash = self.safe_string_2(order, 'orderHash', 'hash')
         sideInt = self.safe_integer(inner, 'side')
-        side = 'sell' if (sideInt == 1) else 'buy'
+        side = 'buy'
+        if sideInt == 1:
+            side = 'sell'
         amountWei = self.safe_string(inner, 'amount')
         priceWei = self.safe_string(inner, 'price')
         filledWei = self.safe_string(order, 'filledAmount')
@@ -1181,7 +1185,11 @@ class myriad(PredictionExchange, ImplicitAPI):
         tif = self.safe_string_upper(order, 'timeInForce')
         isMarketTif = (tif == 'FOK') or (tif == 'FAK')
         # resolve the outcome from market/outcome ids when no market was passed (e.g. fetchOrders without a outcome)
-        outcome = None if (market is None) else self.safe_string(market, 'outcome')
+        outcome = None
+        if market is None:
+            outcome = None
+        else:
+            outcome = self.safe_string(market, 'outcome')
         outcomeObj = market
         if outcome is None:
             # the REST order has no top-level networkId; order book lives on the default network
@@ -1953,7 +1961,9 @@ class myriad(PredictionExchange, ImplicitAPI):
                 },
             })
         marketTradingModel = self.safe_string(raw, 'tradingModel', 'amm')
-        marketExecutionModel = 'amm' if (marketTradingModel == 'amm') else 'clob'
+        marketExecutionModel = 'clob'
+        if marketTradingModel == 'amm':
+            marketExecutionModel = 'amm'
         outcomesLength = len(outcomes)
         # effectively-final copy for the market object literal below (reassigned in the loop)
         marketResolvedOutcome = resolvedOutcome
@@ -2229,7 +2239,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         price = None
         change = None
         for i in range(0, len(outcomes)):
-            o = outcomes[i]
+            o = self.safe_dict(outcomes, i)
             if self.safe_string(o, 'outcomeId', self.safe_string(o, 'id')) == outcomeId:
                 price = self.safe_number(o, 'price')
                 change = self.safe_number(o, 'priceChange24h')
@@ -2384,7 +2394,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         outcomes = self.safe_list(response, 'outcomes', [])
         price = None
         for i in range(0, len(outcomes)):
-            o = outcomes[i]
+            o = self.safe_dict(outcomes, i)
             if self.safe_string(o, 'outcomeId', self.safe_string(o, 'id')) == outcomeId:
                 price = self.safe_number(o, 'price')
                 break
@@ -2426,13 +2436,13 @@ class myriad(PredictionExchange, ImplicitAPI):
         rawAsks = self.safe_list(response, 'asks', [])
         bids = []
         for i in range(0, len(rawBids)):
-            row = rawBids[i]
+            row = self.safe_list(rawBids, i)
             rowPrice = Precise.string_div(self.safe_string(row, 0), '1000000000000000000')
             rowAmount = Precise.string_div(self.safe_string(row, 1), '1000000000000000000')
             bids.append([self.parse_number(rowPrice), self.parse_number(rowAmount)])
         asks = []
         for i in range(0, len(rawAsks)):
-            row = rawAsks[i]
+            row = self.safe_list(rawAsks, i)
             rowPrice = Precise.string_div(self.safe_string(row, 0), '1000000000000000000')
             rowAmount = Precise.string_div(self.safe_string(row, 1), '1000000000000000000')
             asks.append([self.parse_number(rowPrice), self.parse_number(rowAmount)])
@@ -2613,7 +2623,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         for i in range(0, len(marketKeys)):
             key = marketKeys[i]
             grouped = outcomesByMarket[key]
-            firstOutcome = grouped[0]
+            firstOutcome = self.safe_dict(grouped, 0)
             info = self.safe_dict(firstOutcome, 'info', {})
             promises.append(self.myriadPublicGetMarketsId(self.extend({
                 'id': self.safe_string(info, 'marketId'),
@@ -2683,7 +2693,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         rows = rowsList if (rowsList is not None) else []
         trades = []
         for i in range(0, len(rows)):
-            row = rows[i]
+            row = self.safe_dict(rows, i)
             action = self.safe_string(row, 'action')
             if (action != 'buy') and (action != 'sell'):
                 continue
@@ -3033,7 +3043,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         changesLength = len(changes)
         updated = {}
         for i in range(0, changesLength):
-            change = changes[i]
+            change = self.safe_dict(changes, i)
             outcomeId = self.safe_string(change, 'outcome')
             sym = self.market_outcome_to_symbol(networkId, marketId, outcomeId)
             if sym is None:
@@ -3432,7 +3442,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         balances = {}
         positionsLength = len(positions)
         for i in range(0, positionsLength):
-            p = positions[i]
+            p = self.safe_dict(positions, i)
             id = self.safe_string(p, 'id')
             if id is not None:
                 balances[id] = self.number_to_string(self.safe_number(p, 'contracts', 0))

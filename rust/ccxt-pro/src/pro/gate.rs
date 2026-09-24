@@ -600,7 +600,12 @@ impl GateCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = (if (symbol == Value::Null) { Value::Null } else { self.market(symbol) });
+        let mut market: Value = Value::Null;
+        if (symbol == Value::Null) {
+            market = Value::Null;
+        }  else {
+            market = self.market(symbol);
+        }
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut messageType: Value = self.get_type_by_market(market.clone());
         let mut channel: Value = Value::Str(format!("{}{}", messageType, Value::Str(".order_cancel_cp".into())).into());
@@ -642,7 +647,12 @@ impl GateCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = (if (symbol == Value::Null) { Value::Null } else { self.market(symbol) });
+        let mut market: Value = Value::Null;
+        if (symbol == Value::Null) {
+            market = Value::Null;
+        }  else {
+            market = self.market(symbol);
+        }
         let mut trigger: Value = self.safe_bool_n(params.clone(), Value::from(vec![Value::Str("is_stop_order".into()), Value::Str("stop".into()), Value::Str("trigger".into())]), &[Value::Bool(false)]);
         params = self.omit(params.clone(), Value::from(vec![Value::Str("is_stop_order".into()), Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
         let mut type_varqueryVariable = self.handle_market_type_and_params(Value::Str("cancelOrder".into()), &[market.clone(), params]);
@@ -724,7 +734,12 @@ impl GateCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = (if (symbol == Value::Null) { Value::Null } else { self.market(symbol.clone()) });
+        let mut market: Value = Value::Null;
+        if (symbol == Value::Null) {
+            market = Value::Null;
+        }  else {
+            market = self.market(symbol.clone());
+        }
         let mut requestrequestParamsVariable = self.parent.fetch_order_request(id, &[symbol, params]);
         let mut request: Value = requestrequestParamsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut requestParams: Value = requestrequestParamsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
@@ -866,7 +881,10 @@ impl GateCore {
         let mut url: Value = self.get_url_by_market(market.clone());
         let mut isEuUrl: bool = get_index_of(&url, &Value::Str("gateeu".into())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
         let mut isNonEuSpot: bool = (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && !isEuUrl;
-        let mut intervalDefault: Value = (if isNonEuSpot { Value::Str("50".into()) } else { Value::Str("100ms".into()) });
+        let mut intervalDefault: Value = Value::Str("100ms".into());
+        if isNonEuSpot {
+            intervalDefault = Value::Str("50".into());
+        }
         let mut intervalqueryVariable = self.handle_option_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("interval".into()), &[intervalDefault]);
         let mut interval: Value = intervalqueryVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut query: Value = intervalqueryVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
@@ -935,7 +953,10 @@ impl GateCore {
         let mut marketId: Value = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
         let mut isEuUrl: bool = get_index_of(&url, &Value::Str("gateeu".into())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
         let mut isNonEuSpot: bool = (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && !isEuUrl;
-        let mut intervalDefault: Value = (if isNonEuSpot { Value::Str("50".into()) } else { Value::Str("100ms".into()) });
+        let mut intervalDefault: Value = Value::Str("100ms".into());
+        if isNonEuSpot {
+            intervalDefault = Value::Str("50".into());
+        }
         let mut interval: Value = intervalDefault;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchOrderBook".into()), Value::Str("interval".into()), &[interval.clone()]); interval = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut messageType: Value = self.get_type_by_market(market.clone());
@@ -1110,7 +1131,10 @@ impl GateCore {
         let mut channelParts: Value = split(&channel, &Value::Str(".".into()));
         let mut rawMarketType: Option<String> = self.safe_string(channelParts, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut isSpot: bool = rawMarketType.as_deref() == Some("spot");
-        let mut marketType: Value = (if isSpot { Value::Str("spot".into()) } else { Value::Str("contract".into()) });
+        let mut marketType: Value = Value::Str("contract".into());
+        if isSpot {
+            marketType = Value::Str("spot".into());
+        }
         let mut delta: Value = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
         let mut deltaStart: Value = self.safe_integer_k(delta.clone(), "U", &[]);
         let mut deltaEnd: Value = self.safe_integer_k(delta.clone(), "u", &[]);
@@ -1131,7 +1155,7 @@ impl GateCore {
             let mut waitAmount: Value = (if isSpot { snapshotDelay } else { Value::Int(0) });
             if is_equal(&cacheLength, &waitAmount) {
                 // max limit is 100
-                let mut subscription: Value = get_value(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
+                let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), messageHash.clone(), &[]);
                 let mut limit: Value = self.safe_integer_k(subscription, "limit", &[]);
                 self.spawn(&[Value::Str("load_order_book".into()).clone(), client.clone(), messageHash.clone(), symbol.clone(), limit, Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -1158,7 +1182,7 @@ impl GateCore {
 
     pub fn get_cache_index(&self, mut orderBook: Value, mut cache: Value) -> Value {
         let mut nonce: Value = self.safe_integer_k(orderBook, "nonce", &[]);
-        let mut firstDelta: Value = get_value(&cache, &Value::Int(0));
+        let mut firstDelta: Value = self.safe_dict(cache.clone(), Value::Int(0), &[]);
         let mut firstDeltaStart: Value = self.safe_integer_k(firstDelta, "U", &[]);
         if (nonce != Value::Null) && (firstDeltaStart != Value::Null) && (nonce.as_f64().unwrap_or(f64::NAN) < firstDeltaStart.as_f64().unwrap_or(f64::NAN)) {
             return Value::Int(-1);
@@ -1167,8 +1191,7 @@ impl GateCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_320: bool = true;
             while { if !__for_first_320 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_320 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&cache).as_f64().unwrap_or(f64::NAN) } {
-            let mut delta: Value = get_value(&cache, &i);
-            let mut delta: Value = get_value(&cache, &i);
+            let mut delta: Value = self.safe_dict(cache.clone(), i.clone(), &[]);
             let mut deltaStart: Value = self.safe_integer_k(delta.clone(), "U", &[]);
             let mut deltaEnd: Value = self.safe_integer_k(delta, "u", &[]);
             if (nonce != Value::Null) && (deltaStart != Value::Null) && (deltaEnd != Value::Null) && (nonce.as_f64().unwrap_or(f64::NAN) >= (match (&(deltaStart), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN)) && (nonce.as_f64().unwrap_or(f64::NAN) < deltaEnd.as_f64().unwrap_or(f64::NAN)) {
@@ -1352,14 +1375,17 @@ impl GateCore {
         let mut messageType: Value = self.get_type_by_market(market.clone());
         let mut marketIds: Value = self.market_ids(&[symbols.clone()]);
         let mut channelName: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), callerMethodName.clone(), Value::Str("method".into()), &[]); channelName = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), callerMethodName.clone(), Value::Str("method".into()), &[]); channelName = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut url: Value = self.get_url_by_market(market);
         let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageType, Value::Str(".".into())).into()), channelName).into());
         if (callerMethodName == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a callerMethodName argument".into()))));
         }
         let mut isWatchTickers: bool = Value::Int(callerMethodName.as_str().and_then(|__s| __s.find("watchTicker")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
-        let mut prefix: Value = (if isWatchTickers { Value::Str("ticker".into()) } else { Value::Str("bidask".into()) });
+        let mut prefix: Value = Value::Str("bidask".into());
+        if isWatchTickers {
+            prefix = Value::Str("ticker".into());
+        }
         let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1390,7 +1416,10 @@ impl GateCore {
         let mut channel: Value = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut parts: Value = split(&channel, &Value::Str(".".into()));
         let mut rawMarketType: Option<String> = self.safe_string(parts, Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut marketType: Value = (if (rawMarketType.as_deref() == Some("futures")) { Value::Str("contract".into()) } else { Value::Str("spot".into()) });
+        let mut marketType: Value = Value::Str("spot".into());
+        if (rawMarketType.as_deref() == Some("futures")) {
+            marketType = Value::Str("contract".into());
+        }
         let mut result: Value = (match message.get("result") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
         let mut results: Value = Value::from(vec![]);
         if (matches!(&result, Value::Arr(_))) {
@@ -1670,7 +1699,10 @@ impl GateCore {
         let mut channel: Value = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut channelParts: Value = split(&channel, &Value::Str(".".into()));
         let mut rawMarketType: Option<String> = self.safe_string(channelParts, Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut marketType: Value = (if (rawMarketType.as_deref() == Some("spot")) { Value::Str("spot".into()) } else { Value::Str("contract".into()) });
+        let mut marketType: Value = Value::Str("contract".into());
+        if (rawMarketType.as_deref() == Some("spot")) {
+            marketType = Value::Str("spot".into());
+        }
         let mut result: Value = (match message.get("result") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
         if !(matches!(&result, Value::Arr(_))) {
             result = Value::from(vec![result.clone()]);
@@ -1968,7 +2000,7 @@ impl GateCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_331: bool = true;
             while { if !__for_first_331 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_331 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
-            let mut rawBalance: Value = result.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut rawBalance: Value = self.safe_dict(result.clone(), i.clone(), &[]);
             let mut account: Value = self.account();
             let mut currencyId: Value = self.safe_string_k(rawBalance.clone(), "currency", &[Value::Str("USDT".into())]); // when not present it is USDT
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
@@ -2270,7 +2302,10 @@ impl GateCore {
             suffix = (if (typeId.as_str() == Some("spot")) { Value::Str(".priceorders".into()) } else { Value::Str(".autoorders".into()) });
         }
         let mut channel: Value = add(&typeId, &suffix);
-        let mut messageHash: Value = (if (isTrigger.as_bool() == Some(true)) { Value::Str("triggerOrders".into()) } else { Value::Str("orders".into()) });
+        let mut messageHash: Value = Value::Str("orders".into());
+        if (isTrigger.as_bool() == Some(true)) {
+            messageHash = Value::Str("triggerOrders".into());
+        }
         let mut payload: Value = Value::from(vec![Value::Str(format!("{}{}", Value::Str("!".into()), Value::Str("all".into())).into())]);
         if (market != Value::Null) {
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into())).into());
@@ -2342,7 +2377,10 @@ impl GateCore {
         let mut orders: Value = (match message.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         let mut channel: Value = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
         let mut isTrigger: bool = (Value::Int(channel.as_str().and_then(|__s| __s.find("autoorders")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) || (Value::Int(channel.as_str().and_then(|__s| __s.find("priceorders")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64));
-        let mut hashPrefix: Value = (if isTrigger { Value::Str("triggerOrders".into()) } else { Value::Str("orders".into()) });
+        let mut hashPrefix: Value = Value::Str("orders".into());
+        if isTrigger {
+            hashPrefix = Value::Str("triggerOrders".into());
+        }
         let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
         if (self.orders.clone() == Value::Null) {
             self.orders = ArrayCacheBySymbolById::new(limit.clone());
@@ -2684,7 +2722,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                                 let mut i: Value = Value::Int(0);
                         let mut __for_first_338: bool = true;
                         while { if !__for_first_338 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_338 = false; i.as_f64().unwrap_or(f64::NAN) < ((payload.len() as i64) as f64) } {
-                        let mut marketType: Value = (if (parsedChannel.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_str() == Some("futures")) { Value::Str("swap".into()) } else { parsedChannel.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null) });
+                        let mut marketType: Value = Value::Null;
+                        if (parsedChannel.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_str() == Some("futures")) {
+                            marketType = Value::Str("swap".into());
+                        }  else {
+                            marketType = parsedChannel.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+                        }
                         let mut symbol: Value = self.safe_symbol(payload.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[Value::Null, Value::Str("_".into()), marketType]);
                         let mut messageHashSymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", parsedChannel.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null), Value::Str(":".into())).into()), symbol).into());
                         if (messageHashSymbol != Value::Null) && (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHashSymbol)) {

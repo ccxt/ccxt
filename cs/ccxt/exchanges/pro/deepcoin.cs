@@ -795,9 +795,9 @@ public partial class deepcoin : ccxt.deepcoin
         // tick was rejected accepted the next coarser level
         parameters ??= new Dictionary<string, object>();
         string? symbol = this.safeString(market, "symbol");
-        object aggregation = null;
-        IList<object> aggregationparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "aggregation");
-        aggregation = aggregationparametersVariable[0];
+        string? aggregation = null;
+        IList<object> aggregationparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "aggregation");
+        aggregation = (string)aggregationparametersVariable[0];
         parameters = aggregationparametersVariable[1];
         if ((aggregation == null))
         {
@@ -809,7 +809,7 @@ public partial class deepcoin : ccxt.deepcoin
             }
             aggregation = this.numberToString(tickSize);
         }
-        return new List<object>() {("_" + (aggregation)), parameters};
+        return new List<object>() {("_" + aggregation), parameters};
     }
 
     public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
@@ -876,7 +876,7 @@ public partial class deepcoin : ccxt.deepcoin
         };
         for (int i = 0; i < entries.Count; i++)
         {
-            object entry = entries[i];
+            IDictionary<string, object> entry = this.safeDict(entries, i);
             IDictionary<string, object> entryData = this.safeDict(entry, "d", new Dictionary<string, object>() {});
             string? side = this.safeString(entryData, "D");
             double? price = this.safeNumber(entryData, "P");
@@ -1363,9 +1363,12 @@ public partial class deepcoin : ccxt.deepcoin
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (isEqual(message, "pong"))
+        if ((message is string))
         {
-            this.handlePong(client, message);
+            if (isEqual(message, "pong"))
+            {
+                this.handlePong(client, message);
+            }
         } else
         {
             string? m = this.safeString(message, "m");

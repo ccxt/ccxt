@@ -1437,7 +1437,7 @@ public class Indodax extends IndodaxApi
             {
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
             }
-            Object side = this.safeValue(parameters, "side");
+            String side = this.safeString(parameters, "side");
             if (java.util.Objects.equals(side, null))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires an extra \"side\" param")) ;
@@ -1447,7 +1447,7 @@ public class Indodax extends IndodaxApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            final Object finalSide = side;
+            final String finalSide = side;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "order_id", id );
                 put( "pair", ((Map<String, Object>)market).get("id") );

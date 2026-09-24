@@ -634,12 +634,7 @@ func (this *Coinbaseinternational) HandleOHLCV(client any, message any) {
 	var stored any = ccxt.GetValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 	var data []any = ccxt.SafeListTyped(message, "candles")
 	for i := 0; i < len(data); i++ {
-		var tick any = func() any {
-			if i >= 0 && i < len(data) {
-				return ccxt.DerefScalar(data[i])
-			}
-			return nil
-		}()
+		var tick map[string]any = ccxt.SafeMapTyped(data, i)
 		var parsed any = this.ParseOHLCV(tick, market)
 		stored.(ccxt.Appender).Append(parsed)
 	}
@@ -894,12 +889,10 @@ func (this *Coinbaseinternational) HandleOrderBook(client any, message map[strin
 }
 func (this *Coinbaseinternational) HandleDelta(orderbook any, delta any) {
 	var rawSide *string = this.SafeStringLower(delta, 0)
-	var side string = func() string {
-		if rawSide != nil && *rawSide == "buy" {
-			return "bids"
-		}
-		return "asks"
-	}()
+	var side string = "asks"
+	if rawSide != nil && *rawSide == "buy" {
+		side = "bids"
+	}
 	var price *float64 = this.SafeFloat(delta, 1)
 	var amount *float64 = this.SafeFloat(delta, 2)
 	var bookside any = ccxt.GetValue(orderbook, side)

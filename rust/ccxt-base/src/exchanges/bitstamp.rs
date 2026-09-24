@@ -2537,7 +2537,12 @@ impl BitstampCore {
         }
         let mut feeCostString: Value = self.safe_string_k(trade.clone(), "fee", &[]);
         let mut feeCurrency: Value = self.safe_string_k(market.clone(), "quote", &[]);
-        let mut priceId: Value = (if (rawMarketId != Value::Null) { rawMarketId } else { self.safe_string_k(market.clone(), "id", &[]) });
+        let mut priceId: Value = Value::Null;
+        if (rawMarketId != Value::Null) {
+            priceId = rawMarketId;
+        }  else {
+            priceId = self.safe_string_k(market.clone(), "id", &[]);
+        }
         priceString = self.safe_string(trade.clone(), priceId, &[priceString.clone()]);
         amountString = self.safe_string(trade.clone(), self.safe_string_k(market.clone(), "baseId", &[]), &[amountString.clone()]);
         costString = self.safe_string(trade.clone(), self.safe_string_k(market.clone(), "quoteId", &[]), &[costString.clone()]);
@@ -2773,8 +2778,7 @@ impl BitstampCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_407: bool = true;
             while { if !__for_first_407 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_407 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
-            let mut currencyBalance: Value = get_value(&response, &i);
-            let mut currencyBalance: Value = get_value(&response, &i);
+            let mut currencyBalance: Value = self.safe_dict(response.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(currencyBalance.clone(), "currency", &[]);
             let mut currencyCode: Value = self.safe_currency_code(currencyId, &[]);
             let mut account: Value = self.account();
@@ -3040,8 +3044,7 @@ impl BitstampCore {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_410: bool = true;
             while { if !__for_first_410 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_410 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&fee).as_f64().unwrap_or(f64::NAN) } {
-            let mut networkEntry: Value = get_value(&fee, &j);
-            let mut networkEntry: Value = get_value(&fee, &j);
+            let mut networkEntry: Value = self.safe_dict(fee.clone(), j.clone(), &[]);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "network", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId, code.clone()]);
             let mut withdrawFee: Value = self.safe_number_k(networkEntry, "fee", &[]);
@@ -3445,7 +3448,7 @@ impl BitstampCore {
     m
 }));
         let mut paginate: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_bool_and_params(params.clone(), Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&paginate) {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".into()), params.clone()]).await;
         }
@@ -4392,7 +4395,10 @@ impl BitstampCore {
                     if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), contentType.clone()); }
                 }
             }
-            let mut authBody: Value = (if ((body != Value::Null) && (body.as_str() != Some(""))) { body.clone() } else { Value::Str("".into()) });
+            let mut authBody: Value = Value::Str("".into());
+            if (body != Value::Null) && (body.as_str() != Some("")) {
+                authBody = body.clone();
+            }
             let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&xAuth, &method), replace_str(&url, &Value::Str("https://".into()), &Value::Str("".into()))).into()), contentType).into()), xAuthNonce).into()), xAuthTimestamp).into()), xAuthVersion).into()), authBody).into());
             let mut signature: Value = self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("X-Auth-Signature".into(), signature); }

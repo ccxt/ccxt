@@ -2231,7 +2231,7 @@ impl PolymarketCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1383: bool = true;
             while { if !__for_first_1383 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1383 = false; i.as_f64().unwrap_or(f64::NAN) < ((history.len() as i64) as f64) } {
-            let mut item: Value = history.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut item: Value = self.safe_dict(history.clone(), i.clone(), &[]);
             let mut t: Value = self.safe_integer_k(item.clone(), "t", &[]);
             let mut price: Value = self.safe_number_k(item.clone(), "p", &[]);
             if (t == Value::Null) || (price == Value::Null) {
@@ -2628,12 +2628,23 @@ impl PolymarketCore {
         let mut price: Value = self.safe_number_k(trade.clone(), "price", &[]);
         let mut amount: Value = self.safe_number_k(trade.clone(), "size", &[]);
         let mut rawSide: Value = self.safe_string_lower_k(trade.clone(), "side", &[]);
-        let mut side: Value = (if ((rawSide.as_str() == Some("buy")) || (rawSide.as_str() == Some("sell"))) { rawSide } else { Value::Null });
+        let mut side: Value = Value::Null;
+        if (rawSide.as_str() == Some("buy")) || (rawSide.as_str() == Some("sell")) {
+            side = rawSide;
+        }
         let mut assetId: Value = self.safe_string2(trade.clone(), Value::Str("asset".into()), Value::Str("asset_id".into()), &[]);
-        let mut mkt: Value = (if (market != Value::Null) { market } else { self.safe_outcome(assetId.clone(), &[]) });
+        let mut mkt: Value = Value::Null;
+        if (market != Value::Null) {
+            mkt = market;
+        }  else {
+            mkt = self.safe_outcome(assetId.clone(), &[]);
+        }
         let mut outcome: Value = self.safe_outcome_symbol(Value::Null, &[mkt.clone()]);
         let mut rawTakerOrMaker: Value = self.safe_string_lower_k(trade.clone(), "trader_side", &[]);
-        let mut takerOrMaker: Value = (if ((rawTakerOrMaker.as_str() == Some("taker")) || (rawTakerOrMaker.as_str() == Some("maker"))) { rawTakerOrMaker } else { Value::Null });
+        let mut takerOrMaker: Value = Value::Null;
+        if (rawTakerOrMaker.as_str() == Some("taker")) || (rawTakerOrMaker.as_str() == Some("maker")) {
+            takerOrMaker = rawTakerOrMaker;
+        }
         let mut feeRateBps: Value = self.safe_string_k(trade.clone(), "fee_rate_bps", &[]);
         let mut fee: Value = Value::Null;
         if (feeRateBps != Value::Null) {
@@ -3109,7 +3120,7 @@ impl PolymarketCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1390: bool = true;
             while { if !__for_first_1390 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1390 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
-            let mut o: Value = orders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut o: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
             let mut __oc: Value = self.safe_string_k(o.clone(), "outcome", &[]);
             if (__oc != Value::Null) {
                 append_to_array(&mut orderOutcomes, __oc);
@@ -3124,7 +3135,7 @@ impl PolymarketCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1391: bool = true;
             while { if !__for_first_1391 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1391 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
-            let mut o: Value = orders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut o: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
             let mut orderParams: Value = self.safe_dict_k(o.clone(), "params", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3283,7 +3294,10 @@ impl PolymarketCore {
         // wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet (the EOA
         // still produces the signature and is checked on-chain as the wallet owner). Otherwise signer = EOA.
         let mut maker: Value = funder.clone();
-        let mut signer: Value = (if (signatureType.as_f64() == Some(3.0)) { funder } else { eoa });
+        let mut signer: Value = eoa;
+        if (signatureType.as_f64() == Some(3.0)) {
+            signer = funder;
+        }
         let mut message: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("salt".to_string(), salt.clone());
@@ -3301,7 +3315,10 @@ impl PolymarketCore {
         });
         let mut exchangeV2: Value = self.safe_string_k(self.options.clone(), "exchangeAddress", &[Value::Str("0xE111180000d2663C0091e4f400237545B87B996B".into())]);
         let mut negRiskExchangeV2: Value = self.safe_string_k(self.options.clone(), "negRiskExchangeAddress", &[Value::Str("0xe2222d279d744050d28e00520010520000310F59".into())]);
-        let mut exchangeAddress: Value = (if (negRisk.as_bool() == Some(true)) { negRiskExchangeV2 } else { exchangeV2 });
+        let mut exchangeAddress: Value = exchangeV2;
+        if (negRisk.as_bool() == Some(true)) {
+            exchangeAddress = negRiskExchangeV2;
+        }
         let mut domainVersion: Value = self.safe_string_k(self.options.clone(), "ctfExchangeVersion", &[Value::Str("2".into())]);
         let mut signature: Value = self.sign_clob_order(message, exchangeAddress, domainVersion, signatureType.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut owner: Value = self.safe_string_k(self.options.clone(), "l2ApiKey", &[self.apiKey.clone()]);
@@ -3648,7 +3665,10 @@ impl PolymarketCore {
     m
 })]);
         let mut failureReason: Option<String> = self.safe_string(notCanceled, id.clone(), &[]).as_str().map(str::to_owned);
-        let mut status: Value = (if (failureReason.is_none()) { Value::Str("canceled".into()) } else { Value::Str("open".into()) });
+        let mut status: Value = Value::Str("open".into());
+        if (failureReason.is_none()) {
+            status = Value::Str("canceled".into());
+        }
         return self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
@@ -4162,7 +4182,12 @@ impl PolymarketCore {
                 }
             }
             }
-            let mut querystring: Value = (if hasArrayParam { self.urlencode_with_array_repeat(query.clone()) } else { self.urlencode(query.clone(), &[]) });
+            let mut querystring: Value = Value::Null;
+            if hasArrayParam {
+                querystring = self.urlencode_with_array_repeat(query.clone());
+            }  else {
+                querystring = self.urlencode(query.clone(), &[]);
+            }
             if (querystring.as_str() != Some("")) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), querystring).into())).into());
             }
@@ -4219,7 +4244,12 @@ impl PolymarketCore {
                 let mut secret: Value = self.safe_string_k(self.options.clone(), "l2Secret", &[self.secret.clone()]);
                 let mut passphrase: Value = self.safe_string_k(self.options.clone(), "l2Passphrase", &[self.password.clone()]);
                 // POLY_ADDRESS is the api-key owner = the signer EOA (derived from the privateKey when present)
-                let mut address: Value = (if (self.privateKey.clone() != Value::Null) { self.eth_checksum_address(self.eth_get_address_from_private_key(self.privateKey.clone(), &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null) } else { self.walletAddress.clone() });
+                let mut address: Value = Value::Null;
+                if (self.privateKey.clone() != Value::Null) {
+                    address = self.eth_checksum_address(self.eth_get_address_from_private_key(self.privateKey.clone(), &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+                }  else {
+                    address = self.walletAddress.clone();
+                }
                 let mut timestamp: Value = to_string_val(&self.seconds());
                 // the L2 HMAC signs only the request path (no query string), matching
                 // @polymarket/clob-client — query params are sent separately, not signed
@@ -4468,7 +4498,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return Value::Null;
         }
         let mut apiKey: Value = (if (self.apiKey.clone() != Value::Null) { self.apiKey.clone() } else { self.safe_string_k(self.options.clone(), "l2ApiKey", &[]) });
-        let mut secret: Value = (if (self.secret.clone() != Value::Null) { self.secret.clone() } else { self.safe_string_k(self.options.clone(), "l2Secret", &[]) });
+        let mut secret: Value = Value::Null;
+        if (self.secret.clone() != Value::Null) {
+            secret = self.secret.clone();
+        }  else {
+            secret = self.safe_string_k(self.options.clone(), "l2Secret", &[]);
+        }
         let mut passphrase: Value = (if (self.password.clone() != Value::Null) { self.password.clone() } else { self.safe_string_k(self.options.clone(), "l2Passphrase", &[]) });
         let mut hasL2: bool = (apiKey != Value::Null) && (secret != Value::Null) && (passphrase != Value::Null);
         if hasL2 {
@@ -4540,7 +4575,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1402: bool = true;
             while { if !__for_first_1402 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1402 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawBids.len() as i64) as f64) } {
-            let mut b: Value = rawBids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut b: Value = self.safe_dict(rawBids.clone(), i.clone(), &[]);
             append_to_array(&mut bids, Value::from(vec![self.safe_number_k(b.clone(), "price", &[]), self.safe_number_k(b, "size", &[])]));
         }
         }
@@ -4549,7 +4584,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut j: Value = Value::Int(0);
             let mut __for_first_1403: bool = true;
             while { if !__for_first_1403 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1403 = false; j.as_f64().unwrap_or(f64::NAN) < ((rawAsks.len() as i64) as f64) } {
-            let mut a: Value = rawAsks.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut a: Value = self.safe_dict(rawAsks.clone(), j.clone(), &[]);
             append_to_array(&mut asks, Value::from(vec![self.safe_number_k(a.clone(), "price", &[]), self.safe_number_k(a, "size", &[])]));
         }
         }
@@ -4580,7 +4615,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1404: bool = true;
             while { if !__for_first_1404 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1404 = false; i.as_f64().unwrap_or(f64::NAN) < ((changes.len() as i64) as f64) } {
-            let mut change: Value = changes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut change: Value = self.safe_dict(changes.clone(), i.clone(), &[]);
             let mut tokenId: Value = self.safe_string_k(change.clone(), "asset_id", &[]);
             let mut outcome: Value = self.token_id_to_symbol(tokenId).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
             if (outcome == Value::Null) || !(in_op(&self.orderbooks, &outcome)) {
@@ -4904,7 +4939,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         // the user channel authenticates inside the subscribe frame, not via HMAC headers
         let mut apiKey: Value = (if (self.apiKey.clone() != Value::Null) { self.apiKey.clone() } else { self.safe_string_k(self.options.clone(), "l2ApiKey", &[]) });
-        let mut secret: Value = (if (self.secret.clone() != Value::Null) { self.secret.clone() } else { self.safe_string_k(self.options.clone(), "l2Secret", &[]) });
+        let mut secret: Value = Value::Null;
+        if (self.secret.clone() != Value::Null) {
+            secret = self.secret.clone();
+        }  else {
+            secret = self.safe_string_k(self.options.clone(), "l2Secret", &[]);
+        }
         let mut passphrase: Value = (if (self.password.clone() != Value::Null) { self.password.clone() } else { self.safe_string_k(self.options.clone(), "l2Passphrase", &[]) });
         let mut auth: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

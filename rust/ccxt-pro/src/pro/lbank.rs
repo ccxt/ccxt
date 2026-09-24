@@ -860,7 +860,12 @@ impl LbankCore {
         //    }
         //
         let mut timestamp: Value = self.safe_integer(trade.clone(), Value::Int(0), &[]);
-        let mut datetime: Value = (if (timestamp != Value::Null) { (self.iso8601(timestamp.clone())) } else { (self.safe_string_k(trade.clone(), "TS", &[])) });
+        let mut datetime: Value = Value::Null;
+        if (timestamp != Value::Null) {
+            datetime = (self.iso8601(timestamp.clone()));
+        }  else {
+            datetime = (self.safe_string_k(trade.clone(), "TS", &[]));
+        }
         if (timestamp == Value::Null) {
             timestamp = self.parse8601(datetime.clone());
         }
@@ -1409,7 +1414,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // a flight is already in progress - wake when the leader settles
             // it: the subscribeKey is then in the bucket
             crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;
-            return crate::value::get_value_k(&get_value(&client, &Value::Str("subscriptions".into())).as_map().and_then(|__m| __m.get("authenticated")).cloned().unwrap_or(Value::Null), "key");
+            let __ws_arg_0 = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), Value::Str("authenticated".into()), &[]);
+            return self.safe_string_k(__ws_arg_0, "key", &[]);
         }
         let mut future: Value = client.reusable_future(messageHash.clone());
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
@@ -1437,8 +1443,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                             m.insert("subscribeKey".to_string(), authenticated.as_map().and_then(|__m| __m.get("key")).cloned().unwrap_or(Value::Null));
                         m
                     });
-                    let __ws_arg_0 = self.extend(request, &[params]);
-                    let mut response: Value = self.parent.spot_private_post_subscribe_refresh_key(&[__ws_arg_0]).await;
+                    let __ws_arg_1 = self.extend(request, &[params]);
+                    let mut response: Value = self.parent.spot_private_post_subscribe_refresh_key(&[__ws_arg_1]).await;
                     //
                     //    {"result": "true"}
                     //
@@ -1461,7 +1467,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // rethrows a rejected flight to the leader and attaches the handler
         // that keeps an alone leader from crashing on an unhandled rejection
         crate::exchange_stubs::ws_await_flight(&future).await;
-        return crate::value::get_value_k(&get_value(&client, &Value::Str("subscriptions".into())).as_map().and_then(|__m| __m.get("authenticated")).cloned().unwrap_or(Value::Null), "key");
+        let __ws_arg_2 = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), Value::Str("authenticated".into()), &[]);
+        return self.safe_string_k(__ws_arg_2, "key", &[]);
 
     Value::Null
 }

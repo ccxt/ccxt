@@ -991,8 +991,8 @@ public partial class bydfi : Exchange
         }
         int maxLimit = 500; // docs says max 1500, but in practice only 500 works
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -1587,7 +1587,7 @@ public partial class bydfi : Exchange
         List<object> ordersRequests = new List<object>() {};
         for (int i = 0; i < getArrayLength(orders); i++)
         {
-            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
+            IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? symbol = this.safeString(rawOrder, "symbol");
             string? type = this.safeString(rawOrder, "type");
             string? side = this.safeString(rawOrder, "side");
@@ -1669,7 +1669,7 @@ public partial class bydfi : Exchange
         List<object> ordersRequests = new List<object>() {};
         for (int i = 0; i < getArrayLength(orders); i++)
         {
-            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
+            IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? id = this.safeString(rawOrder, "id");
             string? symbol = this.safeString(rawOrder, "symbol");
             string? side = this.safeString(rawOrder, "side");
@@ -2782,7 +2782,11 @@ public partial class bydfi : Exchange
         {
             await this.loadMarkets();
         }
-        string positionType = isTrue(hedged) ? "HEDGE" : "ONEWAY";
+        string positionType = "ONEWAY";
+        if (isTrue(hedged))
+        {
+            positionType = "HEDGE";
+        }
         string? wallet = "W001";
         IList<object> walletparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "setPositionMode", "wallet", wallet);
         wallet = (string)walletparametersVariable[0];
@@ -2900,9 +2904,9 @@ public partial class bydfi : Exchange
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBalance", null, parameters);
         type = (string)typeparametersVariable[0];
         parameters = typeparametersVariable[1];
-        object wallet = null;
-        IList<object> walletparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchBalance", "wallet");
-        wallet = walletparametersVariable[0];
+        string? wallet = null;
+        IList<object> walletparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchBalance", "wallet");
+        wallet = (string)walletparametersVariable[0];
         parameters = walletparametersVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = null;
@@ -2974,7 +2978,7 @@ public partial class bydfi : Exchange
         };
         for (int i = 0; i < getArrayLength(response); i++)
         {
-            object balance = getValue(response, i);
+            IDictionary<string, object> balance = this.safeDict(response, i);
             string? symbol = this.safeString(balance, "asset");
             string? code = this.safeCurrencyCode(symbol);
             Dictionary<string, object> account = this.account();
@@ -3208,7 +3212,11 @@ public partial class bydfi : Exchange
 
     public async virtual Task<List<ccxt.Transaction>> FetchTransactionsHelper(string? type, string? code, object since, object limit, object parameters)
     {
-        string methodName = (isEqual(type, "deposit")) ? "fetchDeposits" : "fetchWithdrawals";
+        string methodName = "fetchWithdrawals";
+        if (isEqual(type, "deposit"))
+        {
+            methodName = "fetchDeposits";
+        }
         if ((code == null))
         {
             throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a code argument")) ;

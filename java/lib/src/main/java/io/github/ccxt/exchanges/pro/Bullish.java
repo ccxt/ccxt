@@ -1011,7 +1011,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
-            Object symbolPositions = this.filterByArray(newPositions, "symbol", symbols, false);
+            List<Object> symbolPositions = (List<Object>) this.filterByArray(newPositions, "symbol", symbols, false);
             if (!this.isEmpty(symbolPositions))
             {
                 client.resolve(symbolPositions, messageHash);
