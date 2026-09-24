@@ -68,15 +68,6 @@
                     "3538113582066216960"
                 ],
                 "output": null
-            },
-            {
-                "description": "order info of an open swap limit order",
-                "method": "fetchOrder",
-                "url": "https://api.umx.com/api/v2/trade/order/info?orderId=3538113582066216960",
-                "input": [
-                    "3538113582066216960"
-                ],
-                "output": null
             }
         ],
         "createOrder": [
@@ -989,17 +980,6 @@
                 "output": null
             }
         ],
-        "fetchClosedOrders": [
-            {
-                "description": "closed orders are served by the settled order history endpoint",
-                "method": "fetchClosedOrders",
-                "url": "https://api.umx.com/api/v2/history/orders?symbol=ETH-USDT-PERP",
-                "input": [
-                    "ETH/USDT:USDT"
-                ],
-                "output": null
-            }
-        ],
         "fetchMyTrades": [
             {
                 "description": "trade history for a single swap market",
@@ -1304,6 +1284,122 @@
                 "method": "fetchFundingHistory",
                 "url": "https://api.umx.com/api/v1/history/bill?actionType=18",
                 "input": [],
+                "output": null
+            }
+        ],
+        "fetchAllGreeks": [
+            {
+                "description": "greeks of every traded option",
+                "method": "fetchAllGreeks",
+                "url": "https://api.umx.com/api/v1/market/ticker/24hr?businessType=options",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchCrossBorrowRate": [
+            {
+                "description": "the borrow rate of one currency",
+                "method": "fetchCrossBorrowRate",
+                "url": "https://api.umx.com/api/v1/public/baseRates?currency=USDT",
+                "input": [
+                    "USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchConvertCurrencies": [
+            {
+                "description": "currencies of the conversion service",
+                "method": "fetchConvertCurrencies",
+                "url": "https://api.umx.com/api/v1/account/convert/exchangeInfo",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "the position of one perpetual",
+                "method": "fetchPosition",
+                "url": "https://api.umx.com/api/v2/trade/positions?symbol=ETH-USDT-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchGreeks": [
+            {
+                "description": "greeks of a traded option",
+                "method": "fetchGreeks",
+                "url": "https://api.umx.com/api/v1/market/ticker/24hr?businessType=options&symbol=BTC-USDT-30OCT26-45000-C",
+                "input": [
+                    "BTC/USDT:USDT-261030-45000-C"
+                ],
+                "output": null
+            }
+        ],
+        "fetchLastPrices": [
+            {
+                "description": "last prices of one perpetual, the venue filter is used",
+                "method": "fetchLastPrices",
+                "url": "https://api.umx.com/api/v1/market/ticker/mini?businessType=linear_perpetual&symbol=ETH-USDT-PERP",
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            },
+            {
+                "description": "last prices of every spot market",
+                "method": "fetchLastPrices",
+                "url": "https://api.umx.com/api/v1/market/ticker/mini?businessType=spot",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchMarkPrices": [
+            {
+                "description": "mark prices of one perpetual, the venue filter is used",
+                "method": "fetchMarkPrices",
+                "url": "https://api.umx.com/api/v1/market/index?businessType=linear_perpetual&symbol=ETH-USDT-PERP",
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            },
+            {
+                "description": "mark prices of every dated future",
+                "method": "fetchMarkPrices",
+                "url": "https://api.umx.com/api/v1/market/index?businessType=linear_futures",
+                "input": [
+                    null,
+                    {
+                        "type": "future"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchMySettlementHistory": [
+            {
+                "description": "settlements from the trading account bill",
+                "method": "fetchMySettlementHistory",
+                "url": "https://api.umx.com/api/v1/history/bill?actionType=53",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "settlements with since and limit, the limit stays off the wire when since is present",
+                "method": "fetchMySettlementHistory",
+                "url": "https://api.umx.com/api/v1/history/bill?actionType=53&beginTime=1790150400000",
+                "input": [
+                    null,
+                    1790150400000,
+                    5
+                ],
                 "output": null
             }
         ]

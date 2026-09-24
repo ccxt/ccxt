@@ -944,5 +944,101 @@
         },
         "tierBased": true,
         "percentage": true
+    },
+    "BTC/USDT:USDT-261030-45000-C": {
+        "id": "BTC-USDT-30OCT26-45000-C",
+        "symbol": "BTC/USDT:USDT-261030-45000-C",
+        "base": "BTC",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "option",
+        "spot": false,
+        "swap": false,
+        "future": false,
+        "option": true,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "contractSize": 1,
+        "expiry": 1793347200000,
+        "expiryDatetime": "2026-10-30T08:00:00.000Z",
+        "strike": 45000,
+        "optionType": "call",
+        "precision": {
+            "amount": 0.01,
+            "price": 5
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.01
+            },
+            "price": {},
+            "cost": {}
+        },
+        "marginModes": {},
+        "created": 1785936630232,
+        "info": {
+            "businessType": "options",
+            "symbol": "BTC-USDT-30OCT26-45000-C",
+            "symbolFamily": "BTC-USDT",
+            "quoteCurrency": "USDT",
+            "baseCurrency": "BTC",
+            "settleCurrency": "USDT",
+            "ctVal": "1",
+            "optType": "call",
+            "strikePrice": "45000",
+            "tickSize": "5",
+            "status": "trading",
+            "deliveryTime": "1793347200000",
+            "deliveryFeeRate": null,
+            "pricePrecision": "0",
+            "quantityPrecision": "2",
+            "onlineTime": "1785936630232",
+            "riskEngineRate": null,
+            "maxLeverage": null,
+            "contractType": null,
+            "orderParameters": {
+                "minOrderQty": "0.01",
+                "minOrderAmt": null,
+                "maxOrderNum": "8",
+                "maxBaseNum": "4000",
+                "maxComboleg": "20",
+                "maxTriggerOrderNum": "8",
+                "maxTpslOrderNum": "8",
+                "maxLmtOrderAmt": null,
+                "maxMktOrderAmt": null,
+                "maxLmtOrderQty": null,
+                "maxMktOrderQty": null,
+                "basisLimitRatio": null,
+                "minRfqQty": "0.01",
+                "minComboQty": "0.01"
+            },
+            "priceParameters": {
+                "maxLmtPriceUp": null,
+                "minLmtPriceDown": null,
+                "maxMktPriceUp": null,
+                "minMktPriceDown": null
+            },
+            "positionParameters": {
+                "positionRatioThreshold": null,
+                "positionMaxRatio": null,
+                "positionCidMaxRatio": null,
+                "defaultLeverRatio": null,
+                "maxShortQty": "1000"
+            },
+            "group": [
+                "1"
+            ]
+        },
+        "tierBased": true,
+        "percentage": true
     }
 }

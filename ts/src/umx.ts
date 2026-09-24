@@ -5,7 +5,7 @@ import Exchange from './abstract/umx.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, NotSupported, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Bool, BorrowInterest, Conversion, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, DepositAddresses, DepositWithdrawFee, Dict, Endpoint, Fee, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, List, MarginMode, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { AllGreeks, Balances, Bool, BorrowInterest, Conversion, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, DepositAddresses, DepositWithdrawFee, Dict, Endpoint, Fee, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Greeks, Int, LastPrice, LastPrices, LedgerEntry, Leverage, List, MarginMode, Market, MarketInterface, NullableDict, Num, OHLCV, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -56,6 +56,16 @@ export default class umx extends Exchange {
                 'createTriggerOrder': true,
                 'editOrder': false,
                 'fetchAccounts': false,
+                'fetchAllGreeks': true,
+                'fetchConvertCurrencies': true,
+                'fetchFundingInterval': true,
+                'fetchFundingIntervals': true,
+                'fetchGreeks': true,
+                'fetchLastPrices': true,
+                'fetchMarkPrice': true,
+                'fetchMarkPrices': true,
+                'fetchMySettlementHistory': true,
+                'fetchOption': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': true,
                 'fetchCanceledAndClosedOrders': true,
@@ -63,7 +73,7 @@ export default class umx extends Exchange {
                 'fetchConvertQuote': true,
                 'fetchConvertTrade': true,
                 'fetchConvertTradeHistory': true,
-                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRate': true,
                 'fetchCrossBorrowRates': true,
                 'fetchCurrencies': true, // private
                 'fetchDepositAddress': true,
@@ -88,7 +98,7 @@ export default class umx extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
-                'fetchPosition': false,
+                'fetchPosition': true,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
                 'fetchSettlementHistory': true,
@@ -1284,6 +1294,337 @@ export default class umx extends Exchange {
 
     /**
      * @method
+     * @name umx#fetchFundingIntervals
+     * @description fetch the funding rate interval of multiple perpetual markets, served by the funding rate endpoint
+     * @see https://www.umx.com/docs/coin-apis/ticker/get-current-funding-rate
+     * @param {string[]} [symbols] unified market symbols, every perpetual market is returned when left out
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    override async fetchFundingIntervals (symbols: Strings = undefined, params: Dict = {}): Promise<FundingRates> {
+        return await this.fetchFundingRates (symbols, params);
+    }
+
+    /**
+     * @method
+     * @name umx#fetchMarkPrices
+     * @description fetch the mark and index prices of multiple markets of one instrument type
+     * @see https://www.umx.com/docs/coin-apis/ticker/get-market-index
+     * @param {string[]} [symbols] unified market symbols of one instrument type, every market of the type is returned when left out
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] the instrument type to fetch when no symbol is given, "swap" (default) or "future"
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    override async fetchMarkPrices (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, true);
+        let market: Market = undefined;
+        if (symbols !== undefined) {
+            market = this.getMarketFromSymbols (symbols);
+        }
+        let marketType: Str = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMarkPrices', market, params, 'swap');
+        if ((marketType !== 'swap') && (marketType !== 'future')) {
+            throw new NotSupported (this.id + ' fetchMarkPrices() supports swap and future markets only');
+        }
+        const businessTypes = this.safeDict (this.options, 'businessTypes', {});
+        const businessType = this.safeString (businessTypes, marketType, marketType);
+        const request: Dict = {
+            'businessType': businessType,
+        };
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if ((symbolsLength === 1) && (market !== undefined)) {
+                request['symbol'] = market['id'];
+            }
+        }
+        const response = await this.publicGetV1MarketIndex (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Success",
+        //         "data": [
+        //             {
+        //                 "businessType": "linear_perpetual",
+        //                 "symbol": "ETH-USDT-PERP",
+        //                 "indexPrice": "2692.33",
+        //                 "markPrice": "2691.31",
+        //                 "fundingRate": "0.000077",
+        //                 "periodFundingRate": "0.000071",
+        //                 "toNextFundRateTime": "26564530"
+        //             }
+        //         ],
+        //         "ts": "1790267900000"
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const timestamp = this.safeInteger (response, 'ts');
+        const tickers = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = this.extend (this.safeDict (data, i, {}), {
+                'ts': timestamp,
+            });
+            tickers.push (this.parseTicker (entry));
+        }
+        return this.filterByArrayTickers (tickers, 'symbol', symbols);
+    }
+
+    /**
+     * @method
+     * @name umx#fetchLastPrices
+     * @description fetch the last traded price of multiple markets of one instrument type
+     * @see https://www.umx.com/docs/coin-apis/ticker/get-latest-ticker-information
+     * @param {string[]} [symbols] unified market symbols of one instrument type, every market of the type is returned when left out
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] the instrument type to fetch when no symbol is given, "spot" (default), "swap" or "future"
+     * @returns {object} a dictionary of [last price structures]{@link https://docs.ccxt.com/#/?id=last-price-structure}
+     */
+    override async fetchLastPrices (symbols: Strings = undefined, params: Dict = {}): Promise<LastPrices> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, true);
+        let market: Market = undefined;
+        if (symbols !== undefined) {
+            market = this.getMarketFromSymbols (symbols);
+        }
+        let marketType: Str = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, params);
+        if (marketType === 'option') {
+            throw new NotSupported (this.id + ' fetchLastPrices() does not support option markets');
+        }
+        const businessTypes = this.safeDict (this.options, 'businessTypes', {});
+        const businessType = this.safeString (businessTypes, marketType, marketType);
+        const request: Dict = {
+            'businessType': businessType,
+        };
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if ((symbolsLength === 1) && (market !== undefined)) {
+                request['symbol'] = market['id'];
+            }
+        }
+        const response = await this.publicGetV1MarketTickerMini (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Success",
+        //         "data": [
+        //             {
+        //                 "businessType": "spot",
+        //                 "symbol": "ENA-USDT",
+        //                 "priceChange": "0.0148",
+        //                 "priceChangePercent": "0.0719",
+        //                 "lastPrice": "0.2206",
+        //                 "fillQty": "637799.97",
+        //                 "fillAmount": "132640.084851",
+        //                 "baseCurrency": "ENA"
+        //             }
+        //         ],
+        //         "ts": "1790267900000"
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const timestamp = this.safeInteger (response, 'ts');
+        const rows = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = this.extend (this.safeDict (data, i, {}), {
+                'ts': timestamp,
+            });
+            rows.push (entry);
+        }
+        return this.parseLastPrices (rows, symbols);
+    }
+
+    override parseLastPrice (entry: any, market: Market = undefined): LastPrice {
+        const marketId = this.safeString (entry, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (entry, 'ts');
+        return {
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'price': this.safeNumber (entry, 'lastPrice'),
+            'side': undefined,
+            'info': entry,
+        };
+    }
+
+    /**
+     * @method
+     * @name umx#fetchGreeks
+     * @description fetch the greeks and the implied volatility of an option market, the venue tickers only the options that trade, so an idle option answers an empty structure
+     * @see https://www.umx.com/docs/coin-apis/ticker/get-24-hour-ticker-data
+     * @param {string} symbol unified symbol of the option market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+     */
+    override async fetchGreeks (symbol: string, params: Dict = {}): Promise<Greeks> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['option'] !== true) {
+            throw new BadSymbol (this.id + ' fetchGreeks() supports option markets only');
+        }
+        const entry = await this.fetchOptionTickerRow (market, params);
+        return this.parseGreeks (entry, market);
+    }
+
+    /**
+     * @method
+     * @name umx#fetchAllGreeks
+     * @description fetch the greeks and the implied volatility of every option market that trades, the venue tickers no idle option
+     * @see https://www.umx.com/docs/coin-apis/ticker/get-24-hour-ticker-data
+     * @param {string[]} [symbols] unified symbols of the option markets to keep
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+     */
+    override async fetchAllGreeks (symbols: Strings = undefined, params: Dict = {}): Promise<AllGreeks> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, true);
+        const request: Dict = {
+            'businessType': 'options',
+        };
+        const response = await this.publicGetV1MarketTicker24hr (this.extend (request, params));
+        const data = this.safeList (response, 'data', []);
+        const timestamp = this.safeInteger (response, 'ts');
+        const rows = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = this.extend (this.safeDict (data, i, {}), {
+                'ts': timestamp,
+            });
+            rows.push (entry);
+        }
+        return this.parseAllGreeks (rows, symbols);
+    }
+
+    /**
+     * @method
+     * @name umx#fetchOption
+     * @description fetch the public details of an option market, the venue tickers only the options that trade, so an idle option answers an empty structure
+     * @see https://www.umx.com/docs/coin-apis/ticker/get-24-hour-ticker-data
+     * @param {string} symbol unified symbol of the option market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [option structure]{@link https://docs.ccxt.com/#/?id=option-structure}
+     */
+    override async fetchOption (symbol: string, params: Dict = {}): Promise<Option> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['option'] !== true) {
+            throw new BadSymbol (this.id + ' fetchOption() supports option markets only');
+        }
+        const entry = await this.fetchOptionTickerRow (market, params);
+        return this.parseOption (entry, undefined, market);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name umx#fetchOptionTickerRow
+     * @description fetch the ticker row of one option market with the timestamp of the answer attached
+     * @param {object} market the option market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the ticker row, empty when the option does not trade
+     */
+    async fetchOptionTickerRow (market: Market, params: Dict = {}): Promise<Dict> {
+        const request: Dict = {
+            'businessType': 'options',
+            'symbol': this.safeString (market, 'id'),
+        };
+        const response = await this.publicGetV1MarketTicker24hr (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Success",
+        //         "data": [
+        //             {
+        //                 "businessType": "options",
+        //                 "symbol": "BTC-USDT-30OCT26-45000-C",
+        //                 "priceChange": "0",
+        //                 "priceChangePercent": "0",
+        //                 "lastPrice": "38445",
+        //                 "openPrice": "38445",
+        //                 "highPrice": "38445",
+        //                 "lowPrice": "38445",
+        //                 "fillQty": "0",
+        //                 "fillAmount": "0",
+        //                 "count": "0",
+        //                 "baseCurrency": "BTC",
+        //                 "indexPrice": "84617.5677",
+        //                 "markPrice": "39875",
+        //                 "fundingRate": "0",
+        //                 "toNextFundRateTime": "0",
+        //                 "markIv": "0.8124",
+        //                 "underlyingPrice": "85044",
+        //                 "delta": "0.99578808",
+        //                 "gamma": "0.00000057",
+        //                 "vega": "3.28035351",
+        //                 "theta": "-10.04466559"
+        //             }
+        //         ],
+        //         "ts": "1790268412954"
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const entry = this.safeDict (data, 0, {});
+        return this.extend (entry, {
+            'ts': this.safeInteger (response, 'ts'),
+        });
+    }
+
+    override parseGreeks (greeks: Dict, market: Market = undefined): Greeks {
+        const marketId = this.safeString (greeks, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (greeks, 'ts');
+        return {
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'delta': this.safeNumber (greeks, 'delta'),
+            'gamma': this.safeNumber (greeks, 'gamma'),
+            'theta': this.safeNumber (greeks, 'theta'),
+            'vega': this.safeNumber (greeks, 'vega'),
+            'rho': undefined,
+            'bidSize': undefined,
+            'askSize': undefined,
+            'bidImpliedVolatility': undefined,
+            'askImpliedVolatility': undefined,
+            'markImpliedVolatility': this.safeNumber (greeks, 'markIv'),
+            'bidPrice': undefined,
+            'askPrice': undefined,
+            'markPrice': this.safeNumber (greeks, 'markPrice'),
+            'lastPrice': this.safeNumber (greeks, 'lastPrice'),
+            'underlyingPrice': this.safeNumber (greeks, 'underlyingPrice'),
+            'info': greeks,
+        };
+    }
+
+    override parseOption (chain: Dict, currency: Currency = undefined, market: Market = undefined): Option {
+        const marketId = this.safeString (chain, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (chain, 'ts');
+        // priceChangePercent is a ratio, e.g. "-0.011" for -1.1%, as on the other tickers
+        const percentage = Precise.stringMul (this.safeString (chain, 'priceChangePercent'), '100');
+        return {
+            'info': chain,
+            'currency': this.safeString (market, 'settle'),
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'impliedVolatility': this.safeNumber (chain, 'markIv'),
+            'openInterest': undefined,
+            'bidPrice': undefined,
+            'askPrice': undefined,
+            'midPrice': undefined,
+            'markPrice': this.safeNumber (chain, 'markPrice'),
+            'lastPrice': this.safeNumber (chain, 'lastPrice'),
+            'underlyingPrice': this.safeNumber (chain, 'underlyingPrice'),
+            'change': this.safeNumber (chain, 'priceChange'),
+            'percentage': this.parseNumber (percentage),
+            'baseVolume': this.safeNumber (chain, 'fillQty'),
+            'quoteVolume': this.safeNumber (chain, 'fillAmount'),
+        };
+    }
+
+    /**
+     * @method
      * @name umx#fetchFundingRates
      * @description fetch the current funding rates for multiple markets
      * @see https://www.umx.com/docs/coin-apis/ticker/get-current-funding-rate
@@ -1675,6 +2016,29 @@ export default class umx extends Exchange {
             },
             'info': undefined,
         } as MarketInterface;
+    }
+
+    /**
+     * @method
+     * @name umx#fetchCrossBorrowRate
+     * @description fetch the rate of interest to borrow a currency for margin trading
+     * @see https://www.umx.com/docs/coin-apis/ticker/get-margin-interest-rates
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+     */
+    override async fetchCrossBorrowRate (code: string, params: Dict = {}): Promise<CrossBorrowRate> {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request: Dict = {
+            'currency': currency['id'],
+        };
+        const response = await this.publicGetV1PublicBaseRates (this.extend (request, params));
+        const data = this.safeList (response, 'data', []);
+        const entry = this.extend (this.safeDict (data, 0, {}), {
+            'ts': this.safeInteger (response, 'ts'),
+        });
+        return this.parseBorrowRate (entry, currency) as CrossBorrowRate;
     }
 
     /**
@@ -2541,6 +2905,106 @@ export default class umx extends Exchange {
 
     /**
      * @method
+     * @name umx#fetchConvertCurrencies
+     * @description fetch the currencies the conversion service trades, with the amount limits of the pairs they take part in
+     * @see https://www.umx.com/docs/coin-apis/trading/block-spot-trade/get-block-trade-spot-trading-pair-list
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of [currency structures]{@link https://docs.ccxt.com/#/?id=currency-structure}
+     */
+    override async fetchConvertCurrencies (params: Dict = {}): Promise<Currencies> {
+        await this.loadMarkets ();
+        const response = await this.privateGetV1AccountConvertExchangeInfo (params);
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Success",
+        //         "data": [
+        //             {
+        //                 "symbol": "ETH-USDT",
+        //                 "baseCurrency": "ETH",
+        //                 "baseCurrencyMax": "400",
+        //                 "baseCurrencyMin": "0.005",
+        //                 "baseCurrencyMinChange": "0.0001",
+        //                 "quoteCurrency": "USDT",
+        //                 "quoteCurrencyMax": "300000",
+        //                 "quoteCurrencyMin": "5",
+        //                 "quoteCurrencyMinChange": "0.0001",
+        //                 "status": "trading",
+        //                 "allowLoanTrans": null
+        //             }
+        //         ],
+        //         "ts": "1790244742796"
+        //     }
+        //
+        // the limits are set per pair, the quote leg of every pair is USDT, so a base currency
+        // takes the limits of its only pair and USDT the loosest of the pairs it quotes
+        const data = this.safeList (response, 'data', []);
+        const result: Dict = {};
+        for (let i = 0; i < data.length; i++) {
+            const entry = this.safeDict (data, i, {});
+            const status = this.safeString (entry, 'status');
+            const legs = [ 'base', 'quote' ];
+            for (let j = 0; j < legs.length; j++) {
+                const leg = legs[j];
+                const id = this.safeString (entry, leg + 'Currency');
+                const code = this.safeCurrencyCode (id);
+                if (code === undefined) {
+                    continue;
+                }
+                const min = this.safeString (entry, leg + 'CurrencyMin');
+                const max = this.safeString (entry, leg + 'CurrencyMax');
+                const existing = this.safeDict (result, code);
+                if (existing === undefined) {
+                    result[code] = {
+                        'info': entry,
+                        'id': id,
+                        'code': code,
+                        'networks': undefined,
+                        'type': undefined,
+                        'name': undefined,
+                        'active': (status === 'trading'),
+                        'deposit': undefined,
+                        'withdraw': undefined,
+                        'fee': undefined,
+                        'precision': this.safeNumber (entry, leg + 'CurrencyMinChange'),
+                        'limits': {
+                            'amount': {
+                                'min': this.parseNumber (min),
+                                'max': this.parseNumber (max),
+                            },
+                            'withdraw': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                            'deposit': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                        },
+                        'created': undefined,
+                    };
+                } else {
+                    const limits = this.safeDict (existing, 'limits', {});
+                    const amount = this.safeDict (limits, 'amount', {});
+                    const currentMin = this.safeString (amount, 'min');
+                    const currentMax = this.safeString (amount, 'max');
+                    if ((min !== undefined) && ((currentMin === undefined) || Precise.stringLt (min, currentMin))) {
+                        result[code]['limits']['amount']['min'] = this.parseNumber (min);
+                    }
+                    if ((max !== undefined) && ((currentMax === undefined) || Precise.stringGt (max, currentMax))) {
+                        result[code]['limits']['amount']['max'] = this.parseNumber (max);
+                    }
+                    if (status === 'trading') {
+                        result[code]['active'] = true;
+                    }
+                }
+            }
+        }
+        return result as Currencies;
+    }
+
+    /**
+     * @method
      * @name umx#fetchConvertQuote
      * @description request a quote for converting one currency into another, the venue calls it block trade spot
      * @see https://www.umx.com/docs/coin-apis/trading/block-spot-trade/block-trade-spot-rfq
@@ -3197,6 +3661,82 @@ export default class umx extends Exchange {
             'id': this.safeString (income, 'id'),
             'amount': this.safeNumber (income, 'qty'),
         };
+    }
+
+    /**
+     * @method
+     * @name umx#fetchPosition
+     * @description fetch the open position of a contract market
+     * @see https://www.umx.com/docs/coin-apis/trading-account-information/position-information/get-trading-account-positions
+     * @param {string} symbol unified market symbol of a perpetual or dated futures market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}, empty when the market holds no position
+     */
+    override async fetchPosition (symbol: string, params: Dict = {}): Promise<Position> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if ((market['swap'] !== true) && (market['future'] !== true)) {
+            throw new BadSymbol (this.id + ' fetchPosition() supports swap and future markets only');
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.privateGetV2TradePositions (this.extend (request, params));
+        const data = this.safeList (response, 'data', []);
+        const entry = this.safeDict (data, 0, {});
+        return this.parsePosition (entry, market);
+    }
+
+    /**
+     * @method
+     * @name umx#fetchMySettlementHistory
+     * @description fetch the settlements of the dated futures and options the account held, a filtered view of the trading account bill, which carries the settlement profit or loss in info.qty but not the settlement price
+     * @see https://www.umx.com/docs/coin-apis/trading-account-information/asset-information/get-trading-account-transaction-history
+     * @param {string} [symbol] unified market symbol, the filter is applied client side, the bill cannot be narrowed to one market on the wire
+     * @param {int} [since] timestamp in ms of the earliest settlement to fetch, the venue caps a requested window at thirty days
+     * @param {int} [limit] the maximum amount of settlements to return, the venue defaults to 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest settlement to fetch
+     * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
+     */
+    async fetchMySettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dict[]> {
+        await this.loadMarkets ();
+        let request: Dict = {
+            'actionType': '53',
+        };
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        if (since === undefined) {
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+        } else {
+            request['beginTime'] = since;
+            // limit keeps the newest entries of the requested range rather than the ones that
+            // follow since, so it is left out here and applied to the parsed result instead
+        }
+        const response = await this.privateGetV1HistoryBill (this.extend (request, params));
+        const data = this.safeList (response, 'data', []);
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = this.safeDict (data, i, {});
+            const marketId = this.safeString (entry, 'symbol');
+            let settledSymbol: Str = undefined;
+            if (marketId !== undefined) {
+                // the settled instrument is delisted at once, see parseSettlement
+                const expiredMarket = this.createExpiredOptionMarket (marketId);
+                settledSymbol = expiredMarket['symbol'];
+            }
+            const timestamp = this.safeInteger (entry, 'createTime');
+            result.push ({
+                'info': entry,
+                'symbol': settledSymbol,
+                'price': undefined,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            });
+        }
+        const sorted = this.sortBy (result, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as Dict[];
     }
 
     /**

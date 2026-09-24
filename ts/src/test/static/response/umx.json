@@ -6605,6 +6605,773 @@
                     }
                 ]
             }
+        ],
+        "fetchAllGreeks": [
+            {
+                "description": "greeks of every traded option, trimmed to two rows",
+                "method": "fetchAllGreeks",
+                "input": [],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "businessType": "options",
+                            "symbol": "BTC-USDT-30OCT26-45000-C",
+                            "priceChange": "0",
+                            "priceChangePercent": "0",
+                            "lastPrice": "38445",
+                            "openPrice": "38445",
+                            "highPrice": "38445",
+                            "lowPrice": "38445",
+                            "fillQty": "0",
+                            "fillAmount": "0",
+                            "count": "0",
+                            "baseCurrency": "BTC",
+                            "indexPrice": "84595.7336",
+                            "markPrice": "39849",
+                            "fundingRate": "0",
+                            "toNextFundRateTime": "0",
+                            "markIv": "0.8124",
+                            "underlyingPrice": "85018",
+                            "delta": "0.99577301",
+                            "gamma": "0.00000057",
+                            "vega": "3.28983552",
+                            "theta": "-9.95893547"
+                        },
+                        {
+                            "businessType": "options",
+                            "symbol": "BTC-USDT-25DEC26-56000-C",
+                            "priceChange": "0",
+                            "priceChangePercent": "0",
+                            "lastPrice": "27975",
+                            "openPrice": "27975",
+                            "highPrice": "27975",
+                            "lowPrice": "27975",
+                            "fillQty": "0",
+                            "fillAmount": "0",
+                            "count": "0",
+                            "baseCurrency": "BTC",
+                            "indexPrice": "84593.929",
+                            "markPrice": "29638",
+                            "fundingRate": "0",
+                            "toNextFundRateTime": "0",
+                            "markIv": "0.5103",
+                            "underlyingPrice": "85662",
+                            "delta": "0.96328489",
+                            "gamma": "0.00000371",
+                            "vega": "34.06016998",
+                            "theta": "-16.56320766"
+                        }
+                    ],
+                    "ts": "1790268722312"
+                },
+                "parsedResponse": {
+                    "BTC/USDT:USDT-261030-45000-C": {
+                        "symbol": "BTC/USDT:USDT-261030-45000-C",
+                        "timestamp": 1790268722312,
+                        "datetime": "2026-09-24T16:52:02.312Z",
+                        "delta": 0.99577301,
+                        "gamma": 5.7e-07,
+                        "theta": -9.95893547,
+                        "vega": 3.28983552,
+                        "rho": null,
+                        "bidSize": null,
+                        "askSize": null,
+                        "bidImpliedVolatility": null,
+                        "askImpliedVolatility": null,
+                        "markImpliedVolatility": 0.8124,
+                        "bidPrice": null,
+                        "askPrice": null,
+                        "markPrice": 39849,
+                        "lastPrice": 38445,
+                        "underlyingPrice": 85018,
+                        "info": {
+                            "businessType": "options",
+                            "symbol": "BTC-USDT-30OCT26-45000-C",
+                            "priceChange": "0",
+                            "priceChangePercent": "0",
+                            "lastPrice": "38445",
+                            "openPrice": "38445",
+                            "highPrice": "38445",
+                            "lowPrice": "38445",
+                            "fillQty": "0",
+                            "fillAmount": "0",
+                            "count": "0",
+                            "baseCurrency": "BTC",
+                            "indexPrice": "84595.7336",
+                            "markPrice": "39849",
+                            "fundingRate": "0",
+                            "toNextFundRateTime": "0",
+                            "markIv": "0.8124",
+                            "underlyingPrice": "85018",
+                            "delta": "0.99577301",
+                            "gamma": "0.00000057",
+                            "vega": "3.28983552",
+                            "theta": "-9.95893547",
+                            "ts": 1790268722312
+                        }
+                    },
+                    "BTC-USDT-25DEC26-56000-C": {
+                        "symbol": "BTC-USDT-25DEC26-56000-C",
+                        "timestamp": 1790268722312,
+                        "datetime": "2026-09-24T16:52:02.312Z",
+                        "delta": 0.96328489,
+                        "gamma": 3.71e-06,
+                        "theta": -16.56320766,
+                        "vega": 34.06016998,
+                        "rho": null,
+                        "bidSize": null,
+                        "askSize": null,
+                        "bidImpliedVolatility": null,
+                        "askImpliedVolatility": null,
+                        "markImpliedVolatility": 0.5103,
+                        "bidPrice": null,
+                        "askPrice": null,
+                        "markPrice": 29638,
+                        "lastPrice": 27975,
+                        "underlyingPrice": 85662,
+                        "info": {
+                            "businessType": "options",
+                            "symbol": "BTC-USDT-25DEC26-56000-C",
+                            "priceChange": "0",
+                            "priceChangePercent": "0",
+                            "lastPrice": "27975",
+                            "openPrice": "27975",
+                            "highPrice": "27975",
+                            "lowPrice": "27975",
+                            "fillQty": "0",
+                            "fillAmount": "0",
+                            "count": "0",
+                            "baseCurrency": "BTC",
+                            "indexPrice": "84593.929",
+                            "markPrice": "29638",
+                            "fundingRate": "0",
+                            "toNextFundRateTime": "0",
+                            "markIv": "0.5103",
+                            "underlyingPrice": "85662",
+                            "delta": "0.96328489",
+                            "gamma": "0.00000371",
+                            "vega": "34.06016998",
+                            "theta": "-16.56320766",
+                            "ts": 1790268722312
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchCrossBorrowRate": [
+            {
+                "description": "the annual borrow rate of USDT",
+                "method": "fetchCrossBorrowRate",
+                "input": [
+                    "USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "currency": "USDT",
+                            "borrowed": "69529149.417116040728850143",
+                            "remainingQuota": "24208092.942732615937534092",
+                            "rate": "0.06112321"
+                        }
+                    ],
+                    "ts": "1790268730668"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "currency": "USDT",
+                        "borrowed": "69529149.417116040728850143",
+                        "remainingQuota": "24208092.942732615937534092",
+                        "rate": "0.06112321",
+                        "ts": 1790268730668
+                    },
+                    "currency": "USDT",
+                    "rate": 0.06112321,
+                    "period": 31536000000,
+                    "timestamp": 1790268730668,
+                    "datetime": "2026-09-24T16:52:10.668Z"
+                }
+            }
+        ],
+        "fetchConvertCurrencies": [
+            {
+                "description": "conversion pairs, trimmed to two rows, the limits folded per currency",
+                "method": "fetchConvertCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "symbol": "BTC-USDT",
+                            "baseCurrency": "BTC",
+                            "baseCurrencyMax": "30",
+                            "baseCurrencyMin": "0.0001",
+                            "baseCurrencyMinChange": "0.00001",
+                            "quoteCurrency": "USDT",
+                            "quoteCurrencyMax": "1000000",
+                            "quoteCurrencyMin": "5",
+                            "quoteCurrencyMinChange": "0.00001",
+                            "status": "trading",
+                            "allowLoanTrans": null
+                        },
+                        {
+                            "symbol": "USD1-USD",
+                            "baseCurrency": "USD1",
+                            "baseCurrencyMax": "100000",
+                            "baseCurrencyMin": "5",
+                            "baseCurrencyMinChange": "0.0001",
+                            "quoteCurrency": "USD",
+                            "quoteCurrencyMax": "100000",
+                            "quoteCurrencyMin": "5",
+                            "quoteCurrencyMinChange": "0.01",
+                            "status": "trading",
+                            "allowLoanTrans": false
+                        }
+                    ],
+                    "ts": "1790268727696"
+                },
+                "parsedResponse": {
+                    "BTC": {
+                        "info": {
+                            "symbol": "BTC-USDT",
+                            "baseCurrency": "BTC",
+                            "baseCurrencyMax": "30",
+                            "baseCurrencyMin": "0.0001",
+                            "baseCurrencyMinChange": "0.00001",
+                            "quoteCurrency": "USDT",
+                            "quoteCurrencyMax": "1000000",
+                            "quoteCurrencyMin": "5",
+                            "quoteCurrencyMinChange": "0.00001",
+                            "status": "trading",
+                            "allowLoanTrans": null
+                        },
+                        "id": "BTC",
+                        "code": "BTC",
+                        "networks": null,
+                        "type": null,
+                        "name": null,
+                        "active": true,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": null,
+                        "precision": 1e-05,
+                        "limits": {
+                            "amount": {
+                                "min": 0.0001,
+                                "max": 30
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "created": null
+                    },
+                    "USDT": {
+                        "info": {
+                            "symbol": "BTC-USDT",
+                            "baseCurrency": "BTC",
+                            "baseCurrencyMax": "30",
+                            "baseCurrencyMin": "0.0001",
+                            "baseCurrencyMinChange": "0.00001",
+                            "quoteCurrency": "USDT",
+                            "quoteCurrencyMax": "1000000",
+                            "quoteCurrencyMin": "5",
+                            "quoteCurrencyMinChange": "0.00001",
+                            "status": "trading",
+                            "allowLoanTrans": null
+                        },
+                        "id": "USDT",
+                        "code": "USDT",
+                        "networks": null,
+                        "type": null,
+                        "name": null,
+                        "active": true,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": null,
+                        "precision": 1e-05,
+                        "limits": {
+                            "amount": {
+                                "min": 5,
+                                "max": 1000000
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "created": null
+                    },
+                    "USD1": {
+                        "info": {
+                            "symbol": "USD1-USD",
+                            "baseCurrency": "USD1",
+                            "baseCurrencyMax": "100000",
+                            "baseCurrencyMin": "5",
+                            "baseCurrencyMinChange": "0.0001",
+                            "quoteCurrency": "USD",
+                            "quoteCurrencyMax": "100000",
+                            "quoteCurrencyMin": "5",
+                            "quoteCurrencyMinChange": "0.01",
+                            "status": "trading",
+                            "allowLoanTrans": false
+                        },
+                        "id": "USD1",
+                        "code": "USD1",
+                        "networks": null,
+                        "type": null,
+                        "name": null,
+                        "active": true,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": null,
+                        "precision": 0.0001,
+                        "limits": {
+                            "amount": {
+                                "min": 5,
+                                "max": 100000
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "created": null
+                    },
+                    "USD": {
+                        "info": {
+                            "symbol": "USD1-USD",
+                            "baseCurrency": "USD1",
+                            "baseCurrencyMax": "100000",
+                            "baseCurrencyMin": "5",
+                            "baseCurrencyMinChange": "0.0001",
+                            "quoteCurrency": "USD",
+                            "quoteCurrencyMax": "100000",
+                            "quoteCurrencyMin": "5",
+                            "quoteCurrencyMinChange": "0.01",
+                            "status": "trading",
+                            "allowLoanTrans": false
+                        },
+                        "id": "USD",
+                        "code": "USD",
+                        "networks": null,
+                        "type": null,
+                        "name": null,
+                        "active": true,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": null,
+                        "precision": 0.01,
+                        "limits": {
+                            "amount": {
+                                "min": 5,
+                                "max": 100000
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "created": null
+                    }
+                }
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "an open long on the linear perpetual",
+                "method": "fetchPosition",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "accountName": "1000000000000000000",
+                            "positionId": "3538247533304872960",
+                            "businessType": "linear_perpetual",
+                            "symbol": "ETH-USDT-PERP",
+                            "positionQty": "0.001",
+                            "avgPrice": "2687.43",
+                            "upl": "0.00001",
+                            "lever": "10",
+                            "liquidationPrice": "0",
+                            "markPrice": "2687.44",
+                            "im": "0.268744",
+                            "indexPrice": "2688.6",
+                            "createTime": "1790268749390",
+                            "updateTime": "1790268749390",
+                            "takeProfit": null,
+                            "stopLoss": null,
+                            "bePrice": "2690.118774387193596798",
+                            "delta": "0.001",
+                            "gamma": null,
+                            "theta": null,
+                            "vega": null,
+                            "cid": "100000000000002",
+                            "pid": "1000000000000000000",
+                            "uid": "100000000000001"
+                        }
+                    ],
+                    "ts": "1790268752741"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "accountName": "1000000000000000000",
+                        "positionId": "3538247533304872960",
+                        "businessType": "linear_perpetual",
+                        "symbol": "ETH-USDT-PERP",
+                        "positionQty": "0.001",
+                        "avgPrice": "2687.43",
+                        "upl": "0.00001",
+                        "lever": "10",
+                        "liquidationPrice": "0",
+                        "markPrice": "2687.44",
+                        "im": "0.268744",
+                        "indexPrice": "2688.6",
+                        "createTime": "1790268749390",
+                        "updateTime": "1790268749390",
+                        "takeProfit": null,
+                        "stopLoss": null,
+                        "bePrice": "2690.118774387193596798",
+                        "delta": "0.001",
+                        "gamma": null,
+                        "theta": null,
+                        "vega": null,
+                        "cid": "100000000000002",
+                        "pid": "1000000000000000000",
+                        "uid": "100000000000001"
+                    },
+                    "id": "3538247533304872960",
+                    "symbol": "ETH/USDT:USDT",
+                    "timestamp": 1790268749390,
+                    "datetime": "2026-09-24T16:52:29.390Z",
+                    "lastUpdateTimestamp": 1790268749390,
+                    "contracts": 0.001,
+                    "contractSize": 1,
+                    "side": "long",
+                    "notional": 2.68744,
+                    "leverage": 10,
+                    "unrealizedPnl": 1e-05,
+                    "realizedPnl": null,
+                    "collateral": null,
+                    "entryPrice": 2687.43,
+                    "markPrice": 2687.44,
+                    "lastPrice": null,
+                    "liquidationPrice": null,
+                    "marginMode": null,
+                    "hedged": false,
+                    "maintenanceMargin": null,
+                    "maintenanceMarginPercentage": null,
+                    "initialMargin": 0.268744,
+                    "initialMarginPercentage": null,
+                    "marginRatio": null,
+                    "percentage": 0,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null
+                }
+            }
+        ],
+        "fetchGreeks": [
+            {
+                "description": "greeks and the mark implied volatility of a traded option",
+                "method": "fetchGreeks",
+                "input": [
+                    "BTC/USDT:USDT-261030-45000-C"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "businessType": "options",
+                            "symbol": "BTC-USDT-30OCT26-45000-C",
+                            "priceChange": "0",
+                            "priceChangePercent": "0",
+                            "lastPrice": "38445",
+                            "openPrice": "38445",
+                            "highPrice": "38445",
+                            "lowPrice": "38445",
+                            "fillQty": "0",
+                            "fillAmount": "0",
+                            "count": "0",
+                            "baseCurrency": "BTC",
+                            "indexPrice": "84595.7336",
+                            "markPrice": "39849",
+                            "fundingRate": "0",
+                            "toNextFundRateTime": "0",
+                            "markIv": "0.8124",
+                            "underlyingPrice": "85016",
+                            "delta": "0.99577301",
+                            "gamma": "0.00000057",
+                            "vega": "3.28983552",
+                            "theta": "-9.95893547"
+                        }
+                    ],
+                    "ts": "1790268719837"
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT:USDT-261030-45000-C",
+                    "timestamp": 1790268719837,
+                    "datetime": "2026-09-24T16:51:59.837Z",
+                    "delta": 0.99577301,
+                    "gamma": 5.7e-07,
+                    "theta": -9.95893547,
+                    "vega": 3.28983552,
+                    "rho": null,
+                    "bidSize": null,
+                    "askSize": null,
+                    "bidImpliedVolatility": null,
+                    "askImpliedVolatility": null,
+                    "markImpliedVolatility": 0.8124,
+                    "bidPrice": null,
+                    "askPrice": null,
+                    "markPrice": 39849,
+                    "lastPrice": 38445,
+                    "underlyingPrice": 85016,
+                    "info": {
+                        "businessType": "options",
+                        "symbol": "BTC-USDT-30OCT26-45000-C",
+                        "priceChange": "0",
+                        "priceChangePercent": "0",
+                        "lastPrice": "38445",
+                        "openPrice": "38445",
+                        "highPrice": "38445",
+                        "lowPrice": "38445",
+                        "fillQty": "0",
+                        "fillAmount": "0",
+                        "count": "0",
+                        "baseCurrency": "BTC",
+                        "indexPrice": "84595.7336",
+                        "markPrice": "39849",
+                        "fundingRate": "0",
+                        "toNextFundRateTime": "0",
+                        "markIv": "0.8124",
+                        "underlyingPrice": "85016",
+                        "delta": "0.99577301",
+                        "gamma": "0.00000057",
+                        "vega": "3.28983552",
+                        "theta": "-9.95893547",
+                        "ts": 1790268719837
+                    }
+                }
+            }
+        ],
+        "fetchLastPrices": [
+            {
+                "description": "the last price of a perpetual from the mini ticker",
+                "method": "fetchLastPrices",
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "businessType": "linear_perpetual",
+                            "symbol": "ETH-USDT-PERP",
+                            "priceChange": "34.59",
+                            "priceChangePercent": "0.013",
+                            "lastPrice": "2689.71",
+                            "fillQty": "2513.298",
+                            "fillAmount": "6685146.51536",
+                            "baseCurrency": "ETH"
+                        }
+                    ],
+                    "ts": "1790268705025"
+                },
+                "parsedResponse": {
+                    "ETH/USDT:USDT": {
+                        "symbol": "ETH/USDT:USDT",
+                        "timestamp": 1790268705025,
+                        "datetime": "2026-09-24T16:51:45.025Z",
+                        "price": 2689.71,
+                        "side": null,
+                        "info": {
+                            "businessType": "linear_perpetual",
+                            "symbol": "ETH-USDT-PERP",
+                            "priceChange": "34.59",
+                            "priceChangePercent": "0.013",
+                            "lastPrice": "2689.71",
+                            "fillQty": "2513.298",
+                            "fillAmount": "6685146.51536",
+                            "baseCurrency": "ETH",
+                            "ts": 1790268705025
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchMarkPrices": [
+            {
+                "description": "mark and index prices of a perpetual",
+                "method": "fetchMarkPrices",
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "businessType": "linear_perpetual",
+                            "symbol": "ETH-USDT-PERP",
+                            "indexPrice": "2690.14",
+                            "markPrice": "2689",
+                            "fundingRate": "0.000078",
+                            "periodFundingRate": "0.000071",
+                            "toNextFundRateTime": "25703298"
+                        }
+                    ],
+                    "ts": "1790268696703"
+                },
+                "parsedResponse": {
+                    "ETH/USDT:USDT": {
+                        "symbol": "ETH/USDT:USDT",
+                        "timestamp": 1790268696703,
+                        "datetime": "2026-09-24T16:51:36.703Z",
+                        "high": null,
+                        "low": null,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": null,
+                        "close": null,
+                        "last": null,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "indexPrice": 2690.14,
+                        "markPrice": 2689,
+                        "info": {
+                            "businessType": "linear_perpetual",
+                            "symbol": "ETH-USDT-PERP",
+                            "indexPrice": "2690.14",
+                            "markPrice": "2689",
+                            "fundingRate": "0.000078",
+                            "periodFundingRate": "0.000071",
+                            "toNextFundRateTime": "25703298",
+                            "ts": 1790268696703
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchOption": [
+            {
+                "description": "the ticker of a traded option parsed as an option structure",
+                "method": "fetchOption",
+                "input": [
+                    "BTC/USDT:USDT-261030-45000-C"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "businessType": "options",
+                            "symbol": "BTC-USDT-30OCT26-45000-C",
+                            "priceChange": "0",
+                            "priceChangePercent": "0",
+                            "lastPrice": "38445",
+                            "openPrice": "38445",
+                            "highPrice": "38445",
+                            "lowPrice": "38445",
+                            "fillQty": "0",
+                            "fillAmount": "0",
+                            "count": "0",
+                            "baseCurrency": "BTC",
+                            "indexPrice": "84589.6436",
+                            "markPrice": "39843",
+                            "fundingRate": "0",
+                            "toNextFundRateTime": "0",
+                            "markIv": "0.8124",
+                            "underlyingPrice": "85018",
+                            "delta": "0.99576903",
+                            "gamma": "0.00000058",
+                            "vega": "3.2923674",
+                            "theta": "-9.94980605"
+                        }
+                    ],
+                    "ts": "1790268724757"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "businessType": "options",
+                        "symbol": "BTC-USDT-30OCT26-45000-C",
+                        "priceChange": "0",
+                        "priceChangePercent": "0",
+                        "lastPrice": "38445",
+                        "openPrice": "38445",
+                        "highPrice": "38445",
+                        "lowPrice": "38445",
+                        "fillQty": "0",
+                        "fillAmount": "0",
+                        "count": "0",
+                        "baseCurrency": "BTC",
+                        "indexPrice": "84589.6436",
+                        "markPrice": "39843",
+                        "fundingRate": "0",
+                        "toNextFundRateTime": "0",
+                        "markIv": "0.8124",
+                        "underlyingPrice": "85018",
+                        "delta": "0.99576903",
+                        "gamma": "0.00000058",
+                        "vega": "3.2923674",
+                        "theta": "-9.94980605",
+                        "ts": 1790268724757
+                    },
+                    "currency": "USDT",
+                    "symbol": "BTC/USDT:USDT-261030-45000-C",
+                    "timestamp": 1790268724757,
+                    "datetime": "2026-09-24T16:52:04.757Z",
+                    "impliedVolatility": 0.8124,
+                    "openInterest": null,
+                    "bidPrice": null,
+                    "askPrice": null,
+                    "midPrice": null,
+                    "markPrice": 39843,
+                    "lastPrice": 38445,
+                    "underlyingPrice": 85018,
+                    "change": 0,
+                    "percentage": 0,
+                    "baseVolume": 0,
+                    "quoteVolume": 0
+                }
+            }
         ]
     }
 }
