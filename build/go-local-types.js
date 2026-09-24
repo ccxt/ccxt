@@ -1,9 +1,16 @@
 import fs from 'fs';
 import path from 'path';
 import { urlsDescribeStringProducer } from './csharp-local-types.js';
-import { NodeFlags, SyntaxKind } from 'typescript/unstable/ast';
-import { isBlock, isIdentifier, isNoSubstitutionTemplateLiteral, isNumericLiteral, isPropertyAccessExpression, isPropertyDeclaration, isStringLiteral } from 'typescript/unstable/ast/is';
-import { SymbolFlags, TypeFlags } from 'typescript/unstable/sync';
+// enums come from the generator's own typescript: the ccxt-root 7.x may lack or renumber them
+import { SymbolFlags, SyntaxKind, TypeFlags } from 'ast-transpiler';
+const NODE_FLAGS_CONST = 2;
+const isBlock = (n) => n.kind === SyntaxKind.Block;
+const isIdentifier = (n) => n.kind === SyntaxKind.Identifier;
+const isNoSubstitutionTemplateLiteral = (n) => n.kind === SyntaxKind.NoSubstitutionTemplateLiteral;
+const isNumericLiteral = (n) => n.kind === SyntaxKind.NumericLiteral;
+const isPropertyAccessExpression = (n) => n.kind === SyntaxKind.PropertyAccessExpression;
+const isPropertyDeclaration = (n) => n.kind === SyntaxKind.PropertyDeclaration;
+const isStringLiteral = (n) => n.kind === SyntaxKind.StringLiteral;
 import { isFunctionLike } from 'ast-transpiler/tsUtils';
 
 // CCXT-side extension of the Go printer's local-variable typing.
@@ -2560,7 +2567,7 @@ function ccxtGoSumOperandIsInt (goTranspiler, node, printed, depth) {
             return false;
         }
         if ((declaration?.kind === SyntaxKind.VariableDeclaration) && (declaration.name?.kind === SyntaxKind.Identifier)
-            && ((declaration.parent?.flags & NodeFlags.Const) !== 0) && ccxtGoIsDefaultedSafeInteger (declaration.initializer)) {
+            && ((declaration.parent?.flags & NODE_FLAGS_CONST) !== 0) && ccxtGoIsDefaultedSafeInteger (declaration.initializer)) {
             return true;
         }
     }
