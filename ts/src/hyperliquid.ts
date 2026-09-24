@@ -2711,7 +2711,7 @@ export default class hyperliquid extends Exchange {
         cancelAction['type'] = cancelByCloid ? 'cancelByCloid' : 'cancel';
         cancelAction['cancels'] = cancelReq;
         let vaultAddress: Str = undefined;
-        [ vaultAddress ] = this.handleOptionAndParams2 (params, 'cancelOrdersForSymbols', 'vaultAddress', 'subAccountAddress');
+        vaultAddress = this.handleOptionAndParams2 (params, 'cancelOrdersForSymbols', 'vaultAddress', 'subAccountAddress')[0];
         vaultAddress = this.formatVaultAddress (vaultAddress);
         const signature = this.signL1Action (cancelAction, nonce, vaultAddress);
         request['action'] = cancelAction;
@@ -4087,7 +4087,7 @@ export default class hyperliquid extends Exchange {
             'ntli': sz,
         };
         let vaultAddress: Str = undefined;
-        [ vaultAddress ] = this.handleOptionAndParams2 (params, 'modifyMargin', 'vaultAddress', 'subAccountAddress');
+        vaultAddress = this.handleOptionAndParams2 (params, 'modifyMargin', 'vaultAddress', 'subAccountAddress')[0];
         vaultAddress = this.formatVaultAddress (vaultAddress);
         const signature = this.signL1Action (updateAction, nonce, vaultAddress);
         const request: Dict = {
@@ -4303,7 +4303,7 @@ export default class hyperliquid extends Exchange {
             }
         }
         let vaultAddress: Str = undefined;
-        [ vaultAddress ] = this.handleOptionAndParams (params, 'withdraw', 'vaultAddress');
+        vaultAddress = this.handleOptionAndParams (params, 'withdraw', 'vaultAddress')[0];
         vaultAddress = this.formatVaultAddress (vaultAddress);
         const nonce = this.incrementingNonce ();
         let action: Dict = {};
