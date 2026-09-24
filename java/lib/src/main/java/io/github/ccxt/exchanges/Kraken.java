@@ -772,11 +772,11 @@ public class Kraken extends KrakenApi
             //
             Map<String, Object> markets = (Map<String, Object>) this.safeDict(assetsResponse, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> cachedCurrencies = (Map<String, Object>) this.safeDict(this.options, "cachedCurrencies", new HashMap<String, Object>() {{}});
-            List<Object> keys = new ArrayList<Object>(markets.keySet());
+            List<String> keys = new ArrayList<String>(markets.keySet());
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                Object id = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+                String id = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Boolean isSynthetic = false;
                 if (((String)id).indexOf(":BTNL") >= 0)
                 {
@@ -831,7 +831,7 @@ public class Kraken extends KrakenApi
                 }
                 String status = this.safeString(market, "status");
                 Boolean isActive = java.util.Objects.equals(status, "online");
-                Object symbol = ((Helpers.isTrue((!Boolean.TRUE.equals(isSynthetic))))) ? (((base + "/") + quote)) : id;
+                String symbol = ((Helpers.isTrue((!Boolean.TRUE.equals(isSynthetic))))) ? (((base + "/") + quote)) : id;
     final String finalBase = base;
                 final Boolean finalSpot = spot;
                 final Object finalLeverageBuyLength = leverageBuyLength;
@@ -1409,11 +1409,11 @@ public class Kraken extends KrakenApi
             }
             Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
             Map<String, Object> tickers = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> ids = new ArrayList<Object>(tickers.keySet());
+            List<String> ids = new ArrayList<String>(tickers.keySet());
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
-                Object id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
+                String id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(id);
                 String symbol = (String) ((Map<String, Object>)market).get("symbol");
                 Object ticker = (tickers == null || id == null ? null : tickers.get(id));
@@ -1726,11 +1726,11 @@ public class Kraken extends KrakenApi
             //                                                "balance": "0.0000051000"           },
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> ledger = (Map<String, Object>) this.safeDict(result, "ledger", new HashMap<String, Object>() {{}});
-            List<Object> keys = new ArrayList<Object>(ledger.keySet());
+            List<String> keys = new ArrayList<String>(ledger.keySet());
             List<Object> items = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+                String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Object value = (ledger == null || key == null ? null : ledger.get(key));
                 Helpers.addElementToObject(value, "id", key);
                 ((List<Object>)items).add(value);
@@ -1783,11 +1783,11 @@ public class Kraken extends KrakenApi
             //                                          "fee": "0.0050000000",
             //                                      "balance": "0.0000051000"           } } }
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> keys = new ArrayList<Object>(result.keySet());
+            List<String> keys = new ArrayList<String>(result.keySet());
             List<Object> items = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+                String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Object value = (result == null || key == null ? null : result.get(key));
                 Helpers.addElementToObject(value, "id", key);
                 ((List<Object>)items).add(value);
@@ -2086,11 +2086,11 @@ public class Kraken extends KrakenApi
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        List<Object> currencyIds = new ArrayList<Object>(balances.keySet());
+        List<String> currencyIds = new ArrayList<String>(balances.keySet());
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
-            Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
-            String code = this.safeCurrencyCode((String) (currencyId));
+            String currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
+            String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, currencyId, new HashMap<String, Object>() {{}});
             Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("used", this.safeString(balance, "hold_trade"));
@@ -2936,7 +2936,7 @@ final String finalId = id;
                 ((Map<String, Object>)request).put("reduce_only", "true"); // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
             }
         }
-        Object close = this.safeDict(parameters, "close");
+        Map<String, Object> close = (Map<String, Object>) this.safeDict(parameters, "close");
         if (!java.util.Objects.equals(close, null))
         {
             close = this.extend(new HashMap<String, Object>() {{}}, close);
@@ -3343,10 +3343,10 @@ final String finalId = id;
             }}, parameters))).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
-            List<Object> orderIds = new ArrayList<Object>(result.keySet());
+            List<String> orderIds = new ArrayList<String>(result.keySet());
             for (var i = 0; i < ((List<?>)orderIds).size(); i++)
             {
-                Object id = (orderIds == null || i < 0 || i >= orderIds.size() ? null : orderIds.get(i));
+                String id = (orderIds == null || i < 0 || i >= orderIds.size() ? null : orderIds.get(i));
                 Object item = (result == null || id == null ? null : result.get(id));
                 Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.extend(new HashMap<String, Object>() {{
                     put( "id", id );
@@ -3441,7 +3441,7 @@ final String finalId = id;
             //
             Map<String, Object> tradesResult = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> trades = (Map<String, Object>) this.safeDict(tradesResult, "trades", new HashMap<String, Object>() {{}});
-            List<Object> ids = new ArrayList<Object>(trades.keySet());
+            List<String> ids = new ArrayList<String>(trades.keySet());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
                 Helpers.addElementToObject(Helpers.GetValue(trades, (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i))), "id", (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i)));
@@ -3792,10 +3792,10 @@ final String finalId = id;
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> open = (Map<String, Object>) this.safeDict(result, "open", new HashMap<String, Object>() {{}});
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
-            List<Object> orderIds = new ArrayList<Object>(open.keySet());
+            List<String> orderIds = new ArrayList<String>(open.keySet());
             for (var i = 0; i < ((List<?>)orderIds).size(); i++)
             {
-                Object id = (orderIds == null || i < 0 || i >= orderIds.size() ? null : orderIds.get(i));
+                String id = (orderIds == null || i < 0 || i >= orderIds.size() ? null : orderIds.get(i));
                 Object item = (open == null || id == null ? null : open.get(id));
                 ((List<Object>)orders).add(this.extend(new HashMap<String, Object>() {{
                     put( "id", id );
@@ -3918,10 +3918,10 @@ final String finalId = id;
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> closed = (Map<String, Object>) this.safeDict(result, "closed", new HashMap<String, Object>() {{}});
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
-            List<Object> orderIds = new ArrayList<Object>(closed.keySet());
+            List<String> orderIds = new ArrayList<String>(closed.keySet());
             for (var i = 0; i < ((List<?>)orderIds).size(); i++)
             {
-                Object id = (orderIds == null || i < 0 || i >= orderIds.size() ? null : orderIds.get(i));
+                String id = (orderIds == null || i < 0 || i >= orderIds.size() ? null : orderIds.get(i));
                 Object item = (closed == null || id == null ? null : closed.get(id));
                 ((List<Object>)orders).add(this.extend(new HashMap<String, Object>() {{
                     put( "id", id );

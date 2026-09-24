@@ -3137,11 +3137,11 @@ public class Krakenfutures extends KrakenfuturesApi
         String filled = this.safeString2(details, "filledSize", "filled", "0.0");
         String remaining = this.safeString(details, "unfilledSize");
         String average = null;
-        Object filled2 = "0.0";
+        String filled2 = "0.0";
         Integer tradesLength = ((List<?>)trades).size();
         if (Helpers.isGreaterThan(tradesLength, 0))
         {
-            Object vwapSum = "0.0";
+            String vwapSum = "0.0";
             for (var i = 0; i < ((List<?>)trades).size(); i++)
             {
                 Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
@@ -3919,12 +3919,12 @@ public class Krakenfutures extends KrakenfuturesApi
         Boolean isCash = (java.util.Objects.equals(accountType, "cashAccount"));
         Map<String, Object> balances = (Map<String, Object>) this.safeDict2(response, "balances", "currencies", new HashMap<String, Object>() {{}});
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        List<Object> currencyIds = new ArrayList<Object>(balances.keySet());
+        List<String> currencyIds = new ArrayList<String>(balances.keySet());
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
-            Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
+            String currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
             Object balance = (balances == null || currencyId == null ? null : balances.get(currencyId));
-            String code = this.safeCurrencyCode((String) (currencyId));
+            String code = this.safeCurrencyCode(currencyId);
             if (java.util.Objects.equals(code, null))
             {
                 continue;
@@ -4883,12 +4883,12 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            Object marketIdUpper = this.marketId((String) (symbol));
+            String marketIdUpper = this.marketId((String) (symbol));
             if (java.util.Objects.equals(marketIdUpper, null))
             {
                 throw new ArgumentsRequired((this.id + " marketId is required")) ;
             }
-            final Object finalMarketIdUpper = marketIdUpper;
+            final String finalMarketIdUpper = marketIdUpper;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "maxLeverage", leverage );
                 put( "symbol", ((String)finalMarketIdUpper).toUpperCase() );
@@ -4988,12 +4988,12 @@ final Object finalI = i;
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object marketIdUpper = this.marketId((String) (symbol));
+            String marketIdUpper = this.marketId((String) (symbol));
             if (java.util.Objects.equals(marketIdUpper, null))
             {
                 throw new ArgumentsRequired((this.id + " marketId is required")) ;
             }
-            final Object finalMarketIdUpper = marketIdUpper;
+            final String finalMarketIdUpper = marketIdUpper;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((String)finalMarketIdUpper).toUpperCase() );
             }};

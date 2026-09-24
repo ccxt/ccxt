@@ -217,7 +217,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             List<Object> productIds = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)(List<String>)(symbols)).size(); i++)
             {
-                Object marketId = this.marketId((String) (Helpers.GetValue((List<String>)(symbols), i)));
+                String marketId = this.marketId((String) (Helpers.GetValue((List<String>)(symbols), i)));
                 String symbol = this.symbol(marketId);
                 ((List<Object>)productIds).add(marketId);
                 ((List<Object>)messageHashes).add(((name + "::") + symbol));

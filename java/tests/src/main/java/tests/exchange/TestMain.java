@@ -409,10 +409,10 @@ public class TestMain extends BaseTest
             put( "depositWithdraw", new ArrayList<Object>(Arrays.asList("fetchDepositsWithdrawals", "fetchDeposits", "fetchWithdrawals")) );
             put( "depositWithdrawFee", new ArrayList<Object>(Arrays.asList("fetchDepositWithdrawFee", "fetchDepositWithdrawFees")) );
         }};
-        List<Object> objectNames = new ArrayList<Object>(objectSkips.keySet());
+        List<String> objectNames = new ArrayList<String>(objectSkips.keySet());
         for (var i = 0; i < ((List<?>)objectNames).size(); i++)
         {
-            Object objectName = (objectNames == null || i < 0 || i >= objectNames.size() ? null : objectNames.get(i));
+            String objectName = (objectNames == null || i < 0 || i >= objectNames.size() ? null : objectNames.get(i));
             Object objectMethods = (objectSkips == null || objectName == null ? null : objectSkips.get(objectName));
             if (Helpers.isTrue(exchange.inArray(methodName, objectMethods)))
             {

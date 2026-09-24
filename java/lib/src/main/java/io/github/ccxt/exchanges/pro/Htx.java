@@ -2240,7 +2240,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             ((List<Object>)(positionsByMarginMode == null || marginMode == null ? null : positionsByMarginMode.get(marginMode))).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
         }
-        List<Object> marginModes = new ArrayList<Object>(positionsByMarginMode.keySet());
+        List<String> marginModes = new ArrayList<String>(positionsByMarginMode.keySet());
         for (var i = 0; i < ((List<?>)marginModes).size(); i++)
         {
             Object marginMode = (marginModes == null || i < 0 || i >= marginModes.size() ? null : marginModes.get(i));

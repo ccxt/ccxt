@@ -83,10 +83,10 @@ func (this *Woo) Describe() any {
 		},
 	})
 }
-func (this *Woo) RequestId(url any) any {
+func (this *Woo) RequestId(url any) int64 {
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "requestId")
 	var previousValue *int64 = this.SafeInteger(options, url, 0)
-	var newValue any = this.Sum(previousValue, 1)
+	var newValue int64 = this.Sum(previousValue, 1).(int64)
 	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "requestId"), url, newValue)
 	return newValue
 }
@@ -105,7 +105,7 @@ func (this *Woo) watchPublicBody(ch chan any, messageHash any, message any) any 
 		return ""
 	}()
 	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), urlUid)
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var subscribe map[string]any = map[string]any{
 		"id": requestId,
 	}
@@ -131,7 +131,7 @@ func (this *Woo) unwatchPublicBody(ch chan any, subHash any, symbol any, topic a
 		return ""
 	}()
 	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), urlUid)
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var unsubHash any = ccxt.Add("unsubscribe::", subHash)
 	var message map[string]any = map[string]any{
 		"id":    requestId,
@@ -197,7 +197,7 @@ func (this *Woo) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 		return ""
 	}()
 	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), urlUid)
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
@@ -1220,7 +1220,7 @@ func (this *Woo) watchPrivateBody(ch chan any, messageHash any, message any, opt
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(params)))
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.Uid)
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var subscribe map[string]any = map[string]any{
 		"id": requestId,
 	}
@@ -1242,7 +1242,7 @@ func (this *Woo) watchPrivateMultipleBody(ch chan any, messageHashes any, messag
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(params)))
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.Uid)
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var subscribe map[string]any = map[string]any{
 		"id": requestId,
 	}

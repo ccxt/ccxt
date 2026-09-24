@@ -88,9 +88,9 @@ func (this *Phemex) FromEr(er any, optionalArgs ...any) any {
 	}
 	return this.FromEn(er, this.SafeInteger(market, "ratioScale"))
 }
-func (this *Phemex) RequestId() any {
+func (this *Phemex) RequestId() int64 {
 	this.LockId()
-	var requestId any = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1)
+	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
 	this.Options.Store("requestId", requestId)
 	this.UnlockId()
 	return requestId
@@ -587,7 +587,7 @@ func (this *Phemex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		}()
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var requestId any = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var subscriptionHash string = name + ".subscribe"
 	var messageHash any = ccxt.Add("ticker:", symbol)
 	var subscribe map[string]any = map[string]any{
@@ -644,7 +644,7 @@ func (this *Phemex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		}()
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var requestId any = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var subscriptionHash string = name + ".subscribe"
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
@@ -705,7 +705,7 @@ func (this *Phemex) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var requestId any = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var isSwap *bool = ccxt.SafeBoolPtr(market["swap"])
 	var settleIsUSDT bool = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")
 	var isUsdtSwap bool = (isSwap != nil && *isSwap == true) && settleIsUSDT
@@ -765,7 +765,7 @@ func (this *Phemex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var requestId any = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var isSwap *bool = ccxt.SafeBoolPtr(market["swap"])
 	var settleIsUSDT bool = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")
 	var isUsdtSwap bool = (isSwap != nil && *isSwap == true) && settleIsUSDT
@@ -827,7 +827,7 @@ func (this *Phemex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	symbol = market["symbol"]
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var requestId any = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var isSwap *bool = ccxt.SafeBoolPtr(market["swap"])
 	var settleIsUSDT bool = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")
 	var isUsdtSwap bool = (isSwap != nil && *isSwap == true) && settleIsUSDT
@@ -1830,7 +1830,7 @@ func (this *Phemex) authenticateBody(ch chan any, optionalArgs ...any) any {
 	this.CheckRequiredCredentials()
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var client ccxt.ClientInterface = this.Client(url)
-	var requestId any = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var messageHash string = "authenticated"
 	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsEqual(future, nil) {

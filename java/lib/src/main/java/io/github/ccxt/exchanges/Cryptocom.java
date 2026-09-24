@@ -1935,12 +1935,12 @@ public class Cryptocom extends CryptocomApi
         String broker = this.safeString(this.options, "broker", "CCXT");
         ((Map<String, Object>)request).put("broker_id", broker);
         String marketType = null;
-        Object marginMode = null;
+        String marginMode = null;
         List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("createOrder", market, parameters);
         marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
         List<Object> marginModeparametersVariable = (List<Object>) this.customHandleMarginModeAndParams("createOrder", parameters);
-        marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+        marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
         if ((java.util.Objects.equals(marketType, "margin")) || (!java.util.Objects.equals(marginMode, null)))
         {
@@ -3117,7 +3117,7 @@ public class Cryptocom extends CryptocomApi
             {
                 return Helpers.GetValue(depositAddresses, network);
             }
-            List<Object> keys = new ArrayList<Object>(((Map<String, Object>)depositAddresses).keySet());
+            List<String> keys = new ArrayList<String>(((Map<String, Object>)depositAddresses).keySet());
             return Helpers.GetValue(depositAddresses, (keys == null || 0 >= ((List<?>)keys).size() ? null : ((List<?>)keys).get(0)));
         }).thenApply(DepositAddress::new);
 
@@ -5059,7 +5059,7 @@ public class Cryptocom extends CryptocomApi
             this.checkRequiredCredentials();
             String nonce = String.valueOf(this.nonce());
             Map<String, Object> requestParams = this.extend(new HashMap<String, Object>() {{}}, parameters);
-            List<Object> paramsKeys = new ArrayList<Object>(requestParams.keySet());
+            List<String> paramsKeys = new ArrayList<String>(requestParams.keySet());
             Object strSortKey = this.paramsToString(requestParams, 0);
             String payload = (Helpers.add(Helpers.add(Helpers.add(path, nonce), this.apiKey), strSortKey) + nonce);
             String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256());

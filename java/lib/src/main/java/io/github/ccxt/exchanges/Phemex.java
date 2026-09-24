@@ -993,7 +993,7 @@ public class Phemex extends PhemexApi
         String makerFeeRateEr = this.safeString(market, "makerFeeRateEr");
         String takerFeeRateEr = this.safeString(market, "takerFeeRateEr");
         String status = this.safeString(market, "status");
-        Object contractSizeString = this.safeString(market, "contractSize", " ");
+        String contractSizeString = this.safeString(market, "contractSize", " ");
         Double contractSize = null;
         if (java.util.Objects.equals(settle, "USDT"))
         {
@@ -1381,12 +1381,12 @@ public class Phemex extends PhemexApi
             //     }
             //
             Map<String, Object> v2ProductsData = (Map<String, Object>) this.safeDict(v2Products, "data", new HashMap<String, Object>() {{}});
-            Object products = this.safeList(v2ProductsData, "products", new ArrayList<Object>(Arrays.asList()));
+            List<Object> products = (List<Object>) this.safeList(v2ProductsData, "products", new ArrayList<Object>(Arrays.asList()));
             List<Object> perpetualProductsV2 = (List<Object>) this.safeList(v2ProductsData, "perpProductsV2", new ArrayList<Object>(Arrays.asList()));
-            products = this.arrayConcat(products, perpetualProductsV2);
-            Object riskLimits = this.safeList(v2ProductsData, "riskLimits", new ArrayList<Object>(Arrays.asList()));
+            products = (List<Object>) this.arrayConcat(products, perpetualProductsV2);
+            List<Object> riskLimits = (List<Object>) this.safeList(v2ProductsData, "riskLimits", new ArrayList<Object>(Arrays.asList()));
             List<Object> riskLimitsV2 = (List<Object>) this.safeList(v2ProductsData, "riskLimitsV2", new ArrayList<Object>(Arrays.asList()));
-            riskLimits = this.arrayConcat(riskLimits, riskLimitsV2);
+            riskLimits = (List<Object>) this.arrayConcat(riskLimits, riskLimitsV2);
             List<Object> currencies = (List<Object>) this.safeList(v2ProductsData, "currencies", new ArrayList<Object>(Arrays.asList()));
             Map<String,Object> riskLimitsById = this.indexBy(riskLimits, "symbol");
             Map<String,Object> v1ProductsById = this.indexBy(v1ProductsData, "symbol");
@@ -1394,7 +1394,7 @@ public class Phemex extends PhemexApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)products).size(); i++)
             {
-                Object market = (products == null || i < 0 || i >= ((List<?>)products).size() ? null : ((List<?>)products).get(i));
+                Object market = (products == null || i < 0 || i >= products.size() ? null : products.get(i));
                 String type = this.safeStringLower(market, "type");
                 if ((java.util.Objects.equals(type, "perpetual")) || (java.util.Objects.equals(type, "perpetualv2")) || (java.util.Objects.equals(type, "perpetualpilot")))
                 {
@@ -5801,10 +5801,10 @@ public class Phemex extends PhemexApi
                 ((Map<String, Object>)request).put("leverageRr", ((Boolean.TRUE.equals(isCross))) ? Precise.stringNeg(Precise.stringAbs(currentLeverage)) : Precise.stringAbs(currentLeverage));
                 return (this.privatePutGPositionsLeverage(this.extend(request, parameters))).join();
             }
-            Object leverage = this.safeInteger(parameters, "leverage");
+            Long leverage = this.safeInteger(parameters, "leverage");
             if (java.util.Objects.equals(marginMode, "cross"))
             {
-                leverage = 0;
+                leverage = 0L;
             }
             if (java.util.Objects.equals(leverage, null))
             {

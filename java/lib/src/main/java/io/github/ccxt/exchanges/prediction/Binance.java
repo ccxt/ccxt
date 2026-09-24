@@ -291,10 +291,10 @@ public class Binance extends BinanceApi
             {
                 maxTopics = this.safeInteger(this.options, "maxFetchMarketsLimit", 200);
             }
-            Object pageLimit = this.safeInteger(this.options, "marketsPageLimit", 100);
+            Long pageLimit = this.safeInteger(this.options, "marketsPageLimit", 100);
             if (Helpers.isGreaterThan(pageLimit, 100))
             {
-                pageLimit = 100;
+                pageLimit = 100L;
             }
             List<Object> collected = new ArrayList<Object>(Arrays.asList());
             Object offset = 0;
@@ -2365,7 +2365,7 @@ final Object finalMarketSymbol = marketSymbol;
             Map<String, Object> outcomeObj = this.outcome((String) (outcome));
             // markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
             // is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
-            Object marketSymbol = this.safeString(outcomeObj, "market");
+            String marketSymbol = this.safeString(outcomeObj, "market");
             Map<String, Object> market = (Map<String, Object>) this.market(marketSymbol);
             String typeUpper = ((String)type).toUpperCase();
             String sideUpper = ((String)side).toUpperCase();

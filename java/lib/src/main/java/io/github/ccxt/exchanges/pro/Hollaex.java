@@ -364,7 +364,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         }
         // non-symbol specific
         client.resolve(this.myTrades, channel);
-        List<Object> keys = new ArrayList<Object>(marketIds.keySet());
+        List<String> keys = new ArrayList<String>(marketIds.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -529,7 +529,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         }
         // non-symbol specific
         client.resolve(this.orders, channel);
-        List<Object> keys = new ArrayList<Object>(marketIds.keySet());
+        List<String> keys = new ArrayList<String>(marketIds.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));

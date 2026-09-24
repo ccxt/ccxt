@@ -103,10 +103,10 @@ func (this *Deepcoin) HandlePong(client any, message any) any {
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	return message
 }
-func (this *Deepcoin) RequestId() any {
+func (this *Deepcoin) RequestId() int64 {
 	this.LockId()
 	var previousValue *int64 = this.SafeInteger(this.Options, "lastRequestId", 0)
-	var newValue any = this.Sum(previousValue, 1)
+	var newValue int64 = this.Sum(previousValue, 1).(int64)
 	this.Options.Store("lastRequestId", newValue)
 	this.UnlockId()
 	return newValue
@@ -148,7 +148,7 @@ func (this *Deepcoin) watchPublicBody(ch chan any, market any, messageHash any, 
 	var suffix string = ccxt.GetArgString(optionalArgs, 1, "")
 	_ = suffix
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), ccxt.GetValue(market, "type"))
-	var requestId any = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var request any = this.CreatePublicRequest(market, requestId, topicID, suffix)
 	var subscription map[string]any = map[string]any{
 		"subHash": messageHash,
@@ -173,7 +173,7 @@ func (this *Deepcoin) unWatchPublicBody(ch chan any, market any, messageHash any
 	var suffix string = ccxt.GetArgString(optionalArgs, 2, "")
 	_ = suffix
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), ccxt.GetValue(market, "type"))
-	var requestId any = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var client ccxt.ClientInterface = this.Client(url)
 	var existingSubscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsEqual(existingSubscription, nil) {

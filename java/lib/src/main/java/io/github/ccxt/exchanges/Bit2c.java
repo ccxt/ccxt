@@ -734,11 +734,11 @@ public class Bit2c extends Bit2cApi
             //     }
             //
             Map<String, Object> fees = (Map<String, Object>) this.safeDict(response, "Fees", new HashMap<String, Object>() {{}});
-            List<Object> keys = new ArrayList<Object>(fees.keySet());
+            List<String> keys = new ArrayList<String>(fees.keySet());
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                Object marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+                String marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 String symbol = this.safeSymbol(marketId);
                 Map<String, Object> fee = (Map<String, Object>) this.safeDict(fees, marketId);
                 String makerString = this.safeString(fee, "FeeMaker");

@@ -2881,7 +2881,7 @@ public class Foxbit extends FoxbitApi
         String signatureQuery = "";
         if (java.util.Objects.equals(method, "GET"))
         {
-            List<Object> paramKeys = new ArrayList<Object>(((Map<String, Object>)parameters).keySet());
+            List<String> paramKeys = new ArrayList<String>(((Map<String, Object>)parameters).keySet());
             Integer paramKeysLength = ((List<?>)paramKeys).size();
             if (Helpers.isGreaterThan(paramKeysLength, 0))
             {
@@ -2890,7 +2890,7 @@ public class Foxbit extends FoxbitApi
             }
             for (var i = 0; i < ((List<?>)paramKeys).size(); i++)
             {
-                Object key = (paramKeys == null || i < 0 || i >= paramKeys.size() ? null : paramKeys.get(i));
+                String key = (paramKeys == null || i < 0 || i >= paramKeys.size() ? null : paramKeys.get(i));
                 String value = this.safeString(parameters, key);
                 if (!java.util.Objects.equals(value, null))
                 {

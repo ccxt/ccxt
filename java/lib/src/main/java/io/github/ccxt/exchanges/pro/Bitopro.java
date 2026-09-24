@@ -634,7 +634,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Long timestamp = this.safeInteger(message, "timestamp");
         String datetime = this.safeString(message, "datetime");
-        List<Object> currencies = new ArrayList<Object>(data.keySet());
+        List<String> currencies = new ArrayList<String>(data.keySet());
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", data );
             put( "timestamp", timestamp );

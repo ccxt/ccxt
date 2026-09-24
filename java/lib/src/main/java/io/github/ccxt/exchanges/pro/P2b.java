@@ -473,8 +473,8 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         //        "id": null
         //    }
         //
-        Object data = this.safeList(message, "params");
-        data = this.safeList(data, 0);
+        List<Object> data = (List<Object>) this.safeList(message, "params");
+        data = (List<Object>) this.safeList(data, 0);
         String method = this.safeString(message, "method");
         List<Object> splitMethod = new ArrayList<Object>(Arrays.asList(((String)method).split(java.util.regex.Pattern.quote("."))));
         String channel = this.safeString(splitMethod, 0);

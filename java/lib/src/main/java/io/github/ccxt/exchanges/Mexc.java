@@ -1412,7 +1412,7 @@ public class Mexc extends MexcApi
                 //
                 //     {}
                 //
-                List<Object> keys = new ArrayList<Object>(response.keySet());
+                List<String> keys = new ArrayList<String>(response.keySet());
                 Integer length = ((List<?>)keys).size();
                 status = (((Helpers.isGreaterThan(length, 0)))) ? this.json(response) : "ok";
             } else if (java.util.Objects.equals(marketType, "swap"))
@@ -4747,7 +4747,7 @@ public class Mexc extends MexcApi
         {
             id = this.safeString2(order, "orderId", "id");
         }
-        Object timeInForce = this.parseOrderTimeInForce(this.safeString(order, "timeInForce"));
+        String timeInForce = this.parseOrderTimeInForce(this.safeString(order, "timeInForce"));
         String typeRaw = this.safeString(order, "type");
         if (java.util.Objects.equals(timeInForce, null))
         {
@@ -4771,7 +4771,7 @@ public class Mexc extends MexcApi
         }
         final Object finalId = id;
         final Map<String, Object> finalMarket = market;
-        final Object finalTimeInForce = timeInForce;
+        final String finalTimeInForce = timeInForce;
         final Map<String, Object> finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", finalId );
@@ -6195,7 +6195,7 @@ public class Mexc extends MexcApi
         String riskIncrVol = this.safeString(info, "riskIncrVol");
         String riskIncrMmr = this.safeString(info, "riskIncrMmr");
         String riskIncrImr = this.safeString(info, "riskIncrImr");
-        Object floor = "0";
+        String floor = "0";
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
         String quoteId = this.safeString(info, "quoteCoin");
         if (java.util.Objects.equals(riskIncrVol, "0"))
@@ -6444,7 +6444,7 @@ final String finalRiskIncrVol = riskIncrVol;
                     result = this.safeDict(addressStructures, defaultNetworkForCurrency);
                 } else
                 {
-                    List<Object> keys = new ArrayList<Object>(((Map<String, Object>)addressStructures).keySet());
+                    List<String> keys = new ArrayList<String>(((Map<String, Object>)addressStructures).keySet());
                     String key = this.safeString(keys, 0);
                     result = this.safeDict(addressStructures, key);
                 }

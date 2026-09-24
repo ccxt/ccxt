@@ -217,10 +217,10 @@ func (this *Binance) DescribeData() any {
 		},
 	}
 }
-func (this *Binance) RequestId(url any) any {
+func (this *Binance) RequestId(url any) int64 {
 	var options any = this.SafeDict(this.Options, "requestId", this.CreateSafeDictionary())
 	var previousValue *int64 = this.SafeInteger(options, url, 0)
-	var newValue any = this.Sum(previousValue, 1)
+	var newValue int64 = this.Sum(previousValue, 1).(int64)
 	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "requestId"), url, newValue)
 	return newValue
 }
@@ -361,7 +361,7 @@ func (this *Binance) watchStockMarketStreamBody(ch chan any, streams any, messag
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var url any = this.GetStockWsUrl("market")
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var query map[string]any = ccxt.MapTyped(this.Omit(params, []any{"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"}))
 	var request map[string]any = map[string]any{
 		"method": "SUBSCRIBE",
@@ -471,7 +471,7 @@ func (this *Binance) watchLiquidationsForSymbolsBody(ch chan any, symbols any, o
 	}
 	var numSubscriptions int = len(subscriptionHashes)
 	var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(typeVar, this.GetFutureWsCategory("forceOrder")), "/"), this.Stream(typeVar, streamHash, numSubscriptions))
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var request map[string]any = map[string]any{
 		"method": "SUBSCRIBE",
 		"params": subscriptionHashes,
@@ -924,7 +924,7 @@ func (this *Binance) watchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	}
 	var messageHashesLength int = len(messageHashes)
 	var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(typeVar, this.GetFutureWsCategory(name)), "/"), this.Stream(typeVar, streamHash, messageHashesLength))
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var request map[string]any = map[string]any{
 		"method": "SUBSCRIBE",
 		"params": subParams,
@@ -1008,7 +1008,7 @@ func (this *Binance) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, op
 	}
 	var messageHashesLength int = len(subMessageHashes)
 	var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(typeVar, this.GetFutureWsCategory("depth")), "/"), this.Stream(typeVar, streamHash, messageHashesLength))
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var request map[string]any = map[string]any{
 		"method": "UNSUBSCRIBE",
 		"params": subParams,
@@ -1095,7 +1095,7 @@ func (this *Binance) fetchOrderBookWsBody(ch chan any, symbol any, optionalArgs 
 		panic(ccxt.BadRequest(this.Id + " fetchOrderBookWs only supports swap markets"))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), marketType)
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var messageHash string = ccxt.ToString(requestId)
 	var returnRateLimits any = false
 	var returnRateLimitsparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrderBookWs", "returnRateLimits", false)
@@ -1543,7 +1543,7 @@ func (this *Binance) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 	var query map[string]any = ccxt.MapTyped(this.Omit(params, "type"))
 	var subParamsLength int = len(subParams)
 	var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(typeVar, this.GetFutureWsCategory(name)), "/"), this.Stream(typeVar, streamHash, subParamsLength))
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var request map[string]any = map[string]any{
 		"method": "SUBSCRIBE",
 		"params": subParams,
@@ -1651,7 +1651,7 @@ func (this *Binance) unWatchTradesForSymbolsBody(ch chan any, symbols any, optio
 	var query map[string]any = ccxt.MapTyped(this.Omit(params, "type"))
 	var subParamsLength int = len(subParams)
 	var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(typeVar, this.GetFutureWsCategory(name)), "/"), this.Stream(typeVar, streamHash, subParamsLength))
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var request map[string]any = map[string]any{
 		"method": "UNSUBSCRIBE",
 		"params": subParams,
@@ -2151,7 +2151,7 @@ func (this *Binance) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", market["symbol"]), "::"), timeframeString))
 	}
 	var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(wsUrlType, this.GetFutureWsCategory(klineType)), "/"), this.Stream(wsUrlType, "multipleOHLCV"))
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var request map[string]any = map[string]any{
 		"method": "SUBSCRIBE",
 		"params": rawHashes,
@@ -2270,7 +2270,7 @@ func (this *Binance) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframe
 		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe::ohlcv::", market["symbol"]), "::"), timeframeString))
 	}
 	var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(wsUrlType, this.GetFutureWsCategory(klineType)), "/"), this.Stream(wsUrlType, "multipleOHLCV"))
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var request map[string]any = map[string]any{
 		"method": "UNSUBSCRIBE",
 		"params": rawHashes,
@@ -2428,7 +2428,7 @@ func (this *Binance) fetchTickerWsBody(ch chan any, symbol any, optionalArgs ...
 		panic(ccxt.BadRequest(this.Id + " fetchTickerWs only supports swap markets"))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var messageHash string = ccxt.ToString(requestId)
 	var subscription map[string]any = map[string]any{
 		"method": this.HandleTickerWs,
@@ -2498,7 +2498,7 @@ func (this *Binance) fetchOHLCVWsBody(ch chan any, symbol any, optionalArgs ...a
 		panic(ccxt.BadRequest(this.Id + " fetchOHLCVWs only supports spot or swap markets"))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), marketType)
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var messageHash string = ccxt.ToString(requestId)
 	var returnRateLimits any = false
 	var returnRateLimitsparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCVWs", "returnRateLimits", false)
@@ -3146,7 +3146,7 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan any, methodName any, cha
 		streamHash = ccxt.Add(ccxt.Add(channelName, "::"), ccxt.Join(symbols, ","))
 	}
 	var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(rawMarketType, this.GetFutureWsCategory(channelName)), "/"), this.Stream(rawMarketType, streamHash))
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var request map[string]any = map[string]any{
 		"method": func() string {
 			if isUnsubscribe == true {
@@ -3574,7 +3574,7 @@ func (this *Binance) ensureUserDataStreamWsSubscribeSignatureBody(ch chan any, o
 	}
 	client.(ccxt.ClientInterface).Future(messageHash) // created ahead of the request below, so concurrent callers can find it
 	ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), marketType, true)
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var requestHash string = ccxt.ToString(requestId)
 	var message map[string]any = map[string]any{
 		"id":     requestHash,
@@ -3666,7 +3666,7 @@ func (this *Binance) ensureUserDataStreamWsSubscribeListenTokenBody(ch chan any,
 	var lastAuthenticatedTime *int64 = this.SafeInteger(options, "lastAuthenticatedTime", 0)
 	var listenTokenRefreshRate *int64 = this.SafeInteger(this.Options, "listenTokenRefreshRate", 82800000) // 23 hours default
 	var time int64 = this.Milliseconds()
-	var delay any = this.Sum(listenTokenRefreshRate, 10000)
+	var delay int64 = this.Sum(listenTokenRefreshRate, 10000).(int64)
 	if ccxt.IsGreaterThan(ccxt.Subtract(time, lastAuthenticatedTime), delay) {
 		// the future covers the REST create plus the ws subscribe, including the
 		// renewal timer re-entry through renewListenToken, so a concurrent caller
@@ -3726,7 +3726,7 @@ func (this *Binance) ensureUserDataStreamWsSubscribeListenTokenBody(ch chan any,
 				}
 				var expirationTime *int64 = this.SafeInteger(response, "expirationTime")
 				// Step 2: Subscribe to user data stream via WebSocket API
-				var requestId any = this.RequestId(url)
+				var requestId int64 = this.RequestId(url)
 				var requestHash string = ccxt.ToString(requestId)
 				var message map[string]any = map[string]any{
 					"id":     requestHash,
@@ -3853,7 +3853,7 @@ func (this *Binance) authenticateBody(ch chan any, optionalArgs ...any) any {
 		return "listenKeyRefreshRate"
 	}()
 	var listenKeyRefreshRate *int64 = this.SafeInteger(this.Options, refreshRateKey, 1200000)
-	var delay any = this.Sum(listenKeyRefreshRate, 10000)
+	var delay int64 = this.Sum(listenKeyRefreshRate, 10000).(int64)
 	if ccxt.IsGreaterThan(ccxt.Subtract(time, lastAuthenticatedTime), delay) {
 		// single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393
 		// the flight is registered on a never-dialed client because the
@@ -4194,7 +4194,7 @@ func (this *Binance) fetchBalanceWsBody(ch chan any, optionalArgs ...any) any {
 		panic(ccxt.BadRequest(this.Id + " fetchBalanceWs only supports spot or swap markets"))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var messageHash string = ccxt.ToString(requestId)
 	var returnRateLimits any = false
 	var returnRateLimitsparamsVariable []any = this.HandleOptionAndParams(params, "fetchBalanceWs", "returnRateLimits", false)
@@ -4366,7 +4366,7 @@ func (this *Binance) fetchPositionsWsBody(ch chan any, optionalArgs ...any) any 
 		panic(ccxt.BadRequest(this.Id + " fetchPositionsWs only supports swap markets"))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var messageHash string = ccxt.ToString(requestId)
 	var returnRateLimits any = false
 	var returnRateLimitsparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositionsWs", "returnRateLimits", false)
@@ -4734,7 +4734,7 @@ func (this *Binance) createOrderWsBody(ch chan any, symbol any, typeVar any, sid
 		panic(ccxt.BadRequest(this.Id + " createOrderWs only supports spot or swap markets"))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), marketType)
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var messageHash string = ccxt.ToString(requestId)
 	var sor *bool = this.SafeBool2(params, "sor", "SOR", false)
 	params = ccxt.MapTyped(this.Omit(params, "sor", "SOR"))
@@ -4918,7 +4918,7 @@ func (this *Binance) editOrderWsBody(ch chan any, id any, symbol any, typeVar an
 		panic(ccxt.BadRequest(this.Id + " editOrderWs only supports spot or swap markets"))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), marketType)
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var messageHash string = ccxt.ToString(requestId)
 	var isSwap bool = ((ccxt.IsEqual(marketType, "future")) || (ccxt.IsEqual(marketType, "delivery")))
 	var payload any = map[string]any{}
@@ -5097,7 +5097,7 @@ func (this *Binance) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any)
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var typeVar any = this.GetMarketType("cancelOrderWs", market, params)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var messageHash string = ccxt.ToString(requestId)
 	var returnRateLimits any = false
 	var returnRateLimitsparamsVariable []any = this.HandleOptionAndParams(params, "cancelOrderWs", "returnRateLimits", false)
@@ -5174,7 +5174,7 @@ func (this *Binance) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any
 		panic(ccxt.BadRequest(this.Id + " cancelAllOrdersWs only supports spot markets"))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var messageHash string = ccxt.ToString(requestId)
 	var returnRateLimits any = false
 	var returnRateLimitsparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrdersWs", "returnRateLimits", false)
@@ -5234,7 +5234,7 @@ func (this *Binance) fetchOrderWsBody(ch chan any, id any, optionalArgs ...any) 
 		panic(ccxt.BadRequest(this.Id + " fetchOrderWs only supports spot or swap markets"))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var messageHash string = ccxt.ToString(requestId)
 	var returnRateLimits any = false
 	var returnRateLimitsparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrderWs", "returnRateLimits", false)
@@ -5307,7 +5307,7 @@ func (this *Binance) fetchOrdersWsBody(ch chan any, optionalArgs ...any) any {
 		panic(ccxt.BadRequest(this.Id + " fetchOrdersWs only supports spot markets"))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var messageHash string = ccxt.ToString(requestId)
 	var returnRateLimits any = false
 	var returnRateLimitsparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrdersWs", "returnRateLimits", false)
@@ -5410,7 +5410,7 @@ func (this *Binance) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) any
 		panic(ccxt.BadRequest(this.Id + " fetchOpenOrdersWs only supports spot markets"))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var messageHash string = ccxt.ToString(requestId)
 	var returnRateLimits any = false
 	var returnRateLimitsparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrdersWs", "returnRateLimits", false)
@@ -5493,7 +5493,7 @@ func (this *Binance) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		}
 		var stockUrl any = this.GetStockWsUrl("user")
 		var stockStreamName string = *stockListenKey + "@orderReport"
-		var stockRequestId any = this.RequestId(stockUrl)
+		var stockRequestId int64 = this.RequestId(stockUrl)
 		var stockMessageHash any = "orders"
 		if symbol != nil {
 			stockMessageHash = ccxt.Add("orders:", this.Symbol(symbol))
@@ -6535,7 +6535,7 @@ func (this *Binance) fetchMyTradesWsBody(ch chan any, optionalArgs ...any) any {
 		panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(this.Id+" fetchMyTradesWs does not support ", typeVar), " markets")))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var messageHash string = ccxt.ToString(requestId)
 	var returnRateLimits any = false
 	var returnRateLimitsparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTradesWs", "returnRateLimits", false)
@@ -6608,7 +6608,7 @@ func (this *Binance) fetchTradesWsBody(ch chan any, symbol any, optionalArgs ...
 		panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(this.Id+" fetchTradesWs does not support ", typeVar), " markets")))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	var messageHash string = ccxt.ToString(requestId)
 	var returnRateLimits any = false
 	var returnRateLimitsparamsVariable []any = this.HandleOptionAndParams(params, "fetchTradesWs", "returnRateLimits", false)

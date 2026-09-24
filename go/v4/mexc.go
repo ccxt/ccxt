@@ -1374,12 +1374,12 @@ func (this *Mexc) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var marketTypequeryVariable []any = this.HandleMarketTypeAndParams("fetchStatus", nil, params)
-	marketType := GetValue(marketTypequeryVariable, 0)
+	var marketType *string = SafeStringPtr(GetValue(marketTypequeryVariable, 0))
 	query := GetValue(marketTypequeryVariable, 1)
 	var response any = map[string]any{}
 	var status any = nil
 	var updated *int64 = nil
-	if marketType == "spot" {
+	if marketType != nil && *marketType == "spot" {
 
 		response = (<-this.SpotPublicGetPing(query)).Raw
 		PanicOnError(response)
@@ -1394,7 +1394,7 @@ func (this *Mexc) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 			}
 			return "ok"
 		}()
-	} else if marketType == "swap" {
+	} else if marketType != nil && *marketType == "swap" {
 
 		response = (<-this.ContractPublicGetPing(query)).Raw
 		PanicOnError(response)
@@ -1441,10 +1441,10 @@ func (this *Mexc) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var marketTypequeryVariable []any = this.HandleMarketTypeAndParams("fetchTime", nil, params)
-	marketType := GetValue(marketTypequeryVariable, 0)
+	var marketType *string = SafeStringPtr(GetValue(marketTypequeryVariable, 0))
 	query := GetValue(marketTypequeryVariable, 1)
 	var response any = nil
-	if marketType == "spot" {
+	if marketType != nil && *marketType == "spot" {
 
 		response = (<-this.SpotPublicGetTime(query)).Raw
 		PanicOnError(response)
@@ -1454,7 +1454,7 @@ func (this *Mexc) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 		//
 		ch <- this.SafeInteger(response, "serverTime")
 		return nil
-	} else if marketType == "swap" {
+	} else if marketType != nil && *marketType == "swap" {
 
 		response = (<-this.ContractPublicGetPing(query)).Raw
 		PanicOnError(response)
@@ -2485,17 +2485,17 @@ func (this *Mexc) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(firstSymbol)
 	}
 	var marketTypequeryVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
-	marketType := GetValue(marketTypequeryVariable, 0)
+	var marketType *string = SafeStringPtr(GetValue(marketTypequeryVariable, 0))
 	query := GetValue(marketTypequeryVariable, 1)
 	var tickers any = nil
 	if isSingularMarket {
 		request["symbol"] = this.SafeString(market, "id")
 	}
-	if marketType == "spot" {
+	if marketType != nil && *marketType == "spot" {
 
 		tickers = (<-this.SpotPublicGetTicker24hr(this.Extend(request, query)))
 		PanicOnError(tickers)
-	} else if marketType == "swap" {
+	} else if marketType != nil && *marketType == "swap" {
 
 		var response map[string]any = MapTyped(PanicOnError((<-this.ContractPublicGetTicker(this.Extend(request, query))).Raw))
 		//
@@ -2562,17 +2562,17 @@ func (this *Mexc) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var marketTypequeryVariable []any = this.HandleMarketTypeAndParams("fetchTicker", market, params)
-	marketType := GetValue(marketTypequeryVariable, 0)
+	var marketType *string = SafeStringPtr(GetValue(marketTypequeryVariable, 0))
 	query := GetValue(marketTypequeryVariable, 1)
 	var ticker any = nil
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	if marketType == "spot" {
+	if marketType != nil && *marketType == "spot" {
 
 		ticker = (<-this.SpotPublicGetTicker24hr(this.Extend(request, query)))
 		PanicOnError(ticker)
-	} else if marketType == "swap" {
+	} else if marketType != nil && *marketType == "swap" {
 
 		var response map[string]any = MapTyped(PanicOnError((<-this.ContractPublicGetTicker(this.Extend(request, query))).Raw))
 		//
@@ -2759,15 +2759,15 @@ func (this *Mexc) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(GetValue(symbols, 0))
 	}
 	var marketTypequeryVariable []any = this.HandleMarketTypeAndParams("fetchBidsAsks", market, params)
-	marketType := GetValue(marketTypequeryVariable, 0)
+	var marketType *string = SafeStringPtr(GetValue(marketTypequeryVariable, 0))
 	query := GetValue(marketTypequeryVariable, 1)
 	var tickers any = nil
-	if marketType == "spot" {
+	if marketType != nil && *marketType == "spot" {
 
 		tickers = (<-this.SpotPublicGetTickerBookTicker(query)).Raw
 		PanicOnError(tickers)
-	} else if marketType == "swap" {
-		panic(NotSupported(Add(Add(this.Id+" fetchBidsAsks() is not available for ", marketType), " markets")))
+	} else if marketType != nil && *marketType == "swap" {
+		panic(NotSupported(this.Id + " fetchBidsAsks() is not available for " + *marketType + " markets"))
 	}
 	// when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
 	if isSingularMarket {
@@ -3457,9 +3457,9 @@ func (this *Mexc) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var until *int64 = this.SafeInteger(params, "until")
 	params = MapTyped(this.Omit(params, "until"))
 	var marketTypequeryVariable []any = this.HandleMarketTypeAndParams("fetchOrders", market, params)
-	marketType := GetValue(marketTypequeryVariable, 0)
+	var marketType *string = SafeStringPtr(GetValue(marketTypequeryVariable, 0))
 	query := GetValue(marketTypequeryVariable, 1)
-	if marketType == "spot" {
+	if marketType != nil && *marketType == "spot" {
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " fetchOrders() requires a symbol argument for spot market"))
 		}
@@ -3664,10 +3664,10 @@ func (this *Mexc) fetchOrdersByIdsBody(ch chan any, ids any, optionalArgs ...any
 		request["symbol"] = GetValue(market, "id")
 	}
 	var marketTypequeryVariable []any = this.HandleMarketTypeAndParams("fetchOrdersByIds", market, params)
-	marketType := GetValue(marketTypequeryVariable, 0)
+	var marketType *string = SafeStringPtr(GetValue(marketTypequeryVariable, 0))
 	query := GetValue(marketTypequeryVariable, 1)
-	if marketType == "spot" {
-		panic(BadRequest(Add(this.Id+" fetchOrdersByIds() is not supported for ", marketType)))
+	if marketType != nil && *marketType == "spot" {
+		panic(BadRequest(this.Id + " fetchOrdersByIds() is not supported for " + *marketType))
 	} else {
 		request["order_ids"] = Join(ids, ",")
 
@@ -3935,9 +3935,9 @@ func (this *Mexc) fetchOrdersByStateBody(ch chan any, state any, optionalArgs ..
 		market = this.Market(symbol)
 	}
 	var marketTypeVariable []any = this.HandleMarketTypeAndParams("fetchOrdersByState", market, params)
-	marketType := GetValue(marketTypeVariable, 0)
-	if marketType == "spot" {
-		panic(NotSupported(Add(this.Id+" fetchOrdersByState() is not supported for ", marketType)))
+	var marketType *string = SafeStringPtr(GetValue(marketTypeVariable, 0))
+	if marketType != nil && *marketType == "spot" {
+		panic(NotSupported(this.Id + " fetchOrdersByState() is not supported for " + *marketType))
 	} else {
 		request["states"] = state
 
@@ -4090,9 +4090,9 @@ func (this *Mexc) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 		return nil
 	}()
 	var marketTypeVariable []any = this.HandleMarketTypeAndParams("cancelOrders", market, params)
-	marketType := GetValue(marketTypeVariable, 0)
-	if marketType == "spot" {
-		panic(BadRequest(Add(this.Id+" cancelOrders() is not supported for ", marketType)))
+	var marketType *string = SafeStringPtr(GetValue(marketTypeVariable, 0))
+	if marketType != nil && *marketType == "spot" {
+		panic(BadRequest(this.Id + " cancelOrders() is not supported for " + *marketType))
 	} else {
 
 		var response map[string]any = MapTyped(PanicOnError((<-this.ContractPrivatePostOrderCancel(ids)).Raw)) // the request cannot be changed or extended. The only way to send.
@@ -5078,10 +5078,10 @@ func (this *Mexc) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any)
 		market = this.Market(symbol)
 	}
 	var marketTypequeryVariable []any = this.HandleMarketTypeAndParams("fetchOrderTrades", market, params)
-	marketType := GetValue(marketTypequeryVariable, 0)
+	var marketType *string = SafeStringPtr(GetValue(marketTypequeryVariable, 0))
 	query := GetValue(marketTypequeryVariable, 1)
 	var trades any = []any{}
-	if marketType == "spot" {
+	if marketType != nil && *marketType == "spot" {
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " fetchOrderTrades() requires a symbol argument"))
 		}
@@ -6542,13 +6542,13 @@ func (this *Mexc) fetchTransferBody(ch chan any, id any, optionalArgs ...any) an
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var marketTypequeryVariable []any = this.HandleMarketTypeAndParams("fetchTransfer", nil, params)
-	marketType := GetValue(marketTypequeryVariable, 0)
+	var marketType *string = SafeStringPtr(GetValue(marketTypequeryVariable, 0))
 	query := GetValue(marketTypequeryVariable, 1)
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	if marketType == "spot" {
+	if marketType != nil && *marketType == "spot" {
 		var request map[string]any = map[string]any{
 			"transact_id": id,
 		}
@@ -6571,10 +6571,10 @@ func (this *Mexc) fetchTransferBody(ch chan any, id any, optionalArgs ...any) an
 
 		ch <- this.ParseTransfer(data)
 		return nil
-	} else if marketType == "swap" {
-		panic(BadRequest(Add(this.Id+" fetchTransfer() is not supported for ", marketType)))
+	} else if marketType != nil && *marketType == "swap" {
+		panic(BadRequest(this.Id + " fetchTransfer() is not supported for " + *marketType))
 	}
-	panic(BadRequest(Add(this.Id+" fetchTransfer() is not supported for ", marketType)))
+	panic(BadRequest(this.Id + " fetchTransfer() is not supported for " + *marketType))
 }
 
 /**

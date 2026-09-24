@@ -75,8 +75,8 @@ func (this *Deribit) Describe() any {
 		"exceptions": map[string]any{},
 	})
 }
-func (this *Deribit) RequestId() any {
-	var requestId any = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1)
+func (this *Deribit) RequestId() int64 {
+	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
 	this.Options.Store("requestId", requestId)
 	return requestId
 }
@@ -1346,7 +1346,7 @@ func (this *Deribit) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsEqual(future, nil) {
 		this.CheckRequiredCredentials()
-		var requestId any = this.RequestId()
+		var requestId int64 = this.RequestId()
 		var lineBreak string = "\n" // eslint-disable-line quotes
 		var signature string = this.Hmac(this.Encode(*timeString+lineBreak+*nonce+lineBreak), this.Encode(this.Secret), ccxt.Sha256)
 		var request map[string]any = map[string]any{

@@ -2810,17 +2810,17 @@ func (this *Toobit) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrders", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var response any = []any{}
-	if IsEqual(marketType, "spot") {
+	if marketType != nil && *marketType == "spot" {
 
 		response = (<-this.PrivateGetApiV1SpotTradeOrders(request))
 		PanicOnError(response)
 	} else {
-		panic(NotSupported(Add(Add(this.Id+" fetchOrders() is not supported for ", marketType), " markets")))
+		panic(NotSupported(this.Id + " fetchOrders() is not supported for " + *marketType + " markets"))
 	}
 
 	ch <- this.ParseOrders(response, market, since, limit)
@@ -2871,13 +2871,13 @@ func (this *Toobit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = MapTyped(GetValue(requestparamsVariable, 1))
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchClosedOrders", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var response any = []any{}
-	if IsEqual(marketType, "spot") {
-		panic(NotSupported(Add(Add(this.Id+" fetchOrders() is not supported for ", marketType), " markets")))
+	if marketType != nil && *marketType == "spot" {
+		panic(NotSupported(this.Id + " fetchOrders() is not supported for " + *marketType + " markets"))
 	} else {
 
 		response = (<-this.PrivateGetApiV1FuturesHistoryOrders(request))

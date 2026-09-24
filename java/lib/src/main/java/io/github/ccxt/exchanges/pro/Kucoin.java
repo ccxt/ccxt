@@ -4082,7 +4082,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         String messageHash = ("position:" + symbol);
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Object newPosition = this.parsePosition((Map<String, Object>) (data));
-        List<Object> keys = new ArrayList<Object>(((Map<String, Object>)newPosition).keySet());
+        List<String> keys = new ArrayList<String>(((Map<String, Object>)newPosition).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -4133,7 +4133,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         Object cache = this.positions;
         Object currentPosition = this.getCurrentPosition(symbol);
         Object newPosition = this.parseWsUtaPosition((Map<String, Object>) (data));
-        List<Object> keys = new ArrayList<Object>(((Map<String, Object>)newPosition).keySet());
+        List<String> keys = new ArrayList<String>(((Map<String, Object>)newPosition).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));

@@ -178,9 +178,9 @@ func (this *Bybit) DescribeData() any {
 		},
 	}
 }
-func (this *Bybit) RequestId() any {
+func (this *Bybit) RequestId() int64 {
 	this.LockId()
-	var requestId any = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1)
+	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
 	this.Options.Store("requestId", requestId)
 	this.UnlockId()
 	return requestId
@@ -3015,7 +3015,7 @@ func (this *Bybit) watchTopicsBody(ch chan any, url any, messageHashes any, topi
 	var subscription any = nil
 	var newTopicsLength int = len(newTopics)
 	if newTopicsLength > 0 {
-		var reqId any = this.RequestId()
+		var reqId int64 = this.RequestId()
 		var request map[string]any = map[string]any{
 			"op":     "subscribe",
 			"req_id": reqId,
@@ -3043,7 +3043,7 @@ func (this *Bybit) unWatchTopicsBody(ch chan any, url any, topic any, symbols an
 	_ = params
 	var subExtension map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = subExtension
-	var reqId any = this.RequestId()
+	var reqId int64 = this.RequestId()
 	var request map[string]any = map[string]any{
 		"op":     "unsubscribe",
 		"req_id": reqId,

@@ -630,10 +630,10 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             }
             String messageHash = "orders";
             client.resolve(orders, messageHash);
-            List<Object> keys = new ArrayList<Object>(symbols.keySet());
+            List<String> keys = new ArrayList<String>(symbols.keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                Object hashSymbol = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+                String hashSymbol = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 String symbolMessageHash = ((messageHash + "::") + hashSymbol);
                 client.resolve(this.orders, symbolMessageHash);
             }
@@ -779,10 +779,10 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             }
             String messageHash = "myTrades";
             client.resolve(trades, messageHash);
-            List<Object> keys = new ArrayList<Object>(symbols.keySet());
+            List<String> keys = new ArrayList<String>(symbols.keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                Object hashSymbol = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+                String hashSymbol = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 String symbolMessageHash = ((messageHash + "::") + hashSymbol);
                 client.resolve(this.myTrades, symbolMessageHash);
             }

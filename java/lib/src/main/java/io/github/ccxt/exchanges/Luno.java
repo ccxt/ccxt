@@ -1291,11 +1291,11 @@ public class Luno extends LunoApi
             Map<String, Object> response = (this.publicGetTickers(parameters)).join();
             List<Object> rawTickers = (List<Object>) this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
             Map<String,Object> tickers = this.indexBy(rawTickers, "pair");
-            List<Object> ids = new ArrayList<Object>(tickers.keySet());
+            List<String> ids = new ArrayList<String>(tickers.keySet());
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
-                Object id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
+                String id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(id);
                 String symbol = (String) ((Map<String, Object>)market).get("symbol");
                 Object ticker = (tickers == null || id == null ? null : tickers.get(id));

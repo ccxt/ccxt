@@ -702,14 +702,14 @@ public Object describe()
                 lastDash = true;
             }
         }
-        List<Object> replacementKeys = new ArrayList<Object>(replacements.keySet());
+        List<String> replacementKeys = new ArrayList<String>(replacements.keySet());
         for (var i = 0; i < ((List<?>)replacementKeys).size(); i++)
         {
-            Object replacementKey = (replacementKeys == null || i < 0 || i >= replacementKeys.size() ? null : replacementKeys.get(i));
+            String replacementKey = (replacementKeys == null || i < 0 || i >= replacementKeys.size() ? null : replacementKeys.get(i));
             String replacementValue = this.safeString(replacements, replacementKey);
             if (!java.util.Objects.equals(replacementValue, null))
             {
-                s = Helpers.replaceAll(((String)s), ((String)replacementKey), replacementValue);
+                s = Helpers.replaceAll(((String)s), replacementKey, replacementValue);
             }
         }
         List<Object> rawParts = new ArrayList<Object>(Arrays.asList(((String)s).split(java.util.regex.Pattern.quote("-"))));
@@ -805,10 +805,10 @@ public Object describe()
         // strip the alias back off the stored rows — venues assemble user-visible event
         // structures from this.markets (hyperliquid groups its outcome markets that way),
         // so a leftover 'symbol' key would leak the deprecated field back to the caller
-        List<Object> marketKeys = new ArrayList<Object>(((Map<String, Object>)stored).keySet());
+        List<String> marketKeys = new ArrayList<String>(((Map<String, Object>)stored).keySet());
         for (var i = 0; i < ((List<?>)marketKeys).size(); i++)
         {
-            Object key = (marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i));
+            String key = (marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i));
             ((Map<String, Object>)stored).put((String)key, this.omit(Helpers.GetValue(stored, key), "symbol"));
         }
         this.populateOutcomes();

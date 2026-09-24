@@ -5794,10 +5794,10 @@ public class Binance extends BinanceApi
         } else if (!Boolean.TRUE.equals(isolated) && ((java.util.Objects.equals(type, "spot")) || Boolean.TRUE.equals(cross)))
         {
             timestamp = this.safeInteger(response, "updateTime");
-            Object balances = this.safeList2(response, "balances", "userAssets", new ArrayList<Object>(Arrays.asList()));
+            List<Object> balances = (List<Object>) this.safeList2(response, "balances", "userAssets", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
-                Object balance = (balances == null || i < 0 || i >= ((List<?>)balances).size() ? null : ((List<?>)balances).get(i));
+                Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
                 String currencyId = this.safeString(balance, "asset");
                 String code = this.safeCurrencyCode(currencyId);
                 Map<String, Object> account = (Map<String, Object>) this.account();
@@ -5991,7 +5991,7 @@ public class Binance extends BinanceApi
                     Object symbols = "";
                     if ((paramSymbols instanceof List))
                     {
-                        Object mid = this.marketId((String) ((paramSymbols == null || 0 >= ((List<?>)paramSymbols).size() ? null : ((List<?>)paramSymbols).get(0))));
+                        String mid = this.marketId((String) ((paramSymbols == null || 0 >= ((List<?>)paramSymbols).size() ? null : ((List<?>)paramSymbols).get(0))));
                         if (!java.util.Objects.equals(mid, null))
                         {
                             symbols = mid;
@@ -5999,7 +5999,7 @@ public class Binance extends BinanceApi
                         for (var i = 1; i < ((List<?>)paramSymbols).size(); i++)
                         {
                             Object symbol = (paramSymbols == null || i < 0 || i >= paramSymbols.size() ? null : paramSymbols.get(i));
-                            Object id = this.marketId((String) (symbol));
+                            String id = this.marketId((String) (symbol));
                             if (!java.util.Objects.equals(id, null))
                             {
                                 symbols = (symbols + ("," + id));
@@ -17500,13 +17500,13 @@ final Map<String, Object> finalMarket = market;
         {
             return null;
         }
-        Object networkCode = null;
+        String networkCode = null;
         Map<String, Object> currency = (Map<String, Object>) this.currency((String) (currencyCode));
         Map<String, Object> networks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
-        List<Object> networkCodes = new ArrayList<Object>(networks.keySet());
+        List<String> networkCodes = new ArrayList<String>(networks.keySet());
         for (var i = 0; i < ((List<?>)networkCodes).size(); i++)
         {
-            Object currentNetworkCode = (networkCodes == null || i < 0 || i >= networkCodes.size() ? null : networkCodes.get(i));
+            String currentNetworkCode = (networkCodes == null || i < 0 || i >= networkCodes.size() ? null : networkCodes.get(i));
             Map<String, Object> info = (Map<String, Object>) this.safeDict((networks == null || currentNetworkCode == null ? null : networks.get(currentNetworkCode)), "info", new HashMap<String, Object>() {{}});
             String siteUrl = this.safeString(info, "contractAddressUrl");
             // check if url matches the field's value

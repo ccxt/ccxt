@@ -443,11 +443,11 @@ public class Zaif extends ZaifApi
             put( "datetime", null );
         }};
         Map<String, Object> funds = (Map<String, Object>) this.safeDict(balances, "funds", new HashMap<String, Object>() {{}});
-        List<Object> currencyIds = new ArrayList<Object>(funds.keySet());
+        List<String> currencyIds = new ArrayList<String>(funds.keySet());
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
-            Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
-            String code = this.safeCurrencyCode((String) (currencyId));
+            String currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
+            String code = this.safeCurrencyCode(currencyId);
             String balance = this.safeString(funds, currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", balance);

@@ -2259,7 +2259,7 @@ public class Myriad extends MyriadApi
             }
             Map<String, Object> fetchedInfo = (Map<String, Object>) this.safeDict(fetched, "info", new HashMap<String, Object>() {{}});
             Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(fetched, "order", new HashMap<String, Object>() {{}});
-            List<Object> rawOrderKeys = new ArrayList<Object>(rawOrder.keySet());
+            List<String> rawOrderKeys = new ArrayList<String>(rawOrder.keySet());
             Integer rawOrderKeysLength = ((List<?>)rawOrderKeys).size();
             if (java.util.Objects.equals(rawOrderKeysLength, 0))
             {
@@ -2441,7 +2441,7 @@ public class Myriad extends MyriadApi
                 }
                 Map<String, Object> fetchedInfo = (Map<String, Object>) this.safeDict(fetched, "info", new HashMap<String, Object>() {{}});
                 Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(fetched, "order", new HashMap<String, Object>() {{}});
-                List<Object> rawOrderKeys = new ArrayList<Object>(rawOrder.keySet());
+                List<String> rawOrderKeys = new ArrayList<String>(rawOrder.keySet());
                 Integer rawOrderKeysLength = ((List<?>)rawOrderKeys).size();
                 if (java.util.Objects.equals(rawOrderKeysLength, 0))
                 {
@@ -4733,7 +4733,7 @@ final Object finalNetworkId = networkId;
             Helpers.addElementToObject(orderbook, "datetime", this.iso8601(ts));
             ((Map<String, Object>)updated).put((String)sym, true);
         }
-        List<Object> updatedSymbols = new ArrayList<Object>(updated.keySet());
+        List<String> updatedSymbols = new ArrayList<String>(updated.keySet());
         Integer updatedLength = ((List<?>)updatedSymbols).size();
         for (var k = 0; Helpers.isLessThan(k, updatedLength); k++)
         {

@@ -2956,12 +2956,12 @@ func (this *Poloniex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrder", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
-	if !IsEqual(marketType, "spot") {
-		panic(NotSupported(Add(Add(this.Id+" fetchOrder() is not supported for ", marketType), " markets yet")))
+	if marketType == nil || *marketType != "spot" {
+		panic(NotSupported(this.Id + " fetchOrder() is not supported for " + *marketType + " markets yet"))
 	}
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
 	params = MapTyped(this.Omit(params, []any{"trigger", "stop"}))

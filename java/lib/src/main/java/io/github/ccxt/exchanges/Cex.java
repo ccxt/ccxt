@@ -468,10 +468,10 @@ public class Cex extends CexApi
         Double currencyPrecision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision")));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         Map<String, Object> rawNetworks = (Map<String, Object>) this.safeDict(rawCurrency, "blockchains", new HashMap<String, Object>() {{}});
-        List<Object> keys = new ArrayList<Object>(rawNetworks.keySet());
+        List<String> keys = new ArrayList<String>(rawNetworks.keySet());
         for (var j = 0; j < ((List<?>)keys).size(); j++)
         {
-            Object networkId = (keys == null || j < 0 || j >= keys.size() ? null : keys.get(j));
+            String networkId = (keys == null || j < 0 || j >= keys.size() ? null : keys.get(j));
             Object rawNetwork = (rawNetworks == null || networkId == null ? null : rawNetworks.get(networkId));
             String networkCode = this.networkIdToCode(networkId, code);
             Boolean deposit = java.util.Objects.equals(this.safeString(rawNetwork, "deposit"), "enabled");
@@ -1174,10 +1174,10 @@ public class Cex extends CexApi
     public Object parseTradingFees(Map<String, Object> response, Object useKeyAsId)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        List<Object> keys = new ArrayList<Object>(response.keySet());
+        List<String> keys = new ArrayList<String>(response.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object market = null;
             if (Helpers.isTrue(useKeyAsId))
             {

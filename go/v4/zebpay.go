@@ -925,12 +925,12 @@ func (this *Zebpay) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTickers", nil, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	if !IsEqual(typeVar, "spot") {
-		panic(NotSupported(Add(Add(this.Id+" fetchTickers() does not support ", typeVar), " markets")))
+	if typeVar == nil || *typeVar != "spot" {
+		panic(NotSupported(this.Id + " fetchTickers() does not support " + *typeVar + " markets"))
 	}
 	if this.Markets == nil {
 
@@ -1221,12 +1221,12 @@ func (this *Zebpay) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrderTrades", nil, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	if !IsEqual(typeVar, "spot") {
-		panic(NotSupported(Add(Add(this.Id+" fetchOrderTrades() does not support ", typeVar), " markets")))
+	if typeVar == nil || *typeVar != "spot" {
+		panic(NotSupported(this.Id + " fetchOrderTrades() does not support " + *typeVar + " markets"))
 	}
 	if this.Markets == nil {
 
@@ -1591,12 +1591,12 @@ func (this *Zebpay) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("cancelAllOrders", nil, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	if !IsEqual(typeVar, "spot") {
-		panic(NotSupported(Add(Add(this.Id+" cancelAllOrders() does not support ", typeVar), " markets")))
+	if typeVar == nil || *typeVar != "spot" {
+		panic(NotSupported(this.Id + " cancelAllOrders() does not support " + *typeVar + " markets"))
 	}
 	if this.Markets == nil {
 

@@ -1016,7 +1016,7 @@ public class Bullish extends BullishApi
         //         "premiumCapRatio": "0.1000"
         //     }
         //
-        Object id = this.safeString(market, "symbol");
+        String id = this.safeString(market, "symbol");
         String baseId = this.safeString(market, "baseSymbol");
         String quoteId = this.safeString(market, "quoteSymbol");
         String base = this.safeCurrencyCode(baseId);
@@ -1066,7 +1066,7 @@ public class Bullish extends BullishApi
             {
                 expiryDatetime = this.safeString(market, "expiryDatetime");
                 List<Object> idParts = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("-"))));
-                Object datePart = this.safeString(idParts, 2);
+                String datePart = this.safeString(idParts, 2);
                 String dateYmd = (datePart == null ? null : ((String)datePart).substring(Math.min(2, ((String)datePart).length())));
                 symbol = (symbol + ("-" + dateYmd));
                 if (java.util.Objects.equals(type, "future"))
@@ -4268,7 +4268,7 @@ public class Bullish extends BullishApi
         String type = this.safeString(response, "type");
         if ((!java.util.Objects.equals(code, null) && !java.util.Objects.equals(code, "0") && !java.util.Objects.equals(code, "1001")) || (!java.util.Objects.equals(type, null) && java.util.Objects.equals(type, "HttpInvalidParameterException")))
         {
-            Object message = "";
+            String message = "";
             String errorCodeName = this.safeString(response, "errorCodeName");
             if (!java.util.Objects.equals(errorCodeName, null))
             {

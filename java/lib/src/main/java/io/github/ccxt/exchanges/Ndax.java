@@ -2169,16 +2169,16 @@ public class Ndax extends NdaxApi
             Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
             Long clientOrderId = (Long) this.safeInteger2(parameters, "ClientOrderId", "clientOrderId");
-            Object orderType = this.safeInteger(((Map<String, Object>)this.options).get("orderTypes"), this.capitalize(type));
+            Long orderType = this.safeInteger(((Map<String, Object>)this.options).get("orderTypes"), this.capitalize(type));
             String triggerPrice = this.safeString(parameters, "triggerPrice");
             if (!java.util.Objects.equals(triggerPrice, null))
             {
                 if (java.util.Objects.equals(type, "market"))
                 {
-                    orderType = 3;
+                    orderType = 3L;
                 } else if (java.util.Objects.equals(type, "limit"))
                 {
-                    orderType = 4;
+                    orderType = 4L;
                 }
             }
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId", "clientOrderId", "ClientOrderId", "triggerPrice")));
@@ -2186,7 +2186,7 @@ public class Ndax extends NdaxApi
             Integer orderSide = (((java.util.Objects.equals(side, "buy")))) ? 0 : 1;
             Object amountString = this.amountToPrecision(symbol, amount);
             final Object finalAmountString = amountString;
-            final Object finalOrderType = orderType;
+            final Long finalOrderType = orderType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "InstrumentId", Ndax.this.parseToInt(((Map<String, Object>)market).get("id")) );
                 put( "omsId", omsId );

@@ -473,7 +473,7 @@ public class Limitless extends LimitlessApi
                 }
             }
             Map<String, Object> eventsDict = new HashMap<String, Object>() {{}};
-            List<Object> eventKeys = new ArrayList<Object>(eventGroups.keySet());
+            List<String> eventKeys = new ArrayList<String>(eventGroups.keySet());
             for (var i = 0; i < ((List<?>)eventKeys).size(); i++)
             {
                 Object eventKey = (eventKeys == null || i < 0 || i >= eventKeys.size() ? null : eventKeys.get(i));
@@ -615,18 +615,18 @@ public class Limitless extends LimitlessApi
             put( "price", 0.001 );
         }};
         List<Object> outcomes = new ArrayList<Object>(Arrays.asList());
-        List<Object> tokenEntries = new ArrayList<Object>(tokens.keySet());
+        List<String> tokenEntries = new ArrayList<String>(tokens.keySet());
         for (var i = 0; i < ((List<?>)tokenEntries).size(); i++)
         {
-            Object outcomeLabel = (tokenEntries == null || i < 0 || i >= tokenEntries.size() ? null : tokenEntries.get(i));
+            String outcomeLabel = (tokenEntries == null || i < 0 || i >= tokenEntries.size() ? null : tokenEntries.get(i));
             Object tokenData = (tokens == null || outcomeLabel == null ? null : tokens.get(outcomeLabel));
             Object tokenId = tokenData;
-            Object outcomeHandle = this.slugToOutcomeSymbol((String) (groupId), (String) (slug), (String) (outcomeLabel));
+            Object outcomeHandle = this.slugToOutcomeSymbol((String) (groupId), (String) (slug), outcomeLabel);
             // winningOutcomeIndex indexes the API's canonical outcome order (yes=0, no=1 for
             // limitless's binary yes/no markets). Object.keys iteration order is NOT stable across
             // languages (Go randomizes map iteration), so map the leg to its canonical index by
             // label rather than by loop position — otherwise Go/Java flag the wrong winner
-            String labelLower = ((String)outcomeLabel).toLowerCase();
+            String labelLower = outcomeLabel.toLowerCase();
             Object legIndex = i;
             if (java.util.Objects.equals(labelLower, "yes"))
             {
@@ -3929,7 +3929,7 @@ public class Limitless extends LimitlessApi
                 }
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            List<Object> eventKeys = new ArrayList<Object>(eventGroups.keySet());
+            List<String> eventKeys = new ArrayList<String>(eventGroups.keySet());
             Integer eventKeysLength = ((List<?>)eventKeys).size();
             for (var i = 0; Helpers.isLessThan(i, eventKeysLength); i++)
             {

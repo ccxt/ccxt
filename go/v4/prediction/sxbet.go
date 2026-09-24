@@ -2844,14 +2844,14 @@ func (this *Sxbet) ParseSxbetV3BookSides(snapshot any, isOutcomeOne any) map[str
 		"asks": this.SortBy(asks, 0),
 	}
 }
-func (this *Sxbet) RequestId(url any) any {
+func (this *Sxbet) RequestId(url any) int64 {
 	var existing any = this.SafeValue(this.Options, "requestId")
 	if ccxt.IsEqual(existing, nil) {
 		this.Options.Store("requestId", this.CreateSafeDictionary())
 	}
 	var options any = ccxt.GetValue(this.Options, "requestId")
 	var previousValue *int64 = this.SafeInteger(options, url, 0)
-	var newValue any = this.Sum(previousValue, 1)
+	var newValue int64 = this.Sum(previousValue, 1).(int64)
 	if !ccxt.IsEqual(url, nil) {
 		ccxt.AddElementToObject(ccxt.GetValue(this.Options, "requestId"), url, newValue)
 	}
@@ -2923,7 +2923,7 @@ func (this *Sxbet) connectSxbetCentrifugoBody(ch chan any, url any) any {
 
 		token := (<-this.FetchSxbetRealtimeTokenAsync())
 		ccxt.PanicOnError(token)
-		var requestId any = this.RequestId(url)
+		var requestId int64 = this.RequestId(url)
 		this.RegisterSxbetWsRequest(requestId, "centrifugoConnected", "connect")
 		var connectMsg map[string]any = map[string]any{
 			"connect": map[string]any{
@@ -2973,7 +2973,7 @@ func (this *Sxbet) subscribeSxbetChannelBody(ch chan any, messageHash any, chann
 	// finish the connect handshake first so the subscribe frame follows the connect reply
 
 	ccxt.PanicOnError((<-this.ConnectSxbetCentrifugoAsync(url)))
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	this.RegisterSxbetWsRequest(requestId, messageHash, channel)
 	var subscribeMsg map[string]any = map[string]any{
 		"subscribe": map[string]any{
@@ -3145,7 +3145,7 @@ func (this *Sxbet) watchOrderBookBody(ch chan any, outcome any, optionalArgs ...
 			ccxt.AddElementToObject(this.Orderbooks, sym, emptyBook)
 		}
 	}
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	this.RegisterSxbetWsRequest(requestId, messageHash, channel)
 	var subscribeMsg map[string]any = map[string]any{
 		"subscribe": map[string]any{
@@ -3289,7 +3289,7 @@ func (this *Sxbet) watchTickerBody(ch chan any, outcome any, optionalArgs ...any
 		ccxt.AddElementToObject(this.Tickers, sym, ticker)
 		hydrated = true
 	}
-	var requestId any = this.RequestId(url)
+	var requestId int64 = this.RequestId(url)
 	this.RegisterSxbetWsRequest(requestId, messageHash, channel)
 	var subscribeMsg map[string]any = map[string]any{
 		"subscribe": map[string]any{

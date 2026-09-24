@@ -428,12 +428,12 @@ public class P2b extends P2bApi
         String marketId = this.safeString(market, "name");
         String baseId = this.safeString(market, "stock");
         String quoteId = this.safeString(market, "money");
-        Object base = ((String)this.safeCurrencyCode(baseId));
-        Object quote = ((String)this.safeCurrencyCode(quoteId));
+        String base = ((String)this.safeCurrencyCode(baseId));
+        String quote = ((String)this.safeCurrencyCode(quoteId));
         Map<String, Object> limits = (Map<String, Object>) this.safeDict(market, "limits");
         String maxAmount = this.safeString(limits, "max_amount");
         String maxPrice = this.safeString(limits, "max_price");
-        final Object finalBase = base;
+        final String finalBase = base;
         return new HashMap<String, Object>() {{
             put( "id", marketId );
             put( "symbol", ((finalBase + "/") + quote) );
@@ -1637,10 +1637,10 @@ public class P2b extends P2bApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object orders = new ArrayList<Object>(Arrays.asList());
-            List<Object> keys = new ArrayList<Object>(result.keySet());
+            List<String> keys = new ArrayList<String>(result.keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                Object marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+                String marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Object marketOrders = (result == null || marketId == null ? null : result.get(marketId));
                 List<Object> parsedOrders = this.parseOrders(marketOrders, market, since, limit);
                 orders = this.arrayConcat(orders, parsedOrders);

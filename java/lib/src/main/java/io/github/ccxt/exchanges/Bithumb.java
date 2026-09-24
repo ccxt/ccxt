@@ -693,7 +693,7 @@ public class Bithumb extends BithumbApi
             } else
             {
                 Map<String, Object> quoteCurrencies = (Map<String, Object>) this.safeDict(this.options, "quoteCurrencies", new HashMap<String, Object>() {{}});
-                List<Object> quotes = new ArrayList<Object>(quoteCurrencies.keySet());
+                List<String> quotes = new ArrayList<String>(quoteCurrencies.keySet());
                 List<Object> promises = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)quotes).size(); i++)
                 {
@@ -708,16 +708,16 @@ public class Bithumb extends BithumbApi
                     Object response = (results == null || i < 0 || i >= ((List<?>)results).size() ? null : ((List<?>)results).get(i));
                     Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                     Map<String, Object> extension = (Map<String, Object>) this.safeDict(quoteCurrencies, quote, new HashMap<String, Object>() {{}});
-                    List<Object> currencyIds = new ArrayList<Object>(data.keySet());
+                    List<String> currencyIds = new ArrayList<String>(data.keySet());
                     for (var j = 0; j < ((List<?>)currencyIds).size(); j++)
                     {
-                        Object currencyId = (currencyIds == null || j < 0 || j >= currencyIds.size() ? null : currencyIds.get(j));
+                        String currencyId = (currencyIds == null || j < 0 || j >= currencyIds.size() ? null : currencyIds.get(j));
                         if (java.util.Objects.equals(currencyId, "date"))
                         {
                             continue;
                         }
                         Object market = (data == null || currencyId == null ? null : data.get(currencyId));
-                        String base = this.safeCurrencyCode((String) (currencyId));
+                        String base = this.safeCurrencyCode(currencyId);
                         Boolean active = true;
                         if ((market instanceof List))
                         {
@@ -727,7 +727,7 @@ public class Bithumb extends BithumbApi
                                 active = false;
                             }
                         }
-                        final Object finalCurrencyId = currencyId;
+                        final String finalCurrencyId = currencyId;
                         final String finalBase = base;
                         final Object finalQuote = quote;
                         final Object finalQuoteId = quoteId;
@@ -1252,10 +1252,10 @@ public class Bithumb extends BithumbApi
                     ((List<Object>)promises).add(this.publicGetV1Ticker(this.extend(request, parameters)));
                 } else
                 {
-                    Object maxMarketIdsPerRequest = this.safeInteger(this.options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 300);
+                    Long maxMarketIdsPerRequest = this.safeInteger(this.options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 300);
                     if ((java.util.Objects.equals(maxMarketIdsPerRequest, null)) || (Helpers.isLessThan(maxMarketIdsPerRequest, 1)))
                     {
-                        maxMarketIdsPerRequest = 300;
+                        maxMarketIdsPerRequest = 300L;
                     }
                     Object marketIdsChunk = new ArrayList<Object>(Arrays.asList());
                     for (var i = 0; Helpers.isLessThan(i, marketIdsLength); i++)
@@ -4409,11 +4409,11 @@ public class Bithumb extends BithumbApi
 
     public Object urlencodeWithArrayBrackets(Map<String, Object> query)
     {
-        List<Object> keys = new ArrayList<Object>(query.keySet());
+        List<String> keys = new ArrayList<String>(query.keySet());
         String result = "";
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object value = (query == null || key == null ? null : query.get(key));
             if ((value instanceof List))
             {

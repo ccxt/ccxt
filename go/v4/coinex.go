@@ -1773,10 +1773,10 @@ func (this *Coinex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var marketTypequeryVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
-	marketType := GetValue(marketTypequeryVariable, 0)
+	var marketType *string = SafeStringPtr(GetValue(marketTypequeryVariable, 0))
 	query := GetValue(marketTypequeryVariable, 1)
 	var response any = nil
-	if marketType == "swap" {
+	if marketType != nil && *marketType == "swap" {
 
 		response = (<-this.V2PublicGetFuturesTicker(query)).Raw
 		PanicOnError(response)

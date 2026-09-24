@@ -3096,10 +3096,10 @@ public class Coinsph extends CoinsphApi
     public Object urlEncodeQuery(Map<String, Object> query)
     {
         Object encodedArrayParams = "";
-        List<Object> keys = new ArrayList<Object>(((Map<String, Object>)query).keySet());
+        List<String> keys = new ArrayList<String>(((Map<String, Object>)query).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if ((Helpers.GetValue(query, key) instanceof List))
             {
                 if ((i != 0))

@@ -3500,7 +3500,7 @@ func (this *Predictfun) watchOrderBookBody(ch chan any, outcome any, optionalArg
 	// complement - so a single subscription serves both outcomes and each waits on its own hash
 	var topic string = "predictOrderbook/" + *marketId
 	var messageHash any = ccxt.Add("orderbook::", outcomeHandle)
-	var requestId any = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var request map[string]any = map[string]any{
 		"method":    "subscribe",
 		"requestId": requestId,
@@ -3571,7 +3571,7 @@ func (this *Predictfun) unWatchOrderBookBody(ch chan any, outcome any, optionalA
 			messageHashes = append(messageHashes, "unsubscribe::orderbook::"+*handle)
 		}
 	}
-	var requestId any = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var request map[string]any = map[string]any{
 		"method":    "unsubscribe",
 		"requestId": requestId,
@@ -3923,7 +3923,7 @@ func (this *Predictfun) watchWalletEventsBody(ch chan any, messageHash any, opti
 
 	topic := (<-this.WalletEventsTopicAsync())
 	ccxt.PanicOnError(topic)
-	var requestId any = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var request map[string]any = map[string]any{
 		"method":    "subscribe",
 		"requestId": requestId,
@@ -4005,7 +4005,7 @@ func (this *Predictfun) unWatchWalletEventsBody(ch chan any, channel any, option
 
 	topic := (<-this.WalletEventsTopicAsync())
 	ccxt.PanicOnError(topic)
-	var requestId any = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var request map[string]any = map[string]any{
 		"method":    "unsubscribe",
 		"requestId": requestId,
@@ -4055,10 +4055,10 @@ func (this *Predictfun) SocketUrl() any {
  * @description a monotonic id the venue echoes back so a subscription reply can be matched to its request
  * @returns {int} the next request id
  */
-func (this *Predictfun) RequestId() any {
+func (this *Predictfun) RequestId() int64 {
 	this.LockId()
 	var previous *int64 = this.SafeInteger(this.Options, "requestId", 0)
-	var next any = this.Sum(previous, 1)
+	var next int64 = this.Sum(previous, 1).(int64)
 	this.Options.Store("requestId", next)
 	this.UnlockId()
 	return next

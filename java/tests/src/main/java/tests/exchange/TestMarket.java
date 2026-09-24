@@ -266,12 +266,12 @@ public class TestMarket extends BaseTest {
             Assert((java.util.Objects.equals(((Map<String, Object>)market).get("expiry"), null)) && (java.util.Objects.equals(((Map<String, Object>)market).get("expiryDatetime"), null)), ("\"expiry\" and \"expiryDatetime\" must be undefined when it is not future|option market" + logText));
         }
         // check precisions
-        List<Object> precisionKeys = new ArrayList<Object>(((Map<String, Object>)((Map<String, Object>)market).get("precision")).keySet());
+        List<String> precisionKeys = new ArrayList<String>(((Map<String, Object>)((Map<String, Object>)market).get("precision")).keySet());
         Integer precisionKeysLen = ((List<?>)precisionKeys).size();
         Assert(Helpers.isGreaterThanOrEqual(precisionKeysLen, 2), ("precision should have \"amount\" and \"price\" keys at least" + logText));
         for (var i = 0; i < ((List<?>)precisionKeys).size(); i++)
         {
-            Object priceOrAmountKey = (precisionKeys == null || i < 0 || i >= precisionKeys.size() ? null : precisionKeys.get(i));
+            String priceOrAmountKey = (precisionKeys == null || i < 0 || i >= precisionKeys.size() ? null : precisionKeys.get(i));
             // only allow very high priced markets (wher coin costs around 100k) to have a 5$ price tickSize
             Boolean isExclusivePair = java.util.Objects.equals(((Map<String, Object>)market).get("baseId"), "BTC");
             Boolean isNonSpot = !java.util.Objects.equals(spot, true); // such high precision is only allowed in contract markets
@@ -287,12 +287,12 @@ public class TestMarket extends BaseTest {
             }
         }
         // check limits
-        List<Object> limitsKeys = new ArrayList<Object>(((Map<String, Object>)((Map<String, Object>)market).get("limits")).keySet());
+        List<String> limitsKeys = new ArrayList<String>(((Map<String, Object>)((Map<String, Object>)market).get("limits")).keySet());
         Integer limitsKeysLength = ((List<?>)limitsKeys).size();
         Assert(Helpers.isGreaterThanOrEqual(limitsKeysLength, 3), ("limits should have \"amount\", \"price\" and \"cost\" keys at least" + logText));
         for (var i = 0; i < ((List<?>)limitsKeys).size(); i++)
         {
-            Object key = (limitsKeys == null || i < 0 || i >= limitsKeys.size() ? null : limitsKeys.get(i));
+            String key = (limitsKeys == null || i < 0 || i >= limitsKeys.size() ? null : limitsKeys.get(i));
             Object limitEntry = Helpers.GetValue(((Map<String, Object>)market).get("limits"), key);
             if (Boolean.TRUE.equals(isInactiveMarket))
             {

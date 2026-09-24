@@ -446,9 +446,9 @@ func (this *Blofin) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var symbolsList any = symbols
 	var firstMarket map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbolsList, 0)))
 	var channel string = "tickers"
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("watchBidsAsks", firstMarket, params)
-	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
+	marketType = ccxt.SafeStringPtr(ccxt.GetValue(marketTypeparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsVariable, 1))
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue((ccxt.GetValue(this.Urls, "api")), "ws"), marketType), "public")
 	var messageHashes []any = []any{}
@@ -658,14 +658,14 @@ func (this *Blofin) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
-	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
+	marketType = ccxt.SafeStringPtr(ccxt.GetValue(marketTypeparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsVariable, 1))
-	if ccxt.IsEqual(marketType, "spot") {
+	if marketType != nil && *marketType == "spot" {
 		panic(ccxt.NotSupported(this.Id + " watchBalance() is not supported for spot markets yet"))
 	}
-	var messageHash any = ccxt.Add(marketType, ":balance")
+	var messageHash string = *marketType + ":balance"
 	var sub map[string]any = map[string]any{
 		"channel": "account",
 	}
@@ -932,9 +932,9 @@ func (this *Blofin) watchFundingRateBody(ch chan any, symbol any, optionalArgs .
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("watchFundingRate", market, params)
-	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
+	marketType = ccxt.SafeStringPtr(ccxt.GetValue(marketTypeparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsVariable, 1))
 	var messageHash any = ccxt.Add("fundingRate:", market["symbol"])
 	var requestParams map[string]any = map[string]any{
@@ -1005,11 +1005,11 @@ func (this *Blofin) watchMultipleWrapperBody(ch chan any, isPublic any, channelN
 	if firstSymbol != nil {
 		firstMarket = this.Market(firstSymbol)
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams(callerMethodName, firstMarket, params)
-	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
+	marketType = ccxt.SafeStringPtr(ccxt.GetValue(marketTypeparamsVariable, 0))
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
-	if !ccxt.IsEqual(marketType, "swap") {
+	if marketType == nil || *marketType != "swap" {
 		panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" ", callerMethodName), "() does not support "), marketType), " markets yet")))
 	}
 	var rawSubscriptions []any = []any{}

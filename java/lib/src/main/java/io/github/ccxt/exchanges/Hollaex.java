@@ -443,11 +443,11 @@ public class Hollaex extends HollaexApi
             //     }
             //
             Map<String, Object> pairs = (Map<String, Object>) this.safeDict(response, "pairs", new HashMap<String, Object>() {{}});
-            List<Object> keys = new ArrayList<Object>(pairs.keySet());
+            List<String> keys = new ArrayList<String>(pairs.keySet());
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+                String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Object market = (pairs == null || key == null ? null : pairs.get(key));
                 String baseId = this.safeString(market, "pair_base");
                 String quoteId = this.safeString(market, "pair_2");
@@ -629,10 +629,10 @@ public class Hollaex extends HollaexApi
         String type = (((java.util.Objects.equals(rawType, "blockchain")))) ? "crypto" : "other";
         Map<String, Object> rawNetworks = (Map<String, Object>) this.safeDict(rawCurrency, "withdrawal_fees", new HashMap<String, Object>() {{}});
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        List<Object> networkIds = new ArrayList<Object>(rawNetworks.keySet());
+        List<String> networkIds = new ArrayList<String>(rawNetworks.keySet());
         for (var j = 0; j < ((List<?>)networkIds).size(); j++)
         {
-            Object networkId = (networkIds == null || j < 0 || j >= networkIds.size() ? null : networkIds.get(j));
+            String networkId = (networkIds == null || j < 0 || j >= networkIds.size() ? null : networkIds.get(j));
             Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(rawNetworks, networkId);
             String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
@@ -703,10 +703,10 @@ public class Hollaex extends HollaexApi
             }
             Map<String, Object> response = (this.publicGetOrderbooks(parameters)).join();
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            List<Object> marketIds = new ArrayList<Object>(response.keySet());
+            List<String> marketIds = new ArrayList<String>(response.keySet());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
-                Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+                String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(response, marketId, new HashMap<String, Object>() {{}});
                 String symbol = this.safeSymbol(marketId, null, "-");
                 Long timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
@@ -1309,11 +1309,11 @@ public class Hollaex extends HollaexApi
         {
             throw new ExchangeError((this.id + " currencies not loaded")) ;
         }
-        List<Object> currencyIds = new ArrayList<Object>(((Map<String, Object>)currenciesById).keySet());
+        List<String> currencyIds = new ArrayList<String>(((Map<String, Object>)currenciesById).keySet());
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
-            Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
-            String code = this.safeCurrencyCode((String) (currencyId));
+            String currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
+            String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", this.safeString(response, (currencyId + "_available")));
             ((Map<String, Object>)account).put("total", this.safeString(response, (currencyId + "_balance")));
@@ -2670,11 +2670,11 @@ public class Hollaex extends HollaexApi
         Map<String, Object> withdrawalFees = (Map<String, Object>) this.safeDict(fee, "withdrawal_fees");
         if (!java.util.Objects.equals(withdrawalFees, null))
         {
-            List<Object> keys = new ArrayList<Object>(withdrawalFees.keySet());
+            List<String> keys = new ArrayList<String>(withdrawalFees.keySet());
             Integer keysLength = ((List<?>)keys).size();
             for (var i = 0; Helpers.isLessThan(i, keysLength); i++)
             {
-                Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+                String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Object value = (withdrawalFees == null || key == null ? null : withdrawalFees.get(key));
                 String currencyId = this.safeString(value, "symbol");
                 String currencyCode = this.safeCurrencyCode(currencyId);

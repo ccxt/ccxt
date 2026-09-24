@@ -1326,7 +1326,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 Helpers.addElementToObject(Helpers.GetValue(subscription, marketId), timeframe, true);
             }
             List<Object> properties = new ArrayList<Object>(Arrays.asList());
-            List<Object> marketIds = new ArrayList<Object>(((Map<String, Object>)subscription).keySet());
+            List<String> marketIds = new ArrayList<String>(((Map<String, Object>)subscription).keySet());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 List<Object> marketIdtimeframes = Helpers.objectKeys(Helpers.GetValue(subscription, (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i))));

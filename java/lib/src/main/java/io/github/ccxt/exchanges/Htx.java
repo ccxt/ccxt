@@ -2577,10 +2577,10 @@ public class Htx extends HtxApi
             parameters = (Map<String, Object>) ((List<Object>) typesparametersVariable).get(1);
             Object allMarkets = new ArrayList<Object>(Arrays.asList());
             Object promises = new ArrayList<Object>(Arrays.asList());
-            List<Object> keys = new ArrayList<Object>(((Map<String, Object>)types).keySet());
+            List<String> keys = new ArrayList<String>(((Map<String, Object>)types).keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+                String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 if (java.util.Objects.equals(this.safeBool(types, key), true))
                 {
                     if (java.util.Objects.equals(key, "spot"))
@@ -5172,10 +5172,10 @@ public class Htx extends HtxApi
                                 ((Map<String, Object>)subResult).put((String)code, this.parseMarginBalanceHelper((Map<String, Object>) (balance), code, (Map<String, Object>) (subResult)));
                             }
                         }
-                        List<Object> subCodes = new ArrayList<Object>(subResult.keySet());
+                        List<String> subCodes = new ArrayList<String>(subResult.keySet());
                         for (var j = 0; j < ((List<?>)subCodes).size(); j++)
                         {
-                            Object subCode = (subCodes == null || j < 0 || j >= subCodes.size() ? null : subCodes.get(j));
+                            String subCode = (subCodes == null || j < 0 || j >= subCodes.size() ? null : subCodes.get(j));
                             result = this.mergeBalanceAccount((Map<String, Object>) (result), subCode, (Map<String, Object>) ((subResult == null || subCode == null ? null : subResult.get(subCode))));
                         }
                     }
@@ -9468,11 +9468,11 @@ public class Htx extends HtxApi
                         toAccountId = "linear-swap";
                     }
                     // check if cross-margin or isolated
-                    Object symbol = this.safeString(parameters, "symbol");
+                    String symbol = this.safeString(parameters, "symbol");
                     parameters = (Map<String, Object>) this.omit(parameters, "symbol");
                     if (!java.util.Objects.equals(symbol, null))
                     {
-                        symbol = this.marketId((String) (symbol));
+                        symbol = this.marketId(symbol);
                         ((Map<String, Object>)request).put("margin-account", symbol);
                     } else
                     {

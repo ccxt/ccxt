@@ -1931,7 +1931,7 @@ final Object finalClobTokenId = clobTokenId;
                     ((Map<String, Object>)buckets).put((String)bucketKey, candle); // reassign after mutation, php arrays are value types
                 }
             }
-            List<Object> bucketKeys = new ArrayList<Object>(buckets.keySet());
+            List<String> bucketKeys = new ArrayList<String>(buckets.keySet());
             List<Object> unsortedCandles = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)bucketKeys).size(); i++)
             {
@@ -2968,7 +2968,7 @@ final Object finalClobTokenId = clobTokenId;
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
                 Object o = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
-                Object orderParams = this.safeDict(o, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(o, "params", new HashMap<String, Object>() {{}});
                 if (java.util.Objects.equals(this.safeString(orderParams, "salt"), null))
                 {
                     // a distinct salt per order so two identical orders in one batch don't collide
@@ -4482,7 +4482,7 @@ final String finalOutcome = outcome;
             Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
             ((Map<String, Object>)updated).put((String)outcome, true);
         }
-        List<Object> updatedSymbols = new ArrayList<Object>(updated.keySet());
+        List<String> updatedSymbols = new ArrayList<String>(updated.keySet());
         for (var k = 0; k < ((List<?>)updatedSymbols).size(); k++)
         {
             Object outcome = (updatedSymbols == null || k < 0 || k >= updatedSymbols.size() ? null : updatedSymbols.get(k));

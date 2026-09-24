@@ -1352,7 +1352,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
-                Object marketId = this.marketId((String) (symbol));
+                String marketId = this.marketId((String) (symbol));
                 String topic = ((("orderbook." + String.valueOf(limit)) + ".") + marketId);
                 ((List<Object>)topics).add(topic);
                 String messageHash = ("orderbook:" + symbol);
@@ -2154,10 +2154,10 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         String topic = this.safeString(message, "topic", "");
         Boolean spot = java.util.Objects.equals(topic, "ticketInfo");
         Boolean executionFast = java.util.Objects.equals(topic, "execution.fast");
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         if (!(data instanceof List))
         {
-            data = this.safeList(data, "result", new ArrayList<Object>(Arrays.asList()));
+            data = (List<Object>) this.safeList(data, "result", new ArrayList<Object>(Arrays.asList()));
         }
         if (java.util.Objects.equals(this.myTrades, null))
         {
@@ -2187,7 +2187,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         }
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object rawTrade = (data == null || i < 0 || i >= ((List<?>)data).size() ? null : ((List<?>)data).get(i));
+            Object rawTrade = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Object parsed = null;
             if (Boolean.TRUE.equals(spot) && !Boolean.TRUE.equals(executionFast))
             {
@@ -3631,11 +3631,11 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             this.handleOrderBook(client, (Map<String, Object>) (message));
             return;
         }
-        List<Object> keys = new ArrayList<Object>(methods.keySet());
+        List<String> keys = new ArrayList<String>(methods.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            if (((String)topic).indexOf(((String)key)) >= 0)
+            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            if (((String)topic).indexOf(key) >= 0)
             {
                 Object method = (methods == null || key == null ? null : methods.get(key));
                 Helpers.callDynamically(this, method, new Object[] {client, message});

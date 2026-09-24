@@ -853,10 +853,10 @@ public class Hyperliquid extends HyperliquidApi
             Object mids = this.safeDict(allMids, "mids", allMids);
             Map<String, Object> tickers = new HashMap<String, Object>() {{}};
             Object outcomesMap = (((!java.util.Objects.equals(this.outcomes, null)))) ? this.outcomes : new HashMap<String, Object>() {{}};
-            List<Object> outcomeHandles = new ArrayList<Object>(((Map<String, Object>)outcomesMap).keySet());
+            List<String> outcomeHandles = new ArrayList<String>(((Map<String, Object>)outcomesMap).keySet());
             for (var i = 0; i < ((List<?>)outcomeHandles).size(); i++)
             {
-                Object outcomeHandle = (outcomeHandles == null || i < 0 || i >= outcomeHandles.size() ? null : outcomeHandles.get(i));
+                String outcomeHandle = (outcomeHandles == null || i < 0 || i >= outcomeHandles.size() ? null : outcomeHandles.get(i));
                 if (!java.util.Objects.equals(outcomes, null) && !(requestedOutcomeSymbols.containsKey(outcomeHandle)))
                 {
                     continue;
@@ -1685,12 +1685,12 @@ public class Hyperliquid extends HyperliquidApi
                 String wallet = this.safeStringLower(this.options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6");
                 // feeInt defaults to 0: the builder is attached for statistics purposes only and the
                 // user is not charged; set options.feeInt (tenths of a bp) together with feeRate to charge
-                Object feeInt = this.safeInteger(this.options, "feeInt", 0);
+                Long feeInt = this.safeInteger(this.options, "feeInt", 0);
                 if (!Boolean.TRUE.equals(this.safeBool(this.options, "builderFee", true)))
                 {
-                    feeInt = 0;
+                    feeInt = 0L;
                 }
-                final Object finalFeeInt = feeInt;
+                final Long finalFeeInt = feeInt;
                 ((Map<String, Object>)orderAction).put("builder", new HashMap<String, Object>() {{
         put( "b", wallet );
         put( "f", finalFeeInt );
@@ -2689,10 +2689,10 @@ public class Hyperliquid extends HyperliquidApi
                 }
             }
             List<Object> events = new ArrayList<Object>(Arrays.asList());
-            List<Object> groupKeys = new ArrayList<Object>(groupMap.keySet());
+            List<String> groupKeys = new ArrayList<String>(groupMap.keySet());
             for (var gi = 0; gi < ((List<?>)groupKeys).size(); gi++)
             {
-                Object key = (groupKeys == null || gi < 0 || gi >= groupKeys.size() ? null : groupKeys.get(gi));
+                String key = (groupKeys == null || gi < 0 || gi >= groupKeys.size() ? null : groupKeys.get(gi));
                 Object groupMarkets = (groupMap == null || key == null ? null : groupMap.get(key));
                 Object eventVar = this.parseEvent((Map<String, Object>) (new HashMap<String, Object>() {{
                     put( "parentSymbol", key );

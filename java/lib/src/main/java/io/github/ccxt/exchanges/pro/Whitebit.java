@@ -1161,7 +1161,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 }
             } else
             {
-                List<Object> keys = new ArrayList<Object>(balanceDict.keySet());
+                List<String> keys = new ArrayList<String>(balanceDict.keySet());
                 for (var j = 0; j < ((List<?>)keys).size(); j++)
                 {
                     Object currencyId = (keys == null || j < 0 || j >= keys.size() ? null : keys.get(j));

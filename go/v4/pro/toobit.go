@@ -1498,7 +1498,7 @@ func (this *Toobit) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var time int64 = this.Milliseconds()
 	var lastAuthenticatedTime *int64 = this.SafeInteger(ccxt.GetValue(this.Options, "ws"), "lastAuthenticatedTime", 0)
 	var listenKeyRefreshRate *int64 = this.SafeInteger(ccxt.GetValue(this.Options, "ws"), "listenKeyRefreshRate", 1200000)
-	var delay any = this.Sum(listenKeyRefreshRate, 10000)
+	var delay int64 = this.Sum(listenKeyRefreshRate, 10000).(int64)
 	if ccxt.IsGreaterThan(ccxt.Subtract(time, lastAuthenticatedTime), delay) {
 		this.CheckRequiredCredentials()
 		// single-flight leader election on a never-dialed client, see

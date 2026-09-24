@@ -1184,7 +1184,7 @@ function installCcxtGoCurrencyUnbox (goTranspiler) {
     const upstream = goTranspiler.printVariableDeclarationList;
     goTranspiler.printVariableDeclarationList = function (node, identation) {
         const printed = upstream.call (this, node, identation);
-        return ccxtGoUnboxParseNumberDeclaration (this, ccxtGoUnboxCurrencyDeclaration (this, printed));
+        return ccxtGoUnboxSumDeclaration (this, ccxtGoUnboxParseNumberDeclaration (this, ccxtGoUnboxCurrencyDeclaration (this, printed)));
     };
     goTranspiler.__ccxtGoCurrencyUnboxInstalled = true;
 }
@@ -2460,6 +2460,174 @@ export function ccxtGoFamilyCallType (goTranspiler, initializer, printedValue) {
     }
     const methodNode = findClassMethod (enclosingClassDeclaration (initializer), name);
     return ccxtGoFamilyMethodReturnType (goTranspiler, methodNode);
+}
+
+// ---------------------------------------------------------------------------
+// Numeric counters: `this.sum (...)` locals and the ws `requestId ()` methods.
+//
+// BaseExchange.Sum folds Add over its arguments from a float64 0: an int-kind,
+// never-nil operand keeps the box an int64 on every Add path (int64+int64 native,
+// otherwise an integral float64 -> ParseInt). With every argument proven so, the
+// declaration names int64 and unboxes the very same call (value unchanged).
+const CCXT_GO_SUM_LOCAL_TYPE = 'int64';
+
+// `this.safeInteger (obj, key, <integer literal>)`: the literal default makes the
+// returned *int64 non-nil, and Add derefs it to an int64
+function ccxtGoIsDefaultedSafeInteger (node) {
+    if ((node?.kind !== ts.SyntaxKind.CallExpression) || (node.arguments.length !== 3)) {
+        return false;
+    }
+    const callee = node.expression;
+    if ((callee?.kind !== ts.SyntaxKind.PropertyAccessExpression) || (callee.expression?.kind !== ts.SyntaxKind.ThisKeyword)
+        || (callee.name?.escapedText !== 'safeInteger')) {
+        return false;
+    }
+    const fallback = node.arguments[2];
+    return (fallback.kind === ts.SyntaxKind.NumericLiteral) && /^[0-9]+$/.test (fallback.text);
+}
+
+// an operand of Sum that boxes a non-nil int-kind value (or a non-nil *int64 Add derefs)
+function ccxtGoSumOperandIsInt (goTranspiler, node, printed, depth) {
+    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        node = node.expression;
+    }
+    if (ccxtGoIsDefaultedSafeInteger (node)) {
+        return ccxtGoWholePrintedCallee (goTranspiler, printed) === 'this.SafeInteger';
+    }
+    if (node?.kind === ts.SyntaxKind.Identifier) {
+        // a const bound once to a defaulted safeInteger read
+        let declaration;
+        try {
+            declaration = goTranspiler.getChecker ().getSymbolAtLocation (node)?.valueDeclaration;
+        } catch (e) {
+            return false;
+        }
+        if ((declaration?.kind === ts.SyntaxKind.VariableDeclaration) && (declaration.name?.kind === ts.SyntaxKind.Identifier)
+            && ((declaration.parent?.flags & ts.NodeFlags.Const) !== 0) && ccxtGoIsDefaultedSafeInteger (declaration.initializer)) {
+            return true;
+        }
+    }
+    if ((node?.kind === ts.SyntaxKind.CallExpression) && (ccxtGoSumCallee (goTranspiler, node, printed) !== undefined)) {
+        return (depth < 8) && ccxtGoSumCallIsInt64 (goTranspiler, node, printed, depth + 1);
+    }
+    return ccxtGoIntOperandKind (goTranspiler, node, printed, depth) !== undefined;
+}
+
+function ccxtGoSumCallee (goTranspiler, node, printed) {
+    const callee = node?.expression;
+    if ((node?.kind !== ts.SyntaxKind.CallExpression) || (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression)
+        || (callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) || (callee.name?.escapedText !== 'sum')) {
+        return undefined;
+    }
+    return (ccxtGoWholePrintedCallee (goTranspiler, printed) === 'this.Sum') ? 'this.Sum' : undefined;
+}
+
+function ccxtGoSumCallIsInt64 (goTranspiler, node, printed, depth) {
+    const parts = ccxtGoPrintedCallParts (goTranspiler, printed);
+    if ((parts === undefined) || (node.arguments.length === 0)) {
+        return false;
+    }
+    const args = ccxtGoSplitPrintedArgs (parts.argsText);
+    if (args.length !== node.arguments.length) {
+        return false;
+    }
+    return node.arguments.every ((arg, i) => (arg.kind !== ts.SyntaxKind.SpreadElement)
+        && ccxtGoSumOperandIsInt (goTranspiler, arg, args[i], depth));
+}
+
+// declarations only: a write `x = this.sum (..)` would need the unbox as well
+function ccxtGoTypeOfSumInitializer (goTranspiler, initializer, printedValue) {
+    if ((initializer?.parent?.kind !== ts.SyntaxKind.VariableDeclaration) || (initializer.parent.initializer !== initializer)
+        || (initializer.parent.parent?.parent?.kind !== ts.SyntaxKind.VariableStatement)) {
+        return undefined;
+    }
+    if (ccxtGoSumCallee (goTranspiler, initializer, printedValue) === undefined) {
+        return undefined;
+    }
+    return ccxtGoSumCallIsInt64 (goTranspiler, initializer, printedValue, 0) ? CCXT_GO_SUM_LOCAL_TYPE : undefined;
+}
+
+export function ccxtGoUnboxSumDeclaration (goTranspiler, printed) {
+    if (typeof printed !== 'string') {
+        return printed;
+    }
+    const match = /^([\s\S]*?\bvar [A-Za-z0-9_]+ int64 = )(this\.Sum\([^\n]*)$/.exec (printed);
+    if (match === null) {
+        return printed;
+    }
+    const tail = match[2];
+    const close = ccxtGoPrintedCallEnd (tail, tail.indexOf ('('));
+    if (close < 0) {
+        return printed;
+    }
+    const rest = tail.substring (close);
+    if (!/^\s*(;?\s*(\/\/[^\n]*)?)$/.test (rest)) {
+        return printed;
+    }
+    return match[1] + tail.substring (0, close) + '.(' + CCXT_GO_SUM_LOCAL_TYPE + ')' + rest;
+}
+
+// `requestId ()`: every return path already prints one int64 / string value, so the
+// signature names it and the callers' locals follow through the checker's resolution
+const CCXT_GO_COUNTER_METHODS = [ 'requestId' ];
+const CCXT_GO_COUNTER_RETURN_TYPES = [ 'int64', 'string' ];
+const CCXT_GO_COUNTER_CACHE = new Map ();
+const CCXT_GO_COUNTER_IN_PROGRESS = new Set ();
+
+export function ccxtGoCounterMethodReturnType (goTranspiler, node) {
+    if ((node?.kind !== ts.SyntaxKind.MethodDeclaration) || (node.body?.kind !== ts.SyntaxKind.Block)
+        || !CCXT_GO_COUNTER_METHODS.includes (node.name?.escapedText)) {
+        return undefined;
+    }
+    if ((typeof goTranspiler.isAsyncFunction === 'function') && goTranspiler.isAsyncFunction (node)) {
+        return undefined;
+    }
+    const reserved = ccxtGoReservedMethodNames (node);
+    if ((reserved !== undefined) && (reserved.has ('requestId') || reserved.has ('RequestId'))) {
+        return undefined;
+    }
+    if (CCXT_GO_COUNTER_CACHE.has (node)) {
+        return CCXT_GO_COUNTER_CACHE.get (node);
+    }
+    if (CCXT_GO_COUNTER_IN_PROGRESS.has (node)) {
+        return undefined;
+    }
+    CCXT_GO_COUNTER_IN_PROGRESS.add (node);
+    let result;
+    try {
+        const returns = collectReturnStatements (node.body);
+        for (const statement of returns) {
+            const goType = (statement.expression === undefined) ? undefined : ccxtGoReturnExpressionType (goTranspiler, statement.expression);
+            if (!CCXT_GO_COUNTER_RETURN_TYPES.includes (goType) || ((result !== undefined) && (result !== goType))) {
+                result = undefined;
+                break;
+            }
+            result = goType;
+        }
+    } finally {
+        CCXT_GO_COUNTER_IN_PROGRESS.delete (node);
+    }
+    CCXT_GO_COUNTER_CACHE.set (node, result);
+    return result;
+}
+
+// `this.requestId (..)` resolved to the method the Go call binds to (TS inheritance = Go embedding)
+function ccxtGoCounterCallType (goTranspiler, initializer, printedValue) {
+    const callee = initializer?.expression;
+    if ((initializer?.kind !== ts.SyntaxKind.CallExpression) || (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression)
+        || (callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) || !CCXT_GO_COUNTER_METHODS.includes (callee.name?.escapedText)) {
+        return undefined;
+    }
+    if (ccxtGoWholePrintedCallee (goTranspiler, printedValue) !== 'this.RequestId') {
+        return undefined;
+    }
+    let declaration;
+    try {
+        declaration = goTranspiler.getChecker ().getResolvedSignature (initializer)?.declaration;
+    } catch (e) {
+        return undefined;
+    }
+    return ccxtGoCounterMethodReturnType (goTranspiler, declaration);
 }
 
 // ---------------------------------------------------------------------------
@@ -5453,6 +5621,10 @@ export function installCcxtGoLocalTypes (goTranspiler) {
         }
         // Multiply/Subtract/Divide/Mod with provably int-kind operands box an int64
         // on every return path (see ccxtGoTypeOfArithmeticInitializer above)
+        const counterType = ccxtGoCounterCallType (this, initializer, printedValue) ?? ccxtGoTypeOfSumInitializer (this, initializer, printedValue);
+        if ((counterType !== undefined) && typeNameIsUsable (this, initializer, counterType)) {
+            return counterType;
+        }
         const arithmeticType = ccxtGoTypeOfArithmeticInitializer (this, initializer, printedValue);
         if (arithmeticType !== undefined) {
             return arithmeticType;
@@ -5504,7 +5676,7 @@ export function installCcxtGoLocalTypes (goTranspiler) {
         const upstreamMethodDefinition = goTranspiler.printMethodDefinition;
         goTranspiler.printMethodDefinition = function (node, identation) {
             const methodDef = upstreamMethodDefinition.call (this, node, identation);
-            const goType = ccxtGoFamilyMethodReturnType (this, node);
+            const goType = ccxtGoFamilyMethodReturnType (this, node) ?? ccxtGoCounterMethodReturnType (this, node);
             if (goType === undefined) {
                 return methodDef;
             }
@@ -5544,11 +5716,21 @@ export function installCcxtGoLocalTypes (goTranspiler) {
 const CCXT_GO_TUPLE_STRING_PRODUCERS = [
     'this.HandleMarketTypeAndParams', 'this.HandleSubTypeAndParams', 'this.HandleParamString',
     'this.HandleParamString2', 'this.HandleNetworkCodeAndParams',
+    // venue helpers whose every Go return path boxes a *string (or nil) at element 0
+    'this.GetBybitType', 'this.HandleProductTypeAndParams', 'this.GetMarginMode',
 ];
+
+// `const [ a, b ] = Split (s, sep)`: every element of the []string is a string or absent
+const CCXT_GO_TUPLE_STRING_SPLIT = 'Split';
 
 // callee -> argument slots below which the Go body only derefScalars / GetArgStringPtr-binds the value
 const CCXT_GO_TUPLE_STRING_SAFE_ARGS = {
     'this.IsLinear': 2, 'this.IsInverse': 2, 'ToLower': 1, 'ToUpper': 1, 'IsString': 1,
+    // container/key slots: SafeValueN / getValue / InOp derefScalar both before the lookup
+    'GetValue': 2, 'InOp': 2, 'this.SafeString': 2, 'this.SafeString2': 3, 'this.SafeValue': 2,
+    'this.SafeInteger': 2, 'this.SafeStringLower': 2,
+    // okx/deepcoin: `this.safeString (types, type, type)`, key and default both deref'd
+    'this.ConvertToInstrumentType': 1,
 };
 
 const CCXT_GO_TUPLE_STRING_CACHE = new WeakMap ();
@@ -5594,6 +5776,14 @@ function ccxtGoTupleStringReadIsSafe (goTranspiler, node) {
     if ((parent.kind === ts.SyntaxKind.PrefixUnaryExpression) && (parent.operator === ts.SyntaxKind.ExclamationToken)) {
         return true;
     }
+    if ((parent.kind === ts.SyntaxKind.BinaryExpression) && (parent.operatorToken.kind === ts.SyntaxKind.PlusToken)) {
+        return true; // Add derefScalars; a native `+` prints `*x` only for a nil-proven operand
+    }
+    if ((parent.kind === ts.SyntaxKind.ElementAccessExpression) && (parent.argumentExpression === current)) {
+        // `c[x]` prints GetValue(c, x) / AddElementToObject(c, x, v): both derefScalar the key
+        const printed = (goTranspiler.printNode (parent.parent?.kind === ts.SyntaxKind.BinaryExpression && parent.parent.left === parent ? parent.parent : parent, 0) ?? '').trim ();
+        return printed.startsWith ('GetValue(') || printed.startsWith ('AddElementToObject(');
+    }
     if ((parent.kind === ts.SyntaxKind.CallExpression) && (parent.expression !== current)) {
         const callee = printedCalleeOfCall (goTranspiler, parent);
         const slots = CCXT_GO_TUPLE_STRING_SAFE_ARGS[(callee ?? '').replace (/^ccxt\./, '')];
@@ -5621,7 +5811,8 @@ function ccxtGoTupleStringJoinTypeUncached (goTranspiler, declaration) {
             ok = !scopeMentionsIdentifier (n, name); // a closure over the local
             return;
         }
-        if ((n !== declaration) && ((n.kind === ts.SyntaxKind.VariableDeclaration) || (n.kind === ts.SyntaxKind.Parameter))
+        if ((n !== declaration) && (n !== declaration.parent?.parent)
+            && ((n.kind === ts.SyntaxKind.VariableDeclaration) || (n.kind === ts.SyntaxKind.Parameter))
             && bindingMentionsName (n.name, name)) {
             ok = false;
             return;
@@ -5640,15 +5831,39 @@ function ccxtGoTupleStringJoinTypeUncached (goTranspiler, declaration) {
         ts.forEachChild (n, visit);
     };
     ts.forEachChild (scope, visit);
-    return (ok && (producers > 0)) ? '*string' : undefined;
+    const bound = (declaration.kind === ts.SyntaxKind.BindingElement) ? 1 : 0;
+    return (ok && (producers + bound > 0)) ? '*string' : undefined;
+}
+
+// element `a` of `const [ a, .. ] = <producer> (..)`: index 0 of a tuple producer, any index of Split
+function ccxtGoTupleStringBindingIsProducer (goTranspiler, declaration) {
+    const pattern = declaration.parent;
+    const holder = pattern?.parent;
+    if ((pattern?.kind !== ts.SyntaxKind.ArrayBindingPattern) || (holder?.kind !== ts.SyntaxKind.VariableDeclaration)
+        || (holder.name !== pattern) || (declaration.dotDotDotToken !== undefined) || (declaration.initializer !== undefined)
+        || (declaration.propertyName !== undefined)) {
+        return false;
+    }
+    const init = holder.initializer;
+    if ((init?.kind === ts.SyntaxKind.CallExpression) && (init.expression?.kind === ts.SyntaxKind.PropertyAccessExpression)
+        && (init.expression.name?.escapedText === 'split')
+        && (goTranspiler.printNode (init, 0) ?? '').trim ().startsWith (CCXT_GO_TUPLE_STRING_SPLIT + '(')) {
+        return true;
+    }
+    const callee = ccxtGoWriteSiteCallee (goTranspiler, init);
+    return (pattern.elements.indexOf (declaration) === 0) && (CCXT_GO_TUPLE_STRING_PRODUCERS.indexOf (callee) >= 0);
 }
 
 // '*string' when `declaration` is a nil-declared local of this family, else undefined
 function ccxtGoTupleStringJoinType (goTranspiler, declaration) {
-    if ((declaration?.kind !== ts.SyntaxKind.VariableDeclaration) || !ts.isIdentifier (declaration.name)
-        || !isNilDeclaredInitializer (declaration.initializer)
-        || (declaration.parent?.parent?.kind !== ts.SyntaxKind.VariableStatement)
-        || (declaration.parent.declarations.length !== 1)) {
+    const nilDeclared = (declaration?.kind === ts.SyntaxKind.VariableDeclaration) && ts.isIdentifier (declaration.name)
+        && isNilDeclaredInitializer (declaration.initializer)
+        && (declaration.parent?.parent?.kind === ts.SyntaxKind.VariableStatement)
+        && (declaration.parent.declarations.length === 1);
+    const bound = (declaration?.kind === ts.SyntaxKind.BindingElement) && ts.isIdentifier (declaration.name)
+        && (declaration.parent?.parent?.parent?.parent?.kind === ts.SyntaxKind.VariableStatement)
+        && ccxtGoTupleStringBindingIsProducer (goTranspiler, declaration);
+    if (!nilDeclared && !bound) {
         return undefined;
     }
     if (CCXT_GO_TUPLE_STRING_CACHE.has (declaration)) {
@@ -5700,6 +5915,29 @@ function installCcxtGoTupleStringJoin (goTranspiler) {
         }
         const head = this.getIden (identation) + 'var ' + this.printNode (declaration.name, 0) + ' ';
         return (printed === head + 'any = ' + this.UNDEFINED_TOKEN) ? (head + '*string = ' + this.UNDEFINED_TOKEN) : printed;
+    };
+    // the direct form `a := GetValue(h, i)` of a destructuring declaration
+    const shippedBinding = goTranspiler.printVariableDeclarationList;
+    goTranspiler.printVariableDeclarationList = function (node, identation) {
+        const printed = shippedBinding.call (this, node, identation);
+        const pattern = node?.declarations?.[0]?.name;
+        if ((typeof printed !== 'string') || (pattern?.kind !== ts.SyntaxKind.ArrayBindingPattern)) {
+            return printed;
+        }
+        const lines = printed.split ('\n');
+        pattern.elements.forEach ((element, index) => {
+            if ((element.kind !== ts.SyntaxKind.BindingElement) || (ccxtGoTupleStringJoinType (this, element) !== '*string')) {
+                return;
+            }
+            const name = this.printNode (element.name, 0);
+            const at = lines.findIndex ((line) => /^\s*\w+ := GetValue\(\w+, \d+\)$/.test (line)
+                && line.trimStart ().startsWith (name + ' := GetValue(') && line.endsWith (', ' + index + ')'));
+            if (at >= 0) {
+                const indent = lines[at].substring (0, lines[at].length - lines[at].trimStart ().length);
+                lines[at] = indent + 'var ' + name + ' *string = SafeStringPtr(' + lines[at].trimStart ().substring (name.length + 4) + ')';
+            }
+        });
+        return lines.join ('\n');
     };
     const shippedCustom = goTranspiler.printCustomBinaryExpressionIfAny;
     goTranspiler.printCustomBinaryExpressionIfAny = function (node, identation) {

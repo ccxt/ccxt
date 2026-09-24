@@ -1319,20 +1319,20 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
         Map<String, Object> d = (Map<String, Object>) this.safeDictN(message, new ArrayList<Object>(Arrays.asList("d", "publicAggreDeals")));
-        Object trades = this.safeList2(d, "deals", "dealsList", new ArrayList<Object>(Arrays.asList(d)));
+        List<Object> trades = (List<Object>) this.safeList2(d, "deals", "dealsList", new ArrayList<Object>(Arrays.asList(d)));
         if (java.util.Objects.equals(d, null))
         {
-            trades = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+            trades = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         }
         for (var j = 0; j < ((List<?>)trades).size(); j++)
         {
             Object parsedTrade = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                parsedTrade = this.parseWsTrade((Map<String, Object>) ((trades == null || j < 0 || j >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(j))), market);
+                parsedTrade = this.parseWsTrade((Map<String, Object>) ((trades == null || j < 0 || j >= trades.size() ? null : trades.get(j))), market);
             } else
             {
-                parsedTrade = this.parseTrade((trades == null || j < 0 || j >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(j)), market);
+                parsedTrade = this.parseTrade((trades == null || j < 0 || j >= trades.size() ? null : trades.get(j)), market);
             }
             Helpers.callDynamically(stored, "append", new Object[]{parsedTrade});
         }

@@ -213,9 +213,9 @@ func (this *Kucoin) negotiateHelperBody(ch chan any, privateChannel any, connect
 
 	return nil
 }
-func (this *Kucoin) RequestId() any {
+func (this *Kucoin) RequestId() int64 {
 	this.LockId()
-	var requestId any = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1)
+	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
 	this.Options.Store("requestId", requestId)
 	this.UnlockId()
 	return requestId
@@ -664,17 +664,17 @@ func (this *Kucoin) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true)
 	var firstMarket any = this.GetMarketFromSymbols(symbols)
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("watchTickers", firstMarket, params)
-	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
+	marketType = ccxt.SafeStringPtr(ccxt.GetValue(marketTypeparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsVariable, 1))
 	var uta any = false
 	var utaparamsVariable []any = this.HandleOptionAndParams(params, "watchTickers", "uta", uta)
 	uta = ccxt.GetValue(utaparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(utaparamsVariable, 1))
-	var isFuturesMethod bool = (!ccxt.IsEqual(marketType, "spot")) && (!ccxt.IsEqual(marketType, "margin"))
+	var isFuturesMethod bool = (marketType == nil || *marketType != "spot") && (marketType == nil || *marketType != "margin")
 	if (isFuturesMethod || (uta == true)) && (symbols == nil) {
-		panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(this.Id+" watchTickers() requires a list of symbols for ", marketType), " markets and unified trading account (uta)")))
+		panic(ccxt.ArgumentsRequired(this.Id + " watchTickers() requires a list of symbols for " + *marketType + " markets and unified trading account (uta)"))
 	}
 	var messageHash string = "tickers"
 	var method any = "/market/ticker"

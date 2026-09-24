@@ -341,7 +341,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                Object marketId = this.marketId(symbol);
+                String marketId = this.marketId(symbol);
                 ((List<Object>)messageHashes).add(("ticker:" + symbol));
                 ((List<Object>)topics).add(("ticker." + marketId));
             }
@@ -388,7 +388,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                Object marketId = this.marketId(symbol);
+                String marketId = this.marketId(symbol);
                 ((List<Object>)topics).add(("ticker." + marketId));
                 ((List<Object>)messageHashes).add(("unsubscribe:ticker:" + symbol));
             }
@@ -518,7 +518,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                Object marketId = this.marketId(symbol);
+                String marketId = this.marketId(symbol);
                 ((List<Object>)topics).add(("bookTicker." + marketId));
                 ((List<Object>)messageHashes).add(("bidask:" + symbol));
             }
@@ -564,7 +564,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                Object marketId = this.marketId(symbol);
+                String marketId = this.marketId(symbol);
                 ((List<Object>)topics).add(("bookTicker." + marketId));
                 ((List<Object>)messageHashes).add(("unsubscribe:bidask:" + symbol));
             }
@@ -1031,7 +1031,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
-                Object marketId = this.marketId((String) (symbol));
+                String marketId = this.marketId((String) (symbol));
                 ((List<Object>)topics).add(("trade." + marketId));
                 ((List<Object>)messageHashes).add(("trades:" + symbol));
             }
@@ -1092,7 +1092,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
-                Object marketId = this.marketId((String) (symbol));
+                String marketId = this.marketId((String) (symbol));
                 ((List<Object>)topics).add(("trade." + marketId));
                 ((List<Object>)messageHashes).add(("unsubscribe:trades:" + symbol));
             }

@@ -787,24 +787,24 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     ((List<Object>)messageHashes).add(("myLiquidations::" + symbol));
                 }
             }
-            Object type = null;
+            String type = null;
             Object subType = null;
             var typesubTypeparametersVariable = this.resolveAuthType("watchMyLiquidationsForSymbols", market, parameters);
-            type = ((List<Object>) typesubTypeparametersVariable).get(0);
+            type = (String) ((List<Object>) typesubTypeparametersVariable).get(0);
             subType = ((List<Object>) typesubTypeparametersVariable).get(1);
             parameters = (Map<String, Object>) ((List<Object>) typesubTypeparametersVariable).get(2);
             // hand the resolved type forward: the helper already omitted type and
             // subType from params, so a bare authenticate would re-derive from
             // options.defaultType and seed a different bucket than the listenKey
             // read below indexes - the derive-first shape watchBalance uses
-            final Object finalType = type;
+            final String finalType = type;
             final Object finalSubType = subType;
             (this.authenticate(this.extend(new HashMap<String, Object>() {{
                 put( "finalType", finalType );
                 put( "finalSubType", finalSubType );
             }}, parameters))).join();
             Object listenKey = Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get(type)), "listenKey");
-            Object url = this.getPrivateWsUrl((String) (type), (String) (listenKey));
+            Object url = this.getPrivateWsUrl(type, (String) (listenKey));
             Object message = null;
             Object newLiquidations = (this.watchMultiple((String) (url), messageHashes, message, new ArrayList<Object>(Arrays.asList(type)), null)).join();
             if (this.newUpdates)
@@ -3979,7 +3979,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), marketType);
             Client client = this.client(url);
             Object subscriptions = client.subscriptions;
-            List<Object> subscriptionsKeys = new ArrayList<Object>(((Map<String, Object>)subscriptions).keySet());
+            List<String> subscriptionsKeys = new ArrayList<String>(((Map<String, Object>)subscriptions).keySet());
             Object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
             if (java.util.Objects.equals(accountType, marketType))
             {
@@ -4047,7 +4047,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //
         String messageHash = this.safeString(message, "id");
         Object subscriptions = client.subscriptions;
-        List<Object> subscriptionsKeys = new ArrayList<Object>(((Map<String, Object>)subscriptions).keySet());
+        List<String> subscriptionsKeys = new ArrayList<String>(((Map<String, Object>)subscriptions).keySet());
         Object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
         Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result", new HashMap<String, Object>() {{}});
         Long subscriptionId = this.safeInteger(result, "subscriptionId");
@@ -4110,7 +4110,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                         {
                             throw new ArgumentsRequired((this.id + " ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode")) ;
                         }
-                        Object marketId = this.marketId((String) (symbol));
+                        String marketId = this.marketId((String) (symbol));
                         ((Map<String, Object>)request).put("symbol", marketId);
                         ((Map<String, Object>)request).put("isIsolated", true);
                     }
@@ -4502,10 +4502,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 Client client = (Client)Helpers.GetValue(clients, i);
                 Map<String, Object> clientSubscriptions = (Map<String, Object>) this.safeDict(client, "subscriptions", new HashMap<String, Object>() {{}});
-                List<Object> subscriptionKeys = new ArrayList<Object>(clientSubscriptions.keySet());
+                List<String> subscriptionKeys = new ArrayList<String>(clientSubscriptions.keySet());
                 for (var j = 0; j < ((List<?>)subscriptionKeys).size(); j++)
                 {
-                    Object subscribeType = (subscriptionKeys == null || j < 0 || j >= subscriptionKeys.size() ? null : subscriptionKeys.get(j));
+                    String subscribeType = (subscriptionKeys == null || j < 0 || j >= subscriptionKeys.size() ? null : subscriptionKeys.get(j));
                     if (java.util.Objects.equals(subscribeType, type))
                     {
                         this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", delayParams);
@@ -4919,13 +4919,13 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             // re-derives from its own method scope, so without this a method-scoped
             // options.watchBalance.type seeds one bucket while the read below
             // indexes another - the same derive-first shape watchOrders uses
-            Object type = null;
+            String type = null;
             Object subType = null;
             var typesubTypeparametersVariable = this.resolveAuthType("watchBalance", null, parameters);
-            type = ((List<Object>) typesubTypeparametersVariable).get(0);
+            type = (String) ((List<Object>) typesubTypeparametersVariable).get(0);
             subType = ((List<Object>) typesubTypeparametersVariable).get(1);
             parameters = (Map<String, Object>) ((List<Object>) typesubTypeparametersVariable).get(2);
-            final Object finalType = type;
+            final String finalType = type;
             final Object finalSubType = subType;
             (this.authenticate(this.extend(new HashMap<String, Object>() {{
                 put( "finalType", finalType );
@@ -5056,7 +5056,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         String wallet = this.safeString(this.options, "wallet", "wb"); // cw for cross wallet
         // each account is connected to a different endpoint
         Object subscriptions = client.subscriptions;
-        List<Object> subscriptionsKeys = new ArrayList<Object>(((Map<String, Object>)subscriptions).keySet());
+        List<String> subscriptionsKeys = new ArrayList<String>(((Map<String, Object>)subscriptions).keySet());
         Object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
         String messageHash = (accountType + ":balance");
         if (java.util.Objects.equals((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), null))
@@ -6140,13 +6140,13 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 symbol = ((Map<String, Object>)market).get("symbol");
                 messageHash = (messageHash + (":" + symbol));
             }
-            Object type = null;
+            String type = null;
             Object subType = null;
             var typesubTypeparametersVariable = this.resolveAuthType("watchOrders", market, parameters);
-            type = ((List<Object>) typesubTypeparametersVariable).get(0);
+            type = (String) ((List<Object>) typesubTypeparametersVariable).get(0);
             subType = ((List<Object>) typesubTypeparametersVariable).get(1);
             parameters = ((List<Object>) typesubTypeparametersVariable).get(2);
-            final Object finalType = type;
+            final String finalType = type;
             final Object finalSymbol = symbol;
             final Object finalSubType = subType;
             parameters = this.extend(parameters, new HashMap<String, Object>() {{
@@ -6845,10 +6845,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 }
                 messageHash = ("::" + String.join(",", (List<String>)symbols));
             }
-            Object type = null;
+            String type = null;
             Object subType = null;
             var typesubTypeparametersVariable = this.resolveAuthType("watchPositions", market, parameters);
-            type = ((List<Object>) typesubTypeparametersVariable).get(0);
+            type = (String) ((List<Object>) typesubTypeparametersVariable).get(0);
             subType = ((List<Object>) typesubTypeparametersVariable).get(1);
             parameters = (Map<String, Object>) ((List<Object>) typesubTypeparametersVariable).get(2);
             // spot and margin have no positions - whatever still RESOLVES to spot
@@ -7027,7 +7027,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         // each account is connected to a different endpoint
         // and has exactly one subscriptionhash which is the account type
         Object subscriptions = client.subscriptions;
-        List<Object> subscriptionsKeys = new ArrayList<Object>(((Map<String, Object>)subscriptions).keySet());
+        List<String> subscriptionsKeys = new ArrayList<String>(((Map<String, Object>)subscriptions).keySet());
         Object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
         if (java.util.Objects.equals(this.positions, null))
         {
@@ -7443,7 +7443,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 (this.loadMarkets()).join();
             }
-            Object type = null;
+            String type = null;
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -7453,7 +7453,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             Object subType = null;
             var typesubTypeparametersVariable = this.resolveAuthType("watchMyTrades", market, parameters);
-            type = ((List<Object>) typesubTypeparametersVariable).get(0);
+            type = (String) ((List<Object>) typesubTypeparametersVariable).get(0);
             subType = ((List<Object>) typesubTypeparametersVariable).get(1);
             parameters = ((List<Object>) typesubTypeparametersVariable).get(2);
             String messageHash = "myTrades";
@@ -7468,7 +7468,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     put( "symbol", finalSymbol );
                 }});
             }
-            final Object finalType = type;
+            final String finalType = type;
             final Object finalSubType = subType;
             (this.authenticate(this.extend(new HashMap<String, Object>() {{
                 put( "finalType", finalType );
@@ -7540,7 +7540,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message));
             String orderId = this.safeString(trade, "order");
-            Object tradeFee = this.safeDict(trade, "fee", new HashMap<String, Object>() {{}});
+            Map<String, Object> tradeFee = (Map<String, Object>) this.safeDict(trade, "fee", new HashMap<String, Object>() {{}});
             tradeFee = this.extend(new HashMap<String, Object>() {{}}, tradeFee);
             String symbol = this.safeString(trade, "symbol");
             if (!java.util.Objects.equals(orderId, null) && !java.util.Objects.equals(tradeFee, null) && !java.util.Objects.equals(symbol, null))
@@ -7830,7 +7830,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //
         String eventVar = this.safeString(message, "e");
         Object subscriptions = client.subscriptions;
-        List<Object> subscriptionsKeys = new ArrayList<Object>(((Map<String, Object>)subscriptions).keySet());
+        List<String> subscriptionsKeys = new ArrayList<String>(((Map<String, Object>)subscriptions).keySet());
         Object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
         if (java.util.Objects.equals(eventVar, "eventStreamTerminated"))
         {
