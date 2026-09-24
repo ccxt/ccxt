@@ -595,9 +595,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+                String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 ((List<Object>)messageHashes).add(((channel + ":") + symbol));
-                String marketId = this.marketId((String) (symbol));
+                String marketId = this.marketId(symbol);
                 final String finalChannel = channel;
                 Map<String, Object> topic = new HashMap<String, Object>() {{
                     put( "channel", finalChannel );
@@ -2598,9 +2598,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Object limit = limit3;
             Map<String, Object> parameters = parameters3;
             // By default, receive order updates from any instrument type
-            Object type = null;
+            String type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchMyTrades", "type", "ANY");
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
@@ -2619,7 +2619,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 market = (Map<String, Object>) this.market(symbol);
                 symbol = (String) ((Map<String, Object>)market).get("symbol");
-                type = ((Map<String, Object>)market).get("type");
+                type = this.safeString(market, "type");
                 messageHash = ((messageHash + "::") + symbol);
             }
             if (java.util.Objects.equals(type, "future"))
@@ -2630,7 +2630,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 throw new ArgumentsRequired((this.id + " watchMyTrades() type is required")) ;
             }
-            String uppercaseType = ((String)type).toUpperCase();
+            String uppercaseType = type.toUpperCase();
             String marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("watchMyTrades", parameters);
             marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
@@ -2868,10 +2868,10 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             String symbol = symbol3;
             Object limit = limit3;
             Map<String, Object> parameters = parameters3;
-            Object type = null;
+            String type = null;
             // By default, receive order updates from any instrument type
             List<Object> typeparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrders", "type", "ANY");
-            type = ((List<Object>) typeparametersVariable).get(0);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
@@ -2888,7 +2888,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 market = (Map<String, Object>) this.market(symbol);
                 symbol = (String) ((Map<String, Object>)market).get("symbol");
-                type = ((Map<String, Object>)market).get("type");
+                type = this.safeString(market, "type");
             }
             if (java.util.Objects.equals(type, "future"))
             {
@@ -2898,7 +2898,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 throw new ArgumentsRequired((this.id + " watchOrders() type is required")) ;
             }
-            String uppercaseType = ((String)type).toUpperCase();
+            String uppercaseType = type.toUpperCase();
             String marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("watchOrders", parameters);
             marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);

@@ -1759,13 +1759,13 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
                 Object data = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
-                Object symbolString = this.safeString(data, 0);
+                String symbolString = this.safeString(data, 0);
                 if (java.util.Objects.equals(symbolString, null))
                 {
                     continue;
                 }
                 Map<String, Object> market = (Map<String, Object>) this.market(symbolString);
-                symbolString = ((Map<String, Object>)market).get("symbol");
+                symbolString = this.safeString(market, "symbol");
                 String unfiedTimeframe = this.safeString(data, 1);
                 String timeframeId = (((java.util.Objects.equals(unfiedTimeframe, null)))) ? null : this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
                 ((List<Object>)subscriptionArgs).add(((this.safeStringLower(market, "id") + "@kline_") + timeframeId));
@@ -1844,13 +1844,13 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
                 Object data = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
-                Object symbolString = this.safeString(data, 0);
+                String symbolString = this.safeString(data, 0);
                 if (java.util.Objects.equals(symbolString, null))
                 {
                     continue;
                 }
                 Map<String, Object> market = (Map<String, Object>) this.market(symbolString);
-                symbolString = ((Map<String, Object>)market).get("symbol");
+                symbolString = this.safeString(market, "symbol");
                 String unfiedTimeframe = this.safeString(data, 1);
                 String timeframeId = (((java.util.Objects.equals(unfiedTimeframe, null)))) ? null : this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
                 ((List<Object>)subscriptionArgs).add(((this.safeStringLower(market, "id") + "@kline_") + timeframeId));

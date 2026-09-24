@@ -220,20 +220,20 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 method = "";
             }
-            Object isUsdcSettled = null;
-            Object isSpot = null;
-            Object type = null;
+            Boolean isUsdcSettled = null;
+            Boolean isSpot = null;
+            String type = null;
             Map<String, Object> market = null;
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
                 isUsdcSettled = java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDC");
-                type = ((Map<String, Object>)market).get("type");
+                type = this.safeString(market, "type");
             } else
             {
                 List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(method, null, parameters);
-                type = ((List<Object>) typeparametersVariable).get(0);
+                type = (String) ((List<Object>) typeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
                 String defaultSettle = this.safeString(this.options, "defaultSettle");
                 defaultSettle = this.safeString2(parameters, "settle", "defaultSettle", defaultSettle);
@@ -856,19 +856,19 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Boolean isSpot = !java.util.Objects.equals(this.safeString(data, "usdIndexPrice"), null);
         String type = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "contract";
-        Object symbol = null;
+        String symbol = null;
         Object parsed = null;
         if ((java.util.Objects.equals(updateType, "snapshot")))
         {
             parsed = this.parseTicker(data);
-            symbol = ((Map<String, Object>)parsed).get("symbol");
+            symbol = this.safeString(parsed, "symbol");
         } else if (java.util.Objects.equals(updateType, "delta"))
         {
             List<Object> topicParts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
             Integer topicLength = ((List<?>)topicParts).size();
             String marketId = this.safeString(topicParts, (((long) topicLength) - 1L));
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, type);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = this.safeString(market, "symbol");
             // update the info in place
             Map<String, Object> ticker = (Map<String, Object>) this.safeDict(this.tickers, symbol, new HashMap<String, Object>() {{}});
             Map<String, Object> rawTicker = (Map<String, Object>) this.safeDict(ticker, "info", new HashMap<String, Object>() {{}});

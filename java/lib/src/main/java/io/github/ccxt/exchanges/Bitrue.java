@@ -1125,8 +1125,8 @@ public class Bitrue extends BitrueApi
         String lowercaseId = this.safeStringLower(market, "symbol");
         Long side = this.safeInteger(market, "side"); // 1 linear, 0 inverse, undefined spot
         String type = "spot";
-        Object isLinear = null;
-        Object isInverse = null;
+        Boolean isLinear = null;
+        Boolean isInverse = null;
         if (java.util.Objects.equals(side, null))
         {
             type = "spot";
@@ -1191,8 +1191,8 @@ public class Bitrue extends BitrueApi
         final String finalSettleId = settleId;
         final String finalType = type;
         final String finalStatus = status;
-        final Object finalIsLinear = isLinear;
-        final Object finalIsInverse = isInverse;
+        final Boolean finalIsLinear = isLinear;
+        final Boolean finalIsInverse = isInverse;
         final Double finalMaxQuantity = maxQuantity;
         final Double finalMinCost = minCost;
         return this.safeMarketStructure(new HashMap<String, Object>() {{

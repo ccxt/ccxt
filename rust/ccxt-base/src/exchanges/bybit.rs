@@ -5059,7 +5059,7 @@ impl BybitCore {
                     market = self.market(symbol);
                 }
                 if (currentType == Value::Null) {
-                    currentType = market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
+                    currentType = self.safe_string_k(market.clone(), "type", &[]);
                 }  else if (market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() != currentType.as_str()) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers can only accept a list of symbols of the same type".into()))));
                 }
@@ -5068,7 +5068,7 @@ impl BybitCore {
                         panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://bybit-exchange.github.io/docs/v5/market/tickers".into()))));
                     }
                     if (code == Value::Null) {
-                        code = market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null);
+                        code = self.safe_string_k(market.clone(), "base", &[]);
                     }
                     params = self.omit(params.clone(), Value::from(vec![Value::Str("code".into()), Value::Str("currency".into())]), &[]);
                 }

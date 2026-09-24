@@ -1656,7 +1656,7 @@ class coinsph(Exchange, ImplicitAPI):
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer_2(order, 'time', 'transactTime')
-        trades = self.safe_value(order, 'fills')
+        trades = self.safe_list(order, 'fills')
         triggerPrice = self.safe_string(order, 'stopPrice')
         if Precise.string_eq(triggerPrice, '0'):
             triggerPrice = None

@@ -1676,11 +1676,11 @@ impl BlofinCore {
         let mut feeCurrency: Value = self.safe_string_k(trade.clone(), "feeCurrency", &[]);
         let mut isSpot: bool = feeCurrency != Value::Null;
         if (feeCurrency == Value::Null) {
-            feeCurrency = market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null);
+            feeCurrency = self.safe_string_k(market.clone(), "settle", &[]);
         }  else if (feeCurrency.as_str() == Some("base_currency")) {
-            feeCurrency = market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null);
+            feeCurrency = self.safe_string_k(market.clone(), "base", &[]);
         }  else if (feeCurrency.as_str() == Some("quote_currency")) {
-            feeCurrency = market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
+            feeCurrency = self.safe_string_k(market.clone(), "quote", &[]);
         }
         if (feeCost != Value::Null) {
             fee = Value::Map({

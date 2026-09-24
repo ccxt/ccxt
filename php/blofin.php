@@ -925,11 +925,11 @@ class blofin extends Exchange {
         $feeCurrency = $this->safe_string($trade, 'feeCurrency');
         $isSpot = $feeCurrency !== null;
         if ($feeCurrency === null) {
-            $feeCurrency = $market['settle'];
+            $feeCurrency = $this->safe_string($market, 'settle');
         } elseif ($feeCurrency === 'base_currency') {
-            $feeCurrency = $market['base'];
+            $feeCurrency = $this->safe_string($market, 'base');
         } elseif ($feeCurrency === 'quote_currency') {
-            $feeCurrency = $market['quote'];
+            $feeCurrency = $this->safe_string($market, 'quote');
         }
         if ($feeCost !== null) {
             $fee = array(

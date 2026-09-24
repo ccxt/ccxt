@@ -3647,7 +3647,7 @@ public class Bitstamp extends BitstampApi
         } else
         {
             Map<String, Object> parsedTransaction = (Map<String, Object>) this.parseTransaction((Map<String, Object>) (item), currency);
-            Object direction = null;
+            String direction = null;
             if (item.containsKey("amount"))
             {
                 String amount = this.safeString(item, "amount");
@@ -3659,7 +3659,7 @@ public class Bitstamp extends BitstampApi
                 String amount = this.safeString(item, ((Map<String, Object>)currency).get("id"));
                 direction = ((Precise.stringGt(amount, "0"))) ? "in" : "out";
             }
-            final Object finalDirection = direction;
+            final String finalDirection = direction;
             final String finalType_2 = type;
             return this.safeLedgerEntry(new HashMap<String, Object>() {{
                 put( "info", item );

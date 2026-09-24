@@ -575,7 +575,7 @@ class weex(ccxt.async_support.weex):
             market = self.market(symbolString)
             if market['type'] != firstMarket['type']:
                 raise BadRequest(self.id + ' ' + callerMethodName + ' market symbols must be of the same type')
-            symbolString = market['symbol']
+            symbolString = self.safe_string(market, 'symbol')
             unifiedTimeframe = self.safe_string(data, 1, '1')
             interval = self.safe_string(self.timeframes, unifiedTimeframe, unifiedTimeframe)
             channel = market['id'] + '@kline_' + interval + '_' + priceType
@@ -634,7 +634,7 @@ class weex(ccxt.async_support.weex):
             market = self.market(symbolString)
             if market['type'] != firstMarket['type']:
                 raise BadRequest(self.id + ' ' + callerMethodName + ' market symbols must be of the same type')
-            symbolString = market['symbol']
+            symbolString = self.safe_string(market, 'symbol')
             unifiedTimeframe = self.safe_string(data, 1, '1')
             interval = self.safe_string(self.timeframes, unifiedTimeframe, unifiedTimeframe)
             channel = market['id'] + '@kline_' + interval + '_' + priceType
@@ -1160,9 +1160,9 @@ class weex(ccxt.async_support.weex):
             feeCurrency = self.safe_currency_code(commissionAsset)
             if marketType == 'spot':
                 if side == 'buy':
-                    feeCurrency = marketResolved['base']
+                    feeCurrency = self.safe_string(marketResolved, 'base')
                 else:
-                    feeCurrency = marketResolved['quote']
+                    feeCurrency = self.safe_string(marketResolved, 'quote')
             fee = {
                 'cost': commission,
                 'currency': feeCurrency,
@@ -1418,9 +1418,9 @@ class weex(ccxt.async_support.weex):
             feeCurrency = self.safe_currency_code(commissionAsset)
             if marketType == 'spot':
                 if side == 'buy':
-                    feeCurrency = marketResolved['base']
+                    feeCurrency = self.safe_string(marketResolved, 'base')
                 else:
-                    feeCurrency = marketResolved['quote']
+                    feeCurrency = self.safe_string(marketResolved, 'quote')
             fee = {
                 'cost': commission,
                 'currency': feeCurrency,

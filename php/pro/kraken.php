@@ -1334,7 +1334,7 @@ class kraken extends \ccxt\async\kraken {
         //
         $symbol = $this->safe_string($trade, 'symbol');
         if ($market !== null) {
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol');
         }
         $fee = null;
         if (is_array($trade) && array_key_exists('fees' ?? '', $trade)) {

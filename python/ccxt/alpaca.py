@@ -1688,7 +1688,7 @@ class alpaca(Exchange, ImplicitAPI):
         #
         parsedCurrency = None
         if currency is not None:
-            parsedCurrency = currency['id']
+            parsedCurrency = self.safe_string(currency, 'id')
         return {
             'info': depositAddress,
             'currency': parsedCurrency,

@@ -5965,7 +5965,7 @@ class kucoin extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $marketType = $market['type'];
+            $marketType = $this->safe_string($market, 'type');
             $request['symbol'] = $market['id'];
         } else {
             $marketType = $this->safe_string($params, 'marketType');
@@ -6180,7 +6180,7 @@ class kucoin extends Exchange {
             list($marketType, $params) = $this->handle_market_type_and_params('fetchOrder', null, $params);
         } else {
             $market = $this->market($symbol);
-            $marketType = $market['type'];
+            $marketType = $this->safe_string($market, 'type');
         }
         if (($marketType === 'spot') || ($marketType === 'margin')) {
             return Async\await($this->fetch_spot_order($id, $symbol, $params));

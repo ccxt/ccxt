@@ -1132,7 +1132,7 @@ public class TestMain extends BaseTest
             // fetchEvents/fetchEvent are prediction-only and not on every language's typed base
             // (Go's ICoreExchange / C# Exchange), so invoke them dynamically by name and validate
             // inline rather than through a per-method test file
-            Object eventId = null;
+            String eventId = null;
             if (!Helpers.isTrue(this.wsTests))
             {
                 try
@@ -1419,7 +1419,7 @@ public class TestMain extends BaseTest
             // no try/finally and no re-throw from the catch (the typed-lang async lambdas can't do
             // either): record any failure, ALWAYS attempt the cancel, then report the failure
             Object order = null;
-            Object placedId = null;
+            String placedId = null;
             Object failure = null;
             try
             {

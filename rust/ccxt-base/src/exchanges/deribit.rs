@@ -2392,8 +2392,8 @@ impl DeribitCore {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency".into()))));
                 }
                 if (code == Value::Null) {
-                    code = market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null);
-                    type_var = market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
+                    code = self.safe_string_k(market.clone(), "base", &[]);
+                    type_var = self.safe_string_k(market, "type", &[]);
                 }
             }
             }

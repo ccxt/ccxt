@@ -379,9 +379,9 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                    String marketId = this.marketId((String) (symbol));
-                    ((List<Object>)messageHashes).add(Helpers.add(messageHash, symbol));
+                    String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+                    String marketId = this.marketId(symbol);
+                    ((List<Object>)messageHashes).add((messageHash + symbol));
                     ((List<Object>)channels).add((marketId + channel));
                 }
                 ((Map<String, Object>)subscription).put("symbols", symbols);

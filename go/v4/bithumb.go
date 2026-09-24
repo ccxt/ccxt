@@ -2574,9 +2574,9 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) any {
 	var feeCost *float64 = this.SafeNumber(order, "reserved_fee")
 	var fee map[string]any = nil
 	if feeCost != nil {
-		var currency any = nil
+		var currency *string = nil
 		if market != nil {
-			currency = GetValue(market, "quote")
+			currency = this.SafeString(market, "quote")
 		}
 		fee = map[string]any{
 			"currency": currency,

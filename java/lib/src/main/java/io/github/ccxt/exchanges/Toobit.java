@@ -2561,7 +2561,7 @@ public class Toobit extends ToobitApi
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
         String rawType = this.safeString(order, "type");
         String rawSideLower = this.safeStringLower(order, "side");
-        Object reduceOnly = null;
+        Boolean reduceOnly = null;
         if (!java.util.Objects.equals(rawSideLower, null))
         {
             // contract orders arrive as BUY_OPEN, SELL_CLOSE and the like -
@@ -2584,7 +2584,7 @@ public class Toobit extends ToobitApi
         final Object finalRawType = rawType;
         final String finalRawSideLower = rawSideLower;
         final String finalTriggerPrice = triggerPrice;
-        final Object finalReduceOnly = reduceOnly;
+        final Boolean finalReduceOnly = reduceOnly;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Toobit.this.safeString(order, "orderId") );

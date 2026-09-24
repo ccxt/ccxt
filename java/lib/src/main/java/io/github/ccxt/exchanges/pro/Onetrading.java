@@ -1166,7 +1166,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object symbol = null;
+        String symbol = null;
         Object orders = this.orders;
         Map<String, Object> update = (Map<String, Object>) this.safeDict(message, "update", new HashMap<String, Object>() {{}});
         String updateType = this.safeString(update, "type");
@@ -1176,14 +1176,14 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             String datetime = this.safeString2(update, "time", "timestamp");
             Object previousOrderArray = this.filterByArray(this.orders, "id", orderId, false);
             Map<String, Object> previousOrder = (Map<String, Object>) this.safeDict(previousOrderArray, 0, new HashMap<String, Object>() {{}});
-            symbol = ((Map<String, Object>)previousOrder).get("symbol");
+            symbol = this.safeString(previousOrder, "symbol");
             String filled = this.safeString(update, "filled_amount");
             String status = this.parseWsOrderStatus((String) (updateType));
             if (java.util.Objects.equals(updateType, "ORDER_CLOSED") && Precise.stringEq(filled, "0"))
             {
                 status = "canceled";
             }
-            final Object finalSymbol = symbol;
+            final String finalSymbol = symbol;
             final String finalStatus = status;
             Map<String, Object> orderObject = new HashMap<String, Object>() {{
                 put( "id", orderId );

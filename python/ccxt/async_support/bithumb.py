@@ -2135,7 +2135,7 @@ class bithumb(Exchange, ImplicitAPI):
         if feeCost is not None:
             currency = None
             if market is not None:
-                currency = market['quote']
+                currency = self.safe_string(market, 'quote')
             fee = {
                 'currency': currency,
                 'cost': feeCost,

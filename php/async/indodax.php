@@ -851,7 +851,7 @@ class indodax extends Exchange {
         //
         $side = null;
         if (is_array($order) && array_key_exists('type' ?? '', $order)) {
-            $side = $order['type'];
+            $side = $this->safe_string($order, 'type');
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status', 'open'));
         $symbol = null;

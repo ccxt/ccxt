@@ -218,9 +218,9 @@ public partial class bydfi : ccxt.bydfi
         {
             for (int i = 0; i < getArrayLength(symbols); i++)
             {
-                object symbol = getValue(symbols, i);
+                string? symbol = ((string)getValue(symbols, i));
                 object marketId = this.marketId(symbol);
-                messageHashes.Add((messageHash + (symbol)));
+                messageHashes.Add((messageHash + symbol));
                 channels.Add(add(marketId, channel));
             }
         }
@@ -558,10 +558,10 @@ public partial class bydfi : ccxt.bydfi
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             channels.Add(add(add(add((market.ContainsKey("id") ? market["id"] : null), "@depth"), depth), channelSuffix));
-            messageHashes.Add(("orderbook::" + (symbol)));
+            messageHashes.Add(("orderbook::" + symbol));
         }
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic(messageHashes, channels, parameters));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
@@ -852,8 +852,8 @@ public partial class bydfi : ccxt.bydfi
         {
             for (int i = 0; i < getArrayLength(symbols); i++)
             {
-                object symbol = getValue(symbols, i);
-                messageHashes.Add(((messageHash + "::") + (symbol)));
+                string? symbol = ((string)getValue(symbols, i));
+                messageHashes.Add(((messageHash + "::") + symbol));
             }
         }
         object positions = await this.watchPrivate(messageHashes, parameters);

@@ -802,17 +802,17 @@ public class Independentreserve extends IndependentreserveApi
         String baseId = this.safeString(order, "PrimaryCurrencyCode");
         String quoteId = this.safeString(order, "SecondaryCurrencyCode");
         Object base = null;
-        Object quote = null;
+        String quote = null;
         if ((!java.util.Objects.equals(baseId, null)) && (!java.util.Objects.equals(quoteId, null)))
         {
             base = this.safeCurrencyCode(baseId);
             quote = this.safeCurrencyCode(quoteId);
-            symbol = Helpers.add((base + "/"), quote);
+            symbol = ((base + "/") + quote);
         } else if (!java.util.Objects.equals(market, null))
         {
             symbol = ((Map<String, Object>)market).get("symbol");
             base = ((Map<String, Object>)market).get("base");
-            quote = ((Map<String, Object>)market).get("quote");
+            quote = this.safeString(market, "quote");
         }
         String orderType = this.safeString2(order, "Type", "OrderType");
         String side = null;

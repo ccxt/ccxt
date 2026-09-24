@@ -1640,7 +1640,7 @@ public partial class kraken : Exchange
         string? id = null;
         string? orderId = null;
         Dictionary<string, object> fee = null;
-        object symbol = null;
+        string? symbol = null;
         if (((trade is IList<object>) || (trade.GetType().IsGenericType && trade.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             timestamp = this.safeTimestamp(trade, 2);
@@ -1677,10 +1677,10 @@ public partial class kraken : Exchange
             amount = this.safeString(trade, "vol");
             if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("fee")))
             {
-                object currency = null;
+                string? currency = null;
                 if ((market != null))
                 {
-                    currency = getValue(market, "quote");
+                    currency = this.safeString(market, "quote");
                 }
                 fee = new Dictionary<string, object>() {
                     { "cost", this.safeString(trade, "fee") },
@@ -1699,7 +1699,7 @@ public partial class kraken : Exchange
         }
         if ((market != null))
         {
-            symbol = getValue(market, "symbol");
+            symbol = this.safeString(market, "symbol");
         }
         string? cost = this.safeString(trade, "cost");
         bool? maker = this.safeBool(trade, "maker");
@@ -2272,7 +2272,7 @@ public partial class kraken : Exchange
         rawType = this.safeString(description, "ordertype", rawType); // orderType has dash, e.g. trailing-stop
         marketId = this.safeString(description, "pair", marketId);
         object foundMarket = this.findMarketByAltnameOrId(marketId);
-        object symbol = null;
+        string? symbol = null;
         if ((foundMarket != null))
         {
             market = foundMarket;
@@ -2303,7 +2303,7 @@ public partial class kraken : Exchange
         double? average = this.safeNumber(order, "price");
         if ((market != null))
         {
-            symbol = getValue(market, "symbol");
+            symbol = this.safeString(market, "symbol");
             if (inOp(order, "fee"))
             {
                 string? feeCost = this.safeString(order, "fee");

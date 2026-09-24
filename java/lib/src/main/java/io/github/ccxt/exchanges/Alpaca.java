@@ -2515,12 +2515,12 @@ public class Alpaca extends AlpacaApi
         //         "created_at": "2024-11-03T07:30:05.609976344Z"
         //     }
         //
-        Object parsedCurrency = null;
+        String parsedCurrency = null;
         if (!java.util.Objects.equals(currency, null))
         {
-            parsedCurrency = ((Map<String, Object>)currency).get("id");
+            parsedCurrency = this.safeString(currency, "id");
         }
-        final Object finalParsedCurrency = parsedCurrency;
+        final String finalParsedCurrency = parsedCurrency;
         return new HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", finalParsedCurrency );
@@ -2869,7 +2869,7 @@ public class Alpaca extends AlpacaApi
         String code = null;
         String status = null;
         String comment = null;
-        Object intern = null;
+        Boolean intern = null;
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(activityType, null))
         {
@@ -2931,7 +2931,7 @@ public class Alpaca extends AlpacaApi
         final String finalCode_2 = code;
         final String finalStatus = status;
         final String finalComment = comment;
-        final Object finalIntern = intern;
+        final Boolean finalIntern = intern;
         final Map<String, Object> finalFee = fee;
         return new HashMap<String, Object>() {{
             put( "info", transaction );

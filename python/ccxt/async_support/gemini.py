@@ -1419,7 +1419,7 @@ class gemini(Exchange, ImplicitAPI):
         elif type == 'market buy' or type == 'market sell':
             type = 'market'
         else:
-            type = order['type']
+            type = self.safe_string(order, 'type')
         fee = None
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market)

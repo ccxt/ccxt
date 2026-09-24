@@ -1377,28 +1377,28 @@ func (this *Bigone) ParseTrade(trade any, optionalArgs ...any) any {
 	if takerOrMaker != nil {
 		if side != nil && *side == "buy" {
 			if IsEqual(takerOrMaker, "maker") {
-				makerCurrencyCode = GetValue(market, "base")
-				takerCurrencyCode = GetValue(market, "quote")
+				makerCurrencyCode = DerefScalar(this.SafeString(market, "base"))
+				takerCurrencyCode = DerefScalar(this.SafeString(market, "quote"))
 			} else {
-				makerCurrencyCode = GetValue(market, "quote")
-				takerCurrencyCode = GetValue(market, "base")
+				makerCurrencyCode = DerefScalar(this.SafeString(market, "quote"))
+				takerCurrencyCode = DerefScalar(this.SafeString(market, "base"))
 			}
 		} else {
 			if IsEqual(takerOrMaker, "maker") {
-				makerCurrencyCode = GetValue(market, "quote")
-				takerCurrencyCode = GetValue(market, "base")
+				makerCurrencyCode = DerefScalar(this.SafeString(market, "quote"))
+				takerCurrencyCode = DerefScalar(this.SafeString(market, "base"))
 			} else {
-				makerCurrencyCode = GetValue(market, "base")
-				takerCurrencyCode = GetValue(market, "quote")
+				makerCurrencyCode = DerefScalar(this.SafeString(market, "base"))
+				takerCurrencyCode = DerefScalar(this.SafeString(market, "quote"))
 			}
 		}
 	} else if side != nil && *side == "SELF_TRADING" {
 		if takerSide != nil && *takerSide == "BID" {
-			makerCurrencyCode = GetValue(market, "quote")
-			takerCurrencyCode = GetValue(market, "base")
+			makerCurrencyCode = DerefScalar(this.SafeString(market, "quote"))
+			takerCurrencyCode = DerefScalar(this.SafeString(market, "base"))
 		} else if takerSide != nil && *takerSide == "ASK" {
-			makerCurrencyCode = GetValue(market, "base")
-			takerCurrencyCode = GetValue(market, "quote")
+			makerCurrencyCode = DerefScalar(this.SafeString(market, "base"))
+			takerCurrencyCode = DerefScalar(this.SafeString(market, "quote"))
 		}
 	}
 	var makerFeeCost *string = this.SafeString(trade, "maker_fee")

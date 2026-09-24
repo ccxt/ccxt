@@ -15323,7 +15323,7 @@ impl BinanceCore {
             if is_true(&crate::precise::Precise::stringLt(&notionalStringAbs, &get_value(&bracket, &Value::Int(0)))) {
                 break;
             }
-            maintenanceMarginPercentageString = get_value(&bracket, &Value::Int(1));
+            maintenanceMarginPercentageString = self.safe_string(bracket, Value::Int(1), &[]);
         }
         }
         let mut maintenanceMarginPercentage: Value = self.parse_number(maintenanceMarginPercentageString.clone(), &[]);
@@ -15556,7 +15556,7 @@ impl BinanceCore {
             if is_true(&crate::precise::Precise::stringLt(&notionalStringAbs, &get_value(&bracket, &Value::Int(0)))) {
                 break;
             }
-            maintenanceMarginPercentageString = get_value(&bracket, &Value::Int(1));
+            maintenanceMarginPercentageString = self.safe_string(bracket, Value::Int(1), &[]);
         }
         }
         let mut notional: Value = self.parse_number(notionalStringAbs.clone(), &[]);
@@ -17644,11 +17644,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut response: Value = Value::Null;
         let mut code: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            code = market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
+            code = self.safe_string_k(market.clone(), "quote", &[]);
             let __ws_arg_184 = self.extend(request.clone(), &[params.clone()]);
             response = self.fapi_private_post_position_margin(&[__ws_arg_184]).await;
         }  else {
-            code = market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null);
+            code = self.safe_string_k(market.clone(), "base", &[]);
             let __ws_arg_185 = self.extend(request, &[params]);
             response = self.dapi_private_post_position_margin(&[__ws_arg_185]).await;
         }

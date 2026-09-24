@@ -208,7 +208,7 @@ class bybit extends \ccxt\async\bybit {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $isUsdcSettled = $market['settle'] === 'USDC';
-            $type = $market['type'];
+            $type = $this->safe_string($market, 'type');
         } else {
             list($type, $params) = $this->handle_market_type_and_params($method, null, $params);
             $defaultSettle = $this->safe_string($this->options, 'defaultSettle');
@@ -646,13 +646,13 @@ class bybit extends \ccxt\async\bybit {
         $parsed = null;
         if (($updateType === 'snapshot')) {
             $parsed = $this->parse_ticker($data);
-            $symbol = $parsed['symbol'];
+            $symbol = $this->safe_string($parsed, 'symbol');
         } elseif ($updateType === 'delta') {
             $topicParts = explode('.', $topic);
             $topicLength = count($topicParts);
             $marketId = $this->safe_string($topicParts, $topicLength - 1);
             $market = $this->safe_market($marketId, null, null, $type);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol');
             // update the info in place
             $ticker = $this->safe_dict($this->tickers, $symbol, array());
             $rawTicker = $this->safe_dict($ticker, 'info', array());

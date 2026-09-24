@@ -950,7 +950,7 @@ public class Pacifica extends PacificaApi
         Double contractSize = null;
         Object minLeverage = null;
         Long maxLeverage = null;
-        Object crossMargin = null;
+        Boolean crossMargin = null;
         Boolean isolatedMargin = null;
         if (java.util.Objects.equals(id, null))
         {
@@ -999,7 +999,7 @@ public class Pacifica extends PacificaApi
         final Double finalContractSize = contractSize;
         final Object finalMinLeverage = minLeverage;
         final Long finalMaxLeverage = maxLeverage;
-        final Object finalCrossMargin = crossMargin;
+        final Boolean finalCrossMargin = crossMargin;
         final Boolean finalIsolatedMargin = isolatedMargin;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", finalId );

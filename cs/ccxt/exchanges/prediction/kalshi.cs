@@ -2592,8 +2592,8 @@ public partial class kalshi : PredictionExchange
         } else
         {
             // tags / category / series_ticker resolve to a set of series; fetch their events, capped
-            object seriesTickers = await this.resolveEventSeriesTickers(parameters);
-            int seriesTickersLength = getArrayLength(seriesTickers);
+            List<object> seriesTickers = await this.resolveEventSeriesTickers(parameters);
+            int seriesTickersLength = (seriesTickers?.Count ?? 0);
             if ((seriesTickersLength == 0))
             {
                 this.requireEventQuery(parameters);
@@ -2723,7 +2723,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] the fetchEvents params carrying tags / category / series_ticker
      * @returns {string[]} deduplicated series tickers
      */
-    public async virtual Task<object> resolveEventSeriesTickers(object parameters = null)
+    public async virtual Task<List<object>> resolveEventSeriesTickers(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> collected = new List<object>() {};

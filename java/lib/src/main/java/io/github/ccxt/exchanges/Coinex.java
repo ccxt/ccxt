@@ -2026,10 +2026,10 @@ public class Coinex extends CoinexApi
         //     }
         //
         Long timestamp = this.safeInteger(trade, "created_at");
-        Object defaultType = this.safeString(this.options, "defaultType");
+        String defaultType = this.safeString(this.options, "defaultType");
         if (!java.util.Objects.equals(market, null))
         {
-            defaultType = ((Map<String, Object>)market).get("type");
+            defaultType = this.safeString(market, "type");
         }
         String marketId = this.safeString(trade, "market");
         market = (Map<String, Object>) (this.safeMarket(marketId, market, null, defaultType));
@@ -2896,10 +2896,10 @@ public class Coinex extends CoinexApi
         String marketType = (((java.util.Objects.equals(orderType, "swap")))) ? "swap" : "spot";
         market = (Map<String, Object>) (this.safeMarket(marketId, market, null, marketType));
         String feeCurrencyId = this.safeString(order, "fee_ccy");
-        Object feeCurrency = this.safeCurrencyCode(feeCurrencyId);
+        String feeCurrency = this.safeCurrencyCode(feeCurrencyId);
         if (java.util.Objects.equals(feeCurrency, null))
         {
-            feeCurrency = ((Map<String, Object>)market).get("quote");
+            feeCurrency = this.safeString(market, "quote");
         }
         String side = this.safeString(order, "side");
         if (java.util.Objects.equals(side, "long"))
@@ -2918,7 +2918,7 @@ public class Coinex extends CoinexApi
         final Long finalUpdatedTimestamp = updatedTimestamp;
         final Map<String, Object> finalMarket = market;
         final String finalSide = side;
-        final Object finalFeeCurrency = feeCurrency;
+        final String finalFeeCurrency = feeCurrency;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Coinex.this.safeStringN(order, new ArrayList<Object>(Arrays.asList("position_id", "order_id", "stop_id"))) );
             put( "clientOrderId", finalClientOrderId );

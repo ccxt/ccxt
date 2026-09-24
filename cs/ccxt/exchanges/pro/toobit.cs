@@ -208,9 +208,9 @@ public partial class toobit : ccxt.toobit
         List<object> subParams = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
-            messageHashes.Add(("trade::" + (symbol)));
+            messageHashes.Add(("trade::" + symbol));
             string? rawHash = ((string)(market.ContainsKey("id") ? market["id"] : null));
             subParams.Add(rawHash);
         }
@@ -486,9 +486,9 @@ public partial class toobit : ccxt.toobit
         List<object> subParams = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
-            messageHashes.Add(("ticker::" + (symbol)));
+            messageHashes.Add(("ticker::" + symbol));
             string? rawHash = ((string)(market.ContainsKey("id") ? market["id"] : null));
             subParams.Add(rawHash);
         }
@@ -624,9 +624,9 @@ public partial class toobit : ccxt.toobit
         List<object> subParams = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
-            messageHashes.Add(((("orderBook::" + (symbol)) + "::") + channel));
+            messageHashes.Add(((("orderBook::" + symbol) + "::") + channel));
             string? rawHash = ((string)(market.ContainsKey("id") ? market["id"] : null));
             subParams.Add(rawHash);
         }

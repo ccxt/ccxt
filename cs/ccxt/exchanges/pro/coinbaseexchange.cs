@@ -102,7 +102,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         List<object> productIds = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             market = this.market(symbol);
             productIds.Add((market.ContainsKey("id") ? market["id"] : null));
             messageHashes.Add(add(add(messageHashStart, ":"), (market.ContainsKey("symbol") ? market["symbol"] : null)));

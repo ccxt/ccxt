@@ -2576,16 +2576,16 @@ public class Dydx extends DydxApi
             String defaultFeeDenom = this.safeString(this.options, "defaultFeeDenom");
             String defaultFeeMultiplier = this.safeString(this.options, "defaultFeeMultiplier");
             Map<String, Object> feeDenom = (Map<String, Object>) this.safeDict(this.options, "feeDenom", new HashMap<String, Object>() {{}});
-            Object gasPrice = null;
-            Object denom = null;
+            String gasPrice = null;
+            String denom = null;
             if (java.util.Objects.equals(defaultFeeDenom, "uusdc"))
             {
-                gasPrice = ((Map<String, Object>)feeDenom).get("USDC_GAS_PRICE");
-                denom = ((Map<String, Object>)feeDenom).get("USDC_DENOM");
+                gasPrice = this.safeString(feeDenom, "USDC_GAS_PRICE");
+                denom = this.safeString(feeDenom, "USDC_DENOM");
             } else
             {
-                gasPrice = ((Map<String, Object>)feeDenom).get("CHAINTOKEN_GAS_PRICE");
-                denom = ((Map<String, Object>)feeDenom).get("CHAINTOKEN_DENOM");
+                gasPrice = this.safeString(feeDenom, "CHAINTOKEN_GAS_PRICE");
+                denom = this.safeString(feeDenom, "CHAINTOKEN_DENOM");
             }
             Double gasLimit = Math.ceil(Double.parseDouble(Helpers.toString(this.parseToNumeric(Precise.stringMul(gasUsed, defaultFeeMultiplier)))));
             String feeAmount = Precise.stringMul(this.numberToString(gasLimit), gasPrice);
@@ -2598,7 +2598,7 @@ public class Dydx extends DydxApi
                 feeAmount = this.numberToString(Math.ceil(Double.parseDouble(Helpers.toString(this.parseToNumeric(feeAmount)))));
             }
             final String finalFeeAmount = feeAmount;
-            final Object finalDenom = denom;
+            final String finalDenom = denom;
             Map<String, Object> feeObj = new HashMap<String, Object>() {{
                 put( "amount", finalFeeAmount );
                 put( "denom", finalDenom );

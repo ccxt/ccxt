@@ -2267,9 +2267,9 @@ func (this *Alpaca) ParseDepositAddress(depositAddress any, optionalArgs ...any)
 	//
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	var parsedCurrency any = nil
+	var parsedCurrency *string = nil
 	if currency != nil {
-		parsedCurrency = GetValue(currency, "id")
+		parsedCurrency = this.SafeString(currency, "id")
 	}
 	return map[string]any{
 		"info":     depositAddress,

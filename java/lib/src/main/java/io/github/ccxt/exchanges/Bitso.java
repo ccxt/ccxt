@@ -849,7 +849,7 @@ public class Bitso extends BitsoApi
 
     public Object parseBalance(Object response)
     {
-        Object payload = this.safeValue(response, "payload", new HashMap<String, Object>() {{}});
+        Map<String, Object> payload = (Map<String, Object>) this.safeDict(response, "payload", new HashMap<String, Object>() {{}});
         List<Object> balances = (List<Object>) this.safeList(payload, "balances", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );

@@ -1342,7 +1342,7 @@ public class Bitfinex extends BitfinexApi
                 throw new ExchangeError(((this.id + " fetchBalance() type parameter must be one of ") + String.join(", ", (List<String>)keys))) ;
             }
             Boolean isDerivative = java.util.Objects.equals(requestedType, "derivatives");
-            Object query = this.omit(parameters, "type");
+            Map<String, Object> query = (Map<String, Object>) this.omit(parameters, "type");
             List<Object> response = (this.privatePostAuthRWallets(query)).join();
             List<Object> balances = this.toArray(response);
             Map<String, Object> result = new HashMap<String, Object>() {{
@@ -3571,7 +3571,7 @@ public class Bitfinex extends BitfinexApi
         Integer transactionLength = ((List<?>)transaction).size();
         Long timestamp = null;
         Long updated = null;
-        Object code = null;
+        String code = null;
         Object amount = null;
         Object id = null;
         String status = null;
@@ -3588,7 +3588,7 @@ public class Bitfinex extends BitfinexApi
             timestamp = this.safeInteger(transaction, 0);
             if (!java.util.Objects.equals(currency, null))
             {
-                code = ((Map<String, Object>)currency).get("code");
+                code = this.safeString(currency, "code");
             }
             feeCost = this.safeString(data, 8);
             if (!java.util.Objects.equals(feeCost, null))
@@ -3641,7 +3641,7 @@ public class Bitfinex extends BitfinexApi
         final Object finalId = id;
         final String finalTxid = txid;
         final String finalType = type;
-        final Object finalCode = code;
+        final String finalCode = code;
         final Object finalNetwork = network;
         final Object finalAmount = amount;
         final String finalStatus = status;

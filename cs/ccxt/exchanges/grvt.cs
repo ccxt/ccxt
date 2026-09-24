@@ -1764,7 +1764,7 @@ public partial class grvt : Exchange
         bool? useTransfersEndpoint = this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
         if ((useTransfersEndpoint == true))
         {
-            object transfers = await this.internalFetchTransfers(this.extend(request, parameters), currency, since, limit);
+            List<object> transfers = await this.internalFetchTransfers(this.extend(request, parameters), currency, since, limit);
             List<object> filteredResults = this.filterTransfersByType(transfers, "deposit", true);
             List<object> transactions = this.getListFromObjectValues(getValue(filteredResults, 0), "info");
             return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(transactions, currency, since, limit));
@@ -1831,7 +1831,7 @@ public partial class grvt : Exchange
         bool? useTransfersEndpoint = this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
         if ((useTransfersEndpoint == true))
         {
-            object transfers = await this.internalFetchTransfers(this.extend(request, parameters), currency, since, limit);
+            List<object> transfers = await this.internalFetchTransfers(this.extend(request, parameters), currency, since, limit);
             List<object> filteredResults = this.filterTransfersByType(transfers, "withdrawal", true);
             List<object> transactions = this.getListFromObjectValues(getValue(filteredResults, 0), "info");
             return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(transactions, currency, since, limit));
@@ -1867,7 +1867,7 @@ public partial class grvt : Exchange
         }
     }
 
-    public async virtual Task<object> internalFetchTransfers(object req, IDictionary<string, object> currency = null, Int64? since = null, Int64? limit = null)
+    public async virtual Task<List<object>> internalFetchTransfers(object req, IDictionary<string, object> currency = null, Int64? since = null, Int64? limit = null)
     {
         Dictionary<string, object> response = await this.privateTradingPostFullV1TransferHistory(req);
         //
@@ -2772,7 +2772,7 @@ public partial class grvt : Exchange
             request["quote"] = new List<object>() {};
             for (int i = 0; i < getArrayLength(symbols); i++)
             {
-                object symbol = getValue(symbols, i);
+                string? symbol = ((string)getValue(symbols, i));
                 Dictionary<string, object> market = this.market(symbol);
                 if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) != true))
                 {

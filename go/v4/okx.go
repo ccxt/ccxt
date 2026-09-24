@@ -10342,14 +10342,14 @@ func (this *Okx) fetchOpenInterestHistoryBody(ch chan any, symbol any, optionalA
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	// handle unified currency code or symbol
-	var currencyId any = nil
+	var currencyId *string = nil
 	var market map[string]any = nil
 	if ((this.Markets != nil) && (InOp(this.Markets, symbol))) || ((this.Markets_by_id != nil) && (InOp(this.Markets_by_id, symbol))) {
 		market = this.Market(symbol)
-		currencyId = GetValue(market, "baseId")
+		currencyId = this.SafeString(market, "baseId")
 	} else {
 		var currency map[string]any = MapTyped(this.Currency(symbol))
-		currencyId = currency["id"]
+		currencyId = this.SafeString(currency, "id")
 	}
 	var request map[string]any = map[string]any{
 		"ccy":    currencyId,

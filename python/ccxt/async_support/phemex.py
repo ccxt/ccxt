@@ -3670,7 +3670,7 @@ class phemex(Exchange, ImplicitAPI):
         firstSymbol = self.safe_string(symbols, 0)
         if firstSymbol is not None:
             market = self.market(firstSymbol)
-            settle = market['settle']
+            settle = self.safe_string(market, 'settle')
             code = market['settle']
         else:
             settle, params = self.handle_option_string_and_params(params, 'fetchPositions', 'settle', code)
@@ -5192,7 +5192,7 @@ class phemex(Exchange, ImplicitAPI):
         firstSymbol = self.safe_string(symbols, 0)
         if firstSymbol is not None:
             market = self.market(firstSymbol)
-            settle = market['settle']
+            settle = self.safe_string(market, 'settle')
             code = market['settle']
         else:
             settle, params = self.handle_option_string_and_params(params, 'fetchPositionsADLRank', 'settle', code)

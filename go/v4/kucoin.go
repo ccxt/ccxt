@@ -7159,7 +7159,7 @@ func (this *Kucoin) fetchUtaOrdersByStatusBody(ch chan any, status any, optional
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		marketType = GetValue(market, "type")
+		marketType = this.SafeString(market, "type")
 		request["symbol"] = GetValue(market, "id")
 	} else {
 		marketType = this.SafeString(params, "marketType")
@@ -7432,16 +7432,16 @@ func (this *Kucoin) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		ch <- BoxAbsent(retRes596919)
 		return nil
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	if symbol == nil {
 		var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrder", nil, params)
-		marketType = GetValue(marketTypeparamsVariable, 0)
+		marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 		params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	} else {
 		var market map[string]any = MapTyped(this.Market(symbol))
-		marketType = market["type"]
+		marketType = this.SafeString(market, "type")
 	}
-	if (IsEqual(marketType, "spot")) || (IsEqual(marketType, "margin")) {
+	if (marketType != nil && *marketType == "spot") || (marketType != nil && *marketType == "margin") {
 
 		var retRes597919 map[string]any = MapTyped(PanicOnError((<-this.FetchSpotOrderAsync(id, symbol, params))))
 		ch <- BoxAbsent(retRes597919)

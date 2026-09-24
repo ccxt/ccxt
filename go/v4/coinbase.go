@@ -1046,20 +1046,20 @@ func (this *Coinbase) createDepositAddressBody(ch chan any, code any, optionalAr
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var accountId any = DerefScalar(this.SafeString(params, "account_id"))
+	var accountId *string = this.SafeString(params, "account_id")
 	params = MapTyped(this.Omit(params, "account_id"))
-	if IsEqual(accountId, nil) {
+	if accountId == nil {
 
 		PanicOnError((<-this.LoadAccountsAsync()))
 		for i := 0; i < GetArrayLength(this.Accounts); i++ {
 			var account any = GetValue(this.Accounts, i)
 			if IsEqual(GetValue(account, "code"), code) && IsEqual(GetValue(account, "type"), "wallet") {
-				accountId = GetValue(account, "id")
+				accountId = this.SafeString(account, "id")
 				break
 			}
 		}
 	}
-	if IsEqual(accountId, nil) {
+	if accountId == nil {
 		panic(ExchangeError(Add(Add(this.Id+" createDepositAddress() could not find the account with matching currency code ", code), ", specify an `account_id` extra param to target specific wallet")))
 	}
 	var request map[string]any = map[string]any{
@@ -1714,10 +1714,10 @@ func (this *Coinbase) ParseTrade(trade any, optionalArgs ...any) any {
 	} else {
 		cost = costString
 	}
-	var feeCurrencyId any = DerefScalar(this.SafeString(feeObject, "currency"))
+	var feeCurrencyId *string = this.SafeString(feeObject, "currency")
 	var feeCost *float64 = this.SafeNumber(feeObject, "amount", this.ParseNumber(v3FeeCost))
-	if (IsEqual(feeCurrencyId, nil)) && (market != nil) && (feeCost != nil) {
-		feeCurrencyId = GetValue(market, "quote")
+	if (feeCurrencyId == nil) && (market != nil) && (feeCost != nil) {
+		feeCurrencyId = this.SafeString(market, "quote")
 	}
 	var datetime *string = this.SafeStringN(trade, []any{"created_at", "trade_time", "time"})
 	var side *string = this.SafeStringLower2(trade, "resource", "side")
@@ -4204,9 +4204,9 @@ func (this *Coinbase) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var datetime *string = this.SafeString(order, "created_time")
 	var totalFees *string = this.SafeString(order, "total_fees")
-	var currencyFee any = nil
+	var currencyFee *string = nil
 	if (totalFees != nil) && (market != nil) {
-		currencyFee = GetValue(market, "quote")
+		currencyFee = this.SafeString(market, "quote")
 	}
 	return this.SafeOrder(map[string]any{
 		"info":               order,

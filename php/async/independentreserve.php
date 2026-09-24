@@ -615,7 +615,7 @@ class independentreserve extends Exchange {
         } elseif ($market !== null) {
             $symbol = $market['symbol'];
             $base = $market['base'];
-            $quote = $market['quote'];
+            $quote = $this->safe_string($market, 'quote');
         }
         $orderType = $this->safe_string_2($order, 'Type', 'OrderType');
         $side = null;

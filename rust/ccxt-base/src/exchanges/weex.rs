@@ -2530,9 +2530,9 @@ impl WeexCore {
             let mut feeCurrency: Value = self.safe_currency_code(commissionAsset, &[]);
             if (isSpot.as_bool() == Some(true)) {
                 if (side.as_str() == Some("buy")) {
-                    feeCurrency = market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null);
+                    feeCurrency = self.safe_string_k(market.clone(), "base", &[]);
                 }  else {
-                    feeCurrency = market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
+                    feeCurrency = self.safe_string_k(market.clone(), "quote", &[]);
                 }
             }
             fee = Value::Map({

@@ -925,7 +925,7 @@ class htx extends \ccxt\async\htx {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $type = $market['type'];
+            $type = $this->safe_string($market, 'type');
             $subType = ($market['linear'] === true) ? 'linear' : 'inverse';
             $marketId = $market['lowercaseId'];
         } else {
@@ -1059,7 +1059,7 @@ class htx extends \ccxt\async\htx {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $type = $market['type'];
+            $type = $this->safe_string($market, 'type');
             $suffix = $market['lowercaseId'];
             $subType = ($market['linear'] === true) ? 'linear' : 'inverse';
         } else {
@@ -1664,7 +1664,7 @@ class htx extends \ccxt\async\htx {
         $type = null;
         $subType = null;
         if ($market !== null) {
-            $type = $market['type'];
+            $type = $this->safe_string($market, 'type');
             $subType = ($market['linear'] === true) ? 'linear' : 'inverse';
         } else {
             list($type, $params) = $this->handle_market_type_and_params('watchPositions', $market, $params);

@@ -1386,7 +1386,7 @@ class luno(Exchange, ImplicitAPI):
             account = self.safe_dict(accountsByCurrencyCode, code)
             if account is None:
                 raise ExchangeError(self.id + ' fetchLedger() could not find account id for ' + code)
-            id = account['id']
+            id = self.safe_string(account, 'id')
         if min_row is None and max_row is None:
             max_row = 0  # Default to most recent transactions
             min_row = -1000  # Maximum number of records supported

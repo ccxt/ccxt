@@ -1487,12 +1487,12 @@ func (this *Aster) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes an
 	}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
 		var data any = ccxt.GetValue(symbolsAndTimeframes, i)
-		var symbolString any = ccxt.DerefScalar(this.SafeString(data, 0))
-		if ccxt.IsEqual(symbolString, nil) {
+		var symbolString *string = this.SafeString(data, 0)
+		if symbolString == nil {
 			continue
 		}
 		var market map[string]any = ccxt.MapTyped(this.Market(symbolString))
-		symbolString = market["symbol"]
+		symbolString = this.SafeString(market, "symbol")
 		var unfiedTimeframe *string = this.SafeString(data, 1)
 		var timeframeId any = func() any {
 			if unfiedTimeframe == nil {
@@ -1562,12 +1562,12 @@ func (this *Aster) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 	}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
 		var data any = ccxt.GetValue(symbolsAndTimeframes, i)
-		var symbolString any = ccxt.DerefScalar(this.SafeString(data, 0))
-		if ccxt.IsEqual(symbolString, nil) {
+		var symbolString *string = this.SafeString(data, 0)
+		if symbolString == nil {
 			continue
 		}
 		var market map[string]any = ccxt.MapTyped(this.Market(symbolString))
-		symbolString = market["symbol"]
+		symbolString = this.SafeString(market, "symbol")
 		var unfiedTimeframe *string = this.SafeString(data, 1)
 		var timeframeId any = func() any {
 			if unfiedTimeframe == nil {

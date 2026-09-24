@@ -8402,10 +8402,10 @@ class okx extends Exchange {
         $market = null;
         if ((($this->markets !== null) && (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets))) || (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($symbol ?? '', $this->markets_by_id)))) {
             $market = $this->market($symbol);
-            $currencyId = $market['baseId'];
+            $currencyId = $this->safe_string($market, 'baseId');
         } else {
             $currency = $this->currency($symbol);
-            $currencyId = $currency['id'];
+            $currencyId = $this->safe_string($currency, 'id');
         }
         $request = array(
             'ccy' => $currencyId,

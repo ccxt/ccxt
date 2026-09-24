@@ -1511,7 +1511,7 @@ class kraken extends Exchange {
             if (is_array($trade) && array_key_exists('fee' ?? '', $trade)) {
                 $currency = null;
                 if ($market !== null) {
-                    $currency = $market['quote'];
+                    $currency = $this->safe_string($market, 'quote');
                 }
                 $fee = array(
                     'cost' => $this->safe_string($trade, 'fee'),
@@ -1528,7 +1528,7 @@ class kraken extends Exchange {
             $amount = $this->safe_string($trade, 'qty');
         }
         if ($market !== null) {
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol');
         }
         $cost = $this->safe_string($trade, 'cost');
         $maker = $this->safe_bool($trade, 'maker');
@@ -2077,7 +2077,7 @@ class kraken extends Exchange {
         $isPostOnly = mb_strpos($flags, 'post') > -1;
         $average = $this->safe_number($order, 'price');
         if ($market !== null) {
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol');
             if (is_array($order) && array_key_exists('fee' ?? '', $order)) {
                 $feeCost = $this->safe_string($order, 'fee');
                 $fee = array(

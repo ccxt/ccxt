@@ -1721,10 +1721,10 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         //         ]
         //     }
         //
-        Object symbol = this.safeString(trade, "symbol");
+        String symbol = this.safeString(trade, "symbol");
         if (!java.util.Objects.equals(market, null))
         {
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = this.safeString(market, "symbol");
         }
         Map<String, Object> fee = null;
         if (trade.containsKey("fees"))
@@ -1739,7 +1739,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         String datetime = this.safeString(trade, "timestamp");
         String liquidityIndicator = this.safeString(trade, "liquidity_ind");
         String takerOrMaker = (((java.util.Objects.equals(liquidityIndicator, "t")))) ? "taker" : "maker";
-        final Object finalSymbol = symbol;
+        final String finalSymbol = symbol;
         final Map<String, Object> finalFee = fee;
         return new HashMap<String, Object>() {{
             put( "info", trade );

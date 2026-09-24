@@ -1597,9 +1597,9 @@ func (this *Kraken) ParseWsTrade(trade any, optionalArgs ...any) any {
 	//
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var symbol any = ccxt.DerefScalar(this.SafeString(trade, "symbol"))
+	var symbol *string = this.SafeString(trade, "symbol")
 	if market != nil {
-		symbol = ccxt.GetValue(market, "symbol")
+		symbol = this.SafeString(market, "symbol")
 	}
 	var fee map[string]any = nil
 	if ccxt.InOp(trade, "fees") {

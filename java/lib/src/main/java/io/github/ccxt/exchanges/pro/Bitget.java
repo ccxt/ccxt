@@ -2124,7 +2124,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = null;
-            Object marketId = null;
+            String marketId = null;
             Object isTrigger = null;
             var isTriggerparametersVariable = this.isTriggerOrder(parameters);
             isTrigger = ((List<Object>) isTriggerparametersVariable).get(0);
@@ -2135,7 +2135,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 market = (Map<String, Object>) this.market(symbol);
                 symbol = (String) ((Map<String, Object>)market).get("symbol");
-                marketId = ((Map<String, Object>)market).get("id");
+                marketId = this.safeString(market, "id");
                 messageHash = ((messageHash + ":") + symbol);
             }
             Object uta = null;
@@ -2186,7 +2186,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 subscriptionHash = (subscriptionHash + ":stop"); // we don't want to re-use the same subscription hash for stop orders
             }
-            Object instId = (((java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin")))) ? marketId : "default"; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
+            String instId = (((java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin")))) ? marketId : "default"; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
             String channel = (((java.util.Objects.equals(isTrigger, true)))) ? "orders-algo" : "orders";
             String marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("watchOrders", parameters);
@@ -2405,8 +2405,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         List<String> keys = new ArrayList<String>(marketSymbols.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object symbol = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Object innerMessageHash = Helpers.add((messageHash + ":"), symbol);
+            String symbol = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String innerMessageHash = ((messageHash + ":") + symbol);
             if (java.util.Objects.equals(channel, "orders-crossed"))
             {
                 innerMessageHash = (innerMessageHash + ":cross");

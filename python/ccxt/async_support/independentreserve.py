@@ -583,7 +583,7 @@ class independentreserve(Exchange, ImplicitAPI):
         elif market is not None:
             symbol = market['symbol']
             base = market['base']
-            quote = market['quote']
+            quote = self.safe_string(market, 'quote')
         orderType = self.safe_string_2(order, 'Type', 'OrderType')
         side = None
         if orderType is not None:

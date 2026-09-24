@@ -2304,7 +2304,7 @@ class ndax extends Exchange {
         $tag = $this->safe_string($parts, 1);
         $code = null;
         if ($currency !== null) {
-            $code = $currency['code'];
+            $code = $this->safe_string($currency, 'code');
         }
         $this->check_address($address);
         return array(

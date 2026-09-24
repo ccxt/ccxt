@@ -970,7 +970,7 @@ public partial class coinbase : Exchange
     public async override Task<ccxt.DepositAddress> CreateDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object accountId = this.safeString(parameters, "account_id");
+        string? accountId = this.safeString(parameters, "account_id");
         parameters = this.omit(parameters, "account_id");
         if ((accountId == null))
         {
@@ -980,7 +980,7 @@ public partial class coinbase : Exchange
                 IDictionary<string, object> account = ((IDictionary<string, object>)getValue(this.accounts, i));
                 if (isEqual((account != null && ((IDictionary<string, object>)account).ContainsKey("code") ? ((IDictionary<string, object>)account)["code"] : null), code) && (((account != null && ((IDictionary<string, object>)account).ContainsKey("type") ? ((IDictionary<string, object>)account)["type"] : null) as string) == "wallet"))
                 {
-                    accountId = (account != null && ((IDictionary<string, object>)account).ContainsKey("id") ? ((IDictionary<string, object>)account)["id"] : null);
+                    accountId = this.safeString(account, "id");
                     break;
                 }
             }
@@ -1540,11 +1540,11 @@ public partial class coinbase : Exchange
         {
             cost = costString;
         }
-        object feeCurrencyId = this.safeString(feeObject, "currency");
+        string? feeCurrencyId = this.safeString(feeObject, "currency");
         double? feeCost = this.safeNumber(feeObject, "amount", this.parseNumber(v3FeeCost));
         if (((feeCurrencyId == null)) && ((market != null)) && ((feeCost != null)))
         {
-            feeCurrencyId = getValue(market, "quote");
+            feeCurrencyId = this.safeString(market, "quote");
         }
         string? datetime = this.safeStringN(trade, new List<object>() {"created_at", "trade_time", "time"});
         string? side = this.safeStringLower2(trade, "resource", "side");
@@ -3782,10 +3782,10 @@ public partial class coinbase : Exchange
         }
         string? datetime = this.safeString(order, "created_time");
         string? totalFees = this.safeString(order, "total_fees");
-        object currencyFee = null;
+        string? currencyFee = null;
         if (((totalFees != null)) && ((market != null)))
         {
-            currencyFee = getValue(market, "quote");
+            currencyFee = this.safeString(market, "quote");
         }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },

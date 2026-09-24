@@ -2200,12 +2200,12 @@ func (this *Weex) ParseTrade(trade any, optionalArgs ...any) any {
 	var commission *string = this.SafeString(trade, "commission")
 	if commission != nil {
 		var commissionAsset *string = this.SafeString(trade, "commissionAsset")
-		var feeCurrency any = DerefScalar(this.SafeCurrencyCode(commissionAsset))
+		var feeCurrency *string = this.SafeCurrencyCode(commissionAsset)
 		if isSpot == true {
 			if side != nil && *side == "buy" {
-				feeCurrency = GetValue(market, "base")
+				feeCurrency = this.SafeString(market, "base")
 			} else {
-				feeCurrency = GetValue(market, "quote")
+				feeCurrency = this.SafeString(market, "quote")
 			}
 		}
 		fee = map[string]any{

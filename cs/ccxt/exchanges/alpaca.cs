@@ -2048,10 +2048,10 @@ public partial class alpaca : Exchange
         //         "created_at": "2024-11-03T07:30:05.609976344Z"
         //     }
         //
-        object parsedCurrency = null;
+        string? parsedCurrency = null;
         if ((currency != null))
         {
-            parsedCurrency = (currency != null && currency.ContainsKey("id") ? currency["id"] : null);
+            parsedCurrency = this.safeString(currency, "id");
         }
         return new Dictionary<string, object>() {
             { "info", depositAddress },

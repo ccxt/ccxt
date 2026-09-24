@@ -2960,7 +2960,7 @@ impl BithumbCore {
         if (feeCost != Value::Null) {
             let mut currency: Value = Value::Null;
             if (market != Value::Null) {
-                currency = market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
+                currency = self.safe_string_k(market.clone(), "quote", &[]);
             }
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();

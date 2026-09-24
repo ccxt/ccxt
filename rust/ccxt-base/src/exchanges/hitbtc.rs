@@ -2332,7 +2332,7 @@ impl HitbtcCore {
         let mut addressTo: Value = address.clone();
         let mut tag: Value = self.safe_string_k(native.clone(), "payment_id", &[]);
         let mut tagTo: Value = tag.clone();
-        let mut sender: Value = self.safe_value_k(native.clone(), "senders", &[]);
+        let mut sender: Value = self.safe_list_k(native.clone(), "senders", &[]);
         let mut addressFrom: Value = self.safe_string(sender, Value::Int(0), &[]);
         let mut amount: Value = self.safe_number_k(native.clone(), "amount", &[]);
         let mut subType: Option<String> = self.safe_string_k(transaction.clone(), "subtype", &[]).as_str().map(str::to_owned);
@@ -3512,7 +3512,7 @@ impl HitbtcCore {
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut postOnly: Value = self.safe_value_k(order.clone(), "post_only", &[]);
         let mut timeInForce: Value = self.safe_string_k(order.clone(), "time_in_force", &[]);
-        let mut rawTrades: Value = self.safe_value_k(order.clone(), "trades", &[]);
+        let mut rawTrades: Value = self.safe_list_k(order.clone(), "trades", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());

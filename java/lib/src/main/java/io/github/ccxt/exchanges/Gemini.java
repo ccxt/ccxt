@@ -2025,7 +2025,7 @@ public class Gemini extends GeminiApi
         }
         String price = this.safeString(order, "price");
         String average = this.safeString(order, "avg_execution_price");
-        Object type = this.safeString(order, "type");
+        String type = this.safeString(order, "type");
         if (java.util.Objects.equals(type, "exchange limit"))
         {
             type = "limit";
@@ -2034,7 +2034,7 @@ public class Gemini extends GeminiApi
             type = "market";
         } else
         {
-            type = ((Map<String, Object>)order).get("type");
+            type = this.safeString(order, "type");
         }
         Object fee = null;
         String marketId = this.safeString(order, "symbol");
@@ -2061,7 +2061,7 @@ public class Gemini extends GeminiApi
             }
         }
         final String finalStatus = status;
-        final Object finalType = type;
+        final String finalType = type;
         final String finalTimeInForce = timeInForce;
         final Boolean finalPostOnly = postOnly;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{

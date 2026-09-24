@@ -1717,7 +1717,7 @@ class foxbit(Exchange, ImplicitAPI):
         if market is None and symbol is not None:
             market = self.market(symbol)
         if market is not None:
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol')
         timestamp = self.parse_date(self.safe_string(order, 'created_at'))
         price = self.safe_string(order, 'price')
         filled = self.safe_string(order, 'quantity_executed')

@@ -2513,7 +2513,7 @@ impl AlpacaCore {
         //
         let mut parsedCurrency: Value = Value::Null;
         if (currency != Value::Null) {
-            parsedCurrency = currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
+            parsedCurrency = self.safe_string_k(currency, "id", &[]);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

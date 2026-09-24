@@ -2212,7 +2212,7 @@ class ndax(Exchange, ImplicitAPI):
         tag = self.safe_string(parts, 1)
         code = None
         if currency is not None:
-            code = currency['code']
+            code = self.safe_string(currency, 'code')
         self.check_address(address)
         return {
             'info': depositAddress,

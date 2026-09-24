@@ -230,7 +230,7 @@ public class Opinion extends OpinionApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit")));
+            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit")));
             Long userLimit = this.safeInteger(parameters, "limit");
             Long pageLimit = this.safeInteger(this.options, "marketsPageLimit", 20);
             Long maxPages = this.safeInteger(this.options, "maxMarketsPages", 50);
@@ -400,7 +400,7 @@ public class Opinion extends OpinionApi
             Object label = (outcomeLabels == null || i < 0 || i >= outcomeLabels.size() ? null : outcomeLabels.get(i));
             Object tokenId = (outcomeTokenIds == null || i < 0 || i >= outcomeTokenIds.size() ? null : outcomeTokenIds.get(i));
             Object outcomeHandle = this.slugToOutcomeSymbol((String) (effectiveEventSlug), (String) (slug), (String) (label));
-            Object winner = null;
+            Boolean winner = null;
             Object settleFraction = null;
             if (Boolean.TRUE.equals(hasResult))
             {
@@ -412,7 +412,7 @@ public class Opinion extends OpinionApi
                 }
             }
 final Object finalTokenId = tokenId;
-            final Object finalWinner = winner;
+            final Boolean finalWinner = winner;
             final Object finalSettleFraction = settleFraction;
                         ((List<Object>)outcomes).add(new HashMap<String, Object>() {{
                 put( "id", finalTokenId );
@@ -429,14 +429,14 @@ final Object finalTokenId = tokenId;
         Object marketResolvedOutcome = resolvedOutcome;
         // the venue sends cutoffAt 0 for markets without a scheduled cutoff - map it to
         // undefined instead of the epoch, same for the event-level end date
-        Object expiryTimestamp = null;
+        Long expiryTimestamp = null;
         if (!Helpers.isEqual(this.safeInteger(raw, "cutoffAt", 0), 0))
         {
             expiryTimestamp = this.safeTimestamp(raw, "cutoffAt");
         }
         Long created = this.safeTimestamp(raw, "createdAt");
         final Boolean finalResolved = resolved;
-        final Object finalExpiryTimestamp = expiryTimestamp;
+        final Long finalExpiryTimestamp = expiryTimestamp;
         return new HashMap<String, Object>() {{
             put( "id", marketId );
             put( "market", marketSymbol );
@@ -804,7 +804,7 @@ final Object finalTokenId = tokenId;
         String statusEnum = this.safeString(rawEvent, "statusEnum");
         Boolean active = (java.util.Objects.equals(statusEnum, "Activated"));
         Boolean resolved = (java.util.Objects.equals(statusEnum, "Resolved"));
-        Object end = null;
+        Long end = null;
         if (!Helpers.isEqual(this.safeInteger(rawEvent, "cutoffAt", 0), 0))
         {
             end = this.safeTimestamp(rawEvent, "cutoffAt");
@@ -812,7 +812,7 @@ final Object finalTokenId = tokenId;
         Long created = this.safeTimestamp(rawEvent, "createdAt");
         List<Object> labels = (List<Object>) this.safeList(rawEvent, "labels", new ArrayList<Object>(Arrays.asList()));
         final String finalTitle = title;
-        final Object finalEnd = end;
+        final Long finalEnd = end;
         return this.extend(new HashMap<String, Object>() {{
             put( "id", eventId );
             put( "event", eventHandle );
@@ -1428,7 +1428,7 @@ final Object finalTokenId = tokenId;
             Integer sideInt = (((java.util.Objects.equals(sideStr, "BUY")))) ? 0 : 1;
             String salt = this.numberToString(this.milliseconds());
             Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
-            Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("postOnly")));
+            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("postOnly")));
             String maker = (this.loadMultiSignAddress()).join();
             // Ethereum addresses are case-insensitive - a checksummed multiSignAddress compared
             // against a differently-cased walletAddress with strict equality would pick the wrong

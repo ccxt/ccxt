@@ -1851,7 +1851,7 @@ class alpaca extends Exchange {
         //
         $parsedCurrency = null;
         if ($currency !== null) {
-            $parsedCurrency = $currency['id'];
+            $parsedCurrency = $this->safe_string($currency, 'id');
         }
         return array(
             'info' => $depositAddress,

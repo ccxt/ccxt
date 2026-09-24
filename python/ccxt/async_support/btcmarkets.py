@@ -1080,13 +1080,13 @@ class btcmarkets(Exchange, ImplicitAPI):
         currency = None
         cost = None
         if market['quote'] == 'AUD':
-            currency = market['quote']
+            currency = self.safe_string(market, 'quote')
             amountString = self.number_to_string(amount)
             priceString = self.number_to_string(price)
             otherUnitsAmount = Precise.string_mul(amountString, priceString)
             cost = self.cost_to_precision(symbol, otherUnitsAmount)
         else:
-            currency = market['base']
+            currency = self.safe_string(market, 'base')
             cost = self.amount_to_precision(symbol, amount)
         rate = self.safe_value(market, takerOrMaker)
         rateCost = Precise.string_mul(self.number_to_string(rate), cost)

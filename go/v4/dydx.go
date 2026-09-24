@@ -2350,14 +2350,14 @@ func (this *Dydx) estimateTxFeeBody(ch chan any, message any, memo any, account 
 	var defaultFeeDenom *string = this.SafeString(this.Options, "defaultFeeDenom")
 	var defaultFeeMultiplier *string = this.SafeString(this.Options, "defaultFeeMultiplier")
 	var feeDenom map[string]any = SafeMapTyped(this.Options, "feeDenom")
-	var gasPrice any = nil
-	var denom any = nil
+	var gasPrice *string = nil
+	var denom *string = nil
 	if defaultFeeDenom != nil && *defaultFeeDenom == "uusdc" {
-		gasPrice = feeDenom["USDC_GAS_PRICE"]
-		denom = feeDenom["USDC_DENOM"]
+		gasPrice = this.SafeString(feeDenom, "USDC_GAS_PRICE")
+		denom = this.SafeString(feeDenom, "USDC_DENOM")
 	} else {
-		gasPrice = feeDenom["CHAINTOKEN_GAS_PRICE"]
-		denom = feeDenom["CHAINTOKEN_DENOM"]
+		gasPrice = this.SafeString(feeDenom, "CHAINTOKEN_GAS_PRICE")
+		denom = this.SafeString(feeDenom, "CHAINTOKEN_DENOM")
 	}
 	var gasLimit float64 = MathCeil(this.ParseToNumeric(Precise.StringMul(gasUsed, defaultFeeMultiplier)))
 	var feeAmount *string = Precise.StringMul(this.NumberToString(gasLimit), gasPrice)

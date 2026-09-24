@@ -653,7 +653,7 @@ class bitso(Exchange, ImplicitAPI):
         })
 
     def parse_balance(self, response: object) -> Balances:
-        payload = self.safe_value(response, 'payload', {})
+        payload = self.safe_dict(response, 'payload', {})
         balances = self.safe_list(payload, 'balances', [])
         result = {
             'info': response,

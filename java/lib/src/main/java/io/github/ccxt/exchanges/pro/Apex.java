@@ -639,19 +639,19 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         String topic = this.safeString(message, "topic", "");
         String updateType = this.safeString(message, "type", "");
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object symbol = null;
+        String symbol = null;
         Object parsed = this.parseTicker(data);
         if ((java.util.Objects.equals(updateType, "snapshot")))
         {
             parsed = this.parseTicker(data);
-            symbol = ((Map<String, Object>)parsed).get("symbol");
+            symbol = this.safeString(parsed, "symbol");
         } else if (java.util.Objects.equals(updateType, "delta"))
         {
             List<Object> topicParts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
             Integer topicLength = ((List<?>)topicParts).size();
             String marketId = this.safeString(topicParts, (((long) topicLength) - 1L));
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = this.safeString(market, "symbol");
             Map<String, Object> ticker = (Map<String, Object>) this.safeDict(this.tickers, symbol, new HashMap<String, Object>() {{}});
             Map<String, Object> rawTicker = (Map<String, Object>) this.safeDict(ticker, "info", new HashMap<String, Object>() {{}});
             Map<String, Object> merged = this.extend(rawTicker, data);
@@ -660,9 +660,9 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         Long timestamp = this.safeIntegerProduct(message, "ts", 0.001);
         Helpers.addElementToObject(parsed, "timestamp", timestamp);
         Helpers.addElementToObject(parsed, "datetime", this.iso8601(timestamp));
-        Helpers.addElementToObject(this.tickers, ((String)symbol), parsed);
+        Helpers.addElementToObject(this.tickers, symbol, parsed);
         String messageHash = ("ticker:" + symbol);
-        client.resolve(Helpers.GetValue(this.tickers, ((String)symbol)), messageHash);
+        client.resolve(Helpers.GetValue(this.tickers, symbol), messageHash);
     }
 
     /**

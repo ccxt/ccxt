@@ -1544,7 +1544,7 @@ class gemini extends Exchange {
         } elseif ($type === 'market buy' || $type === 'market sell') {
             $type = 'market';
         } else {
-            $type = $order['type'];
+            $type = $this->safe_string($order, 'type');
         }
         $fee = null;
         $marketId = $this->safe_string($order, 'symbol');

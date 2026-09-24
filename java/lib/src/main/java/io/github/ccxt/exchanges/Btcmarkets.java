@@ -1564,18 +1564,18 @@ public class Btcmarkets extends BtcmarketsApi
          * @returns {object} contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
          */
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        Object currency = null;
+        String currency = null;
         String cost = null;
         if (java.util.Objects.equals(((Map<String, Object>)market).get("quote"), "AUD"))
         {
-            currency = ((Map<String, Object>)market).get("quote");
+            currency = this.safeString(market, "quote");
             String amountString = this.numberToString(amount);
             String priceString = this.numberToString(price);
             String otherUnitsAmount = Precise.stringMul(amountString, priceString);
             cost = this.costToPrecision(symbol, otherUnitsAmount);
         } else
         {
-            currency = ((Map<String, Object>)market).get("base");
+            currency = this.safeString(market, "base");
             cost = this.amountToPrecision(symbol, amount);
         }
         Object rate = this.safeValue(market, takerOrMaker);
@@ -1585,7 +1585,7 @@ public class Btcmarkets extends BtcmarketsApi
         {
             feeCost = "0";
         }
-        final Object finalCurrency = currency;
+        final String finalCurrency = currency;
         final Object finalFeeCost = feeCost;
         return new HashMap<String, Object>() {{
             put( "type", takerOrMaker );

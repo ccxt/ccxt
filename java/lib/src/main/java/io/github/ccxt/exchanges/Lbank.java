@@ -1726,8 +1726,8 @@ public class Lbank extends LbankApi
             List<String> currencies = new ArrayList<String>(free.keySet());
             for (var i = 0; i < ((List<?>)currencies).size(); i++)
             {
-                Object currencyId = (currencies == null || i < 0 || i >= currencies.size() ? null : currencies.get(i));
-                String code = this.safeCurrencyCode((String) (currencyId));
+                String currencyId = (currencies == null || i < 0 || i >= currencies.size() ? null : currencies.get(i));
+                String code = this.safeCurrencyCode(currencyId);
                 Map<String, Object> account = (Map<String, Object>) this.account();
                 ((Map<String, Object>)account).put("used", this.safeString(used, currencyId));
                 ((Map<String, Object>)account).put("free", this.safeString(free, currencyId));

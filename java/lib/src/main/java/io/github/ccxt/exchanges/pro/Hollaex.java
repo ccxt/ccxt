@@ -367,8 +367,8 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         List<String> keys = new ArrayList<String>(marketIds.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            String messageHash = Helpers.add((channel + ":"), marketId);
+            String marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String messageHash = ((channel + ":") + marketId);
             client.resolve(this.myTrades, messageHash);
         }
     }
@@ -532,8 +532,8 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         List<String> keys = new ArrayList<String>(marketIds.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            String messageHash = Helpers.add((channel + ":"), marketId);
+            String marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String messageHash = ((channel + ":") + marketId);
             client.resolve(this.orders, messageHash);
         }
     }

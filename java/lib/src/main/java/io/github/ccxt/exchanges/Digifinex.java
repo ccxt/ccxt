@@ -1340,7 +1340,7 @@ public class Digifinex extends DigifinexApi
             //         }
             //     }
             //
-            Object timestamp = null;
+            Long timestamp = null;
             Map<String, Object> orderBook = null;
             if (java.util.Objects.equals(marketType, "swap"))
             {
@@ -2923,8 +2923,8 @@ public class Digifinex extends DigifinexApi
         //         "time_stamp": 1668134664828
         //     }
         //
-        Object timestamp = null;
-        Object lastTradeTimestamp = null;
+        Long timestamp = null;
+        Long lastTradeTimestamp = null;
         String timeInForce = null;
         Object type = null;
         String side = this.safeString(order, "type");
@@ -2987,8 +2987,8 @@ public class Digifinex extends DigifinexApi
                 }
             }
         }
-        final Object finalTimestamp = timestamp;
-        final Object finalLastTradeTimestamp = lastTradeTimestamp;
+        final Long finalTimestamp = timestamp;
+        final Long finalLastTradeTimestamp = lastTradeTimestamp;
         final Object finalType = type;
         final String finalTimeInForce = timeInForce;
         final String finalSide = side;
@@ -5836,8 +5836,8 @@ final Object finalI = i;
         List<String> depositWithdrawCodes = new ArrayList<String>(depositWithdrawFees.keySet());
         for (var i = 0; i < ((List<?>)depositWithdrawCodes).size(); i++)
         {
-            Object code = (depositWithdrawCodes == null || i < 0 || i >= depositWithdrawCodes.size() ? null : depositWithdrawCodes.get(i));
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            String code = (depositWithdrawCodes == null || i < 0 || i >= depositWithdrawCodes.size() ? null : depositWithdrawCodes.get(i));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             ((Map<String, Object>)depositWithdrawFees).put((String)code, this.assignDefaultDepositWithdrawFees((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), currency));
         }
         return depositWithdrawFees;

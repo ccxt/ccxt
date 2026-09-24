@@ -1206,14 +1206,14 @@ func (this *Blofin) ParseTrade(trade any, optionalArgs ...any) any {
 	var orderId *string = this.SafeString(trade, "orderId")
 	var feeCost *string = this.SafeString(trade, "fee")
 	var fee map[string]any = nil
-	var feeCurrency any = DerefScalar(this.SafeString(trade, "feeCurrency"))
-	var isSpot bool = !IsEqual(feeCurrency, nil)
-	if IsEqual(feeCurrency, nil) {
-		feeCurrency = GetValue(market, "settle")
-	} else if IsEqual(feeCurrency, "base_currency") {
-		feeCurrency = GetValue(market, "base")
-	} else if IsEqual(feeCurrency, "quote_currency") {
-		feeCurrency = GetValue(market, "quote")
+	var feeCurrency *string = this.SafeString(trade, "feeCurrency")
+	var isSpot bool = (feeCurrency != nil)
+	if feeCurrency == nil {
+		feeCurrency = this.SafeString(market, "settle")
+	} else if feeCurrency != nil && *feeCurrency == "base_currency" {
+		feeCurrency = this.SafeString(market, "base")
+	} else if feeCurrency != nil && *feeCurrency == "quote_currency" {
+		feeCurrency = this.SafeString(market, "quote")
 	}
 	if feeCost != nil {
 		fee = map[string]any{

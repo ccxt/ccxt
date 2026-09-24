@@ -4085,7 +4085,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         List<String> keys = new ArrayList<String>(((Map<String, Object>)newPosition).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (java.util.Objects.equals(Helpers.GetValue(newPosition, key), null))
             {
                 ((Map<String,Object>)newPosition).remove((String)key);
@@ -4136,7 +4136,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         List<String> keys = new ArrayList<String>(((Map<String, Object>)newPosition).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (java.util.Objects.equals(Helpers.GetValue(newPosition, key), null))
             {
                 ((Map<String,Object>)newPosition).remove((String)key);

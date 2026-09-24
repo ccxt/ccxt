@@ -805,7 +805,7 @@ class coinbase extends Exchange {
             for ($i = 0; $i < count($this->accounts); $i++) {
                 $account = $this->accounts[$i];
                 if ($account['code'] === $code && $account['type'] === 'wallet') {
-                    $accountId = $account['id'];
+                    $accountId = $this->safe_string($account, 'id');
                     break;
                 }
             }
@@ -1328,7 +1328,7 @@ class coinbase extends Exchange {
         $feeCurrencyId = $this->safe_string($feeObject, 'currency');
         $feeCost = $this->safe_number($feeObject, 'amount', $this->parse_number($v3FeeCost));
         if (($feeCurrencyId === null) && ($market !== null) && ($feeCost !== null)) {
-            $feeCurrencyId = $market['quote'];
+            $feeCurrencyId = $this->safe_string($market, 'quote');
         }
         $datetime = $this->safe_string_n($trade, array( 'created_at', 'trade_time', 'time' ));
         $side = $this->safe_string_lower_2($trade, 'resource', 'side');
@@ -3389,7 +3389,7 @@ class coinbase extends Exchange {
         $totalFees = $this->safe_string($order, 'total_fees');
         $currencyFee = null;
         if (($totalFees !== null) && ($market !== null)) {
-            $currencyFee = $market['quote'];
+            $currencyFee = $this->safe_string($market, 'quote');
         }
         return $this->safe_order(array(
             'info' => $order,

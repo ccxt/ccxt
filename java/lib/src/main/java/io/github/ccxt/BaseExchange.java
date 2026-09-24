@@ -7211,7 +7211,7 @@ public Object describe()
         }
         Object market = Helpers.GetValue(markets, symbol);
         String feeSide = this.safeString(market, "feeSide", "quote");
-        Object useQuote = null;
+        Boolean useQuote = null;
         if (java.util.Objects.equals(feeSide, "get"))
         {
             // the fee is always in the currency you get

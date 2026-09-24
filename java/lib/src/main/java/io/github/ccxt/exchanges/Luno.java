@@ -1960,7 +1960,7 @@ public class Luno extends LunoApi
             }
             (this.loadAccounts()).join();
             Map<String, Object> currency = null;
-            Object id = this.safeString(parameters, "id"); // account id
+            String id = this.safeString(parameters, "id"); // account id
             Object min_row = this.safeValue(parameters, "min_row");
             Object max_row = this.safeValue(parameters, "max_row");
             if (java.util.Objects.equals(id, null))
@@ -1976,7 +1976,7 @@ public class Luno extends LunoApi
                 {
                     throw new ExchangeError(((this.id + " fetchLedger() could not find account id for ") + code)) ;
                 }
-                id = ((Map<String, Object>)account).get("id");
+                id = this.safeString(account, "id");
             }
             if (java.util.Objects.equals(min_row, null) && java.util.Objects.equals(max_row, null))
             {
@@ -2000,7 +2000,7 @@ public class Luno extends LunoApi
             {
                 throw new ExchangeError((this.id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000")) ;
             }
-            final Object finalId = id;
+            final String finalId = id;
             final Object finalMin_row = min_row;
             final Object finalMax_row = max_row;
             Map<String, Object> request = new HashMap<String, Object>() {{

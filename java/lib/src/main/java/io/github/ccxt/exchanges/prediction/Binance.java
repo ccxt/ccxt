@@ -217,7 +217,7 @@ public class Binance extends BinanceApi
             Integer queriesLength = ((List<?>)queries).size();
             if (Helpers.isGreaterThan(queriesLength, 0))
             {
-                Object eventParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit")));
+                Map<String, Object> eventParams = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit")));
                 List<PredictionEvent> events = (this.fetchEvents(eventParams)).join();
                 Integer eventsLength = ((List<?>)events).size();
                 List<Object> queryMarkets = new ArrayList<Object>(Arrays.asList());
@@ -233,7 +233,7 @@ public class Binance extends BinanceApi
                 return queryMarkets;
             }
             Long maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "maxFetchMarketsLimit", 200));
-            Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit")));
+            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit")));
             Object rawTopics = (this.fetchRawTopics(maxMarkets, rest)).join();
             List<Object> parsedEvents = new ArrayList<Object>(Arrays.asList());
             List<Object> flatMarkets = new ArrayList<Object>(Arrays.asList());
@@ -800,14 +800,14 @@ public class Binance extends BinanceApi
         {
             active = (java.util.Objects.equals(status, "REGISTERED")) || (java.util.Objects.equals(status, "OPEN"));
         }
-        Object resolved = null;
+        Boolean resolved = null;
         if (!java.util.Objects.equals(status, null))
         {
             resolved = (java.util.Objects.equals(status, "RESOLVED")) || (java.util.Objects.equals(status, "SETTLED"));
         }
         final Object finalSlug = slug;
         final Object finalActive = active;
-        final Object finalResolved = resolved;
+        final Boolean finalResolved = resolved;
         return new HashMap<String, Object>() {{
             put( "id", topicId );
             put( "slug", finalSlug );

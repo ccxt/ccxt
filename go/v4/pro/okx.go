@@ -2333,13 +2333,13 @@ func (this *Okx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
-		typeVar = ccxt.GetValue(market, "type")
+		typeVar = this.SafeString(market, "type")
 		messageHash = ccxt.Add(ccxt.Add(messageHash, "::"), symbol)
 	}
 	if ccxt.IsEqual(typeVar, "future") {
 		typeVar = "futures"
 	}
-	if typeVar == nil {
+	if ccxt.IsEqual(typeVar, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchMyTrades() type is required"))
 	}
 	var uppercaseType string = ccxt.ToUpper(typeVar)
@@ -2595,12 +2595,12 @@ func (this *Okx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
-		typeVar = ccxt.GetValue(market, "type")
+		typeVar = this.SafeString(market, "type")
 	}
 	if ccxt.IsEqual(typeVar, "future") {
 		typeVar = "futures"
 	}
-	if typeVar == nil {
+	if ccxt.IsEqual(typeVar, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrders() type is required"))
 	}
 	var uppercaseType string = ccxt.ToUpper(typeVar)

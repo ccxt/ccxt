@@ -5722,7 +5722,7 @@ public class Gate extends GateApi
         //     }
         //
         String id = this.safeString2(trade, "id", "trade_id");
-        Object timestamp = null;
+        Long timestamp = null;
         String msString = this.safeString(trade, "create_time_ms");
         if (!java.util.Objects.equals(msString, null))
         {
@@ -5778,7 +5778,7 @@ final String finalPointFee = pointFee;
             }});
         }
         String takerOrMaker = this.safeString(trade, "role");
-        final Object finalTimestamp = timestamp;
+        final Long finalTimestamp = timestamp;
         final Map<String, Object> finalMarket = market;
         final String finalAmountString = amountString;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
@@ -6701,7 +6701,7 @@ final String finalPointFee = pointFee;
                 if (java.util.Objects.equals(trigger, null))
                 {
                     Object rule = null;
-                    Object triggerOrderPrice = null;
+                    String triggerOrderPrice = null;
                     if (Boolean.TRUE.equals(isStopLossOrder))
                     {
                         // we let trigger orders be aliases for stopLoss orders because
@@ -6774,7 +6774,7 @@ final String finalPointFee = pointFee;
                     Long defaultExpiration = this.safeInteger(options, "expiration");
                     Long expiration = this.safeInteger(parameters, "expiration", defaultExpiration);
                     Object rule = null;
-                    Object triggerOrderPrice = null;
+                    String triggerOrderPrice = null;
                     if (Boolean.TRUE.equals(isStopLossOrder))
                     {
                         // we let trigger orders be aliases for stopLoss orders because
@@ -6786,7 +6786,7 @@ final String finalPointFee = pointFee;
                         rule = (((java.util.Objects.equals(side, "buy")))) ? "<=" : ">=";
                         triggerOrderPrice = this.priceToPrecision(symbol, takeProfitPrice);
                     }
-                    final Object finalTriggerOrderPrice = triggerOrderPrice;
+                    final String finalTriggerOrderPrice = triggerOrderPrice;
                     final Object finalRule = rule;
                     ((Map<String, Object>)request).put("trigger", new HashMap<String, Object>() {{
     put( "price", Gate.this.priceToPrecision(symbol, finalTriggerOrderPrice) );

@@ -4212,7 +4212,7 @@ public partial class BaseExchange
      * @description returns a strictly-increasing nonce for venues that reject duplicate nonces per signer; the unit is whatever nonce () returns — the base default is seconds, so a venue that does not override nonce () gets a second-resolution counter that drifts ahead of wall clock under load, while venues needing milliseconds override nonce () as hyperliquid does. The counter is per exchange instance, so it narrows the duplicate-nonce race but does not remove it across instances or processes.
      * @returns {int} a strictly-increasing nonce in the unit returned by nonce ()
      */
-    public virtual object incrementingNonce()
+    public virtual Int64? incrementingNonce()
     {
         Int64 currentNonce = this.nonce();
         this.lockLastNonce();
@@ -4220,7 +4220,7 @@ public partial class BaseExchange
         object result = (isGreaterThan(currentNonce, lastNonce)) ? currentNonce : (lastNonce + 1);
         this.options["lastNonce"] = result;
         this.unlockLastNonce();
-        return result;
+        return ((Int64?)((object)(result)));
     }
 
     public virtual object setHeaders(object headers)

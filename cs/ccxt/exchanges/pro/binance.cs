@@ -841,9 +841,9 @@ public partial class binance : ccxt.binance
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
-            messageHashes.Add(("orderbook::" + (symbol)));
+            messageHashes.Add(("orderbook::" + symbol));
             object subscriptionHash = add(add((market.ContainsKey("lowercaseId") ? market["lowercaseId"] : null), "@"), name);
             if ((watchOrderBookRate == null))
             {
@@ -1405,9 +1405,9 @@ public partial class binance : ccxt.binance
             Dictionary<string, object> seenUnderlyings = new Dictionary<string, object>() {};
             for (int i = 0; i < getArrayLength(symbols); i++)
             {
-                object symbol = getValue(symbols, i);
+                string? symbol = ((string)getValue(symbols, i));
                 Dictionary<string, object> market = this.market(symbol);
-                messageHashes.Add(("trade::" + (symbol)));
+                messageHashes.Add(("trade::" + symbol));
                 string baseIdLower = this.safeStringLower(market, "baseId", "");
                 string? quoteIdLower = this.safeStringLower(market, "quoteId", "");
                 string underlying = ((baseIdLower + "") + quoteIdLower);
@@ -1421,9 +1421,9 @@ public partial class binance : ccxt.binance
         {
             for (int i = 0; i < getArrayLength(symbols); i++)
             {
-                object symbol = getValue(symbols, i);
+                string? symbol = ((string)getValue(symbols, i));
                 Dictionary<string, object> market = this.market(symbol);
-                messageHashes.Add(("trade::" + (symbol)));
+                messageHashes.Add(("trade::" + symbol));
                 string? rawHash = ((string)add(add((market.ContainsKey("lowercaseId") ? market["lowercaseId"] : null), "@"), name));
                 subParams.Add(rawHash);
             }
@@ -2681,12 +2681,12 @@ public partial class binance : ccxt.binance
             Dictionary<string, object> seenUnderlyings = new Dictionary<string, object>() {};
             for (int i = 0; i < getArrayLength(symbols); i++)
             {
-                object symbol = getValue(symbols, i);
+                string? symbol = ((string)getValue(symbols, i));
                 Dictionary<string, object> market = this.market(symbol);
                 messageHashes.Add(add(add(add(add(unifiedPrefix, ":"), channelName), "@"), symbol));
                 if (isTrue(isUnsubscribe))
                 {
-                    unsubscribeMessageHashes.Add(((((("unsubscribe::" + (unifiedPrefix)) + ":") + (channelName)) + "@") + (symbol)));
+                    unsubscribeMessageHashes.Add(((((("unsubscribe::" + (unifiedPrefix)) + ":") + (channelName)) + "@") + symbol));
                 }
                 if (isOptionMarkPrice)
                 {

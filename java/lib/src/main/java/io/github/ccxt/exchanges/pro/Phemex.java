@@ -1248,7 +1248,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         List<String> keys = new ArrayList<String>(marketIds.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object market = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String market = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             String hash = ((channel + ":") + market);
             client.resolve(cachedTrades, hash);
         }

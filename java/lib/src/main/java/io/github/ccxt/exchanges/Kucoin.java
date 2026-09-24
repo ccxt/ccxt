@@ -7859,12 +7859,12 @@ public class Kucoin extends KucoinApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "accountMode", finalAccountMode );
             }};
-            Object marketType = null;
+            String marketType = null;
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                marketType = ((Map<String, Object>)market).get("type");
+                marketType = this.safeString(market, "type");
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             } else
             {
@@ -8190,16 +8190,16 @@ public class Kucoin extends KucoinApi
                 parameters = (Map<String, Object>) this.omit(parameters, "uta");
                 return (this.fetchUtaOrder((String) (id), symbol, parameters)).join();
             }
-            Object marketType = null;
+            String marketType = null;
             if (java.util.Objects.equals(symbol, null))
             {
                 List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", null, parameters);
-                marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+                marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             } else
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                marketType = ((Map<String, Object>)market).get("type");
+                marketType = this.safeString(market, "type");
             }
             if ((java.util.Objects.equals(marketType, "spot")) || (java.util.Objects.equals(marketType, "margin")))
             {
@@ -13036,7 +13036,7 @@ public class Kucoin extends KucoinApi
         List<String> keys = new ArrayList<String>(borrowRateHistories.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object code = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String code = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             ((Map<String, Object>)borrowRateHistories).put((String)code, this.filterByCurrencySinceLimit((borrowRateHistories == null || code == null ? null : borrowRateHistories.get(code)), code, since, limit));
         }
         return borrowRateHistories;
@@ -13813,6 +13813,12 @@ public class Kucoin extends KucoinApi
     {
         return this.fetchFundingRate(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    //                  "tradeId": "61c2074277a0c473e69029b8",
+    //                  "ts": 1640105794099993896   // filled time
+    //              }
+    //          ]
+    //      }
+    //
     public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
     {
         return this.fetchFundingRate(symbol, (Object) (parameters));
