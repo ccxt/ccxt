@@ -2608,7 +2608,10 @@ export default class xt extends Exchange {
         }
     }
 
-    async createSpotOrder (symbol: string, type: OrderType, side: any, amount: any, price: Num = undefined, params: Dict = {}): Promise<Order> {
+    async createSpotOrder (symbol: string, type: OrderType, side: OrderSide, amount: any, price: Num = undefined, params: Dict = {}): Promise<Order> {
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
+        }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5859,7 +5862,11 @@ export default class xt extends Exchange {
         } else {
             payload = request;
         }
-        let url = this.urls['api'][endpoint] + payload;
+        const apiUrl = this.safeString (this.urls['api'], endpoint);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + payload;
         const query = this.omit (params, this.extractParams (path));
         const urlencoded = this.urlencode (this.keysort (query));
         headers = {

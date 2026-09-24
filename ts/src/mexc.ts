@@ -2379,8 +2379,11 @@ export default class mexc extends Exchange {
         }
     }
 
-    createSpotOrderRequest (market: any, type: any, side: any, amount: any, price: Num = undefined, marginMode: Str = undefined, params = {}) {
+    createSpotOrderRequest (market: any, type: Str, side: Str, amount: any, price: Num = undefined, marginMode: Str = undefined, params = {}) {
         const symbol = market['symbol'];
+        if ((type === undefined) || (side === undefined)) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a type and a side argument');
+        }
         const orderSide = side.toUpperCase ();
         const request: Dict = {
             'symbol': market['id'],
@@ -2930,18 +2933,26 @@ export default class mexc extends Exchange {
         } else {
             if (since !== undefined) {
                 request['start_time'] = since;
+                const maxTimeTillEnd = this.safeInteger (this.options, 'maxTimeTillEnd');
+                if (maxTimeTillEnd === undefined) {
+                    throw new ExchangeError (this.id + ' fetchOrders() requires a numeric options["maxTimeTillEnd"]');
+                }
                 const end = this.safeInteger (params, 'end_time', until);
                 if (end === undefined) {
-                    request['end_time'] = this.sum (since, this.options['maxTimeTillEnd']);
+                    request['end_time'] = this.sum (since, maxTimeTillEnd);
                 } else {
-                    if ((end - since) > this.options['maxTimeTillEnd']) {
+                    if ((end - since) > maxTimeTillEnd) {
                         throw new BadRequest (this.id + ' end is invalid, i.e. exceeds allowed 90 days.');
                     } else {
                         request['end_time'] = until;
                     }
                 }
             } else if (until !== undefined) {
-                request['start_time'] = this.sum (until, this.options['maxTimeTillEnd'] * -1);
+                const maxTimeTillEnd = this.safeInteger (this.options, 'maxTimeTillEnd');
+                if (maxTimeTillEnd === undefined) {
+                    throw new ExchangeError (this.id + ' fetchOrders() requires a numeric options["maxTimeTillEnd"]');
+                }
+                request['start_time'] = this.sum (until, maxTimeTillEnd * -1);
                 request['end_time'] = until;
             }
             if (limit !== undefined) {
@@ -6290,9 +6301,17 @@ export default class mexc extends Exchange {
         let url: Str = undefined;
         if (section === 'spot' || section === 'broker') {
             if (section === 'broker') {
-                url = this.urls['api'][section][access as string] + '/' + path;
+                const apiUrl = this.safeString (this.urls['api'][section], access);
+                if (apiUrl === undefined) {
+                    throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+                }
+                url = apiUrl + '/' + path;
             } else {
-                url = this.urls['api'][section][access as string] + '/api/' + this.version + '/' + path;
+                const apiUrl = this.safeString (this.urls['api'][section], access);
+                if (apiUrl === undefined) {
+                    throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+                }
+                url = apiUrl + '/api/' + this.version + '/' + path;
             }
             let urlParams: Dict = params;
             if (access === 'private') {
@@ -6326,7 +6345,11 @@ export default class mexc extends Exchange {
                 headers['Content-Type'] = 'application/json';
             }
         } else if (section === 'contract' || section === 'spot2') {
-            url = this.urls['api'][section][access as string] + '/' + this.implodeParams (path, params);
+            const apiUrl = this.safeString (this.urls['api'][section], access);
+            if (apiUrl === undefined) {
+                throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+            }
+            url = apiUrl + '/' + this.implodeParams (path, params);
             params = this.omit (params, this.extractParams (path));
             if (access === 'public') {
                 if (Object.keys (params).length > 0) {
