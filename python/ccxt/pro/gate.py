@@ -235,7 +235,7 @@ class gate(ccxt.async_support.gate):
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
         messageType = self.get_type_by_market(market)
         channel = messageType + '.order_cancel_cp'
-        channel, params = self.handle_option_and_params(params, 'cancelAllOrdersWs', 'channel', channel)
+        channel, params = self.handle_option_string_and_params(params, 'cancelAllOrdersWs', 'channel', channel)
         url = self.get_url_by_market(market)
         params = self.omit(params, ['stop', 'trigger'])
         type, query = self.handle_market_type_and_params('cancelAllOrders', market, params)

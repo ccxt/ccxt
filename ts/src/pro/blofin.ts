@@ -192,7 +192,7 @@ export default class blofin extends blofinRest {
         let callerMethodName: Str = undefined;
         [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchOrderBookForSymbols');
         let channelName: Str = undefined;
-        [ channelName, params ] = this.handleOptionAndParams (params, callerMethodName, 'channel', 'books');
+        [ channelName, params ] = this.handleOptionStringAndParams (params, callerMethodName, 'channel', 'books');
         // due to some problem, temporarily disable other channels
         if (channelName !== 'books') {
             throw new NotSupported (this.id + ' ' + callerMethodName + '() at this moment ' + channelName + ' is not supported, coming soon');

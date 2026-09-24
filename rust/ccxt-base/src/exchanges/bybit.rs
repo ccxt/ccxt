@@ -6686,7 +6686,7 @@ impl BybitCore {
             defaultMethod = Value::Str("privatePostV5OrderCreate".into());
         }
         let mut method: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("method".into()), &[defaultMethod]); method = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("method".into()), &[defaultMethod]); method = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut response: Value = Value::Null;
         if (method.as_str() == Some("privatePostV5PositionTradingStop")) {
             response = self.private_post_v5_position_trading_stop(&[orderRequest.clone()]).await;
@@ -6761,7 +6761,7 @@ impl BybitCore {
             defaultMethod = Value::Str("privatePostV5OrderCreate".into());
         }
         let mut method: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("method".into()), &[defaultMethod]); method = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("method".into()), &[defaultMethod]); method = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut endpointIsTradingStop: bool = method.as_str() == Some("privatePostV5PositionTradingStop");
         if (price == Value::Null) && (lowerCaseType.as_str() == Some("limit")) && !endpointIsTradingStop {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder requires a price argument for limit orders".into()))));
@@ -11153,7 +11153,7 @@ impl BybitCore {
             self.load_markets(&[]).await;
         }
         let mut type_var: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchTradingFees".into()), Value::Str("type".into()), &[Value::Str("future".into())]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("fetchTradingFees".into()), Value::Str("type".into()), &[Value::Str("future".into())]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (type_var.as_str() == Some("spot")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFees() is not supported for spot market".into()))));
         }
@@ -12683,7 +12683,7 @@ impl BybitCore {
         let mut enableUnifiedAccount: Value = enableUnifiedMarginenableUnifiedAccountVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut isUnifiedAccount: bool = (is_equal(&enableUnifiedMargin, &Value::Bool(true))) || (is_equal(&enableUnifiedAccount, &Value::Bool(true)));
         let mut accountTypeDefault: Value = (if isUnifiedAccount { Value::Str("eb_convert_uta".into()) } else { Value::Str("eb_convert_spot".into()) });
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchConvertCurrencies".into()), Value::Str("accountType".into()), &[accountTypeDefault]); accountType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("fetchConvertCurrencies".into()), Value::Str("accountType".into()), &[accountTypeDefault]); accountType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountType".to_string(), accountType);
@@ -12817,7 +12817,7 @@ impl BybitCore {
         let mut enableUnifiedAccount: Value = enableUnifiedMarginenableUnifiedAccountVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut isUnifiedAccount: bool = (is_equal(&enableUnifiedMargin, &Value::Bool(true))) || (is_equal(&enableUnifiedAccount, &Value::Bool(true)));
         let mut accountTypeDefault: Value = (if isUnifiedAccount { Value::Str("eb_convert_uta".into()) } else { Value::Str("eb_convert_spot".into()) });
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchConvertQuote".into()), Value::Str("accountType".into()), &[accountTypeDefault]); accountType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("fetchConvertQuote".into()), Value::Str("accountType".into()), &[accountTypeDefault]); accountType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("fromCoin".to_string(), fromCode.clone());
@@ -12937,7 +12937,7 @@ impl BybitCore {
         let mut enableUnifiedAccount: Value = enableUnifiedMarginenableUnifiedAccountVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut isUnifiedAccount: bool = (is_equal(&enableUnifiedMargin, &Value::Bool(true))) || (is_equal(&enableUnifiedAccount, &Value::Bool(true)));
         let mut accountTypeDefault: Value = (if isUnifiedAccount { Value::Str("eb_convert_uta".into()) } else { Value::Str("eb_convert_spot".into()) });
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchConvertTrade".into()), Value::Str("accountType".into()), &[accountTypeDefault]); accountType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("fetchConvertTrade".into()), Value::Str("accountType".into()), &[accountTypeDefault]); accountType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("quoteTxId".to_string(), id);

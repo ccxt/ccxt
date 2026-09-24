@@ -2027,7 +2027,7 @@ class bitrue(Exchange, ImplicitAPI):
                 request['type'] = 'IOC'
             request['contractName'] = market['id']
             createMarketBuyOrderRequiresPrice = True
-            createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+            createMarketBuyOrderRequiresPrice, params = self.handle_option_bool_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
             if isMarket and (side == 'buy') and createMarketBuyOrderRequiresPrice:
                 cost = self.safe_string(params, 'cost')
                 params = self.omit(params, 'cost')

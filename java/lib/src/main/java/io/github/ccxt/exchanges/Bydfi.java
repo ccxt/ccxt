@@ -938,11 +938,11 @@ public class Bydfi extends BydfiApi
                 Object paginatedResponse = (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters, maxLimit, true)).join();
                 return this.sortBy(paginatedResponse, "timestamp");
             }
-            Object contractType = "FUTURE";
-            List<Object> contractTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "contractType", contractType);
-            contractType = ((List<Object>) contractTypeparametersVariable).get(0);
+            String contractType = "FUTURE";
+            List<Object> contractTypeparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchMyTrades", "contractType", contractType);
+            contractType = (String) ((List<Object>) contractTypeparametersVariable).get(0);
             parameters = ((List<Object>) contractTypeparametersVariable).get(1);
-            final Object finalContractType = contractType;
+            final String finalContractType = contractType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "contractType", finalContractType );
             }};
@@ -1631,11 +1631,11 @@ public class Bydfi extends BydfiApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-            Object wallet = "W001";
-            List<Object> walletparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "wallet", wallet);
-            wallet = ((List<Object>) walletparametersVariable).get(0);
+            String wallet = "W001";
+            List<Object> walletparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "wallet", wallet);
+            wallet = (String) ((List<Object>) walletparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) walletparametersVariable).get(1);
-            final Object finalWallet = wallet;
+            final String finalWallet = wallet;
             orderRequest = this.extend(orderRequest, new HashMap<String, Object>() {{
                 put( "wallet", finalWallet );
             }});
@@ -1784,9 +1784,9 @@ public class Bydfi extends BydfiApi
             }
         }
         ((Map<String, Object>)request).put("type", type);
-        Object hedged = false;
-        List<Object> hedgedparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "hedged", hedged);
-        hedged = ((List<Object>) hedgedparametersVariable).get(0);
+        Boolean hedged = false;
+        List<Object> hedgedparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "createOrder", "hedged", hedged);
+        hedged = (Boolean) ((List<Object>) hedgedparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) hedgedparametersVariable).get(1);
         Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
         if (Boolean.TRUE.equals(hedged))
@@ -1825,11 +1825,11 @@ public class Bydfi extends BydfiApi
         }
         if (Boolean.TRUE.equals(isStopLossOrder) || Boolean.TRUE.equals(isTakeProfitOrder) || Boolean.TRUE.equals(isTailingStopOrder))
         {
-            Object workingType = "CONTRACT_PRICE";
-            List<Object> workingTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "triggerPriceType", workingType);
-            workingType = ((List<Object>) workingTypeparametersVariable).get(0);
+            String workingType = "CONTRACT_PRICE";
+            List<Object> workingTypeparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "triggerPriceType", workingType);
+            workingType = (String) ((List<Object>) workingTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) workingTypeparametersVariable).get(1);
-            ((Map<String, Object>)request).put("workingType", this.encodeWorkingType((String) (workingType)));
+            ((Map<String, Object>)request).put("workingType", this.encodeWorkingType(workingType));
         }
         return (Map<String, Object>) (this.extend(request, parameters));
     }
@@ -1887,11 +1887,11 @@ public class Bydfi extends BydfiApi
                 Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
-            Object wallet = "W001";
-            List<Object> walletparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "wallet", wallet);
-            wallet = ((List<Object>) walletparametersVariable).get(0);
+            String wallet = "W001";
+            List<Object> walletparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "wallet", wallet);
+            wallet = (String) ((List<Object>) walletparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) walletparametersVariable).get(1);
-            final Object finalWallet = wallet;
+            final String finalWallet = wallet;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "wallet", finalWallet );
                 put( "orders", ordersRequests );
@@ -1943,9 +1943,9 @@ public class Bydfi extends BydfiApi
                 (this.loadMarkets()).join();
             }
             Object request = this.createEditOrderRequest((String) (id), (String) (symbol), "limit", (String) (side), amount, price, parameters);
-            Object wallet = "W001";
-            List<Object> walletparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "editOrder", "wallet", wallet);
-            wallet = ((List<Object>) walletparametersVariable).get(0);
+            String wallet = "W001";
+            List<Object> walletparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "editOrder", "wallet", wallet);
+            wallet = (String) ((List<Object>) walletparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) walletparametersVariable).get(1);
             ((Map<String, Object>)request).put("wallet", wallet);
             Map<String, Object> response = (this.privatePostV1FapiTradeEditOrder(request)).join();
@@ -2012,11 +2012,11 @@ public class Bydfi extends BydfiApi
                 Object orderRequest = this.createEditOrderRequest(id, symbol, "limit", side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
-            Object wallet = "W001";
-            List<Object> walletparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "editOrder", "wallet", wallet);
-            wallet = ((List<Object>) walletparametersVariable).get(0);
+            String wallet = "W001";
+            List<Object> walletparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "editOrder", "wallet", wallet);
+            wallet = (String) ((List<Object>) walletparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) walletparametersVariable).get(1);
-            final Object finalWallet = wallet;
+            final String finalWallet = wallet;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "wallet", finalWallet );
                 put( "editOrders", ordersRequests );
@@ -2100,11 +2100,11 @@ public class Bydfi extends BydfiApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object wallet = "W001";
-            List<Object> walletparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrders", "wallet", wallet);
-            wallet = ((List<Object>) walletparametersVariable).get(0);
+            String wallet = "W001";
+            List<Object> walletparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "cancelAllOrders", "wallet", wallet);
+            wallet = (String) ((List<Object>) walletparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) walletparametersVariable).get(1);
-            final Object finalWallet = wallet;
+            final String finalWallet = wallet;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "wallet", finalWallet );
@@ -2192,19 +2192,19 @@ public class Bydfi extends BydfiApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object wallet = "W001";
-            List<Object> walletparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "wallet", wallet);
-            wallet = ((List<Object>) walletparametersVariable).get(0);
+            String wallet = "W001";
+            List<Object> walletparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchOpenOrders", "wallet", wallet);
+            wallet = (String) ((List<Object>) walletparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) walletparametersVariable).get(1);
-            final Object finalWallet = wallet;
+            final String finalWallet = wallet;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "wallet", finalWallet );
             }};
             Map<String, Object> response = null;
-            Object trigger = false;
-            List<Object> triggerparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "trigger", trigger);
-            trigger = ((List<Object>) triggerparametersVariable).get(0);
+            Boolean trigger = false;
+            List<Object> triggerparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "trigger", trigger);
+            trigger = (Boolean) ((List<Object>) triggerparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) triggerparametersVariable).get(1);
             if (!Boolean.TRUE.equals(trigger))
             {
@@ -2312,15 +2312,15 @@ public class Bydfi extends BydfiApi
             {
                 ((Map<String, Object>)request).put("orderId", id);
             }
-            Object wallet = "W001";
-            List<Object> walletparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrder", "wallet", wallet);
-            wallet = ((List<Object>) walletparametersVariable).get(0);
+            String wallet = "W001";
+            List<Object> walletparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchOpenOrder", "wallet", wallet);
+            wallet = (String) ((List<Object>) walletparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) walletparametersVariable).get(1);
             ((Map<String, Object>)request).put("wallet", wallet);
             Map<String, Object> response = null;
-            Object trigger = false;
-            List<Object> triggerparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrder", "trigger", trigger);
-            trigger = ((List<Object>) triggerparametersVariable).get(0);
+            Boolean trigger = false;
+            List<Object> triggerparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOpenOrder", "trigger", trigger);
+            trigger = (Boolean) ((List<Object>) triggerparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) triggerparametersVariable).get(1);
             if (!Boolean.TRUE.equals(trigger))
             {
@@ -2393,11 +2393,11 @@ public class Bydfi extends BydfiApi
                 Object paginatedResponse = (this.fetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol, since, limit, parameters, maxLimit, true)).join();
                 return this.sortBy(paginatedResponse, "timestamp");
             }
-            Object contractType = "FUTURE";
-            List<Object> contractTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "contractType", contractType);
-            contractType = ((List<Object>) contractTypeparametersVariable).get(0);
+            String contractType = "FUTURE";
+            List<Object> contractTypeparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchCanceledAndClosedOrders", "contractType", contractType);
+            contractType = (String) ((List<Object>) contractTypeparametersVariable).get(0);
             parameters = ((List<Object>) contractTypeparametersVariable).get(1);
-            final Object finalContractType = contractType;
+            final String finalContractType = contractType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "contractType", finalContractType );
             }};
@@ -2722,11 +2722,11 @@ public class Bydfi extends BydfiApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object wallet = "W001";
-            List<Object> walletparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "setLeverage", "wallet", wallet);
-            wallet = ((List<Object>) walletparametersVariable).get(0);
+            String wallet = "W001";
+            List<Object> walletparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "setLeverage", "wallet", wallet);
+            wallet = (String) ((List<Object>) walletparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) walletparametersVariable).get(1);
-            final Object finalWallet = wallet;
+            final String finalWallet = wallet;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "leverage", leverage );
@@ -2780,11 +2780,11 @@ public class Bydfi extends BydfiApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object wallet = "W001";
-            List<Object> walletparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchLeverage", "wallet", wallet);
-            wallet = ((List<Object>) walletparametersVariable).get(0);
+            String wallet = "W001";
+            List<Object> walletparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchLeverage", "wallet", wallet);
+            wallet = (String) ((List<Object>) walletparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) walletparametersVariable).get(1);
-            final Object finalWallet = wallet;
+            final String finalWallet = wallet;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "wallet", finalWallet );
@@ -2858,11 +2858,11 @@ public class Bydfi extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object contractType = "FUTURE";
-            List<Object> contractTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositions", "contractType", contractType);
-            contractType = ((List<Object>) contractTypeparametersVariable).get(0);
+            String contractType = "FUTURE";
+            List<Object> contractTypeparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchPositions", "contractType", contractType);
+            contractType = (String) ((List<Object>) contractTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) contractTypeparametersVariable).get(1);
-            final Object finalContractType = contractType;
+            final String finalContractType = contractType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "contractType", finalContractType );
             }};
@@ -2931,11 +2931,11 @@ public class Bydfi extends BydfiApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object contractType = "FUTURE";
-            List<Object> contractTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositions", "contractType", contractType);
-            contractType = ((List<Object>) contractTypeparametersVariable).get(0);
+            String contractType = "FUTURE";
+            List<Object> contractTypeparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchPositions", "contractType", contractType);
+            contractType = (String) ((List<Object>) contractTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) contractTypeparametersVariable).get(1);
-            final Object finalContractType = contractType;
+            final String finalContractType = contractType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "contractType", finalContractType );
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -3115,11 +3115,11 @@ public class Bydfi extends BydfiApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object contractType = "FUTURE";
-            List<Object> contractTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositionHistory", "contractType", contractType);
-            contractType = ((List<Object>) contractTypeparametersVariable).get(0);
+            String contractType = "FUTURE";
+            List<Object> contractTypeparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchPositionHistory", "contractType", contractType);
+            contractType = (String) ((List<Object>) contractTypeparametersVariable).get(0);
             parameters = ((List<Object>) contractTypeparametersVariable).get(1);
-            final Object finalContractType = contractType;
+            final String finalContractType = contractType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "contractType", finalContractType );
@@ -3182,11 +3182,11 @@ public class Bydfi extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object contractType = "FUTURE";
-            List<Object> contractTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositionsHistory", "contractType", contractType);
-            contractType = ((List<Object>) contractTypeparametersVariable).get(0);
+            String contractType = "FUTURE";
+            List<Object> contractTypeparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchPositionsHistory", "contractType", contractType);
+            contractType = (String) ((List<Object>) contractTypeparametersVariable).get(0);
             parameters = ((List<Object>) contractTypeparametersVariable).get(1);
-            final Object finalContractType = contractType;
+            final String finalContractType = contractType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "contractType", finalContractType );
             }};
@@ -3284,16 +3284,16 @@ public class Bydfi extends BydfiApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object contractType = "FUTURE";
-            List<Object> contractTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMarginMode", "contractType", contractType);
-            contractType = ((List<Object>) contractTypeparametersVariable).get(0);
+            String contractType = "FUTURE";
+            List<Object> contractTypeparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchMarginMode", "contractType", contractType);
+            contractType = (String) ((List<Object>) contractTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) contractTypeparametersVariable).get(1);
-            Object wallet = "W001";
-            List<Object> walletparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMarginMode", "wallet", wallet);
-            wallet = ((List<Object>) walletparametersVariable).get(0);
+            String wallet = "W001";
+            List<Object> walletparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchMarginMode", "wallet", wallet);
+            wallet = (String) ((List<Object>) walletparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) walletparametersVariable).get(1);
-            final Object finalContractType = contractType;
-            final Object finalWallet = wallet;
+            final String finalContractType = contractType;
+            final String finalWallet = wallet;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "contractType", finalContractType );
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -3382,17 +3382,17 @@ public class Bydfi extends BydfiApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object contractType = "FUTURE";
-            List<Object> contractTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "setMarginMode", "contractType", contractType);
-            contractType = ((List<Object>) contractTypeparametersVariable).get(0);
+            String contractType = "FUTURE";
+            List<Object> contractTypeparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "setMarginMode", "contractType", contractType);
+            contractType = (String) ((List<Object>) contractTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) contractTypeparametersVariable).get(1);
-            Object wallet = "W001";
-            List<Object> walletparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "setMarginMode", "wallet", wallet);
-            wallet = ((List<Object>) walletparametersVariable).get(0);
+            String wallet = "W001";
+            List<Object> walletparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "setMarginMode", "wallet", wallet);
+            wallet = (String) ((List<Object>) walletparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) walletparametersVariable).get(1);
-            final Object finalContractType = contractType;
+            final String finalContractType = contractType;
             final String finalMarginMode = marginMode;
-            final Object finalWallet = wallet;
+            final String finalWallet = wallet;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "contractType", finalContractType );
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -3449,21 +3449,21 @@ public class Bydfi extends BydfiApi
                 (this.loadMarkets()).join();
             }
             String positionType = ((Helpers.isTrue(hedged))) ? "HEDGE" : "ONEWAY";
-            Object wallet = "W001";
-            List<Object> walletparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "setPositionMode", "wallet", wallet);
-            wallet = ((List<Object>) walletparametersVariable).get(0);
+            String wallet = "W001";
+            List<Object> walletparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "setPositionMode", "wallet", wallet);
+            wallet = (String) ((List<Object>) walletparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) walletparametersVariable).get(1);
-            Object contractType = "FUTURE";
-            List<Object> contractTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "setPositionMode", "contractType", contractType);
-            contractType = ((List<Object>) contractTypeparametersVariable).get(0);
+            String contractType = "FUTURE";
+            List<Object> contractTypeparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "setPositionMode", "contractType", contractType);
+            contractType = (String) ((List<Object>) contractTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) contractTypeparametersVariable).get(1);
-            Object settleCoin = "USDT";
-            List<Object> settleCoinparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "setPositionMode", "settleCoin", settleCoin);
-            settleCoin = ((List<Object>) settleCoinparametersVariable).get(0);
+            String settleCoin = "USDT";
+            List<Object> settleCoinparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "setPositionMode", "settleCoin", settleCoin);
+            settleCoin = (String) ((List<Object>) settleCoinparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) settleCoinparametersVariable).get(1);
-            final Object finalContractType = contractType;
-            final Object finalWallet = wallet;
-            final Object finalSettleCoin = settleCoin;
+            final String finalContractType = contractType;
+            final String finalWallet = wallet;
+            final String finalSettleCoin = settleCoin;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "contractType", finalContractType );
                 put( "wallet", finalWallet );
@@ -3522,18 +3522,18 @@ public class Bydfi extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object wallet = "W001";
-            List<Object> walletparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositionMode", "wallet", wallet);
-            wallet = ((List<Object>) walletparametersVariable).get(0);
+            String wallet = "W001";
+            List<Object> walletparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchPositionMode", "wallet", wallet);
+            wallet = (String) ((List<Object>) walletparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) walletparametersVariable).get(1);
-            Object contractType = "FUTURE";
-            List<Object> contractTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositionMode", "contractType", contractType);
-            contractType = ((List<Object>) contractTypeparametersVariable).get(0);
+            String contractType = "FUTURE";
+            List<Object> contractTypeparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchPositionMode", "contractType", contractType);
+            contractType = (String) ((List<Object>) contractTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) contractTypeparametersVariable).get(1);
             Object settleCoin = "USDT";
             if (java.util.Objects.equals(symbol, null))
             {
-                List<Object> settleCoinparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositionMode", "settleCoin", settleCoin);
+                List<Object> settleCoinparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchPositionMode", "settleCoin", settleCoin);
                 settleCoin = ((List<Object>) settleCoinparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) settleCoinparametersVariable).get(1);
             } else
@@ -3541,9 +3541,9 @@ public class Bydfi extends BydfiApi
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 settleCoin = ((Map<String, Object>)market).get("settleId");
             }
-            final Object finalContractType = contractType;
+            final String finalContractType = contractType;
             final Object finalSettleCoin = settleCoin;
-            final Object finalWallet = wallet;
+            final String finalWallet = wallet;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "contractType", finalContractType );
                 put( "settleCoin", finalSettleCoin );

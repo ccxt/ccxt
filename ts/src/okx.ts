@@ -2182,7 +2182,7 @@ export default class okx extends Exchange {
         let rpi = false;
         [ rpi, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'rpi');
         let method: Str = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'method', 'publicGetMarketBooks');
+        [ method, params ] = this.handleOptionStringAndParams (params, 'fetchOrderBook', 'method', 'publicGetMarketBooks');
         if (method === 'publicGetMarketBooksFull' && limit === undefined) {
             limit = 5000;
         }
@@ -2616,7 +2616,7 @@ export default class okx extends Exchange {
                 request['limit'] = limit; // default 100
             }
             let method: Str = undefined;
-            [ method, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'method', 'publicGetMarketTrades');
+            [ method, params ] = this.handleOptionStringAndParams (params, 'fetchTrades', 'method', 'publicGetMarketTrades');
             if (method === 'publicGetMarketTrades') {
                 response = await this.publicGetMarketTrades (this.extend (request, params));
             } else if (method === 'publicGetMarketHistoryTrades') {
@@ -3321,7 +3321,7 @@ export default class okx extends Exchange {
                 if (tgtCcy === 'quote_ccy') {
                     // quote_ccy: sz refers to units of quote currency
                     let createMarketBuyOrderRequiresPrice = true;
-                    [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                    [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionBoolAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                     let notional: Num = this.safeNumber2 (params, 'cost', 'sz');
                     params = this.omit (params, [ 'cost', 'sz' ]);
                     if (createMarketBuyOrderRequiresPrice) {

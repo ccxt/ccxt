@@ -273,6 +273,9 @@ public partial class BaseTest
         // hand-written C#-only: the reflective await must rebox typed dict lists for the untyped pipeline (offline)
         await testFromTypedRebox();
 
+        // hand-written C#-only: a wrong-typed option throws BadRequest (offline)
+        testOptionTypes();
+
         // Run throttler performance test
         await testThrottlerPerformance();
     }

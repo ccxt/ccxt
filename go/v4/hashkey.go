@@ -3973,7 +3973,7 @@ func (this *Hashkey) HandleTriggerOptionAndParams(params any, methodName any, op
 	defaultValue := GetArg(optionalArgs, 0, nil)
 	_ = defaultValue
 	var isTrigger any = defaultValue
-	var isTriggerparamsVariable []any = this.HandleOptionAndParams2(params, methodName, "stop", "trigger", isTrigger)
+	var isTriggerparamsVariable []any = this.HandleOptionBoolAndParams2(params, methodName, "stop", "trigger", isTrigger)
 	isTrigger = GetValue(isTriggerparamsVariable, 0)
 	params = GetValue(isTriggerparamsVariable, 1)
 	return []any{isTrigger, params}

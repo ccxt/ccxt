@@ -138,7 +138,7 @@ class woo(ccxt.async_support.woo):
         if self.markets is None:
             await self.load_markets()
         method = None
-        method, params = self.handle_option_and_params(params, 'watchOrderBook', 'method', 'orderbook')
+        method, params = self.handle_option_string_and_params(params, 'watchOrderBook', 'method', 'orderbook')
         market = self.market(symbol)
         topic = market['id'] + '@' + method
         urlUid = '/' + self.uid if (self.uid != '') else ''
@@ -175,7 +175,7 @@ class woo(ccxt.async_support.woo):
         if self.markets is None:
             await self.load_markets()
         method = None
-        method, params = self.handle_option_and_params(params, 'watchOrderBook', 'method', 'orderbook')
+        method, params = self.handle_option_string_and_params(params, 'watchOrderBook', 'method', 'orderbook')
         market = self.market(symbol)
         subHash = market['id'] + '@' + method
         topic = 'orderbook'
@@ -334,7 +334,7 @@ class woo(ccxt.async_support.woo):
         if self.markets is None:
             await self.load_markets()
         method = None
-        method, params = self.handle_option_and_params(params, 'watchTicker', 'method', 'ticker')
+        method, params = self.handle_option_string_and_params(params, 'watchTicker', 'method', 'ticker')
         market = self.market(symbol)
         subHash = market['id'] + '@' + method
         topic = 'ticker'

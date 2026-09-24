@@ -899,7 +899,7 @@ class lighter extends Exchange {
         }
         // avoid skipNonce for l1 operations
         $skipNonce = true;
-        list($skipNonce, $params) = $this->handle_option_and_params($params, 'fetchNonce', 'skipNonce', true);
+        list($skipNonce, $params) = $this->handle_option_bool_and_params($params, 'fetchNonce', 'skipNonce', true);
         if ($skipNonce) {
             return $this->milliseconds();
         }

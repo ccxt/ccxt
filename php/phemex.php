@@ -2143,7 +2143,7 @@ class phemex extends Exchange {
         }
         if ($type === 'swap') {
             $settle = null;
-            list($settle, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'settle', 'USDT');
+            list($settle, $params) = $this->handle_option_string_and_params($params, 'fetchBalance', 'settle', 'USDT');
             if ($code !== null || $settle !== null) {
                 $coin = null;
                 if ($code !== null) {
@@ -3859,7 +3859,7 @@ class phemex extends Exchange {
             $settle = $market['settle'];
             $code = $market['settle'];
         } else {
-            list($settle, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'settle', $code);
+            list($settle, $params) = $this->handle_option_string_and_params($params, 'fetchPositions', 'settle', $code);
         }
         list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', $market, $params);
         $isUSDTSettled = $settle === 'USDT';
@@ -3876,7 +3876,7 @@ class phemex extends Exchange {
         );
         if ($isUSDTSettled) {
             $method = null;
-            list($method, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'method', 'privateGetGAccountsAccountPositions');
+            list($method, $params) = $this->handle_option_string_and_params($params, 'fetchPositions', 'method', 'privateGetGAccountsAccountPositions');
             if ($method === 'privateGetGAccountsAccountPositions') {
                 $response = $this->privateGetGAccountsAccountPositions($this->extend($request, $params));
             } else {
@@ -5493,7 +5493,7 @@ class phemex extends Exchange {
             $settle = $market['settle'];
             $code = $market['settle'];
         } else {
-            list($settle, $params) = $this->handle_option_and_params($params, 'fetchPositionsADLRank', 'settle', $code);
+            list($settle, $params) = $this->handle_option_string_and_params($params, 'fetchPositionsADLRank', 'settle', $code);
         }
         list($subType, $params) = $this->handle_sub_type_and_params('fetchPositionsADLRank', $market, $params);
         $isUSDTSettled = $settle === 'USDT';
@@ -5510,7 +5510,7 @@ class phemex extends Exchange {
         );
         if ($isUSDTSettled) {
             $method = null;
-            list($method, $params) = $this->handle_option_and_params($params, 'fetchPositionsADLRank', 'method', 'privateGetGAccountsAccountPositions');
+            list($method, $params) = $this->handle_option_string_and_params($params, 'fetchPositionsADLRank', 'method', 'privateGetGAccountsAccountPositions');
             if ($method === 'privateGetGAccountsAccountPositions') {
                 $response = $this->privateGetGAccountsAccountPositions($this->extend($request, $params));
             } else {

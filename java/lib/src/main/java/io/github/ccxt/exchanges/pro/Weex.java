@@ -1233,9 +1233,9 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Object isContract = ((Map<String, Object>)firstMarket).get("contract");
             String callerMethodName = this.safeString(parameters, "callerMethodName", "watchOrderBookForSymbols");
             parameters = (Map<String, Object>) this.omit(parameters, "callerMethodName");
-            Object depth = "200";
-            List<Object> depthparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, callerMethodName, "depth", depth);
-            depth = ((List<Object>) depthparametersVariable).get(0);
+            String depth = "200";
+            List<Object> depthparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, (String) (callerMethodName), "depth", depth);
+            depth = (String) ((List<Object>) depthparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) depthparametersVariable).get(1);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
@@ -1244,7 +1244,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 String messageHash = ("orderbook::" + symbol);
-                String channel = Helpers.add((((Map<String, Object>)market).get("id") + "@depth"), depth);
+                String channel = ((((Map<String, Object>)market).get("id") + "@depth") + depth);
                 ((List<Object>)messageHashes).add(messageHash);
                 ((List<Object>)channels).add(channel);
             }
@@ -1339,9 +1339,9 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Object isContract = ((Map<String, Object>)firstMarket).get("contract");
             String callerMethodName = this.safeString(parameters, "callerMethodName", "unWatchOrderBookForSymbols");
             parameters = this.omit(parameters, "callerMethodName");
-            Object depth = "200";
-            List<Object> depthparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, callerMethodName, "depth", depth);
-            depth = ((List<Object>) depthparametersVariable).get(0);
+            String depth = "200";
+            List<Object> depthparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, (String) (callerMethodName), "depth", depth);
+            depth = (String) ((List<Object>) depthparametersVariable).get(0);
             parameters = ((List<Object>) depthparametersVariable).get(1);
             List<Object> subHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
@@ -1351,7 +1351,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 String messageHash = ("orderbook::" + symbol);
-                String channel = Helpers.add((((Map<String, Object>)market).get("id") + "@depth"), depth);
+                String channel = ((((Map<String, Object>)market).get("id") + "@depth") + depth);
                 String unSubMessageHash = ("unsubscribe::" + messageHash);
                 ((List<Object>)subHashes).add(messageHash);
                 ((List<Object>)channels).add(channel);

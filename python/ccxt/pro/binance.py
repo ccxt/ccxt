@@ -719,7 +719,7 @@ class binance(ccxt.async_support.binance):
         watchOrderBookRate = None
         watchOrderBookRate, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'watchOrderBookRate', '100')
         rpi = None
-        rpi, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'rpi', False)
+        rpi, params = self.handle_option_bool_and_params(params, 'watchOrderBookForSymbols', 'rpi', False)
         if rpi and type == 'future':
             name = 'rpiDepth'
             watchOrderBookRate = '500'
@@ -857,7 +857,7 @@ class binance(ccxt.async_support.binance):
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits = False
-        returnRateLimits, params = self.handle_option_and_params(params, 'fetchOrderBookWs', 'returnRateLimits', False)
+        returnRateLimits, params = self.handle_option_bool_and_params(params, 'fetchOrderBookWs', 'returnRateLimits', False)
         payload['returnRateLimits'] = returnRateLimits
         params = self.omit(params, 'test')
         message = {
@@ -1136,7 +1136,7 @@ class binance(ccxt.async_support.binance):
                 raise BadRequest(self.id + ' watchTradesForSymbols() accepts 200 symbols at most. To watch more symbols call watchTradesForSymbols() multiple times')
             streamHash += '::' + ','.join(symbols)
         name = None
-        name, params = self.handle_option_and_params(params, 'watchTradesForSymbols', 'name', 'trade')
+        name, params = self.handle_option_string_and_params(params, 'watchTradesForSymbols', 'name', 'trade')
         params = self.omit(params, 'callerMethodName')
         firstMarket = self.market(symbols[0])
         type = firstMarket['type']
@@ -1211,7 +1211,7 @@ class binance(ccxt.async_support.binance):
                 raise BadRequest(self.id + ' watchTradesForSymbols() accepts 200 symbols at most. To watch more symbols call watchTradesForSymbols() multiple times')
             streamHash += '::' + ','.join(symbols)
         name = None
-        name, params = self.handle_option_and_params(params, 'watchTradesForSymbols', 'name', 'trade')
+        name, params = self.handle_option_string_and_params(params, 'watchTradesForSymbols', 'name', 'trade')
         params = self.omit(params, 'callerMethodName')
         firstMarket = self.market(symbols[0])
         type = firstMarket['type']
@@ -1528,7 +1528,7 @@ class binance(ccxt.async_support.binance):
         if self.markets is None:
             await self.load_markets()
         stock = False
-        stock, params = self.handle_option_and_params(params, 'watchOHLCVForSymbols', 'stock', False)
+        stock, params = self.handle_option_bool_and_params(params, 'watchOHLCVForSymbols', 'stock', False)
         if stock:
             stockStreams = []
             stockMessageHashes = []
@@ -1788,11 +1788,11 @@ class binance(ccxt.async_support.binance):
             'method': self.handle_ticker_ws,
         }
         returnRateLimits = False
-        returnRateLimits, params = self.handle_option_and_params(params, 'fetchTickerWs', 'returnRateLimits', False)
+        returnRateLimits, params = self.handle_option_bool_and_params(params, 'fetchTickerWs', 'returnRateLimits', False)
         payload['returnRateLimits'] = returnRateLimits
         params = self.omit(params, 'test')
         method = None
-        method, params = self.handle_option_and_params(params, 'fetchTickerWs', 'method', 'ticker.book')
+        method, params = self.handle_option_string_and_params(params, 'fetchTickerWs', 'method', 'ticker.book')
         message = {
             'id': messageHash,
             'method': method,
@@ -1828,7 +1828,7 @@ class binance(ccxt.async_support.binance):
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits = False
-        returnRateLimits, params = self.handle_option_and_params(params, 'fetchOHLCVWs', 'returnRateLimits', False)
+        returnRateLimits, params = self.handle_option_bool_and_params(params, 'fetchOHLCVWs', 'returnRateLimits', False)
         payload = {
             'symbol': self.market_id(symbol),
             'returnRateLimits': returnRateLimits,
@@ -1946,7 +1946,7 @@ class binance(ccxt.async_support.binance):
         # for now watchmarkPrice uses the same messageHash as watchTicker
         # so it's impossible to watch both at the same time
         # refactor this to use different messageHashes
-        channelName, params = self.handle_option_and_params(params, 'watchMarkPrices', 'name', 'markPrice')
+        channelName, params = self.handle_option_string_and_params(params, 'watchMarkPrices', 'name', 'markPrice')
         newTickers = await self.watch_multi_ticker_helper('watchMarkPrices', channelName, symbols, params)
         if self.newUpdates:
             return newTickers
@@ -1970,7 +1970,7 @@ class binance(ccxt.async_support.binance):
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         stock = False
-        stock, params = self.handle_option_and_params(params, 'watchTickers', 'stock', False)
+        stock, params = self.handle_option_bool_and_params(params, 'watchTickers', 'stock', False)
         if stock:
             if symbols is None:
                 raise ArgumentsRequired(self.id + ' watchTickers() with stock stream requires symbols')
@@ -1980,7 +1980,7 @@ class binance(ccxt.async_support.binance):
                 return stockResult
             return self.filter_by_array(self.tickers, 'symbol', symbols)
         channelName = None
-        channelName, params = self.handle_option_and_params(params, 'watchTickers', 'name', 'miniTicker')
+        channelName, params = self.handle_option_string_and_params(params, 'watchTickers', 'name', 'miniTicker')
         if channelName == 'bookTicker':
             raise BadRequest(self.id + ' deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead')
         newTickers = await self.watch_multi_ticker_helper('watchTickers', channelName, symbols, params)
@@ -2004,7 +2004,7 @@ class binance(ccxt.async_support.binance):
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         channelName = None
-        channelName, params = self.handle_option_and_params(params, 'watchTickers', 'name', 'ticker')
+        channelName, params = self.handle_option_string_and_params(params, 'watchTickers', 'name', 'ticker')
         if channelName == 'bookTicker':
             raise BadRequest(self.id + ' deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead')
         return await self.watch_multi_ticker_helper('unWatchTickers', channelName, symbols, params, True)
@@ -2020,7 +2020,7 @@ class binance(ccxt.async_support.binance):
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         channelName = None
-        channelName, params = self.handle_option_and_params(params, 'watchMarkPrices', 'name', 'markPrice')
+        channelName, params = self.handle_option_string_and_params(params, 'watchMarkPrices', 'name', 'markPrice')
         if self.markets is None:
             await self.load_markets()
         return await self.watch_multi_ticker_helper('unWatchMarkPrices', channelName, symbols, params, True)
@@ -2084,7 +2084,7 @@ class binance(ccxt.async_support.binance):
         if self.markets is None:
             await self.load_markets()
         stock = False
-        stock, params = self.handle_option_and_params(params, 'watchBidsAsks', 'stock', False)
+        stock, params = self.handle_option_bool_and_params(params, 'watchBidsAsks', 'stock', False)
         if stock:
             if symbols is None:
                 raise ArgumentsRequired(self.id + ' watchBidsAsks() with stock stream requires symbols')
@@ -2728,7 +2728,7 @@ class binance(ccxt.async_support.binance):
         type = resolvedAuth[0]
         params = resolvedAuth[2]
         isPortfolioMargin = None
-        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'authenticate', 'papi', 'portfolioMargin', False)
+        isPortfolioMargin, params = self.handle_option_bool_and_params_2(params, 'authenticate', 'papi', 'portfolioMargin', False)
         # For spot use WebSocket API signature subscription
         if type == 'spot':
             await self.ensure_user_data_stream_ws_subscribe_signature('spot')
@@ -2822,7 +2822,7 @@ class binance(ccxt.async_support.binance):
         type = self.safe_string_2(self.options, 'defaultType', 'authenticate', 'spot')
         type = self.safe_string(params, 'type', type)
         isPortfolioMargin = None
-        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'keepAliveListenKey', 'papi', 'portfolioMargin', False)
+        isPortfolioMargin, params = self.handle_option_bool_and_params_2(params, 'keepAliveListenKey', 'papi', 'portfolioMargin', False)
         subTypeInfo = self.handle_sub_type_and_params('keepAliveListenKey', None, params)
         subType = subTypeInfo[0]
         if type != 'option' and type != 'stock':
@@ -2967,12 +2967,12 @@ class binance(ccxt.async_support.binance):
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits = False
-        returnRateLimits, params = self.handle_option_and_params(params, 'fetchBalanceWs', 'returnRateLimits', False)
+        returnRateLimits, params = self.handle_option_bool_and_params(params, 'fetchBalanceWs', 'returnRateLimits', False)
         payload = {
             'returnRateLimits': returnRateLimits,
         }
         method = None
-        method, params = self.handle_option_and_params(params, 'fetchBalanceWs', 'method', 'account.status')
+        method, params = self.handle_option_string_and_params(params, 'fetchBalanceWs', 'method', 'account.status')
         message = {
             'id': messageHash,
             'method': method,
@@ -3096,10 +3096,10 @@ class binance(ccxt.async_support.binance):
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits = False
-        returnRateLimits, params = self.handle_option_and_params(params, 'fetchPositionsWs', 'returnRateLimits', False)
+        returnRateLimits, params = self.handle_option_bool_and_params(params, 'fetchPositionsWs', 'returnRateLimits', False)
         payload['returnRateLimits'] = returnRateLimits
         method = None
-        method, params = self.handle_option_and_params(params, 'fetchPositionsWs', 'method', 'account.position')
+        method, params = self.handle_option_string_and_params(params, 'fetchPositionsWs', 'method', 'account.position')
         message = {
             'id': messageHash,
             'method': method,
@@ -3170,7 +3170,7 @@ class binance(ccxt.async_support.binance):
         type, subType, params = self.resolve_auth_type('watchBalance', None, params)
         await self.authenticate(self.extend({'type': type, 'subType': subType}, params))
         isPortfolioMargin = None
-        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'watchBalance', 'papi', 'portfolioMargin', False)
+        isPortfolioMargin, params = self.handle_option_bool_and_params_2(params, 'watchBalance', 'papi', 'portfolioMargin', False)
         url = ''
         urlType = type
         if type == 'spot' or type == 'margin':
@@ -3391,7 +3391,7 @@ class binance(ccxt.async_support.binance):
         isConditional = isTriggerOrder or isTrailingPercentOrder or isStopLoss or isTakeProfit
         payload = self.create_order_request(symbol, type, side, amount, price, params)
         returnRateLimits = False
-        returnRateLimits, params = self.handle_option_and_params(params, 'createOrderWs', 'returnRateLimits', False)
+        returnRateLimits, params = self.handle_option_bool_and_params(params, 'createOrderWs', 'returnRateLimits', False)
         payload['returnRateLimits'] = returnRateLimits
         test = self.safe_bool(params, 'test', False)
         params = self.omit(params, 'test')
@@ -3543,7 +3543,7 @@ class binance(ccxt.async_support.binance):
         else:
             payload = self.editContractOrderRequest(id, symbol, type, side, amount, price, params)
         returnRateLimits = False
-        returnRateLimits, params = self.handle_option_and_params(params, 'editOrderWs', 'returnRateLimits', False)
+        returnRateLimits, params = self.handle_option_bool_and_params(params, 'editOrderWs', 'returnRateLimits', False)
         payload['returnRateLimits'] = returnRateLimits
         message = {
             'id': messageHash,
@@ -3690,7 +3690,7 @@ class binance(ccxt.async_support.binance):
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits = False
-        returnRateLimits, params = self.handle_option_and_params(params, 'cancelOrderWs', 'returnRateLimits', False)
+        returnRateLimits, params = self.handle_option_bool_and_params(params, 'cancelOrderWs', 'returnRateLimits', False)
         payload = {
             'symbol': self.market_id(symbol),
             'returnRateLimits': returnRateLimits,
@@ -3743,7 +3743,7 @@ class binance(ccxt.async_support.binance):
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits = False
-        returnRateLimits, params = self.handle_option_and_params(params, 'cancelAllOrdersWs', 'returnRateLimits', False)
+        returnRateLimits, params = self.handle_option_bool_and_params(params, 'cancelAllOrdersWs', 'returnRateLimits', False)
         payload = {
             'symbol': self.market_id(symbol),
             'returnRateLimits': returnRateLimits,
@@ -3783,7 +3783,7 @@ class binance(ccxt.async_support.binance):
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits = False
-        returnRateLimits, params = self.handle_option_and_params(params, 'fetchOrderWs', 'returnRateLimits', False)
+        returnRateLimits, params = self.handle_option_bool_and_params(params, 'fetchOrderWs', 'returnRateLimits', False)
         payload = {
             'symbol': self.market_id(symbol),
             'returnRateLimits': returnRateLimits,
@@ -3831,7 +3831,7 @@ class binance(ccxt.async_support.binance):
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits = False
-        returnRateLimits, params = self.handle_option_and_params(params, 'fetchOrdersWs', 'returnRateLimits', False)
+        returnRateLimits, params = self.handle_option_bool_and_params(params, 'fetchOrdersWs', 'returnRateLimits', False)
         payload = {
             'symbol': self.market_id(symbol),
             'returnRateLimits': returnRateLimits,
@@ -3889,7 +3889,7 @@ class binance(ccxt.async_support.binance):
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits = False
-        returnRateLimits, params = self.handle_option_and_params(params, 'fetchOpenOrdersWs', 'returnRateLimits', False)
+        returnRateLimits, params = self.handle_option_bool_and_params(params, 'fetchOpenOrdersWs', 'returnRateLimits', False)
         payload = {
             'returnRateLimits': returnRateLimits,
         }
@@ -3928,7 +3928,7 @@ class binance(ccxt.async_support.binance):
         if self.markets is None:
             await self.load_markets()
         stock = False
-        stock, params = self.handle_option_and_params(params, 'watchOrders', 'stock', False)
+        stock, params = self.handle_option_bool_and_params(params, 'watchOrders', 'stock', False)
         if stock:
             # literal on top: a stray type in the caller params must not override
             # the forced stock, the removed authenticateStock ignored it entirely
@@ -3973,7 +3973,7 @@ class binance(ccxt.async_support.binance):
         if (type == 'margin') or ((type == 'spot') and (marginMode is not None)):
             urlType = 'spot'  # spot-margin shares the same stream as regular spot
         isPortfolioMargin = None
-        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'watchOrders', 'papi', 'portfolioMargin', False)
+        isPortfolioMargin, params = self.handle_option_bool_and_params_2(params, 'watchOrders', 'papi', 'portfolioMargin', False)
         url = ''
         if type == 'spot' or type == 'margin':
             # route orders to ws-api user data stream
@@ -4554,7 +4554,7 @@ class binance(ccxt.async_support.binance):
         await self.authenticate(self.extend(marketTypeObject, params))
         messageHash = type + ':positions' + messageHash
         isPortfolioMargin = None
-        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'watchPositions', 'papi', 'portfolioMargin', False)
+        isPortfolioMargin, params = self.handle_option_bool_and_params_2(params, 'watchPositions', 'papi', 'portfolioMargin', False)
         urlType = type
         if isPortfolioMargin:
             urlType = 'papi'
@@ -4796,7 +4796,7 @@ class binance(ccxt.async_support.binance):
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits = False
-        returnRateLimits, params = self.handle_option_and_params(params, 'fetchMyTradesWs', 'returnRateLimits', False)
+        returnRateLimits, params = self.handle_option_bool_and_params(params, 'fetchMyTradesWs', 'returnRateLimits', False)
         payload = {
             'symbol': self.market_id(symbol),
             'returnRateLimits': returnRateLimits,
@@ -4844,7 +4844,7 @@ class binance(ccxt.async_support.binance):
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits = False
-        returnRateLimits, params = self.handle_option_and_params(params, 'fetchTradesWs', 'returnRateLimits', False)
+        returnRateLimits, params = self.handle_option_bool_and_params(params, 'fetchTradesWs', 'returnRateLimits', False)
         payload = {
             'symbol': self.market_id(symbol),
             'returnRateLimits': returnRateLimits,
@@ -4943,7 +4943,7 @@ class binance(ccxt.async_support.binance):
         if type == 'margin':
             urlType = 'spot'  # spot-margin shares the same stream as regular spot
         isPortfolioMargin = None
-        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'watchMyTrades', 'papi', 'portfolioMargin', False)
+        isPortfolioMargin, params = self.handle_option_bool_and_params_2(params, 'watchMyTrades', 'papi', 'portfolioMargin', False)
         url = ''
         if type == 'spot' or type == 'margin':
             url = self.urls['api']['ws']['ws-api']['spot']

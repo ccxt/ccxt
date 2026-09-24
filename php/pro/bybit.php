@@ -1414,7 +1414,7 @@ class bybit extends \ccxt\async\bybit {
         );
         $topic = $this->safe_string($topicByMarket, $this->get_private_type($url));
         $executionFast = false;
-        list($executionFast, $params) = $this->handle_option_and_params($params, 'watchMyTrades', 'executionFast', false);
+        list($executionFast, $params) = $this->handle_option_bool_and_params($params, 'watchMyTrades', 'executionFast', false);
         if ($executionFast) {
             $topic = 'execution.fast';
         }
@@ -1460,7 +1460,7 @@ class bybit extends \ccxt\async\bybit {
         );
         $topic = $this->safe_string($topicByMarket, $this->get_private_type($url));
         $executionFast = false;
-        list($executionFast, $params) = $this->handle_option_and_params($params, 'watchMyTrades', 'executionFast', false);
+        list($executionFast, $params) = $this->handle_option_bool_and_params($params, 'watchMyTrades', 'executionFast', false);
         if ($executionFast) {
             $topic = 'execution.fast';
         }
@@ -1838,7 +1838,7 @@ class bybit extends \ccxt\async\bybit {
         $url = Async\await($this->get_url_by_market_type($symbol, false, 'watchLiquidations', $params));
         $params = $this->clean_params($params);
         $method = null;
-        list($method, $params) = $this->handle_option_and_params($params, 'watchLiquidations', 'method', 'allLiquidation');
+        list($method, $params) = $this->handle_option_string_and_params($params, 'watchLiquidations', 'method', 'allLiquidation');
         $messageHash = 'liquidations::' . $symbol;
         $topic = $method . '.' . $market['id'];
         $newLiquidation = Async\await($this->watch_topics($url, array( $messageHash ), array( $topic ), $params));

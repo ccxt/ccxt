@@ -2709,8 +2709,8 @@ public partial class whitebit : Exchange
         if (type == "spot")
         {
             bool? isMargin = null;
-            IList<object> isMarginparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelAllOrders", "isMargin", false);
-            isMargin = isTrue(isMarginparametersVariable[0]);
+            IList<object> isMarginparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "cancelAllOrders", "isMargin", false);
+            isMargin = (bool?)isMarginparametersVariable[0];
             parameters = isMarginparametersVariable[1];
             if ((isMargin == true))
             {
@@ -4914,7 +4914,7 @@ public partial class whitebit : Exchange
             string nonce = ((object)this.incrementingNonce()).ToString();
             string? secret = this.encode(this.secret);
             string request = (((("/" + "api") + "/") + (version)) + pathWithParams);
-            IList<object> nonceWindowrequestParamsVariable = (IList<object>)this.handleOptionAndParams(parameters, "sign", "nonceWindow", false);
+            IList<object> nonceWindowrequestParamsVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "sign", "nonceWindow", false);
             var nonceWindow = nonceWindowrequestParamsVariable[0];
             var requestParams = nonceWindowrequestParamsVariable[1];
             body = this.json(this.extend(new Dictionary<string, object>() {

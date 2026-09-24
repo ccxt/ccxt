@@ -1717,9 +1717,9 @@ public partial class woo : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", orderSide },
         };
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         if ((marginMode != null))
         {
@@ -4396,9 +4396,9 @@ public partial class woo : Exchange
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             };
-            object marginMode = null;
+            string? marginMode = null;
             IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchLeverage", parameters, "cross");
-            marginMode = marginModeparametersVariable[0];
+            marginMode = (string)marginModeparametersVariable[0];
             parameters = marginModeparametersVariable[1];
             request["marginMode"] = this.encodeMarginMode(marginMode);
             response = await this.v3PrivateGetFuturesLeverage(this.extend(request, parameters));
@@ -4483,9 +4483,9 @@ public partial class woo : Exchange
         } else if ((this.safeBool(market, "swap") == true))
         {
             request["symbol"] = this.safeString(market, "id");
-            object marginMode = null;
+            string? marginMode = null;
             IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("setLeverage", parameters, "cross");
-            marginMode = marginModeparametersVariable[0];
+            marginMode = (string)marginModeparametersVariable[0];
             parameters = marginModeparametersVariable[1];
             request["marginMode"] = this.encodeMarginMode(marginMode);
             return ccxt.BaseExchange.ToDict(await this.v3PrivatePutFuturesLeverage(this.extend(request, parameters)));

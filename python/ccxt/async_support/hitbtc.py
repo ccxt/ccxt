@@ -3632,7 +3632,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def handle_margin_mode_and_params(self, methodName: str, params: dict = {}, defaultValue: object = None) -> list:
+    def handle_margin_mode_and_params(self, methodName: str, params: dict = {}, defaultValue: Str = None) -> list:
         """
  @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'

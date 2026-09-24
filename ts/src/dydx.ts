@@ -865,7 +865,7 @@ export default class dydx extends Exchange {
         let userAux: Str = undefined;
         [ userAux, params ] = this.handleOptionAndParams (params, methodName, 'user');
         let user = userAux;
-        [ user, params ] = this.handleOptionAndParams (params, methodName, 'address', userAux);
+        [ user, params ] = this.handleOptionStringAndParams (params, methodName, 'address', userAux);
         if ((user !== undefined) && (user !== '')) {
             return [ user, params ];
         }
@@ -1000,7 +1000,7 @@ export default class dydx extends Exchange {
         let userAddress: Str = undefined;
         let subAccountNumber: Str = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('fetchOrders', params);
-        [ subAccountNumber, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'subAccountNumber', '0');
+        [ subAccountNumber, params ] = this.handleOptionStringAndParams (params, 'fetchOrders', 'subAccountNumber', '0');
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1175,7 +1175,7 @@ export default class dydx extends Exchange {
         let userAddress: Str = undefined;
         let subAccountNumber: Str = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('fetchPositions', params);
-        [ subAccountNumber, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'subAccountNumber', '0');
+        [ subAccountNumber, params ] = this.handleOptionStringAndParams (params, 'fetchPositions', 'subAccountNumber', '0');
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2289,7 +2289,7 @@ export default class dydx extends Exchange {
         let userAddress: Str = undefined;
         let subAccountNumber: Str = undefined;
         [ userAddress, params ] = this.handlePublicAddress (methodName, params);
-        [ subAccountNumber, params ] = this.handleOptionAndParams (params, methodName, 'subAccountNumber', '0');
+        [ subAccountNumber, params ] = this.handleOptionStringAndParams (params, methodName, 'subAccountNumber', '0');
         const request: Dict = {
             'address': userAddress,
             'subaccountNumber': subAccountNumber,

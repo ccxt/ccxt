@@ -485,9 +485,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("ticker:" + symbol);
-            Object uta = false;
-            List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTicker", "uta", uta);
-            uta = ((List<Object>) utaparametersVariable).get(0);
+            Boolean uta = false;
+            List<Object> utaparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchTicker", "uta", uta);
+            uta = (Boolean) ((List<Object>) utaparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             if (Boolean.TRUE.equals(uta))
             {
@@ -497,14 +497,14 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             }
             Object isFuturesMethod = ((Map<String, Object>)market).get("contract");
             Object url = (this.negotiate(false, isFuturesMethod)).join();
-            Object method = "/market/snapshot";
+            String method = "/market/snapshot";
             if (java.util.Objects.equals(isFuturesMethod, true))
             {
                 method = "/contractMarket/ticker";
             } else
             {
-                List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTicker", "spotMethod", method);
-                method = ((List<Object>) methodparametersVariable).get(0);
+                List<Object> methodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchTicker", "spotMethod", method);
+                method = (String) ((List<Object>) methodparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
             }
             Object topic = ((method + ":") + ((Map<String, Object>)market).get("id"));
@@ -555,9 +555,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = (String) ((Map<String, Object>)market).get("symbol");
             Object isFuturesMethod = ((Map<String, Object>)market).get("contract");
-            Object uta = false;
-            List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "unWatchTicker", "uta", uta);
-            uta = ((List<Object>) utaparametersVariable).get(0);
+            Boolean uta = false;
+            List<Object> utaparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "unWatchTicker", "uta", uta);
+            uta = (Boolean) ((List<Object>) utaparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             final String finalSymbol = symbol;
             Map<String, Object> subscription = new HashMap<String, Object>() {{
@@ -576,14 +576,14 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             } else
             {
                 Object url = (this.negotiate(false, isFuturesMethod)).join();
-                Object method = "/market/snapshot";
+                String method = "/market/snapshot";
                 if (java.util.Objects.equals(isFuturesMethod, true))
                 {
                     method = "/contractMarket/ticker";
                 } else
                 {
-                    List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTicker", "spotMethod", method);
-                    method = ((List<Object>) methodparametersVariable).get(0);
+                    List<Object> methodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchTicker", "spotMethod", method);
+                    method = (String) ((List<Object>) methodparametersVariable).get(0);
                     parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
                 }
                 Object topic = ((method + ":") + ((Map<String, Object>)market).get("id"));
@@ -646,9 +646,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchTickers", firstMarket, parameters);
             marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
-            Object uta = false;
-            List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "uta", uta);
-            uta = ((List<Object>) utaparametersVariable).get(0);
+            Boolean uta = false;
+            List<Object> utaparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchTickers", "uta", uta);
+            uta = (Boolean) ((List<Object>) utaparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             Object isFuturesMethod = (!java.util.Objects.equals(marketType, "spot")) && (!java.util.Objects.equals(marketType, "margin"));
             if ((Boolean.TRUE.equals(isFuturesMethod) || Boolean.TRUE.equals(uta)) && java.util.Objects.equals(symbols, null))
@@ -656,14 +656,14 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 throw new ArgumentsRequired((((this.id + " watchTickers() requires a list of symbols for ") + marketType) + " markets and unified trading account (uta)")) ;
             }
             String messageHash = "tickers";
-            Object method = "/market/ticker";
+            String method = "/market/ticker";
             if (Boolean.TRUE.equals(isFuturesMethod))
             {
                 method = "/contractMarket/ticker";
             } else
             {
-                List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "watchTickers", "method", "spotMethod", method);
-                method = ((List<Object>) methodparametersVariable).get(0);
+                List<Object> methodparametersVariable = (List<Object>) this.handleOptionStringAndParams2(parameters, "watchTickers", "method", "spotMethod", method);
+                method = (String) ((List<Object>) methodparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
             }
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
@@ -1238,9 +1238,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             symbol = (String) ((Map<String, Object>)market).get("symbol");
             String period = this.safeString(this.timeframes, timeframe, timeframe);
             String messageHash = ((("candles:" + symbol) + ":") + timeframe);
-            Object uta = false;
-            List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOHLCV", "uta", uta);
-            uta = ((List<Object>) utaparametersVariable).get(0);
+            Boolean uta = false;
+            List<Object> utaparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchOHLCV", "uta", uta);
+            uta = (Boolean) ((List<Object>) utaparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             Object ohlcv = null;
             if (Boolean.TRUE.equals(uta))
@@ -1318,9 +1318,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = (String) ((Map<String, Object>)market).get("symbol");
-            Object uta = false;
-            List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "unWatchOHLCV", "uta", uta);
-            uta = ((List<Object>) utaparametersVariable).get(0);
+            Boolean uta = false;
+            List<Object> utaparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "unWatchOHLCV", "uta", uta);
+            uta = (Boolean) ((List<Object>) utaparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             String period = this.safeString(this.timeframes, timeframe, timeframe);
             List<Object> symbolAndTimeframe = new ArrayList<Object>(Arrays.asList(symbol, timeframe));
@@ -1513,9 +1513,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             String symbol = symbol3;
             Object limit = limit3;
             Map<String, Object> parameters = parameters3;
-            Object uta = false;
-            List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTrades", "uta", uta);
-            uta = ((List<Object>) utaparametersVariable).get(0);
+            Boolean uta = false;
+            List<Object> utaparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchTrades", "uta", uta);
+            uta = (Boolean) ((List<Object>) utaparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             if (Boolean.TRUE.equals(uta))
             {
@@ -1725,9 +1725,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Object parameters = parameters3;
-            Object uta = false;
-            List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTrades", "uta", uta);
-            uta = ((List<Object>) utaparametersVariable).get(0);
+            Boolean uta = false;
+            List<Object> utaparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchTrades", "uta", uta);
+            uta = (Boolean) ((List<Object>) utaparametersVariable).get(0);
             parameters = ((List<Object>) utaparametersVariable).get(1);
             if (Boolean.TRUE.equals(uta))
             {
@@ -1938,18 +1938,18 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             // cache the ws level2 stream, fetch the REST snapshot, then replay only the cached deltas whose
             // sequence follows the snapshot; price 0 → skip (bump sequence), size 0 → remove the price level
             //
-            Object uta = false;
-            List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "uta", uta);
-            uta = ((List<Object>) utaparametersVariable).get(0);
+            Boolean uta = false;
+            List<Object> utaparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchOrderBook", "uta", uta);
+            uta = (Boolean) ((List<Object>) utaparametersVariable).get(0);
             parameters = ((List<Object>) utaparametersVariable).get(1);
             if (Boolean.TRUE.equals(uta))
             {
                 (this.loadMarkets()).join();
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 symbol = (String) ((Map<String, Object>)market).get("symbol");
-                Object depth = "increment"; // '1', '5', '50' or 'increment'
-                List<Object> depthparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "utaDepth", depth);
-                depth = ((List<Object>) depthparametersVariable).get(0);
+                String depth = "increment"; // '1', '5', '50' or 'increment'
+                List<Object> depthparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBook", "utaDepth", depth);
+                depth = (String) ((List<Object>) depthparametersVariable).get(0);
                 parameters = ((List<Object>) depthparametersVariable).get(1);
                 String messageHash = ((("uta:orderbook:" + symbol) + ":depth:") + depth);
                 String channel = "obu";
@@ -1963,7 +1963,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                         put( "limit", limit );
                     }};
                 }
-                final Object finalDepth = depth;
+                final String finalDepth = depth;
                 parameters = this.extend(parameters, new HashMap<String, Object>() {{
                     put( "depth", finalDepth );
                 }});
@@ -2021,20 +2021,20 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = parameters3;
-            Object uta = false;
-            List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "unWatchOrderBook", "uta", uta);
-            uta = ((List<Object>) utaparametersVariable).get(0);
+            Boolean uta = false;
+            List<Object> utaparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "unWatchOrderBook", "uta", uta);
+            uta = (Boolean) ((List<Object>) utaparametersVariable).get(0);
             parameters = ((List<Object>) utaparametersVariable).get(1);
             if (Boolean.TRUE.equals(uta))
             {
                 (this.loadMarkets()).join();
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 symbol = ((Map<String, Object>)market).get("symbol");
-                Object depth = "increment"; // '1', '5', '50' or 'increment'
-                List<Object> depthparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "utaDepth", depth);
-                depth = ((List<Object>) depthparametersVariable).get(0);
+                String depth = "increment"; // '1', '5', '50' or 'increment'
+                List<Object> depthparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBook", "utaDepth", depth);
+                depth = (String) ((List<Object>) depthparametersVariable).get(0);
                 parameters = ((List<Object>) depthparametersVariable).get(1);
-                final Object finalDepth = depth;
+                final String finalDepth = depth;
                 parameters = this.extend(parameters, new HashMap<String, Object>() {{
                     put( "depth", finalDepth );
                 }});
@@ -2677,7 +2677,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 (this.loadMarkets()).join();
             }
             Object uta = (this.isUTAEnabled()).join();
-            List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrders", "uta", uta);
+            List<Object> utaparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchOrders", "uta", uta);
             uta = ((List<Object>) utaparametersVariable).get(0);
             parameters = ((List<Object>) utaparametersVariable).get(1);
             Map<String, Object> market = null;
@@ -3189,7 +3189,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             Object isFuturesMethod = ((!java.util.Objects.equals(marketType, "spot")) && (!java.util.Objects.equals(marketType, "margin")));
             Object uta = (this.isUTAEnabled()).join();
-            List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchMyTrades", "uta", uta);
+            List<Object> utaparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchMyTrades", "uta", uta);
             uta = ((List<Object>) utaparametersVariable).get(0);
             parameters = ((List<Object>) utaparametersVariable).get(1);
             Object trades = null;
@@ -3456,7 +3456,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 (this.loadMarkets()).join();
             }
             Object uta = (this.isUTAEnabled()).join();
-            List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchBalance", "uta", uta);
+            List<Object> utaparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchBalance", "uta", uta);
             uta = ((List<Object>) utaparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             String defaultType = ((Helpers.isTrue(uta))) ? "unified" : "spot";
@@ -3821,7 +3821,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 (this.loadMarkets()).join();
             }
             Object uta = (this.isUTAEnabled()).join();
-            List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchPositions", "uta", uta);
+            List<Object> utaparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchPositions", "uta", uta);
             uta = ((List<Object>) utaparametersVariable).get(0);
             parameters = ((List<Object>) utaparametersVariable).get(1);
             String tradeType = ((Helpers.isTrue(uta))) ? "UNIFIED" : "TRADE";

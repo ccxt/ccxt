@@ -1345,11 +1345,11 @@ public class Btse extends BtseApi
                 response = (List<Object>) this.safeList(walletResponse, "data", new ArrayList<Object>(Arrays.asList()));
             } else
             {
-                Object wallet = null;
-                List<Object> walletparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchBalance", "wallet", "CROSS@");
-                wallet = ((List<Object>) walletparametersVariable).get(0);
+                String wallet = null;
+                List<Object> walletparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchBalance", "wallet", "CROSS@");
+                wallet = (String) ((List<Object>) walletparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) walletparametersVariable).get(1);
-                final Object finalWallet = wallet;
+                final String finalWallet = wallet;
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "wallet", finalWallet );
                 }};
@@ -2665,8 +2665,8 @@ public class Btse extends BtseApi
             {
                 String quoteAmount = null;
                 Boolean createMarketBuyOrderRequiresPrice = true;
-                List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = Boolean.TRUE.equals(((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0));
+                List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                 String cost = this.safeString(parameters, "cost");
                 parameters = (Map<String, Object>) this.omit(parameters, "cost");
@@ -2907,13 +2907,13 @@ public class Btse extends BtseApi
             // if positionMode is provided, we will get it from params and send it as is
             if (java.util.Objects.equals(positionMode, null))
             {
-                Object hedged = false;
-                List<Object> hedgedparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "hedged", hedged);
-                hedged = ((List<Object>) hedgedparametersVariable).get(0);
+                Boolean hedged = false;
+                List<Object> hedgedparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "createOrder", "hedged", hedged);
+                hedged = (Boolean) ((List<Object>) hedgedparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) hedgedparametersVariable).get(1);
-                Object marginMode = "cross";
-                List<Object> marginModeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "marginMode", marginMode);
-                marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+                String marginMode = "cross";
+                List<Object> marginModeparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "marginMode", marginMode);
+                marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
                 if (java.util.Objects.equals(marginMode, "isolated"))
                 {
@@ -4956,11 +4956,11 @@ public class Btse extends BtseApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Btse.this.futuresRequestId(market) );
             }};
-            Object type = "market";
-            List<Object> typeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "closePosition", "type", type);
-            type = ((List<Object>) typeparametersVariable).get(0);
+            String type = "market";
+            List<Object> typeparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "closePosition", "type", type);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
-            type = ((String)type).toUpperCase();
+            type = type.toUpperCase();
             ((Map<String, Object>)request).put("orderType", type);
             if (java.util.Objects.equals(type, "LIMIT"))
             {
@@ -5121,13 +5121,13 @@ public class Btse extends BtseApi
             // the endpoint defaults to the ISOLATED bucket when marginMode is omitted,
             // verified live - a bare call on a cross account silently changes the
             // isolated leverage only, so the unified marginMode param is translated here
-            Object marginMode = null;
+            String marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters);
-            marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+            marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if (!java.util.Objects.equals(marginMode, null))
             {
-                ((Map<String, Object>)request).put("marginMode", ((String)marginMode).toUpperCase());
+                ((Map<String, Object>)request).put("marginMode", marginMode.toUpperCase());
             }
             Map<String, Object> response = (this.privatePostFuturesApiV3TradeLeverage(this.extend(request, parameters))).join();
             return response;

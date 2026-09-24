@@ -656,7 +656,7 @@ class deepcoin(Exchange, ImplicitAPI):
             self.load_markets()
         maxLimit = 300
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             params = self.extend(params, {'calculateUntil': True})
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit)
@@ -979,7 +979,7 @@ class deepcoin(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchDeposits', 'paginate', False)
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchDeposits', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchDeposits', code, since, limit, params, 'code', None, 1, 50)
         request = {}
@@ -1020,7 +1020,7 @@ class deepcoin(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'paginate', False)
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchWithdrawals', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchWithdrawals', code, since, limit, params, 'code', None, 1, 50)
         request = {}
@@ -1564,7 +1564,7 @@ class deepcoin(Exchange, ImplicitAPI):
             marginMode, params = self.handle_margin_mode_and_params('createOrder', params, marginMode)
             request['tdMode'] = marginMode
             mrgPosition = 'merge'
-            mrgPosition, params = self.handle_option_and_params(params, 'createOrder', 'mrgPosition', mrgPosition)
+            mrgPosition, params = self.handle_option_string_and_params(params, 'createOrder', 'mrgPosition', mrgPosition)
             request['mrgPosition'] = mrgPosition
             posSide = None
             reduceOnly = self.safe_bool(params, 'reduceOnly', False)
@@ -1650,7 +1650,7 @@ class deepcoin(Exchange, ImplicitAPI):
                 elif side == 'sell':
                     request['posSide'] = 'short'
         mrgPosition = 'merge'
-        mrgPosition, params = self.handle_option_and_params(params, 'createOrder', 'mrgPosition', mrgPosition)
+        mrgPosition, params = self.handle_option_string_and_params(params, 'createOrder', 'mrgPosition', mrgPosition)
         request['mrgPosition'] = mrgPosition
         return self.extend(request, params)
 
@@ -2132,7 +2132,7 @@ class deepcoin(Exchange, ImplicitAPI):
             if marginMode == 'isolated':
                 encodedMarginMode = 0
         merged = True
-        merged, params = self.handle_option_and_params(params, 'cancelAllOrders', 'merged', merged)
+        merged, params = self.handle_option_bool_and_params(params, 'cancelAllOrders', 'merged', merged)
         isMergedMode = 1 if merged else 0
         request = {
             'InstrumentID': market['id'],
@@ -2519,7 +2519,7 @@ class deepcoin(Exchange, ImplicitAPI):
         if (marginMode != 'cross') and (marginMode != 'isolated'):
             raise BadRequest(self.id + ' setLeverage() requires a marginMode parameter that must be either cross or isolated')
         mrgPosition = 'merge'
-        mrgPosition, params = self.handle_option_and_params(params, 'setLeverage', 'mrgPosition', mrgPosition)
+        mrgPosition, params = self.handle_option_string_and_params(params, 'setLeverage', 'mrgPosition', mrgPosition)
         if mrgPosition != 'merge' and mrgPosition != 'split':
             raise BadRequest(self.id + ' setLeverage() mrgPosition parameter must be either merge or split')
         request = {

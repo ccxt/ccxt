@@ -836,7 +836,7 @@ export default class deribit extends Exchange {
         const result: List = [];
         const parsedMarkets: Dict = {};
         let fetchAllMarkets: Bool = undefined;
-        [ fetchAllMarkets, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'fetchAllMarkets', true);
+        [ fetchAllMarkets, params ] = this.handleOptionBoolAndParams (params, 'fetchMarkets', 'fetchAllMarkets', true);
         if (fetchAllMarkets) {
             const instrumentsResponse = await this.publicGetGetInstruments (params);
             instrumentsResponses.push (instrumentsResponse);

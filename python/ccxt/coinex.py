@@ -2206,7 +2206,7 @@ class coinex(Exchange, ImplicitAPI):
                 request['market_type'] = 'SPOT'
             if (type == 'market') and (side == 'buy'):
                 createMarketBuyOrderRequiresPrice = True
-                createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+                createMarketBuyOrderRequiresPrice, params = self.handle_option_bool_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
                 cost = self.safe_number(params, 'cost')
                 params = self.omit(params, 'cost')
                 if createMarketBuyOrderRequiresPrice:
@@ -3994,7 +3994,7 @@ class coinex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         defaultMethod = None
-        defaultMethod, params = self.handle_option_and_params(params, 'fetchPositions', 'method', 'v2PrivateGetFuturesPendingPosition')
+        defaultMethod, params = self.handle_option_string_and_params(params, 'fetchPositions', 'method', 'v2PrivateGetFuturesPendingPosition')
         symbols = self.market_symbols(symbols)
         request = {
             'market_type': 'FUTURES',
@@ -5856,7 +5856,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def handle_margin_mode_and_params(self, methodName: str, params: dict = {}, defaultValue: object = None) -> list:
+    def handle_margin_mode_and_params(self, methodName: str, params: dict = {}, defaultValue: Str = None) -> list:
         """
  @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'

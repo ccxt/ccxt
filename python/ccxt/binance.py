@@ -4028,7 +4028,7 @@ class binance(Exchange, ImplicitAPI):
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchBalance', None, params)
         isPortfolioMargin = None
-        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchBalance', 'papi', 'portfolioMargin', False)
+        isPortfolioMargin, params = self.handle_option_bool_and_params_2(params, 'fetchBalance', 'papi', 'portfolioMargin', False)
         marginMode = None
         query = None
         marginMode, query = self.handle_margin_mode_and_params('fetchBalance', params)
@@ -4045,7 +4045,7 @@ class binance(Exchange, ImplicitAPI):
         elif self.is_linear(type, subType):
             type = 'linear'
             useV2 = None
-            useV2, params = self.handle_option_and_params(params, 'fetchBalance', 'useV2', False)
+            useV2, params = self.handle_option_bool_and_params(params, 'fetchBalance', 'useV2', False)
             params = self.extend(request, query)
             if not useV2:
                 response = self.fapiPrivateV3GetAccount(params)
@@ -4986,7 +4986,7 @@ class binance(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1000)
         market = self.market(symbol)
@@ -5748,7 +5748,7 @@ class binance(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         isPortfolioMargin = None
-        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'editContractOrder', 'papi', 'portfolioMargin', False)
+        isPortfolioMargin, params = self.handle_option_bool_and_params_2(params, 'editContractOrder', 'papi', 'portfolioMargin', False)
         request = self.edit_contract_order_request(id, symbol, type, side, amount, price, params)
         response = None
         if market['linear'] is True:
@@ -5845,7 +5845,7 @@ class binance(Exchange, ImplicitAPI):
             price = self.safe_value(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
             isPortfolioMargin = None
-            isPortfolioMargin, orderParams = self.handle_option_and_params_2(orderParams, 'editOrders', 'papi', 'portfolioMargin', False)
+            isPortfolioMargin, orderParams = self.handle_option_bool_and_params_2(orderParams, 'editOrders', 'papi', 'portfolioMargin', False)
             if isPortfolioMargin:
                 raise NotSupported(self.id + ' editOrders() does not support portfolio margin orders')
             orderRequest = self.edit_contract_order_request(id, marketId, type, side, amount, price, orderParams)
@@ -6831,7 +6831,7 @@ class binance(Exchange, ImplicitAPI):
             'side': upperCaseSide,
         }
         isPortfolioMargin = None
-        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'createOrder', 'papi', 'portfolioMargin', False)
+        isPortfolioMargin, params = self.handle_option_bool_and_params_2(params, 'createOrder', 'papi', 'portfolioMargin', False)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
         reduceOnly = self.safe_bool(params, 'reduceOnly', False)
@@ -7204,7 +7204,7 @@ class binance(Exchange, ImplicitAPI):
         request = {}
         market = None
         stock = None
-        stock, params = self.handle_option_and_params(params, 'fetchOrder', 'stock', False)
+        stock, params = self.handle_option_bool_and_params(params, 'fetchOrder', 'stock', False)
         if symbol is not None:
             market = self.market(symbol)
             stock = self.safe_bool(market, 'stock', False)
@@ -7219,7 +7219,7 @@ class binance(Exchange, ImplicitAPI):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchOrder', params)
         isPortfolioMargin = None
-        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchOrder', 'papi', 'portfolioMargin', False)
+        isPortfolioMargin, params = self.handle_option_bool_and_params_2(params, 'fetchOrder', 'papi', 'portfolioMargin', False)
         isConditional = self.safe_bool_n(params, ['stop', 'trigger', 'conditional'])
         isOptionType = type == 'option'
         isLinearType = self.is_linear(type, subType)
@@ -7306,7 +7306,7 @@ class binance(Exchange, ImplicitAPI):
         request = {}
         market = None
         stock = None
-        stock, params = self.handle_option_and_params(params, 'fetchOrders', 'stock', False)
+        stock, params = self.handle_option_bool_and_params(params, 'fetchOrders', 'stock', False)
         if symbol is not None:
             market = self.market(symbol)
             stock = self.safe_bool(market, 'stock', False)
@@ -7320,7 +7320,7 @@ class binance(Exchange, ImplicitAPI):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchOrders', params)
         isPortfolioMargin = None
-        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchOrders', 'papi', 'portfolioMargin', False)
+        isPortfolioMargin, params = self.handle_option_bool_and_params_2(params, 'fetchOrders', 'papi', 'portfolioMargin', False)
         isConditional = self.safe_bool_n(params, ['stop', 'trigger', 'conditional'])
         isOptionType = type == 'option'
         isLinearType = self.is_linear(type, subType)
@@ -7623,10 +7623,10 @@ class binance(Exchange, ImplicitAPI):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchOpenOrders', params)
         isPortfolioMargin = None
-        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchOpenOrders', 'papi', 'portfolioMargin', False)
+        isPortfolioMargin, params = self.handle_option_bool_and_params_2(params, 'fetchOpenOrders', 'papi', 'portfolioMargin', False)
         isConditional = self.safe_bool_n(params, ['stop', 'trigger', 'conditional'])
         stock = None
-        stock, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'stock', False)
+        stock, params = self.handle_option_bool_and_params(params, 'fetchOpenOrders', 'stock', False)
         if symbol is not None:
             market = self.market(symbol)
             stock = self.safe_bool(market, 'stock', False)
@@ -7712,7 +7712,7 @@ class binance(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         isPortfolioMargin = None
-        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchOpenOrder', 'papi', 'portfolioMargin', False)
+        isPortfolioMargin, params = self.handle_option_bool_and_params_2(params, 'fetchOpenOrder', 'papi', 'portfolioMargin', False)
         isConditional = self.safe_bool_n(params, ['stop', 'trigger', 'conditional'])
         params = self.omit(params, ['stop', 'trigger', 'conditional'])
         isPortfolioMarginConditional = (isPortfolioMargin and isConditional)
@@ -7919,7 +7919,7 @@ class binance(Exchange, ImplicitAPI):
         """
         market = None
         stock = None
-        stock, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'stock', False)
+        stock, params = self.handle_option_bool_and_params(params, 'fetchClosedOrders', 'stock', False)
         if symbol is not None:
             market = self.market(symbol)
             stock = self.safe_bool(market, 'stock', False)
@@ -7959,7 +7959,7 @@ class binance(Exchange, ImplicitAPI):
         """
         market = None
         stock = None
-        stock, params = self.handle_option_and_params(params, 'fetchCanceledOrders', 'stock', False)
+        stock, params = self.handle_option_bool_and_params(params, 'fetchCanceledOrders', 'stock', False)
         if symbol is not None:
             market = self.market(symbol)
             stock = self.safe_bool(market, 'stock', False)
@@ -7999,7 +7999,7 @@ class binance(Exchange, ImplicitAPI):
         """
         market = None
         stock = None
-        stock, params = self.handle_option_and_params(params, 'fetchCanceledAndClosedOrders', 'stock', False)
+        stock, params = self.handle_option_bool_and_params(params, 'fetchCanceledAndClosedOrders', 'stock', False)
         if symbol is not None:
             market = self.market(symbol)
             stock = self.safe_bool(market, 'stock', False)
@@ -8045,7 +8045,7 @@ class binance(Exchange, ImplicitAPI):
         request = {}
         market = None
         stock = None
-        stock, params = self.handle_option_and_params(params, 'cancelOrder', 'stock', False)
+        stock, params = self.handle_option_bool_and_params(params, 'cancelOrder', 'stock', False)
         if symbol is not None:
             market = self.market(symbol)
             stock = self.safe_bool(market, 'stock', False)
@@ -8060,7 +8060,7 @@ class binance(Exchange, ImplicitAPI):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
         isPortfolioMargin = None
-        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'cancelOrder', 'papi', 'portfolioMargin', False)
+        isPortfolioMargin, params = self.handle_option_bool_and_params_2(params, 'cancelOrder', 'papi', 'portfolioMargin', False)
         isConditional = self.safe_bool_n(params, ['stop', 'trigger', 'conditional'])
         isOptionType = type == 'option'
         isLinearType = self.is_linear(type, subType)
@@ -8155,7 +8155,7 @@ class binance(Exchange, ImplicitAPI):
         request = {}
         market = None
         stock = None
-        stock, params = self.handle_option_and_params(params, 'cancelAllOrders', 'stock', False)
+        stock, params = self.handle_option_bool_and_params(params, 'cancelAllOrders', 'stock', False)
         if symbol is not None:
             market = self.market(symbol)
             stock = self.safe_bool(market, 'stock', False)
@@ -8164,7 +8164,7 @@ class binance(Exchange, ImplicitAPI):
         else:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         isPortfolioMargin = None
-        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'cancelAllOrders', 'papi', 'portfolioMargin', False)
+        isPortfolioMargin, params = self.handle_option_bool_and_params_2(params, 'cancelAllOrders', 'papi', 'portfolioMargin', False)
         isConditional = self.safe_bool_n(params, ['stop', 'trigger', 'conditional'])
         type = None
         type, params = self.handle_market_type_and_params('cancelAllOrders', market, params, 'spot')
@@ -8453,7 +8453,7 @@ class binance(Exchange, ImplicitAPI):
         type = None
         marginMode = None
         stock = None
-        stock, params = self.handle_option_and_params(params, 'fetchMyTrades', 'stock', False)
+        stock, params = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'stock', False)
         if symbol is not None:
             market = self.market(symbol)
             stock = self.safe_bool(market, 'stock', False)
@@ -8492,7 +8492,7 @@ class binance(Exchange, ImplicitAPI):
         else:
             marginMode, params = self.handle_margin_mode_and_params('fetchMyTrades', params)
             isPortfolioMargin = None
-            isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchMyTrades', 'papi', 'portfolioMargin', False)
+            isPortfolioMargin, params = self.handle_option_bool_and_params_2(params, 'fetchMyTrades', 'papi', 'portfolioMargin', False)
             if stock is True:
                 if endTime is None:
                     endTime = self.milliseconds()
@@ -9969,7 +9969,7 @@ class binance(Exchange, ImplicitAPI):
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchTradingFee', market, params)
         isPortfolioMargin = None
-        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchTradingFee', 'papi', 'portfolioMargin', False)
+        isPortfolioMargin, params = self.handle_option_bool_and_params_2(params, 'fetchTradingFee', 'papi', 'portfolioMargin', False)
         isLinear = self.is_linear(type, subType)
         isInverse = self.is_inverse(type, subType)
         request = {
@@ -10939,7 +10939,7 @@ class binance(Exchange, ImplicitAPI):
             subType = None
             subType, params = self.handle_sub_type_and_params('loadLeverageBrackets', None, params, 'linear')
             isPortfolioMargin = None
-            isPortfolioMargin, params = self.handle_option_and_params_2(params, 'loadLeverageBrackets', 'papi', 'portfolioMargin', False)
+            isPortfolioMargin, params = self.handle_option_bool_and_params_2(params, 'loadLeverageBrackets', 'papi', 'portfolioMargin', False)
             response = None
             if self.is_linear(type, subType):
                 if isPortfolioMargin:
@@ -10993,7 +10993,7 @@ class binance(Exchange, ImplicitAPI):
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchLeverageTiers', None, params, 'linear')
         isPortfolioMargin = None
-        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchLeverageTiers', 'papi', 'portfolioMargin', False)
+        isPortfolioMargin, params = self.handle_option_bool_and_params_2(params, 'fetchLeverageTiers', 'papi', 'portfolioMargin', False)
         response = None
         if self.is_linear(type, subType):
             if isPortfolioMargin:
@@ -11311,14 +11311,14 @@ class binance(Exchange, ImplicitAPI):
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchAccountPositions', None, params, 'linear')
         isPortfolioMargin = None
-        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchAccountPositions', 'papi', 'portfolioMargin', False)
+        isPortfolioMargin, params = self.handle_option_bool_and_params_2(params, 'fetchAccountPositions', 'papi', 'portfolioMargin', False)
         response = None
         if self.is_linear(type, subType):
             if isPortfolioMargin:
                 response = self.papiV2GetUmAccount(params)
             else:
                 useV2 = None
-                useV2, params = self.handle_option_and_params(params, 'fetchAccountPositions', 'useV2', False)
+                useV2, params = self.handle_option_bool_and_params(params, 'fetchAccountPositions', 'useV2', False)
                 if not useV2:
                     response = self.fapiPrivateV3GetAccount(params)
                 else:
@@ -11397,7 +11397,7 @@ class binance(Exchange, ImplicitAPI):
         else:
             raise NotSupported(self.id + ' fetchPositions() supports linear and inverse contracts only')
         filterClosed = None
-        filterClosed, params = self.handle_option_and_params(params, 'fetchAccountPositions', 'filterClosed', False)
+        filterClosed, params = self.handle_option_bool_and_params(params, 'fetchAccountPositions', 'filterClosed', False)
         result = self.parse_account_positions(response, filterClosed)
         symbols = self.market_symbols(symbols)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
@@ -11433,7 +11433,7 @@ class binance(Exchange, ImplicitAPI):
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchPositionsRisk', None, params, 'linear')
         isPortfolioMargin = None
-        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchPositionsRisk', 'papi', 'portfolioMargin', False)
+        isPortfolioMargin, params = self.handle_option_bool_and_params_2(params, 'fetchPositionsRisk', 'papi', 'portfolioMargin', False)
         params = self.omit(params, 'type')
         response = None
         if self.is_linear(type, subType):
@@ -11441,7 +11441,7 @@ class binance(Exchange, ImplicitAPI):
                 response = self.papiGetUmPositionRisk(self.extend(request, params))
             else:
                 useV2 = None
-                useV2, params = self.handle_option_and_params(params, 'fetchPositionsRisk', 'useV2', False)
+                useV2, params = self.handle_option_bool_and_params(params, 'fetchPositionsRisk', 'useV2', False)
                 params = self.extend(request, params)
                 if not useV2:
                     response = self.fapiPrivateV3GetPositionRisk(params)
@@ -11605,7 +11605,7 @@ class binance(Exchange, ImplicitAPI):
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchFundingHistory', market, params, 'linear')
         isPortfolioMargin = None
-        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchFundingHistory', 'papi', 'portfolioMargin', False)
+        isPortfolioMargin, params = self.handle_option_bool_and_params_2(params, 'fetchFundingHistory', 'papi', 'portfolioMargin', False)
         request, params = self.handle_until_option('endTime', request, params)
         if since is not None:
             request['startTime'] = since
@@ -11658,7 +11658,7 @@ class binance(Exchange, ImplicitAPI):
             'leverage': leverage,
         }
         isPortfolioMargin = None
-        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'setLeverage', 'papi', 'portfolioMargin', False)
+        isPortfolioMargin, params = self.handle_option_bool_and_params_2(params, 'setLeverage', 'papi', 'portfolioMargin', False)
         response = None
         if market['linear'] is True:
             if isPortfolioMargin:
@@ -11759,7 +11759,7 @@ class binance(Exchange, ImplicitAPI):
         subType = None
         subType, params = self.handle_sub_type_and_params('setPositionMode', market, params)
         isPortfolioMargin = None
-        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'setPositionMode', 'papi', 'portfolioMargin', False)
+        isPortfolioMargin, params = self.handle_option_bool_and_params_2(params, 'setPositionMode', 'papi', 'portfolioMargin', False)
         dualSidePosition = None
         if hedged:
             dualSidePosition = 'true'
@@ -11814,7 +11814,7 @@ class binance(Exchange, ImplicitAPI):
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchLeverages', None, params, 'linear')
         isPortfolioMargin = None
-        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchLeverages', 'papi', 'portfolioMargin', False)
+        isPortfolioMargin, params = self.handle_option_bool_and_params_2(params, 'fetchLeverages', 'papi', 'portfolioMargin', False)
         response = None
         if self.is_linear(type, subType):
             if isPortfolioMargin:
@@ -12118,7 +12118,7 @@ class binance(Exchange, ImplicitAPI):
             params = self.omit(params, 'until')
             request['endTime'] = until
         isPortfolioMargin = None
-        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchLedger', 'papi', 'portfolioMargin', False)
+        isPortfolioMargin, params = self.handle_option_bool_and_params_2(params, 'fetchLedger', 'papi', 'portfolioMargin', False)
         response = None
         if type == 'option':
             self.check_required_argument('fetchLedger', code, 'code')
@@ -12918,7 +12918,7 @@ class binance(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         isPortfolioMargin = None
-        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchBorrowInterest', 'papi', 'portfolioMargin', False)
+        isPortfolioMargin, params = self.handle_option_bool_and_params_2(params, 'fetchBorrowInterest', 'papi', 'portfolioMargin', False)
         request = {}
         market = None
         if code is not None:
@@ -13018,7 +13018,7 @@ class binance(Exchange, ImplicitAPI):
         }
         response = None
         isPortfolioMargin = None
-        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'repayCrossMargin', 'papi', 'portfolioMargin', False)
+        isPortfolioMargin, params = self.handle_option_bool_and_params_2(params, 'repayCrossMargin', 'papi', 'portfolioMargin', False)
         if isPortfolioMargin:
             method = None
             method, params = self.handle_option_and_params_2(params, 'repayCrossMargin', 'repayCrossMarginMethod', 'method')
@@ -13107,7 +13107,7 @@ class binance(Exchange, ImplicitAPI):
         }
         response = None
         isPortfolioMargin = None
-        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'borrowCrossMargin', 'papi', 'portfolioMargin', False)
+        isPortfolioMargin, params = self.handle_option_bool_and_params_2(params, 'borrowCrossMargin', 'papi', 'portfolioMargin', False)
         if isPortfolioMargin:
             response = self.papiPostMarginLoan(self.extend(request, params))
         else:
@@ -13204,7 +13204,7 @@ class binance(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOpenInterestHistory', 'paginate', False)
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOpenInterestHistory', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOpenInterestHistory', symbol, since, limit, timeframe, params, 500)
         market = self.market(symbol)
@@ -13373,7 +13373,7 @@ class binance(Exchange, ImplicitAPI):
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchMyLiquidations', market, params, 'linear')
         isPortfolioMargin = None
-        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchMyLiquidations', 'papi', 'portfolioMargin', False)
+        isPortfolioMargin, params = self.handle_option_bool_and_params_2(params, 'fetchMyLiquidations', 'papi', 'portfolioMargin', False)
         request = {}
         if type != 'spot':
             request['autoCloseType'] = 'LIQUIDATION'
@@ -14634,7 +14634,7 @@ class binance(Exchange, ImplicitAPI):
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchPositionsADLRank', market, params)
         isPortfolioMargin = None
-        isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchPositionsADLRank', 'papi', 'portfolioMargin', False)
+        isPortfolioMargin, params = self.handle_option_bool_and_params_2(params, 'fetchPositionsADLRank', 'papi', 'portfolioMargin', False)
         response = None
         if subType == 'linear':
             if isPortfolioMargin:

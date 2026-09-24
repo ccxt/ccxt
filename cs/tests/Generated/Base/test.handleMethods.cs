@@ -95,9 +95,43 @@ public partial class BaseTest
             Assert(inOp(request1, "chain_id"));
             Assert(isEqual(getValue(request1, "chain_id"), "Xyz"));
         }
+        public void helperTestHandleTypedOptions()
+        {
+            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
+                { "id", "sampleexchange" },
+                { "options", new Dictionary<string, object>() {
+                    { "marginMode", "isolated" },
+                    { "fetchX", new Dictionary<string, object>() {
+                        { "uta", true },
+                    } },
+                } },
+            });
+            var marginModeparams1Variable = exchange.handleMarginModeAndParams("fetchX", new Dictionary<string, object>() {}, "cross");
+            var marginMode = ((IList<object>) marginModeparams1Variable)[0];
+            var params1 = ((IList<object>) marginModeparams1Variable)[1];
+            Assert(isEqual(marginMode, "isolated"));
+            var utaparams2Variable = exchange.handleOptionBoolAndParams(new Dictionary<string, object>() {}, "fetchX", "uta", false);
+            var uta = ((IList<object>) utaparams2Variable)[0];
+            var params2 = ((IList<object>) utaparams2Variable)[1];
+            Assert(isEqual(uta, true));
+            var absentparams3Variable = exchange.handleOptionStringAndParams(new Dictionary<string, object>() {}, "fetchX", "absentKey", "fallback");
+            var absent = ((IList<object>) absentparams3Variable)[0];
+            var params3 = ((IList<object>) absentparams3Variable)[1];
+            Assert(isEqual(absent, "fallback"));
+            var fromParamsparams4Variable = exchange.handleOptionStringAndParams(new Dictionary<string, object>() {
+            { "absentKey", "p" },
+        }, "fetchX", "absentKey", "fallback");
+            var fromParams = ((IList<object>) fromParamsparams4Variable)[0];
+            var params4 = ((IList<object>) fromParamsparams4Variable)[1];
+            Assert(isEqual(fromParams, "p"));
+            Assert(!(inOp(params4, "absentKey")));
+            // a wrong-typed option is covered per language in language_specific (it throws only in C#, Java and Go)
+            Assert((params1 != null) || (params2 != null) || (params3 != null));
+        }
         public void testHandleMethods()
         {
             helperTestHandleMarketTypeAndParams();
             helperTestHandleNetworkRequest();
+            helperTestHandleTypedOptions();
         }
 }

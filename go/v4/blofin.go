@@ -1310,11 +1310,11 @@ func (this *Blofin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	if limit != nil {
 		request["limit"] = limit // default 100
 	}
-	var method any = nil
-	var methodparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "method", "publicGetMarketTrades")
-	method = GetValue(methodparamsVariable, 0)
+	var method *string = nil
+	var methodparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchTrades", "method", "publicGetMarketTrades")
+	method = SafeStringPtr(GetValue(methodparamsVariable, 0))
 	params = MapTyped(GetValue(methodparamsVariable, 1))
-	if IsEqual(method, "publicGetMarketTrades") {
+	if method != nil && *method == "publicGetMarketTrades" {
 
 		response = MapTyped(PanicOnError((<-this.PublicGetMarketTrades(this.Extend(request, params))).Raw))
 	}
@@ -2022,7 +2022,7 @@ func (this *Blofin) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	var isTakeProfitPriceDefined bool = (this.SafeString(params, "takeProfitPrice") != nil)
 	var isTriggerOrder bool = (this.SafeString(params, "triggerPrice") != nil)
 	var isTpslEndpoint any = false
-	var isTpslEndpointparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "tpsl", false)
+	var isTpslEndpointparamsVariable []any = this.HandleOptionBoolAndParams(params, "createOrder", "tpsl", false)
 	isTpslEndpoint = GetValue(isTpslEndpointparamsVariable, 0)
 	params = MapTyped(GetValue(isTpslEndpointparamsVariable, 1))
 	var isCombinedSlTp bool = (isStopLossPriceDefined && isTakeProfitPriceDefined) || (isTpslEndpoint == true)
@@ -2311,17 +2311,17 @@ func (this *Blofin) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var isTrigger *bool = this.SafeBoolN(params, []any{"stop", "trigger"}, false)
 	var isTpSl *bool = this.SafeBool2(params, "tpsl", "TPSL", false)
-	var method any = nil
-	var methodparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "method", "privateGetTradeOrdersPending")
-	method = GetValue(methodparamsVariable, 0)
+	var method *string = nil
+	var methodparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchOpenOrders", "method", "privateGetTradeOrdersPending")
+	method = SafeStringPtr(GetValue(methodparamsVariable, 0))
 	params = MapTyped(GetValue(methodparamsVariable, 1))
 	var query map[string]any = MapTyped(this.Omit(params, []any{"method", "stop", "trigger", "tpsl", "TPSL"}))
 	var response any = nil
-	if (isTpSl != nil && *isTpSl == true) || (IsEqual(method, "privateGetTradeOrdersTpslPending")) {
+	if (isTpSl != nil && *isTpSl == true) || (method != nil && *method == "privateGetTradeOrdersTpslPending") {
 
 		response = (<-this.PrivateGetTradeOrdersTpslPending(this.Extend(request, query)))
 		PanicOnError(response)
-	} else if (isTrigger != nil && *isTrigger == true) || (IsEqual(method, "privateGetTradeOrdersAlgoPending")) {
+	} else if (isTrigger != nil && *isTrigger == true) || (method != nil && *method == "privateGetTradeOrdersAlgoPending") {
 		request["orderType"] = "trigger"
 
 		response = (<-this.PrivateGetTradeOrdersAlgoPending(this.Extend(request, query)))
@@ -3430,14 +3430,14 @@ func (this *Blofin) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 	if symbols == nil {
 		panic(ArgumentsRequired(this.Id + " fetchLeverages() requires a symbols argument"))
 	}
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchLeverages", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
-	if IsEqual(marginMode, nil) {
-		marginMode = DerefScalar(this.SafeString(params, "marginMode", "cross")) // cross as default marginMode
+	if marginMode == nil {
+		marginMode = this.SafeString(params, "marginMode", "cross") // cross as default marginMode
 	}
-	if (!IsEqual(marginMode, "cross")) && (!IsEqual(marginMode, "isolated")) {
+	if (marginMode == nil || *marginMode != "cross") && (marginMode == nil || *marginMode != "isolated") {
 		panic(BadRequest(this.Id + " fetchLeverages() requires a marginMode parameter that must be either cross or isolated"))
 	}
 	symbols = this.MarketSymbols(symbols)
@@ -3501,14 +3501,14 @@ func (this *Blofin) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchLeverage", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
-	if IsEqual(marginMode, nil) {
-		marginMode = DerefScalar(this.SafeString(params, "marginMode", "cross")) // cross as default marginMode
+	if marginMode == nil {
+		marginMode = this.SafeString(params, "marginMode", "cross") // cross as default marginMode
 	}
-	if (!IsEqual(marginMode, "cross")) && (!IsEqual(marginMode, "isolated")) {
+	if (marginMode == nil || *marginMode != "cross") && (marginMode == nil || *marginMode != "isolated") {
 		panic(BadRequest(this.Id + " fetchLeverage() requires a marginMode parameter that must be either cross or isolated"))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -3585,11 +3585,11 @@ func (this *Blofin) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("setLeverage", params, "cross")
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
-	if (!IsEqual(marginMode, "cross")) && (!IsEqual(marginMode, "isolated")) {
+	if (marginMode == nil || *marginMode != "cross") && (marginMode == nil || *marginMode != "isolated") {
 		panic(BadRequest(this.Id + " setLeverage() requires a marginMode parameter that must be either cross or isolated"))
 	}
 	var request map[string]any = map[string]any{
@@ -3640,9 +3640,9 @@ func (this *Blofin) closePositionBody(ch chan any, symbol any, optionalArgs ...a
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("closePosition", params, "cross")
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"instId":     market["id"],
@@ -3716,13 +3716,13 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 		request["begin"] = since
 	}
 	var isTrigger *bool = this.SafeBoolN(params, []any{"stop", "trigger", "tpsl", "TPSL"}, false)
-	var method any = nil
-	var methodparamsVariable []any = this.HandleOptionAndParams(params, "fetchClosedOrders", "method", "privateGetTradeOrdersHistory")
-	method = GetValue(methodparamsVariable, 0)
+	var method *string = nil
+	var methodparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchClosedOrders", "method", "privateGetTradeOrdersHistory")
+	method = SafeStringPtr(GetValue(methodparamsVariable, 0))
 	params = MapTyped(GetValue(methodparamsVariable, 1))
 	var query map[string]any = MapTyped(this.Omit(params, []any{"method", "stop", "trigger", "tpsl", "TPSL"}))
 	var response any = nil
-	if (isTrigger != nil && *isTrigger == true) || (IsEqual(method, "privateGetTradeOrdersTpslHistory")) {
+	if (isTrigger != nil && *isTrigger == true) || (method != nil && *method == "privateGetTradeOrdersTpslHistory") {
 
 		response = (<-this.PrivateGetTradeOrdersTpslHistory(this.Extend(request, query)))
 		PanicOnError(response)

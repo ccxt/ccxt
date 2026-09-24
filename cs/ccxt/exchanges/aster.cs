@@ -4620,9 +4620,9 @@ public partial class aster : Exchange
         await this.loadMarketsAndSignIn();
         await this.loadLeverageBrackets(false, parameters);
         Dictionary<string, object> response = await this.fapiPrivateGetV4Account(parameters);
-        object filterClosed = null;
-        IList<object> filterClosedparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchAccountPositions", "filterClosed", false);
-        filterClosed = filterClosedparametersVariable[0];
+        bool? filterClosed = null;
+        IList<object> filterClosedparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchAccountPositions", "filterClosed", false);
+        filterClosed = (bool?)filterClosedparametersVariable[0];
         parameters = filterClosedparametersVariable[1];
         List<object> result = this.parseAccountPositions(response, filterClosed);
         symbols = this.marketSymbols(symbols);

@@ -3602,7 +3602,6 @@ function javaLocalTypeOf (printer, declaration, narrowed) {
 //   handleOptionAndParams / handleOptionAndParams2  (`value = safeValue2 (...) : defaultValue`)
 //   handleMarketTypeAndParams                       (`Helpers.GetValue (market, "type")` / defaultValue)
 //   handleSubTypeAndParams                          (`subType = GetValue (handleOptionAndParams (...), 0)`)
-//   handleMarginModeAndParams                       (returns handleOptionAndParams directly)
 //   handleUntilOption                               (element 0 is the caller's own `request` argument)
 // Element 1 is always the caller's params box — Java has no dictionary type to name it with.
 //
@@ -3634,6 +3633,12 @@ const HANDLE_ELEMENT_TYPES = {
     'handleParamInteger2': { element0: 'Long' },
     'handleParamBool': { element0: 'Boolean', defaultArg: 2 },
     'handleParamBool2': { element0: 'Boolean', defaultArg: 3 },
+    // checkOptionString / checkOptionBool (throw on a mistyped option) own slot 0 on every path
+    'handleOptionStringAndParams': { element0: 'String' },
+    'handleOptionStringAndParams2': { element0: 'String' },
+    'handleOptionBoolAndParams': { element0: 'Boolean' },
+    'handleOptionBoolAndParams2': { element0: 'Boolean' },
+    'handleMarginModeAndParams': { element0: 'String' },
     'handleNetworkCodeAndParams': { element0: 'String' },
     'handlePostOnly': { element0: 'Boolean' },
     'handleTriggerAndParams': { element0: 'Boolean' },
@@ -3702,6 +3707,7 @@ const HANDLE_ELEMENT_1_PARAMS = new Set ([
     'handleTriggerAndParams', 'handleTriggerDirectionAndParams', 'handlePostOnly',
     'handleParamString', 'handleParamString2', 'handleParamInteger', 'handleParamInteger2',
     'handleParamBool', 'handleParamBool2', 'handleNetworkCodeAndParams',
+    'handleOptionStringAndParams', 'handleOptionStringAndParams2', 'handleOptionBoolAndParams', 'handleOptionBoolAndParams2',
 ]);
 
 // the element-1 type: a `Map` on every returning path except the list-valued `omit`

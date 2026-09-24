@@ -5613,9 +5613,9 @@ public class Aster extends AsterApi
             (this.loadMarketsAndSignIn()).join();
             (this.loadLeverageBrackets(false, parameters)).join();
             Map<String, Object> response = (this.fapiPrivateGetV4Account(parameters)).join();
-            Object filterClosed = null;
-            List<Object> filterClosedparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchAccountPositions", "filterClosed", false);
-            filterClosed = ((List<Object>) filterClosedparametersVariable).get(0);
+            Boolean filterClosed = null;
+            List<Object> filterClosedparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchAccountPositions", "filterClosed", false);
+            filterClosed = (Boolean) ((List<Object>) filterClosedparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) filterClosedparametersVariable).get(1);
             Object result = this.parseAccountPositions((Map<String, Object>) (response), filterClosed);
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols));

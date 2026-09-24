@@ -4218,7 +4218,7 @@ func (this *Htx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	} else {
 		request["symbol"] = market["id"]
 		var useHistorical any = nil
-		var useHistoricalparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "useHistoricalEndpointForSpot", true)
+		var useHistoricalparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "useHistoricalEndpointForSpot", true)
 		useHistorical = GetValue(useHistoricalparamsVariable, 0)
 		params = GetValue(useHistoricalparamsVariable, 1)
 		if !(useHistorical == true) {
@@ -4604,7 +4604,7 @@ func (this *Htx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var isUnifiedAccount any = nil
-	var isUnifiedAccountparamsVariable []any = this.HandleOptionAndParams2(params, "fetchBalance", "unified", "uta", false)
+	var isUnifiedAccountparamsVariable []any = this.HandleOptionBoolAndParams2(params, "fetchBalance", "unified", "uta", false)
 	isUnifiedAccount = GetValue(isUnifiedAccountparamsVariable, 0)
 	params = MapTyped(GetValue(isUnifiedAccountparamsVariable, 1))
 	if isUnifiedAccount == true {
@@ -4622,7 +4622,7 @@ func (this *Htx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	if subType == nil {
 		subType = "linear"
 	}
-	var isMultiAssetModeparamsVariable []any = this.HandleOptionAndParams(params, "fetchBalance", "multiAssetMode", false)
+	var isMultiAssetModeparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchBalance", "multiAssetMode", false)
 	isMultiAssetMode = GetValue(isMultiAssetModeparamsVariable, 0)
 	params = MapTyped(GetValue(isMultiAssetModeparamsVariable, 1))
 	var request map[string]any = map[string]any{}
@@ -4631,12 +4631,12 @@ func (this *Htx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var swap bool = (IsEqual(typeVar, "swap"))
 	var inverse bool = (IsEqual(subType, "inverse"))
 	var linear bool = (IsEqual(subType, "linear"))
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchBalance", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
-	var isolated bool = (IsEqual(marginMode, "isolated"))
-	var cross bool = (IsEqual(marginMode, "cross"))
+	var isolated bool = (marginMode != nil && *marginMode == "isolated")
+	var cross bool = (marginMode != nil && *marginMode == "cross")
 	var margin bool = (IsEqual(typeVar, "margin")) || (spot && (cross || isolated))
 	var response any = nil
 	if (isMultiAssetMode == true) || (linear && (swap || future)) {
@@ -6645,7 +6645,7 @@ func (this *Htx) createSpotOrderRequestBody(ch chan any, symbol any, typeVar any
 	if (IsEqual(orderType, "market")) && (IsEqual(side, "buy")) {
 		var quoteAmount any = nil
 		var createMarketBuyOrderRequiresPrice bool = true
-		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
+		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		createMarketBuyOrderRequiresPrice = GetValueBool(createMarketBuyOrderRequiresPriceparamsVariable, 0, false)
 		params = MapTyped(GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1))
 		var cost *float64 = this.SafeNumber(params, "cost")
@@ -7186,9 +7186,9 @@ func (this *Htx) createOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
 		var marginResult any = this.HandleMarginModeAndParams("createOrders", orderParams)
-		var currentMarginMode any = GetValue(marginResult, 0)
-		if !IsEqual(currentMarginMode, nil) {
-			if marginMode == nil {
+		var currentMarginMode *string = SafeStringPtr(GetValue(marginResult, 0))
+		if currentMarginMode != nil {
+			if IsEqual(marginMode, nil) {
 				marginMode = currentMarginMode
 			} else {
 				if !IsEqual(marginMode, currentMarginMode) {

@@ -20,6 +20,7 @@ from ccxt.test.base.language_specific.test_precise_instance import test_precise_
 from ccxt.test.base.language_specific.test_sort_by_fallback import test_sort_by_fallback  # noqa E402  # hand-written python-only
 from ccxt.test.base.language_specific.test_sort_by_fallback import test_sort_by_2_fallback  # noqa E402  # hand-written python-only
 from ccxt.test.base.language_specific.test_extend_slow_path import test_extend_slow_path  # noqa E402  # hand-written python-only
+from ccxt.test.base.language_specific.test_option_types import test_option_types  # noqa E402  # hand-written python-only
 
 
 
@@ -28,5 +29,6 @@ async def test_language_specific():
     test_sort_by_fallback()
     test_sort_by_2_fallback()
     test_extend_slow_path()
+    test_option_types()
     test_throttler_performance()
     await test_close_session_leak()

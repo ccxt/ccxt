@@ -414,7 +414,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         if self.markets is None:
             await self.load_markets()
         verbose = False
-        verbose, params = self.handle_option_and_params(params, 'watchOrders', 'verbose', False)
+        verbose, params = self.handle_option_bool_and_params(params, 'watchOrders', 'verbose', False)
         name = 'open_orders'
         messageHash = 'orders'
         if verbose:

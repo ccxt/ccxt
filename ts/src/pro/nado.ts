@@ -565,7 +565,7 @@ export default class nado extends nadoRest {
             productId = this.parseToInt (market['id']);
         }
         let subaccount: Str = undefined;
-        [ subaccount, params ] = this.handleOptionAndParams (params, 'watchOrders', 'subaccount', 'default');
+        [ subaccount, params ] = this.handleOptionStringAndParams (params, 'watchOrders', 'subaccount', 'default');
         const sender = this.createSubaccount (this.walletAddress, subaccount);
         const stream: Dict = {
             'type': 'order_update',
@@ -603,7 +603,7 @@ export default class nado extends nadoRest {
             productId = this.parseToInt (market['id']);
         }
         let subaccount: Str = undefined;
-        [ subaccount, params ] = this.handleOptionAndParams (params, 'unWatchOrders', 'subaccount', 'default');
+        [ subaccount, params ] = this.handleOptionStringAndParams (params, 'unWatchOrders', 'subaccount', 'default');
         const sender = this.createSubaccount (this.walletAddress, subaccount);
         const stream: Dict = {
             'type': 'order_update',
@@ -640,7 +640,7 @@ export default class nado extends nadoRest {
             productId = this.parseToInt (market['id']);
         }
         let subaccount: Str = undefined;
-        [ subaccount, params ] = this.handleOptionAndParams (params, 'watchMyTrades', 'subaccount', 'default');
+        [ subaccount, params ] = this.handleOptionStringAndParams (params, 'watchMyTrades', 'subaccount', 'default');
         const sender = this.createSubaccount (this.walletAddress, subaccount);
         const stream: Dict = {
             'type': 'fill',
@@ -678,7 +678,7 @@ export default class nado extends nadoRest {
             productId = this.parseToInt (market['id']);
         }
         let subaccount: Str = undefined;
-        [ subaccount, params ] = this.handleOptionAndParams (params, 'unWatchMyTrades', 'subaccount', 'default');
+        [ subaccount, params ] = this.handleOptionStringAndParams (params, 'unWatchMyTrades', 'subaccount', 'default');
         const sender = this.createSubaccount (this.walletAddress, subaccount);
         const stream: Dict = {
             'type': 'fill',
@@ -717,7 +717,7 @@ export default class nado extends nadoRest {
             }
         }
         let subaccount: Str = undefined;
-        [ subaccount, params ] = this.handleOptionAndParams (params, 'watchPositions', 'subaccount', 'default');
+        [ subaccount, params ] = this.handleOptionStringAndParams (params, 'watchPositions', 'subaccount', 'default');
         const sender = this.createSubaccount (this.walletAddress, subaccount);
         const stream: Dict = {
             'type': 'position_change',
@@ -757,7 +757,7 @@ export default class nado extends nadoRest {
             }
         }
         let subaccount: Str = undefined;
-        [ subaccount, params ] = this.handleOptionAndParams (params, 'unWatchPositions', 'subaccount', 'default');
+        [ subaccount, params ] = this.handleOptionStringAndParams (params, 'unWatchPositions', 'subaccount', 'default');
         const sender = this.createSubaccount (this.walletAddress, subaccount);
         const stream: Dict = {
             'type': 'position_change',
@@ -1084,7 +1084,7 @@ export default class nado extends nadoRest {
         let recvWindow: Int = undefined;
         [ recvWindow, params ] = this.handleOptionAndParams (params, 'authenticate', 'recvWindow', 5000);
         let subaccount: Str = undefined;
-        [ subaccount, params ] = this.handleOptionAndParams (params, 'authenticate', 'subaccount', 'default');
+        [ subaccount, params ] = this.handleOptionStringAndParams (params, 'authenticate', 'subaccount', 'default');
         const id = this.requestId ();
         const sender = this.createSubaccount (this.walletAddress, subaccount);
         const expiration = this.sum (this.milliseconds (), recvWindow);

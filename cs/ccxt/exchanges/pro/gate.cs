@@ -245,9 +245,9 @@ public partial class gate : ccxt.gate
         Dictionary<string, object> market = ((symbol == null)) ? null : this.market(symbol);
         bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         object messageType = this.getTypeByMarket(market);
-        object channel = add(messageType, ".order_cancel_cp");
-        IList<object> channelparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelAllOrdersWs", "channel", channel);
-        channel = channelparametersVariable[0];
+        string? channel = ((string)add(messageType, ".order_cancel_cp"));
+        IList<object> channelparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "cancelAllOrdersWs", "channel", channel);
+        channel = (string)channelparametersVariable[0];
         parameters = channelparametersVariable[1];
         string? url = this.getUrlByMarket(market);
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});

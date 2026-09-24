@@ -247,8 +247,8 @@ public partial class poloniex : ccxt.poloniex
         {
             string? quoteAmount = null;
             bool? createMarketBuyOrderRequiresPrice = true;
-            IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-            createMarketBuyOrderRequiresPrice = isTrue(createMarketBuyOrderRequiresPriceparametersVariable[0]);
+            IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparametersVariable[0];
             parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
             double? cost = this.safeNumber(parameters, "cost");
             parameters = this.omit(parameters, "cost");
@@ -546,9 +546,9 @@ public partial class poloniex : ccxt.poloniex
             await this.loadMarkets();
         }
         IDictionary<string, object> watchOrderBookOptions = this.safeDict(this.options, "watchOrderBook");
-        object name = this.safeString(watchOrderBookOptions, "name", "book_lv2");
-        IList<object> nameparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "name", name);
-        name = nameparametersVariable[0];
+        string? name = this.safeString(watchOrderBookOptions, "name", "book_lv2");
+        IList<object> nameparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBook", "name", name);
+        name = (string)nameparametersVariable[0];
         parameters = nameparametersVariable[1];
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribe(name, name, false, new List<object>() {symbol}, parameters));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());

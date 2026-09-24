@@ -2405,8 +2405,8 @@ public class Mexc extends MexcApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object maxLimit = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -3615,7 +3615,7 @@ public class Mexc extends MexcApi
                 {
                     if (!java.util.Objects.equals(marginMode, "isolated"))
                     {
-                        throw new BadRequest((Helpers.add((this.id + " fetchOrder() does not support marginMode "), marginMode) + " for spot-margin trading")) ;
+                        throw new BadRequest((((this.id + " fetchOrder() does not support marginMode ") + marginMode) + " for spot-margin trading")) ;
                     }
                     data = (this.spotPrivateGetMarginOrder(this.extend(request, query))).join();
                 } else
@@ -3749,7 +3749,7 @@ public class Mexc extends MexcApi
                 {
                     if (!java.util.Objects.equals(marginMode, "isolated"))
                     {
-                        throw new BadRequest((Helpers.add((this.id + " fetchOrders() does not support marginMode "), marginMode) + " for spot-margin trading")) ;
+                        throw new BadRequest((((this.id + " fetchOrders() does not support marginMode ") + marginMode) + " for spot-margin trading")) ;
                     }
                     response = (this.spotPrivateGetMarginAllOrders(this.extend(request, queryInner))).join();
                 } else
@@ -4055,7 +4055,7 @@ public class Mexc extends MexcApi
                 {
                     if (!java.util.Objects.equals(marginMode, "isolated"))
                     {
-                        throw new BadRequest((Helpers.add((this.id + " fetchOpenOrders() does not support marginMode "), marginMode) + " for spot-margin trading")) ;
+                        throw new BadRequest((((this.id + " fetchOpenOrders() does not support marginMode ") + marginMode) + " for spot-margin trading")) ;
                     }
                     response = (this.spotPrivateGetMarginOpenOrders(this.extend(request, query))).join();
                 } else
@@ -4318,7 +4318,7 @@ public class Mexc extends MexcApi
                 {
                     if (!java.util.Objects.equals(marginMode, "isolated"))
                     {
-                        throw new BadRequest((Helpers.add((this.id + " cancelOrder() does not support marginMode "), marginMode) + " for spot-margin trading")) ;
+                        throw new BadRequest((((this.id + " cancelOrder() does not support marginMode ") + marginMode) + " for spot-margin trading")) ;
                     }
                     data = (this.spotPrivateDeleteMarginOrder(this.extend(requestInner, query))).join();
                 } else
@@ -8026,7 +8026,7 @@ final String finalRiskIncrVol = riskIncrVol;
         return this.parseLeverage(leverage, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public Object handleMarginModeAndParams(Object methodName, Map<String, Object> parameters, Object defaultValue)
+    public Object handleMarginModeAndParams(Object methodName, Map<String, Object> parameters, String defaultValue)
     {
         /**
          * @ignore
@@ -8050,7 +8050,7 @@ final String finalRiskIncrVol = riskIncrVol;
     }
     public Object handleMarginModeAndParams(Object methodName, Object... optionalArgs)
     {
-        return this.handleMarginModeAndParams(methodName, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null);
+        return this.handleMarginModeAndParams(methodName, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}), Helpers.getArgString(optionalArgs, 1, null));
     }
 
     /**

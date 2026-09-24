@@ -1736,7 +1736,7 @@ func (this *Bybit) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var topic *string = this.SafeString(topicByMarket, this.GetPrivateType(url))
 	var executionFast bool = false
-	var executionFastparamsVariable []any = this.HandleOptionAndParams(params, "watchMyTrades", "executionFast", false)
+	var executionFastparamsVariable []any = this.HandleOptionBoolAndParams(params, "watchMyTrades", "executionFast", false)
 	executionFast = ccxt.GetValueBool(executionFastparamsVariable, 0, false)
 	params = ccxt.MapTyped(ccxt.GetValue(executionFastparamsVariable, 1))
 	if executionFast {
@@ -1798,7 +1798,7 @@ func (this *Bybit) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var topic *string = this.SafeString(topicByMarket, this.GetPrivateType(url))
 	var executionFast bool = false
-	var executionFastparamsVariable []any = this.HandleOptionAndParams(params, "watchMyTrades", "executionFast", false)
+	var executionFastparamsVariable []any = this.HandleOptionBoolAndParams(params, "watchMyTrades", "executionFast", false)
 	executionFast = ccxt.GetValueBool(executionFastparamsVariable, 0, false)
 	params = ccxt.MapTyped(ccxt.GetValue(executionFastparamsVariable, 1))
 	if executionFast {
@@ -2249,12 +2249,12 @@ func (this *Bybit) watchLiquidationsBody(ch chan any, symbol any, optionalArgs .
 	url := (<-this.GetUrlByMarketTypeAsync(symbol, false, "watchLiquidations", params))
 	ccxt.PanicOnError(url)
 	params = this.CleanParams(params)
-	var method any = nil
-	var methodparamsVariable []any = this.HandleOptionAndParams(params, "watchLiquidations", "method", "allLiquidation")
-	method = ccxt.GetValue(methodparamsVariable, 0)
+	var method *string = nil
+	var methodparamsVariable []any = this.HandleOptionStringAndParams(params, "watchLiquidations", "method", "allLiquidation")
+	method = ccxt.SafeStringPtr(ccxt.GetValue(methodparamsVariable, 0))
 	params = ccxt.GetValue(methodparamsVariable, 1)
 	var messageHash any = ccxt.Add("liquidations::", symbol)
-	var topic any = ccxt.Add(ccxt.Add(method, "."), market["id"])
+	var topic any = ccxt.Add(*method+".", market["id"])
 
 	newLiquidation := (<-this.WatchTopicsAsync(url, []any{messageHash}, []any{topic}, params))
 	ccxt.PanicOnError(newLiquidation)

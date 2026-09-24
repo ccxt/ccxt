@@ -1088,8 +1088,8 @@ class bingx(ccxt.async_support.bingx):
         self.set_balance_cache(client, type, subType, subscriptionHash, params)
         fetchBalanceSnapshot = None
         awaitBalanceSnapshot = None
-        fetchBalanceSnapshot, params = self.handle_option_and_params(params, 'watchBalance', 'fetchBalanceSnapshot', True)
-        awaitBalanceSnapshot, params = self.handle_option_and_params(params, 'watchBalance', 'awaitBalanceSnapshot', False)
+        fetchBalanceSnapshot, params = self.handle_option_bool_and_params(params, 'watchBalance', 'fetchBalanceSnapshot', True)
+        awaitBalanceSnapshot, params = self.handle_option_bool_and_params(params, 'watchBalance', 'awaitBalanceSnapshot', False)
         if fetchBalanceSnapshot and awaitBalanceSnapshot:
             await client.future(type + ':fetchBalanceSnapshot')
         subscription = {
@@ -1102,7 +1102,7 @@ class bingx(ccxt.async_support.bingx):
         if subscriptionHash in client.subscriptions:
             return
         fetchBalanceSnapshot = False
-        fetchBalanceSnapshot, params = self.handle_option_and_params(params, 'watchBalance', 'fetchBalanceSnapshot', True)
+        fetchBalanceSnapshot, params = self.handle_option_bool_and_params(params, 'watchBalance', 'fetchBalanceSnapshot', True)
         if fetchBalanceSnapshot:
             messageHash = type + ':fetchBalanceSnapshot'
             if not (messageHash in client.futures):
@@ -1157,8 +1157,8 @@ class bingx(ccxt.async_support.bingx):
         self.set_positions_cache(client, type, symbols)
         fetchPositionsSnapshot = None
         awaitPositionsSnapshot = None
-        fetchPositionsSnapshot, params = self.handle_option_and_params(params, 'watchPositions', 'fetchPositionsSnapshot', True)
-        awaitPositionsSnapshot, params = self.handle_option_and_params(params, 'watchPositions', 'awaitPositionsSnapshot', False)
+        fetchPositionsSnapshot, params = self.handle_option_bool_and_params(params, 'watchPositions', 'fetchPositionsSnapshot', True)
+        awaitPositionsSnapshot, params = self.handle_option_bool_and_params(params, 'watchPositions', 'awaitPositionsSnapshot', False)
         uuid = self.uuid()
         subscription = {
             'unsubscribe': False,

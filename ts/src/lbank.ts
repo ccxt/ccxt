@@ -1701,7 +1701,7 @@ export default class lbank extends Exchange {
                 request['type'] = side + '_' + 'market';
                 let quoteAmount: Str = undefined;
                 let createMarketBuyOrderRequiresPrice = true;
-                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionBoolAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 const cost = this.safeNumber (params, 'cost');
                 params = this.omit (params, 'cost');
                 if (cost !== undefined) {

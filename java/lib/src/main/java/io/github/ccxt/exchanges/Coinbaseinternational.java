@@ -1158,9 +1158,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 (this.loadMarkets()).join();
             }
-            Object method = null;
-            List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createDepositAddress", "method", "v1PrivatePostTransfersAddress");
-            method = ((List<Object>) methodparametersVariable).get(0);
+            String method = null;
+            List<Object> methodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createDepositAddress", "method", "v1PrivatePostTransfersAddress");
+            method = (String) ((List<Object>) methodparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
             String portfolio = null;
             List<Object> portfolioparametersVariable = (List<Object>) (this.handlePortfolioAndParams("createDepositAddress", parameters)).join();
@@ -3365,9 +3365,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             List<Object> portfolioparametersVariable = (List<Object>) (this.handlePortfolioAndParams("withdraw", parameters)).join();
             portfolio = (String) ((List<Object>) portfolioparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) portfolioparametersVariable).get(1);
-            Object method = null;
-            List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "withdraw", "method", "v1PrivatePostTransfersWithdraw");
-            method = ((List<Object>) methodparametersVariable).get(0);
+            String method = null;
+            List<Object> methodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "withdraw", "method", "v1PrivatePostTransfersWithdraw");
+            method = (String) ((List<Object>) methodparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
             Object networkId = null;
             List<Object> networkIdparametersVariable = (List<Object>) (this.handleNetworkIdAndParams(code, "withdraw", parameters)).join();

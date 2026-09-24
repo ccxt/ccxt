@@ -2792,7 +2792,7 @@ class extended extends Exchange {
             $builderId = $this->safe_string_2($params, 'builderId', 'defaultBuilderId');
             $params = $this->omit($params, array( 'builderFeeRate', 'defaultBuilderFeeRate', 'builderId', 'defaultBuilderId' ));
         } else {
-            list($builderFeeRate, $params) = $this->handle_option_and_params($params, 'createOrder', 'builderFeeRate', '0.0001');
+            list($builderFeeRate, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'builderFeeRate', '0.0001');
             list($builderId, $params) = $this->handle_option_and_params($params, 'createOrder', 'builderId');
         }
         $totalFee = $fee;

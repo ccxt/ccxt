@@ -795,9 +795,9 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false);
-            Object channel = null;
-            List<Object> channelparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "channel", "depth");
-            channel = ((List<Object>) channelparametersVariable).get(0);
+            String channel = null;
+            List<Object> channelparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "channel", "depth");
+            channel = (String) ((List<Object>) channelparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) channelparametersVariable).get(1);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> subParams = new ArrayList<Object>(Arrays.asList());
@@ -811,7 +811,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             }
             Object marketIds = this.marketIds(symbols);
             Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "common"), "/quote/ws/v1");
-            final Object finalChannel = channel;
+            final String finalChannel = channel;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", String.join(",", (List<String>)marketIds) );
                 put( "topic", finalChannel );

@@ -21,6 +21,33 @@ public class TestLanguageSpecific extends BaseTest
         testSafeMethodsCorrectness();
         testSafeMethodsConcurrentReadDuringWrite();
         testSafeMethodsPerformance();
+        testOptionTypes();
+    }
+
+    // a present option of the wrong type throws BadRequest in Java (JS/Python/PHP pass it through)
+    private void testOptionTypes() {
+        Exchange ex = new Exchange(new HashMap<String, Object>() {{
+            put("id", "sampleexchange");
+            put("options", new HashMap<String, Object>() {{
+                put("fetchX", new HashMap<String, Object>() {{
+                    put("wrongBool", "yes");
+                    put("wrongString", 5);
+                }});
+            }});
+        }});
+        assertOptionThrows(() -> ex.handleOptionBoolAndParams(new HashMap<String, Object>(), "fetchX", "wrongBool", false), "fetchX() option wrongBool must be a boolean");
+        assertOptionThrows(() -> ex.handleOptionStringAndParams(new HashMap<String, Object>(), "fetchX", "wrongString", "x"), "fetchX() option wrongString must be a string");
+        assertOptionThrows(() -> ex.handleMarginModeAndParams("fetchX", new HashMap<String, Object>() {{ put("marginMode", false); }}), "fetchX() option marginMode must be a string");
+    }
+
+    private void assertOptionThrows(Runnable call, String message) {
+        try {
+            call.run();
+        } catch (io.github.ccxt.errors.BadRequest e) {
+            Assert(e.getMessage().contains(message), "unexpected BadRequest message for: " + message);
+            return;
+        }
+        Assert(false, "expected a BadRequest: " + message);
     }
 
     /**

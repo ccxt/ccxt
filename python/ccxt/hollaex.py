@@ -925,7 +925,7 @@ class hollaex(Exchange, ImplicitAPI):
         }
         paginate = False
         maxLimit = 500
-        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', paginate)
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', paginate)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit)
         until = self.safe_integer(params, 'until')

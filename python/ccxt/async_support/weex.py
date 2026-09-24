@@ -1392,7 +1392,7 @@ class weex(Exchange, ImplicitAPI):
         if market['contract'] is not True:
             raise NotSupported(self.id + ' fetchMarkPrice() supports contract markets only')
         priceType = None
-        priceType, params = self.handle_option_and_params(params, 'fetchMarkPrice', 'priceType', 'MARK')  # the endpoint defaults to INDEX
+        priceType, params = self.handle_option_string_and_params(params, 'fetchMarkPrice', 'priceType', 'MARK')  # the endpoint defaults to INDEX
         request = {
             'symbol': market['id'],
             'priceType': priceType,
@@ -2033,7 +2033,7 @@ class weex(Exchange, ImplicitAPI):
             currency = self.currency(code)
         maxLimit = 100
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchTransfers', 'paginate', False)
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchTransfers', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchTransfers', code, since, limit, params, maxLimit)
         if since is not None:
@@ -2581,7 +2581,7 @@ class weex(Exchange, ImplicitAPI):
         marketType, params = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         isSpot = (marketType == 'spot')
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'paginate', False)
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOpenOrders', 'paginate', False)
         maxLimit = 100
         if paginate:
             if isSpot:
@@ -2772,7 +2772,7 @@ class weex(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchOrders() supports spot markets only')
         maxLimit = 1000
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate', False)
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOrders', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchOrders', symbol, since, limit, params, maxLimit)
         request = {
@@ -2832,7 +2832,7 @@ class weex(Exchange, ImplicitAPI):
         if marketType == 'spot':
             raise NotSupported(self.id + ' fetchCanceledAndClosedOrders() does not support spot markets. Use fetchOrders() instead and filter by status "canceled" or "closed"')
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchCanceledAndClosedOrders', 'paginate', False)
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchCanceledAndClosedOrders', 'paginate', False)
         maxLimit = 1000
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchCanceledAndClosedOrders', symbol, since, limit, params, maxLimit)
@@ -3120,7 +3120,7 @@ class weex(Exchange, ImplicitAPI):
         if isSpot and (symbol is None):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument for spot markets')
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate', False)
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         maxLimit = 100
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params, maxLimit)
@@ -3197,7 +3197,7 @@ class weex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate', False)
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchLedger', 'paginate', False)
         maxLimit = 100
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchLedger', code, since, limit, params, maxLimit)
@@ -3353,7 +3353,7 @@ class weex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate', False)
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingHistory', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchFundingHistory', symbol, since, limit, params, 100)
         market = None

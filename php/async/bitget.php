@@ -6112,7 +6112,7 @@ class bitget extends Exchange {
             $quantity = null;
             $planType = null;
             $createMarketBuyOrderRequiresPrice = true;
-            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_bool_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
             if ($isMarketOrder && ($side === 'buy')) {
                 $planType = 'total';
                 $cost = $this->safe_number($params, 'cost');
@@ -9002,7 +9002,7 @@ class bitget extends Exchange {
         if ($useHistoryEndpoint === true) {
             $method = 'privateMixGetV2MixPositionHistoryPosition';
         } else {
-            list($method, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'method', 'privateMixGetV2MixPositionAllPosition');
+            list($method, $params) = $this->handle_option_string_and_params($params, 'fetchPositions', 'method', 'privateMixGetV2MixPositionAllPosition');
         }
         $market = null;
         if ($symbols !== null) {
@@ -9549,7 +9549,7 @@ class bitget extends Exchange {
         } else {
             $request['productType'] = $productType;
             $method = null;
-            list($method, $params) = $this->handle_option_and_params($params, 'fetchFundingRate', 'method', 'publicMixGetV2MixMarketCurrentFundRate');
+            list($method, $params) = $this->handle_option_string_and_params($params, 'fetchFundingRate', 'method', 'publicMixGetV2MixMarketCurrentFundRate');
             if ($method === 'publicMixGetV2MixMarketCurrentFundRate') {
                 $response = Async\await($this->publicMixGetV2MixMarketCurrentFundRate($this->extend($request, $params)));
                 //
@@ -9620,7 +9620,7 @@ class bitget extends Exchange {
         $productType = null;
         list($productType, $params) = $this->handle_product_type_and_params($market, $params);
         $method = 'publicMixGetV2MixMarketTickers';
-        list($method, $params) = $this->handle_option_and_params($params, 'fetchFundingRates', 'method', $method);
+        list($method, $params) = $this->handle_option_string_and_params($params, 'fetchFundingRates', 'method', $method);
         $response = null;
         $request['productType'] = $productType;
         if ($method === 'publicMixGetV2MixMarketTickers') {

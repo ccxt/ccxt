@@ -129,13 +129,13 @@ class cryptocom(ccxt.async_support.cryptocom):
             params['params'] = {}
         bookSubscriptionType = None
         bookSubscriptionType2 = None
-        bookSubscriptionType, params = self.handle_option_and_params(params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE')
-        bookSubscriptionType2, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType)
+        bookSubscriptionType, params = self.handle_option_string_and_params(params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE')
+        bookSubscriptionType2, params = self.handle_option_string_and_params(params, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType)
         params['params']['bookSubscriptionType'] = bookSubscriptionType2
         bookUpdateFrequency = None
         bookUpdateFrequency2 = None
         bookUpdateFrequency, params = self.handle_option_and_params(params, 'watchOrderBook', 'bookUpdateFrequency')
-        bookUpdateFrequency2, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency)
+        bookUpdateFrequency2, params = self.handle_option_string_and_params(params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency)
         if bookUpdateFrequency2 is not None:
             params['params']['bookSubscriptionType'] = bookUpdateFrequency2
         for i in range(0, len(symbols)):
@@ -173,13 +173,13 @@ class cryptocom(ccxt.async_support.cryptocom):
             params['params'] = {}
         bookSubscriptionType = None
         bookSubscriptionType2 = None
-        bookSubscriptionType, params = self.handle_option_and_params(params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE')
-        bookSubscriptionType2, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType)
+        bookSubscriptionType, params = self.handle_option_string_and_params(params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE')
+        bookSubscriptionType2, params = self.handle_option_string_and_params(params, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType)
         params['params']['bookSubscriptionType'] = bookSubscriptionType2
         bookUpdateFrequency = None
         bookUpdateFrequency2 = None
         bookUpdateFrequency, params = self.handle_option_and_params(params, 'watchOrderBook', 'bookUpdateFrequency')
-        bookUpdateFrequency2, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency)
+        bookUpdateFrequency2, params = self.handle_option_string_and_params(params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency)
         if bookUpdateFrequency2 is not None:
             params['params']['bookSubscriptionType'] = bookUpdateFrequency2
         for i in range(0, len(symbols)):

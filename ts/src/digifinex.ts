@@ -1908,7 +1908,7 @@ export default class digifinex extends Exchange {
             // limit orders require the amount in the base currency, market orders require the amount in the quote currency
             let quantity: Str = undefined;
             let createMarketBuyOrderRequiresPrice = true;
-            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrderRequest', 'createMarketBuyOrderRequiresPrice', true);
+            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionBoolAndParams (params, 'createOrderRequest', 'createMarketBuyOrderRequiresPrice', true);
             if (isMarketOrder && (side === 'buy')) {
                 const cost = this.safeNumber (params, 'cost');
                 params = this.omit (params, 'cost');
@@ -4153,7 +4153,7 @@ export default class digifinex extends Exchange {
         return tiers as LeverageTier[];
     }
 
-    override handleMarginModeAndParams (methodName: string, params: Dict = {}, defaultValue: any = undefined): [any, Dict] {
+    override handleMarginModeAndParams (methodName: string, params: Dict = {}, defaultValue: Str = undefined): [Str, Dict] {
         /**
          * @ignore
          * @method

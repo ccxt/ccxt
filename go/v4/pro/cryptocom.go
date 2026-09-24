@@ -197,21 +197,21 @@ func (this *Cryptocom) watchOrderBookForSymbolsBody(ch chan any, symbols any, op
 		ccxt.AddElementToObject(params, "params", map[string]any{})
 	}
 	var bookSubscriptionType any = nil
-	var bookSubscriptionType2 any = nil
-	var bookSubscriptionTypeparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE")
+	var bookSubscriptionType2 *string = nil
+	var bookSubscriptionTypeparamsVariable []any = this.HandleOptionStringAndParams(params, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE")
 	bookSubscriptionType = ccxt.GetValue(bookSubscriptionTypeparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(bookSubscriptionTypeparamsVariable, 1))
-	var bookSubscriptionType2paramsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType)
-	bookSubscriptionType2 = ccxt.GetValue(bookSubscriptionType2paramsVariable, 0)
+	var bookSubscriptionType2paramsVariable []any = this.HandleOptionStringAndParams(params, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType)
+	bookSubscriptionType2 = ccxt.SafeStringPtr(ccxt.GetValue(bookSubscriptionType2paramsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(bookSubscriptionType2paramsVariable, 1))
 	ccxt.AddElementToObject(ccxt.GetValue(params, "params"), "bookSubscriptionType", bookSubscriptionType2)
 	var bookUpdateFrequency any = nil
-	var bookUpdateFrequency2 any = nil
+	var bookUpdateFrequency2 *string = nil
 	var bookUpdateFrequencyparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "bookUpdateFrequency")
 	bookUpdateFrequency = ccxt.GetValue(bookUpdateFrequencyparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(bookUpdateFrequencyparamsVariable, 1))
-	var bookUpdateFrequency2paramsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency)
-	bookUpdateFrequency2 = ccxt.GetValue(bookUpdateFrequency2paramsVariable, 0)
+	var bookUpdateFrequency2paramsVariable []any = this.HandleOptionStringAndParams(params, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency)
+	bookUpdateFrequency2 = ccxt.SafeStringPtr(ccxt.GetValue(bookUpdateFrequency2paramsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(bookUpdateFrequency2paramsVariable, 1))
 	if bookUpdateFrequency2 != nil {
 		ccxt.AddElementToObject(ccxt.GetValue(params, "params"), "bookSubscriptionType", bookUpdateFrequency2)
@@ -267,21 +267,21 @@ func (this *Cryptocom) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, 
 		ccxt.AddElementToObject(params, "params", map[string]any{})
 	}
 	var bookSubscriptionType any = nil
-	var bookSubscriptionType2 any = nil
-	var bookSubscriptionTypeparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE")
+	var bookSubscriptionType2 *string = nil
+	var bookSubscriptionTypeparamsVariable []any = this.HandleOptionStringAndParams(params, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE")
 	bookSubscriptionType = ccxt.GetValue(bookSubscriptionTypeparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(bookSubscriptionTypeparamsVariable, 1))
-	var bookSubscriptionType2paramsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType)
-	bookSubscriptionType2 = ccxt.GetValue(bookSubscriptionType2paramsVariable, 0)
+	var bookSubscriptionType2paramsVariable []any = this.HandleOptionStringAndParams(params, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType)
+	bookSubscriptionType2 = ccxt.SafeStringPtr(ccxt.GetValue(bookSubscriptionType2paramsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(bookSubscriptionType2paramsVariable, 1))
 	ccxt.AddElementToObject(ccxt.GetValue(params, "params"), "bookSubscriptionType", bookSubscriptionType2)
 	var bookUpdateFrequency any = nil
-	var bookUpdateFrequency2 any = nil
+	var bookUpdateFrequency2 *string = nil
 	var bookUpdateFrequencyparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "bookUpdateFrequency")
 	bookUpdateFrequency = ccxt.GetValue(bookUpdateFrequencyparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(bookUpdateFrequencyparamsVariable, 1))
-	var bookUpdateFrequency2paramsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency)
-	bookUpdateFrequency2 = ccxt.GetValue(bookUpdateFrequency2paramsVariable, 0)
+	var bookUpdateFrequency2paramsVariable []any = this.HandleOptionStringAndParams(params, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency)
+	bookUpdateFrequency2 = ccxt.SafeStringPtr(ccxt.GetValue(bookUpdateFrequency2paramsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(bookUpdateFrequency2paramsVariable, 1))
 	if bookUpdateFrequency2 != nil {
 		ccxt.AddElementToObject(ccxt.GetValue(params, "params"), "bookSubscriptionType", bookUpdateFrequency2)

@@ -802,8 +802,8 @@ class whitebit extends \ccxt\async\whitebit {
         $this->set_balance_cache($client, $type, $messageHash);
         $fetchBalanceSnapshot = null;
         $awaitBalanceSnapshot = null;
-        list($fetchBalanceSnapshot, $params) = $this->handle_option_and_params($params, 'watchBalance', 'fetchBalanceSnapshot', true);
-        list($awaitBalanceSnapshot, $params) = $this->handle_option_and_params($params, 'watchBalance', 'awaitBalanceSnapshot', true);
+        list($fetchBalanceSnapshot, $params) = $this->handle_option_bool_and_params($params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        list($awaitBalanceSnapshot, $params) = $this->handle_option_bool_and_params($params, 'watchBalance', 'awaitBalanceSnapshot', true);
         if ($fetchBalanceSnapshot && $awaitBalanceSnapshot) {
             Async\await($client->future($type . ':fetchBalanceSnapshot'));
         }

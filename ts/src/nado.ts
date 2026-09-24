@@ -409,7 +409,7 @@ export default class nado extends Exchange {
             amountX18 = Precise.stringMul (amountX18, '-1');
         }
         let subaccount: Str = undefined;
-        [ subaccount, params ] = this.handleOptionAndParams (params, 'createOrder', 'subaccount', 'default');
+        [ subaccount, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'subaccount', 'default');
         let expiration: Str = undefined;
         [ expiration, params ] = this.handleOptionAndParams (params, 'createOrder', 'expiration', '4294967295');
         let recvWindow: Int = undefined;
@@ -574,9 +574,9 @@ export default class nado extends Exchange {
         }
         const editOrderOptions = this.safeDict (this.options, 'editOrder', {});
         let subaccount: Str = undefined;
-        [ subaccount, params ] = this.handleOptionAndParams (params, 'editOrder', 'subaccount', 'default');
+        [ subaccount, params ] = this.handleOptionStringAndParams (params, 'editOrder', 'subaccount', 'default');
         let expiration: Str = undefined;
-        [ expiration, params ] = this.handleOptionAndParams (params, 'editOrder', 'expiration', '4294967295');
+        [ expiration, params ] = this.handleOptionStringAndParams (params, 'editOrder', 'expiration', '4294967295');
         let recvWindow: Int = undefined;
         [ recvWindow, params ] = this.handleOptionAndParams (params, 'editOrder', 'recvWindow', 5000);
         const cancelNonce = this.createOrderNonce (recvWindow);
@@ -738,7 +738,7 @@ export default class nado extends Exchange {
             productIds.push (this.parseToInt (market['id']));
         }
         let subaccount: Str = undefined;
-        [ subaccount, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'subaccount', 'default');
+        [ subaccount, params ] = this.handleOptionStringAndParams (params, 'cancelAllOrders', 'subaccount', 'default');
         const sender = this.createSubaccount (this.walletAddress, subaccount);
         let recvWindow: Int = undefined;
         [ recvWindow, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'recvWindow', 5000);
@@ -855,7 +855,7 @@ export default class nado extends Exchange {
         const market = this.market (symbol);
         const productId = this.parseToInt (market['id']);
         let subaccount: Str = undefined;
-        [ subaccount, params ] = this.handleOptionAndParams (params, 'cancelOrders', 'subaccount', 'default');
+        [ subaccount, params ] = this.handleOptionStringAndParams (params, 'cancelOrders', 'subaccount', 'default');
         const sender = this.createSubaccount (this.walletAddress, subaccount);
         const productIds: number[] = [];
         for (let i = 0; i < ids.length; i++) {
@@ -966,7 +966,7 @@ export default class nado extends Exchange {
             productIds.push (this.parseToInt (market['id']));
         }
         let subaccount: Str = undefined;
-        [ subaccount, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'subaccount', 'default');
+        [ subaccount, params ] = this.handleOptionStringAndParams (params, 'fetchOrders', 'subaccount', 'default');
         const sender = this.createSubaccount (this.walletAddress, subaccount);
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
@@ -1047,7 +1047,7 @@ export default class nado extends Exchange {
         }
         await this.loadMarkets ();
         let subaccount: Str = undefined;
-        [ subaccount, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'subaccount', 'default');
+        [ subaccount, params ] = this.handleOptionStringAndParams (params, 'fetchOpenOrders', 'subaccount', 'default');
         const sender = this.createSubaccount (this.walletAddress, subaccount);
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         if (trigger === true) {
@@ -1124,7 +1124,7 @@ export default class nado extends Exchange {
             market = this.market (symbol);
         }
         let subaccount: Str = undefined;
-        [ subaccount, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'subaccount', 'default');
+        [ subaccount, params ] = this.handleOptionStringAndParams (params, 'fetchClosedOrders', 'subaccount', 'default');
         const sender = this.createSubaccount (this.walletAddress, subaccount);
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         if (trigger === true) {
@@ -1243,7 +1243,7 @@ export default class nado extends Exchange {
             market = this.market (symbol);
         }
         let subaccount: Str = undefined;
-        [ subaccount, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'subaccount', 'default');
+        [ subaccount, params ] = this.handleOptionStringAndParams (params, 'fetchMyTrades', 'subaccount', 'default');
         let matchesRequest: Dict = {
             'subaccounts': [
                 this.createSubaccount (this.walletAddress, subaccount),
@@ -1316,7 +1316,7 @@ export default class nado extends Exchange {
         }
         await this.loadMarkets ();
         let subaccount: Str = undefined;
-        [ subaccount, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'subaccount', 'default');
+        [ subaccount, params ] = this.handleOptionStringAndParams (params, 'fetchBalance', 'subaccount', 'default');
         const request: Dict = {
             'type': 'subaccount_info',
             'subaccount': this.createSubaccount (this.walletAddress, subaccount),
@@ -1389,7 +1389,7 @@ export default class nado extends Exchange {
             currency = this.currency (code);
         }
         let subaccount: Str = undefined;
-        [ subaccount, params ] = this.handleOptionAndParams (params, methodName, 'subaccount', 'default');
+        [ subaccount, params ] = this.handleOptionStringAndParams (params, methodName, 'subaccount', 'default');
         let eventsRequest: Dict = {
             'subaccounts': [
                 this.createSubaccount (this.walletAddress, subaccount),
@@ -1483,7 +1483,7 @@ export default class nado extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         let subaccount: Str = undefined;
-        [ subaccount, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'subaccount', 'default');
+        [ subaccount, params ] = this.handleOptionStringAndParams (params, 'fetchPositions', 'subaccount', 'default');
         const request: Dict = {
             'type': 'subaccount_info',
             'subaccount': this.createSubaccount (this.walletAddress, subaccount),
@@ -1903,7 +1903,7 @@ export default class nado extends Exchange {
             throw new BadSymbol (this.id + ' fetchFundingHistory() supports swap contracts only');
         }
         let subaccount: Str = undefined;
-        [ subaccount, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'subaccount', 'default');
+        [ subaccount, params ] = this.handleOptionStringAndParams (params, 'fetchFundingHistory', 'subaccount', 'default');
         const request: Dict = {
             'interest_and_funding': {
                 'subaccount': this.createSubaccount (this.walletAddress, subaccount),

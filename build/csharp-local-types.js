@@ -1439,6 +1439,8 @@ export const CSHARP_COLLECTION_RETURN_METHODS = {
     // so naming the list moves no box and the destructuring holder drops its call cast
     'handleMarginModeAndParams': 'List<object>', 'handleMarketTypeAndParams': 'List<object>', 'handleOptionAndParams': 'List<object>',
     'handleOptionAndParams2': 'List<object>', 'handleParamString': 'List<object>', 'handleParamString2': 'List<object>',
+    'handleOptionStringAndParams': 'List<object>', 'handleOptionStringAndParams2': 'List<object>',
+    'handleOptionBoolAndParams': 'List<object>', 'handleOptionBoolAndParams2': 'List<object>',
     'handleApiKeyIndex': 'List<object>', 'handleDeriveSubaccountId': 'List<object>', 'handleDeriveWalletAddress': 'List<object>', 'handleHfAndParams': 'List<object>',
     'handleMaxEntriesPerRequestAndParams': 'List<object>', 'handleNetworkCodeAndParams': 'List<object>', 'handleOriginAndSingleAddress': 'List<object>', 'handleParamBool': 'List<object>',
     'handleParamBool2': 'List<object>', 'handleParamInteger': 'List<object>', 'handleParamInteger2': 'List<object>', 'handlePostOnly': 'List<object>',
@@ -10979,6 +10981,10 @@ export const DESTRUCTURED_STRING_HELPERS = {
     'handleProductTypeAndParams': 0,
     'handleParamString': 3,
     'handleParamString2': 4,
+    // checkOptionString (throws on a mistyped option) owns slot 0 on every path
+    'handleOptionStringAndParams': 0,
+    'handleOptionStringAndParams2': 0,
+    'handleMarginModeAndParams': 0,
     'getMarginMode': 0,
     'handleOriginAndSingleAddress': 0,
     // cs90 U13 — venue helpers whose element 0 is one of the audited boxes above:
@@ -11060,7 +11066,7 @@ function isLiteralInit (declaration) {
 // (Exchange.BaseMethods.cs: handleParamString / handleParamString2 both declare a `string?`
 // local in slot 0 and return it): the defaultValue argument's own box can never reach the
 // slot as a non-string, so the literal-init shard needs no defaultValue gate for them.
-const SAFE_STRING_ELEMENT0_HELPERS = [ 'handleParamString', 'handleParamString2' ];
+const SAFE_STRING_ELEMENT0_HELPERS = [ 'handleParamString', 'handleParamString2', 'handleOptionStringAndParams', 'handleOptionStringAndParams2' ];
 
 // element 0 of an audited string helper proves the target a string (or null). The
 // null-initialised shard is the audited list above, gated per call site on the defaultValue
@@ -11117,6 +11123,10 @@ function destructuredStringElementProof (csharp, declaration, idNode, assignment
 export const DESTRUCTURED_ELEMENT0_TYPES = {
     'handleParamString': 'string?',
     'handleParamString2': 'string?',
+    'handleOptionStringAndParams': 'string?',
+    'handleOptionStringAndParams2': 'string?',
+    'handleOptionBoolAndParams': 'bool?',
+    'handleOptionBoolAndParams2': 'bool?',
     'handleNetworkCodeAndParams': 'string?',
     'handleTriggerDirectionAndParams': 'string?',
     'handleParamBool': 'bool?',

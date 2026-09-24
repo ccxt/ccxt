@@ -490,7 +490,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             Async\await($this->load_markets());
         }
         $verbose = false;
-        list($verbose, $params) = $this->handle_option_and_params($params, 'watchOrders', 'verbose', false);
+        list($verbose, $params) = $this->handle_option_bool_and_params($params, 'watchOrders', 'verbose', false);
         $name = 'open_orders';
         $messageHash = 'orders';
         if ($verbose) {

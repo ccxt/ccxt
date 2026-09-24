@@ -975,9 +975,9 @@ public partial class coinbaseinternational : Exchange
         {
             await this.loadMarkets();
         }
-        object method = null;
-        IList<object> methodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createDepositAddress", "method", "v1PrivatePostTransfersAddress");
-        method = methodparametersVariable[0];
+        string? method = null;
+        IList<object> methodparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createDepositAddress", "method", "v1PrivatePostTransfersAddress");
+        method = (string)methodparametersVariable[0];
         parameters = methodparametersVariable[1];
         object portfolio = null;
         var portfolioparametersVariable = await this.handlePortfolioAndParams("createDepositAddress", parameters);
@@ -986,7 +986,7 @@ public partial class coinbaseinternational : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "portfolio", portfolio },
         };
-        if (isEqual(method, "v1PrivatePostTransfersAddress"))
+        if (method == "v1PrivatePostTransfersAddress")
         {
             Dictionary<string, object> currency = this.currency(code);
             request["asset"] = (currency.ContainsKey("id") ? currency["id"] : null);
@@ -997,7 +997,7 @@ public partial class coinbaseinternational : Exchange
             request["network_arn_id"] = networkId;
         }
         Dictionary<string, object> response = null;
-        if (isEqual(method, "v1PrivatePostTransfersCreateCounterpartyId"))
+        if (method == "v1PrivatePostTransfersCreateCounterpartyId")
         {
             response = await this.v1PrivatePostTransfersCreateCounterpartyId(this.extend(request, parameters));
         } else
@@ -2678,9 +2678,9 @@ public partial class coinbaseinternational : Exchange
         var portfolioparametersVariable = await this.handlePortfolioAndParams("withdraw", parameters);
         portfolio = ((IList<object>)portfolioparametersVariable)[0];
         parameters = ((IList<object>)portfolioparametersVariable)[1];
-        object method = null;
-        IList<object> methodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "withdraw", "method", "v1PrivatePostTransfersWithdraw");
-        method = methodparametersVariable[0];
+        string? method = null;
+        IList<object> methodparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "withdraw", "method", "v1PrivatePostTransfersWithdraw");
+        method = (string)methodparametersVariable[0];
         parameters = methodparametersVariable[1];
         object networkId = null;
         var networkIdparametersVariable = await this.handleNetworkIdAndParams(code, "withdraw", parameters);
@@ -2697,7 +2697,7 @@ public partial class coinbaseinternational : Exchange
             { "nonce", this.nonce() },
         };
         Dictionary<string, object> response = null;
-        if (isEqual(method, "v1PrivatePostTransfersWithdrawCounterparty"))
+        if (method == "v1PrivatePostTransfersWithdrawCounterparty")
         {
             response = await this.v1PrivatePostTransfersWithdrawCounterparty(this.extend(request, parameters));
         } else

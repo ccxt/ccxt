@@ -5394,7 +5394,7 @@ ${caseStatements.join('\n')}
     // AppendToArray, SafeValue/GetValue receiver), and no call site compares the result to a literal.
     coerceTupleHelperSignatures (content: string): string {
         // F04: the `[]any` retag spells the single space before `{` too
-        return content.replace (/func\s+\(this \*(\w+)\)\s+(HandleOptionAndParams|HandleOptionAndParams2|HandleParamString|HandleParamString2|HandleMarketTypeAndParams|HandleUntilOption|HandleMarginModeAndParams|HandleSubTypeAndParams|HandleNetworkCodeAndParams|HandleWithdrawTagAndParams|HandlePostOnly|HandleParamBool|HandleParamBool2|HandleParamInteger|HandleParamInteger2|HandleTriggerPricesAndParams|HandleTriggerDirectionAndParams)\(([^)]*)\)\s+any(\s+\{)/g, 'func (this *$1) $2($3) []any {');
+        return content.replace (/func\s+\(this \*(\w+)\)\s+(HandleOptionAndParams|HandleOptionAndParams2|HandleOptionStringAndParams|HandleOptionStringAndParams2|HandleOptionBoolAndParams|HandleOptionBoolAndParams2|HandleParamString|HandleParamString2|HandleMarketTypeAndParams|HandleUntilOption|HandleMarginModeAndParams|HandleSubTypeAndParams|HandleNetworkCodeAndParams|HandleWithdrawTagAndParams|HandlePostOnly|HandleParamBool|HandleParamBool2|HandleParamInteger|HandleParamInteger2|HandleTriggerPricesAndParams|HandleTriggerDirectionAndParams)\(([^)]*)\)\s+any(\s+\{)/g, 'func (this *$1) $2($3) []any {');
     }
 
     // ------------------------------------------------------------------

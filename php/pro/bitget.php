@@ -118,7 +118,7 @@ class bitget extends \ccxt\async\bitget {
             $instType = 'SPOT';
         }
         $instypeAux = null;
-        list($instypeAux, $params) = $this->handle_option_and_params($params, $methodName, 'instType', $instType);
+        list($instypeAux, $params) = $this->handle_option_string_and_params($params, $methodName, 'instType', $instType);
         $instType = $instypeAux;
         if ($uta && ($instType !== null)) {
             $instType = strtolower($instType);
@@ -151,7 +151,7 @@ class bitget extends \ccxt\async\bitget {
         $messageHash = 'ticker:' . $symbol;
         $instType = null;
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'watchTicker', 'uta', false);
+        list($uta, $params) = $this->handle_option_bool_and_params($params, 'watchTicker', 'uta', false);
         list($instType, $params) = $this->get_inst_type('watchTicker', $market, $uta, $params);
         $args = array(
             'instType' => $instType,
@@ -204,7 +204,7 @@ class bitget extends \ccxt\async\bitget {
         $market = $this->market($symbols[0]);
         $instType = null;
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'watchTickers', 'uta', false);
+        list($uta, $params) = $this->handle_option_bool_and_params($params, 'watchTickers', 'uta', false);
         list($instType, $params) = $this->get_inst_type('watchTickers', $market, $uta, $params);
         $topics = array();
         $messageHashes = array();
@@ -454,7 +454,7 @@ class bitget extends \ccxt\async\bitget {
         $market = $this->market($symbols[0]);
         $instType = null;
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'watchBidsAsks', 'uta', false);
+        list($uta, $params) = $this->handle_option_bool_and_params($params, 'watchBidsAsks', 'uta', false);
         list($instType, $params) = $this->get_inst_type('watchBidsAsks', $market, $uta, $params);
         $topics = array();
         $messageHashes = array();
@@ -543,7 +543,7 @@ class bitget extends \ccxt\async\bitget {
         $messageHash = null;
         $instType = null;
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'watchOHLCV', 'uta', false);
+        list($uta, $params) = $this->handle_option_bool_and_params($params, 'watchOHLCV', 'uta', false);
         list($instType, $params) = $this->get_inst_type('watchOHLCV', $market, $uta, $params);
         $args = array(
             'instType' => $instType,
@@ -593,7 +593,7 @@ class bitget extends \ccxt\async\bitget {
         $market = $this->market($symbol);
         $instType = null;
         $messageHash = null;
-        $values = $this->handle_option_and_params($params, 'watchOHLCV', 'uta', false);
+        $values = $this->handle_option_bool_and_params($params, 'watchOHLCV', 'uta', false);
         $uta = $values[0];
         list($instType, $params) = $this->get_inst_type('watchOHLCV', $market, $uta, $params);
         $args = array(
@@ -813,7 +813,7 @@ class bitget extends \ccxt\async\bitget {
         $messageHash = 'unsubscribe:' . $messageHashTopic . ':' . $market['symbol'];
         $instType = null;
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, $methodName, 'uta', false);
+        list($uta, $params) = $this->handle_option_bool_and_params($params, $methodName, 'uta', false);
         list($instType, $params) = $this->get_inst_type($methodName, $market, $uta, $params);
         $args = array(
             'instType' => $instType,
@@ -862,7 +862,7 @@ class bitget extends \ccxt\async\bitget {
         $topics = array();
         $messageHashes = array();
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'uta', false);
+        list($uta, $params) = $this->handle_option_bool_and_params($params, 'watchOrderBookForSymbols', 'uta', false);
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
             $market = $this->market($symbol);
@@ -1083,7 +1083,7 @@ class bitget extends \ccxt\async\bitget {
         }
         $symbols = $this->market_symbols($symbols);
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'watchTradesForSymbols', 'uta', false);
+        list($uta, $params) = $this->handle_option_bool_and_params($params, 'watchTradesForSymbols', 'uta', false);
         $topics = array();
         $messageHashes = array();
         for ($i = 0; $i < count($symbols); $i++) {
@@ -1136,7 +1136,7 @@ class bitget extends \ccxt\async\bitget {
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {any} status of the unwatch request
          */
-        $values = $this->handle_option_and_params($params, 'watchTrades', 'uta', false);
+        $values = $this->handle_option_bool_and_params($params, 'watchTrades', 'uta', false);
         $uta = $values[0];
         $channelTopic = $uta ? 'publicTrade' : 'trade';
         return Async\await($this->un_watch_channel($symbol, $channelTopic, 'trade', 'watchTrades', $params));
@@ -1365,7 +1365,7 @@ class bitget extends \ccxt\async\bitget {
         $subscriptionHash = 'positions';
         $instType = 'USDT-FUTURES';
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'watchPositions', 'uta', false);
+        list($uta, $params) = $this->handle_option_bool_and_params($params, 'watchPositions', 'uta', false);
         $symbols = $this->market_symbols($symbols);
         if (($symbols !== null) && !$this->is_empty($symbols)) {
             $market = $this->get_market_from_symbols($symbols);
@@ -1644,7 +1644,7 @@ class bitget extends \ccxt\async\bitget {
             $messageHash = $messageHash . ':' . $symbol;
         }
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'watchOrders', 'uta', false);
+        list($uta, $params) = $this->handle_option_bool_and_params($params, 'watchOrders', 'uta', false);
         $productType = $this->safe_string($params, 'productType');
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
@@ -2166,7 +2166,7 @@ class bitget extends \ccxt\async\bitget {
         list($type, $params) = $this->handle_market_type_and_params('watchMyTrades', $market, $params);
         $instType = null;
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'watchMyTrades', 'uta', false);
+        list($uta, $params) = $this->handle_option_bool_and_params($params, 'watchMyTrades', 'uta', false);
         if ($market === null && $type === 'spot') {
             $instType = 'SPOT';
         } else {
@@ -2359,7 +2359,7 @@ class bitget extends \ccxt\async\bitget {
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'watchBalance', 'uta', false);
+        list($uta, $params) = $this->handle_option_bool_and_params($params, 'watchBalance', 'uta', false);
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params);
         $marginMode = null;
@@ -2380,7 +2380,7 @@ class bitget extends \ccxt\async\bitget {
         } elseif (!$uta) {
             $instType = 'SPOT';
         }
-        list($instType, $params) = $this->handle_option_and_params($params, 'watchBalance', 'instType', $instType);
+        list($instType, $params) = $this->handle_option_string_and_params($params, 'watchBalance', 'instType', $instType);
         if ($uta) {
             $instType = 'UTA';
         }

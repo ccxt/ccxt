@@ -1234,12 +1234,12 @@ func (this *Krakenfutures) fetchTradesBody(ch chan any, symbol any, optionalArgs
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	var method any = nil
-	var methodparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "method", "historyGetMarketSymbolExecutions")
-	method = GetValue(methodparamsVariable, 0)
+	var method *string = nil
+	var methodparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchTrades", "method", "historyGetMarketSymbolExecutions")
+	method = SafeStringPtr(GetValue(methodparamsVariable, 0))
 	params = MapTyped(GetValue(methodparamsVariable, 1))
 	var rawTrades any = []any{}
-	var isFullHistoryEndpoint bool = (IsEqual(method, "historyGetMarketSymbolExecutions"))
+	var isFullHistoryEndpoint bool = (method != nil && *method == "historyGetMarketSymbolExecutions")
 	if isFullHistoryEndpoint {
 		var requestparamsVariable []any = this.HandleUntilOption("before", request, params)
 		request = MapTyped(GetValue(requestparamsVariable, 0))

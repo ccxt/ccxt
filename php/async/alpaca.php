@@ -832,7 +832,7 @@ class alpaca extends Exchange {
         $loc = $this->safe_string($params, 'loc', 'us');
         $method = $this->safe_string($params, 'method', 'marketPublicGetV1beta3CryptoLocBars');
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         $paginationCalls = 10;
         list($paginationCalls, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginationCalls', 10);
         $request = array(
@@ -1554,7 +1554,7 @@ class alpaca extends Exchange {
             $request['limit_price'] = $this->price_to_precision($symbol, $price);
         }
         $timeInForce = null;
-        list($timeInForce, $params) = $this->handle_option_and_params($params, 'editOrder', 'timeInForce', 'gtc');
+        list($timeInForce, $params) = $this->handle_option_string_and_params($params, 'editOrder', 'timeInForce', 'gtc');
         if ($timeInForce !== null) {
             // the venue only accepts lowercase values, normalize the unified uppercase spellings
             $request['time_in_force'] = strtolower($timeInForce);

@@ -822,7 +822,7 @@ export default class coinbaseinternational extends Exchange {
             await this.loadMarkets ();
         }
         let method: Str = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'createDepositAddress', 'method', 'v1PrivatePostTransfersAddress');
+        [ method, params ] = this.handleOptionStringAndParams (params, 'createDepositAddress', 'method', 'v1PrivatePostTransfersAddress');
         let portfolio: Str = undefined;
         [ portfolio, params ] = await this.handlePortfolioAndParams ('createDepositAddress', params);
         const request: Dict = {
@@ -2367,7 +2367,7 @@ export default class coinbaseinternational extends Exchange {
         let portfolio: Str = undefined;
         [ portfolio, params ] = await this.handlePortfolioAndParams ('withdraw', params);
         let method: Str = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'withdraw', 'method', 'v1PrivatePostTransfersWithdraw');
+        [ method, params ] = this.handleOptionStringAndParams (params, 'withdraw', 'method', 'v1PrivatePostTransfersWithdraw');
         let networkId: Str | Dict = undefined;
         [ networkId, params ] = await this.handleNetworkIdAndParams (code, 'withdraw', params);
         const request: Dict = {

@@ -284,6 +284,10 @@ export const CCXT_GO_HELPER_RETURN_TYPES = {
     // `var values any = this.HandleOptionAndParams (...)` in HandleSubTypeAndParams.
     'this.HandleOptionAndParams': '[]any',
     'this.HandleOptionAndParams2': '[]any',
+    'this.HandleOptionStringAndParams': '[]any',
+    'this.HandleOptionStringAndParams2': '[]any',
+    'this.HandleOptionBoolAndParams': '[]any',
+    'this.HandleOptionBoolAndParams2': '[]any',
     'this.HandleParamString': '[]any',
     'this.HandleParamString2': '[]any',
     'this.HandleMarketTypeAndParams': '[]any',
@@ -2227,6 +2231,10 @@ export function ccxtGoTypeOfCopiedLocal (goTranspiler, initializer, printedValue
 export const CCXT_GO_ARRAY_BINDING_HOLDERS = [
     'HandleOptionAndParams',
     'HandleOptionAndParams2',
+    'HandleOptionStringAndParams',
+    'HandleOptionStringAndParams2',
+    'HandleOptionBoolAndParams',
+    'HandleOptionBoolAndParams2',
     'HandleParamString',
     'HandleParamString2',
     'HandleMarketTypeAndParams',
@@ -5942,6 +5950,8 @@ export function installCcxtGoLocalTypes (goTranspiler) {
 const CCXT_GO_TUPLE_STRING_PRODUCERS = [
     'this.HandleMarketTypeAndParams', 'this.HandleSubTypeAndParams', 'this.HandleParamString',
     'this.HandleParamString2', 'this.HandleNetworkCodeAndParams',
+    // CheckOptionString (panics on a mistyped option) owns element 0 of these
+    'this.HandleOptionStringAndParams', 'this.HandleOptionStringAndParams2', 'this.HandleMarginModeAndParams',
     // venue helpers whose every Go return path boxes a *string (or nil) at element 0
     'this.GetBybitType', 'this.HandleProductTypeAndParams', 'this.GetMarginMode',
 ];

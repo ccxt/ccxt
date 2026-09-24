@@ -2160,7 +2160,7 @@ class okx(Exchange, ImplicitAPI):
         rpi = False
         rpi, params = self.handle_option_and_params(params, 'fetchOrderBook', 'rpi')
         method = None
-        method, params = self.handle_option_and_params(params, 'fetchOrderBook', 'method', 'publicGetMarketBooks')
+        method, params = self.handle_option_string_and_params(params, 'fetchOrderBook', 'method', 'publicGetMarketBooks')
         if method == 'publicGetMarketBooksFull' and limit is None:
             limit = 5000
         limit = 100 if (limit is None) else limit
@@ -2569,7 +2569,7 @@ class okx(Exchange, ImplicitAPI):
             if limit is not None:
                 request['limit'] = limit  # default 100
             method = None
-            method, params = self.handle_option_and_params(params, 'fetchTrades', 'method', 'publicGetMarketTrades')
+            method, params = self.handle_option_string_and_params(params, 'fetchTrades', 'method', 'publicGetMarketTrades')
             if method == 'publicGetMarketTrades':
                 response = self.publicGetMarketTrades(self.extend(request, params))
             elif method == 'publicGetMarketHistoryTrades':
@@ -3216,7 +3216,7 @@ class okx(Exchange, ImplicitAPI):
                 if tgtCcy == 'quote_ccy':
                     # quote_ccy: sz refers to units of quote currency
                     createMarketBuyOrderRequiresPrice = True
-                    createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+                    createMarketBuyOrderRequiresPrice, params = self.handle_option_bool_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
                     notional = self.safe_number_2(params, 'cost', 'sz')
                     params = self.omit(params, ['cost', 'sz'])
                     if createMarketBuyOrderRequiresPrice:

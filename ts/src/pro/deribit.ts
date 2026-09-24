@@ -579,12 +579,12 @@ export default class deribit extends deribitRest {
         }
         let descriptor = '';
         let useDepthEndpoint: Bool = undefined; // for more info, see comment in .options
-        [ useDepthEndpoint, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
+        [ useDepthEndpoint, params ] = this.handleOptionBoolAndParams (params, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
         if (useDepthEndpoint) {
             let depth: Str = undefined;
             [ depth, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'depth', '20');
             let group: Str = undefined;
-            [ group, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'group', 'none');
+            [ group, params ] = this.handleOptionStringAndParams (params, 'watchOrderBookForSymbols', 'group', 'none');
             descriptor = group + '.' + depth + '.' + interval;
         } else {
             descriptor = interval;

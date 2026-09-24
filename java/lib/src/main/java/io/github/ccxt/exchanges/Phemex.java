@@ -2731,9 +2731,9 @@ public class Phemex extends PhemexApi
             }
             if (java.util.Objects.equals(type, "swap"))
             {
-                Object settle = null;
-                List<Object> settleparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchBalance", "settle", "USDT");
-                settle = ((List<Object>) settleparametersVariable).get(0);
+                String settle = null;
+                List<Object> settleparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchBalance", "settle", "USDT");
+                settle = (String) ((List<Object>) settleparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) settleparametersVariable).get(1);
                 if (!java.util.Objects.equals(code, null) || !java.util.Objects.equals(settle, null))
                 {
@@ -4961,7 +4961,7 @@ public class Phemex extends PhemexApi
                 code = ((Map<String, Object>)market).get("settle");
             } else
             {
-                List<Object> settleparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositions", "settle", code);
+                List<Object> settleparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchPositions", "settle", code);
                 settle = ((List<Object>) settleparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) settleparametersVariable).get(1);
             }
@@ -4986,9 +4986,9 @@ public class Phemex extends PhemexApi
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isUSDTSettled))
             {
-                Object method = null;
-                List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositions", "method", "privateGetGAccountsAccountPositions");
-                method = ((List<Object>) methodparametersVariable).get(0);
+                String method = null;
+                List<Object> methodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchPositions", "method", "privateGetGAccountsAccountPositions");
+                method = (String) ((List<Object>) methodparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
                 if (java.util.Objects.equals(method, "privateGetGAccountsAccountPositions"))
                 {
@@ -7190,7 +7190,7 @@ final Object finalI = i;
                 code = ((Map<String, Object>)market).get("settle");
             } else
             {
-                List<Object> settleparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositionsADLRank", "settle", code);
+                List<Object> settleparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchPositionsADLRank", "settle", code);
                 settle = ((List<Object>) settleparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) settleparametersVariable).get(1);
             }
@@ -7215,9 +7215,9 @@ final Object finalI = i;
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isUSDTSettled))
             {
-                Object method = null;
-                List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositionsADLRank", "method", "privateGetGAccountsAccountPositions");
-                method = ((List<Object>) methodparametersVariable).get(0);
+                String method = null;
+                List<Object> methodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchPositionsADLRank", "method", "privateGetGAccountsAccountPositions");
+                method = (String) ((List<Object>) methodparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
                 if (java.util.Objects.equals(method, "privateGetGAccountsAccountPositions"))
                 {

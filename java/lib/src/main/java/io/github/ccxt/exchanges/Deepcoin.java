@@ -924,8 +924,8 @@ public class Deepcoin extends DeepcoinApi
             }
             Object maxLimit = 300;
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -1415,8 +1415,8 @@ public class Deepcoin extends DeepcoinApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDeposits", "paginate", false);
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -1500,8 +1500,8 @@ public class Deepcoin extends DeepcoinApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate", false);
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -2314,14 +2314,14 @@ public class Deepcoin extends DeepcoinApi
         } else
         {
             ((Map<String, Object>)request).put("sz", this.amountToPrecision(symbol, amount));
-            Object marginMode = "cross";
+            String marginMode = "cross";
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters, marginMode);
-            marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+            marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             ((Map<String, Object>)request).put("tdMode", marginMode);
-            Object mrgPosition = "merge";
-            List<Object> mrgPositionparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "mrgPosition", mrgPosition);
-            mrgPosition = ((List<Object>) mrgPositionparametersVariable).get(0);
+            String mrgPosition = "merge";
+            List<Object> mrgPositionparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "mrgPosition", mrgPosition);
+            mrgPosition = (String) ((List<Object>) mrgPositionparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) mrgPositionparametersVariable).get(1);
             ((Map<String, Object>)request).put("mrgPosition", mrgPosition);
             String posSide = null;
@@ -2408,9 +2408,9 @@ public class Deepcoin extends DeepcoinApi
         {
             throw new ArgumentsRequired((this.id + " createOrder() requires a price argument for limit trigger orders")) ;
         }
-        Object marginMode = "cross";
+        String marginMode = "cross";
         List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters, marginMode);
-        marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+        marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
         Integer isCrossMargin = 1;
         if (java.util.Objects.equals(marginMode, "isolated"))
@@ -2443,9 +2443,9 @@ public class Deepcoin extends DeepcoinApi
                 }
             }
         }
-        Object mrgPosition = "merge";
-        List<Object> mrgPositionparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "mrgPosition", mrgPosition);
-        mrgPosition = ((List<Object>) mrgPositionparametersVariable).get(0);
+        String mrgPosition = "merge";
+        List<Object> mrgPositionparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "mrgPosition", mrgPosition);
+        mrgPosition = (String) ((List<Object>) mrgPositionparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) mrgPositionparametersVariable).get(1);
         ((Map<String, Object>)request).put("mrgPosition", mrgPosition);
         return (Map<String, Object>) (this.extend(request, parameters));
@@ -3260,9 +3260,9 @@ public class Deepcoin extends DeepcoinApi
                     encodedMarginMode = 0;
                 }
             }
-            Object merged = true;
-            List<Object> mergedparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrders", "merged", merged);
-            merged = ((List<Object>) mergedparametersVariable).get(0);
+            Boolean merged = true;
+            List<Object> mergedparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "cancelAllOrders", "merged", merged);
+            merged = (Boolean) ((List<Object>) mergedparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) mergedparametersVariable).get(1);
             Integer isMergedMode = ((Boolean.TRUE.equals(merged))) ? 1 : 0;
             final Integer finalEncodedMarginMode = encodedMarginMode;
@@ -3847,25 +3847,25 @@ public class Deepcoin extends DeepcoinApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object marginMode = "cross";
+            String marginMode = "cross";
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters, marginMode);
-            marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+            marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if ((!java.util.Objects.equals(marginMode, "cross")) && (!java.util.Objects.equals(marginMode, "isolated")))
             {
                 throw new BadRequest((this.id + " setLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
             }
-            Object mrgPosition = "merge";
-            List<Object> mrgPositionparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "setLeverage", "mrgPosition", mrgPosition);
-            mrgPosition = ((List<Object>) mrgPositionparametersVariable).get(0);
+            String mrgPosition = "merge";
+            List<Object> mrgPositionparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "setLeverage", "mrgPosition", mrgPosition);
+            mrgPosition = (String) ((List<Object>) mrgPositionparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) mrgPositionparametersVariable).get(1);
             if (!java.util.Objects.equals(mrgPosition, "merge") && !java.util.Objects.equals(mrgPosition, "split"))
             {
                 throw new BadRequest((this.id + " setLeverage() mrgPosition parameter must be either merge or split")) ;
             }
             final Object finalLeverage = leverage;
-            final Object finalMarginMode = marginMode;
-            final Object finalMrgPosition = mrgPosition;
+            final String finalMarginMode = marginMode;
+            final String finalMrgPosition = mrgPosition;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "lever", finalLeverage );
                 put( "mgnMode", finalMarginMode );

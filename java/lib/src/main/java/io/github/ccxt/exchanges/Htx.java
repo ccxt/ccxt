@@ -4477,10 +4477,10 @@ public class Htx extends HtxApi
             {
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                 Boolean useHistorical = null;
-                List<Object> useHistoricalparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "useHistoricalEndpointForSpot", true);
-                useHistorical = Helpers.isTrue(((List<Object>) useHistoricalparametersVariable).get(0));
+                List<Object> useHistoricalparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "useHistoricalEndpointForSpot", true);
+                useHistorical = (Boolean) ((List<Object>) useHistoricalparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) useHistoricalparametersVariable).get(1);
-                if (!Helpers.isTrue(useHistorical))
+                if (!Boolean.TRUE.equals(useHistorical))
                 {
                     if (!java.util.Objects.equals(limit, null))
                     {
@@ -4922,10 +4922,10 @@ public class Htx extends HtxApi
                 (this.loadMarkets()).join();
             }
             Boolean isUnifiedAccount = null;
-            List<Object> isUnifiedAccountparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchBalance", "unified", "uta", false);
-            isUnifiedAccount = Helpers.isTrue(((List<Object>) isUnifiedAccountparametersVariable).get(0));
+            List<Object> isUnifiedAccountparametersVariable = (List<Object>) this.handleOptionBoolAndParams2(parameters, "fetchBalance", "unified", "uta", false);
+            isUnifiedAccount = (Boolean) ((List<Object>) isUnifiedAccountparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) isUnifiedAccountparametersVariable).get(1);
-            if (Helpers.isTrue(isUnifiedAccount))
+            if (Boolean.TRUE.equals(isUnifiedAccount))
             {
                 throw new NotSupported((this.id + " fetchBalance() unified account has been deprecated on htx")) ;
             }
@@ -4942,8 +4942,8 @@ public class Htx extends HtxApi
             {
                 subType = "linear";
             }
-            List<Object> isMultiAssetModeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchBalance", "multiAssetMode", false);
-            isMultiAssetMode = Helpers.isTrue(((List<Object>) isMultiAssetModeparametersVariable).get(0));
+            List<Object> isMultiAssetModeparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchBalance", "multiAssetMode", false);
+            isMultiAssetMode = (Boolean) ((List<Object>) isMultiAssetModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) isMultiAssetModeparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Boolean spot = (java.util.Objects.equals(type, "spot"));
@@ -4951,15 +4951,15 @@ public class Htx extends HtxApi
             Boolean swap = (java.util.Objects.equals(type, "swap"));
             Boolean inverse = (java.util.Objects.equals(subType, "inverse"));
             Boolean linear = (java.util.Objects.equals(subType, "linear"));
-            Object marginMode = null;
+            String marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchBalance", parameters);
-            marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+            marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             Boolean isolated = (java.util.Objects.equals(marginMode, "isolated"));
             Boolean cross = (java.util.Objects.equals(marginMode, "cross"));
             Boolean margin = (java.util.Objects.equals(type, "margin")) || (Boolean.TRUE.equals(spot) && (Boolean.TRUE.equals(cross) || Boolean.TRUE.equals(isolated)));
             Map<String, Object> response = null;
-            if (Helpers.isTrue(isMultiAssetMode) || (Boolean.TRUE.equals(linear) && (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future))))
+            if (Boolean.TRUE.equals(isMultiAssetMode) || (Boolean.TRUE.equals(linear) && (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future))))
             {
                 response = (this.contractPrivateGetV5AccountBalance(this.extend(request, parameters))).join();
             } else if (Boolean.TRUE.equals(spot) || Boolean.TRUE.equals(margin))
@@ -5136,7 +5136,7 @@ public class Htx extends HtxApi
                 put( "info", finalResponse );
             }};
             Object data = this.safeValue(response, "data");
-            if (Helpers.isTrue(isMultiAssetMode) || (Boolean.TRUE.equals(linear) && (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future))))
+            if (Boolean.TRUE.equals(isMultiAssetMode) || (Boolean.TRUE.equals(linear) && (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future))))
             {
                 List<Object> details = (List<Object>) this.safeList(data, "details", new ArrayList<Object>(Arrays.asList()));
                 for (var i = 0; i < ((List<?>)details).size(); i++)
@@ -5349,9 +5349,9 @@ public class Htx extends HtxApi
                             throw new ArgumentsRequired((this.id + " fetchOrder() requires a symbol argument")) ;
                         }
                         ((Map<String, Object>)request).put("contract_code", this.safeString(market, "id"));
-                        Object marginMode = null;
+                        String marginMode = null;
                         List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrder", parameters);
-                        marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+                        marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
                         parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
                         marginMode = (((java.util.Objects.equals(marginMode, null)))) ? "cross" : marginMode;
                         ((Map<String, Object>)request).put("margin_mode", marginMode);
@@ -5692,9 +5692,9 @@ public class Htx extends HtxApi
                 {
                     ((Map<String, Object>)request).put("limit", limit);
                 }
-                Object marginMode = null;
+                String marginMode = null;
                 List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchContractOrders", parameters);
-                marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+                marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
                 marginMode = (((java.util.Objects.equals(marginMode, null)))) ? "cross" : marginMode;
                 ((Map<String, Object>)request).put("margin_mode", marginMode);
@@ -7037,9 +7037,9 @@ public class Htx extends HtxApi
             }
             (this.loadAccounts()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object marginMode = null;
+            String marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
-            marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+            marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             String accountId = (this.fetchAccountIdByType(((Map<String, Object>)market).get("type"), marginMode, symbol)).join();
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -7112,8 +7112,8 @@ public class Htx extends HtxApi
             {
                 String quoteAmount = null;
                 Boolean createMarketBuyOrderRequiresPrice = true;
-                List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = Boolean.TRUE.equals(((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0));
+                List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                 Double cost = this.safeNumber(parameters, "cost");
                 parameters = (Map<String, Object>) this.omit(parameters, "cost");
@@ -7233,9 +7233,9 @@ public class Htx extends HtxApi
         String timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force", "gtc");
         if (Boolean.TRUE.equals(isLinear))
         {
-            Object marginMode = null;
+            String marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters, "cross");
-            marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+            marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             ((Map<String, Object>)request).put("margin_mode", marginMode);
             ((Map<String, Object>)request).put("side", side);
@@ -10007,7 +10007,7 @@ public class Htx extends HtxApi
     {
         return this.fetchFundingRate(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
-    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters) //                 "currency": "1inch",
+    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
     {
         return this.fetchFundingRate(symbol, (Object) (parameters));
     }
@@ -10124,9 +10124,9 @@ public class Htx extends HtxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object marginMode = null;
+            String marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchBorrowInterest", parameters);
-            marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+            marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             marginMode = (((java.util.Objects.equals(marginMode, null)))) ? "cross" : marginMode;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -10572,9 +10572,9 @@ public class Htx extends HtxApi
             {
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
                 {
-                    Object marginMode = null;
+                    String marginMode = null;
                     List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchFundingHistory", parameters);
-                    marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+                    marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
                     parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
                     marginMode = (((java.util.Objects.equals(marginMode, null)))) ? "cross" : marginMode;
                     ((Map<String, Object>)request).put("margin_mode", marginMode);
@@ -10683,9 +10683,9 @@ public class Htx extends HtxApi
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
-                Object marginMode = null;
+                String marginMode = null;
                 List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters);
-                marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+                marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
                 marginMode = (((java.util.Objects.equals(marginMode, null)))) ? "cross" : marginMode;
                 ((Map<String, Object>)request).put("margin_mode", marginMode);
@@ -11055,9 +11055,9 @@ public class Htx extends HtxApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object marginMode = null;
+            String marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchPosition", parameters);
-            marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+            marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             marginMode = (((java.util.Objects.equals(marginMode, null)))) ? "cross" : marginMode;
             List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPosition", market, parameters);
@@ -12809,9 +12809,9 @@ public class Htx extends HtxApi
             Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
-                Object marginMode = null;
+                String marginMode = null;
                 List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("closePosition", parameters, "cross");
-                marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+                marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
                 ((Map<String, Object>)request).put("margin_mode", marginMode);
                 response = (this.contractPrivatePostV5TradePosition(this.extend(request, parameters))).join();

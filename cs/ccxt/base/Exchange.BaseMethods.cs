@@ -5052,6 +5052,48 @@ public partial class BaseExchange
         return new List<object>() {value2, parameters};
     }
 
+    /* eslint-disable no-unused-vars */
+    /* eslint-enable no-unused-vars */
+    public virtual List<object> handleOptionStringAndParams(object parameters, object methodName, object optionName, object defaultValue = null)
+    {
+        // handleOptionAndParams read as a string; the statically typed ports throw on another type
+        IList<object> valuenewParamsVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, optionName, defaultValue);
+        var value = valuenewParamsVariable[0];
+        var newParams = valuenewParamsVariable[1];
+        return new List<object> {this.checkOptionString(methodName, optionName, value), newParams};
+    }
+
+    /* eslint-disable no-unused-vars */
+    /* eslint-enable no-unused-vars */
+    public virtual List<object> handleOptionStringAndParams2(object parameters, object methodName, object optionName1, object optionName2, object defaultValue = null)
+    {
+        IList<object> valuenewParamsVariable = (IList<object>)this.handleOptionAndParams2(parameters, methodName, optionName1, optionName2, defaultValue);
+        var value = valuenewParamsVariable[0];
+        var newParams = valuenewParamsVariable[1];
+        return new List<object> {this.checkOptionString(methodName, optionName1, value), newParams};
+    }
+
+    /* eslint-disable no-unused-vars */
+    /* eslint-enable no-unused-vars */
+    public virtual List<object> handleOptionBoolAndParams(object parameters, object methodName, object optionName, object defaultValue = null)
+    {
+        // handleOptionAndParams read as a boolean; the statically typed ports throw on another type
+        IList<object> valuenewParamsVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, optionName, defaultValue);
+        var value = valuenewParamsVariable[0];
+        var newParams = valuenewParamsVariable[1];
+        return new List<object> {this.checkOptionBool(methodName, optionName, value), newParams};
+    }
+
+    /* eslint-disable no-unused-vars */
+    /* eslint-enable no-unused-vars */
+    public virtual List<object> handleOptionBoolAndParams2(object parameters, object methodName, object optionName1, object optionName2, object defaultValue = null)
+    {
+        IList<object> valuenewParamsVariable = (IList<object>)this.handleOptionAndParams2(parameters, methodName, optionName1, optionName2, defaultValue);
+        var value = valuenewParamsVariable[0];
+        var newParams = valuenewParamsVariable[1];
+        return new List<object> {this.checkOptionBool(methodName, optionName1, value), newParams};
+    }
+
     public virtual object handleOption(object methodName, object optionName, object defaultValue = null)
     {
         List<object> res = this.handleOptionAndParams(new Dictionary<string, object>() {}, methodName, optionName, defaultValue);
@@ -5155,7 +5197,7 @@ public partial class BaseExchange
         * @returns {Array} the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
         */
         parameters ??= new Dictionary<string, object>();
-        return this.handleOptionAndParams(parameters, methodName, "marginMode", defaultValue);
+        return this.handleOptionStringAndParams(parameters, methodName, "marginMode", defaultValue);
     }
 
     public virtual void throwExactlyMatchedException(object exact, object str, object message)

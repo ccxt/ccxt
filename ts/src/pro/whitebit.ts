@@ -765,8 +765,8 @@ export default class whitebit extends whitebitRest {
         this.setBalanceCache (client, type, messageHash);
         let fetchBalanceSnapshot = undefined;
         let awaitBalanceSnapshot = undefined;
-        [ fetchBalanceSnapshot, params ] = this.handleOptionAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
-        [ awaitBalanceSnapshot, params ] = this.handleOptionAndParams (params, 'watchBalance', 'awaitBalanceSnapshot', true);
+        [ fetchBalanceSnapshot, params ] = this.handleOptionBoolAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        [ awaitBalanceSnapshot, params ] = this.handleOptionBoolAndParams (params, 'watchBalance', 'awaitBalanceSnapshot', true);
         if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
             await client.future (type + ':fetchBalanceSnapshot');
         }

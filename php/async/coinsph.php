@@ -1506,7 +1506,7 @@ class coinsph extends Exchange {
             } elseif ($orderSide === 'BUY') {
                 $quoteAmount = null;
                 $createMarketBuyOrderRequiresPrice = true;
-                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_bool_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 $cost = $this->safe_number_2($params, 'cost', 'quoteOrderQty');
                 $params = $this->omit($params, 'cost');
                 if ($cost !== null) {

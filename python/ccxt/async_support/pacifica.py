@@ -1216,7 +1216,7 @@ class pacifica(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, defaultMaxLimit)
         tf = self.safe_string(self.timeframes, timeframe, timeframe)
@@ -1347,7 +1347,7 @@ class pacifica(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate', False)
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         userAddress = None
         userAddress, params = self.handle_origin_and_single_address('fetchMyTrades', params)
         defaultLimit = 100  # Default max limit
@@ -2006,7 +2006,7 @@ class pacifica(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         market = self.market(symbol)
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         defaultLimit = 100  # Default max limit
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, params, 'next_cursor', 'cursor', None, defaultLimit)
@@ -2253,7 +2253,7 @@ class pacifica(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate', False)
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOrders', 'paginate', False)
         defaultLimit = 100  # max default 100
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchOrders', symbol, since, limit, params, 'next_cursor', 'cursor', None, defaultLimit)
@@ -2920,7 +2920,7 @@ class pacifica(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate', False)
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchLedger', 'paginate', False)
         userAddress = None
         userAddress, params = self.handle_origin_and_single_address('fetchLedger', params)
         defaultLimit = 100  # Default max limit
@@ -3023,7 +3023,7 @@ class pacifica(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate', False)
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingHistory', 'paginate', False)
         userAddress = None
         userAddress, params = self.handle_origin_and_single_address('fetchFundingHistory', params)
         request = {

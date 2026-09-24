@@ -95,7 +95,42 @@ func HelperTestHandleNetworkRequest() {
 	Assert(ccxt.InOp(request1, "chain_id"))
 	Assert(ccxt.IsEqual(ccxt.GetValue(request1, "chain_id"), "Xyz"))
 }
+func HelperTestHandleTypedOptions() {
+	exchange := ccxt.NewExchange().(*ccxt.Exchange)
+	exchange.DerivedExchange = exchange
+	exchange.InitParent(map[string]any{
+		"id": "sampleexchange",
+		"options": map[string]any{
+			"marginMode": "isolated",
+			"fetchX": map[string]any{
+				"uta": true,
+			},
+		},
+	}, map[string]any{}, exchange)
+	var marginModeparams1Variable []any = exchange.HandleMarginModeAndParams("fetchX", map[string]any{}, "cross")
+	var marginMode *string = ccxt.SafeStringPtr(ccxt.GetValue(marginModeparams1Variable, 0))
+	params1 := ccxt.GetValue(marginModeparams1Variable, 1)
+	Assert((marginMode != nil && *marginMode == "isolated"))
+	var utaparams2Variable []any = exchange.HandleOptionBoolAndParams(map[string]any{}, "fetchX", "uta", false)
+	uta := ccxt.GetValue(utaparams2Variable, 0)
+	params2 := ccxt.GetValue(utaparams2Variable, 1)
+	Assert((uta == true))
+	var absentparams3Variable []any = exchange.HandleOptionStringAndParams(map[string]any{}, "fetchX", "absentKey", "fallback")
+	var absent *string = ccxt.SafeStringPtr(ccxt.GetValue(absentparams3Variable, 0))
+	params3 := ccxt.GetValue(absentparams3Variable, 1)
+	Assert((absent != nil && *absent == "fallback"))
+	var fromParamsparams4Variable []any = exchange.HandleOptionStringAndParams(map[string]any{
+		"absentKey": "p",
+	}, "fetchX", "absentKey", "fallback")
+	var fromParams *string = ccxt.SafeStringPtr(ccxt.GetValue(fromParamsparams4Variable, 0))
+	params4 := ccxt.GetValue(fromParamsparams4Variable, 1)
+	Assert((fromParams != nil && *fromParams == "p"))
+	Assert(!(ccxt.InOp(params4, "absentKey")))
+	// a wrong-typed option is covered per language in language_specific (it throws only in C#, Java and Go)
+	Assert(!ccxt.IsEqual(params1, nil) || !ccxt.IsEqual(params2, nil) || !ccxt.IsEqual(params3, nil))
+}
 func TestHandleMethods() {
 	HelperTestHandleMarketTypeAndParams()
 	HelperTestHandleNetworkRequest()
+	HelperTestHandleTypedOptions()
 }

@@ -669,7 +669,7 @@ export default class deepcoin extends Exchange {
         }
         const maxLimit = 300;
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             params = this.extend (params, { 'calculateUntil': true });
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
@@ -1018,7 +1018,7 @@ export default class deepcoin extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate', false);
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchDeposits', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchDeposits', code, since, limit, params, 'code', undefined, 1, 50) as Transaction[];
         }
@@ -1066,7 +1066,7 @@ export default class deepcoin extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate', false);
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchWithdrawals', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchWithdrawals', code, since, limit, params, 'code', undefined, 1, 50) as Transaction[];
         }
@@ -1662,11 +1662,11 @@ export default class deepcoin extends Exchange {
             request['tdMode'] = 'cash';
         } else {
             request['sz'] = this.amountToPrecision (symbol, amount);
-            let marginMode = 'cross';
+            let marginMode: Str = 'cross';
             [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params, marginMode);
             request['tdMode'] = marginMode;
             let mrgPosition = 'merge';
-            [ mrgPosition, params ] = this.handleOptionAndParams (params, 'createOrder', 'mrgPosition', mrgPosition);
+            [ mrgPosition, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'mrgPosition', mrgPosition);
             request['mrgPosition'] = mrgPosition;
             let posSide: Str = undefined;
             const reduceOnly = this.safeBool (params, 'reduceOnly', false);
@@ -1741,7 +1741,7 @@ export default class deepcoin extends Exchange {
         } else if (type === 'limit') {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for limit trigger orders');
         }
-        let marginMode = 'cross';
+        let marginMode: Str = 'cross';
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params, marginMode);
         let isCrossMargin = 1;
         if (marginMode === 'isolated') {
@@ -1767,7 +1767,7 @@ export default class deepcoin extends Exchange {
             }
         }
         let mrgPosition = 'merge';
-        [ mrgPosition, params ] = this.handleOptionAndParams (params, 'createOrder', 'mrgPosition', mrgPosition);
+        [ mrgPosition, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'mrgPosition', mrgPosition);
         request['mrgPosition'] = mrgPosition;
         return this.extend (request, params);
     }
@@ -2293,7 +2293,7 @@ export default class deepcoin extends Exchange {
             }
         }
         let merged = true;
-        [ merged, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'merged', merged);
+        [ merged, params ] = this.handleOptionBoolAndParams (params, 'cancelAllOrders', 'merged', merged);
         const isMergedMode = merged ? 1 : 0;
         const request: Dict = {
             'InstrumentID': market['id'],
@@ -2710,13 +2710,13 @@ export default class deepcoin extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let marginMode = 'cross';
+        let marginMode: Str = 'cross';
         [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params, marginMode);
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
             throw new BadRequest (this.id + ' setLeverage() requires a marginMode parameter that must be either cross or isolated');
         }
         let mrgPosition = 'merge';
-        [ mrgPosition, params ] = this.handleOptionAndParams (params, 'setLeverage', 'mrgPosition', mrgPosition);
+        [ mrgPosition, params ] = this.handleOptionStringAndParams (params, 'setLeverage', 'mrgPosition', mrgPosition);
         if (mrgPosition !== 'merge' && mrgPosition !== 'split') {
             throw new BadRequest (this.id + ' setLeverage() mrgPosition parameter must be either merge or split');
         }

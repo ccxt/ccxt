@@ -1200,7 +1200,7 @@ class bingx(Exchange, ImplicitAPI):
         market = self.market(symbol)
         maxLimit = 1000 if (market['inverse'] is True) else 1440
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit)
         request = {
@@ -2399,7 +2399,7 @@ class bingx(Exchange, ImplicitAPI):
             self.load_markets()
         response: dict
         standard = None
-        standard, params = self.handle_option_and_params(params, 'fetchBalance', 'standard', False)
+        standard, params = self.handle_option_bool_and_params(params, 'fetchBalance', 'standard', False)
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchBalance', None, params)
         marketType, marketTypeQuery = self.handle_market_type_and_params('fetchBalance', None, params)
@@ -2690,7 +2690,7 @@ class bingx(Exchange, ImplicitAPI):
             self.load_markets()
         symbols = self.market_symbols(symbols)
         standard = None
-        standard, params = self.handle_option_and_params(params, 'fetchPositions', 'standard', False)
+        standard, params = self.handle_option_bool_and_params(params, 'fetchPositions', 'standard', False)
         response: dict
         if standard:
             response = self.contractV1PrivateGetAllPosition(params)
@@ -4854,7 +4854,7 @@ class bingx(Exchange, ImplicitAPI):
         response: dict
         type, params = self.handle_market_type_and_params('fetchCanceledAndClosedOrders', market, params)
         subType, params = self.handle_sub_type_and_params('fetchCanceledAndClosedOrders', market, params)
-        standard, params = self.handle_option_and_params(params, 'fetchCanceledAndClosedOrders', 'standard', False)
+        standard, params = self.handle_option_bool_and_params(params, 'fetchCanceledAndClosedOrders', 'standard', False)
         if standard:
             response = self.contractV1PrivateGetAllOrders(self.extend(request, params))
         elif type == 'spot':
@@ -5113,7 +5113,7 @@ class bingx(Exchange, ImplicitAPI):
             request['toAccount'] = toId
         maxLimit = 100
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchTransfers', 'paginate', False)
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchTransfers', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchTransfers', code, since, limit, params, maxLimit)
         params = self.omit(params, ['fromAccount', 'toAccount'])

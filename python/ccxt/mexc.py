@@ -1827,7 +1827,7 @@ class mexc(Exchange, ImplicitAPI):
         market = self.market(symbol)
         maxLimit = 500 if (market['spot'] is True) else 2000  # docs say 1000 for spot, but in practice it's 500
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit)
         options = self.safe_dict(self.options, 'timeframes', {})
@@ -5804,7 +5804,7 @@ class mexc(Exchange, ImplicitAPI):
             'shortLeverage': shortLeverage,
         }
 
-    def handle_margin_mode_and_params(self, methodName: str, params: dict = {}, defaultValue: object = None) -> list:
+    def handle_margin_mode_and_params(self, methodName: str, params: dict = {}, defaultValue: Str = None) -> list:
         """
  @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'

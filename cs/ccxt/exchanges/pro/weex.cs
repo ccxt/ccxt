@@ -906,9 +906,9 @@ public partial class weex : ccxt.weex
         bool? isContract = ((bool?)(firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("contract") ? ((IDictionary<string, object>)firstMarket)["contract"] : null));
         string? callerMethodName = this.safeString(parameters, "callerMethodName", "watchOrderBookForSymbols");
         parameters = this.omit(parameters, "callerMethodName");
-        object depth = "200";
-        IList<object> depthparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, callerMethodName, "depth", depth);
-        depth = depthparametersVariable[0];
+        string? depth = "200";
+        IList<object> depthparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, callerMethodName, "depth", depth);
+        depth = (string)depthparametersVariable[0];
         parameters = depthparametersVariable[1];
         List<object> messageHashes = new List<object>() {};
         List<object> channels = new List<object>() {};
@@ -969,9 +969,9 @@ public partial class weex : ccxt.weex
         bool? isContract = ((bool?)(firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("contract") ? ((IDictionary<string, object>)firstMarket)["contract"] : null));
         string? callerMethodName = this.safeString(parameters, "callerMethodName", "unWatchOrderBookForSymbols");
         parameters = this.omit(parameters, "callerMethodName");
-        object depth = "200";
-        IList<object> depthparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, callerMethodName, "depth", depth);
-        depth = depthparametersVariable[0];
+        string? depth = "200";
+        IList<object> depthparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, callerMethodName, "depth", depth);
+        depth = (string)depthparametersVariable[0];
         parameters = depthparametersVariable[1];
         List<object> subHashes = new List<object>() {};
         List<object> channels = new List<object>() {};

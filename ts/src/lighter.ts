@@ -909,7 +909,7 @@ export default class lighter extends Exchange {
         }
         // avoid skipNonce for l1 operations
         let skipNonce = true;
-        [ skipNonce, params ] = this.handleOptionAndParams (params, 'fetchNonce', 'skipNonce', true);
+        [ skipNonce, params ] = this.handleOptionBoolAndParams (params, 'fetchNonce', 'skipNonce', true);
         if (skipNonce) {
             return this.milliseconds ();
         }

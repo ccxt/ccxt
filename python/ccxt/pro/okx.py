@@ -208,7 +208,7 @@ class okx(ccxt.async_support.okx):
             await self.load_markets()
         symbols = self.market_symbols(symbols)
         channel = None
-        channel, params = self.handle_option_and_params(params, 'watchTrades', 'channel', 'trades')
+        channel, params = self.handle_option_string_and_params(params, 'watchTrades', 'channel', 'trades')
         topics = []
         messageHashes = []
         for i in range(0, len(symbols)):
@@ -248,7 +248,7 @@ class okx(ccxt.async_support.okx):
             await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         channel = None
-        channel, params = self.handle_option_and_params(params, 'watchTrades', 'channel', 'trades')
+        channel, params = self.handle_option_string_and_params(params, 'watchTrades', 'channel', 'trades')
         topics = []
         messageHashes = []
         for i in range(0, len(symbols)):
@@ -425,7 +425,7 @@ class okx(ccxt.async_support.okx):
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         channel = None
-        channel, params = self.handle_option_and_params(params, 'watchTicker', 'channel', 'tickers')
+        channel, params = self.handle_option_string_and_params(params, 'watchTicker', 'channel', 'tickers')
         params['channel'] = channel
         market = self.market(symbol)
         symbol = market['symbol']
@@ -460,7 +460,7 @@ class okx(ccxt.async_support.okx):
             await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         channel = None
-        channel, params = self.handle_option_and_params(params, 'watchTickers', 'channel', 'tickers')
+        channel, params = self.handle_option_string_and_params(params, 'watchTickers', 'channel', 'tickers')
         newTickers = await self.subscribe_multiple('public', channel, symbols, params)
         if self.newUpdates:
             return newTickers
@@ -478,7 +478,7 @@ class okx(ccxt.async_support.okx):
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         channel = None
-        channel, params = self.handle_option_and_params(params, 'watchMarkPrice', 'channel', 'mark-price')
+        channel, params = self.handle_option_string_and_params(params, 'watchMarkPrice', 'channel', 'mark-price')
         params['channel'] = channel
         market = self.market(symbol)
         symbol = market['symbol']
@@ -500,7 +500,7 @@ class okx(ccxt.async_support.okx):
             await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         channel = None
-        channel, params = self.handle_option_and_params(params, 'watchMarkPrices', 'channel', 'mark-price')
+        channel, params = self.handle_option_string_and_params(params, 'watchMarkPrices', 'channel', 'mark-price')
         newTickers = await self.subscribe_multiple('public', channel, symbols, params)
         if self.newUpdates:
             return newTickers
@@ -521,7 +521,7 @@ class okx(ccxt.async_support.okx):
             await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         channel = None
-        channel, params = self.handle_option_and_params(params, 'watchTickers', 'channel', 'tickers')
+        channel, params = self.handle_option_string_and_params(params, 'watchTickers', 'channel', 'tickers')
         topics = []
         messageHashes = []
         for i in range(0, len(symbols)):
@@ -600,7 +600,7 @@ class okx(ccxt.async_support.okx):
             await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         channel = None
-        channel, params = self.handle_option_and_params(params, 'watchBidsAsks', 'channel', 'bbo-tbt')
+        channel, params = self.handle_option_string_and_params(params, 'watchBidsAsks', 'channel', 'bbo-tbt')
         url = self.get_url(channel, 'public')
         messageHashes = []
         args = []
@@ -1657,7 +1657,7 @@ class okx(ccxt.async_support.okx):
         """
         # By default, receive order updates from any instrument type
         type = None
-        type, params = self.handle_option_and_params(params, 'watchMyTrades', 'type', 'ANY')
+        type, params = self.handle_option_string_and_params(params, 'watchMyTrades', 'type', 'ANY')
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
         params = self.omit(params, ['trigger', 'stop'])
         if self.markets is None:
@@ -1839,7 +1839,7 @@ class okx(ccxt.async_support.okx):
         """
         type = None
         # By default, receive order updates from any instrument type
-        type, params = self.handle_option_and_params(params, 'watchOrders', 'type', 'ANY')
+        type, params = self.handle_option_string_and_params(params, 'watchOrders', 'type', 'ANY')
         isTrigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         params = self.omit(params, ['stop', 'trigger'])
         if self.markets is None:
@@ -2064,7 +2064,7 @@ class okx(ccxt.async_support.okx):
         url = self.get_url('private', 'private')
         messageHash = self.request_id()
         op = None
-        op, params = self.handle_option_and_params(params, 'createOrderWs', 'op', 'batch-orders')
+        op, params = self.handle_option_string_and_params(params, 'createOrderWs', 'op', 'batch-orders')
         args = self.create_order_request(symbol, type, side, amount, price, params)
         market = self.market(symbol)
         instIdCode = self.safe_integer(market, 'instIdCode')
@@ -2137,7 +2137,7 @@ class okx(ccxt.async_support.okx):
         url = self.get_url('private', 'private')
         messageHash = self.request_id()
         op = None
-        op, params = self.handle_option_and_params(params, 'editOrderWs', 'op', 'amend-order')
+        op, params = self.handle_option_string_and_params(params, 'editOrderWs', 'op', 'amend-order')
         args = self.edit_order_request(id, symbol, type, side, amount, price, params)
         market = self.market(symbol)
         instIdCode = self.safe_integer(market, 'instIdCode')

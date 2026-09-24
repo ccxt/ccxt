@@ -1376,6 +1376,24 @@ public class BaseExchange {
         return (Map<String, Object>) obj; // to do safety checks
     }
 
+    // a present option value of another type is a user error: throw instead of coercing
+    public String checkOptionString(Object methodName, Object optionName, Object value) {
+        if (value == null || value instanceof String) {
+            return value == null ? null : value.toString();
+        }
+        throw new BadRequest(this.id + " " + (methodName == null ? "exchange-wide" : methodName + "()") + " option " + optionName + " must be a string");
+    }
+
+    public Boolean checkOptionBool(Object methodName, Object optionName, Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Boolean b) {
+            return b;
+        }
+        throw new BadRequest(this.id + " " + (methodName == null ? "exchange-wide" : methodName + "()") + " option " + optionName + " must be a boolean");
+    }
+
     public boolean valueIsDefined(Object value) {
         return value != null;
     }
@@ -9952,6 +9970,72 @@ public Object describe()
         return this.handleOptionAndParams2(parameters, methodName1, optionName1, optionName2, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
     }
 
+    /* eslint-disable no-unused-vars */
+    /* eslint-enable no-unused-vars */
+    public Object handleOptionStringAndParams(Object parameters, String methodName, Object optionName, String defaultValue)
+    {
+        // handleOptionAndParams read as a string; the statically typed ports throw on another type
+        List<Object> valuenewParamsVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, optionName, defaultValue);
+        var value = ((List<Object>) valuenewParamsVariable).get(0);
+        Map<String, Object> newParams = (Map<String, Object>) ((List<Object>) valuenewParamsVariable).get(1);
+        return new ArrayList<Object>(Arrays.asList(this.checkOptionString((String) (methodName), optionName, value), newParams));
+    }
+    /* eslint-disable no-unused-vars */
+    /* eslint-enable no-unused-vars */
+    public Object handleOptionStringAndParams(Object parameters, String methodName, Object optionName, Object... optionalArgs)
+    {
+        return this.handleOptionStringAndParams(parameters, methodName, optionName, Helpers.getArgString(optionalArgs, 0, null));
+    }
+
+    /* eslint-disable no-unused-vars */
+    /* eslint-enable no-unused-vars */
+    public Object handleOptionStringAndParams2(Object parameters, Object methodName, Object optionName1, Object optionName2, String defaultValue)
+    {
+        List<Object> valuenewParamsVariable = (List<Object>) this.handleOptionAndParams2(parameters, methodName, optionName1, optionName2, defaultValue);
+        var value = ((List<Object>) valuenewParamsVariable).get(0);
+        Map<String, Object> newParams = (Map<String, Object>) ((List<Object>) valuenewParamsVariable).get(1);
+        return new ArrayList<Object>(Arrays.asList(this.checkOptionString((String) (methodName), optionName1, value), newParams));
+    }
+    /* eslint-disable no-unused-vars */
+    /* eslint-enable no-unused-vars */
+    public Object handleOptionStringAndParams2(Object parameters, Object methodName, Object optionName1, Object optionName2, Object... optionalArgs)
+    {
+        return this.handleOptionStringAndParams2(parameters, methodName, optionName1, optionName2, Helpers.getArgString(optionalArgs, 0, null));
+    }
+
+    /* eslint-disable no-unused-vars */
+    /* eslint-enable no-unused-vars */
+    public Object handleOptionBoolAndParams(Object parameters, String methodName, Object optionName, Object defaultValue)
+    {
+        // handleOptionAndParams read as a boolean; the statically typed ports throw on another type
+        List<Object> valuenewParamsVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, optionName, defaultValue);
+        var value = ((List<Object>) valuenewParamsVariable).get(0);
+        Map<String, Object> newParams = (Map<String, Object>) ((List<Object>) valuenewParamsVariable).get(1);
+        return new ArrayList<Object>(Arrays.asList(this.checkOptionBool((String) (methodName), optionName, value), newParams));
+    }
+    /* eslint-disable no-unused-vars */
+    /* eslint-enable no-unused-vars */
+    public Object handleOptionBoolAndParams(Object parameters, String methodName, Object optionName, Object... optionalArgs)
+    {
+        return this.handleOptionBoolAndParams(parameters, methodName, optionName, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
+    }
+
+    /* eslint-disable no-unused-vars */
+    /* eslint-enable no-unused-vars */
+    public Object handleOptionBoolAndParams2(Object parameters, Object methodName, Object optionName1, Object optionName2, Object defaultValue)
+    {
+        List<Object> valuenewParamsVariable = (List<Object>) this.handleOptionAndParams2(parameters, methodName, optionName1, optionName2, defaultValue);
+        var value = ((List<Object>) valuenewParamsVariable).get(0);
+        Map<String, Object> newParams = (Map<String, Object>) ((List<Object>) valuenewParamsVariable).get(1);
+        return new ArrayList<Object>(Arrays.asList(this.checkOptionBool((String) (methodName), optionName1, value), newParams));
+    }
+    /* eslint-disable no-unused-vars */
+    /* eslint-enable no-unused-vars */
+    public Object handleOptionBoolAndParams2(Object parameters, Object methodName, Object optionName1, Object optionName2, Object... optionalArgs)
+    {
+        return this.handleOptionBoolAndParams2(parameters, methodName, optionName1, optionName2, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
+    }
+
     public Object handleOption(Object methodName, Object optionName, Object defaultValue)
     {
         Object res = this.handleOptionAndParams(new HashMap<String, Object>() {{}}, methodName, optionName, defaultValue);
@@ -10056,7 +10140,7 @@ public Object describe()
         return this.handleSubTypeAndParams(methodName, Helpers.getArgMap(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}), optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null);
     }
 
-    public Object handleMarginModeAndParams(Object methodName, Map<String, Object> parameters, Object defaultValue)
+    public Object handleMarginModeAndParams(Object methodName, Map<String, Object> parameters, String defaultValue)
     {
         /**
          * @ignore
@@ -10064,11 +10148,11 @@ public Object describe()
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Array} the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
          */
-        return this.handleOptionAndParams(parameters, methodName, "marginMode", defaultValue);
+        return this.handleOptionStringAndParams(parameters, (String) (methodName), "marginMode", defaultValue);
     }
     public Object handleMarginModeAndParams(Object methodName, Object... optionalArgs)
     {
-        return this.handleMarginModeAndParams(methodName, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null);
+        return this.handleMarginModeAndParams(methodName, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}), Helpers.getArgString(optionalArgs, 1, null));
     }
 
     public void throwExactlyMatchedException(Object exact, Object str, Object message)

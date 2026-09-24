@@ -1815,9 +1815,9 @@ public class Cex extends CexApi
                 put( "timestamp", Cex.this.milliseconds() );
                 put( "amountCcy1", Cex.this.amountToPrecision(symbol, amount) );
             }};
-            Object timeInForce = null;
-            List<Object> timeInForceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "timeInForce", "GTC");
-            timeInForce = ((List<Object>) timeInForceparametersVariable).get(0);
+            String timeInForce = null;
+            List<Object> timeInForceparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce", "GTC");
+            timeInForce = (String) ((List<Object>) timeInForceparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) timeInForceparametersVariable).get(1);
             if (java.util.Objects.equals(type, "limit"))
             {

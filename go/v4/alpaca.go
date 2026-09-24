@@ -1060,7 +1060,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var loc *string = this.SafeString(params, "loc", "us")
 	var method *string = this.SafeString(params, "method", "marketPublicGetV1beta3CryptoLocBars")
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	var paginationCalls any = 10
@@ -1935,7 +1935,7 @@ func (this *Alpaca) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 		request["limit_price"] = this.PriceToPrecision(symbol, price)
 	}
 	var timeInForce any = nil
-	var timeInForceparamsVariable []any = this.HandleOptionAndParams(params, "editOrder", "timeInForce", "gtc")
+	var timeInForceparamsVariable []any = this.HandleOptionStringAndParams(params, "editOrder", "timeInForce", "gtc")
 	timeInForce = GetValue(timeInForceparamsVariable, 0)
 	params = MapTyped(GetValue(timeInForceparamsVariable, 1))
 	if timeInForce != nil {

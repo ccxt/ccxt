@@ -2402,6 +2402,16 @@ export class BaseExchange {
         return dict;
     }
 
+    checkOptionString (methodName: Str, optionName: string, value: any): Str {
+        // the statically typed ports throw on a present non-string value; here it passes through unchanged
+        return value;
+    }
+
+    checkOptionBool (methodName: Str, optionName: string, value: any): Bool {
+        // the statically typed ports throw on a present non-boolean value; here it passes through unchanged
+        return value;
+    }
+
     randomBytes (length: number): string {
         const x = new Uint8Array (length);
         crypto.getRandomValues (x);
@@ -6903,6 +6913,44 @@ export class BaseExchange {
         return [ value2, params ];
     }
 
+    /* eslint-disable no-unused-vars */
+    handleOptionStringAndParams (params: object, methodName: Str, optionName: string, defaultValue: string): [string, Dict];
+    handleOptionStringAndParams (params: object, methodName: Str, optionName: string, defaultValue?: Str): [Str, Dict];
+    /* eslint-enable no-unused-vars */
+    handleOptionStringAndParams (params: object, methodName: Str, optionName: string, defaultValue: Str = undefined): [Str, Dict] {
+        // handleOptionAndParams read as a string; the statically typed ports throw on another type
+        const [ value, newParams ] = this.handleOptionAndParams (params, methodName, optionName, defaultValue);
+        return [ this.checkOptionString (methodName, optionName, value), newParams ];
+    }
+
+    /* eslint-disable no-unused-vars */
+    handleOptionStringAndParams2 (params: object, methodName: string, optionName1: string, optionName2: string, defaultValue: string): [string, Dict];
+    handleOptionStringAndParams2 (params: object, methodName: string, optionName1: string, optionName2: string, defaultValue?: Str): [Str, Dict];
+    /* eslint-enable no-unused-vars */
+    handleOptionStringAndParams2 (params: object, methodName: string, optionName1: string, optionName2: string, defaultValue: Str = undefined): [Str, Dict] {
+        const [ value, newParams ] = this.handleOptionAndParams2 (params, methodName, optionName1, optionName2, defaultValue);
+        return [ this.checkOptionString (methodName, optionName1, value), newParams ];
+    }
+
+    /* eslint-disable no-unused-vars */
+    handleOptionBoolAndParams (params: object, methodName: Str, optionName: string, defaultValue: boolean): [boolean, Dict];
+    handleOptionBoolAndParams (params: object, methodName: Str, optionName: string, defaultValue?: Bool): [Bool, Dict];
+    /* eslint-enable no-unused-vars */
+    handleOptionBoolAndParams (params: object, methodName: Str, optionName: string, defaultValue: Bool = undefined): [Bool, Dict] {
+        // handleOptionAndParams read as a boolean; the statically typed ports throw on another type
+        const [ value, newParams ] = this.handleOptionAndParams (params, methodName, optionName, defaultValue);
+        return [ this.checkOptionBool (methodName, optionName, value), newParams ];
+    }
+
+    /* eslint-disable no-unused-vars */
+    handleOptionBoolAndParams2 (params: object, methodName: string, optionName1: string, optionName2: string, defaultValue: boolean): [boolean, Dict];
+    handleOptionBoolAndParams2 (params: object, methodName: string, optionName1: string, optionName2: string, defaultValue?: Bool): [Bool, Dict];
+    /* eslint-enable no-unused-vars */
+    handleOptionBoolAndParams2 (params: object, methodName: string, optionName1: string, optionName2: string, defaultValue: Bool = undefined): [Bool, Dict] {
+        const [ value, newParams ] = this.handleOptionAndParams2 (params, methodName, optionName1, optionName2, defaultValue);
+        return [ this.checkOptionBool (methodName, optionName1, value), newParams ];
+    }
+
     handleOption (methodName: string, optionName: string, defaultValue: any = undefined) {
         const res = this.handleOptionAndParams ({}, methodName, optionName, defaultValue);
         return this.safeValue (res, 0);
@@ -6978,14 +7026,14 @@ export class BaseExchange {
         return [ subType, params ];
     }
 
-    handleMarginModeAndParams (methodName: string, params: Dict = {}, defaultValue: any = undefined): [any, Dict] {
+    handleMarginModeAndParams (methodName: string, params: Dict = {}, defaultValue: Str = undefined): [Str, Dict] {
         /**
          * @ignore
          * @method
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Array} the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
          */
-        return this.handleOptionAndParams (params, methodName, 'marginMode', defaultValue);
+        return this.handleOptionStringAndParams (params, methodName, 'marginMode', defaultValue);
     }
 
     throwExactlyMatchedException (exact: any, string: any, message: any) {

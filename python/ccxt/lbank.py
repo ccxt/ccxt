@@ -1630,7 +1630,7 @@ class lbank(Exchange, ImplicitAPI):
                 request['type'] = side + '_' + 'market'
                 quoteAmount = None
                 createMarketBuyOrderRequiresPrice = True
-                createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+                createMarketBuyOrderRequiresPrice, params = self.handle_option_bool_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
                 cost = self.safe_number(params, 'cost')
                 params = self.omit(params, 'cost')
                 if cost is not None:
