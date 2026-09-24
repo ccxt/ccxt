@@ -3,7 +3,7 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bitflyer.js';
-import { ExchangeError, ArgumentsRequired, OrderNotFound, OnMaintenance } from './base/errors.js';
+import { BadResponse, ExchangeError, ArgumentsRequired, OrderNotFound, OnMaintenance } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Balances, Currency, Dict, Fee, FundingRate, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFeeInterface, Transaction, Position, int, List, NullableDict, Endpoint } from './base/types.js';
 import { Precise } from './base/Precise.js';
@@ -245,6 +245,9 @@ export default class bitflyer extends Exchange {
             'DEC': '12',
         };
         const month = this.safeString (months, monthName);
+        if (month === undefined) {
+            throw new BadResponse (this.id + ' parseExpiryDate() unknown month in ' + expiry);
+        }
         return this.parse8601 (year + '-' + month + '-' + day + 'T00:00:00Z');
     }
 
@@ -336,6 +339,9 @@ export default class bitflyer extends Exchange {
                     quoteId = (currencyIds as string).slice (-3);
                     const splitId = (id as string).split (currencyIds as string);
                     const expiryDate = this.safeString (splitId, 1);
+                    if (expiryDate === undefined) {
+                        throw new BadResponse (this.id + ' fetchMarkets() cannot find the expiry date in ' + id);
+                    }
                     expiry = this.parseExpiryDate (expiryDate);
                 }
                 type = 'future';
@@ -1248,7 +1254,11 @@ export default class bitflyer extends Exchange {
                 request += '?' + this.urlencode (params);
             }
         }
-        const baseUrl = this.implodeHostname (this.urls['api']['rest']);
+        const apiUrl = this.safeString (this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const baseUrl = this.implodeHostname (apiUrl);
         const url = baseUrl + request;
         if (api === 'private') {
             this.checkRequiredCredentials ();

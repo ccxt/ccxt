@@ -2190,7 +2190,11 @@ export default class coinbaseexchange extends Exchange {
                 request += '?' + this.urlencode (query);
             }
         }
-        const url = this.implodeHostname (this.urls['api'][api]) + request;
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = this.implodeHostname (apiUrl) + request;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();

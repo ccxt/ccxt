@@ -3095,7 +3095,11 @@ export default class deepcoin extends Exchange {
                 requestPath += '?' + query;
             }
         }
-        const url = this.urls['api'][api] + '/' + requestPath;
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + '/' + requestPath;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ();
