@@ -1328,7 +1328,8 @@ func (this *Bitfinex) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsEqual(authenticated, nil) {
-		var nonce int64 = this.Milliseconds()
+		// the auth nonce shares the increasing-nonce requirement (and the counter) with REST requests signed by the same key
+		var nonce any = this.IncrementingNonce()
 		var payload string = "AUTH" + ccxt.ToString(nonce)
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), ccxt.Sha384, "hex")
 		var event string = "auth"

@@ -353,7 +353,7 @@ func (this *Whitebit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols, nil, false)
 	var method string = "market_subscribe"
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
-	var id any = this.Nonce()
+	var id any = this.IncrementingNonce()
 	var messageHashes []any = []any{}
 	var args []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
@@ -1068,7 +1068,7 @@ func (this *Whitebit) watchPublicBody(ch chan any, messageHash any, method any, 
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
-	var id any = this.Nonce()
+	var id any = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"id":     id,
 		"method": method,
@@ -1096,7 +1096,7 @@ func (this *Whitebit) watchMultipleSubscriptionBody(ch chan any, messageHash any
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
-	var id any = this.Nonce()
+	var id any = this.IncrementingNonce()
 	var client any = this.SafeValue(this.Clients, url)
 	var request any = nil
 	var marketIds []any = []any{}
@@ -1174,7 +1174,7 @@ func (this *Whitebit) watchPrivateBody(ch chan any, messageHash any, method any,
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
-	var id any = this.Nonce()
+	var id any = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"id":     id,
 		"method": method,
@@ -1275,7 +1275,7 @@ func (this *Whitebit) authenticateBody(ch chan any, optionalArgs ...any) any {
 			if token == nil {
 				panic(ccxt.AuthenticationError(this.Id + " authenticate() received an empty websocket_token"))
 			}
-			var id any = this.Nonce()
+			var id any = this.IncrementingNonce()
 			var request map[string]any = map[string]any{
 				"id":     id,
 				"method": "authorize",

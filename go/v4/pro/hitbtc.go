@@ -172,7 +172,7 @@ func (this *Hitbtc) subscribePublicBody(ch chan any, name any, messageHashPrefix
 	}
 	var subscribe map[string]any = map[string]any{
 		"method": "subscribe",
-		"id":     this.Nonce(),
+		"id":     this.IncrementingNonce(),
 		"ch":     name,
 	}
 	var request map[string]any = this.Extend(subscribe, params)
@@ -215,7 +215,7 @@ func (this *Hitbtc) subscribePrivateBody(ch chan any, name any, optionalArgs ...
 	var subscribe map[string]any = map[string]any{
 		"method": name,
 		"params": params,
-		"id":     this.Nonce(),
+		"id":     this.IncrementingNonce(),
 	}
 
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, subscribe, messageHash)))
@@ -245,7 +245,7 @@ func (this *Hitbtc) tradeRequestBody(ch chan any, name any, optionalArgs ...any)
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"))
-	var messageHash string = ccxt.ToString(this.Nonce())
+	var messageHash string = ccxt.ToString(this.IncrementingNonce())
 	var subscribe map[string]any = map[string]any{
 		"method": name,
 		"params": params,

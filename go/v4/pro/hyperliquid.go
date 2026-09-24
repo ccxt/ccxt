@@ -397,7 +397,7 @@ func (this *Hyperliquid) unWatchOrderBookBody(ch chan any, symbol any, optionalA
 	var subMessageHash any = ccxt.Add("orderbook:", symbol)
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
-	var id string = ccxt.ToString(this.Nonce())
+	var id string = ccxt.ToString(this.IncrementingNonce())
 	var request map[string]any = map[string]any{
 		"id":     id,
 		"method": "unsubscribe",

@@ -791,7 +791,13 @@ func (this *Bullish) HandleBalance(client any, message any) {
 	var messageType *string = this.SafeString(message, "type")
 	if messageType != nil && *messageType == "snapshot" {
 		var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
-		ccxt.AddElementToObject(this.Balance, tradingAccountId, this.ParseBalance(data))
+		var parsed any = this.ParseBalance(data)
+		var parsedKeys []string = ccxt.ObjectKeys(parsed)
+		for i := 0; i < len(parsedKeys); i++ {
+			var parsedKey string = ccxt.GetValue(parsedKeys, i).(string)
+			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, tradingAccountId), parsedKey, ccxt.GetValue(parsed, parsedKey))
+		}
+		ccxt.AddElementToObject(this.Balance, tradingAccountId, this.SafeBalance(ccxt.GetValue(this.Balance, tradingAccountId)))
 	} else {
 		var data map[string]any = ccxt.SafeMapTyped(message, "data")
 		var assetId *string = this.SafeString(data, "assetSymbol")

@@ -2799,7 +2799,7 @@ func (this *Polymarket) ParseOrderStatus(status *string) *string {
  * @param {string} [params.funder] the wallet that holds the USDC collateral; defaults to options.funder or the signing address
  * @param {string} [params.tickSize] the market tick size ('0.1'/'0.01'/'0.001'/'0.0001'); read from the outcome when omitted
  * @param {bool} [params.negRisk] whether the market is a neg-risk market; read from the outcome when omitted
- * @param {string} [params.salt] order salt; defaults to the current time in ms (pin it for idempotent retries)
+ * @param {string} [params.salt] order salt; defaults to a strictly-increasing millisecond value (pin it for idempotent retries)
  * @param {string} [params.timestamp] order timestamp; defaults to the current time in ms
  * @param {string} [params.expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
  * @param {string} [params.builderCode] builder wallet address or full bytes32 builder code attached to the order for attribution (zero fee — tracking only); defaults to options.builder
@@ -2870,14 +2870,14 @@ func (this *Polymarket) createOrdersBody(ch chan any, orders any, optionalArgs .
 	var bodies []any = []any{}
 	var outcomes []any = []any{}
 	var requests []any = []any{}
-	var batchSalt int64 = this.Milliseconds()
 	for i := 0; i < ccxt.GetArrayLength(orders); i++ {
 		var o any = ccxt.GetValue(orders, i)
 		var orderParams any = this.SafeDict(o, "params", map[string]any{})
 		if this.SafeString(orderParams, "salt") == nil {
-			// a distinct salt per order so two identical orders in one batch don't collide
+			// a distinct salt per order so two identical orders don't collide, within a batch or across calls
+			var orderSalt any = this.IncrementingNonce() // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
 			orderParams = this.Extend(orderParams, map[string]any{
-				"salt": this.NumberToString(this.Sum(batchSalt, i)),
+				"salt": this.NumberToString(orderSalt),
 			})
 		}
 		var built map[string]any = ccxt.MapTyped(this.BuildClobOrderBody(this.SafeString(o, "outcome"), this.SafeString(o, "type"), this.SafeString(o, "side"), this.SafeNumber(o, "amount"), this.SafeNumber(o, "price"), orderParams))
@@ -2981,8 +2981,9 @@ func (this *Polymarket) BuildClobOrderBody(outcome any, typeVar any, side any, a
 	// the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
 	var eoa any = this.EthChecksumAddress(this.EthGetAddressFromPrivateKey(this.PrivateKey))
 	var funder any = this.EthChecksumAddress(this.SafeString2(params, "funder", "maker", this.SafeString(this.Options, "funder", this.WalletAddress)))
-	// salt and timestamp default to the current time but can be pinned via params for idempotency
-	var salt *string = this.SafeString(params, "salt", this.NumberToString(this.Milliseconds()))
+	// the salt defaults to a strictly-increasing millisecond value and the timestamp to the current time; both can be pinned via params for idempotency
+	var defaultSalt any = this.IncrementingNonce() // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
+	var salt *string = this.SafeString(params, "salt", this.NumberToString(defaultSalt))
 	var timestamp *string = this.SafeString(params, "timestamp", this.NumberToString(this.Milliseconds()))
 	// GTD (good-til-date) orders need a unix-seconds expiration; 0 means no expiry
 	var expiration *string = this.SafeString(params, "expiration", "0")
@@ -3124,8 +3125,8 @@ func (this *Polymarket) createMarketBuyOrderWithCostBody(ch chan any, outcome an
 		"cost": cost,
 	})
 
-	var retRes220115 map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.CreateOrderAsync(outcome, "market", "buy", cost, nil, request))))
-	ch <- ccxt.BoxAbsent(retRes220115)
+	var retRes220215 map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.CreateOrderAsync(outcome, "market", "buy", cost, nil, request))))
+	ch <- ccxt.BoxAbsent(retRes220215)
 	return nil
 }
 func (this *Polymarket) PolymarketOrderRawAmounts(side any, size any, price any, tickSize any, optionalArgs ...any) any {
@@ -3780,6 +3781,11 @@ func (this *Polymarket) HandleErrors(code any, reason any, url any, method any, 
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessage, feedback)
 	}
 	return nil
+}
+func (this *Polymarket) Nonce() any {
+	// the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
+	// unique when two identical orders are signed within the same millisecond
+	return this.Milliseconds()
 }
 
 /**
@@ -5230,7 +5236,7 @@ func (this *Polymarket) FetchOrder(id string, options ...FetchOrderOptions) (ccx
  * @param {string} [params.funder] the wallet that holds the USDC collateral; defaults to options.funder or the signing address
  * @param {string} [params.tickSize] the market tick size ('0.1'/'0.01'/'0.001'/'0.0001'); read from the outcome when omitted
  * @param {bool} [params.negRisk] whether the market is a neg-risk market; read from the outcome when omitted
- * @param {string} [params.salt] order salt; defaults to the current time in ms (pin it for idempotent retries)
+ * @param {string} [params.salt] order salt; defaults to a strictly-increasing millisecond value (pin it for idempotent retries)
  * @param {string} [params.timestamp] order timestamp; defaults to the current time in ms
  * @param {string} [params.expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
  * @param {string} [params.builderCode] builder wallet address or full bytes32 builder code attached to the order for attribution (zero fee — tracking only); defaults to options.builder

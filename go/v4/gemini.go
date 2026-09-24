@@ -2662,7 +2662,8 @@ func (this *Gemini) Sign(path any, optionalArgs ...any) any {
 		if GetIndexOf(apiKey, "account") < 0 {
 			panic(AuthenticationError(this.Id + " sign() requires an account-key, master-keys are not-supported"))
 		}
-		var nonce string = ToString(this.Nonce())
+		// gemini rejects a nonce that is not greater than the previously used one (InvalidNonce)
+		var nonce string = ToString(this.IncrementingNonce())
 		var finalUrl any = url
 		var request map[string]any = this.Extend(map[string]any{
 			"request": finalUrl,

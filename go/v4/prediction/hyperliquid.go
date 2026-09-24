@@ -153,6 +153,11 @@ func (this *Hyperliquid) SetSandboxMode(enabled any) {
 	this.BaseExchange.SetSandboxMode(enabled)
 	this.Options.Store("sandboxMode", enabled)
 }
+func (this *Hyperliquid) Nonce() any {
+	// the venue nonce is a millisecond timestamp and must be strictly increasing per signer
+	// incrementingNonce () reads this and bumps past the previous value when two signed actions share a millisecond
+	return this.Milliseconds()
+}
 
 /**
  * @ignore
@@ -1518,7 +1523,7 @@ func (this *Hyperliquid) createOrderBody(ch chan any, outcome any, typeVar any, 
 	var marketSymbol *string = this.SafeString(outcomeObj, "market")
 	var market map[string]any = ccxt.MapTyped(this.Market(marketSymbol))
 	var outcomeInfo map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
-	var nonce int64 = this.Milliseconds()
+	var nonce any = this.IncrementingNonce()
 	var isBuy bool = (ccxt.ToUpper(side) == "BUY")
 	var isMarket bool = (ccxt.ToUpper(typeVar) == "MARKET")
 	var assetId *int64 = this.SafeInteger(outcomeInfo, "assetId")
@@ -1721,7 +1726,7 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan any, ids any, optionalArgs ...
 	var outcomeObj map[string]any = this.Outcome(outcome)
 	var outcomeInfo map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var assetId *int64 = this.SafeInteger(outcomeInfo, "assetId")
-	var nonce int64 = this.Milliseconds()
+	var nonce any = this.IncrementingNonce()
 	var clientOrderId any = this.SafeValue2(params, "clientOrderId", "client_id")
 	params = ccxt.MapTyped(this.Omit(params, []any{"clientOrderId", "client_id"}))
 	var cancelReq []any = []any{}
@@ -2794,7 +2799,7 @@ func (this *Hyperliquid) ApproveBuilderFeeAsync(builder any, maxFeeRate any) <-c
 func (this *Hyperliquid) approveBuilderFeeBody(ch chan any, builder any, maxFeeRate any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var nonce int64 = this.Milliseconds()
+	var nonce any = this.IncrementingNonce()
 	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var payload map[string]any = map[string]any{
 		"hyperliquidChain": func() string {

@@ -3945,7 +3945,8 @@ func (this *Bitfinex) Sign(path any, optionalArgs ...any) any {
 	}
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
-		var nonce string = ToString(this.Nonce())
+		// bitfinex rejects a nonce that is not greater than the previous one for the key (error 10114)
+		var nonce string = ToString(this.IncrementingNonce())
 		body = this.Json(query)
 		var auth any = Add(Add(Add("/api/", request), nonce), body)
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha384)
@@ -4146,8 +4147,8 @@ func (this *Bitfinex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes322019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, params, 2500))))
-		ch <- BoxAbsent(retRes322019)
+		var retRes322119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, params, 2500))))
+		ch <- BoxAbsent(retRes322119)
 		return nil
 	}
 	var currency map[string]any = nil
@@ -4312,8 +4313,8 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes333919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 5000))))
-		ch <- BoxAbsent(retRes333919)
+		var retRes334019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 5000))))
+		ch <- BoxAbsent(retRes334019)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -4668,8 +4669,8 @@ func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan any, symbol any, opti
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes363119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOpenInterestHistory", symbol, since, limit, "8h", params, 5000))))
-		ch <- BoxAbsent(retRes363119)
+		var retRes363219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOpenInterestHistory", symbol, since, limit, "8h", params, 5000))))
+		ch <- BoxAbsent(retRes363219)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -4838,8 +4839,8 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan any, symbol any, optionalArg
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes377019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchLiquidations", symbol, since, limit, "8h", params, 500))))
-		ch <- BoxAbsent(retRes377019)
+		var retRes377119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchLiquidations", symbol, since, limit, "8h", params, 500))))
+		ch <- BoxAbsent(retRes377119)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
