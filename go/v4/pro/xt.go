@@ -2030,7 +2030,9 @@ func (this *Xt) HandleErrorMessage(client any, message map[string]any) {
 	//
 	var msg *string = this.SafeString(message, "msg")
 	if (msg != nil && *msg == "invalid_listen_key") || (msg != nil && *msg == "token expire") {
-		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), "token", nil)
+		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), "token") {
+			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), "token")
+		}
 		this.GetListenKeyAsync(true)
 		return
 	}
