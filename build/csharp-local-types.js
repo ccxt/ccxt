@@ -543,7 +543,9 @@
 // `params` -> `parameters`, so a printed-name scan silently matches nothing.
 
 import { NodeFlags, SyntaxKind } from 'typescript/unstable/ast';
-import { IndexKind, ObjectFlags, TypeFlags } from 'typescript/unstable/sync';
+import { ObjectFlags, TypeFlags } from 'typescript/unstable/sync';
+// INDEX_KIND_STRING of the checker API (not exported by every installed typescript 7.x)
+const INDEX_KIND_STRING = 0;
 import { isArrayLiteralExpression, isBooleanLiteral, isCallExpression, isIdentifier, isInterfaceDeclaration, isMethodDeclaration, isNumericLiteral, isObjectLiteralExpression, isPropertyAccessExpression, isStringLiteral as ts7IsStringLiteral, isStringLiteralLikeNode, isTypeLiteralNode, isTypeReferenceNode } from 'typescript/unstable/ast/is';
 import { findAncestor, isFunctionLike } from 'ast-transpiler/tsUtils';
 import fs from 'node:fs';
@@ -8910,7 +8912,7 @@ function dictRowElementReadType (csharp, declaration) {
         return undefined; // only a ts/src interface or a type literal proves the row shape
     }
     const receiverType = checker.getTypeAtLocation (initializer.expression);
-    if (checker.getIndexTypeOfType (receiverType, IndexKind.String) !== undefined) {
+    if (checker.getIndexTypeOfType (receiverType, INDEX_KIND_STRING) !== undefined) {
         return undefined; // a string-keyed receiver belongs to the receiver-keyed families (U04)
     }
     const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
