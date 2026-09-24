@@ -11270,7 +11270,9 @@ function destructuredBoolElementProof (csharp, scope, index, declaration, idNode
         return idNode.parent?.elements?.[0] === idNode && destructuredBoolReadsAreTruthy (csharp, scope, index, declaration);
     }
     const elementType = DESTRUCTURED_ELEMENT0_TYPES[name];
-    if (elementType === 'bool?' && boolOptionLocalName (declaration) !== undefined
+    // checkOptionBool boxes slot 0 of handleOptionBoolAndParams(2) as bool or null for any target
+    const checkedBool = name === 'handleOptionBoolAndParams' || name === 'handleOptionBoolAndParams2';
+    if (elementType === 'bool?' && (checkedBool || boolOptionLocalName (declaration) !== undefined)
             && idNode.parent?.elements?.[0] === idNode) {
         return true;
     }
@@ -12031,7 +12033,7 @@ function typeFromValueOrWrites (csharp, scope, declaration, varName, initial, co
                     // sawNull below spells the declaration `bool?`. The helper name comes off the
                     // RHS, so the awaited venue helper and every initialiser shape are covered.
                     const optionHelper = (destructuredName !== undefined) ? destructuredName : destructuredHelperName (parent.parent.right);
-                    if (destructuredBoolElementProof (declaration, n, parent.parent, optionHelper)) {
+                    if (destructuredBoolElementProof (csharp, scope, index, declaration, n, parent.parent, optionHelper)) {
                         elementType = 'bool';
                     }
                 }
@@ -12322,6 +12324,32 @@ function destructuredHandleCallName (node) {
     }
     const name = callee.name?.escapedText;
     return (typeof name === 'string' && name.includes ('andle')) ? name : undefined;
+}
+
+// `const [ x, params ] = this.<helper> (…)`: element 0 of the checkOption*-backed helpers is a
+// string / bool box or null on every path, so `var x = tmp[0]` takes that type with an identity
+// cast once every use of x passes the generic retype scan
+const DESTRUCTURED_DECLARATION_ELEMENT0 = {
+    'handleOptionStringAndParams': 'string?', 'handleOptionStringAndParams2': 'string?', 'handleMarginModeAndParams': 'string?',
+    'handleOptionBoolAndParams': 'bool?', 'handleOptionBoolAndParams2': 'bool?',
+};
+const DESTRUCTURED_ELEMENT0_LINE_RE = /^([ \t]*)var ([A-Za-z_]\w*) = ([A-Za-z_]\w*\[0\])$/m;
+function retypeDestructuredElement0 (csharp, scope, declaration, printed) {
+    const helper = destructuredHandleCallName (declaration.initializer);
+    const target = declaration.name.elements?.[0]?.name;
+    if (!Object.prototype.hasOwnProperty.call (DESTRUCTURED_DECLARATION_ELEMENT0, helper) || target?.kind !== ts.SyntaxKind.Identifier || scope === undefined) {
+        return printed;
+    }
+    const type = DESTRUCTURED_DECLARATION_ELEMENT0[helper];
+    const match = DESTRUCTURED_ELEMENT0_LINE_RE.exec (printed);
+    if (match === null || match[2] !== csharp.printNode (target, 0) || (indexScope (csharp, scope).bindingCounts.get (match[2]) ?? 0) !== 1) {
+        return printed;
+    }
+    if (!csharpLocalIsSafeToRetype (csharp, scope, target.parent, target.escapedText, type, { scope, stack: new Set (), depth: 0 })) {
+        return printed;
+    }
+    const cast = (type === 'string?') ? 'string' : type;
+    return printed.replace (match[0], match[1] + type + ' ' + match[2] + ' = (' + cast + ')' + match[3]);
 }
 
 const DESTRUCTURING_TEMP_RE = /^([ \t]*)var ([A-Za-z_]\w*) = (.*);\n/;
@@ -13028,7 +13056,7 @@ export function installCsharpLocalTypes (transpiler) {
                 return printed;
             }
             const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
-            return retypeDestructuringTemp (csharp, scope, printed) ?? printed;
+            return retypeDestructuredElement0 (csharp, scope, declaration, retypeDestructuringTemp (csharp, scope, printed) ?? printed);
         }
         const info = csharpLocalDeclaration (csharp, declaration);
         if (info === undefined) {
