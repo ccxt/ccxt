@@ -8258,6 +8258,10 @@ function stringElementsProducer (initializer) {
         if (method === 'stringToCharsArray' && callee.expression?.kind === ts.SyntaxKind.ThisKeyword) {
             return true;
         }
+        // this.marketSymbols (...) adds one `string?` per element (U02 write census)
+        if (method === 'marketSymbols' && callee.expression?.kind === ts.SyntaxKind.ThisKeyword) {
+            return true;
+        }
         // this.findMessageHashes (client, element) — every element of the returned list is the
         // one `string?` its body adds (census B in the section header)
         if (method === 'findMessageHashes' && callee.expression?.kind === ts.SyntaxKind.ThisKeyword && node.arguments?.length === 2) {
