@@ -3940,9 +3940,29 @@ export default class umx extends Exchange {
             status = 'rejected';
         }
         const triggerOrder = this.safeDict (order, 'triggerOrder', {});
+        // a regular order carries its attached take profit and stop loss flat in tpslOrder, a
+        // standalone tpsl complex order nests every leg in tpOrderInfo and slOrderInfo
+        const tpslOrder = this.safeDict (order, 'tpslOrder', {});
+        const tpOrderInfo = this.safeDict (tpslOrder, 'tpOrderInfo', {});
+        const slOrderInfo = this.safeDict (tpslOrder, 'slOrderInfo', {});
+        let takeProfitPrice = this.safeString (tpOrderInfo, 'takeProfit');
+        if (takeProfitPrice === undefined) {
+            takeProfitPrice = this.safeString (tpslOrder, 'tpTriggerPrice');
+        }
+        let stopLossPrice = this.safeString (slOrderInfo, 'stopLoss');
+        if (stopLossPrice === undefined) {
+            stopLossPrice = this.safeString (tpslOrder, 'slTriggerPrice');
+        }
+        const complexType = this.safeString (order, 'complexType');
         let type = this.safeString (order, 'orderType');
         if (type === undefined) {
             type = this.safeString (triggerOrder, 'triggerOrderType');
+        }
+        if (type === undefined) {
+            type = this.safeString (tpOrderInfo, 'tpOrderType');
+        }
+        if (type === undefined) {
+            type = this.safeString (slOrderInfo, 'slOrderType');
         }
         let postOnly: Bool = undefined;
         if (type !== undefined) {
@@ -3961,7 +3981,15 @@ export default class umx extends Exchange {
         }
         // the venue reports qty in the quote currency when the order traded by cost
         const marketUnit = this.safeString (order, 'marketUnit', 'baseCoin');
-        const qty = this.safeString (order, 'qty');
+        let qty = this.safeString (order, 'qty');
+        if ((complexType === 'tpsl') && (qty !== undefined)) {
+            // a tpsl complex order counts its size in contracts of ctVal base units, unlike every
+            // other order row of the venue, e.g. qty 2 closes 0.002 ETH of a linear perpetual
+            const contractValue = this.safeString (market['info'], 'ctVal');
+            if (contractValue !== undefined) {
+                qty = Precise.stringMul (qty, contractValue);
+            }
+        }
         let amount: Str = undefined;
         let cost: Str = undefined;
         if (marketUnit === 'quoteCoin') {
@@ -4000,6 +4028,8 @@ export default class umx extends Exchange {
             'side': this.safeString (order, 'side'),
             'price': price,
             'triggerPrice': this.safeString (triggerOrder, 'triggerPrice'),
+            'takeProfitPrice': takeProfitPrice,
+            'stopLossPrice': stopLossPrice,
             'amount': amount,
             'cost': cost,
             'average': this.omitZero (this.safeString (order, 'avgPrice')),
@@ -4539,12 +4569,17 @@ export default class umx extends Exchange {
         const statuses: Dict = {
             // an untriggered conditional order and a live complex order sit in the book waiting
             'untrigger': 'open',
+            'init': 'open',
             'live': 'open',
             'new': 'open',
             'partially_filled': 'open',
             'partially_canceled': 'canceled',
             'canceled': 'canceled',
             'filled': 'closed',
+            // a tpsl complex order ends when one of its legs fires
+            'tpEffective': 'closed',
+            'slEffective': 'closed',
+            'fail': 'rejected',
         };
         return this.safeString (statuses, status, status);
     }

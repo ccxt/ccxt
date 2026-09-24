@@ -1008,6 +1008,13 @@ export default class umx extends umxRest {
         if (symbol !== undefined) {
             return [ this.subscriptionTopic (stream, symbol) ];
         }
+        const businessTypesLength = businessTypes.length;
+        if (businessTypesLength === 0) {
+            const bareTopic: Dict = {
+                'stream': stream,
+            };
+            return [ bareTopic ];
+        }
         const topics = [];
         for (let i = 0; i < businessTypes.length; i++) {
             topics.push ({
@@ -1027,18 +1034,28 @@ export default class umx extends umxRest {
      * @param {int} [since] timestamp in ms of the earliest order to fetch
      * @param {int} [limit] the maximum amount of orders to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] true watches the take profit and stop loss complex orders on the oco_order stream, the venue pushes nothing for the plain trigger orders, those surface on the regular stream once they fire
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         await this.loadMarkets ();
         await this.authenticate ();
-        let messageHash = 'orders';
+        let isTrigger = false;
+        [ isTrigger, params ] = this.handleOptionAndParams2 (params, 'watchOrders', 'trigger', 'stop', false);
+        const channel = isTrigger ? 'triggerOrders' : 'orders';
+        let messageHash = channel;
         if (symbol !== undefined) {
             const market = this.market (symbol);
             symbol = market['symbol'];
-            messageHash = 'orders::' + symbol;
+            messageHash = channel + '::' + symbol;
         }
-        const topics = this.privateTopics ('order', symbol, [ 'spot', 'linear_perpetual', 'linear_futures' ]);
+        let topics = [];
+        if (isTrigger) {
+            // the oco_order stream takes a subscription without an instrument type
+            topics = this.privateTopics ('oco_order', symbol, []);
+        } else {
+            topics = this.privateTopics ('order', symbol, [ 'spot', 'linear_perpetual', 'linear_futures' ]);
+        }
         const url = this.urls['api']['ws']['private'];
         const message: Dict = {
             'event': 'subscribe',
@@ -1119,19 +1136,70 @@ export default class umx extends umxRest {
         //         ]
         //     }
         //
-        if (this.orders === undefined) {
-            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+        // a take profit and stop loss complex order, its qty counts contracts
+        //
+        //     {
+        //         "stream": "oco_order",
+        //         "ts": "1790266180092",
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "accountName": "1000000000000000000",
+        //                 "businessType": "linear_perpetual",
+        //                 "complexClOrdId": "1552834423439298560",
+        //                 "complexOId": "1552834423439298560",
+        //                 "complexType": "tpsl",
+        //                 "createTime": "1790266176000",
+        //                 "parentOrderId": "3538236743072002048",
+        //                 "pid": "1000000000000000000",
+        //                 "positionId": "3538236743072018432",
+        //                 "qty": "1",
+        //                 "side": "sell",
+        //                 "status": "untrigger",
+        //                 "symbol": "ETH-USDT-PERP",
+        //                 "tpslOrder": {
+        //                     "slOrderInfo": {
+        //                         "id": 2788340,
+        //                         "slOrderType": "market",
+        //                         "stopLoss": "1500.00",
+        //                         "stopLossType": "last_price"
+        //                     },
+        //                     "tpOrderInfo": {
+        //                         "id": 2788339,
+        //                         "takeProfit": "5000.00",
+        //                         "takeProfitType": "last_price",
+        //                         "tpOrderType": "market"
+        //                     },
+        //                     "tpslClOrdId": "1552834423439298560",
+        //                     "tpslMode": "partially_position"
+        //                 },
+        //                 "uid": "100000000000001",
+        //                 "updateTime": "1790266180000"
+        //             }
+        //         ]
+        //     }
+        //
+        const isTrigger = (this.safeString (message, 'stream') === 'oco_order');
+        const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+        if (isTrigger && (this.triggerOrders === undefined)) {
+            this.triggerOrders = new ArrayCacheBySymbolById (limit);
+        }
+        if (!isTrigger && (this.orders === undefined)) {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
-        const stored = this.orders;
+        let stored = this.orders as ArrayCache;
+        if (isTrigger) {
+            stored = this.triggerOrders;
+        }
+        const channel = isTrigger ? 'triggerOrders' : 'orders';
         const data = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const row = this.safeDict (data, i, {});
             const order = this.parseOrder (row);
             stored.append (order);
-            client.resolve (stored, 'orders::' + order['symbol']);
+            client.resolve (stored, channel + '::' + order['symbol']);
         }
-        client.resolve (stored, 'orders');
+        client.resolve (stored, channel);
     }
 
     /**
@@ -1393,9 +1461,15 @@ export default class umx extends umxRest {
      * @see https://www.umx.com/docs/coin-apis/websocket-stream/private-channel/order-channel
      * @param {string} [symbol] unified market symbol, the subscription opened for it by watchOrders is dropped, the all markets one when left out
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] true drops the take profit and stop loss subscription opened by watchOrders with the same flag
      * @returns {any} the result of the unwatch operation
      */
     override async unWatchOrders (symbol: Str = undefined, params: Dict = {}): Promise<any> {
+        let isTrigger = false;
+        [ isTrigger, params ] = this.handleOptionAndParams2 (params, 'unWatchOrders', 'trigger', 'stop', false);
+        if (isTrigger) {
+            return await this.unWatchPrivate ('oco_order', 'triggerOrders', symbol, [], params);
+        }
         return await this.unWatchPrivate ('order', 'orders', symbol, [ 'spot', 'linear_perpetual', 'linear_futures' ], params);
     }
 
@@ -1541,7 +1615,11 @@ export default class umx extends umxRest {
                 return;
             }
         }
-        if (channel === 'balance') {
+        if (channel === 'triggerOrders') {
+            // the base class types this cache as always present, so it is swapped for an empty one
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.triggerOrders = new ArrayCacheBySymbolById (limit);
+        } else if (channel === 'balance') {
             // emptied in place, a consumer can hold a reference to the balance object
             const balanceKeys = Object.keys (this.balance);
             for (let i = 0; i < balanceKeys.length; i++) {
@@ -1651,6 +1729,7 @@ export default class umx extends umxRest {
                 // unified methods, and the private fill stream shares its name with the public one
                 const privateChannels: Dict = {
                     'order': 'orders',
+                    'oco_order': 'triggerOrders',
                     'trade': 'myTrades',
                     'trading_account': 'balance',
                     'position': 'positions',
@@ -1744,7 +1823,7 @@ export default class umx extends umxRest {
         const stream = this.safeString (message, 'stream', '');
         const isPrivate = (client.url === this.urls['api']['ws']['private']);
         if (isPrivate) {
-            if (stream === 'order') {
+            if ((stream === 'order') || (stream === 'oco_order')) {
                 this.handleOrders (client, message);
             } else if (stream === 'trade') {
                 this.handleMyTrades (client, message);

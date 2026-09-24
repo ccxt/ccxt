@@ -1011,6 +1011,165 @@
                         }
                     ]
                 ]
+            },
+            {
+                "description": "a take profit and stop loss complex order on the oco_order stream, its qty counts contracts of ctVal",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "url": "wss://stream.umx.com/ws/private/v2/notification",
+                "messages": [
+                    {
+                        "event": "authorization",
+                        "code": 0,
+                        "message": "成功"
+                    },
+                    {
+                        "event": "subscribe",
+                        "data": [
+                            {
+                                "stream": "oco_order",
+                                "message": "成功",
+                                "code": 0
+                            }
+                        ],
+                        "ts": 1790266174610
+                    },
+                    {
+                        "stream": "oco_order",
+                        "ts": "1790266180092",
+                        "code": "0",
+                        "data": [
+                            {
+                                "accountName": "1000000000000000000",
+                                "businessType": "linear_perpetual",
+                                "complexClOrdId": "1552834423439298560",
+                                "complexOId": "1552834423439298560",
+                                "complexType": "tpsl",
+                                "createTime": "1790266176000",
+                                "parentOrderId": "3538236743072002048",
+                                "pid": "1000000000000000000",
+                                "positionId": "3538236743072018432",
+                                "qty": "1",
+                                "side": "sell",
+                                "status": "untrigger",
+                                "symbol": "ETH-USDT-PERP",
+                                "tpslOrder": {
+                                    "slOrderInfo": {
+                                        "id": 2788340,
+                                        "slOrderType": "market",
+                                        "stopLoss": "1500.00",
+                                        "stopLossType": "last_price"
+                                    },
+                                    "tpOrderInfo": {
+                                        "id": 2788339,
+                                        "takeProfit": "5000.00",
+                                        "takeProfitType": "last_price",
+                                        "tpOrderType": "market"
+                                    },
+                                    "tpslClOrdId": "1552834423439298560",
+                                    "tpslMode": "partially_position"
+                                },
+                                "uid": "100000000000001",
+                                "updateTime": "1790266180000"
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "data": {
+                            "type": "Token",
+                            "accessKey": "x",
+                            "accessTimestamp": "1"
+                        },
+                        "accessSign": "x",
+                        "event": "authorization"
+                    },
+                    {
+                        "event": "subscribe",
+                        "data": [
+                            {
+                                "stream": "oco_order"
+                            }
+                        ]
+                    }
+                ],
+                "sentSkipKeys": [
+                    "accessKey",
+                    "accessTimestamp",
+                    "accessSign"
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "accountName": "1000000000000000000",
+                                "businessType": "linear_perpetual",
+                                "complexClOrdId": "1552834423439298560",
+                                "complexOId": "1552834423439298560",
+                                "complexType": "tpsl",
+                                "createTime": "1790266176000",
+                                "parentOrderId": "3538236743072002048",
+                                "pid": "1000000000000000000",
+                                "positionId": "3538236743072018432",
+                                "qty": "1",
+                                "side": "sell",
+                                "status": "untrigger",
+                                "symbol": "ETH-USDT-PERP",
+                                "tpslOrder": {
+                                    "slOrderInfo": {
+                                        "id": 2788340,
+                                        "slOrderType": "market",
+                                        "stopLoss": "1500.00",
+                                        "stopLossType": "last_price"
+                                    },
+                                    "tpOrderInfo": {
+                                        "id": 2788339,
+                                        "takeProfit": "5000.00",
+                                        "takeProfitType": "last_price",
+                                        "tpOrderType": "market"
+                                    },
+                                    "tpslClOrdId": "1552834423439298560",
+                                    "tpslMode": "partially_position"
+                                },
+                                "uid": "100000000000001",
+                                "updateTime": "1790266180000"
+                            },
+                            "id": "1552834423439298560",
+                            "clientOrderId": "1552834423439298560",
+                            "timestamp": 1790266176000,
+                            "datetime": "2026-09-24T16:09:36.000Z",
+                            "lastTradeTimestamp": null,
+                            "lastUpdateTimestamp": 1790266180000,
+                            "symbol": "ETH/USDT:USDT",
+                            "type": "market",
+                            "timeInForce": null,
+                            "postOnly": false,
+                            "reduceOnly": null,
+                            "side": "sell",
+                            "price": null,
+                            "triggerPrice": null,
+                            "takeProfitPrice": 5000,
+                            "stopLossPrice": 1500,
+                            "amount": 0.001,
+                            "cost": null,
+                            "average": null,
+                            "filled": null,
+                            "remaining": null,
+                            "status": "open",
+                            "fee": null,
+                            "trades": [],
+                            "fees": [],
+                            "stopPrice": null
+                        }
+                    ]
+                ]
             }
         ],
         "watchMyTrades": [
