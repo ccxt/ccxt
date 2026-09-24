@@ -538,11 +538,14 @@
 // assignment. Everything here is proven from the C# side (the helper's C# signature) plus
 // a scan of every later write, never from the TypeScript annotation alone.
 //
-// IMPORTANT: scan the AST with `declaration.name.escapedText`, print with
+// IMPORTANT: scan the AST with `declaration.name.text`, print with
 // `printNode(declaration.name)` — ReservedKeywordsReplacements renames `type` -> `typeVar`,
 // `params` -> `parameters`, so a printed-name scan silently matches nothing.
 
-import ts from 'typescript6';
+import { NodeFlags, SyntaxKind } from 'typescript/unstable/ast';
+import { IndexKind, ObjectFlags, TypeFlags } from 'typescript/unstable/sync';
+import { isArrayLiteralExpression, isBooleanLiteral, isCallExpression, isIdentifier, isInterfaceDeclaration, isMethodDeclaration, isNumericLiteral, isObjectLiteralExpression, isPropertyAccessExpression, isStringLiteral, isStringLiteralLikeNode, isTypeLiteralNode, isTypeReferenceNode } from 'typescript/unstable/ast/is';
+import { findAncestor, isFunctionLike } from 'ast-transpiler/tsUtils';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -1020,7 +1023,7 @@ export const CORE_STRING_ARGS = {
 // operands of `+` (add(string, object) and add(string, string) are identical for every
 // input — Exchange.TranspileHelpers.cs).
 //
-// IMPORTANT: scan the AST with `node.name.escapedText`, never by printed text — the
+// IMPORTANT: scan the AST with `node.name.text`, never by printed text — the
 // reserved-keyword pass renames some identifiers before printing.
 //
 // Two local-typing clauses in this file were added for the returns above
@@ -1171,13 +1174,13 @@ function stringReturnType (csharp, node, own) {
     if (own !== 'object') {
         return undefined;
     }
-    if (node?.kind !== ts.SyntaxKind.MethodDeclaration || node.name === undefined) {
+    if (node?.kind !== SyntaxKind.MethodDeclaration || node.name === undefined) {
         return undefined;
     }
     if (typeof csharp.isAsyncFunction === 'function' && csharp.isAsyncFunction (node)) {
         return undefined;
     }
-    const name = node.name.escapedText;
+    const name = node.name.text;
     const stringType = CSHARP_STRING_RETURN_METHODS[name];
     if (stringType === undefined) {
         return undefined;
@@ -1202,14 +1205,14 @@ function stringishReturn (csharp, node) {
             return true;
         }
         const type = checker.getReturnTypeOfSignature (signature);
-        const members = (type.flags & ts.TypeFlags.Union) ? type.types : [ type ];
+        const members = (type.flags & TypeFlags.Union) ? type.getTypes () : [ type ];
         let sawString = false;
         for (const member of members) {
             const flags = member.flags;
-            if (flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) {
+            if (flags & (TypeFlags.Undefined | TypeFlags.Null)) {
                 continue;
             }
-            if (flags & (ts.TypeFlags.String | ts.TypeFlags.StringLiteral)) {
+            if (flags & (TypeFlags.String | TypeFlags.StringLiteral)) {
                 sawString = true;
                 continue;
             }
@@ -1232,12 +1235,12 @@ function stringReturnIsTyped (csharp, expression) {
         return true;
     }
     switch (expression.kind) {
-    case ts.SyntaxKind.StringLiteral:
-    case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
-    case ts.SyntaxKind.NullKeyword:
+    case SyntaxKind.StringLiteral:
+    case SyntaxKind.NoSubstitutionTemplateLiteral:
+    case SyntaxKind.NullKeyword:
         return true;
     }
-    if (expression.kind === ts.SyntaxKind.Identifier && expression.escapedText === 'undefined') {
+    if (expression.kind === SyntaxKind.Identifier && expression.text === 'undefined') {
         return true;
     }
     if (typeof csharp.csharpTypeOfInitializer === 'function') {
@@ -1274,11 +1277,11 @@ export function installCsharpStringReturns (transpiler) {
     csharp.printReturnStatement = (node, identation) => {
         // nearest function-like: a `return` inside an arrow/function expression belongs to
         // that callback, never to the enclosing listed method
-        const scopeFunction = ts.findAncestor (node.parent, ts.isFunctionLike);
+        const scopeFunction = findAncestor (node.parent, isFunctionLike);
         const stringType = stringReturnType (csharp, scopeFunction, 'object');
         // only the U27/S35 names carry the boundary cast — the original names' bodies are
         // byte-identical (their census proved every return already prints a string)
-        if (stringType === undefined || !Object.prototype.hasOwnProperty.call (CSHARP_STRING_BOUNDARY_CAST_NAMES, scopeFunction?.name?.escapedText)
+        if (stringType === undefined || !Object.prototype.hasOwnProperty.call (CSHARP_STRING_BOUNDARY_CAST_NAMES, scopeFunction?.name?.text)
             || !node.expression || stringReturnIsTyped (csharp, node.expression)) {
             return upstreamReturnStatement (node, identation);
         }
@@ -1645,13 +1648,13 @@ function collectionReturnType (csharp, node, own) {
     if (own !== 'object') {
         return undefined;
     }
-    if (node?.kind !== ts.SyntaxKind.MethodDeclaration || node.name === undefined) {
+    if (node?.kind !== SyntaxKind.MethodDeclaration || node.name === undefined) {
         return undefined;
     }
     if (typeof csharp.isAsyncFunction === 'function' && csharp.isAsyncFunction (node)) {
         return undefined;
     }
-    const name = node.name.escapedText;
+    const name = node.name.text;
     const mapped = collectionReturnMethodType (name);
     if (mapped !== undefined) {
         return mapped;
@@ -1679,10 +1682,10 @@ function collectionReturnIsTyped (csharp, expression, mapped) {
     // Dictionary<string, object> and an array literal a List<object>/IList<object>, whatever
     // the printer's initializer hook answers — and nothing else (a `string?` mapping must not
     // take a literal return as already typed).
-    if (expression?.kind === ts.SyntaxKind.ObjectLiteralExpression) {
+    if (expression?.kind === SyntaxKind.ObjectLiteralExpression) {
         return mapped === 'Dictionary<string, object>';
     }
-    if (expression?.kind === ts.SyntaxKind.ArrayLiteralExpression) {
+    if (expression?.kind === SyntaxKind.ArrayLiteralExpression) {
         return mapped === 'List<object>' || mapped === 'IList<object>';
     }
     return typeof csharp.csharpTypeOfInitializer === 'function' && csharp.csharpTypeOfInitializer (expression) === mapped;
@@ -1704,14 +1707,14 @@ for (const name of Object.keys (CSHARP_WS_ROW_BUILDER_RETURNS)) {
 }
 
 function rowBuilderReturnIsTyped (csharp, enclosing, expression, mapped) {
-    const owner = enclosing?.name?.escapedText;
+    const owner = enclosing?.name?.text;
     if (!ROW_BUILDER_RETURN_METHODS.has (owner)) {
         return false;
     }
     if (callReturnType (csharp, expression) === mapped) {
         return true;
     }
-    return ts.isIdentifier (expression) && localIdentifierType (csharp, expression) === mapped;
+    return isIdentifier (expression) && localIdentifierType (csharp, expression) === mapped;
 }
 
 // ===== per-declaration return-path proof (CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION) =====
@@ -1724,19 +1727,19 @@ function rowBuilderReturnIsTyped (csharp, enclosing, expression, mapped) {
 // cast), so it unwraps as well; `as any[]` / `as string[]` stay opaque — the first prints a cast,
 // the second asserts a box an IList<object> claim must not accept.
 function printsBareArrayAssertion (type) {
-    return type.kind === ts.SyntaxKind.ArrayType && type.elementType !== undefined
-        && type.elementType.kind !== ts.SyntaxKind.AnyKeyword
-        && type.elementType.kind !== ts.SyntaxKind.StringKeyword;
+    return type.kind === SyntaxKind.ArrayType && type.elementType !== undefined
+        && type.elementType.kind !== SyntaxKind.AnyKeyword
+        && type.elementType.kind !== SyntaxKind.StringKeyword;
 }
 
 function unwrapPassthroughExpression (node) {
     while (node !== undefined) {
-        if (node.kind === ts.SyntaxKind.ParenthesizedExpression || node.kind === ts.SyntaxKind.NonNullExpression) {
+        if (node.kind === SyntaxKind.ParenthesizedExpression || node.kind === SyntaxKind.NonNullExpression) {
             node = node.expression;
             continue;
         }
-        if (node.kind === ts.SyntaxKind.AsExpression && node.type !== undefined
-                && (ts.isTypeReferenceNode (node.type) || printsBareArrayAssertion (node.type))) {
+        if (node.kind === SyntaxKind.AsExpression && node.type !== undefined
+                && (isTypeReferenceNode (node.type) || printsBareArrayAssertion (node.type))) {
             node = node.expression;
             continue;
         }
@@ -1757,15 +1760,15 @@ function collectionReturnExpressionProves (csharp, expression, mapped) {
         return stringReturnExpressionProves (csharp, node);
     }
     switch (node?.kind) {
-    case ts.SyntaxKind.ObjectLiteralExpression:
+    case SyntaxKind.ObjectLiteralExpression:
         return mapped === 'Dictionary<string, object>';
-    case ts.SyntaxKind.ArrayLiteralExpression:
+    case SyntaxKind.ArrayLiteralExpression:
         return mapped === 'List<object>' || mapped === 'IList<object>';
-    case ts.SyntaxKind.ConditionalExpression:
+    case SyntaxKind.ConditionalExpression:
         return collectionReturnExpressionProves (csharp, node.whenTrue, mapped) && collectionReturnExpressionProves (csharp, node.whenFalse, mapped);
-    case ts.SyntaxKind.Identifier:
+    case SyntaxKind.Identifier:
         return identifierType (csharp, node) === mapped;
-    case ts.SyntaxKind.CallExpression:
+    case SyntaxKind.CallExpression:
         return callCollectionReturnType (csharp, node) === mapped;
     }
     return false;
@@ -1789,24 +1792,24 @@ function collectionReturnExpressionProves (csharp, expression, mapped) {
 // A `string?` proof is deliberately NOT accepted: a nullable read could hand back null, which
 // a `string` return type may not (CS8603 under the csproj's TreatWarningsAsErrors).
 function stringReturnExpressionProves (csharp, node) {
-    if (node?.kind === ts.SyntaxKind.StringLiteral || node?.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
+    if (node?.kind === SyntaxKind.StringLiteral || node?.kind === SyntaxKind.NoSubstitutionTemplateLiteral) {
         return true;
     }
-    if (node?.kind === ts.SyntaxKind.CallExpression) {
+    if (node?.kind === SyntaxKind.CallExpression) {
         const callee = node.expression;
-        if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression
-                && (callee.name?.escapedText === 'padStart' || callee.name?.escapedText === 'padEnd')) {
+        if (callee?.kind === SyntaxKind.PropertyAccessExpression
+                && (callee.name?.text === 'padStart' || callee.name?.text === 'padEnd')) {
             return true;
         }
     }
-    if (node?.kind === ts.SyntaxKind.BinaryExpression && node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+    if (node?.kind === SyntaxKind.BinaryExpression && node.operatorToken.kind === SyntaxKind.PlusToken) {
         // `a + b` prints `add (a, b)`: with a provably-string LEFT operand the call binds one of
         // the two `string` add overloads (both a non-null concatenation), so the whole chain is
         // a string — the same left-recursive shape isProvablyStringOperand uses, extended with
         // the padStart/PadEnd arm above (hibachi's signMessage returns such a chain)
         return stringReturnExpressionProves (csharp, node.left);
     }
-    if (node?.kind === ts.SyntaxKind.Identifier) {
+    if (node?.kind === SyntaxKind.Identifier) {
         return localIdentifierType (csharp, node) === 'string';
     }
     return csharpTypeOfValue (csharp, node) === 'string';
@@ -1817,8 +1820,8 @@ function stringReturnExpressionProves (csharp, node) {
 // printer's own answer for the hand-written base signatures (`this.extend`, ...)
 function callCollectionReturnType (csharp, call) {
     const callee = call.expression;
-    if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.expression?.kind === ts.SyntaxKind.ThisKeyword) {
-        const name = callee.name?.escapedText;
+    if (callee?.kind === SyntaxKind.PropertyAccessExpression && callee.expression?.kind === SyntaxKind.ThisKeyword) {
+        const name = callee.name?.text;
         if (CSHARP_COLLECTION_RETURN_METHODS[name] !== undefined) {
             return CSHARP_COLLECTION_RETURN_METHODS[name];
         }
@@ -1862,11 +1865,11 @@ function callReturnIsMapped (csharp, expression, mapped) {
     let node = expression;
     let awaited = false;
     for (;;) {
-        if (node?.kind === ts.SyntaxKind.ParenthesizedExpression || node?.kind === ts.SyntaxKind.NonNullExpression) {
+        if (node?.kind === SyntaxKind.ParenthesizedExpression || node?.kind === SyntaxKind.NonNullExpression) {
             node = node.expression;
             continue;
         }
-        if (node?.kind === ts.SyntaxKind.AwaitExpression) {
+        if (node?.kind === SyntaxKind.AwaitExpression) {
             awaited = true;
             node = node.expression;
             continue;
@@ -1875,28 +1878,28 @@ function callReturnIsMapped (csharp, expression, mapped) {
     }
     // a bare local read the local pass declares with exactly `mapped`: the printed declaration
     // is `mapped x = …`, so `return x;` in a method declared `mapped` compiles
-    if (node?.kind === ts.SyntaxKind.Identifier) {
+    if (node?.kind === SyntaxKind.Identifier) {
         return identifierType (csharp, node) === mapped;
     }
-    if (node?.kind !== ts.SyntaxKind.CallExpression) {
+    if (node?.kind !== SyntaxKind.CallExpression) {
         return false;
     }
     const callee = node.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression) {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression) {
         return false;
     }
     const receiver = callee.expression;
     // `base.<name>(...)` binds the BASE declaration, whose hand-written signature is what
     // CSHARP_LOCAL_THIS_RETURN_TYPES mirrors — the same authority as the `this.` form below,
     // minus the venue overrides (which print the same type: CS0508 keeps them compatible)
-    if (receiver?.kind === ts.SyntaxKind.SuperKeyword) {
-        return CSHARP_LOCAL_THIS_RETURN_TYPES[callee.name?.escapedText] === mapped;
+    if (receiver?.kind === SyntaxKind.SuperKeyword) {
+        return CSHARP_LOCAL_THIS_RETURN_TYPES[callee.name?.text] === mapped;
     }
-    if (receiver?.kind !== ts.SyntaxKind.ThisKeyword) {
+    if (receiver?.kind !== SyntaxKind.ThisKeyword) {
         return false;
     }
     if (awaited) {
-        const declared = CSHARP_ASYNC_CORE_RETURNS[callee.name?.escapedText];
+        const declared = CSHARP_ASYNC_CORE_RETURNS[callee.name?.text];
         return declared === mapped || (Array.isArray (declared) && declared.includes (mapped));
     }
     return callReturnType (csharp, node) === mapped || callCollectionReturnType (csharp, node) === mapped;
@@ -1909,18 +1912,18 @@ function callReturnIsMapped (csharp, expression, mapped) {
 function methodReturnsProveCollection (csharp, declaration, mapped) {
     let proved = true;
     const visit = (node) => {
-        if (!proved || (node !== declaration && ts.isFunctionLike (node))) {
+        if (!proved || (node !== declaration && isFunctionLike (node))) {
             return; // a return inside a callback belongs to that callback
         }
-        if (node.kind === ts.SyntaxKind.ReturnStatement) {
+        if (node.kind === SyntaxKind.ReturnStatement) {
             if (node.expression === undefined || !collectionReturnExpressionProves (csharp, node.expression, mapped)) {
                 proved = false;
             }
             return;
         }
-        ts.forEachChild (node, visit);
+        node.forEachChild (visit);
     };
-    ts.forEachChild (declaration, visit);
+    declaration.forEachChild (visit);
     return proved;
 }
 
@@ -1937,7 +1940,7 @@ const collectionDeclarationTypes = new WeakMap ();
 const collectionDeclarationProofsInProgress = new Set ();
 
 function declarationCollectionReturnType (csharp, declaration, mapped) {
-    if (declaration?.kind !== ts.SyntaxKind.MethodDeclaration || declaration.name === undefined) {
+    if (declaration?.kind !== SyntaxKind.MethodDeclaration || declaration.name === undefined) {
         return undefined;
     }
     if (typeof csharp.isAsyncFunction === 'function' && csharp.isAsyncFunction (declaration)) {
@@ -1973,12 +1976,12 @@ function sourceFileMethods (sourceFile, name) {
     if (declarations === undefined) {
         declarations = [];
         const visit = (node) => {
-            if (ts.isMethodDeclaration (node) && node.name?.escapedText === name) {
+            if (isMethodDeclaration (node) && node.name?.text === name) {
                 declarations.push (node);
             }
-            ts.forEachChild (node, visit);
+            node.forEachChild (visit);
         };
-        ts.forEachChild (sourceFile, visit);
+        sourceFile.forEachChild (visit);
         byName.set (name, declarations);
     }
     return declarations;
@@ -1996,8 +1999,8 @@ function boundCollectionDeclaration (csharp, call, name) {
     }
     try {
         const checker = csharp.getChecker ();
-        const resolved = checker.getSymbolAtLocation (call.expression.name)?.declarations ?? [];
-        if (resolved.length === 1 && resolved[0]?.kind === ts.SyntaxKind.MethodDeclaration) {
+        const resolved = (checker.getSymbolAtLocation (call.expression.name)?.declarations ?? []).map ((d) => d.resolve ());
+        if (resolved.length === 1 && resolved[0]?.kind === SyntaxKind.MethodDeclaration) {
             return resolved[0];
         }
     } catch (e) {
@@ -2008,7 +2011,7 @@ function boundCollectionDeclaration (csharp, call, name) {
 
 function boundCollectionReturnType (csharp, call, name, mapped) {
     const declaration = boundCollectionDeclaration (csharp, call, name);
-    return (declaration?.name?.escapedText === name) ? declarationCollectionReturnType (csharp, declaration, mapped) : undefined;
+    return (declaration?.name?.text === name) ? declarationCollectionReturnType (csharp, declaration, mapped) : undefined;
 }
 
 // the per-declaration table names this declaration AND proves — the return-statements wrapper
@@ -2016,7 +2019,7 @@ function boundCollectionReturnType (csharp, call, name, mapped) {
 // (and every proven path prints a statically-mapped expression, so the retyped signature needs
 // no cast either)
 function byDeclarationCollectionReturnIsProven (csharp, declaration) {
-    const name = declaration?.name?.escapedText;
+    const name = declaration?.name?.text;
     const mapped = CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION[name];
     if (mapped !== undefined) {
         // U37: the mapped value may list several acceptable types (declarationMappedTypes)
@@ -2047,7 +2050,7 @@ export function installCsharpCollectionReturns (transpiler) {
     csharp.printReturnStatement = (node, identation) => {
         // nearest function-like: a `return` inside an arrow/function expression belongs to
         // that callback, never to the enclosing mapped method
-        const enclosing = ts.findAncestor (node.parent, ts.isFunctionLike);
+        const enclosing = findAncestor (node.parent, isFunctionLike);
         const mapped = collectionReturnType (csharp, enclosing, 'object');
         // a proven per-declaration method already hands the mapped box back on EVERY path, so
         // the boundary cast would be a redundant `(T)((object)v)` on each of them (U49 adds the
@@ -2668,10 +2671,10 @@ const CSHARP_LOCAL_AWAIT_BARE_CALL_TYPES = { 'promiseAll': 'List<object>' };
 // shape prints something else and must keep the local `object`
 function printedBareCalleeName (call) {
     const callee = call.expression;
-    if (callee?.kind === ts.SyntaxKind.Identifier) {
-        return callee.escapedText;
+    if (callee?.kind === SyntaxKind.Identifier) {
+        return callee.text;
     }
-    if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression
+    if (callee?.kind === SyntaxKind.PropertyAccessExpression
         && typeof callee.getText === 'function'
         && callee.getText ().trim () === 'Promise.all'
         && (call.arguments?.length ?? 0) === 1) {
@@ -2682,7 +2685,7 @@ function printedBareCalleeName (call) {
 
 function bareAwaitedCallType (node) {
     const call = node.expression;
-    if (call?.kind !== ts.SyntaxKind.CallExpression) {
+    if (call?.kind !== SyntaxKind.CallExpression) {
         return undefined;
     }
     const name = printedBareCalleeName (call);
@@ -2703,18 +2706,18 @@ const CSHARP_WS_WATCH_METHOD_NAMES = ['watch', 'watchMultiple', 'watchPublic', '
 // the awaited method name of `await this.<name> (...)`, or undefined
 function wsWatchAwaitMethodName (declaration) {
     const initializer = declaration?.initializer;
-    if (initializer?.kind !== ts.SyntaxKind.AwaitExpression) {
+    if (initializer?.kind !== SyntaxKind.AwaitExpression) {
         return undefined;
     }
     const call = initializer.expression;
-    if (call?.kind !== ts.SyntaxKind.CallExpression) {
+    if (call?.kind !== SyntaxKind.CallExpression) {
         return undefined;
     }
     const callee = call.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword) {
         return undefined;
     }
-    const name = callee.name?.escapedText;
+    const name = callee.name?.text;
     return (typeof name === 'string' && CSHARP_WS_WATCH_METHOD_NAMES.includes (name)) ? name : undefined;
 }
 
@@ -2725,17 +2728,17 @@ function statementCallsLimitOn (statement, name) {
         if (found) {
             return;
         }
-        if (n?.kind === ts.SyntaxKind.CallExpression) {
-            let receiver = n.expression?.kind === ts.SyntaxKind.PropertyAccessExpression ? n.expression.expression : undefined;
-            while (receiver?.kind === ts.SyntaxKind.ParenthesizedExpression || receiver?.kind === ts.SyntaxKind.AsExpression) {
+        if (n?.kind === SyntaxKind.CallExpression) {
+            let receiver = n.expression?.kind === SyntaxKind.PropertyAccessExpression ? n.expression.expression : undefined;
+            while (receiver?.kind === SyntaxKind.ParenthesizedExpression || receiver?.kind === SyntaxKind.AsExpression) {
                 receiver = receiver.expression;
             }
-            if (n.expression?.name?.escapedText === 'limit' && receiver?.kind === ts.SyntaxKind.Identifier && receiver.escapedText === name) {
+            if (n.expression?.name?.text === 'limit' && receiver?.kind === SyntaxKind.Identifier && receiver.text === name) {
                 found = true;
                 return;
             }
         }
-        ts.forEachChild (n, visit);
+        n.forEachChild (visit);
     };
     visit (statement);
     return found;
@@ -2744,7 +2747,7 @@ function statementCallsLimitOn (statement, name) {
 // the statement that immediately follows the declaration in its own block, or undefined
 function statementAfter (declaration) {
     const statement = declaration?.parent?.parent;
-    if (statement?.kind !== ts.SyntaxKind.VariableStatement) {
+    if (statement?.kind !== SyntaxKind.VariableStatement) {
         return undefined;
     }
     const statements = statement.parent?.statements;
@@ -2761,9 +2764,9 @@ function wsOrderBookWatchType (declaration) {
     if (wsWatchAwaitMethodName (declaration) === undefined) {
         return undefined;
     }
-    const name = declaration.name?.escapedText;
+    const name = declaration.name?.text;
     const next = statementAfter (declaration);
-    if (next?.kind !== ts.SyntaxKind.ReturnStatement || typeof name !== 'string' || !statementCallsLimitOn (next.expression, name)) {
+    if (next?.kind !== SyntaxKind.ReturnStatement || typeof name !== 'string' || !statementCallsLimitOn (next.expression, name)) {
         return undefined;
     }
     return 'ccxt.pro.IOrderBook';
@@ -2778,7 +2781,7 @@ function awaitedCallIsPrintedAsProven (value, initializer) {
         return true;
     }
     const call = initializer.expression;
-    if (call?.kind !== ts.SyntaxKind.CallExpression) {
+    if (call?.kind !== SyntaxKind.CallExpression) {
         return false;
     }
     // `await client.future (hash)` prints as that very call (the resolve-box family, U45)
@@ -2895,15 +2898,15 @@ function csharpFunnelHelper (content, name, core) {
 // the box the funnel's bound overload returns, or undefined when this declaration is not a funneled
 // typed core of its venue. The awaited call has to be THIS declaration's own callee.
 function typedCoreFunnelType (csharp, declaration) {
-    if (declaration?.name?.kind !== ts.SyntaxKind.Identifier || declaration.initializer?.kind !== ts.SyntaxKind.AwaitExpression) {
+    if (declaration?.name?.kind !== SyntaxKind.Identifier || declaration.initializer?.kind !== SyntaxKind.AwaitExpression) {
         return undefined;
     }
     const call = declaration.initializer.expression;
-    const callee = (call?.kind === ts.SyntaxKind.CallExpression) ? call.expression : undefined;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    const callee = (call?.kind === SyntaxKind.CallExpression) ? call.expression : undefined;
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword) {
         return undefined;
     }
-    const core = callee.name?.escapedText;
+    const core = callee.name?.text;
     if (core === undefined) {
         return undefined;
     }
@@ -2913,7 +2916,7 @@ function typedCoreFunnelType (csharp, declaration) {
         if (content === undefined) {
             continue;
         }
-        const helper = csharpFunnelHelper (content, declaration.name.escapedText, core);
+        const helper = csharpFunnelHelper (content, declaration.name.text, core);
         if (helper !== undefined) {
             return table.get (helper);
         }
@@ -2991,19 +2994,19 @@ function predictionFunnelFileContent (node) {
 }
 
 function predictionFunnelCallType (csharp, declaration) {
-    if (!isPredictionSource (declaration) || declaration?.name?.kind !== ts.SyntaxKind.Identifier) {
+    if (!isPredictionSource (declaration) || declaration?.name?.kind !== SyntaxKind.Identifier) {
         return undefined;
     }
     const initializer = declaration.initializer;
-    if (initializer?.kind !== ts.SyntaxKind.AwaitExpression) {
+    if (initializer?.kind !== SyntaxKind.AwaitExpression) {
         return undefined;
     }
     const call = initializer.expression;
-    const callee = (call?.kind === ts.SyntaxKind.CallExpression) ? call.expression : undefined;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    const callee = (call?.kind === SyntaxKind.CallExpression) ? call.expression : undefined;
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword) {
         return undefined;
     }
-    const core = callee.name?.escapedText;
+    const core = callee.name?.text;
     if (core === undefined) {
         return undefined;
     }
@@ -3015,7 +3018,7 @@ function predictionFunnelCallType (csharp, declaration) {
     // case-insensitively, the helper and the local name exactly
     // the declaration may already carry the cast this rule emits (a second run reads its own
     // output), so the cast is optional: the helper and the core decide, not the prefix
-    const line = new RegExp ('^[ \\t]*[A-Za-z][\\w<>,. ]* ' + declaration.name.escapedText + ' = (?:\\(\\([A-Za-z][\\w<>,.? ]*\\))?ccxt\\.BaseExchange\\.(From\\w+)\\(await this\\.' + core + '\\(', 'i');
+    const line = new RegExp ('^[ \\t]*[A-Za-z][\\w<>,. ]* ' + declaration.name.text + ' = (?:\\(\\([A-Za-z][\\w<>,.? ]*\\))?ccxt\\.BaseExchange\\.(From\\w+)\\(await this\\.' + core + '\\(', 'i');
     for (const text of content.split ('\n')) {
         const match = line.exec (text);
         if (match !== null) {
@@ -3037,10 +3040,10 @@ function predictionMemberStringRead (declaration) {
         return undefined;
     }
     const read = declaration.initializer;
-    if (read?.kind !== ts.SyntaxKind.PropertyAccessExpression || read.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    if (read?.kind !== SyntaxKind.PropertyAccessExpression || read.expression?.kind !== SyntaxKind.ThisKeyword) {
         return undefined;
     }
-    return CSHARP_PREDICTION_STRING_MEMBERS.has (read.name?.escapedText) ? 'string?' : undefined;
+    return CSHARP_PREDICTION_STRING_MEMBERS.has (read.name?.text) ? 'string?' : undefined;
 }
 
 // (3) a prediction-tier local fed by a venue helper whose DECLARATION this module already
@@ -3057,14 +3060,14 @@ function predictionRetypedCallTables () {
 }
 
 function predictionRetypedCallType (initializer) {
-    if (!isPredictionSource (initializer) || initializer?.kind !== ts.SyntaxKind.CallExpression) {
+    if (!isPredictionSource (initializer) || initializer?.kind !== SyntaxKind.CallExpression) {
         return undefined;
     }
     const callee = initializer.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword) {
         return undefined;
     }
-    const methodName = callee.name?.escapedText;
+    const methodName = callee.name?.text;
     for (const table of predictionRetypedCallTables ()) {
         if (Object.prototype.hasOwnProperty.call (table, methodName) && typeof table[methodName] === 'string') {
             return table[methodName];
@@ -3168,15 +3171,15 @@ function sameFileAwaitedReturnType (csharp, call, methodName) {
     if (table === undefined) {
         table = new Map ();
         const visit = (node) => {
-            if (node.kind === ts.SyntaxKind.MethodDeclaration && node.name?.kind === ts.SyntaxKind.Identifier) {
-                const name = node.name.escapedText;
+            if (node.kind === SyntaxKind.MethodDeclaration && node.name?.kind === SyntaxKind.Identifier) {
+                const name = node.name.text;
                 if (!table.has (name)) {
                     // first declaration wins: C# has no return-type overloads, so the name
                     // is unique per class and every call binds to this very declaration
                     table.set (name, printedAwaitedReturnType (csharp, node));
                 }
             }
-            ts.forEachChild (node, visit);
+            node.forEachChild (visit);
         };
         visit (sourceFile);
         sameFileAwaitedTables.set (sourceFile, table);
@@ -3187,14 +3190,14 @@ function sameFileAwaitedReturnType (csharp, call, methodName) {
 // the C# type `this.<name>(...)` resolves to (the awaited result type of its Task<T>), or
 // undefined when the callee's signature cannot be proven from a C# side source
 function thisCallResultType (csharp, call) {
-    if (call?.kind !== ts.SyntaxKind.CallExpression) {
+    if (call?.kind !== SyntaxKind.CallExpression) {
         return undefined;
     }
     const callee = call.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword) {
         return undefined;
     }
-    const methodName = callee.name?.escapedText;
+    const methodName = callee.name?.text;
     if (methodName === undefined) {
         return undefined;
     }
@@ -3265,13 +3268,13 @@ const CSHARP_CLIENT_MEMBER_TYPES = {
 };
 
 function clientMemberReadType (node) {
-    const member = node.name?.escapedText;
+    const member = node.name?.text;
     const memberType = CSHARP_CLIENT_MEMBER_TYPES[member];
     if (memberType === undefined) {
         return undefined;
     }
     const receiver = node.expression;
-    if (receiver?.kind !== ts.SyntaxKind.Identifier || receiver.escapedText !== 'client') {
+    if (receiver?.kind !== SyntaxKind.Identifier || receiver.text !== 'client') {
         return undefined;
     }
     return memberType;
@@ -3403,29 +3406,29 @@ function isArrayCacheBaseType (type) {
 // (CSHARP_LOCAL_WS_MEMBER_TYPES); their declaration path joins the later writes along
 // CACHE_MEMBER_WIDENING_EDGES, so the join must know it is looking at one of them
 function wsCacheMemberRead (initializer) {
-    return initializer?.kind === ts.SyntaxKind.PropertyAccessExpression
-        && initializer.expression?.kind === ts.SyntaxKind.ThisKeyword
-        && (initializer.name?.escapedText === 'orders' || initializer.name?.escapedText === 'myTrades' || initializer.name?.escapedText === 'liquidations');
+    return initializer?.kind === SyntaxKind.PropertyAccessExpression
+        && initializer.expression?.kind === SyntaxKind.ThisKeyword
+        && (initializer.name?.text === 'orders' || initializer.name?.text === 'myTrades' || initializer.name?.text === 'liquidations');
 }
 
-// every JS assignment operator (ts.SyntaxKind has no First/LastAssignmentOperator in v6)
+// every JS assignment operator (SyntaxKind has no First/LastAssignmentOperator in v6)
 const ASSIGNMENT_OPERATORS = [
-    ts.SyntaxKind.EqualsToken,
-    ts.SyntaxKind.PlusEqualsToken,
-    ts.SyntaxKind.MinusEqualsToken,
-    ts.SyntaxKind.AsteriskAsteriskEqualsToken,
-    ts.SyntaxKind.AsteriskEqualsToken,
-    ts.SyntaxKind.SlashEqualsToken,
-    ts.SyntaxKind.PercentEqualsToken,
-    ts.SyntaxKind.LessThanLessThanEqualsToken,
-    ts.SyntaxKind.GreaterThanGreaterThanEqualsToken,
-    ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken,
-    ts.SyntaxKind.AmpersandEqualsToken,
-    ts.SyntaxKind.BarEqualsToken,
-    ts.SyntaxKind.CaretEqualsToken,
-    ts.SyntaxKind.AmpersandAmpersandEqualsToken,
-    ts.SyntaxKind.BarBarEqualsToken,
-    ts.SyntaxKind.QuestionQuestionEqualsToken,
+    SyntaxKind.EqualsToken,
+    SyntaxKind.PlusEqualsToken,
+    SyntaxKind.MinusEqualsToken,
+    SyntaxKind.AsteriskAsteriskEqualsToken,
+    SyntaxKind.AsteriskEqualsToken,
+    SyntaxKind.SlashEqualsToken,
+    SyntaxKind.PercentEqualsToken,
+    SyntaxKind.LessThanLessThanEqualsToken,
+    SyntaxKind.GreaterThanGreaterThanEqualsToken,
+    SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken,
+    SyntaxKind.AmpersandEqualsToken,
+    SyntaxKind.BarEqualsToken,
+    SyntaxKind.CaretEqualsToken,
+    SyntaxKind.AmpersandAmpersandEqualsToken,
+    SyntaxKind.BarBarEqualsToken,
+    SyntaxKind.QuestionQuestionEqualsToken,
 ];
 
 // list methods that rewrite the receiver in place — `x.concat (...)` / `.slice (...)` return
@@ -3723,19 +3726,19 @@ function csharpArithmeticNullableOperandKind (csharp, node, context) {
     if (!node) {
         return undefined;
     }
-    if (node.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    if (node.kind === SyntaxKind.ParenthesizedExpression) {
         return csharpArithmeticNullableOperandKind (csharp, node.expression, context);
     }
-    if (node.kind === ts.SyntaxKind.AsExpression) {
+    if (node.kind === SyntaxKind.AsExpression) {
         // `x as number` prints the BARE operand (ast-transpiler printAsExpression casts only
         // any / string / any[]), so the static type is the inner expression's
-        if (node.type?.kind === ts.SyntaxKind.AnyKeyword || node.type?.kind === ts.SyntaxKind.StringKeyword
-            || node.type?.kind === ts.SyntaxKind.ArrayType) {
+        if (node.type?.kind === SyntaxKind.AnyKeyword || node.type?.kind === SyntaxKind.StringKeyword
+            || node.type?.kind === SyntaxKind.ArrayType) {
             return undefined;
         }
         return csharpArithmeticNullableOperandKind (csharp, node.expression, context);
     }
-    if (node.kind !== ts.SyntaxKind.Identifier && node.kind !== ts.SyntaxKind.CallExpression) {
+    if (node.kind !== SyntaxKind.Identifier && node.kind !== SyntaxKind.CallExpression) {
         return undefined;
     }
     return (csharpTypeOfValue (csharp, node, context) === 'Int64?') ? 'Int64?' : undefined;
@@ -3783,14 +3786,14 @@ function nullableIntegerArithmeticKind (csharp, node, context) {
 // whenever both are applicable.
 function csharpArithmeticExpressionKind (csharp, node, context) {
     const op = node.operatorToken?.kind;
-    if (op !== ts.SyntaxKind.MinusToken && op !== ts.SyntaxKind.AsteriskToken && op !== ts.SyntaxKind.SlashToken) {
+    if (op !== SyntaxKind.MinusToken && op !== SyntaxKind.AsteriskToken && op !== SyntaxKind.SlashToken) {
         return undefined;
     }
     const left = csharpArithmeticOperandKind (csharp, node.left, context);
     const right = csharpArithmeticOperandKind (csharp, node.right, context);
     const bothSmallInt = ARITHMETIC_SMALL_INT.includes (left) && ARITHMETIC_SMALL_INT.includes (right);
     const hasDouble = (left === 'double') || (right === 'double');
-    if (op === ts.SyntaxKind.SlashToken) {
+    if (op === SyntaxKind.SlashToken) {
         // any double operand widens to (double, double); Int64 pairs divide truncated
         if (bothSmallInt) {
             return 'Int64';
@@ -3801,7 +3804,7 @@ function csharpArithmeticExpressionKind (csharp, node, context) {
         }
         return nullableIntegerArithmeticKind (csharp, node, context);
     }
-    if (op === ts.SyntaxKind.MinusToken) {
+    if (op === SyntaxKind.MinusToken) {
         if (bothSmallInt) {
             return (left === 'int' && right === 'int') ? 'int' : 'Int64';
         }
@@ -3831,25 +3834,25 @@ function csharpArithmeticOperandKind (csharp, node, context) {
         return undefined;
     }
     switch (node.kind) {
-    case ts.SyntaxKind.NumericLiteral:
+    case SyntaxKind.NumericLiteral:
         return integerOperandKind (node.text, false);
-    case ts.SyntaxKind.PrefixUnaryExpression:
+    case SyntaxKind.PrefixUnaryExpression:
         // `-N` prints as a negative literal; any other prefix stays unproven
-        return (node.operator === ts.SyntaxKind.MinusToken && node.operand?.kind === ts.SyntaxKind.NumericLiteral)
+        return (node.operator === SyntaxKind.MinusToken && node.operand?.kind === SyntaxKind.NumericLiteral)
             ? integerOperandKind (node.operand.text, true)
             : undefined;
-    case ts.SyntaxKind.ParenthesizedExpression:
+    case SyntaxKind.ParenthesizedExpression:
         return csharpArithmeticOperandKind (csharp, node.expression, context);
-    case ts.SyntaxKind.PropertyAccessExpression:
+    case SyntaxKind.PropertyAccessExpression:
         // `x.length` prints getArrayLength(x) / ((string)x).Length — int on every shape
-        return (node.name?.escapedText === 'length') ? 'int' : undefined;
-    case ts.SyntaxKind.Identifier:
-    case ts.SyntaxKind.CallExpression:
+        return (node.name?.text === 'length') ? 'int' : undefined;
+    case SyntaxKind.Identifier:
+    case SyntaxKind.CallExpression:
         return arithmeticKindOfType (csharpTypeOfValue (csharp, node, context));
-    case ts.SyntaxKind.BinaryExpression:
+    case SyntaxKind.BinaryExpression:
         // a nested `+` is an add(...) call too: its own typed result is what the enclosing
         // arithmetic operator sees as an operand
-        return (node.operatorToken?.kind === ts.SyntaxKind.PlusToken)
+        return (node.operatorToken?.kind === SyntaxKind.PlusToken)
             ? csharpAddExpressionKind (csharp, node, context)
             : csharpArithmeticExpressionKind (csharp, node, context);
     }
@@ -3922,7 +3925,7 @@ function integerOrNullArgumentKind (csharp, node, context) {
 // for every operand pair the classifier can name, the printed call's OWN C# type is the
 // declaration — no cast: `Int64 x = mod(a, b)` / `Int64? x = mod(a, b)`.
 function modTwinCallType (csharp, initializer, context) {
-    if (initializer?.kind !== ts.SyntaxKind.BinaryExpression || initializer.operatorToken?.kind !== ts.SyntaxKind.PercentToken) {
+    if (initializer?.kind !== SyntaxKind.BinaryExpression || initializer.operatorToken?.kind !== SyntaxKind.PercentToken) {
         return undefined;
     }
     const left = csharpArithmeticOperandKind (csharp, initializer.left, context);
@@ -3955,13 +3958,13 @@ function modTwinCallType (csharp, initializer, context) {
 // audit-numeric-overload-bind.txt: mathMin 101 DIVERGENT, mathMax 1), so this unit adds no
 // overload and every declaration carries its own box-exact cast instead.
 function mathMinMaxBoxType (csharp, initializer, context) {
-    if (initializer?.kind !== ts.SyntaxKind.CallExpression || initializer.arguments?.length !== 2) {
+    if (initializer?.kind !== SyntaxKind.CallExpression || initializer.arguments?.length !== 2) {
         return undefined;
     }
     const callee = initializer.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.Identifier
-            || callee.expression.escapedText !== 'Math'
-            || (callee.name?.escapedText !== 'min' && callee.name?.escapedText !== 'max')) {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.Identifier
+            || callee.expression.text !== 'Math'
+            || (callee.name?.text !== 'min' && callee.name?.text !== 'max')) {
         return undefined;
     }
     const left = mathMinMaxOperandBox (csharp, initializer.arguments[0], context);
@@ -4015,12 +4018,12 @@ function mathMinMaxOperandBox (csharp, node, context) {
 }
 
 function integerBoxCastType (csharp, initializer, context) {
-    if (initializer?.kind === ts.SyntaxKind.CallExpression) {
+    if (initializer?.kind === SyntaxKind.CallExpression) {
         const callee = initializer.expression;
-        if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword) {
             return undefined;
         }
-        if (callee.name?.escapedText !== 'sum') {
+        if (callee.name?.text !== 'sum') {
             return undefined;
         }
         // the two-argument form only: `sum (params object[])` (one or three+ arguments) adds
@@ -4047,14 +4050,14 @@ function integerBoxCastType (csharp, initializer, context) {
 // is claimed here (the other arithmetic twins and their call sites belong to their own units);
 // `a % b` has no typed twin and keeps its cast.
 function integerOverloadCallType (initializer) {
-    if (initializer?.kind !== ts.SyntaxKind.CallExpression || initializer.arguments?.length !== 2) {
+    if (initializer?.kind !== SyntaxKind.CallExpression || initializer.arguments?.length !== 2) {
         return undefined;
     }
     const callee = initializer.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword) {
         return undefined;
     }
-    return (callee.name?.escapedText === 'sum') ? 'Int64' : undefined;
+    return (callee.name?.text === 'sum') ? 'Int64' : undefined;
 }
 
 // `this.clients[url]` (printed `getValue(this.clients, url)`) and
@@ -4064,18 +4067,18 @@ function integerOverloadCallType (initializer) {
 // the `(WebSocketClient)` cast back is exact. Declaration family only: the ternary-arm table
 // leaves `clients` out on purpose (CSHARP_LOCAL_THIS_ARM_MEMBER_TYPES).
 function clientsMapReadCastType (initializer) {
-    const clientsProperty = (n) => n?.kind === ts.SyntaxKind.PropertyAccessExpression
-        && n.expression?.kind === ts.SyntaxKind.ThisKeyword
-        && n.name?.escapedText === 'clients';
-    if (initializer?.kind === ts.SyntaxKind.ElementAccessExpression && clientsProperty (initializer.expression)) {
+    const clientsProperty = (n) => n?.kind === SyntaxKind.PropertyAccessExpression
+        && n.expression?.kind === SyntaxKind.ThisKeyword
+        && n.name?.text === 'clients';
+    if (initializer?.kind === SyntaxKind.ElementAccessExpression && clientsProperty (initializer.expression)) {
         return 'WebSocketClient';
     }
-    if (initializer?.kind === ts.SyntaxKind.CallExpression) {
+    if (initializer?.kind === SyntaxKind.CallExpression) {
         const callee = initializer.expression;
-        if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword) {
             return undefined;
         }
-        if (callee.name?.escapedText !== 'safeValue' || initializer.arguments?.length !== 2) {
+        if (callee.name?.text !== 'safeValue' || initializer.arguments?.length !== 2) {
             return undefined;
         }
         if (clientsProperty (initializer.arguments[0])) {
@@ -4093,10 +4096,10 @@ function clientsMapReadCastType (initializer) {
 // countedOrderBook(), or a value read back from the same map), so the box always holds one.
 function orderbookMapReadType (initializer) {
     const key = initializer.arguments?.[0];
-    if (key?.kind !== ts.SyntaxKind.PropertyAccessExpression) {
+    if (key?.kind !== SyntaxKind.PropertyAccessExpression) {
         return undefined;
     }
-    if (key.expression?.kind !== ts.SyntaxKind.ThisKeyword || key.name?.escapedText !== 'orderbooks') {
+    if (key.expression?.kind !== SyntaxKind.ThisKeyword || key.name?.text !== 'orderbooks') {
         return undefined;
     }
     return 'ccxt.pro.IOrderBook';
@@ -4129,14 +4132,14 @@ function wsCacheElementSourceOk (node) {
 
 // `this.trades[key]` — the ws trade cache's element read
 function wsCacheElementReadType (node) {
-    if (node?.kind !== ts.SyntaxKind.ElementAccessExpression) {
+    if (node?.kind !== SyntaxKind.ElementAccessExpression) {
         return undefined;
     }
     const receiver = node.expression;
-    if (receiver?.kind !== ts.SyntaxKind.PropertyAccessExpression || receiver.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    if (receiver?.kind !== SyntaxKind.PropertyAccessExpression || receiver.expression?.kind !== SyntaxKind.ThisKeyword) {
         return undefined;
     }
-    const type = CSHARP_LOCAL_WS_CACHE_ELEMENT_TYPES[receiver.name?.escapedText];
+    const type = CSHARP_LOCAL_WS_CACHE_ELEMENT_TYPES[receiver.name?.text];
     if (type === undefined) {
         return undefined;
     }
@@ -4147,18 +4150,18 @@ function wsCacheElementReadType (node) {
 // Every writer stores `new ArrayCacheByTimestamp`, a SIBLING of ArrayCache (both : BaseCache),
 // so the exact box is ArrayCacheByTimestamp; an ArrayCache cast throws on the first kline frame.
 function wsOhlcvsBucketReadType (node) {
-    if (node?.kind !== ts.SyntaxKind.ElementAccessExpression) {
+    if (node?.kind !== SyntaxKind.ElementAccessExpression) {
         return undefined;
     }
     const bucket = node.expression;
-    if (bucket?.kind !== ts.SyntaxKind.ElementAccessExpression) {
+    if (bucket?.kind !== SyntaxKind.ElementAccessExpression) {
         return undefined;
     }
     const receiver = bucket.expression;
-    if (receiver?.kind !== ts.SyntaxKind.PropertyAccessExpression || receiver.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    if (receiver?.kind !== SyntaxKind.PropertyAccessExpression || receiver.expression?.kind !== SyntaxKind.ThisKeyword) {
         return undefined;
     }
-    if (receiver.name?.escapedText !== 'ohlcvs') {
+    if (receiver.name?.text !== 'ohlcvs') {
         return undefined;
     }
     return wsCacheElementSourceOk (node) ? 'ccxt.pro.ArrayCacheByTimestamp' : undefined;
@@ -4179,17 +4182,17 @@ const WS_CACHE_FIELD_READ_TYPES = [ 'positions', 'liquidations', 'myLiquidations
 const WS_CACHE_FIELD_CAST = 'ccxt.pro.ArrayCache';
 
 function thisMemberPropertyAccess (node, member) {
-    return node?.kind === ts.SyntaxKind.PropertyAccessExpression
-        && node.expression?.kind === ts.SyntaxKind.ThisKeyword
-        && node.name?.escapedText === member;
+    return node?.kind === SyntaxKind.PropertyAccessExpression
+        && node.expression?.kind === SyntaxKind.ThisKeyword
+        && node.name?.text === member;
 }
 
 // an ArrayCache-family constructor: the hand-written cache classes (cs/ccxt/ws/ArrayCache.cs)
 function arrayCacheConstructorName (node) {
-    if (node?.kind !== ts.SyntaxKind.NewExpression || node.expression?.kind !== ts.SyntaxKind.Identifier) {
+    if (node?.kind !== SyntaxKind.NewExpression || node.expression?.kind !== SyntaxKind.Identifier) {
         return undefined;
     }
-    const name = node.expression.escapedText;
+    const name = node.expression.text;
     return /^ArrayCache(By[A-Za-z]+)?$/.test (name) ? name : undefined;
 }
 
@@ -4201,13 +4204,13 @@ function wsCacheFieldReadBackWrite (identifier, member) {
     }
     let readBack = false;
     const visit = (n) => {
-        if (n.kind === ts.SyntaxKind.VariableDeclaration && n.name?.kind === ts.SyntaxKind.Identifier
-                && n.name.escapedText === identifier.escapedText && thisMemberPropertyAccess (n.initializer, member)) {
+        if (n.kind === SyntaxKind.VariableDeclaration && n.name?.kind === SyntaxKind.Identifier
+                && n.name.text === identifier.text && thisMemberPropertyAccess (n.initializer, member)) {
             readBack = true;
         }
-        ts.forEachChild (n, visit);
+        n.forEachChild (visit);
     };
-    ts.forEachChild (scope, visit);
+    scope.forEachChild (visit);
     return readBack;
 }
 
@@ -4217,10 +4220,10 @@ function wsCacheFieldWriteIsCacheBox (right, member) {
     if (right === undefined) {
         return false;
     }
-    if (right.kind === ts.SyntaxKind.NullKeyword) {
+    if (right.kind === SyntaxKind.NullKeyword) {
         return true;
     }
-    if (right.kind === ts.SyntaxKind.Identifier && right.escapedText === 'undefined') {
+    if (right.kind === SyntaxKind.Identifier && right.text === 'undefined') {
         return true;
     }
     if (arrayCacheConstructorName (right) !== undefined) {
@@ -4229,7 +4232,7 @@ function wsCacheFieldWriteIsCacheBox (right, member) {
     if (thisMemberPropertyAccess (right, member)) {
         return true;
     }
-    return right.kind === ts.SyntaxKind.Identifier && wsCacheFieldReadBackWrite (right, member);
+    return right.kind === SyntaxKind.Identifier && wsCacheFieldReadBackWrite (right, member);
 }
 
 // the census over one source file: does every write of the field store a cache box, and is
@@ -4238,7 +4241,7 @@ function wsCacheFieldFileCensus (source, member) {
     let constructors = 0;
     let ok = true;
     const visit = (n) => {
-        if (n.kind === ts.SyntaxKind.BinaryExpression && ASSIGNMENT_OPERATORS.includes (n.operatorToken?.kind)) {
+        if (n.kind === SyntaxKind.BinaryExpression && ASSIGNMENT_OPERATORS.includes (n.operatorToken?.kind)) {
             const left = n.left;
             if (thisMemberPropertyAccess (left, member)) {
                 if (arrayCacheConstructorName (n.right) !== undefined) {
@@ -4246,23 +4249,23 @@ function wsCacheFieldFileCensus (source, member) {
                 } else if (!wsCacheFieldWriteIsCacheBox (n.right, member)) {
                     ok = false;
                 }
-            } else if (left?.kind === ts.SyntaxKind.ElementAccessExpression && thisMemberPropertyAccess (left.expression, member)) {
+            } else if (left?.kind === SyntaxKind.ElementAccessExpression && thisMemberPropertyAccess (left.expression, member)) {
                 ok = false; // an element write means the field is a map, not a cache
             }
         }
-        ts.forEachChild (n, visit);
+        n.forEachChild (visit);
     };
-    ts.forEachChild (source, visit);
+    source.forEachChild (visit);
     return ok && constructors > 0;
 }
 
 // `this.positions` -> the cache box the file's own writes prove, or undefined. The prediction
 // tier is U44's sweep (its roster owns every prediction-tree local), so this family stays out.
 function wsCacheFieldReadType (node) {
-    if (node?.kind !== ts.SyntaxKind.PropertyAccessExpression || node.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    if (node?.kind !== SyntaxKind.PropertyAccessExpression || node.expression?.kind !== SyntaxKind.ThisKeyword) {
         return undefined;
     }
-    const member = node.name?.escapedText;
+    const member = node.name?.text;
     if (!WS_CACHE_FIELD_READ_TYPES.includes (member) || isPredictionSource (node)) {
         return undefined;
     }
@@ -4277,10 +4280,10 @@ function wsCacheFieldReadType (node) {
 // (the account-type-keyed venues), so only the ELEMENT writers decide the box: every
 // `this.<member>[k] = rhs` in the file must store an ArrayCache-family constructor.
 function wsCacheFieldElementReadType (node) {
-    if (node?.kind !== ts.SyntaxKind.ElementAccessExpression || !thisMemberPropertyAccess (node.expression, node.expression?.name?.escapedText)) {
+    if (node?.kind !== SyntaxKind.ElementAccessExpression || !thisMemberPropertyAccess (node.expression, node.expression?.name?.text)) {
         return undefined;
     }
-    const member = node.expression.name.escapedText;
+    const member = node.expression.name.text;
     if (!WS_CACHE_FIELD_READ_TYPES.includes (member)) {
         return undefined;
     }
@@ -4291,17 +4294,17 @@ function wsCacheFieldElementReadType (node) {
     let writes = 0;
     let ok = true;
     const visit = (n) => {
-        if (n.kind === ts.SyntaxKind.BinaryExpression && ASSIGNMENT_OPERATORS.includes (n.operatorToken?.kind)
-                && n.left?.kind === ts.SyntaxKind.ElementAccessExpression && thisMemberPropertyAccess (n.left.expression, member)) {
+        if (n.kind === SyntaxKind.BinaryExpression && ASSIGNMENT_OPERATORS.includes (n.operatorToken?.kind)
+                && n.left?.kind === SyntaxKind.ElementAccessExpression && thisMemberPropertyAccess (n.left.expression, member)) {
             if (arrayCacheConstructorName (n.right) !== undefined) {
                 writes++;
             } else {
                 ok = false;
             }
         }
-        ts.forEachChild (n, visit);
+        n.forEachChild (visit);
     };
-    ts.forEachChild (source, visit);
+    source.forEachChild (visit);
     return (ok && writes > 0) ? WS_CACHE_FIELD_CAST : undefined;
 }
 
@@ -4309,10 +4312,10 @@ function wsCacheFieldElementReadType (node) {
 // writers store (wsCacheCtorSetType), so an ArrayCacheByTimestamp-only file names that class; the
 // read is `object` (GetValue), so csharpLocalTypeOf adds the cast back.
 function wsCacheFieldElementBoxType (node) {
-    if (node?.kind !== ts.SyntaxKind.ElementAccessExpression || !thisMemberPropertyAccess (node.expression, node.expression?.name?.escapedText)) {
+    if (node?.kind !== SyntaxKind.ElementAccessExpression || !thisMemberPropertyAccess (node.expression, node.expression?.name?.text)) {
         return undefined;
     }
-    const member = node.expression.name.escapedText;
+    const member = node.expression.name.text;
     if (!WS_CACHE_FIELD_READ_TYPES.includes (member) || !wsCacheElementSourceOk (node)) {
         return undefined;
     }
@@ -4323,8 +4326,8 @@ function wsCacheFieldElementBoxType (node) {
     const ctors = new Set ();
     let ok = true;
     const visit = (n) => {
-        if (n.kind === ts.SyntaxKind.BinaryExpression && ASSIGNMENT_OPERATORS.includes (n.operatorToken?.kind)
-                && n.left?.kind === ts.SyntaxKind.ElementAccessExpression && thisMemberPropertyAccess (n.left.expression, member)) {
+        if (n.kind === SyntaxKind.BinaryExpression && ASSIGNMENT_OPERATORS.includes (n.operatorToken?.kind)
+                && n.left?.kind === SyntaxKind.ElementAccessExpression && thisMemberPropertyAccess (n.left.expression, member)) {
             const constructor = arrayCacheConstructorName (n.right);
             if (constructor === undefined) {
                 ok = false; // a dict literal / unknown element write: not a proven cache member
@@ -4332,9 +4335,9 @@ function wsCacheFieldElementBoxType (node) {
                 ctors.add (constructor);
             }
         }
-        ts.forEachChild (n, visit);
+        n.forEachChild (visit);
     };
-    ts.forEachChild (source, visit);
+    source.forEachChild (visit);
     return (ok && ctors.size > 0) ? wsCacheCtorSetType (ctors) : undefined;
 }
 
@@ -4347,7 +4350,7 @@ function resolveValueBox (csharp, value) {
     if (cacheBox !== undefined) {
         return cacheBox;
     }
-    if (value.kind === ts.SyntaxKind.Identifier) {
+    if (value.kind === SyntaxKind.Identifier) {
         const declaration = resolveLocalDeclaration (value);
         if (declaration !== undefined) {
             const declarationBox = wsCacheFieldReadType (declaration.initializer) ?? wsCacheFieldElementReadType (declaration.initializer);
@@ -4373,29 +4376,29 @@ function resolveLocalDeclaration (identifier) {
         if (n !== scope && isFunctionScope (n)) {
             return;
         }
-        if (n.kind === ts.SyntaxKind.VariableDeclaration || n.kind === ts.SyntaxKind.Parameter) {
-            if (bindingNamesOf (n.name).includes (identifier.escapedText)) {
+        if (n.kind === SyntaxKind.VariableDeclaration || n.kind === SyntaxKind.Parameter) {
+            if (bindingNamesOf (n.name).includes (identifier.text)) {
                 bindings++;
                 binding = n;
             }
         }
-        ts.forEachChild (n, visit);
+        n.forEachChild (visit);
     };
-    ts.forEachChild (scope, visit);
-    return (bindings === 1 && binding?.kind === ts.SyntaxKind.VariableDeclaration) ? binding : undefined;
+    scope.forEachChild (visit);
+    return (bindings === 1 && binding?.kind === SyntaxKind.VariableDeclaration) ? binding : undefined;
 }
 
 // `client.future (HASH)` -> the hash argument, or undefined for any other callee
 function clientFutureHashArgument (call) {
-    if (call?.kind !== ts.SyntaxKind.CallExpression) {
+    if (call?.kind !== SyntaxKind.CallExpression) {
         return undefined;
     }
     const callee = call.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.name?.escapedText !== 'future') {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.name?.text !== 'future') {
         return undefined;
     }
     const receiver = callee.expression;
-    if (receiver?.kind !== ts.SyntaxKind.Identifier || receiver.escapedText !== 'client') {
+    if (receiver?.kind !== SyntaxKind.Identifier || receiver.text !== 'client') {
         return undefined;
     }
     return call.arguments?.[0];
@@ -4404,7 +4407,7 @@ function clientFutureHashArgument (call) {
 // the hash expression an identifier argument stands for: its `const <name> = <expr>` initialiser
 // in the enclosing function, text-compared with the awaited hash
 function boundHashText (argument, scope) {
-    if (argument?.kind !== ts.SyntaxKind.Identifier || scope === undefined) {
+    if (argument?.kind !== SyntaxKind.Identifier || scope === undefined) {
         return undefined;
     }
     let text;
@@ -4413,20 +4416,20 @@ function boundHashText (argument, scope) {
         if (n !== scope && isFunctionScope (n)) {
             return;
         }
-        if (n.kind === ts.SyntaxKind.VariableDeclaration && n.name?.kind === ts.SyntaxKind.Identifier
-                && n.name.escapedText === argument.escapedText && n.initializer !== undefined) {
+        if (n.kind === SyntaxKind.VariableDeclaration && n.name?.kind === SyntaxKind.Identifier
+                && n.name.text === argument.text && n.initializer !== undefined) {
             bindings++;
             text = n.initializer.getText ();
         }
-        ts.forEachChild (n, visit);
+        n.forEachChild (visit);
     };
-    ts.forEachChild (scope, visit);
+    scope.forEachChild (visit);
     return bindings === 1 ? text : undefined;
 }
 
 // `const future = client.futures[hash]; future.resolve (VALUE)` — the explicit settle of a flight
 function receiverReadsClientFutures (identifier, scope) {
-    if (identifier?.kind !== ts.SyntaxKind.Identifier) {
+    if (identifier?.kind !== SyntaxKind.Identifier) {
         return false;
     }
     let reads = 0;
@@ -4434,17 +4437,17 @@ function receiverReadsClientFutures (identifier, scope) {
         if (n !== scope && isFunctionScope (n)) {
             return;
         }
-        if (n.kind === ts.SyntaxKind.VariableDeclaration && n.name?.kind === ts.SyntaxKind.Identifier
-                && n.name.escapedText === identifier.escapedText && n.initializer?.kind === ts.SyntaxKind.ElementAccessExpression) {
+        if (n.kind === SyntaxKind.VariableDeclaration && n.name?.kind === SyntaxKind.Identifier
+                && n.name.text === identifier.text && n.initializer?.kind === SyntaxKind.ElementAccessExpression) {
             const target = n.initializer.expression;
-            if (target?.kind === ts.SyntaxKind.PropertyAccessExpression && target.name?.escapedText === 'futures'
-                    && target.expression?.kind === ts.SyntaxKind.Identifier && target.expression.escapedText === 'client') {
+            if (target?.kind === SyntaxKind.PropertyAccessExpression && target.name?.text === 'futures'
+                    && target.expression?.kind === SyntaxKind.Identifier && target.expression.text === 'client') {
                 reads++;
             }
         }
-        ts.forEachChild (n, visit);
+        n.forEachChild (visit);
     };
-    ts.forEachChild (scope, visit);
+    scope.forEachChild (visit);
     return reads === 1;
 }
 
@@ -4455,7 +4458,7 @@ function receiverReadsClientFutures (identifier, scope) {
 // explicit `future.resolve (VALUE)` inside a method the file spawns with that hash. Every settle
 // must be boxed and all boxes must agree; anything else keeps `object`.
 function awaitedClientFutureBox (csharp, initializer) {
-    if (initializer?.kind !== ts.SyntaxKind.AwaitExpression) {
+    if (initializer?.kind !== SyntaxKind.AwaitExpression) {
         return undefined;
     }
     const hash = clientFutureHashArgument (initializer.expression);
@@ -4471,23 +4474,23 @@ function awaitedClientFutureBox (csharp, initializer) {
     const boxes = [];
     let settles = 0;
     const visit = (n) => {
-        if (n.kind === ts.SyntaxKind.CallExpression) {
+        if (n.kind === SyntaxKind.CallExpression) {
             const callee = n.expression;
-            if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.expression?.kind === ts.SyntaxKind.ThisKeyword) {
+            if (callee?.kind === SyntaxKind.PropertyAccessExpression && callee.expression?.kind === SyntaxKind.ThisKeyword) {
                 const args = n.arguments ?? [];
-                if (callee.name?.escapedText === 'spawn') {
+                if (callee.name?.text === 'spawn') {
                     const target = args[0];
-                    if (target?.kind === ts.SyntaxKind.PropertyAccessExpression && target.expression?.kind === ts.SyntaxKind.ThisKeyword) {
+                    if (target?.kind === SyntaxKind.PropertyAccessExpression && target.expression?.kind === SyntaxKind.ThisKeyword) {
                         for (let i = 1; i < args.length; i++) {
                             if (boundHashText (args[i], enclosingFunction (n)) === hashText) {
-                                spawned.add (target.name?.escapedText);
+                                spawned.add (target.name?.text);
                             }
                         }
                     }
                 }
             }
-            if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.name?.escapedText === 'resolve'
-                    && callee.expression?.kind === ts.SyntaxKind.Identifier && callee.expression.escapedText === 'client'
+            if (callee?.kind === SyntaxKind.PropertyAccessExpression && callee.name?.text === 'resolve'
+                    && callee.expression?.kind === SyntaxKind.Identifier && callee.expression.text === 'client'
                     && (n.arguments?.[1]?.getText () === hashText)) {
                 settles++;
                 const box = resolveValueBox (csharp, n.arguments?.[0]);
@@ -4496,18 +4499,18 @@ function awaitedClientFutureBox (csharp, initializer) {
                 }
             }
         }
-        ts.forEachChild (n, visit);
+        n.forEachChild (visit);
     };
-    ts.forEachChild (source, visit);
+    source.forEachChild (visit);
     for (const methodName of spawned) {
         const method = spawnedMethod (source, methodName);
         if (method === undefined) {
             continue;
         }
         const visitMethod = (n) => {
-            if (n.kind === ts.SyntaxKind.CallExpression) {
+            if (n.kind === SyntaxKind.CallExpression) {
                 const callee = n.expression;
-                if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.name?.escapedText === 'resolve'
+                if (callee?.kind === SyntaxKind.PropertyAccessExpression && callee.name?.text === 'resolve'
                         && receiverReadsClientFutures (callee.expression, method)) {
                     settles++;
                     const box = resolveValueBox (csharp, n.arguments?.[0]);
@@ -4516,9 +4519,9 @@ function awaitedClientFutureBox (csharp, initializer) {
                     }
                 }
             }
-            ts.forEachChild (n, visitMethod);
+            n.forEachChild (visitMethod);
         };
-        ts.forEachChild (method, visitMethod);
+        method.forEachChild (visitMethod);
     }
     if (settles === 0 || boxes.length !== settles) {
         return undefined; // an unproven settle keeps the local `object`
@@ -4534,12 +4537,12 @@ function spawnedMethod (source, name) {
     }
     let found;
     const visit = (n) => {
-        if (n.kind === ts.SyntaxKind.MethodDeclaration && n.name?.kind === ts.SyntaxKind.Identifier && n.name.escapedText === name) {
+        if (n.kind === SyntaxKind.MethodDeclaration && n.name?.kind === SyntaxKind.Identifier && n.name.text === name) {
             found = n;
         }
-        ts.forEachChild (n, visit);
+        n.forEachChild (visit);
     };
-    ts.forEachChild (source, visit);
+    source.forEachChild (visit);
     return found;
 }
 
@@ -4571,14 +4574,14 @@ function typeIsExchange (type, seen) {
     }
     seen = seen.concat ([ type ]);
     const flags = type.flags;
-    if (flags & ts.TypeFlags.Any) {
+    if (flags & TypeFlags.Any) {
         return false;
     }
-    if ((flags & ts.TypeFlags.Union) !== 0 && Array.isArray (type.types)) {
-        const members = type.types.filter ((member) => !(member.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)));
+    if ((flags & TypeFlags.Union) !== 0 && Array.isArray (type.getTypes ())) {
+        const members = type.getTypes ().filter ((member) => !(member.flags & (TypeFlags.Undefined | TypeFlags.Null)));
         return members.length > 0 && members.every ((member) => typeIsExchange (member, seen));
     }
-    const symbol = type.symbol ?? type.aliasSymbol;
+    const symbol = type.getSymbol () ?? type.getAliasSymbol ();
     if (symbol === undefined) {
         return false;
     }
@@ -4595,8 +4598,8 @@ function typeIsExchange (type, seen) {
 // (`ccxt.js` re-exports the class as `default`, so the instance type's symbol is named
 // `default`), the declaration name is.
 function classDeclarationIsExchange (symbol) {
-    for (const declaration of (symbol?.declarations ?? [])) {
-        const name = declaration?.name?.escapedText;
+    for (const declaration of (symbol?.declarations ?? []).map ((d) => d.resolve ())) {
+        const name = declaration?.name?.text;
         if (name !== 'Exchange') {
             continue;
         }
@@ -4615,19 +4618,19 @@ function classDeclarationIsExchange (symbol) {
 // (Client.future / reusableFuture GetOrAdd, rejectFutures clears), so the read boxes a
 // Future or null — the `(Future)` cast back is exact. No site passes a safeValue default.
 function futuresReadCastType (initializer) {
-    const futuresProperty = (n) => n?.kind === ts.SyntaxKind.PropertyAccessExpression
-        && n.name?.escapedText === 'futures'
-        && n.expression?.kind === ts.SyntaxKind.Identifier
-        && n.expression.escapedText === 'client';
-    if (initializer?.kind === ts.SyntaxKind.ElementAccessExpression && futuresProperty (initializer.expression)) {
+    const futuresProperty = (n) => n?.kind === SyntaxKind.PropertyAccessExpression
+        && n.name?.text === 'futures'
+        && n.expression?.kind === SyntaxKind.Identifier
+        && n.expression.text === 'client';
+    if (initializer?.kind === SyntaxKind.ElementAccessExpression && futuresProperty (initializer.expression)) {
         return 'Future';
     }
-    if (initializer?.kind === ts.SyntaxKind.CallExpression) {
+    if (initializer?.kind === SyntaxKind.CallExpression) {
         const callee = initializer.expression;
-        if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword) {
             return undefined;
         }
-        if (callee.name?.escapedText !== 'safeValue' || initializer.arguments?.length !== 2) {
+        if (callee.name?.text !== 'safeValue' || initializer.arguments?.length !== 2) {
             return undefined;
         }
         if (futuresProperty (initializer.arguments[0])) {
@@ -4641,24 +4644,24 @@ function futuresReadCastType (initializer) {
 // `(cache as ArrayCache).hashmap`. That map holds only `new Dictionary<string, object>()`
 // buckets (cs/ccxt/ws/ArrayCache.cs writers) or nothing, so the cast back is exact.
 function arrayCacheHashmapReadType (initializer) {
-    if (initializer?.kind !== ts.SyntaxKind.CallExpression) {
+    if (initializer?.kind !== SyntaxKind.CallExpression) {
         return undefined;
     }
     const callee = initializer.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression
-        || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword
-        || callee.name?.escapedText !== 'safeValue'
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression
+        || callee.expression?.kind !== SyntaxKind.ThisKeyword
+        || callee.name?.text !== 'safeValue'
         || (initializer.arguments?.length ?? 0) < 2) {
         return undefined;
     }
     const map = initializer.arguments[0];
-    if (map?.kind !== ts.SyntaxKind.PropertyAccessExpression
-        || map.name?.escapedText !== 'hashmap'
-        || map.expression?.kind !== ts.SyntaxKind.Identifier) {
+    if (map?.kind !== SyntaxKind.PropertyAccessExpression
+        || map.name?.text !== 'hashmap'
+        || map.expression?.kind !== SyntaxKind.Identifier) {
         return undefined;
     }
     const defaultValue = initializer.arguments[2];
-    if (defaultValue !== undefined && defaultValue.kind !== ts.SyntaxKind.ObjectLiteralExpression) {
+    if (defaultValue !== undefined && defaultValue.kind !== SyntaxKind.ObjectLiteralExpression) {
         return undefined; // any other default could box a non-dictionary
     }
     return 'Dictionary<string, object>';
@@ -4691,13 +4694,13 @@ const CSHARP_LOCAL_WS_CACHE_MEMBERS = [
 ];
 
 function thisMemberAccess (node, member) {
-    return node?.kind === ts.SyntaxKind.PropertyAccessExpression
-        && node.expression?.kind === ts.SyntaxKind.ThisKeyword
-        && node.name?.escapedText === member;
+    return node?.kind === SyntaxKind.PropertyAccessExpression
+        && node.expression?.kind === SyntaxKind.ThisKeyword
+        && node.name?.text === member;
 }
 
 function thisMemberElementAccess (node, member) {
-    return node?.kind === ts.SyntaxKind.ElementAccessExpression && thisMemberAccess (node.expression, member);
+    return node?.kind === SyntaxKind.ElementAccessExpression && thisMemberAccess (node.expression, member);
 }
 
 // a read of the SAME map (`this.<member>[k]`, `this.safeValue (this.<member>, k)`,
@@ -4707,14 +4710,14 @@ function wsCacheMapRead (node, member) {
     if (thisMemberElementAccess (node, member)) {
         return true;
     }
-    if (node?.kind !== ts.SyntaxKind.CallExpression) {
+    if (node?.kind !== SyntaxKind.CallExpression) {
         return false;
     }
     const callee = node.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression) {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression) {
         return false;
     }
-    const name = callee.name?.escapedText;
+    const name = callee.name?.text;
     if (name !== 'safeValue' && name !== 'getValue' && name !== 'safeDict') {
         return false;
     }
@@ -4767,8 +4770,8 @@ function wsCacheWriteBoxTypes (csharp, node, member, depth) {
     if (node === undefined || depth > 4) {
         return undefined;
     }
-    if (node.kind === ts.SyntaxKind.NewExpression) {
-        const name = (node.expression?.kind === ts.SyntaxKind.Identifier) ? node.expression.escapedText : undefined;
+    if (node.kind === SyntaxKind.NewExpression) {
+        const name = (node.expression?.kind === SyntaxKind.Identifier) ? node.expression.text : undefined;
         if (name === undefined) {
             return undefined;
         }
@@ -4777,32 +4780,32 @@ function wsCacheWriteBoxTypes (csharp, node, member, depth) {
         }
         return undefined; // any other constructor boxes something this family cannot name
     }
-    if (node.kind === ts.SyntaxKind.ObjectLiteralExpression) {
+    if (node.kind === SyntaxKind.ObjectLiteralExpression) {
         return new Set ([ 'dict' ]);
     }
-    if (node.kind === ts.SyntaxKind.NullKeyword || (node.kind === ts.SyntaxKind.Identifier && node.escapedText === 'undefined')) {
+    if (node.kind === SyntaxKind.NullKeyword || (node.kind === SyntaxKind.Identifier && node.text === 'undefined')) {
         return new Set (); // a null write fits every box
     }
     if (wsCacheMapRead (node, member)) {
         return new Set (); // a read-back of the same map adds no information
     }
-    if (node.kind === ts.SyntaxKind.CallExpression) {
+    if (node.kind === SyntaxKind.CallExpression) {
         const callee = node.expression;
-        if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.expression?.kind === ts.SyntaxKind.ThisKeyword) {
-            const name = callee.name?.escapedText;
+        if (callee?.kind === SyntaxKind.PropertyAccessExpression && callee.expression?.kind === SyntaxKind.ThisKeyword) {
+            const name = callee.name?.text;
             if (name === 'createSafeDictionary' || name === 'safeDict') {
                 return new Set ([ 'dict' ]);
             }
         }
         return undefined;
     }
-    if (node.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    if (node.kind === SyntaxKind.ParenthesizedExpression) {
         return wsCacheWriteBoxTypes (csharp, node.expression, member, depth);
     }
-    if (node.kind === ts.SyntaxKind.AsExpression || node.kind === ts.SyntaxKind.TypeAssertionExpression || node.kind === ts.SyntaxKind.NonNullExpression) {
+    if (node.kind === SyntaxKind.AsExpression || node.kind === SyntaxKind.TypeAssertionExpression || node.kind === SyntaxKind.NonNullExpression) {
         return wsCacheWriteBoxTypes (csharp, node.expression, member, depth);
     }
-    if (node.kind === ts.SyntaxKind.ConditionalExpression) {
+    if (node.kind === SyntaxKind.ConditionalExpression) {
         // `(c) ? undefined : this.safeValue (this.<member>, k)` — both arms must fit the box
         const whenTrue = wsCacheWriteBoxTypes (csharp, node.whenTrue, member, depth + 1);
         const whenFalse = wsCacheWriteBoxTypes (csharp, node.whenFalse, member, depth + 1);
@@ -4812,7 +4815,7 @@ function wsCacheWriteBoxTypes (csharp, node, member, depth) {
         whenFalse.forEach ((box) => whenTrue.add (box));
         return whenTrue;
     }
-    if (node.kind === ts.SyntaxKind.Identifier) {
+    if (node.kind === SyntaxKind.Identifier) {
         // `const x = <box>; … this.<member>[k] = x` — every value assigned to THAT binding in
         // its own function must prove the same shape; a producer this family cannot name
         // (a parameter, a destructured binding, an unclassifiable call) leaves it unproven
@@ -4821,9 +4824,9 @@ function wsCacheWriteBoxTypes (csharp, node, member, depth) {
             return undefined;
         }
         const index = indexScope (csharp, scope);
-        const declarations = index.declarations.get (node.escapedText) ?? [];
+        const declarations = index.declarations.get (node.text) ?? [];
         let declaration;
-        if (declarations.length === 1 && !index.parameterNames.has (node.escapedText) && !index.blockedNames.has (node.escapedText)) {
+        if (declarations.length === 1 && !index.parameterNames.has (node.text) && !index.blockedNames.has (node.text)) {
             declaration = declarations[0];
         } else {
             const referred = declarations.filter ((candidate) => useRefersToDeclaration (csharp, scope, candidate, node) === true);
@@ -4845,8 +4848,8 @@ function wsCacheWriteBoxTypes (csharp, node, member, depth) {
             }
         };
         const visit = (n) => {
-            if (n.kind === ts.SyntaxKind.BinaryExpression && n.operatorToken?.kind === ts.SyntaxKind.EqualsToken
-                    && n.left?.kind === ts.SyntaxKind.Identifier && n.left.escapedText === declaration.name.escapedText
+            if (n.kind === SyntaxKind.BinaryExpression && n.operatorToken?.kind === SyntaxKind.EqualsToken
+                    && n.left?.kind === SyntaxKind.Identifier && n.left.text === declaration.name.text
                     && useRefersToDeclaration (csharp, scope, declaration, n.left) !== false) {
                 own (n.right); // a write to this very binding (an ambiguous use counts: conservative)
             } else if (n === declaration) {
@@ -4856,9 +4859,9 @@ function wsCacheWriteBoxTypes (csharp, node, member, depth) {
                     own (n.initializer);
                 }
             }
-            ts.forEachChild (n, visit);
+            n.forEachChild (visit);
         };
-        ts.forEachChild (scope, visit);
+        scope.forEachChild (visit);
         if (unproven || assigned === 0) {
             return (unproven) ? undefined : new Set ();
         }
@@ -4897,19 +4900,19 @@ function wsCacheMemberElementBoxUncached (csharp, sourceFile, member) {
     const fieldWrites = [];
     let nestedWrite = false;
     const visit = (n) => {
-        if (n.kind === ts.SyntaxKind.BinaryExpression && n.operatorToken?.kind === ts.SyntaxKind.EqualsToken) {
+        if (n.kind === SyntaxKind.BinaryExpression && n.operatorToken?.kind === SyntaxKind.EqualsToken) {
             const left = n.left;
             if (thisMemberElementAccess (left, member)) {
                 elementWrites.push (n.right);
-            } else if (left?.kind === ts.SyntaxKind.ElementAccessExpression && thisMemberElementAccess (left.expression, member)) {
+            } else if (left?.kind === SyntaxKind.ElementAccessExpression && thisMemberElementAccess (left.expression, member)) {
                 nestedWrite = true; // `this.<member>[k][k2] = …` — the value at k is indexable
             } else if (thisMemberAccess (left, member)) {
                 fieldWrites.push (n.right);
             }
         }
-        ts.forEachChild (n, visit);
+        n.forEachChild (visit);
     };
-    ts.forEachChild (sourceFile, visit);
+    sourceFile.forEachChild (visit);
     if (elementWrites.length === 0) {
         return undefined; // nothing in the file proves the element box
     }
@@ -4942,21 +4945,21 @@ function wsCacheMemberElementBoxUncached (csharp, sourceFile, member) {
 
 // `object <name> = this.safeValue (this.<member>, <key>)` (no default) -> the file's box
 function wsCacheMemberReadType (csharp, initializer) {
-    if (initializer?.kind !== ts.SyntaxKind.CallExpression) {
+    if (initializer?.kind !== SyntaxKind.CallExpression) {
         return undefined;
     }
     const callee = initializer.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword) {
         return undefined;
     }
-    if (callee.name?.escapedText !== 'safeValue' || initializer.arguments?.length !== 2) {
+    if (callee.name?.text !== 'safeValue' || initializer.arguments?.length !== 2) {
         return undefined;
     }
     const receiver = initializer.arguments[0];
-    if (receiver?.kind !== ts.SyntaxKind.PropertyAccessExpression || receiver.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    if (receiver?.kind !== SyntaxKind.PropertyAccessExpression || receiver.expression?.kind !== SyntaxKind.ThisKeyword) {
         return undefined;
     }
-    const member = receiver.name?.escapedText;
+    const member = receiver.name?.text;
     if (!CSHARP_LOCAL_WS_CACHE_MEMBERS.includes (member)) {
         return undefined;
     }
@@ -4981,17 +4984,17 @@ const wsCacheBucketBoxes = new WeakMap ();
 // a read of the same SLOT (`this.<member>[k1][k2]`, `this.safeValue (this.<member>[k1], k2)`) --
 // neutral: it stores back whatever the slot already holds
 function wsCacheBucketSlotRead (node, member) {
-    if (node?.kind === ts.SyntaxKind.ElementAccessExpression && thisMemberElementAccess (node.expression, member)) {
+    if (node?.kind === SyntaxKind.ElementAccessExpression && thisMemberElementAccess (node.expression, member)) {
         return true;
     }
-    if (node?.kind !== ts.SyntaxKind.CallExpression) {
+    if (node?.kind !== SyntaxKind.CallExpression) {
         return false;
     }
     const callee = node.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression) {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression) {
         return false;
     }
-    const name = callee.name?.escapedText;
+    const name = callee.name?.text;
     if (name !== 'safeValue' && name !== 'getValue' && name !== 'safeDict') {
         return false;
     }
@@ -5009,11 +5012,11 @@ function wsCacheBucketWriteBoxTypes (csharp, node, member, depth) {
     if (wsCacheBucketSlotRead (node, member)) {
         return new Set (); // a read-back of the same slot adds no information
     }
-    if (node.kind === ts.SyntaxKind.ParenthesizedExpression || node.kind === ts.SyntaxKind.AsExpression
-            || node.kind === ts.SyntaxKind.TypeAssertionExpression || node.kind === ts.SyntaxKind.NonNullExpression) {
+    if (node.kind === SyntaxKind.ParenthesizedExpression || node.kind === SyntaxKind.AsExpression
+            || node.kind === SyntaxKind.TypeAssertionExpression || node.kind === SyntaxKind.NonNullExpression) {
         return wsCacheBucketWriteBoxTypes (csharp, node.expression, member, depth);
     }
-    if (node.kind === ts.SyntaxKind.ConditionalExpression) {
+    if (node.kind === SyntaxKind.ConditionalExpression) {
         // `(c) ? undefined : this.safeValue (this.<member>[k1], k2)` -- both arms must fit the box
         const whenTrue = wsCacheBucketWriteBoxTypes (csharp, node.whenTrue, member, depth + 1);
         const whenFalse = wsCacheBucketWriteBoxTypes (csharp, node.whenFalse, member, depth + 1);
@@ -5023,15 +5026,15 @@ function wsCacheBucketWriteBoxTypes (csharp, node, member, depth) {
         whenFalse.forEach ((box) => whenTrue.add (box));
         return whenTrue;
     }
-    if (node.kind === ts.SyntaxKind.Identifier) {
+    if (node.kind === SyntaxKind.Identifier) {
         const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (node) : enclosingFunction (node);
         if (scope === undefined) {
             return undefined;
         }
         const index = indexScope (csharp, scope);
-        const declarations = index.declarations.get (node.escapedText) ?? [];
+        const declarations = index.declarations.get (node.text) ?? [];
         let declaration;
-        if (declarations.length === 1 && !index.parameterNames.has (node.escapedText) && !index.blockedNames.has (node.escapedText)) {
+        if (declarations.length === 1 && !index.parameterNames.has (node.text) && !index.blockedNames.has (node.text)) {
             declaration = declarations[0];
         } else {
             const referred = declarations.filter ((candidate) => useRefersToDeclaration (csharp, scope, candidate, node) === true);
@@ -5053,8 +5056,8 @@ function wsCacheBucketWriteBoxTypes (csharp, node, member, depth) {
             }
         };
         const visit = (n) => {
-            if (n.kind === ts.SyntaxKind.BinaryExpression && n.operatorToken?.kind === ts.SyntaxKind.EqualsToken
-                    && n.left?.kind === ts.SyntaxKind.Identifier && n.left.escapedText === declaration.name.escapedText
+            if (n.kind === SyntaxKind.BinaryExpression && n.operatorToken?.kind === SyntaxKind.EqualsToken
+                    && n.left?.kind === SyntaxKind.Identifier && n.left.text === declaration.name.text
                     && useRefersToDeclaration (csharp, scope, declaration, n.left) !== false) {
                 own (n.right); // a write to this very binding (an ambiguous use counts: conservative)
             } else if (n === declaration) {
@@ -5064,9 +5067,9 @@ function wsCacheBucketWriteBoxTypes (csharp, node, member, depth) {
                     own (n.initializer);
                 }
             }
-            ts.forEachChild (n, visit);
+            n.forEachChild (visit);
         };
-        ts.forEachChild (scope, visit);
+        scope.forEachChild (visit);
         if (unproven || assigned === 0) {
             return (unproven) ? undefined : new Set ();
         }
@@ -5084,12 +5087,12 @@ function wsCacheBucketDictWrite (csharp, node, member) {
     if (own !== undefined) {
         return own.size === 0 || (own.size === 1 && own.has ('dict'));
     }
-    if (node?.kind === ts.SyntaxKind.CallExpression) {
+    if (node?.kind === SyntaxKind.CallExpression) {
         const callee = node.expression;
-        if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.expression?.kind === ts.SyntaxKind.ThisKeyword
-                && (callee.name?.escapedText === 'safeValue' || callee.name?.escapedText === 'safeDict')) {
+        if (callee?.kind === SyntaxKind.PropertyAccessExpression && callee.expression?.kind === SyntaxKind.ThisKeyword
+                && (callee.name?.text === 'safeValue' || callee.name?.text === 'safeDict')) {
             const fallback = node.arguments?.[node.arguments.length - 1];
-            return fallback?.kind === ts.SyntaxKind.ObjectLiteralExpression;
+            return fallback?.kind === SyntaxKind.ObjectLiteralExpression;
         }
     }
     return false;
@@ -5099,32 +5102,32 @@ function wsCacheBucketDictWrite (csharp, node, member) {
 // `this.safeDict (this.<member>, k)` (two or three arguments), behind any `(…)` / `as T` wrap
 function wsCacheBucketMember (node) {
     let value = node;
-    while (value?.kind === ts.SyntaxKind.ParenthesizedExpression || value?.kind === ts.SyntaxKind.AsExpression
-            || value?.kind === ts.SyntaxKind.TypeAssertionExpression || value?.kind === ts.SyntaxKind.NonNullExpression) {
+    while (value?.kind === SyntaxKind.ParenthesizedExpression || value?.kind === SyntaxKind.AsExpression
+            || value?.kind === SyntaxKind.TypeAssertionExpression || value?.kind === SyntaxKind.NonNullExpression) {
         value = value.expression;
     }
-    if (value?.kind === ts.SyntaxKind.ElementAccessExpression) {
+    if (value?.kind === SyntaxKind.ElementAccessExpression) {
         const receiver = value.expression;
-        if (receiver?.kind === ts.SyntaxKind.PropertyAccessExpression && receiver.expression?.kind === ts.SyntaxKind.ThisKeyword
-                && CSHARP_LOCAL_WS_CACHE_MEMBERS.includes (receiver.name?.escapedText)) {
-            return receiver.name.escapedText;
+        if (receiver?.kind === SyntaxKind.PropertyAccessExpression && receiver.expression?.kind === SyntaxKind.ThisKeyword
+                && CSHARP_LOCAL_WS_CACHE_MEMBERS.includes (receiver.name?.text)) {
+            return receiver.name.text;
         }
         return undefined;
     }
-    if (value?.kind !== ts.SyntaxKind.CallExpression) {
+    if (value?.kind !== SyntaxKind.CallExpression) {
         return undefined;
     }
     const callee = value.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword
-            || (callee.name?.escapedText !== 'safeValue' && callee.name?.escapedText !== 'safeDict') || (value.arguments?.length ?? 0) < 2) {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword
+            || (callee.name?.text !== 'safeValue' && callee.name?.text !== 'safeDict') || (value.arguments?.length ?? 0) < 2) {
         return undefined;
     }
     const receiver = value.arguments[0];
-    if (receiver?.kind !== ts.SyntaxKind.PropertyAccessExpression || receiver.expression?.kind !== ts.SyntaxKind.ThisKeyword
-            || !CSHARP_LOCAL_WS_CACHE_MEMBERS.includes (receiver.name?.escapedText)) {
+    if (receiver?.kind !== SyntaxKind.PropertyAccessExpression || receiver.expression?.kind !== SyntaxKind.ThisKeyword
+            || !CSHARP_LOCAL_WS_CACHE_MEMBERS.includes (receiver.name?.text)) {
         return undefined;
     }
-    return receiver.name.escapedText;
+    return receiver.name.text;
 }
 
 // the proven box of `this.<member>[k1][k2]` in this file, cached per (printer, file, member)
@@ -5155,9 +5158,9 @@ function wsCacheBucketBoxUncached (csharp, sourceFile, member) {
     const bucketWrites = [];
     const fieldWrites = [];
     const visit = (n) => {
-        if (n.kind === ts.SyntaxKind.BinaryExpression && n.operatorToken?.kind === ts.SyntaxKind.EqualsToken) {
+        if (n.kind === SyntaxKind.BinaryExpression && n.operatorToken?.kind === SyntaxKind.EqualsToken) {
             const left = n.left;
-            if (left?.kind === ts.SyntaxKind.ElementAccessExpression && thisMemberElementAccess (left.expression, member)) {
+            if (left?.kind === SyntaxKind.ElementAccessExpression && thisMemberElementAccess (left.expression, member)) {
                 slotWrites.push (n.right); // `this.<member>[k1][k2] = …`
             } else if (thisMemberElementAccess (left, member)) {
                 bucketWrites.push (n.right); // `this.<member>[k1] = …`
@@ -5165,9 +5168,9 @@ function wsCacheBucketBoxUncached (csharp, sourceFile, member) {
                 fieldWrites.push (n.right); // `this.<member> = …`
             }
         }
-        ts.forEachChild (n, visit);
+        n.forEachChild (visit);
     };
-    ts.forEachChild (sourceFile, visit);
+    sourceFile.forEachChild (visit);
     if (slotWrites.length === 0 || bucketWrites.length === 0) {
         return undefined; // the file proves neither the slot's box nor the bucket's shape
     }
@@ -5197,14 +5200,14 @@ function wsCacheBucketBoxUncached (csharp, sourceFile, member) {
 
 // `object <name> = this.safeValue (<bucket>, <key>)` -> the slot's proven box
 function wsCacheBucketReadType (csharp, initializer) {
-    if (initializer?.kind !== ts.SyntaxKind.CallExpression) {
+    if (initializer?.kind !== SyntaxKind.CallExpression) {
         return undefined;
     }
     const callee = initializer.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword) {
         return undefined;
     }
-    if (callee.name?.escapedText !== 'safeValue' || initializer.arguments?.length !== 2) {
+    if (callee.name?.text !== 'safeValue' || initializer.arguments?.length !== 2) {
         return undefined;
     }
     if (!wsCacheElementSourceOk (initializer)) {
@@ -5226,24 +5229,24 @@ function wsCacheBucketReadType (csharp, initializer) {
 const CSHARP_LOCAL_HANDLER_TABLE_NAMES = [ 'methods', 'handlers' ];
 
 function handlerTableReadType (csharp, initializer, context) {
-    if (initializer?.kind !== ts.SyntaxKind.CallExpression) {
+    if (initializer?.kind !== SyntaxKind.CallExpression) {
         return undefined;
     }
     const callee = initializer.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword) {
         return undefined;
     }
-    if (callee.name?.escapedText !== 'safeValue' || initializer.arguments?.length !== 2) {
+    if (callee.name?.text !== 'safeValue' || initializer.arguments?.length !== 2) {
         return undefined;
     }
     const table = initializer.arguments[0];
-    if (table?.kind !== ts.SyntaxKind.Identifier || !CSHARP_LOCAL_HANDLER_TABLE_NAMES.includes (table.escapedText)) {
+    if (table?.kind !== SyntaxKind.Identifier || !CSHARP_LOCAL_HANDLER_TABLE_NAMES.includes (table.text)) {
         return undefined;
     }
     if (context?.scope === undefined) {
         return undefined;
     }
-    const tableName = table.escapedText;
+    const tableName = table.text;
     const index = indexScope (csharp, context.scope);
     const declarations = index.declarations.get (tableName);
     if (!declarations || declarations.length === 0 || index.parameterNames.has (tableName) || index.blockedNames.has (tableName)) {
@@ -5262,7 +5265,7 @@ function handlerTableReadType (csharp, initializer, context) {
         declaration = referred[0];
     }
     const literal = declaration.initializer;
-    if (literal?.kind !== ts.SyntaxKind.ObjectLiteralExpression || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+    if (literal?.kind !== SyntaxKind.ObjectLiteralExpression || declaration.name?.kind !== SyntaxKind.Identifier) {
         return undefined;
     }
     // every table entry must be a `this.<name>` reference to a method declared in this file:
@@ -5270,10 +5273,10 @@ function handlerTableReadType (csharp, initializer, context) {
     const sourceFile = initializer.getSourceFile?.();
     for (const property of literal.properties) {
         const value = property.initializer;
-        if (value?.kind !== ts.SyntaxKind.PropertyAccessExpression || value.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        if (value?.kind !== SyntaxKind.PropertyAccessExpression || value.expression?.kind !== SyntaxKind.ThisKeyword) {
             return undefined;
         }
-        const name = value.name?.escapedText;
+        const name = value.name?.text;
         if (name === undefined || sourceFileMethods (sourceFile, name).length === 0) {
             return undefined;
         }
@@ -5334,14 +5337,14 @@ function parseReturnDeclarations (tables, name) {
         return tables.declarations.get (name);
     }
     const found = [];
-    for (const sourceFile of (tables.program.getSourceFiles () ?? [])) {
+    for (const sourceFile of (tables.program.getSourceFileNames () ?? []).map ((name) => tables.program.getSourceFile (name))) {
         const visit = (node) => {
             // a bodiless declaration (an interface method, a js/src/*.d.ts twin of a ts/src
             // definition) is not a runtime implementation and proves nothing
-            if (node.kind === ts.SyntaxKind.MethodDeclaration && node.body !== undefined && node.name !== undefined && node.name.escapedText === name) {
+            if (node.kind === SyntaxKind.MethodDeclaration && node.body !== undefined && node.name !== undefined && node.name.text === name) {
                 found.push (node);
             }
-            ts.forEachChild (node, visit);
+            node.forEachChild (visit);
         };
         visit (sourceFile);
     }
@@ -5356,11 +5359,11 @@ function parseCollectionBox (checker, type) {
         return undefined;
     }
     const flags = type.flags;
-    if ((flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown | ts.TypeFlags.Never)) !== 0) {
+    if ((flags & (TypeFlags.Any | TypeFlags.Unknown | TypeFlags.Never)) !== 0) {
         return undefined;
     }
-    if ((flags & ts.TypeFlags.Union) !== 0) {
-        const arms = (type.types ?? []).filter ((t) => (t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) === 0);
+    if ((flags & TypeFlags.Union) !== 0) {
+        const arms = (type.getTypes () ?? []).filter ((t) => (t.flags & (TypeFlags.Undefined | TypeFlags.Null)) === 0);
         if (arms.length === 0) {
             return undefined;
         }
@@ -5374,7 +5377,7 @@ function parseCollectionBox (checker, type) {
         }
         return box;
     }
-    if ((flags & ts.TypeFlags.Object) === 0) {
+    if ((flags & TypeFlags.Object) === 0) {
         return undefined; // string / number / boolean / enum / ... — not this family
     }
     if ((typeof checker.isArrayType === 'function' && checker.isArrayType (type))
@@ -5408,32 +5411,32 @@ function parseReturnExpressionProves (csharp, expression, mapped, depth) {
         return false;
     }
     let node = expression;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (node?.kind === SyntaxKind.ParenthesizedExpression) {
         node = node.expression;
     }
     switch (node?.kind) {
-    case ts.SyntaxKind.AsExpression:
-    case ts.SyntaxKind.TypeAssertionExpression: {
+    case SyntaxKind.AsExpression:
+    case SyntaxKind.TypeAssertionExpression: {
         // `x as any` prints `((object)x)` and `x as <interface>` prints the bare operand — both
         // identity wrappers. Any other target prints a cast of its own type, not this box.
         const target = node.type;
-        if (target?.kind !== ts.SyntaxKind.AnyKeyword && target?.kind !== ts.SyntaxKind.TypeReference) {
+        if (target?.kind !== SyntaxKind.AnyKeyword && target?.kind !== SyntaxKind.TypeReference) {
             return false;
         }
         return parseReturnExpressionProves (csharp, node.expression, mapped, depth + 1);
     }
-    case ts.SyntaxKind.NullKeyword:
+    case SyntaxKind.NullKeyword:
         return true; // a null box unboxes to null under the reference cast
-    case ts.SyntaxKind.ObjectLiteralExpression:
+    case SyntaxKind.ObjectLiteralExpression:
         return parseBoxCompatible (mapped, 'Dictionary<string, object>');
-    case ts.SyntaxKind.ArrayLiteralExpression:
+    case SyntaxKind.ArrayLiteralExpression:
         return parseBoxCompatible (mapped, 'List<object>');
-    case ts.SyntaxKind.ConditionalExpression:
+    case SyntaxKind.ConditionalExpression:
         return parseReturnExpressionProves (csharp, node.whenTrue, mapped, depth + 1)
             && parseReturnExpressionProves (csharp, node.whenFalse, mapped, depth + 1);
-    case ts.SyntaxKind.Identifier:
+    case SyntaxKind.Identifier:
         return parseBoxCompatible (mapped, identifierType (csharp, node));
-    case ts.SyntaxKind.CallExpression:
+    case SyntaxKind.CallExpression:
         return parseBoxCompatible (mapped, callReturnType (csharp, node))
             || parseBoxCompatible (mapped, callCollectionReturnType (csharp, node));
     default:
@@ -5444,10 +5447,10 @@ function parseReturnExpressionProves (csharp, expression, mapped, depth) {
 function parseReturnDeclarationProves (csharp, declaration, mapped) {
     let proved = true;
     const visit = (node) => {
-        if (!proved || (node !== declaration && typeof ts.isFunctionLike === 'function' && ts.isFunctionLike (node))) {
+        if (!proved || (node !== declaration && isFunctionLike (node))) {
             return; // a return inside a nested callback belongs to that callback
         }
-        if (node.kind === ts.SyntaxKind.ReturnStatement) {
+        if (node.kind === SyntaxKind.ReturnStatement) {
             // a body with no return statement at all (a `throw new NotSupported (...)` stub, a
             // fall-through) hands back null/undefined, which the reference cast passes through
             if (!parseReturnExpressionProves (csharp, node.expression, mapped, 0)) {
@@ -5455,9 +5458,9 @@ function parseReturnDeclarationProves (csharp, declaration, mapped) {
             }
             return;
         }
-        ts.forEachChild (node, visit);
+        node.forEachChild (visit);
     };
-    ts.forEachChild (declaration, visit);
+    declaration.forEachChild (visit);
     return proved;
 }
 
@@ -5483,13 +5486,13 @@ function parseReturnDeclarationProves (csharp, declaration, mapped) {
 // (any/unknown, a collection, a structure, a union the arms of which disagree)
 function parseScalarKindOf (type) {
     const flags = type.flags;
-    if ((flags & ts.TypeFlags.StringLike) !== 0) {
+    if ((flags & TypeFlags.StringLike) !== 0) {
         return 'string';
     }
-    if ((flags & ts.TypeFlags.NumberLike) !== 0) {
+    if ((flags & TypeFlags.NumberLike) !== 0) {
         return 'number';
     }
-    if ((flags & ts.TypeFlags.BooleanLike) !== 0) {
+    if ((flags & TypeFlags.BooleanLike) !== 0) {
         return 'boolean';
     }
     return undefined;
@@ -5500,17 +5503,17 @@ function parseScalarKinds (checker, type) {
         return undefined;
     }
     const flags = type.flags;
-    if ((flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown | ts.TypeFlags.Never)) !== 0) {
+    if ((flags & (TypeFlags.Any | TypeFlags.Unknown | TypeFlags.Never)) !== 0) {
         return undefined;
     }
     let kind;
-    if ((flags & ts.TypeFlags.Union) !== 0) {
-        const arms = (type.types ?? []).filter ((t) => (t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null | ts.TypeFlags.Void)) === 0);
+    if ((flags & TypeFlags.Union) !== 0) {
+        const arms = (type.getTypes () ?? []).filter ((t) => (t.flags & (TypeFlags.Undefined | TypeFlags.Null | TypeFlags.Void)) === 0);
         if (arms.length === 0) {
             return undefined;
         }
         for (const arm of arms) {
-            const own = (arm.flags & ts.TypeFlags.Union) !== 0 ? undefined : parseScalarKindOf (arm);
+            const own = (arm.flags & TypeFlags.Union) !== 0 ? undefined : parseScalarKindOf (arm);
             if (own === undefined || (kind !== undefined && kind !== own)) {
                 return undefined;
             }
@@ -5555,38 +5558,38 @@ function parseScalarExpressionProves (csharp, expression, mapped, depth) {
         return false;
     }
     let node = expression;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (node?.kind === SyntaxKind.ParenthesizedExpression) {
         node = node.expression;
     }
     switch (node?.kind) {
-    case ts.SyntaxKind.NullKeyword:
+    case SyntaxKind.NullKeyword:
         return true; // a null box unboxes to null under the reference cast
-    case ts.SyntaxKind.Identifier:
-        return (node.escapedText === 'undefined') || parseScalarBoxCompatible (mapped, identifierType (csharp, node));
-    case ts.SyntaxKind.StringLiteral:
-    case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+    case SyntaxKind.Identifier:
+        return (node.text === 'undefined') || parseScalarBoxCompatible (mapped, identifierType (csharp, node));
+    case SyntaxKind.StringLiteral:
+    case SyntaxKind.NoSubstitutionTemplateLiteral:
         return mapped === 'string?';
-    case ts.SyntaxKind.TrueKeyword:
-    case ts.SyntaxKind.FalseKeyword:
+    case SyntaxKind.TrueKeyword:
+    case SyntaxKind.FalseKeyword:
         return mapped === 'bool?';
-    case ts.SyntaxKind.AsExpression:
-    case ts.SyntaxKind.TypeAssertionExpression: {
+    case SyntaxKind.AsExpression:
+    case SyntaxKind.TypeAssertionExpression: {
         const target = node.type;
-        if (target?.kind !== ts.SyntaxKind.AnyKeyword && target?.kind !== ts.SyntaxKind.TypeReference) {
+        if (target?.kind !== SyntaxKind.AnyKeyword && target?.kind !== SyntaxKind.TypeReference) {
             return false; // `x as string` prints `((string)x)`, a conversion — not an identity wrapper
         }
         return parseScalarExpressionProves (csharp, node.expression, mapped, depth + 1);
     }
-    case ts.SyntaxKind.ConditionalExpression:
+    case SyntaxKind.ConditionalExpression:
         return parseScalarExpressionProves (csharp, node.whenTrue, mapped, depth + 1)
             && parseScalarExpressionProves (csharp, node.whenFalse, mapped, depth + 1);
-    case ts.SyntaxKind.CallExpression:
+    case SyntaxKind.CallExpression:
         return parseScalarBoxCompatible (mapped, callReturnType (csharp, node));
-    case ts.SyntaxKind.BinaryExpression:
+    case SyntaxKind.BinaryExpression:
         // a `+` that prints through add(string, *): the overload returns a string for every
         // right operand, so the box is the mapped string. A numeric `+` boxes an Int64 OR a
         // double depending on the operands — never a nameable single box.
-        return node.operatorToken?.kind === ts.SyntaxKind.PlusToken && mapped === 'string?'
+        return node.operatorToken?.kind === SyntaxKind.PlusToken && mapped === 'string?'
             && isProvablyStringOperand (csharp, node.left);
     default:
         return false;
@@ -5596,10 +5599,10 @@ function parseScalarExpressionProves (csharp, expression, mapped, depth) {
 function parseScalarReturnPathsProve (csharp, declaration, mapped) {
     let proved = true;
     const visit = (node) => {
-        if (!proved || (node !== declaration && typeof ts.isFunctionLike === 'function' && ts.isFunctionLike (node))) {
+        if (!proved || (node !== declaration && isFunctionLike (node))) {
             return; // a return inside a nested callback belongs to that callback
         }
-        if (node.kind === ts.SyntaxKind.ReturnStatement) {
+        if (node.kind === SyntaxKind.ReturnStatement) {
             // a body with no return statement at all (a `throw new NotSupported (...)` stub)
             // hands back null/undefined, which the reference cast passes through
             if (!parseScalarExpressionProves (csharp, node.expression, mapped, 0)) {
@@ -5607,9 +5610,9 @@ function parseScalarReturnPathsProve (csharp, declaration, mapped) {
             }
             return;
         }
-        ts.forEachChild (node, visit);
+        node.forEachChild (visit);
     };
-    ts.forEachChild (declaration, visit);
+    declaration.forEachChild (visit);
     return proved;
 }
 
@@ -5647,7 +5650,7 @@ function parseReturnCastType (csharp, call, methodName) {
     try {
         const checker = csharp.getChecker ();
         const declaration = (checker.getSymbolAtLocation (call.expression.name)?.declarations ?? [])
-            .find ((d) => d.kind === ts.SyntaxKind.MethodDeclaration);
+            .find ((d) => d.kind === SyntaxKind.MethodDeclaration)?.resolve ();
         if (declaration !== undefined) {
             const signature = (typeof checker.getSignatureFromDeclaration === 'function') ? checker.getSignatureFromDeclaration (declaration) : undefined;
             const type = (declaration.type !== undefined)
@@ -5680,14 +5683,14 @@ function parseReturnCastType (csharp, call, methodName) {
 }
 
 function callResultCastType (csharp, initializer) {
-    if (initializer?.kind !== ts.SyntaxKind.CallExpression) {
+    if (initializer?.kind !== SyntaxKind.CallExpression) {
         return undefined;
     }
     const callee = initializer.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword) {
         return undefined;
     }
-    const methodName = callee.name?.escapedText;
+    const methodName = callee.name?.text;
     // own-key lookup only: `map['toString']` would hand back Object.prototype.toString
     if (Object.prototype.hasOwnProperty.call (CSHARP_LOCAL_CAST_CALL_TYPES, methodName)) {
         return CSHARP_LOCAL_CAST_CALL_TYPES[methodName];
@@ -5710,14 +5713,14 @@ const FILTER_BY_ARRAY_BOX_METHODS = new Set ([
 ]);
 
 function filterByArrayBoxType (initializer) {
-    if (initializer?.kind !== ts.SyntaxKind.CallExpression) {
+    if (initializer?.kind !== SyntaxKind.CallExpression) {
         return undefined;
     }
     const callee = initializer.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword) {
         return undefined;
     }
-    if (!FILTER_BY_ARRAY_BOX_METHODS.has (callee.name?.escapedText)) {
+    if (!FILTER_BY_ARRAY_BOX_METHODS.has (callee.name?.text)) {
         return undefined;
     }
     const args = initializer.arguments ?? [];
@@ -5727,10 +5730,10 @@ function filterByArrayBoxType (initializer) {
     if (args.length !== 4) {
         return undefined;
     }
-    if (args[3].kind === ts.SyntaxKind.FalseKeyword) {
+    if (args[3].kind === SyntaxKind.FalseKeyword) {
         return 'IList<object>';
     }
-    if (args[3].kind === ts.SyntaxKind.TrueKeyword) {
+    if (args[3].kind === SyntaxKind.TrueKeyword) {
         return 'Dictionary<string, object>';
     }
     return undefined;
@@ -5741,11 +5744,11 @@ function filterByArrayBoxType (initializer) {
 // call's own C# type IS the box and the call-site cast goes. The string-box definitions are
 // untouched (their `((string)…)` sites belong to the string-cast family).
 function typedRequestIdCall (initializer) {
-    if (initializer?.kind !== ts.SyntaxKind.CallExpression) {
+    if (initializer?.kind !== SyntaxKind.CallExpression) {
         return false;
     }
     const callee = initializer.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword || callee.name?.escapedText !== 'requestId') {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword || callee.name?.text !== 'requestId') {
         return false;
     }
     return sameFileCallBoxType (initializer.getSourceFile?.()) === 'Int64';
@@ -5766,15 +5769,15 @@ const OUTCOME_ROW_TYPE = 'IDictionary<string, object>';
 
 function outcomeCacheCallCastType (initializer) {
     // `await this.loadOutcome (...)` unwraps the same row
-    const call = (initializer?.kind === ts.SyntaxKind.AwaitExpression) ? initializer.expression : initializer;
-    if (call?.kind !== ts.SyntaxKind.CallExpression) {
+    const call = (initializer?.kind === SyntaxKind.AwaitExpression) ? initializer.expression : initializer;
+    if (call?.kind !== SyntaxKind.CallExpression) {
         return undefined;
     }
     const callee = call.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword) {
         return undefined;
     }
-    const methodName = callee.name?.escapedText;
+    const methodName = callee.name?.text;
     if (methodName === 'safeOutcome') {
         return (call.arguments?.length === 1) ? OUTCOME_ROW_TYPE : undefined;
     }
@@ -5815,11 +5818,11 @@ function sameFileCallBoxType (sourceFile) {
     let declaration;
     let declarations = 0;
     const visit = (node) => {
-        if (node.kind === ts.SyntaxKind.MethodDeclaration && node.name?.escapedText === 'requestId') {
+        if (node.kind === SyntaxKind.MethodDeclaration && node.name?.text === 'requestId') {
             declarations++;
             declaration = node;
         }
-        ts.forEachChild (node, visit);
+        node.forEachChild (visit);
     };
     visit (sourceFile);
     const box = (declarations === 1) ? requestIdDefinitionBoxType (declaration) : undefined;
@@ -5830,19 +5833,19 @@ function sameFileCallBoxType (sourceFile) {
 // the box type every return path of a requestId definition yields, or undefined when any
 // path is unprovable or the paths disagree
 function requestIdDefinitionBoxType (declaration) {
-    if (declaration?.kind !== ts.SyntaxKind.MethodDeclaration || declaration.name?.escapedText !== 'requestId') {
+    if (declaration?.kind !== SyntaxKind.MethodDeclaration || declaration.name?.text !== 'requestId') {
         return undefined;
     }
     const returns = [];
     const collect = (node) => {
-        if (node !== declaration && typeof ts.isFunctionLike === 'function' && ts.isFunctionLike (node)) {
+        if (node !== declaration && isFunctionLike (node)) {
             return; // a return inside a nested callback belongs to that callback
         }
-        if (node.kind === ts.SyntaxKind.ReturnStatement) {
+        if (node.kind === SyntaxKind.ReturnStatement) {
             returns.push (node);
             return;
         }
-        ts.forEachChild (node, collect);
+        node.forEachChild (collect);
     };
     collect (declaration);
     if (returns.length === 0) {
@@ -5872,29 +5875,29 @@ function requestIdExpressionBoxType (method, expression, depth) {
         return undefined;
     }
     switch (expression.kind) {
-    case ts.SyntaxKind.ParenthesizedExpression:
+    case SyntaxKind.ParenthesizedExpression:
         return requestIdExpressionBoxType (method, expression.expression, depth);
-    case ts.SyntaxKind.AsExpression:
-    case ts.SyntaxKind.TypeAssertionExpression:
+    case SyntaxKind.AsExpression:
+    case SyntaxKind.TypeAssertionExpression:
         // `<x> as string` prints `((string)x)`: a string box, or null in, null out
-        return (expression.type?.kind === ts.SyntaxKind.StringKeyword) ? 'string' : undefined;
-    case ts.SyntaxKind.BinaryExpression: {
+        return (expression.type?.kind === SyntaxKind.StringKeyword) ? 'string' : undefined;
+    case SyntaxKind.BinaryExpression: {
         // `a + b` prints add(a, b); two proven string boxes concatenate to a string (a null
         // box cannot occur: both operands are proven strings before the add runs)
-        if (expression.operatorToken?.kind !== ts.SyntaxKind.PlusToken) {
+        if (expression.operatorToken?.kind !== SyntaxKind.PlusToken) {
             return undefined;
         }
         const left = requestIdExpressionBoxType (method, expression.left, depth + 1);
         const right = requestIdExpressionBoxType (method, expression.right, depth + 1);
         return (left === 'string' && right === 'string') ? 'string' : undefined;
     }
-    case ts.SyntaxKind.CallExpression: {
+    case SyntaxKind.CallExpression: {
         const callee = expression.expression;
-        if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression) {
+        if (callee?.kind !== SyntaxKind.PropertyAccessExpression) {
             return undefined;
         }
-        const name = callee.name?.escapedText;
-        if (callee.expression?.kind === ts.SyntaxKind.ThisKeyword) {
+        const name = callee.name?.text;
+        if (callee.expression?.kind === SyntaxKind.ThisKeyword) {
             // hand-written helpers with a proven non-null string box: uuid/uuid16/uuid22
             // (Exchange.String.cs) and numberToString (`string`, Exchange.Number.cs)
             if (name === 'uuid' || name === 'uuid16' || name === 'uuid22' || name === 'numberToString') {
@@ -5906,8 +5909,8 @@ function requestIdExpressionBoxType (method, expression, depth) {
         // throws there exactly as it does today)
         return (name === 'toString' && (expression.arguments?.length ?? 0) === 0) ? 'string' : undefined;
     }
-    case ts.SyntaxKind.Identifier: {
-        const initializer = requestIdLocalInitializer (method, expression.escapedText);
+    case SyntaxKind.Identifier: {
+        const initializer = requestIdLocalInitializer (method, expression.text);
         return (initializer === undefined) ? undefined : requestIdExpressionBoxType (method, initializer, depth + 1);
     }
     }
@@ -5927,26 +5930,26 @@ function requestIdIntBoxOperand (method, expression, depth) {
     if (expression === undefined || depth > 4) {
         return false;
     }
-    if (expression.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    if (expression.kind === SyntaxKind.ParenthesizedExpression) {
         return requestIdIntBoxOperand (method, expression.expression, depth);
     }
-    if (expression.kind === ts.SyntaxKind.CallExpression) {
+    if (expression.kind === SyntaxKind.CallExpression) {
         const callee = expression.expression;
         // `this.safeInteger (...)` is declared `Int64?` (Exchange.SafeMethods.cs): an Int64
         // box or null, and null enters sum as 0 — integer-valued either way
-        return callee?.kind === ts.SyntaxKind.PropertyAccessExpression
-            && callee.expression?.kind === ts.SyntaxKind.ThisKeyword
-            && callee.name?.escapedText === 'safeInteger';
+        return callee?.kind === SyntaxKind.PropertyAccessExpression
+            && callee.expression?.kind === SyntaxKind.ThisKeyword
+            && callee.name?.text === 'safeInteger';
     }
-    if (expression.kind === ts.SyntaxKind.Identifier) {
-        const initializer = requestIdLocalInitializer (method, expression.escapedText);
+    if (expression.kind === SyntaxKind.Identifier) {
+        const initializer = requestIdLocalInitializer (method, expression.text);
         return initializer !== undefined && requestIdIntBoxOperand (method, initializer, depth + 1);
     }
     return false;
 }
 
 function requestIdIntegerLiteral (expression) {
-    return expression?.kind === ts.SyntaxKind.NumericLiteral && /^\d+$/.test (expression.text);
+    return expression?.kind === SyntaxKind.NumericLiteral && /^\d+$/.test (expression.text);
 }
 
 // the initializer of the ONE declaration of <name> in the method body, or undefined when
@@ -5956,23 +5959,23 @@ function requestIdLocalInitializer (method, name) {
     let initializer;
     let conflict = false;
     const visit = (node) => {
-        if (node !== method && typeof ts.isFunctionLike === 'function' && ts.isFunctionLike (node)) {
+        if (node !== method && isFunctionLike (node)) {
             return;
         }
-        if (node.kind === ts.SyntaxKind.VariableDeclaration && node.name?.kind === ts.SyntaxKind.Identifier && node.name.escapedText === name) {
+        if (node.kind === SyntaxKind.VariableDeclaration && node.name?.kind === SyntaxKind.Identifier && node.name.text === name) {
             if (initializer !== undefined) {
                 conflict = true;
             } else {
                 initializer = node.initializer;
             }
         }
-        if (node.kind === ts.SyntaxKind.BinaryExpression
-            && node.operatorToken?.kind === ts.SyntaxKind.EqualsToken
-            && node.left?.kind === ts.SyntaxKind.Identifier
-            && node.left.escapedText === name) {
+        if (node.kind === SyntaxKind.BinaryExpression
+            && node.operatorToken?.kind === SyntaxKind.EqualsToken
+            && node.left?.kind === SyntaxKind.Identifier
+            && node.left.text === name) {
             conflict = true;
         }
-        ts.forEachChild (node, visit);
+        node.forEachChild (visit);
     };
     visit (method);
     return (conflict || initializer === undefined) ? undefined : initializer;
@@ -5997,19 +6000,19 @@ function sameFileMethodReturnsProve (csharp, declaration, proves) {
     let proved = true;
     let returns = 0;
     const visit = (node) => {
-        if (!proved || (node !== declaration && ts.isFunctionLike (node))) {
+        if (!proved || (node !== declaration && isFunctionLike (node))) {
             return;
         }
-        if (node.kind === ts.SyntaxKind.ReturnStatement) {
+        if (node.kind === SyntaxKind.ReturnStatement) {
             returns++;
             if (node.expression === undefined || !proves (node.expression)) {
                 proved = false;
             }
             return;
         }
-        ts.forEachChild (node, visit);
+        node.forEachChild (visit);
     };
-    ts.forEachChild (declaration, visit);
+    declaration.forEachChild (visit);
     return proved && returns > 0;
 }
 
@@ -6021,19 +6024,19 @@ function numericReturnExpressionProves (csharp, expression, mapped) {
     if (node === undefined) {
         return false;
     }
-    if (node.kind === ts.SyntaxKind.NullKeyword) {
+    if (node.kind === SyntaxKind.NullKeyword) {
         return true; // the nullable spelling keeps a null path nameable
     }
-    if (node.kind === ts.SyntaxKind.Identifier && node.escapedText === 'undefined') {
+    if (node.kind === SyntaxKind.Identifier && node.text === 'undefined') {
         return true;
     }
-    if (node.kind === ts.SyntaxKind.NumericLiteral) {
+    if (node.kind === SyntaxKind.NumericLiteral) {
         return true;
     }
-    if (node.kind === ts.SyntaxKind.CallExpression) {
+    if (node.kind === SyntaxKind.CallExpression) {
         const callee = node.expression;
-        if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.expression?.kind === ts.SyntaxKind.ThisKeyword) {
-            const name = callee.name?.escapedText;
+        if (callee?.kind === SyntaxKind.PropertyAccessExpression && callee.expression?.kind === SyntaxKind.ThisKeyword) {
+            const name = callee.name?.text;
             if (name === 'parseNumber' || name === 'safeNumber' || name === 'safeFloat') {
                 return true;
             }
@@ -6046,7 +6049,7 @@ const sameFileNumericTypes = new WeakMap ();
 const sameFileNumericProofsInProgress = new Set ();
 
 function sameFileNumericDeclarationType (csharp, declaration, mapped) {
-    if (declaration?.kind !== ts.SyntaxKind.MethodDeclaration || declaration.name === undefined) {
+    if (declaration?.kind !== SyntaxKind.MethodDeclaration || declaration.name === undefined) {
         return undefined;
     }
     if (typeof csharp.isAsyncFunction === 'function' && csharp.isAsyncFunction (declaration)) {
@@ -6077,7 +6080,7 @@ function sameFileNumericReturnType (csharp, call, name) {
         return undefined;
     }
     const declaration = boundCollectionDeclaration (csharp, call, name);
-    return (declaration?.name?.escapedText === name) ? sameFileNumericDeclarationType (csharp, declaration, mapped) : undefined;
+    return (declaration?.name?.text === name) ? sameFileNumericDeclarationType (csharp, declaration, mapped) : undefined;
 }
 
 // ===== this.safeValue (recv, 'key') with a same-file dict / list twin =====
@@ -6136,11 +6139,11 @@ const SAFE_VALUE_TWIN_KEYED_HELPERS = [ 'safeString', 'safeString2', 'safeString
 // `this.<safe*> (<identifier>, '<key>' [, default])` — the only call shape a pair is proven
 // from, and the only shape the declaration family fires on
 function safeValueTwinCallParts (node) {
-    if (node?.kind !== ts.SyntaxKind.CallExpression) {
+    if (node?.kind !== SyntaxKind.CallExpression) {
         return undefined;
     }
     const callee = node.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword) {
         return undefined;
     }
     const args = node.arguments;
@@ -6149,10 +6152,10 @@ function safeValueTwinCallParts (node) {
     }
     const receiver = args[0];
     const key = args[1];
-    if (receiver?.kind !== ts.SyntaxKind.Identifier || key?.kind !== ts.SyntaxKind.StringLiteral) {
+    if (receiver?.kind !== SyntaxKind.Identifier || key?.kind !== SyntaxKind.StringLiteral) {
         return undefined;
     }
-    return { method: callee.name?.escapedText, receiver: receiver.escapedText, key: key.text, default: args[2] };
+    return { method: callee.name?.text, receiver: receiver.text, key: key.text, default: args[2] };
 }
 
 // the shape a safeValue default argument declares: `{}` a dict, `[]` a list, anything else
@@ -6161,10 +6164,10 @@ function safeValueTwinDefaultShape (node) {
     if (node === undefined) {
         return 'none';
     }
-    if (node.kind === ts.SyntaxKind.ObjectLiteralExpression) {
+    if (node.kind === SyntaxKind.ObjectLiteralExpression) {
         return 'dict';
     }
-    if (node.kind === ts.SyntaxKind.ArrayLiteralExpression) {
+    if (node.kind === SyntaxKind.ArrayLiteralExpression) {
         return 'list';
     }
     return 'other';
@@ -6202,7 +6205,7 @@ function safeValueTwinPairs (sourceFile) {
                 }
             }
         }
-        ts.forEachChild (node, visit);
+        node.forEachChild (visit);
     };
     visit (sourceFile);
     SAFE_VALUE_TWIN_PAIR_CACHE.set (sourceFile, pairs);
@@ -6249,24 +6252,24 @@ function safeValueTwinListUse (use) {
     if (parent === undefined) {
         return false;
     }
-    if ((parent.kind === ts.SyntaxKind.ForOfStatement || parent.kind === ts.SyntaxKind.ForInStatement) && parent.expression === use) {
+    if ((parent.kind === SyntaxKind.ForOfStatement || parent.kind === SyntaxKind.ForInStatement) && parent.expression === use) {
         return true;
     }
-    if (parent.kind === ts.SyntaxKind.SpreadElement || parent.kind === ts.SyntaxKind.SpreadAssignment) {
+    if (parent.kind === SyntaxKind.SpreadElement || parent.kind === SyntaxKind.SpreadAssignment) {
         return true;
     }
-    if (parent.kind === ts.SyntaxKind.PropertyAccessExpression && parent.expression === use
-        && SAFE_VALUE_TWIN_LIST_MEMBERS.includes (parent.name?.escapedText)) {
+    if (parent.kind === SyntaxKind.PropertyAccessExpression && parent.expression === use
+        && SAFE_VALUE_TWIN_LIST_MEMBERS.includes (parent.name?.text)) {
         return true;
     }
-    if (parent.kind === ts.SyntaxKind.ElementAccessExpression && parent.expression === use
-        && parent.argumentExpression?.kind !== ts.SyntaxKind.StringLiteral) {
+    if (parent.kind === SyntaxKind.ElementAccessExpression && parent.expression === use
+        && parent.argumentExpression?.kind !== SyntaxKind.StringLiteral) {
         return true;
     }
-    if (parent.kind === ts.SyntaxKind.CallExpression && parent.arguments.includes (use)) {
+    if (parent.kind === SyntaxKind.CallExpression && parent.arguments.includes (use)) {
         const callee = parent.expression;
-        if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.expression?.kind === ts.SyntaxKind.ThisKeyword
-            && SAFE_VALUE_TWIN_LIST_CONSUMERS.includes (callee.name?.escapedText)) {
+        if (callee?.kind === SyntaxKind.PropertyAccessExpression && callee.expression?.kind === SyntaxKind.ThisKeyword
+            && SAFE_VALUE_TWIN_LIST_CONSUMERS.includes (callee.name?.text)) {
             return true;
         }
     }
@@ -6277,10 +6280,10 @@ function safeValueTwinListUse (use) {
 // hide a list-shaped read: apex pro iterates `message['data']` only through `trades`)
 function safeValueTwinCopyName (use) {
     const parent = use.parent;
-    if (parent?.kind !== ts.SyntaxKind.VariableDeclaration || parent.initializer !== use) {
+    if (parent?.kind !== SyntaxKind.VariableDeclaration || parent.initializer !== use) {
         return undefined;
     }
-    return (parent.name?.kind === ts.SyntaxKind.Identifier) ? parent.name.escapedText : undefined;
+    return (parent.name?.kind === SyntaxKind.Identifier) ? parent.name.text : undefined;
 }
 
 // does `use` treat the value as a dict? (a list candidate may not have one of these)
@@ -6289,28 +6292,28 @@ function safeValueTwinDictUse (use) {
     if (parent === undefined) {
         return false;
     }
-    if (parent.kind === ts.SyntaxKind.ElementAccessExpression && parent.expression === use
-        && parent.argumentExpression?.kind === ts.SyntaxKind.StringLiteral) {
+    if (parent.kind === SyntaxKind.ElementAccessExpression && parent.expression === use
+        && parent.argumentExpression?.kind === SyntaxKind.StringLiteral) {
         return true;
     }
-    if (parent.kind !== ts.SyntaxKind.CallExpression || parent.arguments[0] !== use) {
+    if (parent.kind !== SyntaxKind.CallExpression || parent.arguments[0] !== use) {
         return false;
     }
     const callee = parent.expression;
-    const name = callee?.name?.escapedText;
+    const name = callee?.name?.text;
     // this.safeString (x, 'k') / this.safeValue (x, 'k') / this.safeDict (x, 'k') — a keyed read
-    if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.expression?.kind === ts.SyntaxKind.ThisKeyword
-        && parent.arguments[1]?.kind === ts.SyntaxKind.StringLiteral
+    if (callee?.kind === SyntaxKind.PropertyAccessExpression && callee.expression?.kind === SyntaxKind.ThisKeyword
+        && parent.arguments[1]?.kind === SyntaxKind.StringLiteral
         && SAFE_VALUE_TWIN_KEYED_HELPERS.includes (name)) {
         return true;
     }
     // Object.keys (x) / Object.values (x) / Object.entries (x)
-    if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.expression?.kind === ts.SyntaxKind.Identifier
-        && callee.expression.escapedText === 'Object' && [ 'keys', 'values', 'entries' ].includes (name)) {
+    if (callee?.kind === SyntaxKind.PropertyAccessExpression && callee.expression?.kind === SyntaxKind.Identifier
+        && callee.expression.text === 'Object' && [ 'keys', 'values', 'entries' ].includes (name)) {
         return true;
     }
     // bare getValue (x, k) / isDictionary (x)
-    return callee?.kind === ts.SyntaxKind.Identifier && [ 'getValue', 'isDictionary' ].includes (callee.escapedText);
+    return callee?.kind === SyntaxKind.Identifier && [ 'getValue', 'isDictionary' ].includes (callee.text);
 }
 
 // every use of the local must be consistent with the proven shape — the runtime half of the
@@ -6318,13 +6321,13 @@ function safeValueTwinDictUse (use) {
 // y holds the same box, so a list-shaped read of y contradicts a proven dict too.
 function safeValueTwinUsesAreConsistent (csharp, scope, declaration, shape) {
     const index = indexScope (csharp, scope);
-    const seen = new Set ([ declaration.name.escapedText ]);
+    const seen = new Set ([ declaration.name.text ]);
     const scanName = (name) => {
         for (const use of (index.identifiers.get (name) ?? [])) {
             if (isNotAUse (use)) {
                 continue;
             }
-            if (name === declaration.name.escapedText && useRefersToDeclaration (csharp, scope, declaration, use) === false) {
+            if (name === declaration.name.text && useRefersToDeclaration (csharp, scope, declaration, use) === false) {
                 continue;
             }
             if (shape === 'dict' ? safeValueTwinListUse (use) : safeValueTwinDictUse (use)) {
@@ -6340,33 +6343,33 @@ function safeValueTwinUsesAreConsistent (csharp, scope, declaration, shape) {
         }
         return true;
     };
-    return scanName (declaration.name.escapedText);
+    return scanName (declaration.name.text);
 }
 
 function callReturnType (csharp, initializer) {
-    if (initializer?.kind !== ts.SyntaxKind.CallExpression) {
+    if (initializer?.kind !== SyntaxKind.CallExpression) {
         return undefined;
     }
     const callee = initializer.expression;
     // bare `jwt(...)` / `eddsa(...)`: a plain Identifier callee still binds the BaseExchange
     // instance helper in C# (implicit `this.`), so its return type applies. Names that are
     // not proven instance helpers stay out of the table.
-    if (callee?.kind === ts.SyntaxKind.Identifier) {
+    if (callee?.kind === SyntaxKind.Identifier) {
         // bare `getValue (this.orderbooks, symbol)` — element access on the orderbook map
-        if (callee.escapedText === 'getValue') {
+        if (callee.text === 'getValue') {
             const read = orderbookMapReadType (initializer);
             if (read !== undefined) {
                 return read;
             }
         }
-        return CSHARP_LOCAL_BARE_RETURN_TYPES[callee.escapedText];
+        return CSHARP_LOCAL_BARE_RETURN_TYPES[callee.text];
     }
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression) {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression) {
         return undefined;
     }
-    const methodName = callee.name?.escapedText;
+    const methodName = callee.name?.text;
     const target = callee.expression;
-    if (target?.kind === ts.SyntaxKind.SuperKeyword) {
+    if (target?.kind === SyntaxKind.SuperKeyword) {
         // `super.describe ()` / `super.describeData ()` print `base.describe ()`: the parent
         // class's declaration is generated by the same NAME-keyed collection table (every
         // declaration of the name prints the mapped type), so the C# call's own type is that
@@ -6374,7 +6377,7 @@ function callReturnType (csharp, initializer) {
         // call to any other helper keeps the printer's `object`.
         return Object.prototype.hasOwnProperty.call (CSHARP_COLLECTION_RETURN_METHODS, methodName) ? CSHARP_COLLECTION_RETURN_METHODS[methodName] : undefined;
     }
-    if (target?.kind === ts.SyntaxKind.ThisKeyword) {
+    if (target?.kind === SyntaxKind.ThisKeyword) {
         if (methodName === 'safeValue') {
             // `this.safeValue (this.orderbooks, symbol[, default])` — same map read, with default
             const read = orderbookMapReadType (initializer);
@@ -6421,8 +6424,8 @@ function callReturnType (csharp, initializer) {
         // the declaration names it with no cast (see predictionRetypedCallType)
         return predictionRetypedCallType (initializer);
     }
-    if (target?.kind === ts.SyntaxKind.Identifier) {
-        const staticType = CSHARP_LOCAL_STATIC_RETURN_TYPES[target.escapedText + '.' + methodName];
+    if (target?.kind === SyntaxKind.Identifier) {
+        const staticType = CSHARP_LOCAL_STATIC_RETURN_TYPES[target.text + '.' + methodName];
         if (staticType !== undefined) {
             return staticType;
         }
@@ -6452,14 +6455,14 @@ const classifyInProgress = new Set ();
 // `var` (a NewExpression initialiser) and `object` mean the printer named no type.
 function referenceDeclaredType (csharp, declaration) {
     const list = declaration.parent;
-    if (list?.kind !== ts.SyntaxKind.VariableDeclarationList || list.declarations.length !== 1) {
+    if (list?.kind !== SyntaxKind.VariableDeclarationList || list.declarations.length !== 1) {
         return undefined; // the patch itself only rewrites single-declaration lists
     }
     const own = csharpLocalType (csharp, declaration);
     if (own !== undefined) {
         return own;
     }
-    if (declaration.initializer?.kind === ts.SyntaxKind.NewExpression) {
+    if (declaration.initializer?.kind === SyntaxKind.NewExpression) {
         return undefined;
     }
     if (typeof csharp.getCSharpLocalType !== 'function') {
@@ -6476,14 +6479,14 @@ function resolveReference (csharp, node) {
     const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (node) : enclosingFunction (node);
     if (scope !== undefined) {
         const index = indexScope (csharp, scope);
-        const candidates = (index.bindings.get (node.escapedText) ?? []).filter ((b) => b !== node.parent);
+        const candidates = (index.bindings.get (node.text) ?? []).filter ((b) => b !== node.parent);
         if (candidates.length === 1) {
             return candidates[0];
         }
     }
     try {
         const checker = csharp.getChecker ();
-        const declarations = checker.getSymbolAtLocation (node)?.declarations ?? [];
+        const declarations = (checker.getSymbolAtLocation (node)?.declarations ?? []).map ((d) => d.resolve ());
         if (declarations.length === 1) {
             return declarations[0];
         }
@@ -6499,7 +6502,7 @@ function resolveReference (csharp, node) {
 // prints `this.x`, a different expression.
 function identifierType (csharp, node) {
     const reference = resolveReference (csharp, node);
-    if (reference?.kind !== ts.SyntaxKind.VariableDeclaration) {
+    if (reference?.kind !== SyntaxKind.VariableDeclaration) {
         return undefined;
     }
     return referenceDeclaredType (csharp, reference);
@@ -6517,29 +6520,29 @@ function identifierType (csharp, node) {
 // add(object, object), which returns `object` (and null for a null left).
 function isProvablyStringOperand (csharp, node) {
     switch (node.kind) {
-    case ts.SyntaxKind.StringLiteral:
-    case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+    case SyntaxKind.StringLiteral:
+    case SyntaxKind.NoSubstitutionTemplateLiteral:
         return true;
-    case ts.SyntaxKind.ParenthesizedExpression:
+    case SyntaxKind.ParenthesizedExpression:
         return isProvablyStringOperand (csharp, node.expression);
-    case ts.SyntaxKind.AsExpression:
-        return node.type?.kind === ts.SyntaxKind.StringKeyword;
-    case ts.SyntaxKind.BinaryExpression:
-        return node.operatorToken.kind === ts.SyntaxKind.PlusToken && isProvablyStringOperand (csharp, node.left);
-    case ts.SyntaxKind.PropertyAccessExpression: {
-        if (node.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    case SyntaxKind.AsExpression:
+        return node.type?.kind === SyntaxKind.StringKeyword;
+    case SyntaxKind.BinaryExpression:
+        return node.operatorToken.kind === SyntaxKind.PlusToken && isProvablyStringOperand (csharp, node.left);
+    case SyntaxKind.PropertyAccessExpression: {
+        if (node.expression?.kind !== SyntaxKind.ThisKeyword) {
             return false;
         }
-        const memberType = CSHARP_LOCAL_THIS_MEMBER_TYPES[node.name?.escapedText];
+        const memberType = CSHARP_LOCAL_THIS_MEMBER_TYPES[node.name?.text];
         return memberType === 'string' || memberType === 'string?';
     }
-    case ts.SyntaxKind.Identifier:
+    case SyntaxKind.Identifier:
         // `add(<local>, ...)`: the read's C# static type IS the declared type of the single
         // binding localIdentifierType() proves, so the enclosing add() resolves to
         // add(string, *) exactly as it does for the arm of a `c ? local : ...`; a parameter
         // the emitted signature narrows to `string` reads the same way
         return isStringLocalRead (csharp, node) || (parameterArithmeticType (csharp, node) === 'string');
-    case ts.SyntaxKind.CallExpression: {
+    case SyntaxKind.CallExpression: {
         // `<receiver>.toString ()` prints `((object)<receiver>).ToString ()` whatever the
         // receiver is (ast-transpiler printToStringCall keys on the method name alone), and
         // the printer's own map declares 'toString' -> string. The call is statically a
@@ -6549,7 +6552,7 @@ function isProvablyStringOperand (csharp, node) {
         // printer-mapped names (toUpperCase/toLowerCase/trim/replace/slice/...) would need
         // their own proof shape and are intentionally left out here.
         const callee = node.expression;
-        if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.name?.escapedText === 'toString') {
+        if (callee?.kind === SyntaxKind.PropertyAccessExpression && callee.name?.text === 'toString') {
             return true;
         }
         // a call the module's own return tables prove is statically `string` / `string?`
@@ -6587,15 +6590,15 @@ export function csharpTypeOfValue (csharp, node, context) {
         return undefined;
     }
     switch (node.kind) {
-    case ts.SyntaxKind.NullKeyword:
+    case SyntaxKind.NullKeyword:
         return 'null';
-    case ts.SyntaxKind.Identifier:
-        return (node.escapedText === 'undefined') ? 'null' : resolveLocalReadType (csharp, context, node);
-    case ts.SyntaxKind.ObjectLiteralExpression:
+    case SyntaxKind.Identifier:
+        return (node.text === 'undefined') ? 'null' : resolveLocalReadType (csharp, context, node);
+    case SyntaxKind.ObjectLiteralExpression:
         return 'Dictionary<string, object>';
-    case ts.SyntaxKind.ArrayLiteralExpression:
+    case SyntaxKind.ArrayLiteralExpression:
         return 'List<object>';
-    case ts.SyntaxKind.NewExpression: {
+    case SyntaxKind.NewExpression: {
         // `new Foo(...)` prints `new Foo(...)` — for any simple class constructor the
         // expression's C# static type is Foo, exactly what `var` would infer. The printer
         // already declares a plain NewExpression initialiser `var` (nothing to rewrite
@@ -6610,20 +6613,20 @@ export function csharpTypeOfValue (csharp, node, context) {
         const match = /^new\s+([A-Za-z_][\w]*)\s*\(/.exec (printed);
         return match ? match[1] : undefined;
     }
-    case ts.SyntaxKind.NumericLiteral:
+    case SyntaxKind.NumericLiteral:
         return numericLiteralType (node.text);
-    case ts.SyntaxKind.PrefixUnaryExpression:
-        if (node.operator === ts.SyntaxKind.MinusToken && node.operand?.kind === ts.SyntaxKind.NumericLiteral) {
+    case SyntaxKind.PrefixUnaryExpression:
+        if (node.operator === SyntaxKind.MinusToken && node.operand?.kind === SyntaxKind.NumericLiteral) {
             return numericLiteralType (node.operand.text); // prints `-N`, still an int/double literal
         }
         break;
-    case ts.SyntaxKind.ParenthesizedExpression:
+    case SyntaxKind.ParenthesizedExpression:
         return csharpTypeOfValue (csharp, node.expression, context);
-    case ts.SyntaxKind.AsExpression:
-    case ts.SyntaxKind.TypeAssertionExpression:
+    case SyntaxKind.AsExpression:
+    case SyntaxKind.TypeAssertionExpression:
         // `x as string` / `<string>x` prints `((string)x)`: the cast's static type is
         // string (a wrong box throws at runtime, exactly like the printed cast does)
-        if (node.type?.kind === ts.SyntaxKind.StringKeyword) {
+        if (node.type?.kind === SyntaxKind.StringKeyword) {
             return 'string';
         }
         // The C# printer casts only `as any` / `as string` / `as any[]`
@@ -6633,27 +6636,27 @@ export function csharpTypeOfValue (csharp, node, context) {
         // runtime counterpart. The local's C# value is therefore exactly the printed
         // operand, whose static type this module already proves — naming it moves no
         // box, and csharpLocalIsSafeToRetype re-validates every later read and write.
-        if (node.type?.kind === ts.SyntaxKind.AnyKeyword) {
+        if (node.type?.kind === SyntaxKind.AnyKeyword) {
             return undefined; // `((object)x)` — an object box, nothing proven
         }
-        if (node.type?.kind === ts.SyntaxKind.ArrayType && node.type.elementType?.kind === ts.SyntaxKind.AnyKeyword) {
+        if (node.type?.kind === SyntaxKind.ArrayType && node.type.elementType?.kind === SyntaxKind.AnyKeyword) {
             return 'IList<object>'; // `(IList<object>)(x)` — the cast's own static type
         }
         return csharpTypeOfValue (csharp, node.expression, context);
-    case ts.SyntaxKind.BinaryExpression: {
+    case SyntaxKind.BinaryExpression: {
         // `a + b` prints `add(a, b)`. With a provably string LEFT operand the compiler
         // picks add(string, string) or add(string, object) — both declared `string`,
         // never null — so the result can be named `string` without changing the call;
         // only the local that receives it is affected (and every later use is re-checked
         // by csharpLocalIsSafeToRetype, which keeps a string local `object` when it lands
         // on the left of a later `+` where the overload would re-resolve)
-        if (node.operatorToken.kind === ts.SyntaxKind.PlusToken && isProvablyStringOperand (csharp, node.left)) {
+        if (node.operatorToken.kind === SyntaxKind.PlusToken && isProvablyStringOperand (csharp, node.left)) {
             return 'string';
         }
         // `a + b` with every operand provably numeric selects one of the typed add overloads of
         // the hand-written base (see csharpAddExpressionKind): the declaration names the very
         // box the (object, object) overload's Int64 / double branch hands back, no cast needed
-        if (node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        if (node.operatorToken.kind === SyntaxKind.PlusToken) {
             const addKind = csharpAddExpressionKind (csharp, node, context);
             if (addKind !== undefined) {
                 return addKind;
@@ -6667,7 +6670,7 @@ export function csharpTypeOfValue (csharp, node, context) {
         }
         break;
     }
-    case ts.SyntaxKind.ConditionalExpression: {
+    case SyntaxKind.ConditionalExpression: {
         // `c ? a : b` prints `((bool) isTrue(c)) ? A : B`; typeable when both arms agree
         const whenTrue = conditionalArmType (csharp, node.whenTrue, context);
         const whenFalse = conditionalArmType (csharp, node.whenFalse, context);
@@ -6675,10 +6678,10 @@ export function csharpTypeOfValue (csharp, node, context) {
         // tier: the conditional's own type is the interface, so the declaration names it
         return unifyArms (whenTrue, whenFalse, true);
     }
-    case ts.SyntaxKind.BinaryExpression: {
+    case SyntaxKind.BinaryExpression: {
         // `a + b` prints `add(a, b)`; with `a` statically a non-null string the call
         // resolves to add(string, string) / add(string, object), both declared `string`
-        if (node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        if (node.operatorToken.kind === SyntaxKind.PlusToken) {
             const left = csharpTypeOfValue (csharp, node.left);
             if (left === 'string') {
                 return 'string';
@@ -6686,14 +6689,14 @@ export function csharpTypeOfValue (csharp, node, context) {
         }
         break;
     }
-    case ts.SyntaxKind.CallExpression: {
+    case SyntaxKind.CallExpression: {
         const own = callReturnType (csharp, node);
         if (own !== undefined) {
             return own;
         }
         break;
     }
-    case ts.SyntaxKind.PropertyAccessExpression: {
+    case SyntaxKind.PropertyAccessExpression: {
         // `client.subscriptions` / `.rejections` / `.url` reads of the hand-written
         // WebSocketClient (see CSHARP_CLIENT_MEMBER_TYPES). Every other property access
         // breaks to the printer's own classifier below.
@@ -6703,34 +6706,34 @@ export function csharpTypeOfValue (csharp, node, context) {
         }
         // `this.symbols` / `this.isSandboxModeEnabled`: the hand-written BaseExchange
         // declaration's own C# type (CSHARP_LOCAL_WS_MEMBER_TYPES)
-        if (node.expression?.kind === ts.SyntaxKind.ThisKeyword) {
-            const wsMemberType = CSHARP_LOCAL_WS_MEMBER_TYPES[node.name?.escapedText];
+        if (node.expression?.kind === SyntaxKind.ThisKeyword) {
+            const wsMemberType = CSHARP_LOCAL_WS_MEMBER_TYPES[node.name?.text];
             if (wsMemberType !== undefined) {
                 return wsMemberType;
             }
         }
         break;
     }
-    case ts.SyntaxKind.ElementAccessExpression: {
+    case SyntaxKind.ElementAccessExpression: {
         // `this.orderbooks[symbol]` prints `getValue(this.orderbooks, symbol)`; the ws
         // transpile rewrites that call to getOrderBook(...) — same map as the safeValue case
         const target = node.expression;
-        if (target?.kind === ts.SyntaxKind.PropertyAccessExpression && target.expression?.kind === ts.SyntaxKind.ThisKeyword && target.name?.escapedText === 'orderbooks') {
+        if (target?.kind === SyntaxKind.PropertyAccessExpression && target.expression?.kind === SyntaxKind.ThisKeyword && target.name?.text === 'orderbooks') {
             return 'ccxt.pro.IOrderBook';
         }
         break;
     }
-    case ts.SyntaxKind.NewExpression: {
+    case SyntaxKind.NewExpression: {
         // `new X (...)`: only the hand-written ws classes whose printed constructor name is
         // the C# type name and whose box is exactly that type (see CSHARP_LOCAL_NEW_TYPES)
         const ctor = node.expression;
-        const own = (ctor?.kind === ts.SyntaxKind.Identifier) ? CSHARP_LOCAL_NEW_TYPES[ctor.escapedText] : undefined;
+        const own = (ctor?.kind === SyntaxKind.Identifier) ? CSHARP_LOCAL_NEW_TYPES[ctor.text] : undefined;
         if (own !== undefined) {
             return own;
         }
         break;
     }
-    case ts.SyntaxKind.AwaitExpression:
+    case SyntaxKind.AwaitExpression:
         // `await this.<name> (...)` resolves through the callee's own Task<T>; a bare
         // `await promiseAll (...)` through the hand-written helper's signature
         return csharpAwaitedThisCallType (csharp, node) ?? bareAwaitedCallType (node);
@@ -6766,10 +6769,10 @@ const CSHARP_LOCAL_THIS_ARM_MEMBER_TYPES = {
 };
 
 function thisMemberArmType (node) {
-    if (node?.kind !== ts.SyntaxKind.PropertyAccessExpression || node.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    if (node?.kind !== SyntaxKind.PropertyAccessExpression || node.expression?.kind !== SyntaxKind.ThisKeyword) {
         return undefined;
     }
-    const name = node.name?.escapedText;
+    const name = node.name?.text;
     const known = CSHARP_LOCAL_THIS_ARM_MEMBER_TYPES[name];
     if (known !== undefined) {
         return known;
@@ -6796,7 +6799,7 @@ function conditionalArmType (csharp, node, context) {
         return 'string?';
     }
     let arm = node;
-    while (arm?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (arm?.kind === SyntaxKind.ParenthesizedExpression) {
         arm = arm.expression;
     }
     // the `this.<member>` rule applies to every tier: a read of a base property with a concrete
@@ -6805,7 +6808,7 @@ function conditionalArmType (csharp, node, context) {
     if (memberType !== undefined) {
         return memberType;
     }
-    if (arm?.kind !== ts.SyntaxKind.Identifier) {
+    if (arm?.kind !== SyntaxKind.Identifier) {
         return undefined;
     }
     return localIdentifierType (csharp, arm);
@@ -6817,7 +6820,7 @@ function conditionalArmType (csharp, node, context) {
 // shape installCsharpLocalTypes() rewrites). A parameter, a destructured or second
 // binding, a read before the declaration and any unproven local all reject.
 function localIdentifierType (csharp, node) {
-    const name = node.escapedText;
+    const name = node.text;
     const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (node) : enclosingFunction (node);
     if (scope === undefined) {
         return undefined;
@@ -6831,20 +6834,20 @@ function localIdentifierType (csharp, node) {
         if (n !== scope && isFunctionScope (n)) {
             return; // a nested function binds its own names
         }
-        if (n.kind === ts.SyntaxKind.Parameter || n.kind === ts.SyntaxKind.VariableDeclaration) {
+        if (n.kind === SyntaxKind.Parameter || n.kind === SyntaxKind.VariableDeclaration) {
             const names = bindingNamesOf (n.name);
             if (names.includes (name)) {
                 bindings++;
                 binding = n;
             }
         }
-        ts.forEachChild (n, visit);
+        n.forEachChild (visit);
     };
-    ts.forEachChild (scope, visit);
+    scope.forEachChild (visit);
     if (bindings !== 1 || binding === undefined) {
         return undefined;
     }
-    if (binding.kind !== ts.SyntaxKind.VariableDeclaration || binding.name?.kind !== ts.SyntaxKind.Identifier) {
+    if (binding.kind !== SyntaxKind.VariableDeclaration || binding.name?.kind !== SyntaxKind.Identifier) {
         return undefined;
     }
     if (binding.getStart () >= node.getStart ()) {
@@ -6875,9 +6878,9 @@ const localReadTypesInFlight = new Set ();
 function bindingNamesOf (name) {
     const names = [];
     const visit = (n) => {
-        if (n?.kind === ts.SyntaxKind.Identifier) {
-            names.push (n.escapedText);
-        } else if (n?.kind === ts.SyntaxKind.ObjectBindingPattern || n?.kind === ts.SyntaxKind.ArrayBindingPattern) {
+        if (n?.kind === SyntaxKind.Identifier) {
+            names.push (n.text);
+        } else if (n?.kind === SyntaxKind.ObjectBindingPattern || n?.kind === SyntaxKind.ArrayBindingPattern) {
             for (const element of n.elements) {
                 visit (element?.name);
             }
@@ -6889,13 +6892,13 @@ function bindingNamesOf (name) {
 
 function isFunctionScope (node) {
     switch (node?.kind) {
-    case ts.SyntaxKind.MethodDeclaration:
-    case ts.SyntaxKind.FunctionDeclaration:
-    case ts.SyntaxKind.FunctionExpression:
-    case ts.SyntaxKind.ArrowFunction:
-    case ts.SyntaxKind.Constructor:
-    case ts.SyntaxKind.GetAccessor:
-    case ts.SyntaxKind.SetAccessor:
+    case SyntaxKind.MethodDeclaration:
+    case SyntaxKind.FunctionDeclaration:
+    case SyntaxKind.FunctionExpression:
+    case SyntaxKind.ArrowFunction:
+    case SyntaxKind.Constructor:
+    case SyntaxKind.GetAccessor:
+    case SyntaxKind.SetAccessor:
         return true;
     }
     return false;
@@ -6908,16 +6911,16 @@ function annotationType (declaration) {
     if (!type) {
         return undefined;
     }
-    if (type.kind === ts.SyntaxKind.TypeReference && type.typeName?.kind === ts.SyntaxKind.Identifier && !type.typeArguments) {
-        return CSHARP_LOCAL_ANNOTATION_TYPES[type.typeName.escapedText];
+    if (type.kind === SyntaxKind.TypeReference && type.typeName?.kind === SyntaxKind.Identifier && !type.typeArguments) {
+        return CSHARP_LOCAL_ANNOTATION_TYPES[type.typeName.text];
     }
-    if (type.kind === ts.SyntaxKind.StringKeyword) {
+    if (type.kind === SyntaxKind.StringKeyword) {
         return CSHARP_LOCAL_ANNOTATION_TYPES['string'];
     }
-    if (type.kind === ts.SyntaxKind.NumberKeyword) {
+    if (type.kind === SyntaxKind.NumberKeyword) {
         return CSHARP_LOCAL_ANNOTATION_TYPES['number'];
     }
-    if (type.kind === ts.SyntaxKind.BooleanKeyword) {
+    if (type.kind === SyntaxKind.BooleanKeyword) {
         return CSHARP_LOCAL_ANNOTATION_TYPES['boolean'];
     }
     return undefined;
@@ -6927,12 +6930,12 @@ function enclosingFunction (node) {
     let current = node?.parent;
     while (current) {
         switch (current.kind) {
-        case ts.SyntaxKind.MethodDeclaration:
-        case ts.SyntaxKind.FunctionDeclaration:
-        case ts.SyntaxKind.FunctionExpression:
-        case ts.SyntaxKind.ArrowFunction:
-        case ts.SyntaxKind.Constructor:
-        case ts.SyntaxKind.SourceFile:
+        case SyntaxKind.MethodDeclaration:
+        case SyntaxKind.FunctionDeclaration:
+        case SyntaxKind.FunctionExpression:
+        case SyntaxKind.ArrowFunction:
+        case SyntaxKind.Constructor:
+        case SyntaxKind.SourceFile:
             return current;
         }
         current = current.parent;
@@ -6962,10 +6965,10 @@ function indexScope (csharp, scope) {
             return;
         }
         const walk = (n) => {
-            if (n.kind === ts.SyntaxKind.Identifier) {
-                blockedNames.add (n.escapedText);
+            if (n.kind === SyntaxKind.Identifier) {
+                blockedNames.add (n.text);
             }
-            ts.forEachChild (n, walk);
+            n.forEachChild (walk);
         };
         walk (name);
     };
@@ -6987,8 +6990,8 @@ function indexScope (csharp, scope) {
         list.push (binding);
     };
     const visit = (n) => {
-        if (n.kind === ts.SyntaxKind.Identifier) {
-            const name = n.escapedText;
+        if (n.kind === SyntaxKind.Identifier) {
+            const name = n.text;
             let list = identifiers.get (name);
             if (!list) {
                 list = [];
@@ -6996,46 +6999,46 @@ function indexScope (csharp, scope) {
             }
             list.push (n);
         }
-        if ((n.kind === ts.SyntaxKind.Parameter || n.kind === ts.SyntaxKind.VariableDeclaration) && n.name?.kind === ts.SyntaxKind.Identifier) {
+        if ((n.kind === SyntaxKind.Parameter || n.kind === SyntaxKind.VariableDeclaration) && n.name?.kind === SyntaxKind.Identifier) {
             const printed = csharp.printNode (n.name, 0);
             bindingNames.add (printed);
             bindingCounts.set (printed, (bindingCounts.get (printed) ?? 0) + 1);
-            addBindingScope (bindingScopes, n.name.escapedText, n);
+            addBindingScope (bindingScopes, n.name.text, n);
             addBindingScope (bindingScopesPrinted, printed, n);
-            let list = bindings.get (n.name.escapedText);
+            let list = bindings.get (n.name.text);
             if (!list) {
                 list = [];
-                bindings.set (n.name.escapedText, list);
+                bindings.set (n.name.text, list);
             }
             list.push (n);
         }
-        if (n.kind === ts.SyntaxKind.Parameter) {
-            if (n.name?.kind === ts.SyntaxKind.Identifier) {
-                parameterNames.add (n.name.escapedText);
+        if (n.kind === SyntaxKind.Parameter) {
+            if (n.name?.kind === SyntaxKind.Identifier) {
+                parameterNames.add (n.name.text);
             }
             markBoundNames (n.name);
-        } else if (n.kind === ts.SyntaxKind.VariableDeclaration) {
-            if (n.name?.kind === ts.SyntaxKind.Identifier) {
-                let list = declarations.get (n.name.escapedText);
+        } else if (n.kind === SyntaxKind.VariableDeclaration) {
+            if (n.name?.kind === SyntaxKind.Identifier) {
+                let list = declarations.get (n.name.text);
                 if (!list) {
                     list = [];
-                    declarations.set (n.name.escapedText, list);
+                    declarations.set (n.name.text, list);
                 }
                 list.push (n);
             } else {
                 markBoundNames (n.name); // destructuring assignment never gets a concrete type
             }
-        } else if (n.kind === ts.SyntaxKind.CatchClause && n.variableDeclaration) {
-            if (n.variableDeclaration.name?.kind === ts.SyntaxKind.Identifier) {
-                parameterNames.add (n.variableDeclaration.name.escapedText);
-                addBindingScope (bindingScopes, n.variableDeclaration.name.escapedText, n);
+        } else if (n.kind === SyntaxKind.CatchClause && n.variableDeclaration) {
+            if (n.variableDeclaration.name?.kind === SyntaxKind.Identifier) {
+                parameterNames.add (n.variableDeclaration.name.text);
+                addBindingScope (bindingScopes, n.variableDeclaration.name.text, n);
                 addBindingScope (bindingScopesPrinted, csharp.printNode (n.variableDeclaration.name, 0), n);
             }
             markBoundNames (n.variableDeclaration.name);
         }
-        ts.forEachChild (n, visit);
+        n.forEachChild (visit);
     };
-    ts.forEachChild (scope, visit);
+    scope.forEachChild (visit);
     index = { identifiers, bindingNames, bindingCounts, bindings, declarations, parameterNames, blockedNames, bindingScopes, bindingScopesPrinted };
     scopeIndexCache.set (scope, index);
     return index;
@@ -7062,13 +7065,13 @@ function enclosingBindingScope (node) {
     let current = node;
     while (current?.parent) {
         const parent = current.parent;
-        if (parent.kind === ts.SyntaxKind.ForStatement || parent.kind === ts.SyntaxKind.ForInStatement || parent.kind === ts.SyntaxKind.ForOfStatement) {
+        if (parent.kind === SyntaxKind.ForStatement || parent.kind === SyntaxKind.ForInStatement || parent.kind === SyntaxKind.ForOfStatement) {
             if (parent.initializer === current) {
                 return parent; // `for (let x = ...; ...)` — the per-iteration binding scope
             }
         } else if (isFunctionScope (parent)) {
             return parent;
-        } else if (parent.kind === ts.SyntaxKind.Block || parent.kind === ts.SyntaxKind.CaseBlock || parent.kind === ts.SyntaxKind.ModuleBlock || parent.kind === ts.SyntaxKind.SourceFile) {
+        } else if (parent.kind === SyntaxKind.Block || parent.kind === SyntaxKind.CaseBlock || parent.kind === SyntaxKind.ModuleBlock || parent.kind === SyntaxKind.SourceFile) {
             return parent;
         }
         current = parent;
@@ -7082,19 +7085,19 @@ function enclosingFunctionScopeOf (csharp, node) {
 
 function isBlockScopedDeclaration (declaration) {
     const list = declaration.parent;
-    return list?.kind === ts.SyntaxKind.VariableDeclarationList && (list.flags & (ts.NodeFlags.Let | ts.NodeFlags.Const)) !== 0;
+    return list?.kind === SyntaxKind.VariableDeclarationList && (list.flags & (NodeFlags.Let | NodeFlags.Const)) !== 0;
 }
 
 // the scope node a binding node is visible from, or undefined when no confident answer
 // exists (a `var` declaration, or a shape the index cannot place)
 function bindingScopeOf (csharp, binding) {
-    if (binding.kind === ts.SyntaxKind.Parameter) {
+    if (binding.kind === SyntaxKind.Parameter) {
         return enclosingFunctionScopeOf (csharp, binding);
     }
-    if (binding.kind === ts.SyntaxKind.CatchClause) {
+    if (binding.kind === SyntaxKind.CatchClause) {
         return binding.block; // the catch variable is visible inside its block only
     }
-    if (binding.kind !== ts.SyntaxKind.VariableDeclaration) {
+    if (binding.kind !== SyntaxKind.VariableDeclaration) {
         return undefined;
     }
     if (!isBlockScopedDeclaration (binding)) {
@@ -7125,7 +7128,7 @@ function checkerRefersToDeclaration (csharp, declaration, use) {
             return undefined;
         }
         const symbol = checker.getSymbolAtLocation (use);
-        const declarations = symbol?.declarations;
+        const declarations = symbol?.declarations?.map ((d) => d.resolve ());
         if (!declarations || declarations.length === 0) {
             return undefined;
         }
@@ -7140,7 +7143,7 @@ function checkerRefersToDeclaration (csharp, declaration, use) {
 // another one (false). A tie, an empty candidate set, or a binding without a confident
 // scope (var) is undefined, i.e. the use stays in the scan.
 function structuralRefersToDeclaration (csharp, scope, declaration, use) {
-    const bindings = indexScope (csharp, scope).bindingScopes.get (use.escapedText);
+    const bindings = indexScope (csharp, scope).bindingScopes.get (use.text);
     if (!bindings || bindings.length === 0) {
         return undefined;
     }
@@ -7209,13 +7212,13 @@ function isNotAUse (identifier) {
         return true;
     }
     switch (parent.kind) {
-    case ts.SyntaxKind.VariableDeclaration:
-    case ts.SyntaxKind.Parameter:
-    case ts.SyntaxKind.BindingElement:
-    case ts.SyntaxKind.PropertyAssignment:
-    case ts.SyntaxKind.PropertyDeclaration:
-    case ts.SyntaxKind.MethodDeclaration:
-    case ts.SyntaxKind.PropertyAccessExpression:
+    case SyntaxKind.VariableDeclaration:
+    case SyntaxKind.Parameter:
+    case SyntaxKind.BindingElement:
+    case SyntaxKind.PropertyAssignment:
+    case SyntaxKind.PropertyDeclaration:
+    case SyntaxKind.MethodDeclaration:
+    case SyntaxKind.PropertyAccessExpression:
         return parent.name === identifier;
     }
     return false;
@@ -7248,7 +7251,7 @@ function resolveLocalReadType (csharp, context, identifier) {
         return undefined;
     }
     const index = indexScope (csharp, context.scope);
-    const name = identifier.escapedText;
+    const name = identifier.text;
     const declarations = index.declarations.get (name);
     if (!declarations || declarations.length === 0) {
         return undefined; // not a local
@@ -7296,10 +7299,10 @@ function resolveLocalReadType (csharp, context, identifier) {
 // Identifier case of csharpTypeOfValue makes.
 function copyReadLocalType (csharp, declaration, context) {
     let node = declaration.initializer;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (node?.kind === SyntaxKind.ParenthesizedExpression) {
         node = node.expression;
     }
-    if (node?.kind !== ts.SyntaxKind.Identifier || node.escapedText === 'undefined') {
+    if (node?.kind !== SyntaxKind.Identifier || node.text === 'undefined') {
         return undefined;
     }
     return resolveLocalReadType (csharp, context, node);
@@ -7329,7 +7332,7 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
             continue;
         }
         const parent = n.parent;
-        if (!(parent.kind === ts.SyntaxKind.BinaryExpression && parent.left === n && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken)) {
+        if (!(parent.kind === SyntaxKind.BinaryExpression && parent.left === n && parent.operatorToken.kind === SyntaxKind.EqualsToken)) {
             reads++;
         }
         // `delete obj[x]` (also `delete obj[(x as number)]`) prints `.Remove((string)x)` —
@@ -7345,7 +7348,7 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
             return false;
         }
         switch (parent.kind) {
-        case ts.SyntaxKind.PostfixUnaryExpression:
+        case SyntaxKind.PostfixUnaryExpression:
             // x++ / x-- print postFixIncrement(ref x) / postFixDecrement(ref x). A `ref`
             // argument binds only to its exact type; Exchange.TranspileHelpers.cs has the
             // (ref object) overload plus (ref int) / (ref Int64) / (ref double) twins with
@@ -7355,13 +7358,13 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                 return false;
             }
             break;
-        case ts.SyntaxKind.PrefixUnaryExpression:
+        case SyntaxKind.PrefixUnaryExpression:
             // -x / +x print prefixUnaryNeg(ref x) / prefixUnaryPlus(ref x) (`ref object`
             // plus the same (ref int) / (ref Int64) / (ref double) twins: unchecked
             // negation / identity, same return). `!` prints a bool test and stays valid
             // for every type; any other prefix operator prints through prefixUnaryNeg as
             // well, so the numeric families bind there exactly as they do for `object`.
-            if (parent.operator !== ts.SyntaxKind.ExclamationToken && !isInt && !isDouble) {
+            if (parent.operator !== SyntaxKind.ExclamationToken && !isInt && !isDouble) {
                 return false; // prefixUnaryNeg/Plus(ref x) without a twin for this type
             }
             // The twin returns int / Int64, so if that result is an operand of `-` the
@@ -7374,29 +7377,29 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                 return false;
             }
             break;
-        case ts.SyntaxKind.SpreadElement:
+        case SyntaxKind.SpreadElement:
             return false;
-        case ts.SyntaxKind.TypeOfExpression:
+        case SyntaxKind.TypeOfExpression:
             if (isValueType) {
                 return false; // `x is int` on an int local is CS0183
             }
             break;
-        case ts.SyntaxKind.ArrayLiteralExpression:
+        case SyntaxKind.ArrayLiteralExpression:
             // `[x, y] = f()` prints element reads into untyped slots; accepted when the
             // assignment is an audited request builder whose element is cast back (see below)
-            if (parent.parent?.kind === ts.SyntaxKind.BinaryExpression && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+            if (parent.parent?.kind === SyntaxKind.BinaryExpression && parent.parent.left === parent && parent.parent.operatorToken.kind === SyntaxKind.EqualsToken) {
                 if (!destructuredWriteIsCastable (csharp, scope, index, declaration, n, parent.parent, csharpType, context)
                         && !destructuredIsUTAEnabledBoolProof (csharp, scope, declaration, n, parent.parent, csharpType)) {
                     return false;
                 }
             }
             break;
-        case ts.SyntaxKind.PropertyAccessExpression: {
+        case SyntaxKind.PropertyAccessExpression: {
             // x.push(v) prints ((IList<object>)x).Add(v); x.reverse() reassigns x from a
             // List<object>; x.join(...) / x.shift() / x.pop() print ((IList<object>)x)
             // casts as well. All of them only make sense on a list. x.sort() has no typed
             // print at all.
-            const method = parent.name?.escapedText;
+            const method = parent.name?.text;
             if (method === 'sort') {
                 return false;
             }
@@ -7405,17 +7408,17 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
             }
             break;
         }
-        case ts.SyntaxKind.VariableDeclaration:
+        case SyntaxKind.VariableDeclaration:
             // `const [a, b] = x` prints `var abVariable = x; var a = ((IList<object>) abVariable)[0]`
             // — the synthetic var takes x's static type, so only a list local is castable back
-            if (parent.name?.kind === ts.SyntaxKind.ArrayBindingPattern && !isList) {
+            if (parent.name?.kind === SyntaxKind.ArrayBindingPattern && !isList) {
                 return false;
             }
             break;
-        case ts.SyntaxKind.BinaryExpression: {
+        case SyntaxKind.BinaryExpression: {
             const op = parent.operatorToken.kind;
             if (parent.left === n) {
-                if (op === ts.SyntaxKind.EqualsToken) {
+                if (op === SyntaxKind.EqualsToken) {
                     // RHS may be another already-typed local / a ternary over such locals (context)
                     const written = csharpTypeOfValue (csharp, parent.right, context) ?? u17WriteValueType (csharp, declaration, parent.right);
                     if (!assignable (csharpType, written)) {
@@ -7447,13 +7450,13 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                             return false;
                         }
                     }
-                } else if (op >= ts.SyntaxKind.FirstCompoundAssignment && op <= ts.SyntaxKind.LastCompoundAssignment) {
+                } else if (op >= SyntaxKind.FirstCompoundAssignment && op <= SyntaxKind.LastCompoundAssignment) {
                     // `x += r` prints `x = add(x, r)`; only the string `+` case is named
                     // here — it is accepted under the same proof as a plain `x + r`
                     // (stringPlusOperandIsProvablyString), and the selected add(string, *)
                     // overload is declared `string`, so the write is assignable by
                     // construction. Every other compound operator stays `object`.
-                    if (!(op === ts.SyntaxKind.PlusEqualsToken && (stringPlusOperandIsProvablyString (csharp, n, csharpType, context) || stringPlusOperandIsNonNullAtUse (csharp, scope, declaration, varName, n, csharpType, context)))) {
+                    if (!(op === SyntaxKind.PlusEqualsToken && (stringPlusOperandIsProvablyString (csharp, n, csharpType, context) || stringPlusOperandIsNonNullAtUse (csharp, scope, declaration, varName, n, csharpType, context)))) {
                         return false;
                     }
                 }
@@ -7495,7 +7498,7 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
             }
             break;
         }
-        case ts.SyntaxKind.ParenthesizedExpression: {
+        case SyntaxKind.ParenthesizedExpression: {
             // `(x) + y` prints `add((x), y)`: the parentheses keep x's static type
             const value = unwrapParens (n);
             if (isString && isLeftPlusOperand (value)) {
@@ -7525,7 +7528,7 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
 // climb through `(x)` and `x as T` wrappers to the expression that consumes the value
 function unwrapValue (node) {
     let current = node;
-    while (current.parent && (current.parent.kind === ts.SyntaxKind.ParenthesizedExpression || current.parent.kind === ts.SyntaxKind.AsExpression)) {
+    while (current.parent && (current.parent.kind === SyntaxKind.ParenthesizedExpression || current.parent.kind === SyntaxKind.AsExpression)) {
         current = current.parent;
     }
     return current;
@@ -7535,7 +7538,7 @@ function unwrapValue (node) {
 // string whatever x was declared as, so it is not the local's type that matters there
 function unwrapParens (node) {
     let current = node;
-    while (current.parent && current.parent.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (current.parent && current.parent.kind === SyntaxKind.ParenthesizedExpression) {
         current = current.parent;
     }
     return current;
@@ -7545,11 +7548,11 @@ function unwrapParens (node) {
 // static type picks the overload)
 function isLeftPlusOperand (value) {
     const parent = value.parent;
-    if (parent?.kind !== ts.SyntaxKind.BinaryExpression || parent.left !== value) {
+    if (parent?.kind !== SyntaxKind.BinaryExpression || parent.left !== value) {
         return false;
     }
     const op = parent.operatorToken.kind;
-    return op === ts.SyntaxKind.PlusToken || op === ts.SyntaxKind.PlusEqualsToken;
+    return op === SyntaxKind.PlusToken || op === SyntaxKind.PlusEqualsToken;
 }
 
 // is the prefix expression `expr` an operand of `-` / `-=` after unwrapping parentheses?
@@ -7557,15 +7560,15 @@ function isLeftPlusOperand (value) {
 // static type of the call then picks a typed subtract overload)
 function isOperandOfMinus (expr) {
     let current = expr;
-    while (current.parent && current.parent.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (current.parent && current.parent.kind === SyntaxKind.ParenthesizedExpression) {
         current = current.parent;
     }
     const parent = current.parent;
-    if (parent?.kind !== ts.SyntaxKind.BinaryExpression) {
+    if (parent?.kind !== SyntaxKind.BinaryExpression) {
         return false;
     }
     const op = parent.operatorToken.kind;
-    return op === ts.SyntaxKind.MinusToken || op === ts.SyntaxKind.MinusEqualsToken;
+    return op === SyntaxKind.MinusToken || op === SyntaxKind.MinusEqualsToken;
 }
 
 // how the emitted code consumes `value` under `-` / `-=`: 'minus' for either operand of
@@ -7573,14 +7576,14 @@ function isOperandOfMinus (expr) {
 // static type participates in overload resolution)
 function minusOperatorOf (value) {
     const parent = value.parent;
-    if (parent?.kind !== ts.SyntaxKind.BinaryExpression) {
+    if (parent?.kind !== SyntaxKind.BinaryExpression) {
         return undefined;
     }
     const op = parent.operatorToken.kind;
-    if (op === ts.SyntaxKind.MinusToken) {
+    if (op === SyntaxKind.MinusToken) {
         return 'minus';
     }
-    if (op === ts.SyntaxKind.MinusEqualsToken) {
+    if (op === SyntaxKind.MinusEqualsToken) {
         return 'minusEquals';
     }
     return undefined;
@@ -7591,11 +7594,11 @@ function minusOperatorOf (value) {
 // boxes (differential harness) — and any other proven sibling keeps the (object, object) call.
 function intMinusOperandIsIdentical (csharp, identifier, context) {
     let current = identifier;
-    while (current.parent && current.parent.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (current.parent && current.parent.kind === SyntaxKind.ParenthesizedExpression) {
         current = current.parent;
     }
     const parent = current.parent;
-    if (parent?.kind !== ts.SyntaxKind.BinaryExpression || parent.operatorToken?.kind !== ts.SyntaxKind.MinusToken) {
+    if (parent?.kind !== SyntaxKind.BinaryExpression || parent.operatorToken?.kind !== SyntaxKind.MinusToken) {
         return false;
     }
     const sibling = (parent.left === current) ? parent.right : parent.left;
@@ -7609,15 +7612,15 @@ function isClassThrowArgument (identifier) {
     let current = identifier;
     while (current.parent) {
         const parent = current.parent;
-        if (parent.kind === ts.SyntaxKind.ParenthesizedExpression || parent.kind === ts.SyntaxKind.AsExpression) {
+        if (parent.kind === SyntaxKind.ParenthesizedExpression || parent.kind === SyntaxKind.AsExpression) {
             current = parent;
             continue;
         }
-        if (parent.kind === ts.SyntaxKind.NewExpression && parent.arguments?.includes (current)) {
+        if (parent.kind === SyntaxKind.NewExpression && parent.arguments?.includes (current)) {
             current = parent;
             continue;
         }
-        return parent.kind === ts.SyntaxKind.ThrowStatement;
+        return parent.kind === SyntaxKind.ThrowStatement;
     }
     return false;
 }
@@ -7638,7 +7641,7 @@ function isClassThrowArgument (identifier) {
 // operand shape (a nullable string, a number, an unprovable call) keeps the local
 // `object` exactly as before.
 function isSelfRead (csharp, operand, declaration) {
-    return (operand?.kind === ts.SyntaxKind.Identifier) && (resolveReference (csharp, operand) === declaration);
+    return (operand?.kind === SyntaxKind.Identifier) && (resolveReference (csharp, operand) === declaration);
 }
 
 // one operand of the accumulator's `+` tree: 'string' for a read of the local being
@@ -7647,14 +7650,14 @@ function isSelfRead (csharp, operand, declaration) {
 // proven type otherwise
 function selfConcatNodeType (csharp, context, declaration, node, state) {
     let current = node;
-    while (current?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (current?.kind === SyntaxKind.ParenthesizedExpression) {
         current = current.expression;
     }
     if (isSelfRead (csharp, current, declaration)) {
         state.selfRead = true;
         return 'string';
     }
-    if (current?.kind === ts.SyntaxKind.BinaryExpression && current.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+    if (current?.kind === SyntaxKind.BinaryExpression && current.operatorToken.kind === SyntaxKind.PlusToken) {
         const left = selfConcatNodeType (csharp, context, declaration, current.left, state);
         const right = selfConcatNodeType (csharp, context, declaration, current.right, state);
         return (left === 'string' && right === 'string') ? 'string' : undefined;
@@ -7666,10 +7669,10 @@ function selfConcatNodeType (csharp, context, declaration, node, state) {
 // classified at least once and every operand is a proven non-null string, or undefined
 function selfConcatWriteType (csharp, context, declaration, value) {
     let node = value;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (node?.kind === SyntaxKind.ParenthesizedExpression) {
         node = node.expression;
     }
-    if (node?.kind !== ts.SyntaxKind.BinaryExpression || node.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+    if (node?.kind !== SyntaxKind.BinaryExpression || node.operatorToken.kind !== SyntaxKind.PlusToken) {
         return undefined;
     }
     const state = { selfRead: false };
@@ -7701,7 +7704,7 @@ function selfConcatWriteType (csharp, context, declaration, value) {
 // stringPlusOperandIsProvablyString applies to a left-operand read of the local.
 function nonNullStringWriteLeaf (csharp, node) {
     let current = node;
-    while (current?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (current?.kind === SyntaxKind.ParenthesizedExpression) {
         current = current.expression;
     }
     if (current === undefined) {
@@ -7711,21 +7714,21 @@ function nonNullStringWriteLeaf (csharp, node) {
         return true;
     }
     switch (current.kind) {
-    case ts.SyntaxKind.Identifier: {
+    case SyntaxKind.Identifier: {
         // only the non-nullable spelling: a `string?` local can hold null
         return localIdentifierType (csharp, current) === 'string';
     }
-    case ts.SyntaxKind.PropertyAccessExpression: {
-        if (current.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    case SyntaxKind.PropertyAccessExpression: {
+        if (current.expression?.kind !== SyntaxKind.ThisKeyword) {
             return false;
         }
-        return CSHARP_LOCAL_THIS_MEMBER_TYPES[current.name?.escapedText] === 'string';
+        return CSHARP_LOCAL_THIS_MEMBER_TYPES[current.name?.text] === 'string';
     }
-    case ts.SyntaxKind.CallExpression: {
+    case SyntaxKind.CallExpression: {
         // `<recv>.toString ()`: a null receiver throws inside the call instead of handing
         // back null (the printer maps the name to a non-null string)
         const callee = current.expression;
-        if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.name?.escapedText === 'toString') {
+        if (callee?.kind === SyntaxKind.PropertyAccessExpression && callee.name?.text === 'toString') {
             return true;
         }
         // a call the module's own return tables prove is statically a NON-NULL `string`
@@ -7742,7 +7745,7 @@ function nonNullStringWriteLeaf (csharp, node) {
 // applicable at all — without one the initialiser-position rules already answer.
 function stringWriteNodeIsProvable (csharp, context, declaration, node, state) {
     let current = node;
-    while (current?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (current?.kind === SyntaxKind.ParenthesizedExpression) {
         current = current.expression;
     }
     if (current === undefined) {
@@ -7752,13 +7755,13 @@ function stringWriteNodeIsProvable (csharp, context, declaration, node, state) {
         state.selfRead = true;
         return true;
     }
-    if (current.kind === ts.SyntaxKind.BinaryExpression) {
-        if (current.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+    if (current.kind === SyntaxKind.BinaryExpression) {
+        if (current.operatorToken.kind !== SyntaxKind.PlusToken) {
             return false;
         }
         return stringWriteNodeIsProvable (csharp, context, declaration, current.left, state);
     }
-    if (current.kind === ts.SyntaxKind.ConditionalExpression) {
+    if (current.kind === SyntaxKind.ConditionalExpression) {
         return stringWriteNodeIsProvable (csharp, context, declaration, current.whenTrue, state)
             && stringWriteNodeIsProvable (csharp, context, declaration, current.whenFalse, state);
     }
@@ -7788,15 +7791,15 @@ function stringAccumulatorWriteType (csharp, context, declaration, value) {
 // the join may keep the running type.
 function selfTernaryStringWriteType (csharp, context, declaration, value) {
     let node = value;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (node?.kind === SyntaxKind.ParenthesizedExpression) {
         node = node.expression;
     }
-    if (node?.kind !== ts.SyntaxKind.ConditionalExpression) {
+    if (node?.kind !== SyntaxKind.ConditionalExpression) {
         return undefined;
     }
     const armOf = (arm) => {
         let current = arm;
-        while (current?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        while (current?.kind === SyntaxKind.ParenthesizedExpression) {
             current = current.expression;
         }
         return current;
@@ -7840,13 +7843,13 @@ const CSHARP_THIS_STRING_MEMBER_TYPES = [
 
 function thisStringMemberRead (node) {
     let current = node;
-    while (current?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (current?.kind === SyntaxKind.ParenthesizedExpression) {
         current = current.expression;
     }
-    if (current?.kind !== ts.SyntaxKind.PropertyAccessExpression || current.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    if (current?.kind !== SyntaxKind.PropertyAccessExpression || current.expression?.kind !== SyntaxKind.ThisKeyword) {
         return false;
     }
-    return CSHARP_THIS_STRING_MEMBER_TYPES.includes (current.name?.escapedText);
+    return CSHARP_THIS_STRING_MEMBER_TYPES.includes (current.name?.text);
 }
 
 function stringPlusOperandIsProvablyString (csharp, value, csharpType, context) {
@@ -7854,11 +7857,11 @@ function stringPlusOperandIsProvablyString (csharp, value, csharpType, context) 
         return false;
     }
     const parent = value.parent;
-    if (parent?.kind !== ts.SyntaxKind.BinaryExpression || parent.left !== value) {
+    if (parent?.kind !== SyntaxKind.BinaryExpression || parent.left !== value) {
         return false;
     }
     const op = parent.operatorToken.kind;
-    if (op !== ts.SyntaxKind.PlusToken && op !== ts.SyntaxKind.PlusEqualsToken) {
+    if (op !== SyntaxKind.PlusToken && op !== SyntaxKind.PlusEqualsToken) {
         return false;
     }
     // the right operand may be a proven `string` OR a string-or-null box (`string?`: a
@@ -7902,11 +7905,11 @@ function stringPlusOperandIsNonNullAtUse (csharp, scope, declaration, name, valu
         return false;
     }
     const parent = value.parent;
-    if (parent?.kind !== ts.SyntaxKind.BinaryExpression || parent.left !== value) {
+    if (parent?.kind !== SyntaxKind.BinaryExpression || parent.left !== value) {
         return false;
     }
     const op = parent.operatorToken.kind;
-    if (op !== ts.SyntaxKind.PlusToken && op !== ts.SyntaxKind.PlusEqualsToken) {
+    if (op !== SyntaxKind.PlusToken && op !== SyntaxKind.PlusEqualsToken) {
         return false;
     }
     // the right operand must still be a string box: a non-string right would bind
@@ -7938,11 +7941,11 @@ function stringLocalWriteNodes (csharp, scope, declaration, name) {
             continue;
         }
         const parent = n.parent;
-        if (parent?.kind !== ts.SyntaxKind.BinaryExpression || parent.left !== n) {
+        if (parent?.kind !== SyntaxKind.BinaryExpression || parent.left !== n) {
             continue;
         }
         const op = parent.operatorToken.kind;
-        if (op === ts.SyntaxKind.EqualsToken || (op >= ts.SyntaxKind.FirstCompoundAssignment && op <= ts.SyntaxKind.LastCompoundAssignment)) {
+        if (op === SyntaxKind.EqualsToken || (op >= SyntaxKind.FirstCompoundAssignment && op <= SyntaxKind.LastCompoundAssignment)) {
             out.push (n);
         }
     }
@@ -7955,7 +7958,7 @@ function stringLocalWriteNodes (csharp, scope, declaration, name) {
 // unwrap before classifying.
 function stripParens (node) {
     let current = node;
-    while (current?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (current?.kind === SyntaxKind.ParenthesizedExpression) {
         current = current.expression;
     }
     return current;
@@ -7963,12 +7966,12 @@ function stripParens (node) {
 
 function nullTestOf (node) {
     const expression = stripParens (node);
-    if (expression?.kind !== ts.SyntaxKind.BinaryExpression) {
+    if (expression?.kind !== SyntaxKind.BinaryExpression) {
         return undefined;
     }
     const op = expression.operatorToken.kind;
-    const positive = (op === ts.SyntaxKind.ExclamationEqualsToken || op === ts.SyntaxKind.ExclamationEqualsEqualsToken);
-    const negative = (op === ts.SyntaxKind.EqualsEqualsToken || op === ts.SyntaxKind.EqualsEqualsEqualsToken);
+    const positive = (op === SyntaxKind.ExclamationEqualsToken || op === SyntaxKind.ExclamationEqualsEqualsToken);
+    const negative = (op === SyntaxKind.EqualsEqualsToken || op === SyntaxKind.EqualsEqualsEqualsToken);
     if (!positive && !negative) {
         return undefined;
     }
@@ -7976,10 +7979,10 @@ function nullTestOf (node) {
     for (let i = 0; i < 2; i++) {
         const operand = stripParens (sides[i]);
         const other = stripParens (sides[1 - i]);
-        if (operand?.kind !== ts.SyntaxKind.Identifier) {
+        if (operand?.kind !== SyntaxKind.Identifier) {
             continue;
         }
-        const nullish = other?.kind === ts.SyntaxKind.NullKeyword || (other?.kind === ts.SyntaxKind.Identifier && other.escapedText === 'undefined');
+        const nullish = other?.kind === SyntaxKind.NullKeyword || (other?.kind === SyntaxKind.Identifier && other.text === 'undefined');
         if (!nullish) {
             continue;
         }
@@ -7990,7 +7993,7 @@ function nullTestOf (node) {
 
 // does this left-hand identifier of a null test resolve to the local being retyped?
 function nullTestIsThisBinding (test, csharp, scope, declaration) {
-    if (test.identifier.escapedText !== declaration.name.escapedText) {
+    if (test.identifier.text !== declaration.name.text) {
         return false;
     }
     return useRefersToDeclaration (csharp, scope, declaration, test.identifier) !== false;
@@ -8002,7 +8005,7 @@ function flattenLogicalChain (node, kind) {
     const out = [];
     const walk = (current) => {
         const expression = stripParens (current);
-        if (expression?.kind === ts.SyntaxKind.BinaryExpression && expression.operatorToken.kind === kind) {
+        if (expression?.kind === SyntaxKind.BinaryExpression && expression.operatorToken.kind === kind) {
             walk (expression.left);
             walk (expression.right);
             return;
@@ -8016,7 +8019,7 @@ function flattenLogicalChain (node, kind) {
 // the then-branch of this `if` executes only when every conjunct holds: a conjunction whose
 // every leaf is a positive null test proves each tested binding non-null inside the branch
 function conditionProvesNonNull (condition, csharp, scope, declaration) {
-    const leaves = flattenLogicalChain (condition, ts.SyntaxKind.AmpersandAmpersandToken);
+    const leaves = flattenLogicalChain (condition, SyntaxKind.AmpersandAmpersandToken);
     let testsThisBinding = false;
     for (const leaf of leaves) {
         const test = nullTestOf (leaf);
@@ -8036,22 +8039,22 @@ function statementAlwaysExits (statement) {
     if (statement === undefined) {
         return false;
     }
-    if (statement.kind === ts.SyntaxKind.Block) {
+    if (statement.kind === SyntaxKind.Block) {
         const statements = statement.statements ?? [];
         return statements.length === 1 && statementAlwaysExits (statements[0]);
     }
-    return statement.kind === ts.SyntaxKind.ContinueStatement
-        || statement.kind === ts.SyntaxKind.ReturnStatement
-        || statement.kind === ts.SyntaxKind.ThrowStatement;
+    return statement.kind === SyntaxKind.ContinueStatement
+        || statement.kind === SyntaxKind.ReturnStatement
+        || statement.kind === SyntaxKind.ThrowStatement;
 }
 
 // `if (a === undefined || b === undefined) <exit>;` — reaching past this statement means none
 // of the tested bindings is null/undefined, so it proves THIS binding non-null when it tests it
 function exitGuardProvesNonNull (statement, csharp, scope, declaration) {
-    if (statement?.kind !== ts.SyntaxKind.IfStatement || !statementAlwaysExits (statement.thenStatement)) {
+    if (statement?.kind !== SyntaxKind.IfStatement || !statementAlwaysExits (statement.thenStatement)) {
         return false;
     }
-    const leaves = flattenLogicalChain (statement.expression, ts.SyntaxKind.BarBarToken);
+    const leaves = flattenLogicalChain (statement.expression, SyntaxKind.BarBarToken);
     let testsThisBinding = false;
     for (const leaf of leaves) {
         const test = nullTestOf (leaf);
@@ -8078,7 +8081,7 @@ function stringValueIsNonNullAtUse (csharp, scope, declaration, name, read, cont
     let child = read;
     let parent = read.parent;
     while (parent !== undefined) {
-        if (parent.kind === ts.SyntaxKind.IfStatement && parent.thenStatement === child && conditionProvesNonNull (parent.expression, csharp, scope, declaration)) {
+        if (parent.kind === SyntaxKind.IfStatement && parent.thenStatement === child && conditionProvesNonNull (parent.expression, csharp, scope, declaration)) {
             if (!blocked (parent.expression.getEnd (), read.getStart ())) {
                 return true;
             }
@@ -8090,7 +8093,7 @@ function stringValueIsNonNullAtUse (csharp, scope, declaration, name, read, cont
     // before the read is what the value at the read depends on
     let block = read.parent;
     while (block !== undefined) {
-        if (block.kind === ts.SyntaxKind.Block || block.kind === ts.SyntaxKind.SourceFile || block.kind === ts.SyntaxKind.CaseClause || block.kind === ts.SyntaxKind.ModuleBlock) {
+        if (block.kind === SyntaxKind.Block || block.kind === SyntaxKind.SourceFile || block.kind === SyntaxKind.CaseClause || block.kind === SyntaxKind.ModuleBlock) {
             const statements = block.statements ?? [];
             let current = undefined;
             let proof = undefined;
@@ -8127,21 +8130,21 @@ function stringValueIsNonNullAtUse (csharp, scope, declaration, name, read, cont
 
 // is this statement a direct `x = <non-null string>` write of the binding?
 function plainStringWriteQualifies (statement, csharp, scope, declaration, context) {
-    if (statement?.kind !== ts.SyntaxKind.ExpressionStatement) {
+    if (statement?.kind !== SyntaxKind.ExpressionStatement) {
         return false;
     }
     const expression = statement.expression;
-    if (expression?.kind !== ts.SyntaxKind.BinaryExpression || expression.operatorToken.kind !== ts.SyntaxKind.EqualsToken) {
+    if (expression?.kind !== SyntaxKind.BinaryExpression || expression.operatorToken.kind !== SyntaxKind.EqualsToken) {
         return false;
     }
     const target = expression.left;
-    if (target?.kind !== ts.SyntaxKind.Identifier) {
+    if (target?.kind !== SyntaxKind.Identifier) {
         return false;
     }
     if (useRefersToDeclaration (csharp, scope, declaration, target) === false) {
         return false;
     }
-    if (target.escapedText !== declaration.name.escapedText) {
+    if (target.text !== declaration.name.text) {
         return false;
     }
     return csharpTypeOfValue (csharp, expression.right, context) === 'string';
@@ -8151,24 +8154,24 @@ function plainStringWriteQualifies (statement, csharp, scope, declaration, conte
 function isDeleteKey (identifier) {
     const value = unwrapValue (identifier);
     const access = value.parent;
-    return access?.kind === ts.SyntaxKind.ElementAccessExpression && access.argumentExpression === value && access.parent?.kind === ts.SyntaxKind.DeleteExpression;
+    return access?.kind === SyntaxKind.ElementAccessExpression && access.argumentExpression === value && access.parent?.kind === SyntaxKind.DeleteExpression;
 }
 
 function isLiteralLike (node) {
     switch (node?.kind) {
-    case ts.SyntaxKind.StringLiteral:
-    case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
-    case ts.SyntaxKind.NumericLiteral:
-    case ts.SyntaxKind.TrueKeyword:
-    case ts.SyntaxKind.FalseKeyword:
-    case ts.SyntaxKind.NullKeyword:
+    case SyntaxKind.StringLiteral:
+    case SyntaxKind.NoSubstitutionTemplateLiteral:
+    case SyntaxKind.NumericLiteral:
+    case SyntaxKind.TrueKeyword:
+    case SyntaxKind.FalseKeyword:
+    case SyntaxKind.NullKeyword:
         return true;
-    case ts.SyntaxKind.PrefixUnaryExpression:
+    case SyntaxKind.PrefixUnaryExpression:
         return isLiteralLike (node.operand);
-    case ts.SyntaxKind.ParenthesizedExpression:
+    case SyntaxKind.ParenthesizedExpression:
         return isLiteralLike (node.expression);
-    case ts.SyntaxKind.Identifier:
-        return node.escapedText === 'undefined';
+    case SyntaxKind.Identifier:
+        return node.text === 'undefined';
     }
     return false;
 }
@@ -8208,22 +8211,22 @@ function isLiteralLike (node) {
 
 function stringElementsProducer (initializer) {
     let node = initializer;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (node?.kind === SyntaxKind.ParenthesizedExpression) {
         node = node.expression;
     }
     if (!node) {
         return false;
     }
-    if (node.kind === ts.SyntaxKind.PropertyAccessExpression) {
+    if (node.kind === SyntaxKind.PropertyAccessExpression) {
         // `this.symbols` — string-list field, every writer string (census A in the section header)
-        return node.expression?.kind === ts.SyntaxKind.ThisKeyword && node.name?.escapedText === 'symbols';
+        return node.expression?.kind === SyntaxKind.ThisKeyword && node.name?.text === 'symbols';
     }
-    if (node.kind === ts.SyntaxKind.CallExpression) {
+    if (node.kind === SyntaxKind.CallExpression) {
         const callee = node.expression;
-        if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression) {
+        if (callee?.kind !== SyntaxKind.PropertyAccessExpression) {
             return false;
         }
-        const method = callee.name?.escapedText;
+        const method = callee.name?.text;
         if (method === 'split') {
             return true;
         }
@@ -8231,26 +8234,26 @@ function stringElementsProducer (initializer) {
         // List<string> from `x.ToString().ToCharArray()` one string per char, so every
         // element is a string on every path; GetValue has an exact List<string> branch
         // that returns the boxed element or null, the same box the declaration cast names
-        if (method === 'stringToCharsArray' && callee.expression?.kind === ts.SyntaxKind.ThisKeyword) {
+        if (method === 'stringToCharsArray' && callee.expression?.kind === SyntaxKind.ThisKeyword) {
             return true;
         }
         // this.findMessageHashes (client, element) — every element of the returned list is the
         // one `string?` its body adds (census B in the section header)
-        if (method === 'findMessageHashes' && callee.expression?.kind === ts.SyntaxKind.ThisKeyword && node.arguments?.length === 2) {
+        if (method === 'findMessageHashes' && callee.expression?.kind === SyntaxKind.ThisKeyword && node.arguments?.length === 2) {
             return true;
         }
         // this.marketIds (symbols) — the generated body (Exchange.BaseMethods.cs#MarketIds) adds
         // exactly one `string? id = this.marketId (getValue (symbols, i))` per element and only
         // when it is non-null, so every element of the result is a string
-        if (method === 'marketIds' && callee.expression?.kind === ts.SyntaxKind.ThisKeyword) {
+        if (method === 'marketIds' && callee.expression?.kind === SyntaxKind.ThisKeyword) {
             return true;
         }
         return method === 'keys'
-            && callee.expression?.kind === ts.SyntaxKind.Identifier
-            && callee.expression.escapedText === 'Object';
+            && callee.expression?.kind === SyntaxKind.Identifier
+            && callee.expression.text === 'Object';
     }
-    if (node.kind === ts.SyntaxKind.ArrayLiteralExpression) {
-        return node.elements.length > 0 && node.elements.every ((element) => element.kind === ts.SyntaxKind.StringLiteral || element.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral);
+    if (node.kind === SyntaxKind.ArrayLiteralExpression) {
+        return node.elements.length > 0 && node.elements.every ((element) => element.kind === SyntaxKind.StringLiteral || element.kind === SyntaxKind.NoSubstitutionTemplateLiteral);
     }
     return false;
 }
@@ -8266,11 +8269,11 @@ function checkerElementIsString (checker, type) {
     if (type === undefined) {
         return false;
     }
-    if (typeof type.isUnion === 'function' && type.isUnion ()) {
-        return type.types.some ((member) => checkerElementIsString (checker, member));
+    if (typeof type.isUnionType === 'function' && type.isUnionType ()) {
+        return type.getTypes ().some ((member) => checkerElementIsString (checker, member));
     }
     const args = (typeof checker.getTypeArguments === 'function') ? checker.getTypeArguments (type) : [];
-    return args.length === 1 && (args[0].flags & ts.TypeFlags.StringLike) !== 0;
+    return args.length === 1 && (args[0].flags & TypeFlags.StringLike) !== 0;
 }
 
 function subMessageHashesWriteValueIsStringList (csharp, value) {
@@ -8291,16 +8294,16 @@ function subMessageHashesProducer (csharp, initializer) {
     // `... as List` is a compile-time-only assertion with no runtime effect (the printer's
     // own note on printAsExpression), so it unwraps like parentheses
     let node = initializer;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression || node?.kind === ts.SyntaxKind.AsExpression
-            || node?.kind === ts.SyntaxKind.SatisfiesExpression || node?.kind === ts.SyntaxKind.TypeAssertionExpression) {
+    while (node?.kind === SyntaxKind.ParenthesizedExpression || node?.kind === SyntaxKind.AsExpression
+            || node?.kind === SyntaxKind.SatisfiesExpression || node?.kind === SyntaxKind.TypeAssertionExpression) {
         node = node.expression;
     }
-    if (node?.kind !== ts.SyntaxKind.CallExpression) {
+    if (node?.kind !== SyntaxKind.CallExpression) {
         return false;
     }
     const callee = node.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword
-            || callee.name?.escapedText !== 'safeList') {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword
+            || callee.name?.text !== 'safeList') {
         return false;
     }
     const keyName = elementAccessLiteralKey (node.arguments?.[1]);
@@ -8314,22 +8317,22 @@ function subMessageHashesProducer (csharp, initializer) {
     let writes = 0;
     let ok = true;
     const visit = (n) => {
-        if (n.kind === ts.SyntaxKind.PropertyAssignment && elementAccessLiteralKey (n.name) === keyName) {
+        if (n.kind === SyntaxKind.PropertyAssignment && elementAccessLiteralKey (n.name) === keyName) {
             writes++;
             if (!subMessageHashesWriteValueIsStringList (csharp, n.initializer)) {
                 ok = false;
             }
         }
-        if (n.kind === ts.SyntaxKind.BinaryExpression && ASSIGNMENT_OPERATORS.includes (n.operatorToken?.kind)
-                && n.left?.kind === ts.SyntaxKind.ElementAccessExpression && elementAccessLiteralKey (n.left.argumentExpression) === keyName) {
+        if (n.kind === SyntaxKind.BinaryExpression && ASSIGNMENT_OPERATORS.includes (n.operatorToken?.kind)
+                && n.left?.kind === SyntaxKind.ElementAccessExpression && elementAccessLiteralKey (n.left.argumentExpression) === keyName) {
             writes++;
             if (!subMessageHashesWriteValueIsStringList (csharp, n.right)) {
                 ok = false;
             }
         }
-        ts.forEachChild (n, visit);
+        n.forEachChild (visit);
     };
-    ts.forEachChild (source, visit);
+    source.forEachChild (visit);
     return ok && writes > 0;
 }
 
@@ -8341,32 +8344,32 @@ function receiverUseIsWrite (identifier) {
         return true;
     }
     switch (parent.kind) {
-    case ts.SyntaxKind.BinaryExpression:
+    case SyntaxKind.BinaryExpression:
         // `recv = ...` rebuilds it; `target = recv` aliases a list another name can mutate
         return (parent.left === identifier || parent.right === identifier) && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind);
-    case ts.SyntaxKind.ElementAccessExpression: {
+    case SyntaxKind.ElementAccessExpression: {
         if (parent.expression !== identifier) {
             return false;
         }
         const grand = parent.parent;
-        if (grand?.kind === ts.SyntaxKind.DeleteExpression) {
+        if (grand?.kind === SyntaxKind.DeleteExpression) {
             return true;
         }
-        return grand?.kind === ts.SyntaxKind.BinaryExpression && grand.left === parent && ASSIGNMENT_OPERATORS.includes (grand.operatorToken.kind);
+        return grand?.kind === SyntaxKind.BinaryExpression && grand.left === parent && ASSIGNMENT_OPERATORS.includes (grand.operatorToken.kind);
     }
-    case ts.SyntaxKind.PropertyAccessExpression:
-        return parent.expression === identifier && LIST_MUTATING_METHODS.includes (parent.name?.escapedText);
-    case ts.SyntaxKind.VariableDeclaration:
+    case SyntaxKind.PropertyAccessExpression:
+        return parent.expression === identifier && LIST_MUTATING_METHODS.includes (parent.name?.text);
+    case SyntaxKind.VariableDeclaration:
         return parent.initializer === identifier; // `const other = recv` aliases the list
-    case ts.SyntaxKind.CallExpression:
-    case ts.SyntaxKind.NewExpression:
+    case SyntaxKind.CallExpression:
+    case SyntaxKind.NewExpression:
         return (parent.arguments ?? []).some ((argument) => argument === identifier);
-    case ts.SyntaxKind.ReturnStatement:
+    case SyntaxKind.ReturnStatement:
         return true; // the caller can mutate what it gets back
-    case ts.SyntaxKind.DeleteExpression:
-    case ts.SyntaxKind.BindingElement:
-    case ts.SyntaxKind.PostfixUnaryExpression:
-    case ts.SyntaxKind.PrefixUnaryExpression:
+    case SyntaxKind.DeleteExpression:
+    case SyntaxKind.BindingElement:
+    case SyntaxKind.PostfixUnaryExpression:
+    case SyntaxKind.PrefixUnaryExpression:
         return true;
     }
     return false;
@@ -8385,13 +8388,13 @@ function elementValueType (csharp, node, context) {
         return direct;
     }
     let value = node;
-    while (value?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (value?.kind === SyntaxKind.ParenthesizedExpression) {
         value = value.expression;
     }
-    if (value?.kind === ts.SyntaxKind.Identifier) {
+    if (value?.kind === SyntaxKind.Identifier) {
         return localIdentifierType (csharp, value);
     }
-    if (value?.kind === ts.SyntaxKind.CallExpression) {
+    if (value?.kind === SyntaxKind.CallExpression) {
         return thisCallResultType (csharp, value);
     }
     return undefined;
@@ -8420,10 +8423,10 @@ function joinElementValueTypes (types) {
 // may be skipped by the read scan; an unproven push (or any other write) rejects the list
 function pushBuiltListElementType (csharp, scope, declaration, context) {
     let initializer = declaration.initializer;
-    while (initializer?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (initializer?.kind === SyntaxKind.ParenthesizedExpression) {
         initializer = initializer.expression;
     }
-    if (initializer?.kind !== ts.SyntaxKind.ArrayLiteralExpression) {
+    if (initializer?.kind !== SyntaxKind.ArrayLiteralExpression) {
         return undefined;
     }
     const types = [];
@@ -8435,14 +8438,14 @@ function pushBuiltListElementType (csharp, scope, declaration, context) {
         }
         types.push (type);
     }
-    for (const use of indexScope (csharp, scope).identifiers.get (declaration.name.escapedText) ?? []) {
+    for (const use of indexScope (csharp, scope).identifiers.get (declaration.name.text) ?? []) {
         if (use === declaration.name) {
             continue;
         }
         const parent = use.parent;
-        if (parent?.kind === ts.SyntaxKind.PropertyAccessExpression && parent.expression === use && parent.name?.escapedText === 'push') {
+        if (parent?.kind === SyntaxKind.PropertyAccessExpression && parent.expression === use && parent.name?.text === 'push') {
             const call = parent.parent;
-            if (call?.kind !== ts.SyntaxKind.CallExpression || call.expression !== parent || call.arguments?.length !== 1) {
+            if (call?.kind !== SyntaxKind.CallExpression || call.expression !== parent || call.arguments?.length !== 1) {
                 return undefined; // the printer keeps only the first argument of a multi-value push
             }
             const type = elementValueType (csharp, call.arguments[0], context);
@@ -8469,20 +8472,20 @@ function pushBuiltListElementType (csharp, scope, declaration, context) {
 // List / string unchanged — so the element box is the promises' common proven Task<T> result
 function promiseAllElementType (csharp, initializer, context, scope) {
     let node = initializer;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (node?.kind === SyntaxKind.ParenthesizedExpression) {
         node = node.expression;
     }
-    if (node?.kind !== ts.SyntaxKind.AwaitExpression) {
+    if (node?.kind !== SyntaxKind.AwaitExpression) {
         return undefined;
     }
     const call = node.expression;
-    if (call?.kind !== ts.SyntaxKind.CallExpression) {
+    if (call?.kind !== SyntaxKind.CallExpression) {
         return undefined;
     }
     const callee = call.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression
-        || callee.expression?.kind !== ts.SyntaxKind.Identifier || callee.expression.escapedText !== 'Promise'
-        || callee.name?.escapedText !== 'all') {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression
+        || callee.expression?.kind !== SyntaxKind.Identifier || callee.expression.text !== 'Promise'
+        || callee.name?.text !== 'all') {
         return undefined;
     }
     const argument = call.arguments?.[0];
@@ -8490,15 +8493,15 @@ function promiseAllElementType (csharp, initializer, context, scope) {
         return undefined;
     }
     let built;
-    if (argument.kind === ts.SyntaxKind.Identifier) {
-        const uses = indexScope (csharp, scope).identifiers.get (argument.escapedText);
+    if (argument.kind === SyntaxKind.Identifier) {
+        const uses = indexScope (csharp, scope).identifiers.get (argument.text);
         if (!uses) {
             return undefined;
         }
         let list;
         let bindings = 0;
         for (const n of uses) {
-            if (n.parent?.kind === ts.SyntaxKind.VariableDeclaration && n.parent.name === n) {
+            if (n.parent?.kind === SyntaxKind.VariableDeclaration && n.parent.name === n) {
                 bindings++;
                 list = n.parent;
             }
@@ -8507,7 +8510,7 @@ function promiseAllElementType (csharp, initializer, context, scope) {
             return undefined;
         }
         built = pushBuiltListElementType (csharp, scope, list, context);
-    } else if (argument.kind === ts.SyntaxKind.ArrayLiteralExpression) {
+    } else if (argument.kind === SyntaxKind.ArrayLiteralExpression) {
         const types = [];
         for (const element of argument.elements) {
             const type = elementValueType (csharp, element, context);
@@ -8561,27 +8564,27 @@ function stringListParameterWriteProducer (right) {
     // `symbols = this.marketSymbols (symbols, undefined, false) as string[]` is the same list —
     // `as` is a compile-time-only assertion with no runtime effect (see the printer's own note
     // in src/csharpTranspiler.ts#printAsExpression)
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression
-        || node?.kind === ts.SyntaxKind.AsExpression
-        || node?.kind === ts.SyntaxKind.SatisfiesExpression
-        || node?.kind === ts.SyntaxKind.TypeAssertionExpression) {
+    while (node?.kind === SyntaxKind.ParenthesizedExpression
+        || node?.kind === SyntaxKind.AsExpression
+        || node?.kind === SyntaxKind.SatisfiesExpression
+        || node?.kind === SyntaxKind.TypeAssertionExpression) {
         node = node.expression;
     }
     if (node === undefined) {
         return false;
     }
-    if (node.kind === ts.SyntaxKind.ArrayLiteralExpression) {
+    if (node.kind === SyntaxKind.ArrayLiteralExpression) {
         return node.elements.length === 0; // an empty list holds no element a read could name
     }
-    if (node.kind === ts.SyntaxKind.PropertyAccessExpression) {
-        return node.expression?.kind === ts.SyntaxKind.ThisKeyword && node.name?.escapedText === 'symbols';
+    if (node.kind === SyntaxKind.PropertyAccessExpression) {
+        return node.expression?.kind === SyntaxKind.ThisKeyword && node.name?.text === 'symbols';
     }
-    if (node.kind === ts.SyntaxKind.CallExpression) {
+    if (node.kind === SyntaxKind.CallExpression) {
         const callee = node.expression;
-        if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword) {
             return false;
         }
-        return callee.name?.escapedText === 'marketSymbols' || callee.name?.escapedText === 'getActiveSymbols';
+        return callee.name?.text === 'marketSymbols' || callee.name?.text === 'getActiveSymbols';
     }
     return false;
 }
@@ -8592,12 +8595,12 @@ function stringListParameterAnnotation (parameter) {
     if (type === undefined) {
         return false;
     }
-    if (type.kind === ts.SyntaxKind.ArrayType) {
-        return type.elementType?.kind === ts.SyntaxKind.StringKeyword;
+    if (type.kind === SyntaxKind.ArrayType) {
+        return type.elementType?.kind === SyntaxKind.StringKeyword;
     }
-    return type.kind === ts.SyntaxKind.TypeReference
-        && type.typeName?.kind === ts.SyntaxKind.Identifier
-        && type.typeName.escapedText === 'Strings';
+    return type.kind === SyntaxKind.TypeReference
+        && type.typeName?.kind === SyntaxKind.Identifier
+        && type.typeName.text === 'Strings';
 }
 
 // a use that can change what the list holds in place: an element write, a delete, an in-place
@@ -8609,19 +8612,19 @@ function parameterListUseIsMutation (identifier) {
         return true;
     }
     switch (parent.kind) {
-    case ts.SyntaxKind.ElementAccessExpression: {
+    case SyntaxKind.ElementAccessExpression: {
         if (parent.expression !== identifier) {
             return false;
         }
         const grand = parent.parent;
-        if (grand?.kind === ts.SyntaxKind.DeleteExpression) {
+        if (grand?.kind === SyntaxKind.DeleteExpression) {
             return true;
         }
-        return grand?.kind === ts.SyntaxKind.BinaryExpression && grand.left === parent && ASSIGNMENT_OPERATORS.includes (grand.operatorToken.kind);
+        return grand?.kind === SyntaxKind.BinaryExpression && grand.left === parent && ASSIGNMENT_OPERATORS.includes (grand.operatorToken.kind);
     }
-    case ts.SyntaxKind.PropertyAccessExpression:
-        return parent.expression === identifier && LIST_MUTATING_METHODS.includes (parent.name?.escapedText);
-    case ts.SyntaxKind.DeleteExpression:
+    case SyntaxKind.PropertyAccessExpression:
+        return parent.expression === identifier && LIST_MUTATING_METHODS.includes (parent.name?.text);
+    case SyntaxKind.DeleteExpression:
         return true;
     }
     return false;
@@ -8632,8 +8635,8 @@ function stringListParameterElementType (csharp, scope, parameter) {
     if (typeof csharp.csharpListTypedCoreArg !== 'function' || !stringListParameterAnnotation (parameter)) {
         return false;
     }
-    const name = parameter.name?.escapedText;
-    const methodName = (scope.kind === ts.SyntaxKind.MethodDeclaration && scope.name?.kind === ts.SyntaxKind.Identifier) ? scope.name.escapedText : undefined;
+    const name = parameter.name?.text;
+    const methodName = (scope.kind === SyntaxKind.MethodDeclaration && scope.name?.kind === SyntaxKind.Identifier) ? scope.name.text : undefined;
     if (name === undefined || methodName === undefined) {
         return false;
     }
@@ -8649,7 +8652,7 @@ function stringListParameterElementType (csharp, scope, parameter) {
             continue; // a same-name binding in a nested scope: not this parameter's value
         }
         const parent = use.parent;
-        if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === use && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)) {
+        if (parent?.kind === SyntaxKind.BinaryExpression && parent.left === use && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)) {
             if (!stringListParameterWriteProducer (parent.right)) {
                 return false;
             }
@@ -8666,18 +8669,18 @@ function stringListParameterElementType (csharp, scope, parameter) {
 // named declaration needs the cast csharpLocalTypeOf adds; the receiver must have exactly one
 // binding, declared before the read, and every other use of it must be a read the producer proved
 function elementAccessElementType (csharp, initializer, context) {
-    if (initializer?.kind !== ts.SyntaxKind.ElementAccessExpression) {
+    if (initializer?.kind !== SyntaxKind.ElementAccessExpression) {
         return undefined;
     }
     const receiver = initializer.expression;
-    if (receiver?.kind !== ts.SyntaxKind.Identifier) {
+    if (receiver?.kind !== SyntaxKind.Identifier) {
         return undefined;
     }
     const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (initializer) : enclosingFunction (initializer);
     if (scope === undefined) {
         return undefined;
     }
-    const uses = indexScope (csharp, scope).identifiers.get (receiver.escapedText);
+    const uses = indexScope (csharp, scope).identifiers.get (receiver.text);
     if (!uses) {
         return undefined;
     }
@@ -8685,7 +8688,7 @@ function elementAccessElementType (csharp, initializer, context) {
     let bindings = 0;
     for (const n of uses) {
         const parent = n.parent;
-        if ((parent?.kind === ts.SyntaxKind.VariableDeclaration || parent?.kind === ts.SyntaxKind.Parameter) && parent.name === n) {
+        if ((parent?.kind === SyntaxKind.VariableDeclaration || parent?.kind === SyntaxKind.Parameter) && parent.name === n) {
             bindings++;
             declaration = parent;
         }
@@ -8693,11 +8696,11 @@ function elementAccessElementType (csharp, initializer, context) {
     if (bindings !== 1) {
         return undefined;
     }
-    if (declaration.kind === ts.SyntaxKind.Parameter) {
+    if (declaration.kind === SyntaxKind.Parameter) {
         // U02: a parameter receiver -- the receiver IS a narrowed list parameter (see above)
         return stringListParameterElementType (csharp, scope, declaration) ? 'string' : undefined;
     }
-    if (declaration.kind !== ts.SyntaxKind.VariableDeclaration) {
+    if (declaration.kind !== SyntaxKind.VariableDeclaration) {
         return undefined;
     }
     if (declaration.getStart () > initializer.getStart ()) {
@@ -8775,7 +8778,7 @@ function marketRowParamAnnotation (declaration) {
 
 // the literal key of `recv['key']`, or undefined
 function elementAccessLiteralKey (node) {
-    if (node?.kind === ts.SyntaxKind.StringLiteral || node?.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
+    if (node?.kind === SyntaxKind.StringLiteral || node?.kind === SyntaxKind.NoSubstitutionTemplateLiteral) {
         return node.text;
     }
     return undefined;
@@ -8819,7 +8822,7 @@ const DICT_ROW_STRING_METHODS = new Set ([ 'split', 'join', 'toUpperCase', 'toLo
 // helpers, an element read/write, a list push or a call argument; it is never a string receiver
 // and never an arithmetic operand
 function dictRowUsesAreConsistent (csharp, scope, declaration) {
-    const uses = indexScope (csharp, scope).identifiers.get (declaration.name.escapedText) ?? [];
+    const uses = indexScope (csharp, scope).identifiers.get (declaration.name.text) ?? [];
     for (const use of uses) {
         if (use === declaration.name || isNotAUse (use)) {
             continue;
@@ -8828,23 +8831,23 @@ function dictRowUsesAreConsistent (csharp, scope, declaration) {
             continue;
         }
         const parent = use.parent;
-        if (parent?.kind === ts.SyntaxKind.PropertyAccessExpression && parent.expression === use && DICT_ROW_STRING_METHODS.has (parent.name?.escapedText)) {
+        if (parent?.kind === SyntaxKind.PropertyAccessExpression && parent.expression === use && DICT_ROW_STRING_METHODS.has (parent.name?.text)) {
             return false;
         }
         let current = use;
-        while (current.parent && (current.parent.kind === ts.SyntaxKind.ParenthesizedExpression || current.parent.kind === ts.SyntaxKind.AsExpression)) {
+        while (current.parent && (current.parent.kind === SyntaxKind.ParenthesizedExpression || current.parent.kind === SyntaxKind.AsExpression)) {
             current = current.parent;
         }
         const owner = current.parent;
-        if (owner?.kind === ts.SyntaxKind.BinaryExpression) {
+        if (owner?.kind === SyntaxKind.BinaryExpression) {
             const operator = owner.operatorToken.kind;
-            const arithmetic = operator === ts.SyntaxKind.PlusToken
-                || operator === ts.SyntaxKind.MinusToken
-                || operator === ts.SyntaxKind.AsteriskToken
-                || operator === ts.SyntaxKind.SlashToken
-                || operator === ts.SyntaxKind.PercentToken
-                || operator === ts.SyntaxKind.AsteriskAsteriskToken
-                || (operator >= ts.SyntaxKind.FirstCompoundAssignment && operator <= ts.SyntaxKind.LastCompoundAssignment);
+            const arithmetic = operator === SyntaxKind.PlusToken
+                || operator === SyntaxKind.MinusToken
+                || operator === SyntaxKind.AsteriskToken
+                || operator === SyntaxKind.SlashToken
+                || operator === SyntaxKind.PercentToken
+                || operator === SyntaxKind.AsteriskAsteriskToken
+                || (operator >= SyntaxKind.FirstCompoundAssignment && operator <= SyntaxKind.LastCompoundAssignment);
             if (arithmetic) {
                 return false;
             }
@@ -8856,7 +8859,7 @@ function dictRowUsesAreConsistent (csharp, scope, declaration) {
 // `IDictionary<string, object>` when the checker proves the element of `recv[key]` is a ccxt row
 // shape, or undefined (the read keeps the printer's `object`)
 function dictRowElementReadType (csharp, declaration) {
-    if (!DICT_ROW_LOCAL_NAMES.has (declaration?.name?.escapedText)) {
+    if (!DICT_ROW_LOCAL_NAMES.has (declaration?.name?.text)) {
         return undefined;
     }
     // the generated TESTS are not exchange classes: they hold the exchange in a parameter and
@@ -8869,7 +8872,7 @@ function dictRowElementReadType (csharp, declaration) {
         return undefined;
     }
     const initializer = declaration.initializer;
-    if (initializer?.kind !== ts.SyntaxKind.ElementAccessExpression) {
+    if (initializer?.kind !== SyntaxKind.ElementAccessExpression) {
         return undefined;
     }
     if (typeof csharp.getChecker !== 'function') {
@@ -8885,29 +8888,29 @@ function dictRowElementReadType (csharp, declaration) {
         return undefined;
     }
     const element = checker.getTypeAtLocation (initializer);
-    if (!element || !(element.flags & ts.TypeFlags.Object)) {
+    if (!element || !(element.flags & TypeFlags.Object)) {
         return undefined; // any / unknown / a scalar / a union: no row proof
     }
-    if (element.flags & (ts.TypeFlags.Union | ts.TypeFlags.Intersection | ts.TypeFlags.TypeParameter)) {
+    if (element.flags & (TypeFlags.Union | TypeFlags.Intersection | TypeFlags.TypeParameter)) {
         return undefined;
     }
     if (checker.isArrayType (element) || checker.isTupleType (element)) {
         return undefined; // a nested list is not a row
     }
     const objectFlags = element.objectFlags ?? 0;
-    if (objectFlags & ts.ObjectFlags.Class) {
+    if (objectFlags & ObjectFlags.Class) {
         return undefined; // a class instance is not a decoded row
     }
-    if (!(objectFlags & (ts.ObjectFlags.Interface | ts.ObjectFlags.ObjectLiteral | ts.ObjectFlags.Anonymous | ts.ObjectFlags.Reference | ts.ObjectFlags.Mapped))) {
+    if (!(objectFlags & (ObjectFlags.Interface | ObjectFlags.ObjectLiteral | ObjectFlags.Anonymous | ObjectFlags.Reference | ObjectFlags.Mapped))) {
         return undefined;
     }
-    const symbol = element.getSymbol () ?? element.aliasSymbol;
-    const declarations = symbol?.declarations ?? [];
-    if (declarations.length === 0 || !declarations.every ((each) => ts.isInterfaceDeclaration (each) || ts.isTypeLiteralNode (each))) {
+    const symbol = element.getSymbol () ?? element.getAliasSymbol ();
+    const declarations = (symbol?.declarations ?? []).map ((d) => d.resolve ());
+    if (declarations.length === 0 || !declarations.every ((each) => isInterfaceDeclaration (each) || isTypeLiteralNode (each))) {
         return undefined; // only a ts/src interface or a type literal proves the row shape
     }
     const receiverType = checker.getTypeAtLocation (initializer.expression);
-    if (checker.getIndexTypeOfType (receiverType, ts.IndexKind.String) !== undefined) {
+    if (checker.getIndexTypeOfType (receiverType, IndexKind.String) !== undefined) {
         return undefined; // a string-keyed receiver belongs to the receiver-keyed families (U04)
     }
     const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
@@ -8937,7 +8940,7 @@ const TYPED_DICT_RECEIVER_TYPES = [ 'Dictionary<string, object>', 'IDictionary<s
 // the enclosing function, a local declared before the read, and this module's own classification
 // (localIdentifierType) naming the dictionary it prints.
 function typedDictElementAccessReceiver (csharp, node) {
-    if (node?.kind !== ts.SyntaxKind.ElementAccessExpression) {
+    if (node?.kind !== SyntaxKind.ElementAccessExpression) {
         return undefined;
     }
     // the generated test/example tiers print element reads against the bridge helpers
@@ -8948,7 +8951,7 @@ function typedDictElementAccessReceiver (csharp, node) {
     if (!fileName.includes ('ts/src/') || fileName.includes ('ts/src/test/') || fileName.includes ('examples/')) {
         return undefined;
     }
-    if (node.expression?.kind !== ts.SyntaxKind.Identifier) {
+    if (node.expression?.kind !== SyntaxKind.Identifier) {
         return undefined;
     }
     const type = localIdentifierType (csharp, node.expression);
@@ -8973,22 +8976,22 @@ function installTypedDictElementAccess (csharp) {
 // destructured name has no proven box here and keeps the local `object`.
 function marketRowProducer (initializer) {
     let node = initializer;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (node?.kind === SyntaxKind.ParenthesizedExpression) {
         node = node.expression;
     }
     if (node === undefined) {
         return false;
     }
-    if (node.kind === ts.SyntaxKind.CallExpression) {
+    if (node.kind === SyntaxKind.CallExpression) {
         const callee = node.expression;
-        if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword) {
             return false;
         }
-        const name = callee.name?.escapedText;
+        const name = callee.name?.text;
         return name === 'market' || name === 'safeMarket' || name === 'safeMarketStructure' || MARKET_ROW_HELPER_PRODUCERS.includes (name);
     }
-    if (node.kind === ts.SyntaxKind.ConditionalExpression) {
-        const nullish = (n) => (n?.kind === ts.SyntaxKind.NullKeyword || (n?.kind === ts.SyntaxKind.Identifier && n.escapedText === 'undefined'));
+    if (node.kind === SyntaxKind.ConditionalExpression) {
+        const nullish = (n) => (n?.kind === SyntaxKind.NullKeyword || (n?.kind === SyntaxKind.Identifier && n.text === 'undefined'));
         return (nullish (node.whenTrue) || marketRowProducer (node.whenTrue))
             && (nullish (node.whenFalse) || marketRowProducer (node.whenFalse));
     }
@@ -9000,16 +9003,16 @@ function marketRowProducer (initializer) {
 // null" chain and disqualifies the receiver.
 function marketRowValueOrNullish (node) {
     let value = node;
-    while (value?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (value?.kind === SyntaxKind.ParenthesizedExpression) {
         value = value.expression;
     }
     if (value === undefined) {
         return false;
     }
-    if (value.kind === ts.SyntaxKind.NullKeyword) {
+    if (value.kind === SyntaxKind.NullKeyword) {
         return true;
     }
-    return (value.kind === ts.SyntaxKind.Identifier && value.escapedText === 'undefined') || marketRowProducer (value);
+    return (value.kind === SyntaxKind.Identifier && value.text === 'undefined') || marketRowProducer (value);
 }
 
 // can this use of the receiver change what the local holds, hand the row out, or write INTO
@@ -9025,34 +9028,34 @@ function marketRowUseDisqualifies (n) {
         return true;
     }
     switch (parent.kind) {
-    case ts.SyntaxKind.BinaryExpression:
+    case SyntaxKind.BinaryExpression:
         if (parent.left === n) {
-            if (parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+            if (parent.operatorToken.kind === SyntaxKind.EqualsToken) {
                 return !marketRowValueOrNullish (parent.right);
             }
             return ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind);
         }
         // `y = market` / `y += market` aliases the row into a name this scan cannot follow
         return ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind);
-    case ts.SyntaxKind.ElementAccessExpression: {
+    case SyntaxKind.ElementAccessExpression: {
         if (parent.expression !== n) {
             return false;
         }
         const grand = parent.parent;
-        if (grand?.kind === ts.SyntaxKind.DeleteExpression) {
+        if (grand?.kind === SyntaxKind.DeleteExpression) {
             return true;
         }
-        return grand?.kind === ts.SyntaxKind.BinaryExpression && grand.left === parent && ASSIGNMENT_OPERATORS.includes (grand.operatorToken.kind);
+        return grand?.kind === SyntaxKind.BinaryExpression && grand.left === parent && ASSIGNMENT_OPERATORS.includes (grand.operatorToken.kind);
     }
-    case ts.SyntaxKind.PropertyAccessExpression:
-        return parent.expression === n && LIST_MUTATING_METHODS.includes (parent.name?.escapedText);
-    case ts.SyntaxKind.VariableDeclaration:
+    case SyntaxKind.PropertyAccessExpression:
+        return parent.expression === n && LIST_MUTATING_METHODS.includes (parent.name?.text);
+    case SyntaxKind.VariableDeclaration:
         return parent.initializer === n;
-    case ts.SyntaxKind.PostfixUnaryExpression:
-    case ts.SyntaxKind.PrefixUnaryExpression:
-    case ts.SyntaxKind.BindingElement:
-    case ts.SyntaxKind.ShorthandPropertyAssignment:
-    case ts.SyntaxKind.SpreadElement:
+    case SyntaxKind.PostfixUnaryExpression:
+    case SyntaxKind.PrefixUnaryExpression:
+    case SyntaxKind.BindingElement:
+    case SyntaxKind.ShorthandPropertyAssignment:
+    case SyntaxKind.SpreadElement:
         return true;
     }
     return false;
@@ -9063,7 +9066,7 @@ function marketRowUseDisqualifies (n) {
 // MARKET-ROW PARAMETER (the TS annotation, see MARKET_ROW_PARAM_TYPES). Every other use of the
 // receiver must pass the writer scan below. The corpus fence for the value boxes: the key tables.
 function marketRowReadKey (csharp, initializer) {
-    if (initializer?.kind !== ts.SyntaxKind.ElementAccessExpression) {
+    if (initializer?.kind !== SyntaxKind.ElementAccessExpression) {
         return undefined;
     }
     const key = elementAccessLiteralKey (initializer.argumentExpression);
@@ -9071,7 +9074,7 @@ function marketRowReadKey (csharp, initializer) {
         return undefined;
     }
     const receiver = initializer.expression;
-    if (receiver?.kind !== ts.SyntaxKind.Identifier) {
+    if (receiver?.kind !== SyntaxKind.Identifier) {
         return undefined;
     }
     const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (initializer) : enclosingFunction (initializer);
@@ -9079,11 +9082,11 @@ function marketRowReadKey (csharp, initializer) {
         return undefined;
     }
     const index = indexScope (csharp, scope);
-    const uses = index.identifiers.get (receiver.escapedText);
+    const uses = index.identifiers.get (receiver.text);
     if (!uses) {
         return undefined;
     }
-    const candidates = (index.declarations.get (receiver.escapedText) ?? [])
+    const candidates = (index.declarations.get (receiver.text) ?? [])
         .filter ((candidate) => useRefersToDeclaration (csharp, scope, candidate, receiver) === true);
     let declaration;
     if (candidates.length === 1) {
@@ -9098,8 +9101,8 @@ function marketRowReadKey (csharp, initializer) {
         // the receiver resolves to no local declaration: the MARKET-ROW PARAMETER shape
         // (parseTrade (trade, market: Market = undefined)). The annotation is the proof that
         // every caller hands a market row or nothing; the use scan below is the writer join.
-        const params = (index.bindings.get (receiver.escapedText) ?? [])
-            .filter ((candidate) => candidate.kind === ts.SyntaxKind.Parameter)
+        const params = (index.bindings.get (receiver.text) ?? [])
+            .filter ((candidate) => candidate.kind === SyntaxKind.Parameter)
             .filter ((candidate) => useRefersToDeclaration (csharp, scope, candidate, receiver) === true);
         if (params.length !== 1 || !MARKET_ROW_PARAM_TYPES.includes (marketRowParamAnnotation (params[0]))) {
             return undefined;
@@ -9148,11 +9151,11 @@ function marketRowBoolReadType (csharp, initializer) {
 // Census (2026-09-18, every `this.hash (` call in cs/ccxt/**): 41 digest-carrying calls, all
 // literal "hex" (29) / "binary" (12), plus 20 two-argument calls — no variable digest anywhere.
 function hashDigestLiteralType (initializer) {
-    if (initializer?.kind !== ts.SyntaxKind.CallExpression) {
+    if (initializer?.kind !== SyntaxKind.CallExpression) {
         return undefined;
     }
     const callee = initializer.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword || callee.name?.escapedText !== 'hash') {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword || callee.name?.text !== 'hash') {
         return undefined;
     }
     const args = initializer.arguments ?? [];
@@ -9163,7 +9166,7 @@ function hashDigestLiteralType (initializer) {
         return 'string'; // the C# parameter default (null) resolves to "hex"
     }
     const digest = args[2];
-    if (digest.kind !== ts.SyntaxKind.StringLiteral) {
+    if (digest.kind !== SyntaxKind.StringLiteral) {
         return undefined;
     }
     if (digest.text === 'hex' || digest.text === 'base64') {
@@ -9196,16 +9199,16 @@ function hashDigestLiteralType (initializer) {
 // families of this rule.
 function addChainLeafBoxType (csharp, node, context) {
     switch (node?.kind) {
-    case ts.SyntaxKind.StringLiteral:
-    case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+    case SyntaxKind.StringLiteral:
+    case SyntaxKind.NoSubstitutionTemplateLiteral:
         return 'string';
-    case ts.SyntaxKind.ParenthesizedExpression:
+    case SyntaxKind.ParenthesizedExpression:
         return addChainLeafBoxType (csharp, node.expression, context);
-    case ts.SyntaxKind.AsExpression:
-    case ts.SyntaxKind.TypeAssertionExpression:
+    case SyntaxKind.AsExpression:
+    case SyntaxKind.TypeAssertionExpression:
         // `x as string` prints `((string)x)`, a string box whatever x was
-        return (node.type?.kind === ts.SyntaxKind.StringKeyword) ? 'string' : undefined;
-    case ts.SyntaxKind.Identifier: {
+        return (node.type?.kind === SyntaxKind.StringKeyword) ? 'string' : undefined;
+    case SyntaxKind.Identifier: {
         // a local this module declares string / string? (the emitted type IS the box)
         const declared = localIdentifierType (csharp, node);
         if (declared === 'string' || declared === 'string?') {
@@ -9214,18 +9217,18 @@ function addChainLeafBoxType (csharp, node, context) {
         // else the value box its own initializer + later writes prove (an `object` local)
         return localValueBoxType (csharp, node, context);
     }
-    case ts.SyntaxKind.CallExpression: {
+    case SyntaxKind.CallExpression: {
         const own = callReturnType (csharp, node);
         return (own === 'string' || own === 'string?') ? own : undefined;
     }
-    case ts.SyntaxKind.PropertyAccessExpression: {
-        if (node.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    case SyntaxKind.PropertyAccessExpression: {
+        if (node.expression?.kind !== SyntaxKind.ThisKeyword) {
             return undefined;
         }
-        const memberType = CSHARP_LOCAL_THIS_MEMBER_TYPES[node.name?.escapedText];
+        const memberType = CSHARP_LOCAL_THIS_MEMBER_TYPES[node.name?.text];
         return (memberType === 'string' || memberType === 'string?') ? memberType : undefined;
     }
-    case ts.SyntaxKind.ElementAccessExpression: {
+    case SyntaxKind.ElementAccessExpression: {
         // a market-row read at a string key is a string or null (MARKET_ROW_STRING_KEYS,
         // value census in the header); an element of a proven string list is a string or
         // null off the end of the list (elementAccessElementType's own cast proof)
@@ -9246,12 +9249,12 @@ const valueBoxInFlight = new Set ();
 // element read the destructuring print assigns back), `...x` and a for-of / for-in target.
 // A name under any of them disqualifies the leaf; everything else is a read.
 const WRITE_TARGET_SHAPES = [
-    ts.SyntaxKind.PostfixUnaryExpression,
-    ts.SyntaxKind.PrefixUnaryExpression,
-    ts.SyntaxKind.ArrayLiteralExpression,
-    ts.SyntaxKind.SpreadElement,
-    ts.SyntaxKind.ForOfStatement,
-    ts.SyntaxKind.ForInStatement,
+    SyntaxKind.PostfixUnaryExpression,
+    SyntaxKind.PrefixUnaryExpression,
+    SyntaxKind.ArrayLiteralExpression,
+    SyntaxKind.SpreadElement,
+    SyntaxKind.ForOfStatement,
+    SyntaxKind.ForInStatement,
 ];
 
 // the value box of a local read this module leaves `object` (bs = this.safeCurrencyCode
@@ -9265,7 +9268,7 @@ function localValueBoxType (csharp, identifier, context) {
         return undefined;
     }
     const index = indexScope (csharp, scope);
-    const name = identifier.escapedText;
+    const name = identifier.text;
     if (index.parameterNames.has (name) || index.blockedNames.has (name)) {
         return undefined;
     }
@@ -9274,7 +9277,7 @@ function localValueBoxType (csharp, identifier, context) {
         return undefined;
     }
     const declaration = declarations[0];
-    if (declaration.kind !== ts.SyntaxKind.VariableDeclaration || declaration.name?.kind !== ts.SyntaxKind.Identifier
+    if (declaration.kind !== SyntaxKind.VariableDeclaration || declaration.name?.kind !== SyntaxKind.Identifier
             || declaration.initializer === undefined || declaration.parent?.declarations?.length !== 1) {
         return undefined;
     }
@@ -9306,7 +9309,7 @@ function localValueBoxType (csharp, identifier, context) {
                 continue;
             }
             const parent = n.parent;
-            if (!(parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === n && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind))) {
+            if (!(parent?.kind === SyntaxKind.BinaryExpression && parent.left === n && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind))) {
                 // an unmodelled write shape (`x++`, `-x` / `+x` as ref sinks, `[x, y] = tuple`,
                 // a for-of / for-in target, a spread) could hand the local an arbitrary box: a
                 // read cannot change the box, but none of these is a read of the name
@@ -9315,7 +9318,7 @@ function localValueBoxType (csharp, identifier, context) {
                 }
                 continue;
             }
-            if (parent.operatorToken.kind !== ts.SyntaxKind.EqualsToken && parent.operatorToken.kind !== ts.SyntaxKind.PlusEqualsToken) {
+            if (parent.operatorToken.kind !== SyntaxKind.EqualsToken && parent.operatorToken.kind !== SyntaxKind.PlusEqualsToken) {
                 return undefined; // `x -= v` / `x *= v` / ... prints a numeric helper result back
             }
             const written = csharpTypeOfValue (csharp, parent.right, nested);
@@ -9337,12 +9340,12 @@ function localValueBoxType (csharp, identifier, context) {
 // csharpLocalIsSafeToRetype re-checks every later read and write.
 function addChainStringBoxType (csharp, declaration, context) {
     const initializer = declaration.initializer;
-    if (initializer?.kind !== ts.SyntaxKind.BinaryExpression || initializer.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+    if (initializer?.kind !== SyntaxKind.BinaryExpression || initializer.operatorToken.kind !== SyntaxKind.PlusToken) {
         return undefined;
     }
     const leaves = [];
     const collect = (n) => {
-        if (n?.kind === ts.SyntaxKind.BinaryExpression && n.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        if (n?.kind === SyntaxKind.BinaryExpression && n.operatorToken.kind === SyntaxKind.PlusToken) {
             collect (n.left);
             collect (n.right);
         } else {
@@ -9398,7 +9401,7 @@ const STRING_MEMBER_OBJECT_LEAVES = [ 'apiKey', 'secret', 'password', 'login', '
 
 function stringBoxLeafProof (csharp, node) {
     let leaf = node;
-    while (leaf?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (leaf?.kind === SyntaxKind.ParenthesizedExpression) {
         leaf = leaf.expression;
     }
     if (leaf === undefined || csharpTypeOfValue (csharp, leaf) !== undefined || isProvablyStringOperand (csharp, leaf)) {
@@ -9413,15 +9416,15 @@ function stringBoxLeafProof (csharp, node) {
     // takes no cast — and every writer (the base's SafeString, string literals / `(string)`
     // casts in the generated tree, a user assignment the same property type checks) leaves a
     // string or null in the box, which the nullable spelling names.
-    if (leaf.kind === ts.SyntaxKind.PropertyAccessExpression && leaf.expression?.kind === ts.SyntaxKind.ThisKeyword
-            && STRING_MEMBER_OBJECT_LEAVES.includes (leaf.name?.escapedText)) {
+    if (leaf.kind === SyntaxKind.PropertyAccessExpression && leaf.expression?.kind === SyntaxKind.ThisKeyword
+            && STRING_MEMBER_OBJECT_LEAVES.includes (leaf.name?.text)) {
         return { type: 'string?', cast: undefined };
     }
-    if (leaf.kind === ts.SyntaxKind.CallExpression) {
+    if (leaf.kind === SyntaxKind.CallExpression) {
         const callee = leaf.expression;
-        if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression
-            && callee.expression?.kind === ts.SyntaxKind.ThisKeyword
-            && STRING_BOX_OBJECT_CALLS.includes (callee.name?.escapedText)) {
+        if (callee?.kind === SyntaxKind.PropertyAccessExpression
+            && callee.expression?.kind === SyntaxKind.ThisKeyword
+            && STRING_BOX_OBJECT_CALLS.includes (callee.name?.text)) {
             return { type: 'string?', cast: 'string' };
         }
     }
@@ -9432,17 +9435,17 @@ function stringBoxLeafProof (csharp, node) {
 // add(add(a, b), c), so this is the operand whose static type picks the bindable overload
 function plusChainLeftmostOperand (initializer) {
     let node = initializer;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (node?.kind === SyntaxKind.ParenthesizedExpression) {
         node = node.expression;
     }
-    if (node?.kind !== ts.SyntaxKind.BinaryExpression || node.operatorToken?.kind !== ts.SyntaxKind.PlusToken) {
+    if (node?.kind !== SyntaxKind.BinaryExpression || node.operatorToken?.kind !== SyntaxKind.PlusToken) {
         return undefined;
     }
-    while (node.left?.kind === ts.SyntaxKind.BinaryExpression && node.left.operatorToken?.kind === ts.SyntaxKind.PlusToken) {
+    while (node.left?.kind === SyntaxKind.BinaryExpression && node.left.operatorToken?.kind === SyntaxKind.PlusToken) {
         node = node.left;
     }
     let leaf = node.left;
-    while (leaf?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (leaf?.kind === SyntaxKind.ParenthesizedExpression) {
         leaf = leaf.expression;
     }
     return leaf;
@@ -9525,15 +9528,15 @@ function typeIsStringOrNullish (type) {
     if (type === undefined) {
         return false;
     }
-    const STRINGISH = ts.TypeFlags.String | ts.TypeFlags.StringLiteral;
-    const NULLISH = ts.TypeFlags.Undefined | ts.TypeFlags.Null;
+    const STRINGISH = TypeFlags.String | TypeFlags.StringLiteral;
+    const NULLISH = TypeFlags.Undefined | TypeFlags.Null;
     if ((type.flags & STRINGISH) !== 0) {
         return true;
     }
-    if ((type.flags & ts.TypeFlags.Union) !== 0 && Array.isArray (type.types)) {
-        return type.types.length > 0
-            && type.types.every ((member) => ((member.flags & (STRINGISH | NULLISH)) !== 0))
-            && type.types.some ((member) => (member.flags & STRINGISH) !== 0);
+    if ((type.flags & TypeFlags.Union) !== 0 && Array.isArray (type.getTypes ())) {
+        return type.getTypes ().length > 0
+            && type.getTypes ().every ((member) => ((member.flags & (STRINGISH | NULLISH)) !== 0))
+            && type.getTypes ().some ((member) => (member.flags & STRINGISH) !== 0);
     }
     return false;
 }
@@ -9556,19 +9559,19 @@ function checkerElementScalar (csharp, node) {
     }
     const scalarOf = (member) => {
         const flags = member?.flags ?? 0;
-        if (flags & (ts.TypeFlags.String | ts.TypeFlags.StringLiteral)) {
+        if (flags & (TypeFlags.String | TypeFlags.StringLiteral)) {
             return 'string';
         }
-        if (flags & (ts.TypeFlags.Boolean | ts.TypeFlags.BooleanLiteral)) {
+        if (flags & (TypeFlags.Boolean | TypeFlags.BooleanLiteral)) {
             return 'bool';
         }
-        if (flags & (ts.TypeFlags.Number | ts.TypeFlags.NumberLiteral)) {
+        if (flags & (TypeFlags.Number | TypeFlags.NumberLiteral)) {
             return 'number';
         }
         return undefined;
     };
-    if ((type?.flags & ts.TypeFlags.Union) && Array.isArray (type.types)) {
-        const members = type.types.filter ((member) => !(member.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)));
+    if ((type?.flags & TypeFlags.Union) && Array.isArray (type.getTypes ())) {
+        const members = type.getTypes ().filter ((member) => !(member.flags & (TypeFlags.Undefined | TypeFlags.Null)));
         if (members.length === 0) {
             return undefined;
         }
@@ -9581,7 +9584,7 @@ function checkerElementScalar (csharp, node) {
 // the element type of `recv['literal key']`, proven a string by the checker AND a key whose
 // every write into the row shapes the checker types is a string (see the family comment)
 function elementAccessStringReadType (csharp, initializer) {
-    if (initializer?.kind !== ts.SyntaxKind.ElementAccessExpression) {
+    if (initializer?.kind !== SyntaxKind.ElementAccessExpression) {
         return undefined;
     }
     const key = elementAccessLiteralKey (initializer.argumentExpression);
@@ -9589,7 +9592,7 @@ function elementAccessStringReadType (csharp, initializer) {
         return undefined;
     }
     const receiver = initializer.expression;
-    if (receiver?.kind !== ts.SyntaxKind.Identifier) {
+    if (receiver?.kind !== SyntaxKind.Identifier) {
         return undefined;
     }
     const receiverType = localIdentifierType (csharp, receiver);
@@ -9660,7 +9663,7 @@ const OPTIONS_LITERAL_STRING_KEYS = [ 'chainName' ];
 // `this.options['<census key>']` in a file whose own describe() literal spells that key as a
 // string. The receiver is the literal `this.options` property (never a copy).
 function optionsLiteralStringProducer (initializer) {
-    if (initializer?.kind !== ts.SyntaxKind.ElementAccessExpression) {
+    if (initializer?.kind !== SyntaxKind.ElementAccessExpression) {
         return false;
     }
     const key = elementAccessLiteralKey (initializer.argumentExpression);
@@ -9668,9 +9671,9 @@ function optionsLiteralStringProducer (initializer) {
         return false;
     }
     const receiver = initializer.expression;
-    if (receiver?.kind !== ts.SyntaxKind.PropertyAccessExpression
-        || receiver.name?.escapedText !== 'options'
-        || receiver.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    if (receiver?.kind !== SyntaxKind.PropertyAccessExpression
+        || receiver.name?.text !== 'options'
+        || receiver.expression?.kind !== SyntaxKind.ThisKeyword) {
         return false;
     }
     const options = describeLiteralProperty (ownDescribeLiteral (initializer.getSourceFile ()), 'options');
@@ -9688,22 +9691,22 @@ const describeOwnLiterals = new WeakMap ();
 // merge target is the same object the literal would have been, so the value census is unchanged.
 // A method defined more than once (or not returning a literal) keeps the local `object`.
 function describeOwnLiteralMethodCall (sourceFile, expression) {
-    if (expression?.kind !== ts.SyntaxKind.CallExpression
-        || expression.expression?.kind !== ts.SyntaxKind.PropertyAccessExpression
-        || expression.expression.expression?.kind !== ts.SyntaxKind.ThisKeyword
+    if (expression?.kind !== SyntaxKind.CallExpression
+        || expression.expression?.kind !== SyntaxKind.PropertyAccessExpression
+        || expression.expression.expression?.kind !== SyntaxKind.ThisKeyword
         || (expression.arguments?.length ?? 0) !== 0) {
         return undefined;
     }
-    const name = expression.expression.name?.escapedText;
+    const name = expression.expression.name?.text;
     if (name === undefined) {
         return undefined;
     }
     const definitions = [];
     const collect = (node) => {
-        if (node.kind === ts.SyntaxKind.MethodDeclaration && node.name?.escapedText === name) {
+        if (node.kind === SyntaxKind.MethodDeclaration && node.name?.text === name) {
             definitions.push (node);
         }
-        ts.forEachChild (node, collect);
+        node.forEachChild (collect);
     };
     collect (sourceFile);
     if (definitions.length !== 1) {
@@ -9712,14 +9715,14 @@ function describeOwnLiteralMethodCall (sourceFile, expression) {
     // the body must be exactly `return <object literal>;` — an early/conditional return or a
     // body that also mutates would make "the literal" ambiguous
     const statements = definitions[0].body?.statements ?? [];
-    if (statements.length !== 1 || statements[0].kind !== ts.SyntaxKind.ReturnStatement) {
+    if (statements.length !== 1 || statements[0].kind !== SyntaxKind.ReturnStatement) {
         return undefined;
     }
     let node = statements[0].expression;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (node?.kind === SyntaxKind.ParenthesizedExpression) {
         node = node.expression;
     }
-    return (node?.kind === ts.SyntaxKind.ObjectLiteralExpression) ? node : undefined;
+    return (node?.kind === SyntaxKind.ObjectLiteralExpression) ? node : undefined;
 }
 
 function ownDescribeLiteral (sourceFile) {
@@ -9728,22 +9731,22 @@ function ownDescribeLiteral (sourceFile) {
     }
     let literal;
     const visit = (node) => {
-        if (node.kind === ts.SyntaxKind.MethodDeclaration && node.name?.escapedText === 'describe') {
-            const returned = node.body?.statements?.find ((statement) => statement.kind === ts.SyntaxKind.ReturnStatement);
+        if (node.kind === SyntaxKind.MethodDeclaration && node.name?.text === 'describe') {
+            const returned = node.body?.statements?.find ((statement) => statement.kind === SyntaxKind.ReturnStatement);
             let expression = returned?.expression;
-            while (expression?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            while (expression?.kind === SyntaxKind.ParenthesizedExpression) {
                 expression = expression.expression;
             }
             // `return this.deepExtend (super.describe (), {...})` — the literal is the last argument
-            if (expression?.kind === ts.SyntaxKind.CallExpression
-                && expression.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
-                && expression.expression.name?.escapedText === 'deepExtend' && expression.arguments?.length >= 2) {
+            if (expression?.kind === SyntaxKind.CallExpression
+                && expression.expression?.kind === SyntaxKind.PropertyAccessExpression
+                && expression.expression.name?.text === 'deepExtend' && expression.arguments?.length >= 2) {
                 expression = expression.arguments[expression.arguments.length - 1];
-                while (expression?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+                while (expression?.kind === SyntaxKind.ParenthesizedExpression) {
                     expression = expression.expression;
                 }
             }
-            if (expression?.kind === ts.SyntaxKind.ObjectLiteralExpression) {
+            if (expression?.kind === SyntaxKind.ObjectLiteralExpression) {
                 literal = expression;
             } else {
                 // `this.deepExtend (super.describe (), this.describeData ())` — the literal is
@@ -9751,7 +9754,7 @@ function ownDescribeLiteral (sourceFile) {
                 literal = describeOwnLiteralMethodCall (sourceFile, expression);
             }
         }
-        ts.forEachChild (node, visit);
+        node.forEachChild (visit);
     };
     visit (sourceFile);
     describeOwnLiterals.set (sourceFile, literal);
@@ -9760,18 +9763,18 @@ function ownDescribeLiteral (sourceFile) {
 
 function describeLiteralKey (property) {
     const name = property.name;
-    if (name?.kind === ts.SyntaxKind.StringLiteral || name?.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
+    if (name?.kind === SyntaxKind.StringLiteral || name?.kind === SyntaxKind.NoSubstitutionTemplateLiteral) {
         return name.text;
     }
-    return name?.kind === ts.SyntaxKind.Identifier ? name.escapedText : undefined;
+    return name?.kind === SyntaxKind.Identifier ? name.text : undefined;
 }
 
 function describeLiteralProperty (literal, key) {
-    if (literal?.kind !== ts.SyntaxKind.ObjectLiteralExpression) {
+    if (literal?.kind !== SyntaxKind.ObjectLiteralExpression) {
         return undefined;
     }
     for (const property of literal.properties) {
-        if (property.kind === ts.SyntaxKind.PropertyAssignment && describeLiteralKey (property) === key) {
+        if (property.kind === SyntaxKind.PropertyAssignment && describeLiteralKey (property) === key) {
             return property.initializer;
         }
     }
@@ -9782,28 +9785,28 @@ function describeLiteralProperty (literal, key) {
 // it as one of these (a call, an identifier, a spread, ...)
 function describeLiteralKind (value) {
     let node = value;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (node?.kind === SyntaxKind.ParenthesizedExpression) {
         node = node.expression;
     }
     switch (node?.kind) {
-    case ts.SyntaxKind.StringLiteral:
-    case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+    case SyntaxKind.StringLiteral:
+    case SyntaxKind.NoSubstitutionTemplateLiteral:
         return 'string';
-    case ts.SyntaxKind.ObjectLiteralExpression:
+    case SyntaxKind.ObjectLiteralExpression:
         return 'dictionary';
-    case ts.SyntaxKind.ArrayLiteralExpression:
+    case SyntaxKind.ArrayLiteralExpression:
         return 'list';
-    case ts.SyntaxKind.TrueKeyword:
-    case ts.SyntaxKind.FalseKeyword:
+    case SyntaxKind.TrueKeyword:
+    case SyntaxKind.FalseKeyword:
         return 'bool';
-    case ts.SyntaxKind.NumericLiteral:
+    case SyntaxKind.NumericLiteral:
         return 'number';
-    case ts.SyntaxKind.PrefixUnaryExpression:
-        return node.operand?.kind === ts.SyntaxKind.NumericLiteral ? 'number' : undefined;
-    case ts.SyntaxKind.NullKeyword:
+    case SyntaxKind.PrefixUnaryExpression:
+        return node.operand?.kind === SyntaxKind.NumericLiteral ? 'number' : undefined;
+    case SyntaxKind.NullKeyword:
         return 'null';
-    case ts.SyntaxKind.Identifier:
-        return node.escapedText === 'undefined' ? 'null' : undefined;
+    case SyntaxKind.Identifier:
+        return node.text === 'undefined' ? 'null' : undefined;
     }
     return undefined;
 }
@@ -9833,10 +9836,10 @@ function asExpressionPrintsBare (node) {
     if (type === undefined) {
         return false;
     }
-    if (type.kind === ts.SyntaxKind.AnyKeyword || type.kind === ts.SyntaxKind.StringKeyword) {
+    if (type.kind === SyntaxKind.AnyKeyword || type.kind === SyntaxKind.StringKeyword) {
         return false;
     }
-    if (type.kind === ts.SyntaxKind.ArrayType && type.elementType?.kind === ts.SyntaxKind.AnyKeyword) {
+    if (type.kind === SyntaxKind.ArrayType && type.elementType?.kind === SyntaxKind.AnyKeyword) {
         return false;
     }
     return true;
@@ -9848,13 +9851,13 @@ function asExpressionPrintsBare (node) {
 function urlsLiteralChain (initializer) {
     let node = initializer;
     const keys = [];
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression || node?.kind === ts.SyntaxKind.ElementAccessExpression
-            || node?.kind === ts.SyntaxKind.AsExpression) {
-        if (node.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (node?.kind === SyntaxKind.ParenthesizedExpression || node?.kind === SyntaxKind.ElementAccessExpression
+            || node?.kind === SyntaxKind.AsExpression) {
+        if (node.kind === SyntaxKind.ParenthesizedExpression) {
             node = node.expression;
             continue;
         }
-        if (node.kind === ts.SyntaxKind.AsExpression) {
+        if (node.kind === SyntaxKind.AsExpression) {
             if (!asExpressionPrintsBare (node)) {
                 return undefined;
             }
@@ -9862,7 +9865,7 @@ function urlsLiteralChain (initializer) {
             continue;
         }
         const key = node.argumentExpression;
-        if (key?.kind !== ts.SyntaxKind.StringLiteral && key?.kind !== ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
+        if (key?.kind !== SyntaxKind.StringLiteral && key?.kind !== SyntaxKind.NoSubstitutionTemplateLiteral) {
             return undefined;
         }
         if (/^[0-9]+$/.test (key.text)) {
@@ -9871,10 +9874,10 @@ function urlsLiteralChain (initializer) {
         keys.unshift (key.text);
         node = node.expression;
     }
-    if (keys.length < 2 || node?.kind !== ts.SyntaxKind.PropertyAccessExpression) {
+    if (keys.length < 2 || node?.kind !== SyntaxKind.PropertyAccessExpression) {
         return undefined;
     }
-    if (node.expression?.kind !== ts.SyntaxKind.ThisKeyword || node.name?.escapedText !== 'urls') {
+    if (node.expression?.kind !== SyntaxKind.ThisKeyword || node.name?.text !== 'urls') {
         return undefined;
     }
     return keys;
@@ -9883,14 +9886,14 @@ function urlsLiteralChain (initializer) {
 // `x.padStart (n, c)` / `x.padEnd (n, c)`: the printer casts the receiver to System.String itself, so
 // the printed call is a non-null `string` (PadLeft/PadRight) whatever the TS receiver type is
 function stringPadCallType (csharp, initializer) {
-    if (initializer?.kind !== ts.SyntaxKind.CallExpression) {
+    if (initializer?.kind !== SyntaxKind.CallExpression) {
         return undefined;
     }
     const callee = initializer.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression) {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression) {
         return undefined;
     }
-    const name = callee.name?.escapedText;
+    const name = callee.name?.text;
     if (name !== 'padStart' && name !== 'padEnd') {
         return undefined;
     }
@@ -9905,7 +9908,7 @@ export function urlsDescribeStringProducer (initializer) {
         return false;
     }
     const urls = describeLiteralProperty (ownDescribeLiteral (initializer.getSourceFile ()), 'urls');
-    if (urls?.kind !== ts.SyntaxKind.ObjectLiteralExpression) {
+    if (urls?.kind !== SyntaxKind.ObjectLiteralExpression) {
         return false;
     }
     if (describeLiteralPathKind (urls, keys) !== 'string') {
@@ -9913,11 +9916,11 @@ export function urlsDescribeStringProducer (initializer) {
     }
     const suffix = keys.slice (1);
     for (const property of urls.properties) {
-        if (property.kind !== ts.SyntaxKind.PropertyAssignment || describeLiteralKey (property) === keys[0]) {
+        if (property.kind !== SyntaxKind.PropertyAssignment || describeLiteralKey (property) === keys[0]) {
             continue;
         }
         const value = property.initializer;
-        if (value?.kind === ts.SyntaxKind.ObjectLiteralExpression) {
+        if (value?.kind === SyntaxKind.ObjectLiteralExpression) {
             const kind = describeLiteralPathKind (value, suffix);
             if (kind !== 'string' && kind !== 'null' && kind !== 'absent') {
                 return false;
@@ -9947,10 +9950,10 @@ export function urlsDescribeStringProducer (initializer) {
 const MEMBER_DICT_READ_TYPES = { 'markets': 'IDictionary<string, object>', 'fees': 'IDictionary<string, object>' };
 
 function memberDictReadCastType (initializer) {
-    if (initializer?.kind !== ts.SyntaxKind.PropertyAccessExpression || initializer.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    if (initializer?.kind !== SyntaxKind.PropertyAccessExpression || initializer.expression?.kind !== SyntaxKind.ThisKeyword) {
         return undefined;
     }
-    const name = initializer.name?.escapedText;
+    const name = initializer.name?.text;
     return Object.prototype.hasOwnProperty.call (MEMBER_DICT_READ_TYPES, name) ? MEMBER_DICT_READ_TYPES[name] : undefined;
 }
 
@@ -9964,12 +9967,12 @@ function memberDictReadCastType (initializer) {
 // element type re-boxes to List<object> on every path. The declaration-only spelling keeps
 // later writes of the same call `object` (no write-cast machinery).
 function arraySliceCallIsProvenList (csharp, initializer) {
-    if (initializer?.kind !== ts.SyntaxKind.CallExpression) {
+    if (initializer?.kind !== SyntaxKind.CallExpression) {
         return false;
     }
     const callee = initializer.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword
-            || callee.name?.escapedText !== 'arraySlice') {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword
+            || callee.name?.text !== 'arraySlice') {
         return false;
     }
     const receiver = initializer.arguments?.[0];
@@ -9982,9 +9985,9 @@ function arraySliceCallIsProvenList (csharp, initializer) {
     } catch (e) {
         return false;
     }
-    return type !== undefined && (type.flags & ts.TypeFlags.Object) !== 0
-        && (type.objectFlags & ts.ObjectFlags.Reference) !== 0
-        && type.target?.symbol?.name === 'Array';
+    return type !== undefined && (type.flags & TypeFlags.Object) !== 0
+        && (type.objectFlags & ObjectFlags.Reference) !== 0
+        && type.getTarget?.()?.getSymbol ()?.name === 'Array';
 }
 // ---- `this.handleOption (method, key, <literal>)` / `this.safeValue (this.options, key,
 //      <literal>)` with a per-key writer census (U41) ---------------------------------------
@@ -10060,10 +10063,10 @@ function optionsLiteralAsPrintsBare (node) {
     if (type === undefined) {
         return false;
     }
-    if (type.kind === ts.SyntaxKind.AnyKeyword || type.kind === ts.SyntaxKind.StringKeyword) {
+    if (type.kind === SyntaxKind.AnyKeyword || type.kind === SyntaxKind.StringKeyword) {
         return false;
     }
-    if (type.kind === ts.SyntaxKind.ArrayType && type.elementType?.kind === ts.SyntaxKind.AnyKeyword) {
+    if (type.kind === SyntaxKind.ArrayType && type.elementType?.kind === SyntaxKind.AnyKeyword) {
         return false;
     }
     return true;
@@ -10074,34 +10077,34 @@ function optionsLiteralAsPrintsBare (node) {
 // (a non-literal method / key, a copied receiver, a different arity, an assertion that prints a cast)
 function optionsLiteralDefaultParts (initializer) {
     let node = initializer;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression
-            || (node?.kind === ts.SyntaxKind.AsExpression && optionsLiteralAsPrintsBare (node))) {
+    while (node?.kind === SyntaxKind.ParenthesizedExpression
+            || (node?.kind === SyntaxKind.AsExpression && optionsLiteralAsPrintsBare (node))) {
         node = node.expression;
     }
-    if (node?.kind !== ts.SyntaxKind.CallExpression) {
+    if (node?.kind !== SyntaxKind.CallExpression) {
         return undefined;
     }
     const callee = node.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword) {
         return undefined;
     }
     const args = node.arguments ?? [];
     if (args.length !== 3) {
         return undefined;
     }
-    const key = args[1]?.kind === ts.SyntaxKind.StringLiteral ? args[1].text : undefined;
+    const key = args[1]?.kind === SyntaxKind.StringLiteral ? args[1].text : undefined;
     if (key === undefined) {
         return undefined;
     }
-    if (callee.name?.escapedText === 'handleOption') {
-        const method = args[0]?.kind === ts.SyntaxKind.StringLiteral ? args[0].text : undefined;
+    if (callee.name?.text === 'handleOption') {
+        const method = args[0]?.kind === SyntaxKind.StringLiteral ? args[0].text : undefined;
         return (method === undefined) ? undefined : { path: method + '/' + key, defaultValue: args[2] };
     }
-    if (callee.name?.escapedText === 'safeValue') {
+    if (callee.name?.text === 'safeValue') {
         const receiver = args[0];
-        if (receiver?.kind !== ts.SyntaxKind.PropertyAccessExpression
-            || receiver.expression?.kind !== ts.SyntaxKind.ThisKeyword
-            || receiver.name?.escapedText !== 'options') {
+        if (receiver?.kind !== SyntaxKind.PropertyAccessExpression
+            || receiver.expression?.kind !== SyntaxKind.ThisKeyword
+            || receiver.name?.text !== 'options') {
             return undefined;
         }
         return { path: key, defaultValue: args[2] };
@@ -10112,10 +10115,10 @@ function optionsLiteralDefaultParts (initializer) {
 // the default literal's kind as the census table spells it: `true`/`false` -> bool, a NON-EMPTY
 // string literal -> string (the empty string is the "absent" value safeValueN skips)
 function optionsLiteralDefaultKind (node) {
-    if (node?.kind === ts.SyntaxKind.TrueKeyword || node?.kind === ts.SyntaxKind.FalseKeyword) {
+    if (node?.kind === SyntaxKind.TrueKeyword || node?.kind === SyntaxKind.FalseKeyword) {
         return 'bool';
     }
-    if (node?.kind === ts.SyntaxKind.StringLiteral && node.text.length > 0) {
+    if (node?.kind === SyntaxKind.StringLiteral && node.text.length > 0) {
         return 'string';
     }
     return undefined;
@@ -10139,14 +10142,14 @@ function optionsLiteralDefaultCastType (initializer) {
 // dict-receiver overloads of cs/ccxt/base/Exchange.Functions.cs. The `params object[]` overload
 // owns the 1-argument and 3+-argument calls and still boxes `object`.
 function omitCallReceiver (node) {
-    if (node?.kind !== ts.SyntaxKind.CallExpression) {
+    if (node?.kind !== SyntaxKind.CallExpression) {
         return undefined;
     }
     const callee = node.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword) {
         return undefined;
     }
-    if (callee.name?.escapedText !== 'omit') {
+    if (callee.name?.text !== 'omit') {
         return undefined;
     }
     const args = node.arguments;
@@ -10164,23 +10167,23 @@ function omitCallReceiver (node) {
 // `object` receiver stays out: the IList<object> pass-through is reachable for it (table note).
 function omitReceiverIsDictionary (csharp, receiver) {
     let node = receiver;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (node?.kind === SyntaxKind.ParenthesizedExpression) {
         node = node.expression;
     }
     if (node === undefined) {
         return false;
     }
-    if (node.kind === ts.SyntaxKind.Identifier) {
+    if (node.kind === SyntaxKind.Identifier) {
         const type = identifierType (csharp, node);
         return (type === 'Dictionary<string, object>') || (type === 'IDictionary<string, object>');
     }
-    if (node.kind === ts.SyntaxKind.ObjectLiteralExpression) {
+    if (node.kind === SyntaxKind.ObjectLiteralExpression) {
         return true;
     }
-    if (node.kind === ts.SyntaxKind.CallExpression) {
+    if (node.kind === SyntaxKind.CallExpression) {
         const callee = node.expression;
-        if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.expression?.kind === ts.SyntaxKind.ThisKeyword) {
-            const name = callee.name?.escapedText;
+        if (callee?.kind === SyntaxKind.PropertyAccessExpression && callee.expression?.kind === SyntaxKind.ThisKeyword) {
+            const name = callee.name?.text;
             if (name === 'extend' || name === 'deepExtend') {
                 return true; // Exchange.Generic.cs: `public Dictionary<string, object> extend/deepExtend`
             }
@@ -10197,7 +10200,7 @@ function omitReceiverIsDictionary (csharp, receiver) {
 // type is therefore the declaration — no cast.
 function omitDictionaryProducer (csharp, node, context) {
     let initializer = node;
-    while (initializer?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (initializer?.kind === SyntaxKind.ParenthesizedExpression) {
         initializer = initializer.expression;
     }
     const receiver = omitCallReceiver (initializer);
@@ -10211,7 +10214,7 @@ function omitDictionaryProducer (csharp, node, context) {
 // write contributes that same type.
 function selfOmitWriteType (csharp, context, declaration, value) {
     let node = value;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (node?.kind === SyntaxKind.ParenthesizedExpression) {
         node = node.expression;
     }
     const receiver = omitCallReceiver (node);
@@ -10219,7 +10222,7 @@ function selfOmitWriteType (csharp, context, declaration, value) {
         return undefined;
     }
     let read = receiver;
-    while (read?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (read?.kind === SyntaxKind.ParenthesizedExpression) {
         read = read.expression;
     }
     return isSelfRead (csharp, read, declaration) ? 'Dictionary<string, object>' : undefined;
@@ -10235,14 +10238,14 @@ function selfOmitWriteType (csharp, context, declaration, value) {
 // nothing else in the module consults this, so a `c ? D : x` outside an assignment's right
 // side, and every non-conditional value, are untouched.
 function selfTernaryWriteType (csharp, context, declaration, value) {
-    if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration) {
+    if (declaration?.kind !== SyntaxKind.VariableDeclaration) {
         return undefined; // a parameter's C# signature is retyped after printing (typeCoreArgs)
     }
     let node = value;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (node?.kind === SyntaxKind.ParenthesizedExpression) {
         node = node.expression;
     }
-    if (node?.kind !== ts.SyntaxKind.ConditionalExpression) {
+    if (node?.kind !== SyntaxKind.ConditionalExpression) {
         return undefined;
     }
     const selfTrue = isSelfRead (csharp, node.whenTrue, declaration);
@@ -10265,22 +10268,22 @@ function selfTernaryWriteType (csharp, context, declaration, value) {
 // arbitrary box, and naming it would make the cast the deliverable's own risk.
 function parseIntTernaryCastType (initializer) {
     let node = initializer;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (node?.kind === SyntaxKind.ParenthesizedExpression) {
         node = node.expression;
     }
-    if (node?.kind !== ts.SyntaxKind.ConditionalExpression) {
+    if (node?.kind !== SyntaxKind.ConditionalExpression) {
         return undefined;
     }
     let sawParseInt = false;
     for (const raw of [ node.whenTrue, node.whenFalse ]) {
         let arm = raw;
-        while (arm?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        while (arm?.kind === SyntaxKind.ParenthesizedExpression) {
             arm = arm.expression;
         }
-        if (arm?.kind === ts.SyntaxKind.NullKeyword || (arm?.kind === ts.SyntaxKind.Identifier && arm.escapedText === 'undefined')) {
+        if (arm?.kind === SyntaxKind.NullKeyword || (arm?.kind === SyntaxKind.Identifier && arm.text === 'undefined')) {
             continue;
         }
-        if (arm?.kind === ts.SyntaxKind.CallExpression && arm.expression?.kind === ts.SyntaxKind.Identifier && arm.expression.escapedText === 'parseInt') {
+        if (arm?.kind === SyntaxKind.CallExpression && arm.expression?.kind === SyntaxKind.Identifier && arm.expression.text === 'parseInt') {
             sawParseInt = true;
             continue;
         }
@@ -10297,17 +10300,17 @@ const CSHARP_SAFE_COLLECTION_METHODS_TYPED = new Set ([ 'safeDict', 'safeDict2',
 // `object x = this.safeDict*/safeList* (…)` — the family's declaration shape.
 function safeCollectionFamilyLocal (initializer) {
     let node = initializer;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (node?.kind === SyntaxKind.ParenthesizedExpression) {
         node = node.expression;
     }
-    if (node?.kind !== ts.SyntaxKind.CallExpression) {
+    if (node?.kind !== SyntaxKind.CallExpression) {
         return false;
     }
     const callee = node.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword) {
         return false;
     }
-    return CSHARP_SAFE_COLLECTION_METHODS_TYPED.has (callee.name?.escapedText);
+    return CSHARP_SAFE_COLLECTION_METHODS_TYPED.has (callee.name?.text);
 }
 
 // `x = (x === undefined) ? <default> : x`: the C# conditional computes its own natural type
@@ -10315,10 +10318,10 @@ function safeCollectionFamilyLocal (initializer) {
 // converts to it (assignable()'s one-way edges: a `{}` literal, a declared Dictionary local, ...).
 function selfTernaryCollectionWriteType (csharp, context, declaration, value) {
     let node = value;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (node?.kind === SyntaxKind.ParenthesizedExpression) {
         node = node.expression;
     }
-    if (node?.kind !== ts.SyntaxKind.ConditionalExpression) {
+    if (node?.kind !== SyntaxKind.ConditionalExpression) {
         return undefined;
     }
     if (isSelfRead (csharp, node.whenTrue, declaration)) {
@@ -10342,17 +10345,17 @@ function selfTernaryCollectionWriteType (csharp, context, declaration, value) {
 // unprovable exactly as before.
 function omitZeroStringProducer (csharp, node, context) {
     let initializer = node;
-    while (initializer?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (initializer?.kind === SyntaxKind.ParenthesizedExpression) {
         initializer = initializer.expression;
     }
-    if (initializer?.kind !== ts.SyntaxKind.CallExpression) {
+    if (initializer?.kind !== SyntaxKind.CallExpression) {
         return false;
     }
     const callee = initializer.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword) {
         return false;
     }
-    if (callee.name?.escapedText !== 'omitZero') {
+    if (callee.name?.text !== 'omitZero') {
         return false;
     }
     const argument = initializer.arguments?.[0];
@@ -10376,14 +10379,14 @@ function omitZeroStringProducer (csharp, node, context) {
 const SAFE_INTEGER_PRODUCT2_TYPE = 'Int64?';
 
 function safeIntegerProduct2CallCastType (initializer) {
-    if (initializer?.kind !== ts.SyntaxKind.CallExpression) {
+    if (initializer?.kind !== SyntaxKind.CallExpression) {
         return undefined;
     }
     const callee = initializer.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword) {
         return undefined;
     }
-    if (callee.name?.escapedText !== 'safeIntegerProduct2') {
+    if (callee.name?.text !== 'safeIntegerProduct2') {
         return undefined;
     }
     return (initializer.arguments?.length === 4) ? SAFE_INTEGER_PRODUCT2_TYPE : undefined;
@@ -10407,27 +10410,27 @@ const CSHARP_SAFE_STRING_METHODS_TYPED = new Set (Object.keys (NON_NULL_DEFAULT_
 
 function safeStringFamilyLocal (declaration) {
     const initializer = declaration?.initializer;
-    if (initializer?.kind !== ts.SyntaxKind.CallExpression) {
+    if (initializer?.kind !== SyntaxKind.CallExpression) {
         return false;
     }
     const callee = initializer.expression;
-    const isThisCall = callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.expression?.kind === ts.SyntaxKind.ThisKeyword;
-    return isThisCall && CSHARP_SAFE_STRING_METHODS_TYPED.has (callee.name?.escapedText);
+    const isThisCall = callee?.kind === SyntaxKind.PropertyAccessExpression && callee.expression?.kind === SyntaxKind.ThisKeyword;
+    return isThisCall && CSHARP_SAFE_STRING_METHODS_TYPED.has (callee.name?.text);
 }
 
 function nonNullStringDefaultCall (csharp, node, context) {
     let initializer = node;
-    while (initializer?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (initializer?.kind === SyntaxKind.ParenthesizedExpression) {
         initializer = initializer.expression;
     }
-    if (initializer?.kind !== ts.SyntaxKind.CallExpression) {
+    if (initializer?.kind !== SyntaxKind.CallExpression) {
         return false;
     }
     const callee = initializer.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword) {
         return false;
     }
-    const arity = NON_NULL_DEFAULT_SAFE_STRING_ARITY[callee.name?.escapedText];
+    const arity = NON_NULL_DEFAULT_SAFE_STRING_ARITY[callee.name?.text];
     if (arity === undefined || initializer.arguments?.length !== arity) {
         return false;
     }
@@ -10439,7 +10442,7 @@ function nonNullStringDefaultCall (csharp, node, context) {
 // declaration's write/initializer through resolveLocalReadType; a top-level call (the
 // printer) starts a fresh resolution.
 export function csharpLocalDeclaration (csharp, declaration, context) {
-    if (declaration?.name?.kind !== ts.SyntaxKind.Identifier) {
+    if (declaration?.name?.kind !== SyntaxKind.Identifier) {
         return undefined;
     }
     // an uninitialised declaration prints `object x = null;` — the initialiser the null-declared
@@ -10486,18 +10489,18 @@ export function csharpLocalDeclaration (csharp, declaration, context) {
 const SAFE_LIST_PRODUCER_CALLS = [ 'safeList', 'safeList2', 'safeListN' ];
 
 function asAnySafeListReceiverCopy (initializer) {
-    if (initializer?.kind !== ts.SyntaxKind.AsExpression || initializer.type?.kind !== ts.SyntaxKind.AnyKeyword) {
+    if (initializer?.kind !== SyntaxKind.AsExpression || initializer.type?.kind !== SyntaxKind.AnyKeyword) {
         return undefined;
     }
     const inner = initializer.expression;
-    if (inner?.kind !== ts.SyntaxKind.CallExpression) {
+    if (inner?.kind !== SyntaxKind.CallExpression) {
         return undefined;
     }
     const callee = inner.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword) {
         return undefined;
     }
-    const name = callee.name?.escapedText;
+    const name = callee.name?.text;
     if ((typeof name !== 'string') || !SAFE_LIST_PRODUCER_CALLS.includes (name)) {
         return undefined;
     }
@@ -10506,7 +10509,7 @@ function asAnySafeListReceiverCopy (initializer) {
 }
 
 function csharpLocalTypeOf (csharp, declaration, context) {
-    const sourceName = declaration.name.escapedText;
+    const sourceName = declaration.name.text;
     const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration));
     const ctx = context ?? { scope, stack: new Set (), depth: 0 };
     let csharpType = csharpTypeOfValue (csharp, declaration.initializer, ctx);
@@ -10874,7 +10877,7 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         // (U45, same declaration: this.orderBook() / indexedOrderBook() / countedOrderBook() writes)
         const orderbookEdges = (csharpType === 'ccxt.pro.IOrderBook') ? ORDERBOOK_WIDENING_EDGES : undefined;
         // join the initializer with every later write, widening only along box-identical edges
-        const dictionaryLiteral = declaration.initializer?.kind === ts.SyntaxKind.ObjectLiteralExpression;
+        const dictionaryLiteral = declaration.initializer?.kind === SyntaxKind.ObjectLiteralExpression;
         csharpType = typeFromValueOrWrites (csharp, scope, declaration, sourceName, csharpType, ctx, copyEdges ?? cacheMemberEdges ?? orderbookEdges ?? (dictionaryLiteral ? DICTIONARY_LITERAL_WIDENING_EDGES : undefined));
     }
     if (csharpType === undefined || csharpType === csharp.VAR_TOKEN) {
@@ -11017,8 +11020,8 @@ function isNullInit (declaration) {
     if (init === undefined) {
         return false;
     }
-    return init.kind === ts.SyntaxKind.NullKeyword
-        || (init.kind === ts.SyntaxKind.Identifier && init.escapedText === 'undefined');
+    return init.kind === SyntaxKind.NullKeyword
+        || (init.kind === SyntaxKind.Identifier && init.text === 'undefined');
 }
 
 // `let x = 'spot'; [ x, params ] = this.handleMarketTypeAndParams (…, x)`: the local starts as
@@ -11028,17 +11031,17 @@ function isNullInit (declaration) {
 // honest: the joined type keeps the init's non-null string and the destructured write adds the
 // nullable contribution (see typeFromValueOrWrites).
 function isStringLiteralInit (declaration) {
-    return declaration?.initializer?.kind === ts.SyntaxKind.StringLiteral;
+    return declaration?.initializer?.kind === SyntaxKind.StringLiteral;
 }
 
 function isStringLiteral (node) {
-    return node?.kind === ts.SyntaxKind.StringLiteral || node?.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral;
+    return node?.kind === SyntaxKind.StringLiteral || node?.kind === SyntaxKind.NoSubstitutionTemplateLiteral;
 }
 
 // an explicit `undefined` argument leaves the helper's `defaultValue !== undefined` guard
 // false on every path, so that branch cannot contribute element 0 at all
 function isUndefinedLiteral (node) {
-    return node?.kind === ts.SyntaxKind.Identifier && node.escapedText === 'undefined';
+    return node?.kind === SyntaxKind.Identifier && node.text === 'undefined';
 }
 
 // `let x = false` / `= 0` / `= ''` (also a negated numeric literal): a declaration whose own
@@ -11050,14 +11053,14 @@ function isLiteralInit (declaration) {
         return false;
     }
     switch (init.kind) {
-    case ts.SyntaxKind.TrueKeyword:
-    case ts.SyntaxKind.FalseKeyword:
-    case ts.SyntaxKind.NumericLiteral:
-    case ts.SyntaxKind.StringLiteral:
-    case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+    case SyntaxKind.TrueKeyword:
+    case SyntaxKind.FalseKeyword:
+    case SyntaxKind.NumericLiteral:
+    case SyntaxKind.StringLiteral:
+    case SyntaxKind.NoSubstitutionTemplateLiteral:
         return true;
-    case ts.SyntaxKind.PrefixUnaryExpression:
-        return init.operator === ts.SyntaxKind.MinusToken && init.operand?.kind === ts.SyntaxKind.NumericLiteral;
+    case SyntaxKind.PrefixUnaryExpression:
+        return init.operator === SyntaxKind.MinusToken && init.operand?.kind === SyntaxKind.NumericLiteral;
     }
     return false;
 }
@@ -11073,7 +11076,7 @@ const SAFE_STRING_ELEMENT0_HELPERS = [ 'handleParamString', 'handleParamString2'
 // argument (handleMarketTypeAndParams can hand that argument back UNCHANGED, so its box must
 // be provable); the literal-initialised shard is limited to the SafeString-bodied helpers.
 function destructuredStringElementProof (csharp, declaration, idNode, assignment, name, context) {
-    if (assignment.right?.kind !== ts.SyntaxKind.CallExpression) {
+    if (assignment.right?.kind !== SyntaxKind.CallExpression) {
         return false;
     }
     if (!Object.prototype.hasOwnProperty.call (DESTRUCTURED_STRING_HELPERS, name)
@@ -11094,8 +11097,8 @@ function destructuredStringElementProof (csharp, declaration, idNode, assignment
         // (a typed local, a ternary over string literals): each hands back a string or null.
         // Every other write of the name is re-scanned against the joined type by
         // csharpLocalIsSafeToRetype before anything is emitted.
-        const selfArgument = argument?.kind === ts.SyntaxKind.Identifier
-            && argument.escapedText === declaration.name?.escapedText;
+        const selfArgument = argument?.kind === SyntaxKind.Identifier
+            && argument.text === declaration.name?.text;
         if (argument !== undefined && !isStringLiteral (argument) && !isUndefinedLiteral (argument) && !selfArgument
                 && !STRING_TYPES.includes (csharpTypeOfValue (csharp, argument, context))) {
             return false;
@@ -11167,19 +11170,19 @@ export const BOOL_OPTION_HELPERS = {
 };
 
 function boolOptionLocalName (declaration) {
-    const raw = declaration?.name?.escapedText;
+    const raw = declaration?.name?.text;
     return (typeof raw === 'string' && BOOL_OPTION_LOCALS.includes (raw)) ? raw : undefined;
 }
 
 function isBoolLiteralArgument (node) {
-    return node?.kind === ts.SyntaxKind.TrueKeyword || node?.kind === ts.SyntaxKind.FalseKeyword;
+    return node?.kind === SyntaxKind.TrueKeyword || node?.kind === SyntaxKind.FalseKeyword;
 }
 
 // the RHS of a destructuring assignment behind its parentheses / `await`
 // (`[ uta, params ] = await this.handleUTAAndParams (...)`)
 function unwrapOptionCall (node) {
     let current = node;
-    while (current?.kind === ts.SyntaxKind.ParenthesizedExpression || current?.kind === ts.SyntaxKind.AwaitExpression) {
+    while (current?.kind === SyntaxKind.ParenthesizedExpression || current?.kind === SyntaxKind.AwaitExpression) {
         current = current.expression;
     }
     return current;
@@ -11188,14 +11191,14 @@ function unwrapOptionCall (node) {
 // `this.<helper>` of a destructuring RHS, await/parens unwrapped, or undefined
 function destructuredHelperName (node) {
     const call = unwrapOptionCall (node);
-    if (call?.kind !== ts.SyntaxKind.CallExpression) {
+    if (call?.kind !== SyntaxKind.CallExpression) {
         return undefined;
     }
     const callee = call.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword) {
         return undefined;
     }
-    return callee.name?.escapedText;
+    return callee.name?.text;
 }
 
 // `[ x, params ] = this.<helper> (...)` element 0 of a bool-option helper. Per call site the
@@ -11208,14 +11211,14 @@ function boolOptionElementProof (declaration, idNode, assignment, name) {
     if (boolOptionLocalName (declaration) === undefined
             || !Object.prototype.hasOwnProperty.call (BOOL_OPTION_HELPERS, name)
             || idNode.parent?.elements?.[0] !== idNode
-            || call?.kind !== ts.SyntaxKind.CallExpression) {
+            || call?.kind !== SyntaxKind.CallExpression) {
         return false;
     }
     const argument = call.arguments[BOOL_OPTION_HELPERS[name] - 1];
     if (argument === undefined || isUndefinedLiteral (argument) || isBoolLiteralArgument (argument)) {
         return true;
     }
-    return argument.kind === ts.SyntaxKind.Identifier && argument.escapedText === declaration.name?.escapedText;
+    return argument.kind === SyntaxKind.Identifier && argument.text === declaration.name?.text;
 }
 
 // element 0 of a bool helper: the per-call-site option proof above, or the flat
@@ -11250,7 +11253,7 @@ function literalInitElement0Type (csharp, declaration, idNode, assignment, name,
     if (boolOptionElementProof (declaration, idNode, assignment, name)) {
         return 'bool';
     }
-    if (assignment?.right?.kind !== ts.SyntaxKind.CallExpression) {
+    if (assignment?.right?.kind !== SyntaxKind.CallExpression) {
         return undefined;
     }
     const elementType = DESTRUCTURED_ELEMENT0_TYPES[name];
@@ -11285,7 +11288,7 @@ export const DESTRUCTURED_BOOL_COERCION_HELPERS = [
 // operands through printCondition and `if (x)` / `while (x)` / `for (…; x; …)` likewise.
 function destructuredBoolReadIsTruthy (node) {
     let current = node;
-    while (current.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (current.parent?.kind === SyntaxKind.ParenthesizedExpression) {
         current = current.parent;
     }
     const parent = current.parent;
@@ -11293,18 +11296,18 @@ function destructuredBoolReadIsTruthy (node) {
         return false;
     }
     switch (parent.kind) {
-    case ts.SyntaxKind.IfStatement:
-    case ts.SyntaxKind.WhileStatement:
-    case ts.SyntaxKind.DoStatement:
-    case ts.SyntaxKind.ForStatement:
+    case SyntaxKind.IfStatement:
+    case SyntaxKind.WhileStatement:
+    case SyntaxKind.DoStatement:
+    case SyntaxKind.ForStatement:
         return parent.expression === current;
-    case ts.SyntaxKind.ConditionalExpression:
+    case SyntaxKind.ConditionalExpression:
         return parent.condition === current;
-    case ts.SyntaxKind.PrefixUnaryExpression:
-        return (parent.operator === ts.SyntaxKind.ExclamationToken) && (parent.operand === current);
-    case ts.SyntaxKind.BinaryExpression: {
+    case SyntaxKind.PrefixUnaryExpression:
+        return (parent.operator === SyntaxKind.ExclamationToken) && (parent.operand === current);
+    case SyntaxKind.BinaryExpression: {
         const op = parent.operatorToken.kind;
-        return ((op === ts.SyntaxKind.BarBarToken) || (op === ts.SyntaxKind.AmpersandAmpersandToken))
+        return ((op === SyntaxKind.BarBarToken) || (op === SyntaxKind.AmpersandAmpersandToken))
             && ((parent.left === current) || (parent.right === current));
     }
     }
@@ -11314,7 +11317,7 @@ function destructuredBoolReadIsTruthy (node) {
 // every read of the target in its own function is a truthiness position (write positions are
 // vetted by the generic retype scan, which the caller runs around this proof)
 function destructuredBoolReadsAreTruthy (csharp, scope, index, declaration) {
-    const name = declaration.name.escapedText;
+    const name = declaration.name.text;
     for (const n of (index.identifiers.get (name) ?? [])) {
         if (n === declaration.name || isNotAUse (n)) {
             continue;
@@ -11323,10 +11326,10 @@ function destructuredBoolReadsAreTruthy (csharp, scope, index, declaration) {
             continue; // another same-name binding
         }
         const parent = n.parent;
-        if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === n && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+        if (parent?.kind === SyntaxKind.BinaryExpression && parent.left === n && parent.operatorToken.kind === SyntaxKind.EqualsToken) {
             continue; // a plain write — the generic scan proves its value is bool
         }
-        if (parent?.kind === ts.SyntaxKind.ArrayLiteralExpression) {
+        if (parent?.kind === SyntaxKind.ArrayLiteralExpression) {
             continue; // the destructuring write target itself
         }
         if (!destructuredBoolReadIsTruthy (n)) {
@@ -11378,19 +11381,19 @@ function destructuredWriteIsCastable (csharp, scope, index, declaration, idNode,
     // arms is the fresh request Dict the table below proves, so the element-0 box is proven for
     // the conditional too. Only the dict family reads the arms: the string / element-0 families
     // keep the single-call shape they were audited on.
-    const arms = (right?.kind === ts.SyntaxKind.ConditionalExpression && csharpType === 'Dictionary<string, object>')
+    const arms = (right?.kind === SyntaxKind.ConditionalExpression && csharpType === 'Dictionary<string, object>')
         ? [ right.whenTrue, right.whenFalse ]
         : [ right ];
     const helpers = [];
     for (const arm of arms) {
-        if (arm?.kind !== ts.SyntaxKind.CallExpression) {
+        if (arm?.kind !== SyntaxKind.CallExpression) {
             return false;
         }
         const armCallee = arm.expression;
-        if (armCallee?.kind !== ts.SyntaxKind.PropertyAccessExpression || armCallee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        if (armCallee?.kind !== SyntaxKind.PropertyAccessExpression || armCallee.expression?.kind !== SyntaxKind.ThisKeyword) {
             return false;
         }
-        helpers.push (armCallee.name?.escapedText);
+        helpers.push (armCallee.name?.text);
     }
     const helper = helpers[0];
     if (csharpType === 'Dictionary<string, object>') {
@@ -11443,10 +11446,10 @@ function destructuredWriteIsCastable (csharp, scope, index, declaration, idNode,
 // is idempotent (isTrue (isTrue (v)) === isTrue (v)) and every other read is a truthiness test.
 function isUTAEnabledAwaitedInit (declaration) {
     const init = declaration?.initializer;
-    const callee = (init?.kind === ts.SyntaxKind.AwaitExpression && init.expression?.kind === ts.SyntaxKind.CallExpression) ? init.expression.expression : undefined;
-    return callee?.kind === ts.SyntaxKind.PropertyAccessExpression
-        && callee.expression?.kind === ts.SyntaxKind.ThisKeyword
-        && callee.name?.escapedText === 'isUTAEnabled';
+    const callee = (init?.kind === SyntaxKind.AwaitExpression && init.expression?.kind === SyntaxKind.CallExpression) ? init.expression.expression : undefined;
+    return callee?.kind === SyntaxKind.PropertyAccessExpression
+        && callee.expression?.kind === SyntaxKind.ThisKeyword
+        && callee.name?.text === 'isUTAEnabled';
 }
 
 // `if (x)` / `x ? :` / `!x` — the printer wraps each condition in isTrue (x), the read shape the
@@ -11457,21 +11460,21 @@ function isTruthinessRead (node) {
         return false;
     }
     switch (parent.kind) {
-    case ts.SyntaxKind.IfStatement:
-    case ts.SyntaxKind.WhileStatement:
-    case ts.SyntaxKind.DoStatement:
+    case SyntaxKind.IfStatement:
+    case SyntaxKind.WhileStatement:
+    case SyntaxKind.DoStatement:
         return parent.expression === node;
-    case ts.SyntaxKind.ConditionalExpression:
+    case SyntaxKind.ConditionalExpression:
         return parent.condition === node;
-    case ts.SyntaxKind.PrefixUnaryExpression:
-        return parent.operator === ts.SyntaxKind.ExclamationToken && parent.operand === node && isTruthinessRead (parent);
-    case ts.SyntaxKind.ParenthesizedExpression:
+    case SyntaxKind.PrefixUnaryExpression:
+        return parent.operator === SyntaxKind.ExclamationToken && parent.operand === node && isTruthinessRead (parent);
+    case SyntaxKind.ParenthesizedExpression:
         return parent.expression === node && isTruthinessRead (parent);
-    case ts.SyntaxKind.BinaryExpression:
+    case SyntaxKind.BinaryExpression:
         // `x || y` / `x && y` inside a condition: the printer wraps the operand in isTrue (x)
         // too, so the coercion's bool reads the same; every other operator (`x === true`,
         // `x + 'a'`, a compound write) fails the proof
-        return (parent.operatorToken?.kind === ts.SyntaxKind.BarBarToken || parent.operatorToken?.kind === ts.SyntaxKind.AmpersandAmpersandToken)
+        return (parent.operatorToken?.kind === SyntaxKind.BarBarToken || parent.operatorToken?.kind === SyntaxKind.AmpersandAmpersandToken)
             && isTruthinessRead (parent);
     }
     return false;
@@ -11486,15 +11489,15 @@ function destructuredIsUTAEnabledBoolProof (csharp, scope, declaration, idNode, 
     }
     const right = assignment?.right;
     const callee = right?.expression;
-    if (right?.kind !== ts.SyntaxKind.CallExpression
-            || callee?.kind !== ts.SyntaxKind.PropertyAccessExpression
-            || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword
-            || callee.name?.escapedText !== 'handleOptionAndParams') {
+    if (right?.kind !== SyntaxKind.CallExpression
+            || callee?.kind !== SyntaxKind.PropertyAccessExpression
+            || callee.expression?.kind !== SyntaxKind.ThisKeyword
+            || callee.name?.text !== 'handleOptionAndParams') {
         return false;
     }
-    const name = declaration.name?.escapedText;
+    const name = declaration.name?.text;
     const selfArgument = right.arguments?.[3];
-    if (selfArgument?.kind !== ts.SyntaxKind.Identifier || selfArgument.escapedText !== name) {
+    if (selfArgument?.kind !== SyntaxKind.Identifier || selfArgument.text !== name) {
         return false; // the tuple's defaultValue is the local itself at every accepted site
     }
     const identifiers = indexScope (csharp, scope)?.identifiers?.get (name) ?? [];
@@ -11503,13 +11506,13 @@ function destructuredIsUTAEnabledBoolProof (csharp, scope, declaration, idNode, 
             continue;
         }
         const arrayParent = n.parent;
-        const isDestructuringWrite = (arrayParent?.kind === ts.SyntaxKind.ArrayLiteralExpression)
-            && ((arrayParent.parent?.kind === ts.SyntaxKind.BinaryExpression && arrayParent.parent.left === arrayParent && arrayParent.parent.operatorToken?.kind === ts.SyntaxKind.EqualsToken)
-                || arrayParent.parent?.kind === ts.SyntaxKind.VariableDeclaration);
+        const isDestructuringWrite = (arrayParent?.kind === SyntaxKind.ArrayLiteralExpression)
+            && ((arrayParent.parent?.kind === SyntaxKind.BinaryExpression && arrayParent.parent.left === arrayParent && arrayParent.parent.operatorToken?.kind === SyntaxKind.EqualsToken)
+                || arrayParent.parent?.kind === SyntaxKind.VariableDeclaration);
         if (isDestructuringWrite) {
             continue; // the audited write; the element-0 position is checked by the caller
         }
-        const isWrite = n.parent?.kind === ts.SyntaxKind.BinaryExpression && n.parent.left === n && n.parent.operatorToken?.kind === ts.SyntaxKind.EqualsToken;
+        const isWrite = n.parent?.kind === SyntaxKind.BinaryExpression && n.parent.left === n && n.parent.operatorToken?.kind === SyntaxKind.EqualsToken;
         if (isWrite) {
             continue; // a plain write's own value is type-checked by the caller's scan
         }
@@ -11550,7 +11553,7 @@ function installDestructuredCasts (csharp) {
         if (typeof printed !== 'string') {
             return printed;
         }
-        if (node?.operatorToken?.kind !== ts.SyntaxKind.EqualsToken || node.left?.kind !== ts.SyntaxKind.ArrayLiteralExpression) {
+        if (node?.operatorToken?.kind !== SyntaxKind.EqualsToken || node.left?.kind !== SyntaxKind.ArrayLiteralExpression) {
             return printed;
         }
         const types = destructuredWriteTypes.get (enclosingFunction (node));
@@ -11572,8 +11575,8 @@ function installDestructuredCasts (csharp) {
         // keep their `(bool?)` / `(string?)` cast — only an audited bool-coercion helper takes
         // the isTrue rewrite
         const destructuredCallee = node.right?.expression;
-        const destructuredHelper = (destructuredCallee?.kind === ts.SyntaxKind.PropertyAccessExpression && destructuredCallee.expression?.kind === ts.SyntaxKind.ThisKeyword)
-            ? destructuredCallee.name?.escapedText : undefined;
+        const destructuredHelper = (destructuredCallee?.kind === SyntaxKind.PropertyAccessExpression && destructuredCallee.expression?.kind === SyntaxKind.ThisKeyword)
+            ? destructuredCallee.name?.text : undefined;
         const boolCoercionHelper = DESTRUCTURED_BOOL_COERCION_HELPERS.includes (destructuredHelper);
         return printed.split ('\n').map ((line) => {
             const match = DESTRUCTURED_READ_RE.exec (line);
@@ -11619,7 +11622,7 @@ const U17_NUMERIC_NAMES = new Set ([ 'until', 'timestamp', 'since', 'limit' ]);
 // the U17 family name of a declaration, or undefined (`marketType` is U13's, `currency`/`base`/
 // `quote`/`bs` are U18's: the roster's name split is what keeps the units apart)
 function u17FamilyName (declaration) {
-    const name = declaration?.name?.escapedText;
+    const name = declaration?.name?.text;
     if (typeof name !== 'string') {
         return undefined;
     }
@@ -11627,7 +11630,7 @@ function u17FamilyName (declaration) {
 }
 
 function isU17NullInitString (declaration) {
-    return u17FamilyName (declaration) !== undefined && U17_STRING_NAMES.has (declaration.name.escapedText) && isNullInit (declaration);
+    return u17FamilyName (declaration) !== undefined && U17_STRING_NAMES.has (declaration.name.text) && isNullInit (declaration);
 }
 
 // `x = market['symbol']` as a write: the audited key table (MARKET_ROW_STRING_KEYS) plus the
@@ -11643,15 +11646,15 @@ function u17RowReadWriteType (csharp, declaration, node) {
 // string box; C# does not narrow the CONVERSION (CS0266), so the write takes the identity
 // `(string)` cast — the guard on the same identifier is what makes it safe.
 function u17TypeofStringGuardName (condition) {
-    if (condition?.kind !== ts.SyntaxKind.BinaryExpression) {
+    if (condition?.kind !== SyntaxKind.BinaryExpression) {
         return undefined;
     }
     const op = condition.operatorToken?.kind;
-    if (op !== ts.SyntaxKind.EqualsEqualsEqualsToken && op !== ts.SyntaxKind.EqualsEqualsToken) {
+    if (op !== SyntaxKind.EqualsEqualsEqualsToken && op !== SyntaxKind.EqualsEqualsToken) {
         return undefined;
     }
-    const typeofOf = (n) => ((n?.kind === ts.SyntaxKind.TypeOfExpression) ? n.expression?.escapedText : undefined);
-    const literalOf = (n) => ((n?.kind === ts.SyntaxKind.StringLiteral) ? n.text : undefined);
+    const typeofOf = (n) => ((n?.kind === SyntaxKind.TypeOfExpression) ? n.expression?.text : undefined);
+    const literalOf = (n) => ((n?.kind === SyntaxKind.StringLiteral) ? n.text : undefined);
     const subject = typeofOf (condition.left) ?? typeofOf (condition.right);
     const literal = literalOf (condition.left) ?? literalOf (condition.right);
     return (literal === 'string') ? subject : undefined;
@@ -11660,8 +11663,8 @@ function u17TypeofStringGuardName (condition) {
 // the identifier a `typeof <id> === 'string'` then-branch narrows, or undefined
 function u17NarrowedCopyNodeName (node) {
     let current = node?.parent;
-    while (current !== undefined && current.kind !== ts.SyntaxKind.FunctionLikeDeclaration) {
-        if (current.kind === ts.SyntaxKind.IfStatement && current.thenStatement !== undefined
+    while (current !== undefined && current.kind !== undefined) {
+        if (current.kind === SyntaxKind.IfStatement && current.thenStatement !== undefined
                 && current.thenStatement.getStart () <= node.getStart () && node.getEnd () <= current.thenStatement.getEnd ()) {
             const name = u17TypeofStringGuardName (current.expression);
             if (name !== undefined) {
@@ -11674,10 +11677,10 @@ function u17NarrowedCopyNodeName (node) {
 }
 
 function u17NarrowedCopyWriteType (declaration, node) {
-    if (!isU17NullInitString (declaration) || node?.kind !== ts.SyntaxKind.Identifier) {
+    if (!isU17NullInitString (declaration) || node?.kind !== SyntaxKind.Identifier) {
         return undefined;
     }
-    return (u17NarrowedCopyNodeName (node) === node.escapedText) ? 'string' : undefined;
+    return (u17NarrowedCopyNodeName (node) === node.text) ? 'string' : undefined;
 }
 
 // the two write shapes this family proves on top of csharpTypeOfValue (see the two comments)
@@ -11705,27 +11708,27 @@ function recordU17RowReadWriteTarget (scope, printedName, csharpType, declaratio
 // is object: the proven market-row read or the `(x is string)`-guarded copy — the cast names the
 // box the guard / key census proves, so it cannot throw where the untyped line did not.
 function u17WriteNeedsCast (csharp, node) {
-    if (node?.kind !== ts.SyntaxKind.ElementAccessExpression && node?.kind !== ts.SyntaxKind.Identifier) {
+    if (node?.kind !== SyntaxKind.ElementAccessExpression && node?.kind !== SyntaxKind.Identifier) {
         return false;
     }
     const parent = node.parent;
-    if (parent?.kind !== ts.SyntaxKind.BinaryExpression || parent.operatorToken.kind !== ts.SyntaxKind.EqualsToken || parent.right !== node) {
+    if (parent?.kind !== SyntaxKind.BinaryExpression || parent.operatorToken.kind !== SyntaxKind.EqualsToken || parent.right !== node) {
         return false;
     }
     const target = parent.left;
-    if (target?.kind !== ts.SyntaxKind.Identifier) {
+    if (target?.kind !== SyntaxKind.Identifier) {
         return false;
     }
     const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (node) : enclosingFunction (node);
     const targets = u17RowReadWriteTargets.get (scope);
-    const declaration = (targets === undefined) ? undefined : targets.get (target.escapedText);
+    const declaration = (targets === undefined) ? undefined : targets.get (target.text);
     if (declaration === undefined || resolveReference (csharp, target) !== declaration) {
         return false;
     }
-    if (node.kind === ts.SyntaxKind.ElementAccessExpression) {
+    if (node.kind === SyntaxKind.ElementAccessExpression) {
         return marketRowStringReadType (csharp, node) === 'string';
     }
-    return u17NarrowedCopyNodeName (node) === node.escapedText;
+    return u17NarrowedCopyNodeName (node) === node.text;
 }
 
 // cast-back for the two shapes above, chained on top of every other printElementAccessExpression /
@@ -11774,7 +11777,7 @@ function installU17RowReadWriteCasts (csharp) {
 // the value itself is not proven). Census on the base tree (campaigns/cs-strict/tools/S05/):
 // 139 throw arguments, 127 `.Remove` keys, 1082 indexer-write keys.
 function referenceDeclaredCSharpType (csharp, node) {
-    if (node?.kind !== ts.SyntaxKind.Identifier) {
+    if (node?.kind !== SyntaxKind.Identifier) {
         return undefined;
     }
     let declaration;
@@ -11783,7 +11786,7 @@ function referenceDeclaredCSharpType (csharp, node) {
     } catch (e) {
         return undefined;
     }
-    if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration) {
+    if (declaration?.kind !== SyntaxKind.VariableDeclaration) {
         return undefined; // a parameter is printed `object name = null`, whatever the callers pass
     }
     try {
@@ -11834,7 +11837,7 @@ function installProvenStringCastDrops (csharp) {
             const expression = node?.expression;
             // the wrapper spans the whole argument list, so only a single-argument class throw
             // is rewritten; throwDynamicException and every other shape is left alone
-            if (typeof printed !== 'string' || expression?.kind !== ts.SyntaxKind.NewExpression) {
+            if (typeof printed !== 'string' || expression?.kind !== SyntaxKind.NewExpression) {
                 return printed;
             }
             const args = expression.arguments ?? [];
@@ -11903,14 +11906,14 @@ const SAFE_HELPER_LOCAL_METHODS = new Set ([ 'safeString', 'safeString2', 'safeS
 
 // `this.<safeString*|safeInteger*|safeTimestamp|safeNumber> (...)` as the whole initialiser
 function safeHelperLocalInitializer (node) {
-    if (node?.kind !== ts.SyntaxKind.CallExpression) {
+    if (node?.kind !== SyntaxKind.CallExpression) {
         return false;
     }
     const callee = node.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword) {
         return false;
     }
-    return SAFE_HELPER_LOCAL_METHODS.has (callee.name?.escapedText);
+    return SAFE_HELPER_LOCAL_METHODS.has (callee.name?.text);
 }
 
 // the declaration whose later write is being resolved right now, with the type a read of it
@@ -11963,19 +11966,19 @@ function typeFromValueOrWrites (csharp, scope, declaration, varName, initial, co
             continue;
         }
         const parent = n.parent;
-        if (parent.kind !== ts.SyntaxKind.BinaryExpression || parent.left !== n || parent.operatorToken.kind !== ts.SyntaxKind.EqualsToken) {
+        if (parent.kind !== SyntaxKind.BinaryExpression || parent.left !== n || parent.operatorToken.kind !== SyntaxKind.EqualsToken) {
             // `[ x, params ] = this.handleM (...)`: not a plain write, but element 0 of an
             // audited string helper (DESTRUCTURED_STRING_HELPERS) is a string or null, so
             // an unannotated `let x = undefined` joins it like a plain write; a
             // LITERAL-initialised local joins the element-0 box the helper's own C# body
             // proves (literalInitElement0Type), which joinTypes keeps box-identical by
             // rejecting any element type its initialiser's box cannot hold (int vs Int64?).
-            if (parent.kind === ts.SyntaxKind.ArrayLiteralExpression
-                    && parent.parent?.kind === ts.SyntaxKind.BinaryExpression && parent.parent.left === parent
-                    && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+            if (parent.kind === SyntaxKind.ArrayLiteralExpression
+                    && parent.parent?.kind === SyntaxKind.BinaryExpression && parent.parent.left === parent
+                    && parent.parent.operatorToken.kind === SyntaxKind.EqualsToken) {
                 const destructuredCallee = parent.parent.right?.expression;
-                const destructuredName = (destructuredCallee?.kind === ts.SyntaxKind.PropertyAccessExpression && destructuredCallee.expression?.kind === ts.SyntaxKind.ThisKeyword)
-                    ? destructuredCallee.name?.escapedText : undefined;
+                const destructuredName = (destructuredCallee?.kind === SyntaxKind.PropertyAccessExpression && destructuredCallee.expression?.kind === SyntaxKind.ThisKeyword)
+                    ? destructuredCallee.name?.text : undefined;
                 let elementType;
                 if (initial === 'null') {
                     elementType = (destructuredName !== undefined && destructuredStringElementProof (csharp, declaration, n, parent.parent, destructuredName, context)) ? 'string' : undefined;
@@ -12227,13 +12230,13 @@ export function installCsharpMethodReturnTypes (csharp) {
         return;
     }
     const methodReturnType = (node) => {
-        if (node?.kind !== ts.SyntaxKind.MethodDeclaration) {
+        if (node?.kind !== SyntaxKind.MethodDeclaration) {
             return undefined;
         }
         if (typeof csharp.isAsyncFunction === 'function' && csharp.isAsyncFunction (node)) {
             return undefined; // async methods print Task<...>; none of the listed names is async
         }
-        return CSHARP_METHOD_RETURN_TYPES[node.name?.escapedText];
+        return CSHARP_METHOD_RETURN_TYPES[node.name?.text];
     };
     const upstreamFunctionType = csharp.printFunctionType.bind (csharp);
     csharp.printFunctionType = (node) => {
@@ -12245,7 +12248,7 @@ export function installCsharpMethodReturnTypes (csharp) {
     };
     const upstreamReturnStatement = csharp.printReturnStatement.bind (csharp);
     csharp.printReturnStatement = (node, identation) => {
-        const retype = methodReturnType (ts.findAncestor (node.parent, ts.isFunctionLike));
+        const retype = methodReturnType (findAncestor (node.parent, isFunctionLike));
         if (retype === undefined || !node.expression) {
             return upstreamReturnStatement (node, identation);
         }
@@ -12270,14 +12273,14 @@ export function installCsharpMethodReturnTypes (csharp) {
 // (`handleOptionAndParams`, `handleMarginModeAndParams`, `customHandleMarginModeAndParams`,
 // ...). Destructuring callees outside the family keep the printer's shape.
 function destructuredHandleCallName (node) {
-    if (node?.kind !== ts.SyntaxKind.CallExpression) {
+    if (node?.kind !== SyntaxKind.CallExpression) {
         return undefined;
     }
     const callee = node.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    if (callee?.kind !== SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== SyntaxKind.ThisKeyword) {
         return undefined;
     }
-    const name = callee.name?.escapedText;
+    const name = callee.name?.text;
     return (typeof name === 'string' && name.includes ('andle')) ? name : undefined;
 }
 
@@ -12329,7 +12332,7 @@ function retypeDestructuringTemp (csharp, scope, printed) {
 // decided by its leftmost operand, so the spine is walked.
 function concatLeftOperandIsString (csharp, node) {
     let current = node;
-    while (current?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (current?.kind === SyntaxKind.ParenthesizedExpression) {
         current = current.expression;
     }
     if (current === undefined) {
@@ -12338,7 +12341,7 @@ function concatLeftOperandIsString (csharp, node) {
     if (exchangeIdRead (csharp, current) || isProvablyStringOperand (csharp, current)) {
         return true;
     }
-    if (current?.kind === ts.SyntaxKind.BinaryExpression && current.operatorToken?.kind === ts.SyntaxKind.PlusToken) {
+    if (current?.kind === SyntaxKind.BinaryExpression && current.operatorToken?.kind === SyntaxKind.PlusToken) {
         return concatLeftOperandIsString (csharp, current.left);
     }
     return false;
@@ -12349,9 +12352,9 @@ function concatLeftOperandIsString (csharp, node) {
 // is the hand-written `public string id { get; set; }` — the same member isProvablyStringOperand
 // accepts on `this`. receiverIsExchange proves the receiver is that class and not an `any`.
 function exchangeIdRead (csharp, node) {
-    return node?.kind === ts.SyntaxKind.PropertyAccessExpression
-        && node.name?.escapedText === 'id'
-        && node.expression?.kind === ts.SyntaxKind.Identifier
+    return node?.kind === SyntaxKind.PropertyAccessExpression
+        && node.name?.text === 'id'
+        && node.expression?.kind === SyntaxKind.Identifier
         && receiverIsExchange (csharp, node.expression);
 }
 
@@ -12381,7 +12384,7 @@ function concatArgumentText (csharp, node, text) {
     if (typeof text !== 'string' || text.startsWith ('add(')) {
         return text;
     }
-    if (typeof csharp.csharpNativeStringConcat !== 'function' || node?.kind !== ts.SyntaxKind.BinaryExpression || node.operatorToken?.kind !== ts.SyntaxKind.PlusToken) {
+    if (typeof csharp.csharpNativeStringConcat !== 'function' || node?.kind !== SyntaxKind.BinaryExpression || node.operatorToken?.kind !== SyntaxKind.PlusToken) {
         return undefined;
     }
     const native = csharp.csharpNativeStringConcat (node.left, node.right, csharp.printNode (node.left, 0), csharp.printNode (node.right, 0));
@@ -12399,7 +12402,7 @@ function installRedundantAddCasts (csharp) {
         csharp.printThrowStatement = (node, identation) => {
             const printed = upstream (node, identation);
             const expression = node?.expression;
-            const arg = (expression?.kind === ts.SyntaxKind.NewExpression && expression.arguments?.length === 1)
+            const arg = (expression?.kind === SyntaxKind.NewExpression && expression.arguments?.length === 1)
                 ? expression.arguments[0]
                 : undefined;
             return dropRedundantAddCast (csharp, printed, arg, undefined, '((string)$ARG)', '($ARG)');
@@ -12463,13 +12466,13 @@ function listLocalReadType (csharp, node) {
         return undefined;
     }
     const reference = resolveReference (csharp, node);
-    if (reference?.kind !== ts.SyntaxKind.VariableDeclaration) {
+    if (reference?.kind !== SyntaxKind.VariableDeclaration) {
         return undefined;
     }
     if (typeof csharp.getCSharpLocalType !== 'function' || csharp.getCSharpLocalType (reference) !== csharp.VAR_TOKEN) {
         return undefined;
     }
-    if (reference.initializer?.kind === ts.SyntaxKind.AwaitExpression) {
+    if (reference.initializer?.kind === SyntaxKind.AwaitExpression) {
         return undefined;
     }
     return type;
@@ -12480,7 +12483,7 @@ function listLocalReadType (csharp, node) {
 function chainCsharpLocalTypeOf (csharp, answer) {
     const previous = (typeof csharp.csharpLocalTypeOf === 'function') ? csharp.csharpLocalTypeOf.bind (csharp) : undefined;
     csharp.csharpLocalTypeOf = (node) => {
-        if (node?.kind !== ts.SyntaxKind.Identifier) {
+        if (node?.kind !== SyntaxKind.Identifier) {
             return undefined;
         }
         const own = answer (node);
@@ -12529,13 +12532,13 @@ function elementAccessListReceiverType (csharp, node) {
         return undefined;
     }
     const reference = resolveReference (csharp, node);
-    if (reference?.kind !== ts.SyntaxKind.VariableDeclaration) {
+    if (reference?.kind !== SyntaxKind.VariableDeclaration) {
         return undefined;
     }
     if (typeof csharp.getCSharpLocalType !== 'function' || csharp.getCSharpLocalType (reference) !== csharp.VAR_TOKEN) {
         return undefined;
     }
-    if (reference.initializer?.kind === ts.SyntaxKind.AwaitExpression) {
+    if (reference.initializer?.kind === SyntaxKind.AwaitExpression) {
         return undefined;
     }
     return type;
@@ -12554,11 +12557,11 @@ const CSHARP_SCALAR_LIST_ELEMENT_TYPES = {
 // the scalar element type of `recv[i]` over a receiver whose printed declaration is a scalar list, or
 // undefined. Read-only: it answers the declaration dispatch, the printed read is unchanged.
 function typedListElementReadType (csharp, node) {
-    if (node?.kind !== ts.SyntaxKind.ElementAccessExpression) {
+    if (node?.kind !== SyntaxKind.ElementAccessExpression) {
         return undefined;
     }
     const receiver = node.expression;
-    if (receiver?.kind !== ts.SyntaxKind.Identifier || node.argumentExpression === undefined) {
+    if (receiver?.kind !== SyntaxKind.Identifier || node.argumentExpression === undefined) {
         return undefined;
     }
     if (!wsCacheElementSourceOk (node) || typeof csharp.csharpPrintedLocalType !== 'function') {
@@ -12617,7 +12620,7 @@ function installCsharpListIndexReads (csharp) {
             const printedName = (typeof csharp.printNode === 'function') ? csharp.printNode (declarations[0].name, 0) : undefined;
             for (const line of printed.split ('\n')) {
                 const match = DECLARED_LOCAL_LINE_RE.exec (line);
-                if (match !== null && (match[2] === printedName || match[2] === declarations[0].name?.escapedText)) {
+                if (match !== null && (match[2] === printedName || match[2] === declarations[0].name?.text)) {
                     printedDeclarationTypes.set (declarations[0], match[1].trim ());
                     break;
                 }
@@ -12626,12 +12629,12 @@ function installCsharpListIndexReads (csharp) {
         return printed;
     };
     csharp.csharpListIndexReadTypes = (node) => {
-        if (node?.kind !== ts.SyntaxKind.ElementAccessExpression) {
+        if (node?.kind !== SyntaxKind.ElementAccessExpression) {
             return undefined;
         }
         const receiver = node.expression;
         const index = node.argumentExpression;
-        if (receiver?.kind !== ts.SyntaxKind.Identifier || index?.kind !== ts.SyntaxKind.Identifier) {
+        if (receiver?.kind !== SyntaxKind.Identifier || index?.kind !== SyntaxKind.Identifier) {
             return undefined;
         }
         const receiverType = printedLocalType (csharp, printedDeclarationTypes, receiver);
@@ -12666,8 +12669,8 @@ function printedLocalType (csharp, printedDeclarationTypes, node) {
 // answer for each other
 function declarationOfIdentifier (csharp, node) {
     try {
-        const declarations = csharp.getChecker ().getSymbolAtLocation (node)?.declarations ?? [];
-        if (declarations.length === 1 && declarations[0].kind === ts.SyntaxKind.VariableDeclaration) {
+        const declarations = (csharp.getChecker ().getSymbolAtLocation (node)?.declarations ?? []).map ((d) => d.resolve ());
+        if (declarations.length === 1 && declarations[0].kind === SyntaxKind.VariableDeclaration) {
             return declarations[0];
         }
     } catch (e) {
@@ -12693,7 +12696,7 @@ const CSHARP_POST_PASS_TIER = /(?:^|\/)ts\/src\//;
 const CSHARP_TEST_TIER = /(?:^|\/)ts\/src\/(?:pro\/|prediction\/)?test\//;
 
 function lengthReceiverType (csharp, node) {
-    if (node?.kind !== ts.SyntaxKind.Identifier) {
+    if (node?.kind !== SyntaxKind.Identifier) {
         return undefined; // only a local read has a declaration this hook can name
     }
     const fileName = (node.getSourceFile?.()?.fileName ?? '').replace (/\\/g, '/');
@@ -12701,7 +12704,7 @@ function lengthReceiverType (csharp, node) {
         return undefined; // the post-print pass owns this site
     }
     const reference = resolveReference (csharp, node);
-    if (reference?.kind !== ts.SyntaxKind.VariableDeclaration) {
+    if (reference?.kind !== SyntaxKind.VariableDeclaration) {
         return undefined;
     }
     const type = printedReferenceLocalType (csharp, reference);
@@ -12719,7 +12722,7 @@ function printedReferenceLocalType (csharp, reference) {
     if (printerType !== csharp.VAR_TOKEN) {
         return printerType;
     }
-    if (reference.initializer?.kind === ts.SyntaxKind.AwaitExpression) {
+    if (reference.initializer?.kind === SyntaxKind.AwaitExpression) {
         return undefined; // the wrapper keeps `object` when the printed value is not the awaited call
     }
     const info = csharpLocalDeclaration (csharp, reference);
@@ -12764,8 +12767,8 @@ function recordDeclaredLocalLine (csharp, node, printed) {
         return;
     }
     const declaration = declarations[0];
-    const name = declaration.name?.escapedText;
-    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || name === undefined) {
+    const name = declaration.name?.text;
+    if (declaration.name?.kind !== SyntaxKind.Identifier || name === undefined) {
         return;
     }
     // the printer renames reserved words on the way out (`params` -> `parameters`), so the
@@ -12834,20 +12837,20 @@ function recordedDictType (recorded) {
 // ParenthesizedExpression(AsExpression)), and the C# printer prints that paren away — unwrap it
 // so the same proof applies to both spellings.
 function dictionaryWriteReceiverIdentifier (expression) {
-    while (expression?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (expression?.kind === SyntaxKind.ParenthesizedExpression) {
         expression = expression.expression;
     }
-    if (expression?.kind === ts.SyntaxKind.Identifier) {
+    if (expression?.kind === SyntaxKind.Identifier) {
         return expression;
     }
-    if (expression?.kind !== ts.SyntaxKind.AsExpression || expression.expression?.kind !== ts.SyntaxKind.Identifier) {
+    if (expression?.kind !== SyntaxKind.AsExpression || expression.expression?.kind !== SyntaxKind.Identifier) {
         return undefined;
     }
     const type = expression.type;
     if (type === undefined
-        || type.kind === ts.SyntaxKind.AnyKeyword
-        || type.kind === ts.SyntaxKind.StringKeyword
-        || type.kind === ts.SyntaxKind.ArrayType) {
+        || type.kind === SyntaxKind.AnyKeyword
+        || type.kind === SyntaxKind.StringKeyword
+        || type.kind === SyntaxKind.ArrayType) {
         return undefined;
     }
     return expression.expression;
@@ -12861,10 +12864,10 @@ function csharpDictionaryIndexWriteNeedsNoCast (csharp, node) {
     if (receiver === undefined) {
         return false; // `x["a"]["b"]`, a call result, `this.x`: not a named local
     }
-    if (receiver.escapedText === 'request') {
+    if (receiver.text === 'request') {
         return false; // S21 owns the `request` receiver family
     }
-    if (recordedDictType (declaredLocalOfUse (csharp, node, receiver.escapedText)) !== undefined) {
+    if (recordedDictType (declaredLocalOfUse (csharp, node, receiver.text)) !== undefined) {
         return true;
     }
     return (typeof csharp.csharpPrintedParamType === 'function') && (csharp.csharpPrintedParamType (receiver) !== undefined);
@@ -12874,10 +12877,10 @@ function csharpDictionaryIndexWriteNeedsNoCast (csharp, node) {
 // unknown key (the same set the base C# branch and ccxt's own union override print)
 function csharpDictionaryIndexWriteUsesStringKey (csharp, node) {
     const keyType = csharp.getChecker ().getTypeAtLocation (node.argumentExpression);
-    if (keyType.flags === ts.TypeFlags.Any || csharp.isStringType (keyType.flags)) {
+    if (keyType.flags === TypeFlags.Any || csharp.isStringType (keyType.flags)) {
         return true;
     }
-    const members = (keyType.flags === ts.TypeFlags.Union) ? (keyType.types ?? []) : [];
+    const members = (keyType.flags === TypeFlags.Union) ? (keyType.getTypes () ?? []) : [];
     return members.some ((t) => csharp.isStringType (t.flags));
 }
 
@@ -12893,13 +12896,13 @@ function installCsharpDictionaryIndexWriteException (csharp) {
     const upstream = csharp.printElementAccessExpressionExceptionIfAny.bind (csharp);
     csharp.printElementAccessExpressionExceptionIfAny = (node) => {
         const parent = node?.parent;
-        const isWrite = parent?.kind === ts.SyntaxKind.BinaryExpression
-            && (parent.operatorToken.kind === ts.SyntaxKind.EqualsToken || parent.operatorToken.kind === ts.SyntaxKind.PlusEqualsToken)
+        const isWrite = parent?.kind === SyntaxKind.BinaryExpression
+            && (parent.operatorToken.kind === SyntaxKind.EqualsToken || parent.operatorToken.kind === SyntaxKind.PlusEqualsToken)
             && parent.left === node;
         if (isWrite
             && csharpDictionaryIndexWriteUsesStringKey (csharp, node)
             && csharpDictionaryIndexWriteNeedsNoCast (csharp, node)) {
-            const cast = ts.isStringLiteralLike (node.argumentExpression) ? '' : '(string)';
+            const cast = isStringLiteralLikeNode (node.argumentExpression) ? '' : '(string)';
             return csharp.printNode (node.expression, 0) + '[' + cast + csharp.printNode (node.argumentExpression, 0) + ']';
         }
         return upstream (node);
@@ -12980,7 +12983,7 @@ export function installCsharpLocalTypes (transpiler) {
         const declaration = declarations[0];
         // `const [a, b] = this.handleM (...)` — the printer emits a `var abVariable = <call>;`
         // holder and one casted read per element; type the holder per the proof above
-        if (declaration.name?.kind === ts.SyntaxKind.ArrayBindingPattern) {
+        if (declaration.name?.kind === SyntaxKind.ArrayBindingPattern) {
             if (destructuredHandleCallName (declaration.initializer) === undefined) {
                 return printed;
             }
@@ -13001,7 +13004,7 @@ export function installCsharpLocalTypes (transpiler) {
         // awaited call: a typed core prints `ccxt.BaseExchange.FromX(await this.X(...))`
         // (a different static type) even though the AST still reads `await this.X(...)`,
         // while a bare `await promiseAll (...)` prints as that very call
-        if (declaration.initializer?.kind === ts.SyntaxKind.AwaitExpression && !awaitedCallIsPrintedAsProven (printed.slice (prefix.length), declaration.initializer)) {
+        if (declaration.initializer?.kind === SyntaxKind.AwaitExpression && !awaitedCallIsPrintedAsProven (printed.slice (prefix.length), declaration.initializer)) {
             return printed;
         }
         let value = printed.slice (prefix.length);
@@ -13047,9 +13050,9 @@ export function installCsharpLocalTypes (transpiler) {
             if (typeof printed !== 'string') {
                 return printed;
             }
-            const isDestructuringAssign = node?.kind === ts.SyntaxKind.BinaryExpression
-                && node.operatorToken?.kind === ts.SyntaxKind.EqualsToken
-                && node.left?.kind === ts.SyntaxKind.ArrayLiteralExpression;
+            const isDestructuringAssign = node?.kind === SyntaxKind.BinaryExpression
+                && node.operatorToken?.kind === SyntaxKind.EqualsToken
+                && node.left?.kind === SyntaxKind.ArrayLiteralExpression;
             if (!isDestructuringAssign || destructuredHandleCallName (node.right) === undefined) {
                 return printed;
             }
@@ -13096,14 +13099,14 @@ export function installCsharpStringReceivers (transpiler) {
             return printerType; // the printer already names the declaration's type
         }
         const declaration = (typeof csharp.csharpReceiverBinding === 'function') ? csharp.csharpReceiverBinding (receiver) : undefined;
-        if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.parent?.declarations?.length !== 1) {
+        if (declaration?.kind !== SyntaxKind.VariableDeclaration || declaration.parent?.declarations?.length !== 1) {
             return printerType;
         }
         // printVariableDeclarationList only prints the `object <name> = ` prefix this module
         // rewrites when the initializer is a plain one: a `new` expression prints `var `
         // (its own inferred type) and an await has its own guard below
         const initializer = declaration.initializer;
-        if (initializer === undefined || initializer.kind === ts.SyntaxKind.NewExpression || initializer.kind === ts.SyntaxKind.AwaitExpression) {
+        if (initializer === undefined || initializer.kind === SyntaxKind.NewExpression || initializer.kind === SyntaxKind.AwaitExpression) {
             return printerType;
         }
         const info = csharpLocalDeclaration (csharp, declaration);
@@ -13158,10 +13161,10 @@ const CSHARP_DICT_WRITE_LOCAL_TYPES = [
 // is a concrete dictionary, so `((IDictionary<string,object>)this.options)["k"] = v` is the same
 // write as `this.options["k"] = v`
 function dictWriteMemberReceiverType (node) {
-    if ((node?.kind !== ts.SyntaxKind.PropertyAccessExpression) || (node.expression?.kind !== ts.SyntaxKind.ThisKeyword)) {
+    if ((node?.kind !== SyntaxKind.PropertyAccessExpression) || (node.expression?.kind !== SyntaxKind.ThisKeyword)) {
         return undefined;
     }
-    const name = node.name?.escapedText;
+    const name = node.name?.text;
     if ((name === undefined) || !Object.prototype.hasOwnProperty.call (CSHARP_DICT_WRITE_MEMBER_TYPES, name)) {
         return undefined;
     }
@@ -13169,7 +13172,7 @@ function dictWriteMemberReceiverType (node) {
     // has no Remove(TKey) under netstandard2.0/2.1 (only TryRemove) -- the indexer/Keys/Values it does
     // have, so the cast stays on that one use shape and the delete keeps `((IDictionary<string,object>)x)`
     const use = node.parent;
-    if ((use?.kind === ts.SyntaxKind.ElementAccessExpression) && (use.parent?.kind === ts.SyntaxKind.DeleteExpression)
+    if ((use?.kind === SyntaxKind.ElementAccessExpression) && (use.parent?.kind === SyntaxKind.DeleteExpression)
         && (CSHARP_DICT_WRITE_MEMBER_TYPES[name] === 'ConcurrentDictionary<string, object>')) {
         return undefined;
     }
@@ -13185,18 +13188,18 @@ function receiverDeclaredType (csharp, node) {
     if (member !== undefined) {
         return member;
     }
-    if (node?.kind !== ts.SyntaxKind.Identifier) {
+    if (node?.kind !== SyntaxKind.Identifier) {
         return undefined;
     }
     const binding = resolveReference (csharp, node);
-    if (binding?.kind === ts.SyntaxKind.Parameter) {
+    if (binding?.kind === SyntaxKind.Parameter) {
         return (typeof csharp.csharpPrintedParamType === 'function') ? csharp.csharpPrintedParamType (node) : undefined;
     }
     const declared = identifierDeclaredType (csharp, node);
     if (declared === undefined) {
         return undefined;
     }
-    if (node.escapedText === 'request') {
+    if (node.text === 'request') {
         return declared; // S21's family: the printer's gate keeps the cast on every non-dictionary answer
     }
     return CSHARP_DICT_WRITE_LOCAL_TYPES.includes (declared) ? 'IDictionary<string, object>' : undefined;
@@ -13205,10 +13208,10 @@ function receiverDeclaredType (csharp, node) {
 // the type the emitted declaration of this identifier carries (see the block comment above)
 function identifierDeclaredType (csharp, node) {
     const binding = resolveReference (csharp, node);
-    if (binding?.kind === ts.SyntaxKind.Parameter) {
+    if (binding?.kind === SyntaxKind.Parameter) {
         return (typeof csharp.csharpPrintedParamType === 'function') ? csharp.csharpPrintedParamType (node) : undefined;
     }
-    const recorded = recordedDictType (declaredLocalOfUse (csharp, node, node.escapedText));
+    const recorded = recordedDictType (declaredLocalOfUse (csharp, node, node.text));
     if (recorded !== undefined) {
         return recorded;
     }
@@ -13216,7 +13219,7 @@ function identifierDeclaredType (csharp, node) {
     if (own !== undefined) {
         return own;
     }
-    if ((binding === undefined) || (binding.kind !== ts.SyntaxKind.VariableDeclaration) || (binding.name?.kind !== ts.SyntaxKind.Identifier)) {
+    if ((binding === undefined) || (binding.kind !== SyntaxKind.VariableDeclaration) || (binding.name?.kind !== SyntaxKind.Identifier)) {
         return undefined;
     }
     if (binding.parent?.declarations?.length !== 1) {
@@ -13225,7 +13228,7 @@ function identifierDeclaredType (csharp, node) {
     if (binding.getStart () >= node.getStart ()) {
         return undefined; // the read precedes the declaration
     }
-    if (binding.initializer?.kind === ts.SyntaxKind.AwaitExpression) {
+    if (binding.initializer?.kind === SyntaxKind.AwaitExpression) {
         return undefined; // an awaited local the declaration rewrite may refuse to retype
     }
     const declared = csharpLocalType (csharp, binding);
@@ -13279,7 +13282,7 @@ export function installCsharpStringEquality (csharp) {
     csharp.printVariableDeclarationList = (node, identation) => {
         const printed = upstreamDeclaration (node, identation);
         const declaration = node?.declarations?.[0];
-        if (typeof printed === 'string' && declaration?.name?.kind === ts.SyntaxKind.Identifier) {
+        if (typeof printed === 'string' && declaration?.name?.kind === SyntaxKind.Identifier) {
             const match = declaredType.exec (printed);
             if (match !== null) {
                 const scope = enclosingFunctionScopeOf (csharp, declaration);
@@ -13289,10 +13292,10 @@ export function installCsharpStringEquality (csharp) {
                         names = new Map ();
                         declaredTypes.set (scope, names);
                     }
-                    let types = names.get (declaration.name.escapedText);
+                    let types = names.get (declaration.name.text);
                     if (types === undefined) {
                         types = new Set ();
-                        names.set (declaration.name.escapedText, types);
+                        names.set (declaration.name.text, types);
                     }
                     types.add (match[1]);
                 }
@@ -13305,7 +13308,7 @@ export function installCsharpStringEquality (csharp) {
         if (scope === undefined) {
             return undefined;
         }
-        const types = declaredTypes.get (scope)?.get (node.escapedText);
+        const types = declaredTypes.get (scope)?.get (node.text);
         if (types === undefined || types.size !== 1) {
             return undefined;
         }
@@ -13319,14 +13322,14 @@ export function installCsharpStringEquality (csharp) {
     // pin), so the same classifier reproduces the pre-change emission.
     if (typeof csharp.csharpNullComparisonTypeOf === 'function') {
         csharp.csharpNullComparisonTypeOf = (node) => {
-            if (node?.kind !== ts.SyntaxKind.Identifier) {
+            if (node?.kind !== SyntaxKind.Identifier) {
                 return undefined;
             }
             const scope = enclosingFunctionScopeOf (csharp, node);
             if (scope === undefined) {
                 return undefined;
             }
-            const types = declaredTypes.get (scope)?.get (node.escapedText);
+            const types = declaredTypes.get (scope)?.get (node.text);
             if (types === undefined || types.size !== 1) {
                 return undefined;
             }
@@ -13360,7 +13363,7 @@ const NULL_COMPARISON_REFERENCE_HEADS = [ 'string', 'IDictionary<', 'Dictionary<
 // the name is bound exactly ONCE in the enclosing function, as a single-declarator variable
 // declaration read after it (the shape whose printed line the record above tracks)
 function stringEqualityBindingIsProvable (scope, node) {
-    const name = node.escapedText;
+    const name = node.text;
     let binding;
     let bindings = 0;
     const visit = (n) => {
@@ -13370,17 +13373,17 @@ function stringEqualityBindingIsProvable (scope, node) {
         if (n !== scope && isFunctionScope (n)) {
             return; // a nested function binds its own names
         }
-        if (n.kind === ts.SyntaxKind.Parameter || n.kind === ts.SyntaxKind.VariableDeclaration) {
+        if (n.kind === SyntaxKind.Parameter || n.kind === SyntaxKind.VariableDeclaration) {
             if (bindingNamesOf (n.name).includes (name)) {
                 bindings++;
                 binding = n;
             }
         }
-        ts.forEachChild (n, visit);
+        n.forEachChild (visit);
     };
-    ts.forEachChild (scope, visit);
+    scope.forEachChild (visit);
     return bindings === 1
-        && binding?.kind === ts.SyntaxKind.VariableDeclaration
+        && binding?.kind === SyntaxKind.VariableDeclaration
         && binding.parent?.declarations?.length === 1
         && binding.getStart () < node.getStart ();
 }
@@ -13418,7 +13421,7 @@ function installCsharpNativeStringConcat (csharp) {
     csharp.printVariableDeclarationList = (node, identation) => {
         const printed = upstreamDeclaration (node, identation);
         const declaration = node?.declarations?.[0];
-        if (typeof printed === 'string' && declaration?.name?.kind === ts.SyntaxKind.Identifier) {
+        if (typeof printed === 'string' && declaration?.name?.kind === SyntaxKind.Identifier) {
             const match = stringDeclaration.exec (printed);
             if (match !== null) {
                 const scope = enclosingFunctionScopeOf (csharp, declaration);
@@ -13428,10 +13431,10 @@ function installCsharpNativeStringConcat (csharp) {
                         names = new Map ();
                         declaredTypes.set (scope, names);
                     }
-                    let types = names.get (declaration.name.escapedText);
+                    let types = names.get (declaration.name.text);
                     if (types === undefined) {
                         types = new Set ();
-                        names.set (declaration.name.escapedText, types);
+                        names.set (declaration.name.text, types);
                     }
                     types.add (match[1]);
                 }
@@ -13467,30 +13470,30 @@ function concatOperandType (csharp, declaredTypes, node, depth) {
     }
     const value = concatInner (node);
     switch (value?.kind) {
-    case ts.SyntaxKind.StringLiteral:
-    case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+    case SyntaxKind.StringLiteral:
+    case SyntaxKind.NoSubstitutionTemplateLiteral:
         return 'string';
-    case ts.SyntaxKind.AsExpression:
-        return (value.type?.kind === ts.SyntaxKind.StringKeyword) ? 'string' : undefined;
-    case ts.SyntaxKind.Identifier:
+    case SyntaxKind.AsExpression:
+        return (value.type?.kind === SyntaxKind.StringKeyword) ? 'string' : undefined;
+    case SyntaxKind.Identifier:
         return concatDeclaredReadType (csharp, declaredTypes, value);
-    case ts.SyntaxKind.PropertyAccessExpression: {
-        if (value.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+    case SyntaxKind.PropertyAccessExpression: {
+        if (value.expression?.kind !== SyntaxKind.ThisKeyword) {
             return undefined;
         }
-        const memberType = CSHARP_LOCAL_THIS_MEMBER_TYPES[value.name?.escapedText];
+        const memberType = CSHARP_LOCAL_THIS_MEMBER_TYPES[value.name?.text];
         return (memberType === 'string' || memberType === 'string?') ? memberType : undefined;
     }
-    case ts.SyntaxKind.CallExpression: {
+    case SyntaxKind.CallExpression: {
         const callee = value.expression;
-        if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.name?.escapedText === 'toString') {
+        if (callee?.kind === SyntaxKind.PropertyAccessExpression && callee.name?.text === 'toString') {
             return 'string';
         }
         const own = callReturnType (csharp, value);
         return (own === 'string' || own === 'string?') ? own : undefined;
     }
-    case ts.SyntaxKind.BinaryExpression: {
-        if (value.operatorToken?.kind !== ts.SyntaxKind.PlusToken) {
+    case SyntaxKind.BinaryExpression: {
+        if (value.operatorToken?.kind !== SyntaxKind.PlusToken) {
             return undefined;
         }
         const innerType = concatOperandType (csharp, declaredTypes, value.left, depth + 1);
@@ -13509,7 +13512,7 @@ function concatDeclaredReadType (csharp, declaredTypes, node) {
     if (scope === undefined) {
         return undefined;
     }
-    const types = declaredTypes.get (scope)?.get (node.escapedText);
+    const types = declaredTypes.get (scope)?.get (node.text);
     if (types === undefined || types.size !== 1) {
         return undefined;
     }
@@ -13523,7 +13526,7 @@ function concatDeclaredReadType (csharp, declaredTypes, node) {
 // `(x)` keeps the operand's static type; every other node is returned as it is
 function concatInner (node) {
     let value = node;
-    while (value?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (value?.kind === SyntaxKind.ParenthesizedExpression) {
         value = value.expression;
     }
     return value;
@@ -13548,10 +13551,10 @@ export function installCsharpNullableInOpKeyGuard (csharp) {
         }
         // the printed key may be the printer's own `((string)x)` view of a nullable string local
         let identifier = key;
-        while ((identifier?.kind === ts.SyntaxKind.ParenthesizedExpression) || (identifier?.kind === ts.SyntaxKind.AsExpression) || (identifier?.kind === ts.SyntaxKind.TypeAssertionExpression)) {
+        while ((identifier?.kind === SyntaxKind.ParenthesizedExpression) || (identifier?.kind === SyntaxKind.AsExpression) || (identifier?.kind === SyntaxKind.TypeAssertionExpression)) {
             identifier = identifier.expression;
         }
-        if (identifier?.kind !== ts.SyntaxKind.Identifier) {
+        if (identifier?.kind !== SyntaxKind.Identifier) {
             return printed;
         }
         const match = bareCall.exec (printed);
@@ -13580,7 +13583,7 @@ export function installCsharpDictInOp (csharp) {
     csharp.printVariableDeclarationList = (node, identation) => {
         const printed = upstreamDeclaration (node, identation);
         const declaration = node?.declarations?.[0];
-        if (typeof printed === 'string' && declaration?.name?.kind === ts.SyntaxKind.Identifier) {
+        if (typeof printed === 'string' && declaration?.name?.kind === SyntaxKind.Identifier) {
             const match = dictDeclaration.exec (printed);
             if (match !== null) {
                 const scope = enclosingFunctionScopeOf (csharp, declaration);
@@ -13590,10 +13593,10 @@ export function installCsharpDictInOp (csharp) {
                         names = new Map ();
                         declaredTypes.set (scope, names);
                     }
-                    let types = names.get (declaration.name.escapedText);
+                    let types = names.get (declaration.name.text);
                     if (types === undefined) {
                         types = new Set ();
-                        names.set (declaration.name.escapedText, types);
+                        names.set (declaration.name.text, types);
                     }
                     types.add (match[1]);
                 }
@@ -13602,14 +13605,14 @@ export function installCsharpDictInOp (csharp) {
         return printed;
     };
     csharp.csharpDeclaredDictReceiverType = (node) => {
-        if (node?.kind !== ts.SyntaxKind.Identifier) {
+        if (node?.kind !== SyntaxKind.Identifier) {
             return undefined;
         }
         const scope = enclosingFunctionScopeOf (csharp, node);
         if (scope === undefined) {
             return undefined;
         }
-        const types = declaredTypes.get (scope)?.get (node.escapedText);
+        const types = declaredTypes.get (scope)?.get (node.text);
         if (types === undefined || types.size !== 1) {
             return undefined;
         }
@@ -13643,12 +13646,12 @@ export function installCsharpConditionOperands (transpiler) {
         if (printerType !== undefined) {
             return printerType; // the printer already names the declaration's type
         }
-        if (node?.kind !== ts.SyntaxKind.Identifier) {
+        if (node?.kind !== SyntaxKind.Identifier) {
             return printerType;
         }
         const symbol = (typeof csharp.getChecker === 'function') ? csharp.getChecker ().getSymbolAtLocation (node) : undefined;
-        const declaration = symbol?.valueDeclaration;
-        if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.parent?.declarations?.length !== 1) {
+        const declaration = symbol?.valueDeclaration?.resolve();
+        if (declaration?.kind !== SyntaxKind.VariableDeclaration || declaration.parent?.declarations?.length !== 1) {
             return printerType;
         }
         // a declaration the wrapper retyped: the record is the emitted line's own type, so a read
@@ -13660,7 +13663,7 @@ export function installCsharpConditionOperands (transpiler) {
         // the declaration has to print as the exact `object <name> = ` prefix this module
         // rewrites: a `new` expression prints `var ` and an await has its own guard
         const initializer = declaration.initializer;
-        if (initializer === undefined || initializer.kind === ts.SyntaxKind.NewExpression || initializer.kind === ts.SyntaxKind.AwaitExpression) {
+        if (initializer === undefined || initializer.kind === SyntaxKind.NewExpression || initializer.kind === SyntaxKind.AwaitExpression) {
             return printerType;
         }
         const info = csharpLocalDeclaration (csharp, declaration);
@@ -13779,13 +13782,13 @@ export const CSHARP_ASYNC_CORE_RETURNS = {
 // the mapped C# return type for an async core declaration, or undefined to leave the
 // printer's own decision (every other name, non-async methods)
 function asyncCoreReturnType (csharp, node) {
-    if (node?.kind !== ts.SyntaxKind.MethodDeclaration || node.name === undefined) {
+    if (node?.kind !== SyntaxKind.MethodDeclaration || node.name === undefined) {
         return undefined;
     }
     if (typeof csharp.isAsyncFunction === 'function' && !csharp.isAsyncFunction (node)) {
         return undefined;
     }
-    const name = node.name.escapedText;
+    const name = node.name.text;
     if (Object.prototype.hasOwnProperty.call (CSHARP_ASYNC_CORE_RETURNS, name)) {
         return { type: CSHARP_ASYNC_CORE_RETURNS[name], awaited: false };
     }
@@ -13883,10 +13886,10 @@ function awaitedCoreBoxType (csharp, declaration) {
     let failed = false;
     let found = false;
     const visit = (node) => {
-        if (failed || (node !== declaration && ts.isFunctionLike (node))) {
+        if (failed || (node !== declaration && isFunctionLike (node))) {
             return; // a callback's `return` is not this method's
         }
-        if (node.kind === ts.SyntaxKind.ReturnStatement) {
+        if (node.kind === SyntaxKind.ReturnStatement) {
             found = true;
             const value = (node.expression === undefined) ? 'null' : csharpTypeOfValue (csharp, node.expression, context);
             const joined = (proven === undefined) ? value : unifyArms (proven, value);
@@ -13897,7 +13900,7 @@ function awaitedCoreBoxType (csharp, declaration) {
             }
             return;
         }
-        ts.forEachChild (node, visit);
+        node.forEachChild (visit);
     };
     visit (declaration.body);
     return (found && !failed) ? proven : undefined;
@@ -13905,7 +13908,7 @@ function awaitedCoreBoxType (csharp, declaration) {
 
 // the table lookup plus the per-declaration proof, cached; undefined for every other name
 function awaitedCoreReturnType (csharp, node) {
-    const name = node.name?.escapedText;
+    const name = node.name?.text;
     if (name === undefined || !Object.prototype.hasOwnProperty.call (CSHARP_AWAITED_CORE_RETURNS, name)) {
         return undefined;
     }
@@ -13957,7 +13960,7 @@ export function installCsharpAsyncCoreReturns (transpiler) {
     csharp.printReturnStatement = (node, identation) => {
         // nearest function-like: a `return` inside an arrow/function expression belongs
         // to that callback, never to the enclosing async core
-        const retype = asyncCoreReturnType (csharp, ts.findAncestor (node.parent, ts.isFunctionLike));
+        const retype = asyncCoreReturnType (csharp, findAncestor (node.parent, isFunctionLike));
         if (retype === undefined || !node.expression) {
             return upstreamReturnStatement (node, identation);
         }
@@ -14068,10 +14071,10 @@ export const CSHARP_NUMERIC_RETURN_TYPES = {
 // the mapped C# return type for a method declaration, or undefined to leave the
 // printer's own decision (annotated methods, async methods, every other name)
 function csharpMethodReturnType (csharp, node, own) {
-    if (node?.kind !== ts.SyntaxKind.MethodDeclaration) {
+    if (node?.kind !== SyntaxKind.MethodDeclaration) {
         return undefined;
     }
-    const name = node.name?.escapedText;
+    const name = node.name?.text;
     // `requestId`: one definition per venue file and the box differs between venues, so a
     // name-keyed table cannot express it — the same per-definition proof the call sites use
     // (sameFileCallBoxType) retypes the Int64 counter definitions, which is what lets their
@@ -14083,7 +14086,7 @@ function csharpMethodReturnType (csharp, node, own) {
         : undefined;
     const mapped = (name === 'requestId')
         ? ((sameFileCallBoxType (node.getSourceFile?.()) === 'Int64') ? 'Int64' : undefined)
-        : ((sameFileMapped !== undefined) ? sameFileMapped : CSHARP_NUMERIC_RETURN_TYPES[node.name?.escapedText]);
+        : ((sameFileMapped !== undefined) ? sameFileMapped : CSHARP_NUMERIC_RETURN_TYPES[node.name?.text]);
     if (mapped === undefined) {
         return undefined;
     }
@@ -14107,14 +14110,14 @@ function needsUnboxingWrap (csharp, expression, mapped) {
     if (expression === undefined) {
         return false;
     }
-    if (expression.kind === ts.SyntaxKind.NullKeyword) {
+    if (expression.kind === SyntaxKind.NullKeyword) {
         return false;
     }
     let expression2 = expression;
-    if (expression2.kind === ts.SyntaxKind.PrefixUnaryExpression && expression2.operator === ts.SyntaxKind.MinusToken) {
+    if (expression2.kind === SyntaxKind.PrefixUnaryExpression && expression2.operator === SyntaxKind.MinusToken) {
         expression2 = expression2.operand;
     }
-    if (expression2?.kind === ts.SyntaxKind.NumericLiteral && /^\d+$/.test (expression2.text)) {
+    if (expression2?.kind === SyntaxKind.NumericLiteral && /^\d+$/.test (expression2.text)) {
         return false;
     }
     if (typeof csharp.csharpTypeOfInitializer === 'function' && csharp.csharpTypeOfInitializer (expression) === mapped) {
@@ -14124,7 +14127,7 @@ function needsUnboxingWrap (csharp, expression, mapped) {
     // names the box) that the local pass declares with exactly `mapped` — `return x;` in a
     // method declared `mapped` is the same conversion the box + unbox performs, so the
     // boundary cast names a type the value already has
-    if (expression.kind === ts.SyntaxKind.Identifier && identifierType (csharp, expression) === mapped) {
+    if (expression.kind === SyntaxKind.Identifier && identifierType (csharp, expression) === mapped) {
         return false;
     }
     if (callReturnIsMapped (csharp, expression, mapped)) {
@@ -14148,7 +14151,7 @@ export function installCsharpNumericReturns (transpiler) {
     csharp.printReturnStatement = (node, identation) => {
         // nearest function-like: a `return` inside an arrow/function expression belongs
         // to that callback, never to the enclosing mapped method
-        const mapped = csharpMethodReturnType (csharp, ts.findAncestor (node.parent, ts.isFunctionLike));
+        const mapped = csharpMethodReturnType (csharp, findAncestor (node.parent, isFunctionLike));
         if (mapped === undefined || !needsUnboxingWrap (csharp, node.expression, mapped)) {
             return upstreamReturnStatement (node, identation);
         }
@@ -14192,10 +14195,10 @@ const NATIVE_ARITHMETIC_SMALL_INT_KINDS = [ 'int', 'uint', 'Int64' ];
 const NATIVE_ARITHMETIC_NULLABLE_LEFT_KINDS = [ 'Int64?', 'double?' ];
 
 const NATIVE_ARITHMETIC_SYMBOLS = {
-    [ts.SyntaxKind.PlusToken]: '+',
-    [ts.SyntaxKind.MinusToken]: '-',
-    [ts.SyntaxKind.AsteriskToken]: '*',
-    [ts.SyntaxKind.SlashToken]: '/',
+    [SyntaxKind.PlusToken]: '+',
+    [SyntaxKind.MinusToken]: '-',
+    [SyntaxKind.AsteriskToken]: '*',
+    [SyntaxKind.SlashToken]: '/',
 };
 
 function nativeArithmeticKindOfType (type) {
@@ -14240,11 +14243,11 @@ function parameterArithmeticType (csharp, node) {
     }
     let declaration;
     try {
-        declaration = csharp.getChecker().getSymbolAtLocation (node)?.valueDeclaration;
+        declaration = csharp.getChecker().getSymbolAtLocation (node)?.valueDeclaration?.resolve();
     } catch (e) {
         return undefined;
     }
-    return (declaration?.kind === ts.SyntaxKind.Parameter) ? csharp.csharpDeclaredLocalResolverType (node) : undefined;
+    return (declaration?.kind === SyntaxKind.Parameter) ? csharp.csharpDeclaredLocalResolverType (node) : undefined;
 }
 
 // The typeCoreArgs text pass reads the PRINTED body: a parameter it finds as a `ref` sink —
@@ -14256,12 +14259,12 @@ function parameterIsRefSunk (csharp, node) {
     let checker;
     try {
         checker = csharp.getChecker();
-        declaration = checker.getSymbolAtLocation (node)?.valueDeclaration;
+        declaration = checker.getSymbolAtLocation (node)?.valueDeclaration?.resolve();
     } catch (e) {
         return false;
     }
     const body = declaration?.parent?.body;
-    if (body === undefined || declaration.kind !== ts.SyntaxKind.Parameter) {
+    if (body === undefined || declaration.kind !== SyntaxKind.Parameter) {
         return false;
     }
     let sunk = false;
@@ -14269,15 +14272,15 @@ function parameterIsRefSunk (csharp, node) {
         if (sunk) {
             return;
         }
-        if ((n.kind === ts.SyntaxKind.PrefixUnaryExpression)
-            && ((n.operator === ts.SyntaxKind.MinusToken) || (n.operator === ts.SyntaxKind.PlusToken))) {
+        if ((n.kind === SyntaxKind.PrefixUnaryExpression)
+            && ((n.operator === SyntaxKind.MinusToken) || (n.operator === SyntaxKind.PlusToken))) {
             let operand = n.operand;
-            while (operand?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            while (operand?.kind === SyntaxKind.ParenthesizedExpression) {
                 operand = operand.expression;
             }
-            if (operand?.kind === ts.SyntaxKind.Identifier) {
+            if (operand?.kind === SyntaxKind.Identifier) {
                 try {
-                    if (checker.getSymbolAtLocation (operand)?.valueDeclaration === declaration) {
+                    if (checker.getSymbolAtLocation (operand)?.valueDeclaration?.resolve() === declaration) {
                         sunk = true;
                         return;
                     }
@@ -14286,9 +14289,9 @@ function parameterIsRefSunk (csharp, node) {
                 }
             }
         }
-        ts.forEachChild (n, visit);
+        n.forEachChild (visit);
     };
-    ts.forEachChild (body, visit);
+    body.forEachChild (visit);
     return sunk;
 }
 
@@ -14300,54 +14303,54 @@ function nativeArithmeticOperandKind (csharp, node) {
         return undefined;
     }
     switch (node.kind) {
-    case ts.SyntaxKind.StringLiteral:
-    case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+    case SyntaxKind.StringLiteral:
+    case SyntaxKind.NoSubstitutionTemplateLiteral:
         return 'string';
-    case ts.SyntaxKind.NumericLiteral:
+    case SyntaxKind.NumericLiteral:
         // integer literals by their literal type (int / uint / long), decimals and
         // exponents as double
         return nativeArithmeticKindOfType (integerOperandKind (node.text, false) ?? numericLiteralType (node.text));
-    case ts.SyntaxKind.PrefixUnaryExpression:
+    case SyntaxKind.PrefixUnaryExpression:
         // `-N` prints as a negative literal; any other prefix stays unproven
-        return (node.operator === ts.SyntaxKind.MinusToken && node.operand?.kind === ts.SyntaxKind.NumericLiteral)
+        return (node.operator === SyntaxKind.MinusToken && node.operand?.kind === SyntaxKind.NumericLiteral)
             ? nativeArithmeticKindOfType (integerOperandKind (node.operand.text, true) ?? numericLiteralType (node.operand.text))
             : undefined;
-    case ts.SyntaxKind.ParenthesizedExpression:
+    case SyntaxKind.ParenthesizedExpression:
         return nativeArithmeticOperandKind (csharp, node.expression);
-    case ts.SyntaxKind.AsExpression:
+    case SyntaxKind.AsExpression:
         // the printer casts only `as string` / `as any` / `as any[]`; every other assertion
         // (`as number`, `as Int`, `as Num`, ...) prints the BARE operand (the rule
         // csharpTypeOfValue documents), so the operand kind is the inner expression's.
         // `x as string` prints `((string)x)`, whose static type IS string: the enclosing
         // add() binds add(string, *), the same C# concatenation the operator prints, and a
         // non-string box throws at the cast itself in both spellings.
-        if (node.type?.kind === ts.SyntaxKind.StringKeyword) {
+        if (node.type?.kind === SyntaxKind.StringKeyword) {
             return 'string';
         }
-        if (node.type?.kind === ts.SyntaxKind.AnyKeyword) {
+        if (node.type?.kind === SyntaxKind.AnyKeyword) {
             return undefined;
         }
-        if (node.type?.kind === ts.SyntaxKind.ArrayType && node.type.elementType?.kind === ts.SyntaxKind.AnyKeyword) {
+        if (node.type?.kind === SyntaxKind.ArrayType && node.type.elementType?.kind === SyntaxKind.AnyKeyword) {
             return undefined;
         }
         return nativeArithmeticOperandKind (csharp, node.expression);
-    case ts.SyntaxKind.PropertyAccessExpression:
+    case SyntaxKind.PropertyAccessExpression:
         // only the member reads the printer/module can name: `this.id` (string) and `.length` (int)
         if (isProvablyStringOperand (csharp, node)) {
             return 'string';
         }
-        return (node.name?.escapedText === 'length') ? 'int' : undefined;
-    case ts.SyntaxKind.Identifier:
+        return (node.name?.text === 'length') ? 'int' : undefined;
+    case SyntaxKind.Identifier:
         // the `<type> x = ` prefix the declaration prints (this module's decision first,
         // then the printer's own getCSharpLocalType); a local with no proven type has none,
         // and a parameter read is the type the emitted signature carries for it
         return nativeArithmeticKindOfType (identifierType (csharp, node) ?? localIdentifierType (csharp, node) ?? parameterArithmeticType (csharp, node));
-    case ts.SyntaxKind.CallExpression:
+    case SyntaxKind.CallExpression:
         if (isProvablyStringOperand (csharp, node)) {
             return 'string'; // `<recv>.toString ()` prints `((object)recv).ToString ()`
         }
         return nativeArithmeticKindOfType (csharpTypeOfValue (csharp, node));
-    case ts.SyntaxKind.BinaryExpression:
+    case SyntaxKind.BinaryExpression:
         return nativeArithmeticResultKind (csharp, node);
     }
     return undefined;
@@ -14357,10 +14360,10 @@ function nativeArithmeticOperandKind (csharp, node) {
 // this module emits, else the typed overload the remaining helper call binds to
 function nativeArithmeticResultKind (csharp, node) {
     const op = node.operatorToken?.kind;
-    if (op === ts.SyntaxKind.PlusToken && isProvablyStringOperand (csharp, node)) {
+    if (op === SyntaxKind.PlusToken && isProvablyStringOperand (csharp, node)) {
         return 'string'; // add(string, *) is declared string
     }
-    if (op === ts.SyntaxKind.MinusToken || op === ts.SyntaxKind.AsteriskToken || op === ts.SyntaxKind.SlashToken) {
+    if (op === SyntaxKind.MinusToken || op === SyntaxKind.AsteriskToken || op === SyntaxKind.SlashToken) {
         const printed = nativeArithmeticKindOfType (csharpArithmeticExpressionKind (csharp, node, undefined));
         if (printed !== undefined) {
             return printed;
@@ -14406,7 +14409,7 @@ function nativeArithmeticIsProven (op, left, right) {
     if (left === undefined) {
         return false;
     }
-    if (op === ts.SyntaxKind.PlusToken && left === 'string') {
+    if (op === SyntaxKind.PlusToken && left === 'string') {
         return true;
     }
     if (right === undefined) {
@@ -14418,20 +14421,20 @@ function nativeArithmeticIsProven (op, left, right) {
     const bothSmall = NATIVE_ARITHMETIC_SMALL_INT_KINDS.includes (leftBase) && NATIVE_ARITHMETIC_SMALL_INT_KINDS.includes (rightBase);
     const bothInt32 = (leftBase === 'int' && rightBase === 'int') || (leftBase === 'uint' && rightBase === 'uint');
     const doubleLeft = (leftBase === 'double') && (rightBase === 'double' || NATIVE_ARITHMETIC_SMALL_INT_KINDS.includes (rightBase));
-    if (op === ts.SyntaxKind.PlusToken) {
+    if (op === SyntaxKind.PlusToken) {
         // a nullable RIGHT operand keeps the helper: add(object, object) unboxes it and throws
         // on null where the lifted `+` answers null; a nullable LEFT with a non-nullable right
         // is the lifted operator exactly (null left -> null in both), see nativeArithmeticNullableLeftAdd
         return (!nullable && ((leftBase === 'string' && rightBase === 'string') || doubleLeft || (bothSmall && !bothInt32)))
             || nativeArithmeticNullableLeftAdd (left, right);
     }
-    if (op === ts.SyntaxKind.MinusToken) {
+    if (op === SyntaxKind.MinusToken) {
         return !nullable && (doubleLeft || (bothSmall && !(leftBase === 'uint' && rightBase === 'uint')));
     }
-    if (op === ts.SyntaxKind.AsteriskToken) {
+    if (op === SyntaxKind.AsteriskToken) {
         return bothSmall && !bothInt32;
     }
-    if (op === ts.SyntaxKind.SlashToken) {
+    if (op === SyntaxKind.SlashToken) {
         return (leftBase === 'double' || rightBase === 'double') || (bothSmall && !bothInt32);
     }
     return false;
@@ -14461,13 +14464,13 @@ function nativeArithmeticPairResultKind (op, left, right) {
     if (left === 'string') {
         return 'string';
     }
-    if (op === ts.SyntaxKind.PlusToken && NATIVE_ARITHMETIC_NULLABLE_LEFT_KINDS.indexOf (left) >= 0) {
+    if (op === SyntaxKind.PlusToken && NATIVE_ARITHMETIC_NULLABLE_LEFT_KINDS.indexOf (left) >= 0) {
         return left; // the lifted `+` keeps the nullable kind
     }
     if (nativeArithmeticBaseKind (left) === 'double' || nativeArithmeticBaseKind (right) === 'double') {
         return mark ('double');
     }
-    if (op === ts.SyntaxKind.MinusToken && left === 'int' && right === 'int') {
+    if (op === SyntaxKind.MinusToken && left === 'int' && right === 'int') {
         return 'int';
     }
     return mark ('Int64');
@@ -14487,7 +14490,7 @@ function nativeArithmeticRightText (csharp, node, kind) {
 // throw printer prefixes casts like `(string)` with no parens of its own), and a nested
 // arithmetic child arrives already parenthesised from this same wrapper
 function nativeArithmeticExpression (csharp, node) {
-    if (node?.kind !== ts.SyntaxKind.BinaryExpression) {
+    if (node?.kind !== SyntaxKind.BinaryExpression) {
         return undefined;
     }
     const op = node.operatorToken?.kind;
@@ -14508,9 +14511,9 @@ function nativeArithmeticExpression (csharp, node) {
 // numeric / string one (an `object` target could not take the result back)
 function nativeArithmeticAssignment (csharp, node) {
     const op = node.operatorToken?.kind;
-    const baseOp = (op === ts.SyntaxKind.PlusEqualsToken) ? ts.SyntaxKind.PlusToken
-        : (op === ts.SyntaxKind.MinusEqualsToken) ? ts.SyntaxKind.MinusToken : undefined;
-    if (baseOp === undefined || node.left?.kind !== ts.SyntaxKind.Identifier) {
+    const baseOp = (op === SyntaxKind.PlusEqualsToken) ? SyntaxKind.PlusToken
+        : (op === SyntaxKind.MinusEqualsToken) ? SyntaxKind.MinusToken : undefined;
+    if (baseOp === undefined || node.left?.kind !== SyntaxKind.Identifier) {
         return undefined;
     }
     const left = nativeArithmeticOperandKind (csharp, node.left);
@@ -14531,7 +14534,7 @@ export function installCsharpNativeArithmetic (transpiler) {
     }
     const upstream = csharp.printCustomBinaryExpressionIfAny.bind (csharp);
     csharp.printCustomBinaryExpressionIfAny = (node, identation) => {
-        if (node?.kind === ts.SyntaxKind.BinaryExpression) {
+        if (node?.kind === SyntaxKind.BinaryExpression) {
             const native = nativeArithmeticAssignment (csharp, node) ?? nativeArithmeticExpression (csharp, node);
             if (native !== undefined) {
                 return native;
@@ -14556,11 +14559,11 @@ export function installCsharpNumericComparisons (transpiler) {
         return;
     }
     csharp.csharpExpressionTypeResolver = (node) => {
-        if (node?.kind !== ts.SyntaxKind.Identifier) {
+        if (node?.kind !== SyntaxKind.Identifier) {
             return undefined; // calls / accesses / literals are the printer's own tables
         }
         const declaration = resolveReference (csharp, node);
-        if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration) {
+        if (declaration?.kind !== SyntaxKind.VariableDeclaration) {
             return undefined; // a parameter prints `object` and is never comparable natively
         }
         return referenceDeclaredType (csharp, declaration);
@@ -14579,7 +14582,7 @@ export function installCsharpNumericComparisons (transpiler) {
 // Answering the same (method, position) pair here is therefore the declaration's own type, and the
 // existing operators / helpers can replace their runtime call with the native one.
 function coreArgParamType (csharp, node) {
-    if (node === undefined || node.kind !== ts.SyntaxKind.Identifier) {
+    if (node === undefined || node.kind !== SyntaxKind.Identifier) {
         return undefined;
     }
     let symbol;
@@ -14588,17 +14591,17 @@ function coreArgParamType (csharp, node) {
     } catch (e) {
         return undefined; // in-memory program: the printer keeps its own answer
     }
-    const declaration = symbol?.valueDeclaration;
-    if (declaration === undefined || declaration.kind !== ts.SyntaxKind.Parameter) {
+    const declaration = symbol?.valueDeclaration?.resolve();
+    if (declaration === undefined || declaration.kind !== SyntaxKind.Parameter) {
         return undefined;
     }
     const owner = declaration.parent;
     // a generated core is a class method; the generated tests' `async public` helpers are plain
     // functions whose parameters print `object` (typeCoreArgs' signature rule skips them too)
-    if (owner === undefined || owner.kind !== ts.SyntaxKind.MethodDeclaration) {
+    if (owner === undefined || owner.kind !== SyntaxKind.MethodDeclaration) {
         return undefined;
     }
-    const name = owner.name?.escapedText;
+    const name = owner.name?.text;
     const strings = CORE_STRING_ARGS[name];
     const numerics = CORE_NUMERIC_ARGS[name];
     if (strings === undefined && numerics === undefined) {
@@ -14620,9 +14623,9 @@ function coreArgParamType (csharp, node) {
     // (printFunctionBody: array / object / numeric / string / boolean initializer), which the
     // pass above reads as a reassignment and shadows just like a body write
     const init = declaration.initializer;
-    if (init !== undefined && (ts.isArrayLiteralExpression (init) || ts.isObjectLiteralExpression (init)
-            || ts.isNumericLiteral (init) || ts.isStringLiteralLike (init)
-            || (init.kind === ts.SyntaxKind.TrueKeyword) || (init.kind === ts.SyntaxKind.FalseKeyword))) {
+    if (init !== undefined && (isArrayLiteralExpression (init) || isObjectLiteralExpression (init)
+            || isNumericLiteral (init) || isStringLiteralLikeNode (init)
+            || (init.kind === SyntaxKind.TrueKeyword) || (init.kind === SyntaxKind.FalseKeyword))) {
         return undefined;
     }
     if (strings !== undefined && strings.indexOf(position) >= 0) {
@@ -14649,30 +14652,30 @@ function csharpParameterIsWritten (csharp, owner, declaration) {
         if (written || node === undefined) {
             return;
         }
-        if ((node.kind === ts.SyntaxKind.Identifier) && (node !== declaration.name)) {
+        if ((node.kind === SyntaxKind.Identifier) && (node !== declaration.name)) {
             let symbol;
             try {
                 symbol = checker.getSymbolAtLocation (node);
             } catch (e) {
                 symbol = undefined;
             }
-            if ((symbol !== undefined) && (symbol.valueDeclaration === declaration) && csharpWriteTarget (node)) {
+            if ((symbol !== undefined) && (symbol.valueDeclaration?.resolve() === declaration) && csharpWriteTarget (node)) {
                 written = true;
                 return;
             }
         }
-        ts.forEachChild (node, visit);
+        node.forEachChild (visit);
     };
-    ts.forEachChild (owner.body, visit);
+    owner.body.forEachChild (visit);
     return written;
 }
 
 const CSHARP_WRITE_OPERATORS = [
-    ts.SyntaxKind.EqualsToken, ts.SyntaxKind.PlusEqualsToken, ts.SyntaxKind.MinusEqualsToken,
-    ts.SyntaxKind.AsteriskEqualsToken, ts.SyntaxKind.SlashEqualsToken, ts.SyntaxKind.PercentEqualsToken,
-    ts.SyntaxKind.AsteriskAsteriskEqualsToken, ts.SyntaxKind.QuestionQuestionEqualsToken,
-    ts.SyntaxKind.AmpersandEqualsToken, ts.SyntaxKind.BarEqualsToken, ts.SyntaxKind.CaretEqualsToken,
-    ts.SyntaxKind.LessThanLessThanEqualsToken, ts.SyntaxKind.GreaterThanGreaterThanEqualsToken,
+    SyntaxKind.EqualsToken, SyntaxKind.PlusEqualsToken, SyntaxKind.MinusEqualsToken,
+    SyntaxKind.AsteriskEqualsToken, SyntaxKind.SlashEqualsToken, SyntaxKind.PercentEqualsToken,
+    SyntaxKind.AsteriskAsteriskEqualsToken, SyntaxKind.QuestionQuestionEqualsToken,
+    SyntaxKind.AmpersandEqualsToken, SyntaxKind.BarEqualsToken, SyntaxKind.CaretEqualsToken,
+    SyntaxKind.LessThanLessThanEqualsToken, SyntaxKind.GreaterThanGreaterThanEqualsToken,
 ];
 
 function csharpWriteTarget (node) {
@@ -14683,15 +14686,15 @@ function csharpWriteTarget (node) {
             return false;
         }
         const kind = parent.kind;
-        if ((kind === ts.SyntaxKind.ParenthesizedExpression) || (kind === ts.SyntaxKind.ArrayLiteralExpression) || (kind === ts.SyntaxKind.ObjectLiteralExpression)) {
+        if ((kind === SyntaxKind.ParenthesizedExpression) || (kind === SyntaxKind.ArrayLiteralExpression) || (kind === SyntaxKind.ObjectLiteralExpression)) {
             current = parent;
             continue;
         }
-        if ((kind === ts.SyntaxKind.BinaryExpression) && (parent.left === current)) {
+        if ((kind === SyntaxKind.BinaryExpression) && (parent.left === current)) {
             return CSHARP_WRITE_OPERATORS.indexOf (parent.operatorToken?.kind) >= 0;
         }
-        if ((kind === ts.SyntaxKind.PrefixUnaryExpression) || (kind === ts.SyntaxKind.PostfixUnaryExpression)) {
-            return (parent.operator === ts.SyntaxKind.PlusPlusToken) || (parent.operator === ts.SyntaxKind.MinusMinusToken);
+        if ((kind === SyntaxKind.PrefixUnaryExpression) || (kind === SyntaxKind.PostfixUnaryExpression)) {
+            return (parent.operator === SyntaxKind.PlusPlusToken) || (parent.operator === SyntaxKind.MinusMinusToken);
         }
         return false;
     }
@@ -14780,11 +14783,11 @@ function csharpParameterDefaultPrintsNull (initializer) {
     if (initializer === undefined) {
         return false;
     }
-    return ts.isArrayLiteralExpression (initializer) || ts.isObjectLiteralExpression (initializer)
-        || ts.isStringLiteral (initializer) || ts.isNumericLiteral (initializer)
-        || (ts.isBooleanLiteral !== undefined && ts.isBooleanLiteral (initializer))
-        || (initializer.kind === ts.SyntaxKind.NullKeyword)
-        || ((initializer.kind === ts.SyntaxKind.Identifier) && (initializer.escapedText === 'undefined'));
+    return isArrayLiteralExpression (initializer) || isObjectLiteralExpression (initializer)
+        || isStringLiteral (initializer) || isNumericLiteral (initializer)
+        || (isBooleanLiteral !== undefined && isBooleanLiteral (initializer))
+        || (initializer.kind === SyntaxKind.NullKeyword)
+        || ((initializer.kind === SyntaxKind.Identifier) && (initializer.text === 'undefined'));
 }
 
 // the corpus shell, built once per process -- the call-site proof below must see the files
@@ -14853,13 +14856,13 @@ function csharpFileCallSitesByName (csharp, sourceFile, name) {
     if (table === undefined) {
         table = new Map ();
         const visit = (node) => {
-            if (ts.isCallExpression (node) && ts.isPropertyAccessExpression (node.expression)) {
-                const calleeName = node.expression.name?.escapedText;
+            if (isCallExpression (node) && isPropertyAccessExpression (node.expression)) {
+                const calleeName = node.expression.name?.text;
                 if (calleeName !== undefined) {
                     let declarations;
                     try {
-                        declarations = (csharp.getChecker ().getSymbolAtLocation (node.expression.name)?.declarations ?? [])
-                            .filter ((declaration) => ts.isMethodDeclaration (declaration));
+                        declarations = (csharp.getChecker ().getSymbolAtLocation (node.expression.name)?.declarations ?? []).map ((d) => d.resolve ())
+                            .filter ((declaration) => isMethodDeclaration (declaration));
                     } catch (e) {
                         declarations = [];
                     }
@@ -14870,9 +14873,9 @@ function csharpFileCallSitesByName (csharp, sourceFile, name) {
                     }
                 }
             }
-            ts.forEachChild (node, visit);
+            node.forEachChild (visit);
         };
-        ts.forEachChild (sourceFile, visit);
+        sourceFile.forEachChild (visit);
         csharpFileCallSitesCache.set (sourceFile, table);
     }
     return table.get (name) ?? [];
@@ -14882,7 +14885,7 @@ function csharpFileCallSitesByName (csharp, sourceFile, name) {
 // resolves to the same declaration)
 function csharpIdentifierDeclaration (csharp, node) {
     try {
-        return csharp.getChecker ().getSymbolAtLocation (node)?.valueDeclaration;
+        return csharp.getChecker ().getSymbolAtLocation (node)?.valueDeclaration?.resolve();
     } catch (e) {
         return undefined;
     }
@@ -14893,16 +14896,16 @@ function csharpArgumentType (csharp, argument, expected) {
     if (argument === undefined) {
         return undefined;
     }
-    if (argument.kind === ts.SyntaxKind.NullKeyword) {
+    if (argument.kind === SyntaxKind.NullKeyword) {
         return 'null';
     }
-    if (ts.isIdentifier (argument)) {
-        if (argument.escapedText === 'undefined') {
+    if (isIdentifier (argument)) {
+        if (argument.text === 'undefined') {
             return 'null';
         }
         const declaration = csharpIdentifierDeclaration (csharp, argument);
         if (declaration !== undefined) {
-            if (declaration.kind === ts.SyntaxKind.Parameter) {
+            if (declaration.kind === SyntaxKind.Parameter) {
                 const own = csharpParameterDecision (csharp, declaration, expected);
                 return (own === undefined) ? 'object' : own;
             }
@@ -14944,7 +14947,7 @@ function csharpArgumentAssignable (target, source, argument) {
 // file, and each checker-resolved site passes a provable argument at this position
 function csharpParameterCallSitesProve (csharp, parameter, target) {
     const owner = parameter.parent;
-    const name = owner.name.escapedText;
+    const name = owner.name.text;
     const position = owner.parameters.indexOf (parameter);
     const declaringFile = parameter.getSourceFile ();
     let declaringRel;
@@ -15000,7 +15003,7 @@ const csharpParameterDecisionsInProgress = new Set ();
 
 // the printed type of a parameter, or undefined: the whole D-17 proof (see the section header)
 function csharpParameterDecision (csharp, parameter, expected) {
-    if (parameter?.kind !== ts.SyntaxKind.Parameter) {
+    if (parameter?.kind !== SyntaxKind.Parameter) {
         return undefined;
     }
     const cached = csharpParameterTypeDecisions.get (parameter);
@@ -15019,15 +15022,15 @@ function csharpParameterDecision (csharp, parameter, expected) {
         return (cycleTarget !== undefined && cycleTarget === expected) ? cycleTarget : undefined;
     }
     const owner = parameter.parent;
-    if (owner?.kind !== ts.SyntaxKind.MethodDeclaration || owner.body === undefined || owner.name === undefined) {
+    if (owner?.kind !== SyntaxKind.MethodDeclaration || owner.body === undefined || owner.name === undefined) {
         return undefined;
     }
-    if (csharpMethodHasModifier (owner, ts.SyntaxKind.OverrideKeyword)
-        || csharpMethodHasModifier (owner, ts.SyntaxKind.AsyncKeyword)
-        || csharpMethodHasModifier (owner, ts.SyntaxKind.StaticKeyword)) {
+    if (csharpMethodHasModifier (owner, SyntaxKind.OverrideKeyword)
+        || csharpMethodHasModifier (owner, SyntaxKind.AsyncKeyword)
+        || csharpMethodHasModifier (owner, SyntaxKind.StaticKeyword)) {
         return undefined;
     }
-    const name = owner.name.escapedText;
+    const name = owner.name.text;
     const position = owner.parameters.indexOf (parameter);
     if (position < 0) {
         return undefined; // a destructured / rest parameter
@@ -15102,7 +15105,7 @@ export function installCsharpParameterDeclarations (transpiler) {
     // `getValue(param, "k")` / the market-row reads become native on the spot
     const upstreamResolver = csharp.csharpDeclaredLocalTypeResolver;
     csharp.csharpDeclaredLocalTypeResolver = (declaration) => {
-        const own = (declaration?.kind === ts.SyntaxKind.Parameter) ? csharpParameterDecision (csharp, declaration) : undefined;
+        const own = (declaration?.kind === SyntaxKind.Parameter) ? csharpParameterDecision (csharp, declaration) : undefined;
         if (own !== undefined) {
             return own;
         }

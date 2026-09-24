@@ -2,8 +2,10 @@ import { Transpiler } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
 import { csharpTypeOfValue, installCsharpAsyncCoreReturns, installCsharpCollectionReturns, installCsharpConditionOperands, installCsharpLocalTypes, installCsharpNativeArithmetic, installCsharpNumericComparisons, installCsharpNumericReturns, installCsharpParameterDeclarations, installCsharpParameterTypes, installCsharpReceiverTypes, installCsharpStringReceivers, installCsharpStringReturns } from './csharp-local-types.js';
 import log from 'ololog'
-// "typescript6" is an npm alias for typescript@6 — the last release that ships the JS compiler API
-import ts from 'typescript6';
+import { SyntaxKind } from 'typescript/unstable/ast';
+import { TypeFlags, type Program, type UnionType } from 'typescript/unstable/sync';
+import { isStringLiteralLikeNode } from 'typescript/unstable/ast/is';
+import { findAncestor, isFunctionLike } from 'ast-transpiler/tsUtils';
 
 // task payload posted by csharpTranspiler.ts#webworkerTranspile (structured clone)
 interface CsharpWorkerTask {
@@ -27,28 +29,26 @@ export function setupCsharpPrinter (transpiler: Transpiler) {
     const csharp = transpiler.csharpTranspiler;
     csharp.printElementAccessExpressionExceptionIfAny = (node: any) => {
         const parent = node.parent;
-        const isLeftSideOfAssignment = parent?.kind === ts.SyntaxKind.BinaryExpression
-            && (parent.operatorToken.kind === ts.SyntaxKind.EqualsToken || parent.operatorToken.kind === ts.SyntaxKind.PlusEqualsToken)
+        const isLeftSideOfAssignment = parent?.kind === SyntaxKind.BinaryExpression
+            && (parent.operatorToken.kind === SyntaxKind.EqualsToken || parent.operatorToken.kind === SyntaxKind.PlusEqualsToken)
             && parent?.left === node;
         if (!isLeftSideOfAssignment || !csharp.ELEMENT_ACCESS_WRAPPER_OPEN || !csharp.ELEMENT_ACCESS_WRAPPER_CLOSE) {
             return undefined;
         }
-        // Prefer the sticky batch program (createProgramBatch does not write
-        // byPathOldProgram), then the by-path cache used by transpileCSharpByPath.
-        // `context` is private on the Transpiler type and `byPathOldProgram` is untyped,
-        // so go through `any` — same runtime access the plain-JS worker made.
-        const program: ts.Program | undefined = (transpiler as any).context?.program ?? (transpiler as any).byPathOldProgram;
+        // the current transpile's program + checker (`context` is private on the Transpiler type)
+        const context = (transpiler as any).context;
+        const program: Program | undefined = context?.program;
         const sourceFile = node.getSourceFile ();
         if (!program || program.getSourceFile (sourceFile.fileName) !== sourceFile) {
             return undefined; // in-memory program (examples/tests) — let the base printer decide
         }
         const { expression, argumentExpression } = node;
-        const type = program.getTypeChecker ().getTypeAtLocation (argumentExpression);
-        const isUnion = ((type.flags & ts.TypeFlags.Union) !== 0) && Array.isArray ((type as ts.UnionType).types);
-        if (isUnion && (type as ts.UnionType).types.some ((t) => csharp.isStringType (t.flags))) {
+        const type = context.checker.getTypeAtLocation (argumentExpression);
+        const isUnion = ((type.flags & TypeFlags.Union) !== 0) && Array.isArray ((type as UnionType).getTypes ());
+        if (isUnion && (type as UnionType).getTypes ().some ((t) => csharp.isStringType (t.flags))) {
             const expressionAsString = csharp.printNode (expression, 0);
             const argumentAsString = csharp.printNode (argumentExpression, 0);
-            const cast = ts.isStringLiteralLike (argumentExpression) ? '' : '(string)';
+            const cast = isStringLiteralLikeNode (argumentExpression) ? '' : '(string)';
             return `((IDictionary<string,object>)${expressionAsString})[${cast}${argumentAsString}]`;
         }
         return undefined;
@@ -85,7 +85,7 @@ export function setupCsharpPrinter (transpiler: Transpiler) {
     // already uses (csharpBooleanReturnType). An override without its own annotation
     // inherits the type from the method it overrides, so C# invariance holds (CS0508).
     const asyncBooleanValueType = (node: any): string | undefined => {
-        if (node?.kind !== ts.SyntaxKind.MethodDeclaration || !csharp.isAsyncFunction (node)) {
+        if (node?.kind !== SyntaxKind.MethodDeclaration || !csharp.isAsyncFunction (node)) {
             return undefined;
         }
         if (!node.type) {
@@ -97,14 +97,14 @@ export function setupCsharpPrinter (transpiler: Transpiler) {
             return undefined; // `Promise` with no type argument
         }
         const type = csharp.getChecker ().getTypeFromTypeNode (typeNode);
-        const members = type.isUnion () ? type.types : [ type ];
+        const members = type.isUnionType () ? type.getTypes () : [ type ];
         let nullable = false;
         let sawBoolean = false;
         let sawOther = false;
         for (const member of members) {
-            if (member.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) {
+            if (member.flags & (TypeFlags.Undefined | TypeFlags.Null)) {
                 nullable = true;
-            } else if (member.flags & ts.TypeFlags.BooleanLike) {
+            } else if (member.flags & TypeFlags.BooleanLike) {
                 sawBoolean = true;
             } else {
                 sawOther = true;
@@ -165,11 +165,11 @@ const CSHARP_BOOLEAN_RETURN_CALLS = new Set ([ 'isEqual', 'isTrue', 'inOp' ]);
 // the box is not provably the boolean type, which keeps the printer's unbox in place.
 function booleanReturnValueType (csharp: any, node: any, scope: any): string | undefined {
     let value = node;
-    while (value?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (value?.kind === SyntaxKind.ParenthesizedExpression) {
         value = value.expression;
     }
-    if (value?.kind === ts.SyntaxKind.CallExpression && value.expression?.kind === ts.SyntaxKind.Identifier
-        && CSHARP_BOOLEAN_RETURN_CALLS.has (value.expression.escapedText)) {
+    if (value?.kind === SyntaxKind.CallExpression && value.expression?.kind === SyntaxKind.Identifier
+        && CSHARP_BOOLEAN_RETURN_CALLS.has (value.expression.text)) {
         return csharp.BOOLEAN_KEYWORD;
     }
     return csharpTypeOfValue (csharp, node, { scope, stack: new Set (), depth: 0 });
@@ -185,7 +185,7 @@ function installCsharpBooleanReturnCasts (csharp: any) {
         if (typeof printed !== 'string' || !node.expression) {
             return printed;
         }
-        const booleanType = csharp.csharpBooleanReturnType (ts.findAncestor (node.parent, ts.isFunctionLike));
+        const booleanType = csharp.csharpBooleanReturnType (findAncestor (node.parent, isFunctionLike));
         if (booleanType === undefined) {
             return printed;
         }
@@ -231,7 +231,7 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: Cshar
 
     // work set for THIS task — one file by default
     const filePaths: string[] = files ?? [ file as string ];
-    // ts.Program roots — the whole stage, identical on every task, so the batch this
+    // Program roots — the whole stage, identical on every task, so the batch this
     // thread builds on its first task is reused for all the rest (see
     // worker-program-batch.ts). Falls back to the task's own files when the driver
     // did not send roots (older payload shape).
