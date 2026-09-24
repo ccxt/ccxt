@@ -479,7 +479,9 @@ class lighter(ccxt.async_support.lighter):
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'size')
         isMakerAsk = self.safe_bool(trade, 'is_maker_ask')
-        side = 'buy' if (isMakerAsk is True) else 'sell'
+        side = 'sell'
+        if isMakerAsk is True:
+            side = 'buy'
         return self.safe_trade({
             'info': trade,
             'id': tradeId,
@@ -654,7 +656,11 @@ class lighter(ccxt.async_support.lighter):
             side = 'buy' if (isMakerAsk is True) else 'sell'
         fee = None
         if takerOrMaker is not None:
-            feeRateRaw = self.safe_string(trade, 'maker_fee') if (takerOrMaker == 'maker') else self.safe_string(trade, 'taker_fee')
+            feeRateRaw = None
+            if takerOrMaker == 'maker':
+                feeRateRaw = self.safe_string(trade, 'maker_fee')
+            else:
+                feeRateRaw = self.safe_string(trade, 'taker_fee')
             feeRate = Precise.string_div(feeRateRaw, '1000000') if (feeRateRaw is not None) else '0'
             feeAmount = Precise.string_mul(costString, feeRate)
             fee = {
@@ -678,7 +684,7 @@ class lighter(ccxt.async_support.lighter):
             'fee': fee,
         }, market)
 
-    def handle_my_trades(self, client: Client, message: object) -> bool:
+    def handle_my_trades(self, client: Client, message: dict) -> bool:
         #
         #     {
         #         "channel": "account_all_trades:723310",
@@ -826,7 +832,9 @@ class lighter(ccxt.async_support.lighter):
         #
         timestamp = self.safe_integer(liquidation, 'timestamp')
         isMakerAsk = self.safe_bool(liquidation, 'is_maker_ask')
-        side = 'buy' if (isMakerAsk is True) else 'sell'
+        side = 'sell'
+        if isMakerAsk is True:
+            side = 'buy'
         contracts = self.safe_string(liquidation, 'size')
         contractSize = self.safe_string(market, 'contractSize')
         price = self.safe_string(liquidation, 'price')
@@ -950,7 +958,7 @@ class lighter(ccxt.async_support.lighter):
             request['channel'] = 'user_stats/' + self.number_to_string(accountIndex)
             return await self.subscribe_public(messageHash, self.extend(request, params))
 
-    def handle_balance(self, client: Client, message: object) -> bool:
+    def handle_balance(self, client: Client, message: dict) -> bool:
         #
         #    spot balance
         #    {
@@ -1015,7 +1023,7 @@ class lighter(ccxt.async_support.lighter):
             assetIds = list(assets.keys())
             for i in range(0, len(assetIds)):
                 assetId = assetIds[i]
-                asset = assets[assetId]
+                asset = self.safe_dict(assets, assetId)
                 codeId = self.safe_string(asset, 'symbol')
                 code = self.safe_currency_code(codeId)
                 account = self.account()
@@ -1212,7 +1220,7 @@ class lighter(ccxt.async_support.lighter):
         id = self.safe_string(message, 'id')
         client.resolve(message, 'jsonapi/sendtx:' + id)
 
-    def handle_orders(self, client: Client, message: object) -> bool:
+    def handle_orders(self, client: Client, message: dict) -> bool:
         #
         #    {
         #        "account": {ACCOUNT_INDEX},
@@ -1256,7 +1264,7 @@ class lighter(ccxt.async_support.lighter):
         client.resolve(stored, messageHash)
         return True
 
-    def handle_error_message(self, client: Client, message: object) -> bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #     {
         #         "error": {
@@ -1451,7 +1459,7 @@ class lighter(ccxt.async_support.lighter):
         }
         self.clean_cache(ordersStructure)
 
-    def handle_ping(self, client: Client, message: object):
+    def handle_ping(self, client: Client, message: dict):
         #
         #     { "type": "ping" }
         #

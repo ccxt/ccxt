@@ -11,6 +11,7 @@ function testOptionTypes () {
             'fetchX': {
                 'wrongBool': 'yes',
                 'wrongString': 5,
+                'wrongInteger': '5',
             },
         },
     });
@@ -18,6 +19,8 @@ function testOptionTypes () {
     assert.strictEqual (wrongBool, 'yes');
     const [ wrongString ] = exchange.handleOptionStringAndParams ({}, 'fetchX', 'wrongString', 'x');
     assert.strictEqual (wrongString, 5);
+    const [ wrongInteger ] = exchange.handleOptionIntegerAndParams ({}, 'fetchX', 'wrongInteger', 1);
+    assert.strictEqual (wrongInteger, '5');
     const [ marginMode, params ] = exchange.handleMarginModeAndParams ('fetchX', { 'marginMode': false });
     assert.strictEqual (marginMode, false);
     assert (!('marginMode' in params));

@@ -377,14 +377,17 @@ class cex extends Exchange {
         $id = $this->safe_string($rawCurrency, 'currency');
         $code = $this->safe_currency_code($id);
         $isFiat = ($this->safe_bool($rawCurrency, 'fiat') === true);
-        $type = $isFiat ? 'fiat' : 'crypto';
+        $type = 'crypto';
+        if ($isFiat) {
+            $type = 'fiat';
+        }
         $currencyPrecision = $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 'precision')));
         $networks = array();
         $rawNetworks = $this->safe_dict($rawCurrency, 'blockchains', array());
         $keys = is_array($rawNetworks) ? array_keys($rawNetworks) : array();
         for ($j = 0; $j < count($keys); $j++) {
             $networkId = $keys[$j];
-            $rawNetwork = $rawNetworks[$networkId];
+            $rawNetwork = $this->safe_dict($rawNetworks, $networkId);
             $networkCode = $this->network_id_to_code($networkId, $code);
             $deposit = $this->safe_string($rawNetwork, 'deposit') === 'enabled';
             $withdraw = $this->safe_string($rawNetwork, 'withdrawal') === 'enabled';
@@ -817,7 +820,7 @@ class cex extends Exchange {
          * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $dataType = null;
-        list($dataType, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'dataType');
+        list($dataType, $params) = $this->handle_option_string_and_params($params, 'fetchOHLCV', 'dataType');
         if ($dataType === null) {
             throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a parameter "dataType" to be either "bestBid" or "bestAsk"');
         }
@@ -1365,7 +1368,7 @@ class cex extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $accountId = null;
-        list($accountId, $params) = $this->handle_option_and_params($params, 'createOrder', 'accountId');
+        list($accountId, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'accountId');
         if ($accountId === null) {
             throw new ArgumentsRequired($this->id . ' createOrder() : API trading is now allowed from main account, set $params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account');
         }
@@ -1681,7 +1684,10 @@ class cex extends Exchange {
     public function parse_transaction(array $transaction, ?array $currency = null): array {
         $currencyId = $this->safe_string($transaction, 'currency');
         $direction = $this->safe_string($transaction, 'direction');
-        $type = ($direction === 'withdraw') ? 'withdrawal' : 'deposit';
+        $type = 'deposit';
+        if ($direction === 'withdraw') {
+            $type = 'withdrawal';
+        }
         $code = $this->safe_currency_code($currencyId, $currency);
         $updatedAt = $this->safe_string($transaction, 'updatedAt');
         $timestamp = $this->parse8601($updatedAt);
@@ -1762,7 +1768,10 @@ class cex extends Exchange {
         }
         $currency = $this->currency($code);
         $fromMain = ($fromAccount === '');
-        $targetAccount = $fromMain ? $toAccount : $fromAccount;
+        $targetAccount = $fromAccount;
+        if ($fromMain) {
+            $targetAccount = $toAccount;
+        }
         $guid = $this->safe_string($params, 'guid', $this->uuid());
         $request = array(
             'currency' => $currency['id'],
@@ -1875,7 +1884,7 @@ class cex extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
         $accountId = null;
-        list($accountId, $params) = $this->handle_option_and_params($params, 'createOrder', 'accountId');
+        list($accountId, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'accountId');
         if ($accountId === null) {
             throw new ArgumentsRequired($this->id . ' fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set $params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account');
         }
@@ -1906,7 +1915,7 @@ class cex extends Exchange {
         return $this->parse_deposit_address($data, $currency);
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         $address = $this->safe_string($depositAddress, 'address');
         $currencyId = $this->safe_string($depositAddress, 'currency');
         $currency = $this->safe_currency($currencyId, $currency);

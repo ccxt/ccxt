@@ -900,7 +900,7 @@ public class Grvt extends GrvtApi
             //     }]
             // }
             //
-            Object currentBuilders = ((List<Object>)results).get(0);
+            Map<String, Object> currentBuilders = (Map<String, Object>) this.safeDict(results, 0);
             List<Object> approvedBuilder = (List<Object>) this.safeList(currentBuilders, "results", new ArrayList<Object>(Arrays.asList()));
             Integer length = ((List<?>)approvedBuilder).size();
             Boolean found = false;
@@ -1006,7 +1006,7 @@ public class Grvt extends GrvtApi
                 ((List<Object>)promises).add(this.signIn());
             }
             Object results = (Helpers.promiseAll(promises)).join();
-            Object response = (results == null || 0 >= ((List<?>)results).size() ? null : ((List<?>)results).get(0));
+            Map<String, Object> response = (Map<String, Object>) this.safeDict(results, 0);
             List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(result);
         });
@@ -1762,8 +1762,8 @@ public class Grvt extends GrvtApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -1969,7 +1969,7 @@ public class Grvt extends GrvtApi
         String availableBalance = this.safeString(response, "available_balance");
         for (var i = 0; i < ((List<?>)spotBalances).size(); i++)
         {
-            Object balance = (spotBalances == null || i < 0 || i >= spotBalances.size() ? null : spotBalances.get(i));
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(spotBalances, i);
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
@@ -2030,7 +2030,7 @@ public class Grvt extends GrvtApi
             {
                 Object transfers = (this.internalFetchTransfers((Map<String, Object>) (this.extend(request, parameters)), currency, since, limit)).join();
                 Object filteredResults = this.filterTransfersByType(transfers, "deposit", true);
-                Object transactions = this.getListFromObjectValues(Helpers.GetValue(filteredResults, 0), "info");
+                List<Object> transactions = this.getListFromObjectValues(Helpers.GetValue(filteredResults, 0), "info");
                 return this.parseTransactions(transactions, currency, since, limit);
             } else
             {
@@ -2123,7 +2123,7 @@ public class Grvt extends GrvtApi
             {
                 Object transfers = (this.internalFetchTransfers((Map<String, Object>) (this.extend(request, parameters)), currency, since, limit)).join();
                 Object filteredResults = this.filterTransfersByType(transfers, "withdrawal", true);
-                Object transactions = this.getListFromObjectValues(Helpers.GetValue(filteredResults, 0), "info");
+                List<Object> transactions = this.getListFromObjectValues(Helpers.GetValue(filteredResults, 0), "info");
                 return this.parseTransactions(transactions, currency, since, limit);
             } else
             {
@@ -2507,13 +2507,13 @@ public class Grvt extends GrvtApi
             String defaultFromAccountId = this.safeString(this.options, "userMainAccountId");
             if (this.inArray(fromAccount, new ArrayList<Object>(Arrays.asList("trading", "funding"))) && this.inArray(toAccount, new ArrayList<Object>(Arrays.asList("trading", "funding"))))
             {
-                Object tradingAccountId = null;
-                List<Object> tradingAccountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "transfer", "tradingAccountId");
-                tradingAccountId = ((List<Object>) tradingAccountIdparametersVariable).get(0);
+                String tradingAccountId = null;
+                List<Object> tradingAccountIdparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "transfer", "tradingAccountId");
+                tradingAccountId = (String) ((List<Object>) tradingAccountIdparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) tradingAccountIdparametersVariable).get(1);
-                Object fundingAccountId = null;
-                List<Object> fundingAccountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "transfer", "fundingAccountId");
-                fundingAccountId = ((List<Object>) fundingAccountIdparametersVariable).get(0);
+                String fundingAccountId = null;
+                List<Object> fundingAccountIdparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "transfer", "fundingAccountId");
+                fundingAccountId = (String) ((List<Object>) fundingAccountIdparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) fundingAccountIdparametersVariable).get(1);
                 if (java.util.Objects.equals(tradingAccountId, null) || java.util.Objects.equals(fundingAccountId, null))
                 {
@@ -3139,14 +3139,14 @@ public class Grvt extends GrvtApi
             Map<String, Object> parameters = parameters3;
             (this.loadMarketsAndSignIn()).join();
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters)).join();
             }
-            final Object finalParameters = parameters;
+            final Map<String, Object> finalParameters = parameters;
             Object request = new HashMap<String, Object>() {{
                 put( "sub_account_id", Grvt.this.getSubAccountId((Map<String, Object>) (finalParameters)) );
             }};
@@ -3332,7 +3332,12 @@ public class Grvt extends GrvtApi
         Long timestamp = this.safeIntegerProduct(position, "event_time", 0.000001);
         String sizeRaw = this.safeString(position, "size");
         Object isLong = (Precise.stringGe(sizeRaw, "0"));
-        String side = ((Boolean.TRUE.equals(isLong))) ? "long" : "short";
+        String side = "short";
+        if (Boolean.TRUE.equals(isLong))
+        {
+            side = "long";
+        }
+        final String finalSide = side;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
@@ -3347,7 +3352,7 @@ public class Grvt extends GrvtApi
             put( "contracts", Grvt.this.parseNumber(Precise.stringAbs(sizeRaw)) );
             put( "markPrice", Grvt.this.safeNumber(position, "mark_price") );
             put( "lastPrice", null );
-            put( "side", side );
+            put( "side", finalSide );
             put( "hedged", null );
             put( "timestamp", timestamp );
             put( "datetime", Grvt.this.iso8601(timestamp) );
@@ -3603,14 +3608,14 @@ public class Grvt extends GrvtApi
             Map<String, Object> parameters = parameters3;
             (this.loadMarketsAndSignIn()).join();
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchFundingHistory", symbol, since, limit, parameters, 1000)).join();
             }
-            final Object finalParameters = parameters;
+            final Map<String, Object> finalParameters = parameters;
             Object request = new HashMap<String, Object>() {{
                 put( "sub_account_id", Grvt.this.getSubAccountId((Map<String, Object>) (finalParameters)) );
             }};
@@ -3674,7 +3679,7 @@ public class Grvt extends GrvtApi
         return this.fetchFundingHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseIncome(Object income, Map<String, Object> market)
+    public Object parseIncome(Map<String, Object> income, Map<String, Object> market)
     {
         //
         //            {
@@ -3699,7 +3704,7 @@ public class Grvt extends GrvtApi
             put( "amount", Grvt.this.safeNumber(income, "amount") );
         }};
     }
-    public Object parseIncome(Object income, Object... optionalArgs)
+    public Object parseIncome(Map<String, Object> income, Object... optionalArgs)
     {
         return this.parseIncome(income, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -4125,7 +4130,11 @@ public class Grvt extends GrvtApi
             }}));
         }
         Boolean isMarket = (Boolean) this.safeBool(order, "is_market");
-        String orderType = (((java.util.Objects.equals(isMarket, true)))) ? "market" : "limit";
+        String orderType = "limit";
+        if (java.util.Objects.equals(isMarket, true))
+        {
+            orderType = "market";
+        }
         Boolean isPostOnly = (Boolean) this.safeBool(order, "post_only");
         Boolean isReduceOnly = (Boolean) this.safeBool(order, "reduce_only");
         String timeInForceRaw = this.safeString(order, "time_in_force");
@@ -4158,6 +4167,7 @@ public class Grvt extends GrvtApi
         Integer legsLength = ((List<?>)legs).size();
         final Integer finalLegsLength = legsLength;
         final Map<String, Object> finalMarket = market;
+        final String finalOrderType = orderType;
         final Boolean finalIsPostOnly = isPostOnly;
         final String finalSide = side;
         final String finalPrice = price;
@@ -4174,7 +4184,7 @@ public class Grvt extends GrvtApi
             put( "lastUpdateTimestamp", Grvt.this.safeIntegerProduct(stateObj, "update_time", 0.000001) );
             put( "status", Grvt.this.parseOrderStatus(Grvt.this.safeString(stateObj, "status")) );
             put( "symbol", Grvt.this.safeString(finalMarket, "symbol") );
-            put( "type", orderType );
+            put( "type", finalOrderType );
             put( "timeInForce", timeInForce );
             put( "postOnly", finalIsPostOnly );
             put( "side", finalSide );

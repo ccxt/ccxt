@@ -1084,7 +1084,7 @@ public class Extended extends ExtendedApi
             Map<String, Object> tickers = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object marketData = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+                Map<String, Object> marketData = (Map<String, Object>) this.safeDict(data, i);
                 String marketId = this.safeString(marketData, "name");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Map<String, Object> stats = (Map<String, Object>) this.safeDict(marketData, "marketStats", new HashMap<String, Object>() {{}});
@@ -1332,8 +1332,8 @@ public class Extended extends ExtendedApi
             Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -1440,8 +1440,8 @@ public class Extended extends ExtendedApi
             Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -1525,7 +1525,7 @@ public class Extended extends ExtendedApi
         return this.fetchFundingHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseFundingHistory(Object history, Map<String, Object> market)
+    public Object parseFundingHistory(Map<String, Object> history, Map<String, Object> market)
     {
         //
         //     {
@@ -1557,7 +1557,7 @@ public class Extended extends ExtendedApi
             put( "rate", Extended.this.safeNumber(history, "fundingRate") );
         }};
     }
-    public Object parseFundingHistory(Object history, Object... optionalArgs)
+    public Object parseFundingHistory(Map<String, Object> history, Object... optionalArgs)
     {
         return this.parseFundingHistory(history, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -1567,7 +1567,7 @@ public class Extended extends ExtendedApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < Helpers.getArrayLength(histories); i++)
         {
-            ((List<Object>)result).add(this.parseFundingHistory(Helpers.GetValue(histories, i), market));
+            ((List<Object>)result).add(this.parseFundingHistory((Map<String, Object>) (Helpers.GetValue(histories, i)), market));
         }
         Object symbol = (((java.util.Objects.equals(market, null)))) ? null : ((Map<String, Object>)market).get("symbol");
         return this.filterBySymbolSinceLimit(result, symbol, since, limit);
@@ -1795,8 +1795,8 @@ public class Extended extends ExtendedApi
             }
             (this.loadMarkets()).join();
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -2250,8 +2250,8 @@ public class Extended extends ExtendedApi
             Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -2390,8 +2390,8 @@ public class Extended extends ExtendedApi
             Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTransactions", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTransactions", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -2667,8 +2667,8 @@ public class Extended extends ExtendedApi
             Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -3277,7 +3277,7 @@ public class Extended extends ExtendedApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbols, null))
             {
-                List<Object> marketIds = this.marketIds(symbols);
+                List<String> marketIds = this.marketIds(symbols);
                 ((Map<String, Object>)request).put("market", marketIds);
             }
             Map<String, Object> response = (this.v1PrivateGetUserPositions(this.extend(request, parameters))).join();
@@ -3388,8 +3388,8 @@ public class Extended extends ExtendedApi
                 symbols = new ArrayList<Object>(Arrays.asList(symbols));
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositionsHistory", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchPositionsHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -3398,7 +3398,7 @@ public class Extended extends ExtendedApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbols, null))
             {
-                List<Object> marketIds = this.marketIds(symbols);
+                List<String> marketIds = this.marketIds(symbols);
                 ((Map<String, Object>)request).put("market", marketIds);
             }
             Map<String, Object> response = (this.v1PrivateGetUserPositionsHistory(this.extend(request, parameters))).join();
@@ -3760,7 +3760,7 @@ public class Extended extends ExtendedApi
             }
             String fee = this.safeString(parameters, "fee", "0.0005");
             String builderFeeRate = null;
-            Object builderId = null;
+            String builderId = null;
             if (this.isSandboxModeEnabled)
             {
                 builderFeeRate = this.safeString2(parameters, "builderFeeRate", "defaultBuilderFeeRate");
@@ -3771,8 +3771,8 @@ public class Extended extends ExtendedApi
                 List<Object> builderFeeRateparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "builderFeeRate", "0.0001");
                 builderFeeRate = (String) ((List<Object>) builderFeeRateparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) builderFeeRateparametersVariable).get(1);
-                List<Object> builderIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "builderId");
-                builderId = ((List<Object>) builderIdparametersVariable).get(0);
+                List<Object> builderIdparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "builderId");
+                builderId = (String) ((List<Object>) builderIdparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) builderIdparametersVariable).get(1);
             }
             String totalFee = fee;
@@ -3944,7 +3944,13 @@ public class Extended extends ExtendedApi
                     ((Map<String, Object>)request).put("trigger", trigger);
                 } else if (Boolean.TRUE.equals(isStopLossOrder) || Boolean.TRUE.equals(isTakeProfitOrder))
                 {
-                    triggerPriceStr = ((Boolean.TRUE.equals(isStopLossOrder))) ? stopLossTriggerPrice : takeProfitTriggerPrice;
+                    if (Boolean.TRUE.equals(isStopLossOrder))
+                    {
+                        triggerPriceStr = stopLossTriggerPrice;
+                    } else
+                    {
+                        triggerPriceStr = takeProfitTriggerPrice;
+                    }
                     final String finalTriggerPriceStr_2 = triggerPriceStr;
                     Map<String, Object> trigger = new HashMap<String, Object>() {{
                         put( "triggerPrice", Extended.this.priceToPrecision(symbol, finalTriggerPriceStr_2) );
@@ -4625,8 +4631,8 @@ public class Extended extends ExtendedApi
             Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -4732,7 +4738,7 @@ public class Extended extends ExtendedApi
         return BaseExchange.supplyAsync(() -> {
 
             List<Order> orders = (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(null), (Object)(parameters))).join();
-            Object closedOrders = this.filterBy(orders, "status", "closed");
+            List<Object> closedOrders = this.filterBy(orders, "status", "closed");
             return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -4772,7 +4778,7 @@ public class Extended extends ExtendedApi
         return BaseExchange.supplyAsync(() -> {
 
             List<Order> orders = (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(null), (Object)(parameters))).join();
-            Object canceledOrders = this.filterBy(orders, "status", "canceled");
+            List<Object> canceledOrders = this.filterBy(orders, "status", "canceled");
             return this.filterBySymbolSinceLimit(canceledOrders, symbol, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -4966,7 +4972,11 @@ public class Extended extends ExtendedApi
     {
         Object domainTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName("\"StarknetDomain\"(\"name\":\"shortstring\",\"version\":\"shortstring\",\"chainId\":\"shortstring\",\"revision\":\"shortstring\")"));
         Boolean isTestnet = Helpers.getIndexOf(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), "sepolia") >= 0;
-        String defaultChainId = ((Boolean.TRUE.equals(isTestnet))) ? "SN_SEPOLIA" : "SN_MAIN";
+        String defaultChainId = "SN_MAIN";
+        if (Boolean.TRUE.equals(isTestnet))
+        {
+            defaultChainId = "SN_SEPOLIA";
+        }
         String chainId = this.safeString(this.options, "chainId", defaultChainId);
         return this.convertToBigInt(this.extendedStarknetComputePoseidonHashOnElements(new ArrayList<Object>(Arrays.asList(domainTypeHash, this.getExtendedStringToFelt("Perpetuals"), this.getExtendedStringToFelt("v0"), this.getExtendedStringToFelt(chainId), this.convertToBigInt("1")))));
     }

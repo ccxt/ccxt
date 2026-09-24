@@ -397,7 +397,7 @@ class foxbit(Exchange, ImplicitAPI):
         type = self.safe_string_lower(rawCurrency, 'type')
         parsedNetworks = {}
         for j in range(0, len(networks)):
-            network = networks[j]
+            network = self.safe_dict(networks, j)
             networkId = self.safe_string(network, 'code')
             networkCode = self.network_id_to_code(networkId, code)
             networkWithdrawInfo = self.safe_dict(network, 'withdraw_info')
@@ -838,7 +838,7 @@ class foxbit(Exchange, ImplicitAPI):
             'info': response,
         }
         for i in range(0, len(accounts)):
-            account = accounts[i]
+            account = self.safe_dict(accounts, i)
             currencyId = self.safe_string(account, 'currency_symbol')
             currencyCode = self.safe_currency_code(currencyId)
             total = self.safe_string(account, 'balance')
@@ -1634,11 +1634,11 @@ class foxbit(Exchange, ImplicitAPI):
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         marketId = self.safe_string(ticker, 'market_symbol')
         symbol = self.safe_symbol(marketId, market, None, 'spot')
-        rolling_24h = ticker['rolling_24h']
+        rolling_24h = self.safe_dict(ticker, 'rolling_24h')
         best = self.safe_dict(ticker, 'best')
         bestAsk = self.safe_dict(best, 'ask')
         bestBid = self.safe_dict(best, 'bid')
-        lastTrade = ticker['last_trade']
+        lastTrade = self.safe_dict(ticker, 'last_trade')
         lastPrice = self.safe_string(lastTrade, 'price')
         return self.safe_ticker({
             'symbol': symbol,
@@ -1765,7 +1765,7 @@ class foxbit(Exchange, ImplicitAPI):
             },
         })
 
-    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         network = self.safe_dict(depositAddress, 'network')
         networkId = self.safe_string(network, 'code')
         currencyCode = self.safe_currency_code(None, currency)

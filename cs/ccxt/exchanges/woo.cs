@@ -1741,7 +1741,11 @@ public partial class woo : Exchange
         bool isMarket = orderType == "MARKET";
         string? timeInForce = this.safeStringLower(parameters, "timeInForce");
         bool postOnly = this.isPostOnly(isMarket, null, parameters);
-        string clientOrderIdKey = isConditional ? "clientAlgoOrderId" : "clientOrderId";
+        string clientOrderIdKey = "clientOrderId";
+        if (isConditional)
+        {
+            clientOrderIdKey = "clientAlgoOrderId";
+        }
         request["type"] = orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if (!isConditional)
         {
@@ -1830,7 +1834,11 @@ public partial class woo : Exchange
                 { "childOrders", new List<object>() {} },
             };
             object childOrders = ((IDictionary<string,object>)outterOrder)["childOrders"];
-            string closeSide = (orderSide == "BUY") ? "SELL" : "BUY";
+            string closeSide = "BUY";
+            if (orderSide == "BUY")
+            {
+                closeSide = "SELL";
+            }
             if (hasStopLoss)
             {
                 string? stopLossPrice = this.safeString(stopLoss, "triggerPrice", stopLoss);
@@ -2233,8 +2241,8 @@ public partial class woo : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -2912,8 +2920,8 @@ public partial class woo : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -3137,7 +3145,7 @@ public partial class woo : Exchange
         List<object> balances = this.safeList(response, "holding", new List<object>() {});
         for (int i = 0; i < balances.Count; i++)
         {
-            object balance = balances[i];
+            IDictionary<string, object> balance = this.safeDict(balances, i);
             string? code = this.safeCurrencyCode(this.safeString(balance, "token"));
             Dictionary<string, object> account = this.account();
             account["total"] = this.safeString(balance, "holding");
@@ -3347,7 +3355,11 @@ public partial class woo : Exchange
         currency = this.safeCurrency(code, currency);
         double? amount = this.safeNumber(item, "amount");
         string? side = this.safeString(item, "tokenSide");
-        string direction = (side == "DEPOSIT") ? "in" : "out";
+        string direction = "out";
+        if (side == "DEPOSIT")
+        {
+            direction = "in";
+        }
         Int64? timestamp = this.safeTimestamp(item, "createdTime");
         Dictionary<string, object> fee = this.parseTokenAndFeeTemp(item, new List<object>() {"feeToken"}, new List<object>() {"feeAmount"});
         return this.safeLedgerEntry(new Dictionary<string, object>() {
@@ -4024,8 +4036,8 @@ public partial class woo : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -4267,8 +4279,8 @@ public partial class woo : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {

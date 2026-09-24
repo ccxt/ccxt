@@ -813,7 +813,7 @@ public class Upbit extends UpbitApi
         }};
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
-            Object balance = Helpers.GetValue(response, i);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i);
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
@@ -908,7 +908,7 @@ public class Upbit extends UpbitApi
                 }
             } else
             {
-                Object marketIds = this.marketIds(symbols);
+                List<String> marketIds = this.marketIds(symbols);
                 ids = String.join(",", (List<String>)marketIds);
             }
             final Object finalIds = ids;
@@ -1002,7 +1002,7 @@ public class Upbit extends UpbitApi
         return BaseExchange.supplyAsync(() -> {
 
             OrderBooks orderbooks = (this.fetchOrderBooks((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
-            return this.safeValue(orderbooks, symbol);
+            return this.safeDict(orderbooks, symbol);
         }).thenApply(OrderBook::new);
 
     }
@@ -1140,7 +1140,7 @@ public class Upbit extends UpbitApi
                 tickers = (this.publicGetTickerAll(this.extend(request, parameters))).join();
             } else
             {
-                List<Object> ids = this.marketIds(symbols);
+                List<String> ids = this.marketIds(symbols);
                 List<Object> promises = new ArrayList<Object>(Arrays.asList());
                 Object queries = this.idsQueryStrings(ids, 4000); // the url is limited to about 8000 characters once the commas are percent-encoded
                 for (var i = 0; i < ((List<?>)queries).size(); i++)
@@ -1248,7 +1248,7 @@ public class Upbit extends UpbitApi
         return BaseExchange.supplyAsync(() -> {
 
             Tickers tickers = (this.fetchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
-            return this.safeValue(tickers, symbol);
+            return this.safeDict(tickers, symbol);
         }).thenApply(Ticker::new);
 
     }
@@ -1298,7 +1298,7 @@ public class Upbit extends UpbitApi
         //         }
         //
         String id = this.safeString2(trade, "sequential_id", "uuid");
-        Object orderId = null;
+        List<String> orderId = null;
         Long timestamp = this.safeInteger(trade, "timestamp");
         if (java.util.Objects.equals(timestamp, null))
         {
@@ -2510,8 +2510,8 @@ public class Upbit extends UpbitApi
         //         "krw_amount": "80420.0"
         //     }
         //
-        Object address = null; // not present in the data structure received from the exchange
-        Object tag = null; // not present in the data structure received from the exchange
+        List<String> address = null; // not present in the data structure received from the exchange
+        List<String> tag = null; // not present in the data structure received from the exchange
         String updatedRaw = this.safeString(transaction, "done_at");
         Long timestamp = this.parse8601(this.safeString(transaction, "created_at", updatedRaw));
         String type = this.safeString(transaction, "type");
@@ -2688,7 +2688,7 @@ public class Upbit extends UpbitApi
             cost = "0";
             for (var i = 0; Helpers.isLessThan(i, numTrades); i++)
             {
-                Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
+                Map<String, Object> trade = (Map<String, Object>) this.safeDict(trades, i);
                 cost = Precise.stringAdd(cost, this.safeString(trade, "cost"));
                 if (Boolean.TRUE.equals(getFeesFromTrades))
                 {
@@ -3161,7 +3161,7 @@ public class Upbit extends UpbitApi
         return this.fetchDepositAddresses(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseDepositAddress(Object depositAddress, Map<String, Object> currency)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         //
         //    {
@@ -3185,7 +3185,7 @@ public class Upbit extends UpbitApi
             put( "tag", tag );
         }};
     }
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Object... optionalArgs)
     {
         return this.parseDepositAddress(depositAddress, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -3219,7 +3219,7 @@ public class Upbit extends UpbitApi
             {
                 throw new ArgumentsRequired((this.id + " fetchDepositAddress requires params[\"network\"]")) ;
             }
-            final Object finalNetworkCode = networkCode;
+            final String finalNetworkCode = networkCode;
             Map<String, Object> response = (this.privateGetDepositsCoinAddress(this.extend(new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "net_type", Upbit.this.networkCodeToId((String) (finalNetworkCode), ((Map<String, Object>)currency).get("code")) );
@@ -3232,7 +3232,7 @@ public class Upbit extends UpbitApi
             //        secondary_address: '167029435'
             //    }
             //
-            return this.parseDepositAddress(response);
+            return this.parseDepositAddress((Map<String, Object>) (response));
         }).thenApply(DepositAddress::new);
 
     }
@@ -3297,7 +3297,7 @@ public class Upbit extends UpbitApi
             {
                 throw new AddressPending((((this.id + " is generating ") + code) + " deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address")) ;
             }
-            return this.parseDepositAddress(response);
+            return this.parseDepositAddress((Map<String, Object>) (response));
         }).thenApply(DepositAddress::new);
 
     }
@@ -3437,14 +3437,14 @@ public class Upbit extends UpbitApi
                 put( "access_key", Upbit.this.apiKey );
                 put( "nonce", nonce );
             }};
-            Object hasQuery = ((List<?>)Helpers.objectKeys(query)).size();
+            Integer hasQuery = ((List<?>)Helpers.objectKeys(query)).size();
             String auth = null;
             if ((!java.util.Objects.equals(method, "GET")) && (!java.util.Objects.equals(method, "DELETE")))
             {
                 body = (String) (this.json(parameters));
                 ((Map<String, Object>)headers).put("Content-Type", "application/json");
             }
-            if ((!java.util.Objects.equals(hasQuery, null)) && (!java.util.Objects.equals(hasQuery, 0)))
+            if (!java.util.Objects.equals(hasQuery, 0))
             {
                 auth = this.rawencode(query);
             }

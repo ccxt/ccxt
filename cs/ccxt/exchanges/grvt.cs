@@ -833,7 +833,7 @@ public partial class grvt : Exchange
         //     }]
         // }
         //
-        object currentBuilders = getValue(results, 0);
+        IDictionary<string, object> currentBuilders = this.safeDict(results, 0);
         List<object> approvedBuilder = this.safeList(currentBuilders, "results", new List<object>() {});
         int length = approvedBuilder.Count;
         bool found = false;
@@ -931,7 +931,7 @@ public partial class grvt : Exchange
             promises.Add(this.signIn());
         }
         List<object> results = await promiseAll(promises);
-        object response = getValue(results, 0);
+        IDictionary<string, object> response = this.safeDict(results, 0);
         List<object> result = this.safeList(response, "result", new List<object>() {});
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(result));
     }
@@ -1545,8 +1545,8 @@ public partial class grvt : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -1713,7 +1713,7 @@ public partial class grvt : Exchange
         string? availableBalance = this.safeString(response, "available_balance");
         for (int i = 0; i < spotBalances.Count; i++)
         {
-            object balance = spotBalances[i];
+            IDictionary<string, object> balance = this.safeDict(spotBalances, i);
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -2140,21 +2140,21 @@ public partial class grvt : Exchange
      */
     public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
-        object fromAccountVar = fromAccount;
-        object toAccountVar = toAccount;
+        string fromAccountVar = fromAccount;
+        string toAccountVar = toAccount;
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
         Dictionary<string, object> currency = this.currency(code);
         string? defaultFromAccountId = this.safeString(this.options, "userMainAccountId");
         if (this.inArray(fromAccountVar, new List<object>() {"trading", "funding"}) && this.inArray(toAccountVar, new List<object>() {"trading", "funding"}))
         {
-            object tradingAccountId = null;
-            IList<object> tradingAccountIdparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "transfer", "tradingAccountId");
-            tradingAccountId = tradingAccountIdparametersVariable[0];
+            string? tradingAccountId = null;
+            IList<object> tradingAccountIdparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "transfer", "tradingAccountId");
+            tradingAccountId = (string)tradingAccountIdparametersVariable[0];
             parameters = tradingAccountIdparametersVariable[1];
-            object fundingAccountId = null;
-            IList<object> fundingAccountIdparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "transfer", "fundingAccountId");
-            fundingAccountId = fundingAccountIdparametersVariable[0];
+            string? fundingAccountId = null;
+            IList<object> fundingAccountIdparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "transfer", "fundingAccountId");
+            fundingAccountId = (string)fundingAccountIdparametersVariable[0];
             parameters = fundingAccountIdparametersVariable[1];
             if ((tradingAccountId == null) || (fundingAccountId == null))
             {
@@ -2683,8 +2683,8 @@ public partial class grvt : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -2839,7 +2839,11 @@ public partial class grvt : Exchange
         Int64? timestamp = this.safeIntegerProduct(position, "event_time", 0.000001);
         string? sizeRaw = this.safeString(position, "size");
         bool isLong = (Precise.stringGe(sizeRaw, "0"));
-        string side = isLong ? "long" : "short";
+        string side = "short";
+        if (isLong)
+        {
+            side = "long";
+        }
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -3038,8 +3042,8 @@ public partial class grvt : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -3472,7 +3476,11 @@ public partial class grvt : Exchange
             });
         }
         bool? isMarket = this.safeBool(order, "is_market");
-        string orderType = ((isMarket == true)) ? "market" : "limit";
+        string orderType = "limit";
+        if ((isMarket == true))
+        {
+            orderType = "market";
+        }
         bool? isPostOnly = this.safeBool(order, "post_only");
         bool? isReduceOnly = this.safeBool(order, "reduce_only");
         string? timeInForceRaw = this.safeString(order, "time_in_force");

@@ -1300,7 +1300,7 @@ export default class binance extends binanceRest {
         const subscribe: Dict = {
             'id': requestId,
         };
-        const trades = await this.watchMultiple (url, messageHashes, this.extend (request, query), messageHashes, subscribe);
+        const trades: ArrayCache = await this.watchMultiple (url, messageHashes, this.extend (request, query), messageHashes, subscribe);
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -1603,7 +1603,7 @@ export default class binance extends binanceRest {
         });
     }
 
-    handleTrade (client: Client, message: any) {
+    handleTrade (client: Client, message: Dict) {
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
         const marketId = this.safeString (message, 's');
@@ -4373,7 +4373,7 @@ export default class binance extends binanceRest {
             const stockSubscribe: Dict = {
                 'id': stockRequestId,
             };
-            const stockOrders = await this.watch (stockUrl, stockMessageHash, this.extend (stockRequest, stockQuery), stockMessageHash, stockSubscribe);
+            const stockOrders: ArrayCache = await this.watch (stockUrl, stockMessageHash, this.extend (stockRequest, stockQuery), stockMessageHash, stockSubscribe);
             if (this.newUpdates) {
                 limit = stockOrders.getLimit (symbol, limit);
             }
@@ -4419,7 +4419,7 @@ export default class binance extends binanceRest {
         this.setBalanceCache (client, type, isPortfolioMargin);
         this.setPositionsCache (client, type, undefined, isPortfolioMargin);
         const message = undefined;
-        const orders = await this.watch (url, messageHash, message, type);
+        const orders: ArrayCache = await this.watch (url, messageHash, message, type);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -5473,14 +5473,14 @@ export default class binance extends binanceRest {
         this.setBalanceCache (client, type, isPortfolioMargin);
         this.setPositionsCache (client, type, undefined, isPortfolioMargin);
         const message = undefined;
-        const trades = await this.watch (url, messageHash, message, type);
+        const trades: ArrayCache = await this.watch (url, messageHash, message, type);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrade (client: Client, message: any) {
+    handleMyTrade (client: Client, message: Dict) {
         const messageHash = 'myTrades';
         const executionType = this.safeString (message, 'x');
         if (executionType === 'TRADE') {
@@ -5561,7 +5561,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    handleOrder (client: Client, message: any) {
+    handleOrder (client: Client, message: Dict) {
         const parsed = this.parseWsOrder (message);
         const symbol = this.safeString (parsed, 'symbol');
         const orderId = this.safeString (parsed, 'id');
@@ -5630,9 +5630,6 @@ export default class binance extends binanceRest {
             this.balance[accountType] = {};
         }
         this.balance[accountType]['info'] = message;
-        if (accountType === undefined) {
-            return;
-        }
         const B = this.safeList (message, 'B', []);
         for (let i = 0; i < B.length; i++) {
             const entry = this.safeDict (B, i);

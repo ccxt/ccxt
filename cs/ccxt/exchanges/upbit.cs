@@ -663,7 +663,7 @@ public partial class upbit : Exchange
         };
         for (int i = 0; i < getArrayLength(response); i++)
         {
-            object balance = getValue(response, i);
+            IDictionary<string, object> balance = this.safeDict(response, i);
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -811,7 +811,7 @@ public partial class upbit : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> orderbooks = ccxt.BaseExchange.FromOrderBooks(await this.FetchOrderBooks(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(limit), parameters));
-        return ccxt.BaseExchange.ToOrderBook(this.safeValue(orderbooks, symbol));
+        return ccxt.BaseExchange.ToOrderBook(this.safeDict(orderbooks, symbol));
     }
 
     public override Dictionary<string, object> parseTicker(object ticker, object market = null)
@@ -1011,7 +1011,7 @@ public partial class upbit : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbol}, parameters));
-        return ccxt.BaseExchange.ToTicker(this.safeValue(tickers, symbol));
+        return ccxt.BaseExchange.ToTicker(this.safeDict(tickers, symbol));
     }
 
     public override Dictionary<string, object> parseTrade(object trade, object market = null)
@@ -2150,7 +2150,7 @@ public partial class upbit : Exchange
             cost = "0";
             for (int i = 0; i < numTrades; i++)
             {
-                object trade = getValue(trades, i);
+                IDictionary<string, object> trade = this.safeDict(trades, i);
                 cost = Precise.stringAdd(cost, this.safeString(trade, "cost"));
                 if (getFeesFromTrades)
                 {
@@ -2715,7 +2715,7 @@ public partial class upbit : Exchange
                 body = this.json(parameters);
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }
-            if ((!isEqual(hasQuery, null)) && ((hasQuery != 0)))
+            if ((hasQuery != 0))
             {
                 auth = this.rawencode(query);
             }

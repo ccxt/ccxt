@@ -384,7 +384,7 @@ class phemex extends \ccxt\async\phemex {
         //
         $this->balance['info'] = $message;
         for ($i = 0; $i < count($message); $i++) {
-            $balance = $message[$i];
+            $balance = $this->safe_dict($message, $i);
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $currency = $this->safe_dict($this->currencies, $code, array());
@@ -638,7 +638,10 @@ class phemex extends \ccxt\async\phemex {
         $isSwap = $market['swap'];
         $settleIsUSDT = $market['settle'] === 'USDT';
         $isUsdtSwap = ($isSwap === true) && $settleIsUSDT;
-        $name = $isUsdtSwap ? 'trade_p' : 'trade';
+        $name = 'trade';
+        if ($isUsdtSwap) {
+            $name = 'trade_p';
+        }
         $messageHash = 'trade:' . $symbol;
         $method = $name . '.subscribe';
         $subscribe = array(
@@ -684,7 +687,10 @@ class phemex extends \ccxt\async\phemex {
         $isSwap = $market['swap'];
         $settleIsUSDT = $market['settle'] === 'USDT';
         $isUsdtSwap = ($isSwap === true) && $settleIsUSDT;
-        $name = $isUsdtSwap ? 'orderbook_p' : 'orderbook';
+        $name = 'orderbook';
+        if ($isUsdtSwap) {
+            $name = 'orderbook_p';
+        }
         $messageHash = 'orderbook:' . $symbol;
         $method = $name . '.subscribe';
         $subscribe = array(
@@ -728,7 +734,10 @@ class phemex extends \ccxt\async\phemex {
         $isSwap = $market['swap'];
         $settleIsUSDT = $market['settle'] === 'USDT';
         $isUsdtSwap = ($isSwap === true) && $settleIsUSDT;
-        $name = $isUsdtSwap ? 'kline_p' : 'kline';
+        $name = 'kline';
+        if ($isUsdtSwap) {
+            $name = 'kline_p';
+        }
         $messageHash = 'kline:' . $timeframe . ':' . $symbol;
         $method = $name . '.subscribe';
         $subscribe = array(
@@ -1564,7 +1573,10 @@ class phemex extends \ccxt\async\phemex {
             $this->handle_orders($client, $orders);
         }
         if ((is_array($message) && array_key_exists('accounts' ?? '', $message)) || (is_array($message) && array_key_exists('accounts_p' ?? '', $message)) || (is_array($message) && array_key_exists('wallets' ?? '', $message))) {
-            $type = (is_array($message) && array_key_exists('accounts' ?? '', $message)) ? 'swap' : 'spot';
+            $type = 'spot';
+            if (is_array($message) && array_key_exists('accounts' ?? '', $message)) {
+                $type = 'swap';
+            }
             if (is_array($message) && array_key_exists('accounts_p' ?? '', $message)) {
                 $type = 'perpetual';
             }

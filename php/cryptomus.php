@@ -431,7 +431,7 @@ class cryptomus extends Exchange {
         $code = null;
         $networks = array();
         for ($i = 0; $i < count($rawCurrency); $i++) {
-            $networkEntry = $rawCurrency[$i];
+            $networkEntry = $this->safe_dict($rawCurrency, $i);
             // set ID on first loop
             if ($id === null) {
                 $id = $this->safe_string($networkEntry, 'currency_code');
@@ -558,7 +558,7 @@ class cryptomus extends Exchange {
             'currencyPair' => $market['id'],
         );
         $level = 0;
-        list($level, $params) = $this->handle_option_and_params($params, 'fetchOrderBook', 'level', $level);
+        list($level, $params) = $this->handle_option_integer_and_params($params, 'fetchOrderBook', 'level', $level);
         $request['level'] = $level;
         $response = $this->publicGetV1ExchangeMarketOrderBookCurrencyPair($this->extend($request, $params));
         //
@@ -700,7 +700,7 @@ class cryptomus extends Exchange {
             'info' => $balance,
         );
         for ($i = 0; $i < count($balance); $i++) {
-            $balanceEntry = $balance[$i];
+            $balanceEntry = $this->safe_dict($balance, $i);
             $currencyId = $this->safe_string($balanceEntry, 'ticker');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -1153,7 +1153,7 @@ class cryptomus extends Exchange {
         $takerFees = array();
         $makerFees = array();
         for ($i = 0; $i < count($feeTiers); $i++) {
-            $tier = $feeTiers[$i];
+            $tier = $this->safe_dict($feeTiers, $i);
             $turnover = $this->safe_number($tier, 'from_turnover');
             $taker = $this->safe_string($tier, 'taker_percent');
             $maker = $this->safe_string($tier, 'maker_percent');

@@ -196,7 +196,7 @@ class bitstamp(ccxt.async_support.bitstamp):
 
     def get_cache_index(self, orderbook: object, deltas: object) -> float:
         # we will consider it a fail
-        firstElement = deltas[0]
+        firstElement = self.safe_dict(deltas, 0)
         firstElementNonce = self.safe_integer(firstElement, 'microtimestamp')
         if firstElementNonce is None:
             return -1
@@ -204,7 +204,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         if (nonce is None) or (nonce < firstElementNonce):
             return -1
         for i in range(0, len(deltas)):
-            delta = deltas[i]
+            delta = self.safe_dict(deltas, i)
             deltaNonce = self.safe_integer(delta, 'microtimestamp')
             if deltaNonce == nonce:
                 return i + 1
@@ -280,7 +280,9 @@ class bitstamp(ccxt.async_support.bitstamp):
             market = self.safe_market(None, market)
         symbol = market['symbol']
         sideRaw = self.safe_integer(trade, 'type')
-        side = 'buy' if (sideRaw == 0) else 'sell'
+        side = 'sell'
+        if sideRaw == 0:
+            side = 'buy'
         return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
@@ -326,7 +328,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         market = self.safe_market(marketId)
         symbol = market['symbol']
         messageHash = 'trades:' + symbol
-        data = self.safe_value(message, 'data')
+        data = self.safe_dict(message, 'data')
         trade = self.parse_ws_trade(data, market)
         tradesArray = self.safe_value(self.trades, symbol)
         if tradesArray is None:
@@ -638,7 +640,9 @@ class bitstamp(ccxt.async_support.bitstamp):
         #
         id = self.safe_string(order, 'id_str')
         orderTypeRaw = self.safe_string_lower(order, 'order_type')
-        side = 'sell' if (orderTypeRaw == '1') else 'buy'
+        side = 'buy'
+        if orderTypeRaw == '1':
+            side = 'sell'
         orderSubTypeRaw = self.safe_string_lower(order, 'order_subtype')  # https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
         orderType = None
         timeInForce = None
@@ -836,7 +840,7 @@ class bitstamp(ccxt.async_support.bitstamp):
                 method = methods[key]
                 method(client, message)
 
-    def handle_error_message(self, client: Client, message: object) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> Bool:
         # {
         #     "event": "bts:error",
         #     "channel": '',

@@ -870,7 +870,7 @@ class p2b(Exchange, ImplicitAPI):
         keys = list(response.keys())
         for i in range(0, len(keys)):
             currencyId = keys[i]
-            balance = response[currencyId]
+            balance = self.safe_dict(response, currencyId)
             code = self.safe_currency_code(currencyId)
             used = self.safe_string(balance, 'freeze')
             available = self.safe_string(balance, 'available')

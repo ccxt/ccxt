@@ -1853,12 +1853,7 @@ func (this *Tokocrypto) ParseBalanceCustom(response any, optionalArgs ...any) an
 	var data map[string]any = SafeMapTyped(response, "data")
 	var balances []any = SafeListTyped(data, "accountAssets")
 	for i := 0; i < len(balances); i++ {
-		var balance map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(balances) {
-				return DerefScalar(balances[i])
-			}
-			return nil
-		}())
+		var balance map[string]any = SafeMapTyped(balances, i)
 		var currencyId *string = this.SafeString(balance, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -2309,7 +2304,7 @@ func (this *Tokocrypto) fetchOrderBody(ch chan any, id any, optionalArgs ...any)
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var list []any = SafeListTypedDefault(data, "list", []any{})
+	var list []any = SafeListTyped(data, "list")
 	var rawOrder map[string]any = MapTyped(this.SafeDict(list, 0, map[string]any{}))
 
 	ch <- this.ParseOrder(rawOrder)

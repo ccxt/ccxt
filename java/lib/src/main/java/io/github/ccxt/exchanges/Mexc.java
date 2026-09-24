@@ -2207,7 +2207,7 @@ public class Mexc extends MexcApi
         String orderId = null;
         Object symbol = null;
         Map<String, Object> fee = null;
-        Object type = null;
+        List<String> type = null;
         String side = null;
         String takerOrMaker = null;
         String priceString = null;
@@ -2329,7 +2329,7 @@ public class Mexc extends MexcApi
                 String feeAsset = this.safeString(trade, "commissionAsset");
                 if (!java.util.Objects.equals(feeAsset, null))
                 {
-                    final Object finalFeeAsset = feeAsset;
+                    final String finalFeeAsset = feeAsset;
                     fee = new HashMap<String, Object>() {{
                         put( "cost", Mexc.this.safeString(trade, "commission") );
                         put( "currency", Mexc.this.safeCurrencyCode((String) (finalFeeAsset)) );
@@ -2511,7 +2511,7 @@ public class Mexc extends MexcApi
                 //         }
                 //     }
                 //
-                Object data = this.safeValue(response, "data");
+                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
                 candles = this.convertTradingViewToOHLCV(data, "time", "open", "high", "low", "close", "vol");
             }
             return this.parseOHLCVs(candles, market, timeframe, since, limit);
@@ -3494,7 +3494,7 @@ public class Mexc extends MexcApi
             String symbol = null;
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i);
                 String marketId = this.safeString(rawOrder, "symbol");
                 Map<String, Object> market = (Map<String, Object>) this.market(marketId);
                 if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
@@ -5105,7 +5105,7 @@ public class Mexc extends MexcApi
         {
             for (var i = 0; i < ((List<?>)wallet).size(); i++)
             {
-                Object entry = (wallet == null || i < 0 || i >= ((List<?>)wallet).size() ? null : ((List<?>)wallet).get(i));
+                Map<String, Object> entry = (Map<String, Object>) this.safeDict(wallet, i);
                 Map<String, Object> base = (Map<String, Object>) this.safeDict(entry, "baseAsset", new HashMap<String, Object>() {{}});
                 Map<String, Object> quote = (Map<String, Object>) this.safeDict(entry, "quoteAsset", new HashMap<String, Object>() {{}});
                 String baseCode = this.safeCurrencyCode(this.safeString(base, "asset"));
@@ -5124,7 +5124,7 @@ public class Mexc extends MexcApi
         {
             for (var i = 0; i < ((List<?>)wallet).size(); i++)
             {
-                Object entry = (wallet == null || i < 0 || i >= ((List<?>)wallet).size() ? null : ((List<?>)wallet).get(i));
+                Map<String, Object> entry = (Map<String, Object>) this.safeDict(wallet, i);
                 String currencyId = this.safeString(entry, "currency");
                 String code = this.safeCurrencyCode(currencyId);
                 Map<String, Object> account = (Map<String, Object>) this.account();
@@ -5140,7 +5140,7 @@ public class Mexc extends MexcApi
         {
             for (var i = 0; i < ((List<?>)wallet).size(); i++)
             {
-                Object entry = (wallet == null || i < 0 || i >= ((List<?>)wallet).size() ? null : ((List<?>)wallet).get(i));
+                Map<String, Object> entry = (Map<String, Object>) this.safeDict(wallet, i);
                 String currencyId = this.safeString(entry, "asset");
                 String code = this.safeCurrencyCode(currencyId);
                 Map<String, Object> account = (Map<String, Object>) this.account();
@@ -5205,7 +5205,7 @@ public class Mexc extends MexcApi
                     List<Object> symbols = (List<Object>) this.safeList(parameters, "symbols");
                     if (!java.util.Objects.equals(symbols, null))
                     {
-                        Object symbolIds = this.marketIds(symbols);
+                        List<String> symbolIds = this.marketIds(symbols);
                         if (!java.util.Objects.equals(symbolIds, null))
                         {
                             parsedSymbols = String.join(",", (List<String>)symbolIds);
@@ -6239,7 +6239,7 @@ final String finalRiskIncrVol = riskIncrVol;
         return this.parseMarketLeverageTiers(info, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public Object parseDepositAddress(Object depositAddress, Map<String, Object> currency)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         //
         //    {
@@ -6261,7 +6261,7 @@ final String finalRiskIncrVol = riskIncrVol;
             put( "tag", Mexc.this.safeString(depositAddress, "memo") );
         }};
     }
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Object... optionalArgs)
     {
         return this.parseDepositAddress(depositAddress, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -6394,7 +6394,7 @@ final String finalRiskIncrVol = riskIncrVol;
             //        "address": "zzqqqqqqqqqq",
             //        "memo": "MX10068"
             //     }
-            return this.parseDepositAddress(response, currency);
+            return this.parseDepositAddress((Map<String, Object>) (response), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -7175,9 +7175,9 @@ final String finalRiskIncrVol = riskIncrVol;
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
             }
-            Object fromAccountType = null;
-            List<Object> fromAccountTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "fromAccountType");
-            fromAccountType = ((List<Object>) fromAccountTypeparametersVariable).get(0);
+            String fromAccountType = null;
+            List<Object> fromAccountTypeparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchTransfers", "fromAccountType");
+            fromAccountType = (String) ((List<Object>) fromAccountTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) fromAccountTypeparametersVariable).get(1);
             Map<String, Object> accountTypes = new HashMap<String, Object>() {{
                 put( "spot", "SPOT" );
@@ -7193,9 +7193,9 @@ final String finalRiskIncrVol = riskIncrVol;
             {
                 throw new ArgumentsRequired((this.id + " fetchTransfers() requires a fromAccountType parameter, one of \"SPOT\", \"FUTURES\"")) ;
             }
-            Object toAccountType = null;
-            List<Object> toAccountTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "toAccountType");
-            toAccountType = ((List<Object>) toAccountTypeparametersVariable).get(0);
+            String toAccountType = null;
+            List<Object> toAccountTypeparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchTransfers", "toAccountType");
+            toAccountType = (String) ((List<Object>) toAccountTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) toAccountTypeparametersVariable).get(1);
             if (!java.util.Objects.equals(toAccountType, null))
             {
@@ -7431,8 +7431,8 @@ final String finalRiskIncrVol = riskIncrVol;
             accountTo = this.safeString(transfer, "to");
         }
         final Long finalTimestamp = timestamp;
-        final Object finalAccountFrom = accountFrom;
-        final Object finalAccountTo = accountTo;
+        final String finalAccountFrom = accountFrom;
+        final String finalAccountTo = accountTo;
         return new HashMap<String, Object>() {{
             put( "info", transfer );
             put( "id", id );
@@ -7784,7 +7784,7 @@ final String finalRiskIncrVol = riskIncrVol;
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)networkList).size(); j++)
         {
-            Object networkEntry = (networkList == null || j < 0 || j >= networkList.size() ? null : networkList.get(j));
+            Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(networkList, j);
             String networkId = this.safeString(networkEntry, "network");
             String networkCode = this.safeString(((Map<String, Object>)this.options).get("networks"), networkId, networkId);
             Double fee = this.safeNumber(networkEntry, "withdrawFee");
@@ -7895,7 +7895,7 @@ final String finalRiskIncrVol = riskIncrVol;
         Object result = this.depositWithdrawFee(fee);
         for (var j = 0; j < ((List<?>)networkList).size(); j++)
         {
-            Object networkEntry = (networkList == null || j < 0 || j >= networkList.size() ? null : networkList.get(j));
+            Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(networkList, j);
             String networkId = this.safeString(networkEntry, "network");
             String networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
             if (!java.util.Objects.equals(networkCode, null))
@@ -7998,7 +7998,7 @@ final String finalRiskIncrVol = riskIncrVol;
         Long shortLeverage = null;
         for (var i = 0; i < ((List<?>)leverage).size(); i++)
         {
-            Object entry = Helpers.GetValue(leverage, i);
+            Map<String, Object> entry = (Map<String, Object>) this.safeDict(leverage, i);
             Long openType = this.safeInteger(entry, "openType");
             Long positionType = this.safeInteger(entry, "positionType");
             if ((positionType != null && positionType == 1))

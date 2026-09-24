@@ -965,7 +965,7 @@ class bitopro(Exchange, ImplicitAPI):
             'info': response,
         }
         for i in range(0, len(response)):
-            balance = response[i]
+            balance = self.safe_dict(response, i)
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             amount = self.safe_string(balance, 'amount')

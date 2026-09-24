@@ -728,7 +728,7 @@ public partial class latoken : Exchange
         List<object> balances = this.safeList(balancesByType, accountType, new List<object>() {});
         for (int i = 0; i < balances.Count; i++)
         {
-            object balance = balances[i];
+            IDictionary<string, object> balance = this.safeDict(balances, i);
             string? currencyId = this.safeString(balance, "currency");
             Int64? timestamp = this.safeInteger(balance, "timestamp");
             if ((timestamp != null))

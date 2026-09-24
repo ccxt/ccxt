@@ -142,10 +142,10 @@ public partial class coincheck : ccxt.coincheck
             { "channel", add((market.ContainsKey("id") ? market["id"] : null), "-trades") },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        object trades = await this.watch(url, messageHash, message, messageHash);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, message, messageHash));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)trades.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -179,7 +179,7 @@ public partial class coincheck : ccxt.coincheck
         {
             object data = this.safeValue(message, i);
             Dictionary<string, object> trade = this.parseWsTrade(data);
-            callDynamically(stored, "append", new object[] {trade});
+            stored.append(trade);
         }
         string messageHash = ("trade:" + symbol);
         client.resolve(stored, messageHash);

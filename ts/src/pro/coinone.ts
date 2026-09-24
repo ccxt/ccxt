@@ -285,7 +285,7 @@ export default class coinone extends coinoneRest {
             },
         };
         const message = this.extend (request, params);
-        const trades = await this.watch (url, messageHash, message, messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, message, messageHash);
         if (this.newUpdates) {
             limit = trades.getLimit (market['symbol'], limit);
         }
@@ -365,7 +365,7 @@ export default class coinone extends coinoneRest {
         }, market);
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         //
         //     {
         //         "response_type": "ERROR",

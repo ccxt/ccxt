@@ -93,35 +93,35 @@ public class TestMarket extends BaseTest {
         Boolean isQuanto = (!java.util.Objects.equals(quanto, null)) && Helpers.isTrue(quanto);
         Boolean isInactiveMarket = java.util.Objects.equals(((Map<String, Object>)market).get("active"), false);
         //
-        List<Object> emptyAllowedFor = new ArrayList<Object>(Arrays.asList("margin"));
+        List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("margin"));
         if (!java.util.Objects.equals(contract, true))
         {
-            ((List<Object>)emptyAllowedFor).add("contractSize");
-            ((List<Object>)emptyAllowedFor).add("linear");
-            ((List<Object>)emptyAllowedFor).add("inverse");
-            ((List<Object>)emptyAllowedFor).add("quanto");
-            ((List<Object>)emptyAllowedFor).add("settle");
-            ((List<Object>)emptyAllowedFor).add("settleId");
+            emptyAllowedFor.add("contractSize");
+            emptyAllowedFor.add("linear");
+            emptyAllowedFor.add("inverse");
+            emptyAllowedFor.add("quanto");
+            emptyAllowedFor.add("settle");
+            emptyAllowedFor.add("settleId");
         }
         if ((!java.util.Objects.equals(future, true)) && (!java.util.Objects.equals(option, true)))
         {
-            ((List<Object>)emptyAllowedFor).add("expiry");
-            ((List<Object>)emptyAllowedFor).add("expiryDatetime");
+            emptyAllowedFor.add("expiry");
+            emptyAllowedFor.add("expiryDatetime");
         }
         if (!java.util.Objects.equals(option, true))
         {
-            ((List<Object>)emptyAllowedFor).add("optionType");
-            ((List<Object>)emptyAllowedFor).add("strike");
+            emptyAllowedFor.add("optionType");
+            emptyAllowedFor.add("strike");
         }
         if (Boolean.TRUE.equals(isInactiveMarket))
         {
-            ((List<Object>)emptyAllowedFor).add("contractSize");
-            ((List<Object>)emptyAllowedFor).add("settle");
-            ((List<Object>)emptyAllowedFor).add("settleId");
-            ((List<Object>)emptyAllowedFor).add("baseId");
-            ((List<Object>)emptyAllowedFor).add("quoteId");
-            ((List<Object>)emptyAllowedFor).add("base");
-            ((List<Object>)emptyAllowedFor).add("quote");
+            emptyAllowedFor.add("contractSize");
+            emptyAllowedFor.add("settle");
+            emptyAllowedFor.add("settleId");
+            emptyAllowedFor.add("baseId");
+            emptyAllowedFor.add("quoteId");
+            emptyAllowedFor.add("base");
+            emptyAllowedFor.add("quote");
         }
         if (java.util.Objects.equals(exchange.safeString(market, "type"), "prediction"))
         {
@@ -143,13 +143,13 @@ public class TestMarket extends BaseTest {
         TestSharedMethods.AssertGreater(exchange, skippedProperties, method, market, "maker", "-100");
         TestSharedMethods.AssertLess(exchange, skippedProperties, method, market, "maker", "100");
         // validate type ('prediction' for prediction-market exchanges)
-        List<Object> validTypes = new ArrayList<Object>(Arrays.asList("spot", "margin", "swap", "future", "option", "index", "prediction", "other"));
+        List<String> validTypes = new ArrayList<String>(Arrays.asList("spot", "margin", "swap", "future", "option", "index", "prediction", "other"));
         TestSharedMethods.AssertInArray(exchange, skippedProperties, method, market, "type", validTypes);
         // validate subTypes
-        List<Object> validSubTypes = new ArrayList<Object>(Arrays.asList("linear", "inverse", "quanto", null));
+        List<String> validSubTypes = new ArrayList<String>(Arrays.asList("linear", "inverse", "quanto", null));
         TestSharedMethods.AssertInArray(exchange, skippedProperties, method, market, "subType", validSubTypes);
         // check if 'type' is consistent
-        List<Object> checkedTypes = new ArrayList<Object>(Arrays.asList("spot", "swap", "future", "option"));
+        List<String> checkedTypes = new ArrayList<String>(Arrays.asList("spot", "swap", "future", "option"));
         for (var i = 0; i < ((List<?>)checkedTypes).size(); i++)
         {
             Object type = Helpers.GetValue(checkedTypes, i);
@@ -161,7 +161,7 @@ public class TestMarket extends BaseTest {
         // check if 'subType' is consistent
         if ((java.util.Objects.equals(swap, true)) || (java.util.Objects.equals(future, true)))
         {
-            List<Object> checkedSubTypes = new ArrayList<Object>(Arrays.asList("linear", "inverse"));
+            List<String> checkedSubTypes = new ArrayList<String>(Arrays.asList("linear", "inverse"));
             for (var i = 0; i < ((List<?>)checkedSubTypes).size(); i++)
             {
                 Object subType = Helpers.GetValue(checkedSubTypes, i);

@@ -1389,7 +1389,7 @@ class cex(ccxt.async_support.cex):
         #    "ok": "ok"
         #    }
         #
-        data = self.safe_value(message, 'data')
+        data = self.safe_list(message, 'data')
         messageHash = self.safe_string(message, 'oid')
         client.resolve(data, messageHash)
 
@@ -1401,7 +1401,7 @@ class cex(ccxt.async_support.cex):
         #
         return message
 
-    def handle_error_message(self, client: Client, message: object) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> Bool:
         #
         #     {
         #         "e": "get-balance",

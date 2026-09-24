@@ -415,7 +415,11 @@ public partial class cex : Exchange
         string? id = this.safeString(rawCurrency, "currency");
         string? code = this.safeCurrencyCode(id);
         bool isFiat = ((this.safeBool(rawCurrency, "fiat") == true));
-        string type = isFiat ? "fiat" : "crypto";
+        string type = "crypto";
+        if (isFiat)
+        {
+            type = "fiat";
+        }
         double? currencyPrecision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision")));
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         IDictionary<string, object> rawNetworks = this.safeDict(rawCurrency, "blockchains", new Dictionary<string, object>() {});
@@ -423,7 +427,7 @@ public partial class cex : Exchange
         for (int j = 0; j < keys.Count; j++)
         {
             string? networkId = ((string)keys[j]);
-            object rawNetwork = getValue(rawNetworks, networkId);
+            IDictionary<string, object> rawNetwork = this.safeDict(rawNetworks, networkId);
             string? networkCode = this.networkIdToCode(networkId, code);
             bool deposit = (this.safeString(rawNetwork, "deposit") == "enabled");
             bool withdraw = (this.safeString(rawNetwork, "withdrawal") == "enabled");
@@ -856,9 +860,9 @@ public partial class cex : Exchange
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        object dataType = null;
-        IList<object> dataTypeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "dataType");
-        dataType = dataTypeparametersVariable[0];
+        string? dataType = null;
+        IList<object> dataTypeparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchOHLCV", "dataType");
+        dataType = (string)dataTypeparametersVariable[0];
         parameters = dataTypeparametersVariable[1];
         if ((dataType == null))
         {
@@ -1427,9 +1431,9 @@ public partial class cex : Exchange
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object accountId = null;
-        IList<object> accountIdparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "accountId");
-        accountId = accountIdparametersVariable[0];
+        string? accountId = null;
+        IList<object> accountIdparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "accountId");
+        accountId = (string)accountIdparametersVariable[0];
         parameters = accountIdparametersVariable[1];
         if ((accountId == null))
         {
@@ -1771,7 +1775,11 @@ public partial class cex : Exchange
     {
         string? currencyId = this.safeString(transaction, "currency");
         string? direction = this.safeString(transaction, "direction");
-        string type = (direction == "withdraw") ? "withdrawal" : "deposit";
+        string type = "deposit";
+        if (direction == "withdraw")
+        {
+            type = "withdrawal";
+        }
         string? code = this.safeCurrencyCode(currencyId, currency);
         string? updatedAt = this.safeString(transaction, "updatedAt");
         Int64? timestamp = this.parse8601(updatedAt);
@@ -1853,7 +1861,11 @@ public partial class cex : Exchange
         }
         Dictionary<string, object> currency = this.currency(code);
         bool fromMain = ((fromAccount == ""));
-        object targetAccount = fromMain ? toAccount : fromAccount;
+        string targetAccount = fromAccount;
+        if (fromMain)
+        {
+            targetAccount = toAccount;
+        }
         string? guid = this.safeString(parameters, "guid", this.uuid());
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
@@ -1965,9 +1977,9 @@ public partial class cex : Exchange
     public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object accountId = null;
-        IList<object> accountIdparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "accountId");
-        accountId = accountIdparametersVariable[0];
+        string? accountId = null;
+        IList<object> accountIdparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "accountId");
+        accountId = (string)accountIdparametersVariable[0];
         parameters = accountIdparametersVariable[1];
         if ((accountId == null))
         {

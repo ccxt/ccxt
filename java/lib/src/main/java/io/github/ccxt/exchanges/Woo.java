@@ -2027,7 +2027,11 @@ public class Woo extends WooApi
             Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
             String timeInForce = this.safeStringLower(parameters, "timeInForce");
             boolean postOnly = Helpers.isTrue(this.isPostOnly(isMarket, null, parameters));
-            String clientOrderIdKey = ((Boolean.TRUE.equals(isConditional))) ? "clientAlgoOrderId" : "clientOrderId";
+            String clientOrderIdKey = "clientOrderId";
+            if (Boolean.TRUE.equals(isConditional))
+            {
+                clientOrderIdKey = "clientAlgoOrderId";
+            }
             ((Map<String, Object>)request).put("type", orderType); // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
             if (!Boolean.TRUE.equals(isConditional))
             {
@@ -2116,12 +2120,17 @@ public class Woo extends WooApi
                     put( "childOrders", new ArrayList<Object>(Arrays.asList()) );
                 }};
                 Object childOrders = ((Map<String, Object>)outterOrder).get("childOrders");
-                String closeSide = (((java.util.Objects.equals(orderSide, "BUY")))) ? "SELL" : "BUY";
+                String closeSide = "BUY";
+                if (java.util.Objects.equals(orderSide, "BUY"))
+                {
+                    closeSide = "SELL";
+                }
                 if (Boolean.TRUE.equals(hasStopLoss))
                 {
                     String stopLossPrice = this.safeString(stopLoss, "triggerPrice", stopLoss);
+                    final String finalCloseSide = closeSide;
                     Map<String, Object> stopLossOrder = new HashMap<String, Object>() {{
-                        put( "side", closeSide );
+                        put( "side", finalCloseSide );
                         put( "algoType", "STOP_LOSS" );
                         put( "triggerPrice", Woo.this.priceToPrecision(symbol, stopLossPrice) );
                         put( "type", "CLOSE_POSITION" );
@@ -2132,8 +2141,9 @@ public class Woo extends WooApi
                 if (Boolean.TRUE.equals(hasTakeProfit))
                 {
                     String takeProfitPrice = this.safeString(takeProfit, "triggerPrice", takeProfit);
+                    final String finalCloseSide_2 = closeSide;
                     Map<String, Object> takeProfitOrder = new HashMap<String, Object>() {{
-                        put( "side", closeSide );
+                        put( "side", finalCloseSide_2 );
                         put( "algoType", "TAKE_PROFIT" );
                         put( "triggerPrice", Woo.this.priceToPrecision(symbol, takeProfitPrice) );
                         put( "type", "CLOSE_POSITION" );
@@ -2678,8 +2688,8 @@ public class Woo extends WooApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -2998,7 +3008,7 @@ public class Woo extends WooApi
         }
         final Long finalTimestamp = timestamp;
         final Long finalLastUpdateTimestamp = lastUpdateTimestamp;
-        final Object finalOrderType = orderType;
+        final String finalOrderType = orderType;
         final Boolean finalPostOnly = postOnly;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", orderId );
@@ -3552,8 +3562,8 @@ public class Woo extends WooApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -3828,7 +3838,7 @@ public class Woo extends WooApi
         List<Object> balances = (List<Object>) this.safeList(response, "holding", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i);
             String code = this.safeCurrencyCode(this.safeString(balance, "token"));
             Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("total", this.safeString(balance, "holding"));
@@ -3865,7 +3875,7 @@ public class Woo extends WooApi
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
-            final Object finalNetworkCode = networkCode;
+            final String finalNetworkCode = networkCode;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "token", ((Map<String, Object>)currency).get("id") );
                 put( "network", Woo.this.networkCodeToId((String) (finalNetworkCode), ((Map<String, Object>)currency).get("code")) );
@@ -3882,9 +3892,9 @@ public class Woo extends WooApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseDepositAddress(this.extend(data, new HashMap<String, Object>() {{
+            return this.parseDepositAddress((Map<String, Object>) (this.extend(data, new HashMap<String, Object>() {{
                 put( "network", Woo.this.safeString(request, "network") );
-            }}), currency);
+            }})), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -3919,7 +3929,7 @@ public class Woo extends WooApi
         return new ArrayList<Object>(Arrays.asList(currentyNetworkId, parameters));
     }
 
-    public Object parseDepositAddress(Object depositEntry, Map<String, Object> currency)
+    public Object parseDepositAddress(Map<String, Object> depositEntry, Map<String, Object> currency)
     {
         String address = this.safeString(depositEntry, "address");
         this.checkAddress(address);
@@ -3932,7 +3942,7 @@ public class Woo extends WooApi
             put( "tag", Woo.this.safeString(depositEntry, "extra") );
         }};
     }
-    public Object parseDepositAddress(Object depositEntry, Object... optionalArgs)
+    public Object parseDepositAddress(Map<String, Object> depositEntry, Object... optionalArgs)
     {
         return this.parseDepositAddress(depositEntry, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -4095,9 +4105,14 @@ public class Woo extends WooApi
         currency = (Map<String, Object>) (this.safeCurrency(code, currency));
         Double amount = this.safeNumber(item, "amount");
         String side = this.safeString(item, "tokenSide");
-        String direction = (((java.util.Objects.equals(side, "DEPOSIT")))) ? "in" : "out";
+        String direction = "out";
+        if (java.util.Objects.equals(side, "DEPOSIT"))
+        {
+            direction = "in";
+        }
         Long timestamp = this.safeTimestamp(item, "createdTime");
         Object fee = this.parseTokenAndFeeTemp((Map<String, Object>) (item), new ArrayList<Object>(Arrays.asList("feeToken")), new ArrayList<Object>(Arrays.asList("feeAmount")));
+        final String finalDirection = direction;
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "info", item );
             put( "id", Woo.this.safeString(item, "id") );
@@ -4109,7 +4124,7 @@ public class Woo extends WooApi
             put( "amount", amount );
             put( "before", null );
             put( "after", null );
-            put( "direction", direction );
+            put( "direction", finalDirection );
             put( "timestamp", timestamp );
             put( "datetime", Woo.this.iso8601(timestamp) );
             put( "type", Woo.this.parseLedgerEntryType(Woo.this.safeString(item, "type")) );
@@ -4708,7 +4723,7 @@ public class Woo extends WooApi
             //         "success": true,
             //     }
             //
-            Map<String, Object> transaction = this.parseMarginLoan(response, currency);
+            Map<String, Object> transaction = this.parseMarginLoan((Map<String, Object>) (response), currency);
             final String finalSymbol = symbol;
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
@@ -4733,7 +4748,7 @@ public class Woo extends WooApi
         return this.repayMargin(code, amount, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Map<String, Object> parseMarginLoan(Object info, Map<String, Object> currency)
+    public Map<String, Object> parseMarginLoan(Map<String, Object> info, Map<String, Object> currency)
     {
         //
         //     {
@@ -4750,7 +4765,7 @@ public class Woo extends WooApi
             put( "info", info );
         }};
     }
-    public Map<String, Object> parseMarginLoan(Object info, Object... optionalArgs)
+    public Map<String, Object> parseMarginLoan(Map<String, Object> info, Object... optionalArgs)
     {
         return this.parseMarginLoan(info, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -4884,7 +4899,7 @@ public class Woo extends WooApi
         return null;
     }
 
-    public Object parseIncome(Object income, Map<String, Object> market)
+    public Object parseIncome(Map<String, Object> income, Map<String, Object> market)
     {
         //
         //     {
@@ -4921,7 +4936,7 @@ public class Woo extends WooApi
             put( "rate", rate );
         }};
     }
-    public Object parseIncome(Object income, Object... optionalArgs)
+    public Object parseIncome(Map<String, Object> income, Object... optionalArgs)
     {
         return this.parseIncome(income, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -4954,8 +4969,8 @@ public class Woo extends WooApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -5281,8 +5296,8 @@ public class Woo extends WooApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {

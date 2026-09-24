@@ -835,7 +835,7 @@ class hitbtc(Exchange, ImplicitAPI):
             id = ids[i]
             if id.endswith('_BQX'):
                 continue  # seems like an invalid symbol and if we try to access it individually we get: {"timestamp":"2023-09-02T14:38:20.351Z","error":{"description":"Try get /public/symbol, to get list of all available symbols.","code":2001,"message":"No such symbol: EOSUSD_BQX"},"path":"/api/3/public/symbol/EOSUSD_BQX","requestId":"e1e9fce6-16374591"}
-            market = self.safe_value(response, id)
+            market = self.safe_dict(response, id)
             marketType = self.safe_string(market, 'type')
             expiry = self.safe_integer(market, 'expiry')
             contract = (marketType == 'futures')
@@ -1110,7 +1110,7 @@ class hitbtc(Exchange, ImplicitAPI):
     def parse_balance(self, response: object) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
-            entry = response[i]
+            entry = self.safe_dict(response, i)
             currencyId = self.safe_string(entry, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -1423,7 +1423,7 @@ class hitbtc(Exchange, ImplicitAPI):
         fee = None
         feeCostString = self.safe_string(trade, 'fee')
         taker = self.safe_bool(trade, 'taker')
-        takerOrMaker: str
+        takerOrMaker = None
         if taker is not None:
             takerOrMaker = 'taker' if (taker is True) else 'maker'
         else:
@@ -1810,7 +1810,7 @@ class hitbtc(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1000)
         market = self.market(symbol)
@@ -2500,7 +2500,7 @@ class hitbtc(Exchange, ImplicitAPI):
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
-        postOnly = self.safe_value(order, 'post_only')
+        postOnly = self.safe_bool(order, 'post_only')
         timeInForce = self.safe_string(order, 'time_in_force')
         rawTrades = self.safe_list(order, 'trades')
         return self.safe_order({
@@ -2518,7 +2518,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'side': side,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
-            'reduceOnly': self.safe_value(order, 'reduce_only'),
+            'reduceOnly': self.safe_bool(order, 'reduce_only'),
             'filled': filled,
             'remaining': None,
             'cost': None,
@@ -2778,7 +2778,7 @@ class hitbtc(Exchange, ImplicitAPI):
             marketId = self.safe_string(marketIds, i)
             if marketId is None:
                 continue
-            rawFundingRate = self.safe_value(response, marketId)
+            rawFundingRate = self.safe_dict(response, marketId)
             marketInner = self.market(marketId)
             symbol = marketInner['symbol']
             fundingRate = self.parse_funding_rate(rawFundingRate, marketInner)
@@ -2802,7 +2802,7 @@ class hitbtc(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 1000)
         market = None
@@ -3040,14 +3040,14 @@ class hitbtc(Exchange, ImplicitAPI):
         entryPrice = None
         contracts = None
         for i in range(0, len(positions)):
-            entry = positions[i]
+            entry = self.safe_dict(positions, i)
             liquidationPrice = self.safe_number(entry, 'price_liquidation')
             entryPrice = self.safe_number(entry, 'price_entry')
             contracts = self.safe_number(entry, 'quantity')
         currencies = self.safe_list(position, 'currencies', [])
         collateral = None
         for i in range(0, len(currencies)):
-            entry = currencies[i]
+            entry = self.safe_dict(currencies, i)
             collateral = self.safe_number(entry, 'margin_balance')
         marketId = self.safe_string(position, 'symbol')
         market = self.safe_market(marketId, market)
@@ -3569,7 +3569,7 @@ class hitbtc(Exchange, ImplicitAPI):
         networks = self.safe_list(fee, 'networks', [])
         result = self.deposit_withdraw_fee(fee)
         for j in range(0, len(networks)):
-            networkEntry = networks[j]
+            networkEntry = self.safe_dict(networks, j)
             networkId = self.safe_string(networkEntry, 'network')
             code = self.safe_string(currency, 'code')
             networkCode = self.network_id_to_code(networkId, code)
@@ -3686,7 +3686,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'Content-Type': 'application/json',
         }
         if method == 'GET':
-            if (queryLength is not None) and (queryLength != 0):
+            if queryLength != 0:
                 getRequest = '?' + self.urlencode(query)
                 url = url + getRequest
         else:

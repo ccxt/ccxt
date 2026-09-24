@@ -528,7 +528,7 @@ class bitso extends Exchange {
             $takerFees = array();
             $makerFees = array();
             for ($j = 0; $j < count($feeTiers); $j++) {
-                $tier = $feeTiers[$j];
+                $tier = $this->safe_dict($feeTiers, $j);
                 $volume = $this->safe_number($tier, 'volume');
                 $takerFee = $this->safe_number($tier, 'taker');
                 $makerFee = $this->safe_number($tier, 'maker');
@@ -684,7 +684,7 @@ class bitso extends Exchange {
             'datetime' => null,
         );
         for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+            $balance = $this->safe_dict($balances, $i);
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -771,7 +771,7 @@ class bitso extends Exchange {
         return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
-    public function parse_ticker(array $ticker, ?array $market = null): array {
+    public function parse_ticker(?array $ticker, ?array $market = null): array {
         //
         //     {
         //         "high":"37446.85",
@@ -838,7 +838,7 @@ class bitso extends Exchange {
             'book' => $market['id'],
         );
         $response = Async\await($this->publicGetTicker($this->extend($request, $params)));
-        $ticker = $this->safe_value($response, 'payload');
+        $ticker = $this->safe_dict($response, 'payload');
         //
         //     {
         //         "success":true,

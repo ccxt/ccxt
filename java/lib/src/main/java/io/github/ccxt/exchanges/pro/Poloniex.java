@@ -194,17 +194,21 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             Object name = name3;
             Object messageHash = messageHash3;
             List<String> symbols = symbols3;
-            String publicOrPrivate = ((Helpers.isTrue(isPrivate))) ? "private" : "public";
+            String publicOrPrivate = "public";
+            if (Helpers.isTrue(isPrivate))
+            {
+                publicOrPrivate = "private";
+            }
             String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), publicOrPrivate);
             final Object finalName = name;
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "channel", new ArrayList<Object>(Arrays.asList(finalName)) );
             }};
-            List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
+            List<String> marketIds = new ArrayList<String>(Arrays.asList());
             if (this.isEmpty(symbols))
             {
-                ((List<Object>)marketIds).add("all");
+                marketIds.add("all");
             } else
             {
                 if (java.util.Objects.equals(symbols, null))
@@ -212,8 +216,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                     throw new ArgumentsRequired((this.id + " subscribe() symbols is required")) ;
                 }
                 messageHash = ((messageHash + "::") + String.join(",", (List<String>)symbols));
-                List<Object> ids = this.marketIds(symbols);
-                marketIds = (((java.util.Objects.equals(ids, null)))) ? new ArrayList<Object>(Arrays.asList()) : ids;
+                List<String> ids = this.marketIds(symbols);
+                marketIds = (((java.util.Objects.equals(ids, null)))) ? new ArrayList<String>(Arrays.asList()) : ids;
             }
             if (!java.util.Objects.equals(name, "balances"))
             {
@@ -746,7 +750,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             symbols = this.marketSymbols(symbols, null, false, true, true);
             String name = "trades";
             String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
-            List<Object> marketIds = this.marketIds(symbols);
+            List<String> marketIds = this.marketIds(symbols);
             final String finalName = name;
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
@@ -1075,7 +1079,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object item = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+            Map<String, Object> item = (Map<String, Object>) this.safeDict(data, i);
             String marketId = this.safeString(item, "symbol");
             if (!java.util.Objects.equals(marketId, null))
             {
@@ -1516,7 +1520,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
-            Object tickers = this.filterByArray(newTickers, "symbol", symbols);
+            Map<String, Object> tickers = (Map<String, Object>) this.filterByArray(newTickers, "symbol", symbols);
             if (!this.isEmpty(tickers))
             {
                 client.resolve(tickers, messageHash);
@@ -1581,7 +1585,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         Boolean update = java.util.Objects.equals(type, "update");
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object item = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+            Map<String, Object> item = (Map<String, Object>) this.safeDict(data, i);
             String marketId = this.safeString(item, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             String symbol = (String) ((Map<String, Object>)market).get("symbol");

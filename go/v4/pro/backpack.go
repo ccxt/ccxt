@@ -84,12 +84,10 @@ func (this *Backpack) watchPublicBody(ch chan any, topics any, messageHashes any
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
-	var method string = func() string {
-		if unwatch == true {
-			return "UNSUBSCRIBE"
-		}
-		return "SUBSCRIBE"
-	}()
+	var method string = "SUBSCRIBE"
+	if unwatch == true {
+		method = "UNSUBSCRIBE"
+	}
 	var request map[string]any = map[string]any{
 		"method": method,
 		"params": topics,
@@ -120,12 +118,10 @@ func (this *Backpack) watchPrivateBody(ch chan any, topics any, messageHashes an
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"))
 	var instruction string = "subscribe"
 	var ts string = ccxt.ToString(this.Nonce())
-	var method string = func() string {
-		if unwatch == true {
-			return "UNSUBSCRIBE"
-		}
-		return "SUBSCRIBE"
-	}()
+	var method string = "SUBSCRIBE"
+	if unwatch == true {
+		method = "UNSUBSCRIBE"
+	}
 	var recvWindow *string = this.SafeString2(this.Options, "recvWindow", "X-Window", "5000")
 	var payload string = "instruction=" + instruction + "&" + "timestamp=" + ts + "&window=" + *recvWindow
 	var secretBytes []byte = this.Base64ToBinary(this.Secret)
@@ -700,7 +696,7 @@ func (this *Backpack) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
-		var symbolAndTimeframe any = ccxt.GetValue(symbolsAndTimeframes, i)
+		var symbolAndTimeframe []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
 		var marketId *string = this.SafeString(symbolAndTimeframe, 0)
 		var market map[string]any = ccxt.MapTyped(this.Market(marketId))
 		var tf *string = this.SafeString(symbolAndTimeframe, 1)
@@ -751,7 +747,7 @@ func (this *Backpack) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimefram
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
-		var symbolAndTimeframe any = ccxt.GetValue(symbolsAndTimeframes, i)
+		var symbolAndTimeframe []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
 		var marketId *string = this.SafeString(symbolAndTimeframe, 0)
 		var market map[string]any = ccxt.MapTyped(this.Market(marketId))
 		var tf *string = this.SafeString(symbolAndTimeframe, 1)
@@ -1287,7 +1283,7 @@ func (this *Backpack) GetCacheIndex(orderbook any, cache any) any {
 		return ccxt.OpNeg(1)
 	}
 	for i := 0; i < ccxt.GetArrayLength(cache); i++ {
-		var delta map[string]any = ccxt.MapTyped(ccxt.GetValue(cache, i))
+		var delta map[string]any = ccxt.SafeMapTyped(cache, i)
 		var deltaStart *int64 = this.SafeInteger(delta, "U")
 		var deltaEnd *int64 = this.SafeInteger(delta, "u")
 		if (deltaStart == nil) || (deltaEnd == nil) {

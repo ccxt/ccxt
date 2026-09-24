@@ -476,7 +476,7 @@ public class TestSharedMethods extends BaseTest {
             // TICK_SIZE should be above zero
             AssertGreater(exchange, skippedProperties, method, entry, key, "0");
             // the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so in our case, such values probably indicate an incorrectly implemented tick-sizes calculation, so we throw new RuntimeException(e)rror
-            List<Object> decimalNumbers = new ArrayList<Object>(Arrays.asList("2", "3", "4", "5", "6", "7", "8", "9", "11", "12", "13", "14", "15", "16"));
+            List<String> decimalNumbers = new ArrayList<String>(Arrays.asList("2", "3", "4", "5", "6", "7", "8", "9", "11", "12", "13", "14", "15", "16"));
             if (java.util.Objects.equals(key, "amount") && Helpers.inOp(skippedProperties, "precisionAmountAbnormal"))
             {
                 return;
@@ -552,7 +552,7 @@ public class TestSharedMethods extends BaseTest {
         // set 'since' to 5 minute ago for optimal results
         Object sinceTime = Helpers.subtract(exchange.milliseconds(), ((1000L * 60L) * 5L));
         // iterate
-        List<Object> methods_singular = new ArrayList<Object>(Arrays.asList("fetchOrder", "fetchOpenOrder", "fetchClosedOrder", "fetchCanceledOrder"));
+        List<String> methods_singular = new ArrayList<String>(Arrays.asList("fetchOrder", "fetchOpenOrder", "fetchClosedOrder", "fetchCanceledOrder"));
         for (var i = 0; i < ((List<?>)methods_singular).size(); i++)
         {
             String singularFetchName = (String) Helpers.GetValue(methods_singular, i);
@@ -571,7 +571,7 @@ public class TestSharedMethods extends BaseTest {
         // search through plural methods
         if (java.util.Objects.equals(fetchedOrder, null))
         {
-            List<Object> methods_plural = new ArrayList<Object>(Arrays.asList("fetchOrders", "fetchOpenOrders", "fetchClosedOrders", "fetchCanceledOrders"));
+            List<String> methods_plural = new ArrayList<String>(Arrays.asList("fetchOrders", "fetchOpenOrders", "fetchClosedOrders", "fetchCanceledOrders"));
             for (var i = 0; i < ((List<?>)methods_plural).size(); i++)
             {
                 String pluralFetchName = (String) Helpers.GetValue(methods_plural, i);

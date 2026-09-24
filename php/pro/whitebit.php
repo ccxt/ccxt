@@ -546,7 +546,12 @@ class whitebit extends \ccxt\async\whitebit {
         $feeCost = $this->safe_string($trade, 6);
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 10);
-            $feeCurrencyCode = ($feeCurrencyId !== null) ? $this->safe_currency_code($feeCurrencyId) : $market['quote'];
+            $feeCurrencyCode = null;
+            if ($feeCurrencyId !== null) {
+                $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
+            } else {
+                $feeCurrencyCode = $market['quote'];
+            }
             $fee = array(
                 'cost' => $feeCost,
                 'currency' => $feeCurrencyCode,
@@ -706,7 +711,10 @@ class whitebit extends \ccxt\async\whitebit {
         $lastTradeTimestamp = $this->safe_timestamp($order, 'mtime');
         $symbol = $market['symbol'];
         $rawSide = $this->safe_integer($order, 'side');
-        $side = ($rawSide === 1) ? 'sell' : 'buy';
+        $side = 'buy';
+        if ($rawSide === 1) {
+            $side = 'sell';
+        }
         $dealFee = $this->safe_string($order, 'deal_fee');
         $fee = null;
         if ($dealFee !== null) {
@@ -1123,7 +1131,7 @@ class whitebit extends \ccxt\async\whitebit {
         return $message;
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         //     {
         //         "error": { code: 1, message: "invalid argument" },
@@ -1131,7 +1139,7 @@ class whitebit extends \ccxt\async\whitebit {
         //         "id": 1656090882
         //     }
         //
-        $error = $this->safe_value($message, 'error');
+        $error = $this->safe_dict($message, 'error');
         try {
             if ($error !== null) {
                 $code = $this->safe_string($message, 'code');
@@ -1182,7 +1190,7 @@ class whitebit extends \ccxt\async\whitebit {
             'balanceMargin_update' => array($this, 'handle_balance'),
             'deals_update' => array($this, 'handle_my_trades'),
         );
-        $topic = $this->safe_value($message, 'method');
+        $topic = $this->safe_string($message, 'method');
         $method = $this->safe_value($methods, $topic);
         if ($method !== null) {
             $method($client, $message);

@@ -2434,7 +2434,7 @@ func (this *Mexc) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		//         }
 		//     }
 		//
-		var data any = this.SafeValue(response, "data")
+		var data map[string]any = SafeMapTyped(response, "data")
 		candles = this.ConvertTradingViewToOHLCV(data, "time", "open", "high", "low", "close", "vol")
 	}
 
@@ -3250,7 +3250,7 @@ func (this *Mexc) createOrdersBody(ch chan any, orders any, optionalArgs ...any)
 	var ordersRequests []any = []any{}
 	var symbol any = nil
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
+		var rawOrder map[string]any = SafeMapTyped(orders, i)
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		var market map[string]any = MapTyped(this.Market(marketId))
 		if GetValue(market, "spot") != true {
@@ -4718,7 +4718,7 @@ func (this *Mexc) CustomParseBalance(response any, marketType any) any {
 	}
 	if IsEqual(marketType, "margin") {
 		for i := 0; i < GetArrayLength(wallet); i++ {
-			var entry any = GetValue(wallet, i)
+			var entry map[string]any = SafeMapTyped(wallet, i)
 			var base map[string]any = MapTyped(this.SafeDict(entry, "baseAsset", map[string]any{}))
 			var quote map[string]any = MapTyped(this.SafeDict(entry, "quoteAsset", map[string]any{}))
 			var baseCode *string = this.SafeCurrencyCode(this.SafeString(base, "asset"))
@@ -4733,7 +4733,7 @@ func (this *Mexc) CustomParseBalance(response any, marketType any) any {
 		return this.SafeBalance(result)
 	} else if IsEqual(marketType, "swap") {
 		for i := 0; i < GetArrayLength(wallet); i++ {
-			var entry any = GetValue(wallet, i)
+			var entry map[string]any = SafeMapTyped(wallet, i)
 			var currencyId *string = this.SafeString(entry, "currency")
 			var code *string = this.SafeCurrencyCode(currencyId)
 			var account map[string]any = this.Account()
@@ -4746,7 +4746,7 @@ func (this *Mexc) CustomParseBalance(response any, marketType any) any {
 		return this.SafeBalance(result)
 	} else {
 		for i := 0; i < GetArrayLength(wallet); i++ {
-			var entry any = GetValue(wallet, i)
+			var entry map[string]any = SafeMapTyped(wallet, i)
 			var currencyId *string = this.SafeString(entry, "asset")
 			var code *string = this.SafeCurrencyCode(currencyId)
 			var account map[string]any = this.Account()
@@ -4809,7 +4809,7 @@ func (this *Mexc) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		var symbol *string = this.SafeString(params, "symbol")
 		if symbol == nil {
 			var symbols []any = SafeListTyped(params, "symbols")
-			if !IsEqual(symbols, nil) {
+			if symbols != nil {
 				var symbolIds any = this.MarketIds(symbols)
 				if !IsEqual(symbolIds, nil) {
 					parsedSymbols = Join(symbolIds, ",")
@@ -6611,7 +6611,7 @@ func (this *Mexc) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		currency = MapTyped(this.Currency(code))
 	}
 	var fromAccountType any = nil
-	var fromAccountTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchTransfers", "fromAccountType")
+	var fromAccountTypeparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchTransfers", "fromAccountType")
 	fromAccountType = GetValue(fromAccountTypeparamsVariable, 0)
 	params = MapTyped(GetValue(fromAccountTypeparamsVariable, 1))
 	var accountTypes map[string]any = map[string]any{
@@ -6627,7 +6627,7 @@ func (this *Mexc) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		panic(ArgumentsRequired(this.Id + " fetchTransfers() requires a fromAccountType parameter, one of \"SPOT\", \"FUTURES\""))
 	}
 	var toAccountType any = nil
-	var toAccountTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchTransfers", "toAccountType")
+	var toAccountTypeparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchTransfers", "toAccountType")
 	toAccountType = GetValue(toAccountTypeparamsVariable, 0)
 	params = MapTyped(GetValue(toAccountTypeparamsVariable, 1))
 	if toAccountType != nil {
@@ -7148,12 +7148,7 @@ func (this *Mexc) ParseTransactionFee(transaction any, optionalArgs ...any) map[
 	var networkList []any = SafeListTyped(transaction, "networkList")
 	var result map[string]any = map[string]any{}
 	for j := 0; j < len(networkList); j++ {
-		var networkEntry map[string]any = MapTyped(func() any {
-			if j >= 0 && j < len(networkList) {
-				return DerefScalar(networkList[j])
-			}
-			return nil
-		}())
+		var networkEntry map[string]any = SafeMapTyped(networkList, j)
 		var networkId *string = this.SafeString(networkEntry, "network")
 		var networkCode *string = this.SafeString(GetValue(this.Options, "networks"), networkId, networkId)
 		var fee *float64 = this.SafeNumber(networkEntry, "withdrawFee")
@@ -7254,12 +7249,7 @@ func (this *Mexc) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	var networkList []any = SafeListTyped(fee, "networkList")
 	var result any = this.DepositWithdrawFee(fee)
 	for j := 0; j < len(networkList); j++ {
-		var networkEntry map[string]any = MapTyped(func() any {
-			if j >= 0 && j < len(networkList) {
-				return DerefScalar(networkList[j])
-			}
-			return nil
-		}())
+		var networkEntry map[string]any = SafeMapTyped(networkList, j)
 		var networkId *string = this.SafeString(networkEntry, "network")
 		var networkCode *string = this.NetworkIdToCode(networkId, this.SafeString(currency, "code"))
 		if networkCode != nil {
@@ -7349,7 +7339,7 @@ func (this *Mexc) ParseLeverage(leverage any, optionalArgs ...any) any {
 	var longLeverage *int64 = nil
 	var shortLeverage *int64 = nil
 	for i := 0; i < GetArrayLength(leverage); i++ {
-		var entry map[string]any = MapTyped(GetValue(leverage, i))
+		var entry map[string]any = SafeMapTyped(leverage, i)
 		var openType *int64 = this.SafeInteger(entry, "openType")
 		var positionType *int64 = this.SafeInteger(entry, "positionType")
 		if positionType != nil && *positionType == 1 {

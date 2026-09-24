@@ -102,7 +102,11 @@ public partial class okx : ccxt.okx
             throw new ArgumentsRequired ((this.id + " getUrl() requires a channel argument")) ;
         }
         object isSandbox = (this.options.ContainsKey("sandboxMode") ? this.options["sandboxMode"] : null);
-        string sandboxSuffix = (isEqual(isSandbox, true)) ? "?brokerId=9999" : "";
+        string sandboxSuffix = "";
+        if (isEqual(isSandbox, true))
+        {
+            sandboxSuffix = "?brokerId=9999";
+        }
         bool isBusiness = (isEqual(access, "business"));
         bool isPublic = (isEqual(access, "public"));
         object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
@@ -259,12 +263,12 @@ public partial class okx : ccxt.okx
             });
         }
         string? url = this.getUrl(channel, access);
-        object trades = await this.watchMultiple(url, messageHashes, request, messageHashes);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watchMultiple(url, messageHashes, request, messageHashes));
         if (this.newUpdates)
         {
             IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar}));
+            limitVar = ((Int64?)trades.getLimit(tradeSymbol, limitVar));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -383,7 +387,7 @@ public partial class okx : ccxt.okx
                 stored = new ArrayCache(tradesLimit);
                 ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
             }
-            callDynamically(stored, "append", new object[] {trade});
+            stored.append(trade);
             client.resolve(stored, messageHash);
         }
     }
@@ -484,7 +488,7 @@ public partial class okx : ccxt.okx
         List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            object rawfr = data[i];
+            IDictionary<string, object> rawfr = this.safeDict(data, i);
             Dictionary<string, object> fundingRate = this.parseFundingRate(rawfr);
             string? symbol = ((string)(fundingRate != null && ((IDictionary<string, object>)fundingRate).ContainsKey("symbol") ? ((IDictionary<string, object>)fundingRate)["symbol"] : null));
             if ((symbol != null))
@@ -964,7 +968,7 @@ public partial class okx : ccxt.okx
                 this.liquidations = new ArrayCache(limit);
             }
             ccxt.pro.ArrayCache cache = this.liquidations;
-            callDynamically(cache, "append", new object[] {liquidation});
+            cache.append(liquidation);
             client.resolve(new List<object>() {liquidation}, "liquidations");
             client.resolve(new List<object>() {liquidation}, ("liquidations::" + symbol));
         }
@@ -990,7 +994,11 @@ public partial class okx : ccxt.okx
         }
         bool? isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        string accessType = ((isTrigger == true)) ? "business" : "private";
+        string accessType = "private";
+        if ((isTrigger == true))
+        {
+            accessType = "business";
+        }
         await this.authenticate(new Dictionary<string, object>() {
             { "access", accessType },
         });
@@ -1077,7 +1085,7 @@ public partial class okx : ccxt.okx
                 this.liquidations = new ArrayCache(limit);
             }
             ccxt.pro.ArrayCache cache = this.liquidations;
-            callDynamically(cache, "append", new object[] {liquidation});
+            cache.append(liquidation);
             client.resolve(new List<object>() {liquidation}, "myLiquidations");
             client.resolve(new List<object>() {liquidation}, ("myLiquidations::" + symbol));
         }
@@ -1372,7 +1380,7 @@ public partial class okx : ccxt.okx
                     ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
                 }
             }
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
             string messageHash = ((channel + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
             client.resolve(stored, messageHash);
             // for multiOHLCV we need special object, as opposed to other "multi"
@@ -1424,7 +1432,7 @@ public partial class okx : ccxt.okx
         }
         symbols = this.marketSymbols(symbols);
         object depth = null;
-        IList<object> depthparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "depth", "books");
+        IList<object> depthparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBook", "depth", "books");
         depth = depthparametersVariable[0];
         parameters = depthparametersVariable[1];
         if ((limit != null))
@@ -1495,7 +1503,7 @@ public partial class okx : ccxt.okx
         }
         symbols = this.marketSymbols(symbols, null, false);
         object depth = null;
-        IList<object> depthparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "depth", "books");
+        IList<object> depthparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBook", "depth", "books");
         depth = depthparametersVariable[0];
         parameters = depthparametersVariable[1];
         Int64? limit = this.safeInteger(parameters, "limit");
@@ -2015,11 +2023,19 @@ public partial class okx : ccxt.okx
         {
             await this.loadMarkets();
         }
-        string access = ((isTrigger == true)) ? "business" : "private";
+        string access = "private";
+        if ((isTrigger == true))
+        {
+            access = "business";
+        }
         await this.authenticate(new Dictionary<string, object>() {
             { "access", access },
         });
-        string channel = ((isTrigger == true)) ? "orders-algo" : "orders";
+        string channel = "orders";
+        if ((isTrigger == true))
+        {
+            channel = "orders-algo";
+        }
         object messageHash = (channel + "::myTrades");
         IDictionary<string, object> market = null;
         if ((symbolVar != null))
@@ -2198,11 +2214,11 @@ public partial class okx : ccxt.okx
                 position["side"] = "long";
                 object shortPosition = this.clone(position);
                 ((IDictionary<string,object>)shortPosition)["side"] = "short";
-                callDynamically(cache, "append", new object[] {shortPosition});
+                cache.append(shortPosition);
                 newPositions.Add(shortPosition);
             }
             newPositions.Add(position);
-            callDynamically(cache, "append", new object[] {position});
+            cache.append(position);
         }
         string messageHash = channel;
         if ((symbol != null))
@@ -2242,7 +2258,11 @@ public partial class okx : ccxt.okx
         {
             await this.loadMarkets();
         }
-        string accessType = ((isTrigger == true)) ? "business" : "private";
+        string accessType = "private";
+        if ((isTrigger == true))
+        {
+            accessType = "business";
+        }
         await this.authenticate(new Dictionary<string, object>() {
             { "access", accessType },
         });
@@ -2276,7 +2296,11 @@ public partial class okx : ccxt.okx
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instType", uppercaseType },
         };
-        string channel = ((isTrigger == true)) ? "orders-algo" : "orders";
+        string channel = "orders";
+        if ((isTrigger == true))
+        {
+            channel = "orders-algo";
+        }
         object orders = await this.subscribe("private", channel, channel, symbolVar, this.extend(request, parameters));
         if (this.newUpdates)
         {
@@ -2461,7 +2485,7 @@ public partial class okx : ccxt.okx
         {
             Dictionary<string, object> rawTrade = ((Dictionary<string, object>)filteredOrders[i]);
             Dictionary<string, object> trade = this.orderToTrade(rawTrade);
-            callDynamically(myTrades, "append", new object[] {trade});
+            myTrades.append(trade);
             string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
             if ((symbol != null))
             {
@@ -2834,7 +2858,7 @@ public partial class okx : ccxt.okx
                     List<object> data = this.safeList(message, "data", new List<object>() {});
                     for (int i = 0; i < (data?.Count ?? 0); i++)
                     {
-                        object d = data[i];
+                        IDictionary<string, object> d = this.safeDict(data, i);
                         errorCode = this.safeString(d, "sCode");
                         if ((errorCode != null))
                         {
@@ -2921,9 +2945,12 @@ public partial class okx : ccxt.okx
         //
         //
         //
-        if (isEqual(message, "pong"))
+        if ((message is string))
         {
-            this.handlePong(client, message);
+            if (isEqual(message, "pong"))
+            {
+                this.handlePong(client, message);
+            }
             return;
         }
         // const table = this.safeString (message, 'table');

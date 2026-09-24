@@ -838,7 +838,10 @@ public class Whitebit extends WhitebitApi
         String id = this.safeString(market, "name");
         String baseId = this.safeString(market, "stock");
         String quoteId = this.safeString(market, "money");
-        quoteId = (((java.util.Objects.equals(quoteId, "PERP")))) ? "USDT" : quoteId;
+        if (java.util.Objects.equals(quoteId, "PERP"))
+        {
+            quoteId = "USDT";
+        }
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
         Boolean active = (Boolean) this.safeBool(market, "tradesEnabled");
@@ -2133,9 +2136,9 @@ public class Whitebit extends WhitebitApi
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", null, parameters);
             marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
-            Object method = null;
-            List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTickers", "method", method);
-            method = ((List<Object>) methodparametersVariable).get(0);
+            String method = null;
+            List<Object> methodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchTickers", "method", method);
+            method = (String) ((List<Object>) methodparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
             if (java.util.Objects.equals(method, null))
             {
@@ -3209,7 +3212,7 @@ public class Whitebit extends WhitebitApi
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
             type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
-            List<Object> requestType = new ArrayList<Object>(Arrays.asList());
+            List<String> requestType = new ArrayList<String>(Arrays.asList());
             if (java.util.Objects.equals(type, "spot"))
             {
                 Boolean isMargin = null;
@@ -3218,14 +3221,14 @@ public class Whitebit extends WhitebitApi
                 parameters = (Map<String, Object>) ((List<Object>) isMarginparametersVariable).get(1);
                 if (Boolean.TRUE.equals(isMargin))
                 {
-                    ((List<Object>)requestType).add("margin");
+                    requestType.add("margin");
                 } else
                 {
-                    ((List<Object>)requestType).add("spot");
+                    requestType.add("spot");
                 }
             } else if (java.util.Objects.equals(type, "swap"))
             {
-                ((List<Object>)requestType).add("futures");
+                requestType.add("futures");
             } else
             {
                 throw new NotSupported((((this.id + " cancelAllOrders() does not support ") + type) + " type")) ;
@@ -4219,7 +4222,7 @@ public class Whitebit extends WhitebitApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "account", new HashMap<String, Object>() {{}});
-            return this.parseDepositAddress(data, currency);
+            return this.parseDepositAddress((Map<String, Object>) (data), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -4239,7 +4242,7 @@ public class Whitebit extends WhitebitApi
         return this.createDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseDepositAddress(Object depositAddress, Map<String, Object> currency)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         //
         //     {
@@ -4255,7 +4258,7 @@ public class Whitebit extends WhitebitApi
             put( "tag", Whitebit.this.safeString(depositAddress, "memo") );
         }};
     }
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Object... optionalArgs)
     {
         return this.parseDepositAddress(depositAddress, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -4872,7 +4875,7 @@ public class Whitebit extends WhitebitApi
             //         }
             //     ]
             //
-            Object interest = this.parseBorrowInterests(response, market);
+            List<Object> interest = this.parseBorrowInterests(response, market);
             return this.filterByCurrencySinceLimit(interest, code, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(BorrowInterest::new).collect(Collectors.toList()));
 
@@ -5243,7 +5246,7 @@ public class Whitebit extends WhitebitApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < Helpers.getArrayLength(contracts); i++)
         {
-            Object contract = Helpers.GetValue(contracts, i);
+            Map<String, Object> contract = (Map<String, Object>) this.safeDict(contracts, i);
             ((List<Object>)result).add(this.parseFundingHistory(contract, market));
         }
         List<Object> sorted = this.sortBy(result, "timestamp");
@@ -5972,8 +5975,8 @@ public class Whitebit extends WhitebitApi
             }
             Integer maxLimit = 100;
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {

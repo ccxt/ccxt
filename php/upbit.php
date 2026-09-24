@@ -588,7 +588,7 @@ class upbit extends Exchange {
             'datetime' => null,
         );
         for ($i = 0; $i < count($response); $i++) {
-            $balance = $response[$i];
+            $balance = $this->safe_dict($response, $i);
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -723,7 +723,7 @@ class upbit extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         $orderbooks = $this->fetch_order_books(array( $symbol ), $limit, $params);
-        return $this->safe_value($orderbooks, $symbol);
+        return $this->safe_dict($orderbooks, $symbol);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -903,7 +903,7 @@ class upbit extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         $tickers = $this->fetch_tickers(array( $symbol ), $params);
-        return $this->safe_value($tickers, $symbol);
+        return $this->safe_dict($tickers, $symbol);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1938,7 +1938,7 @@ class upbit extends Exchange {
             }
             $cost = '0';
             for ($i = 0; $i < $numTrades; $i++) {
-                $trade = $trades[$i];
+                $trade = $this->safe_dict($trades, $i);
                 $cost = Precise::string_add($cost, $this->safe_string($trade, 'cost'));
                 if ($getFeesFromTrades) {
                     $tradeFee = $this->safe_dict($trades[$i], 'fee', array());
@@ -2253,7 +2253,7 @@ class upbit extends Exchange {
         return $this->parse_deposit_addresses($response, $codes, false);
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         //
         //    {
         //        currency: 'XRP',
@@ -2442,7 +2442,7 @@ class upbit extends Exchange {
                 $body = $this->json($params);
                 $headers['Content-Type'] = 'application/json';
             }
-            if (($hasQuery !== null) && ($hasQuery !== 0)) {
+            if ($hasQuery !== 0) {
                 $auth = $this->rawencode($query);
             }
             if ($auth !== null) {

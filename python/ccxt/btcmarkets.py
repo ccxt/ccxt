@@ -594,7 +594,7 @@ class btcmarkets(Exchange, ImplicitAPI):
     def parse_balance(self, response: object) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
-            balance = response[i]
+            balance = self.safe_dict(response, i)
             currencyId = self.safe_string(balance, 'assetName')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -840,7 +840,11 @@ class btcmarkets(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(trade, 'timestamp'))
         marketId = self.safe_string(trade, 'marketId')
         market = self.safe_market(marketId, market, '-')
-        feeCurrencyCode = market['quote'] if (market['quote'] == 'AUD') else market['base']
+        feeCurrencyCode = None
+        if market['quote'] == 'AUD':
+            feeCurrencyCode = market['quote']
+        else:
+            feeCurrencyCode = market['base']
         side = self.safe_string(trade, 'side')
         if side == 'Bid':
             side = 'buy'

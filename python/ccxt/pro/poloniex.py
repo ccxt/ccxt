@@ -149,7 +149,9 @@ class poloniex(ccxt.async_support.poloniex):
         :param dict [params]: extra parameters specific to the poloniex api
         :returns dict: data from the websocket stream
         """
-        publicOrPrivate = 'private' if isPrivate else 'public'
+        publicOrPrivate = 'public'
+        if isPrivate:
+            publicOrPrivate = 'private'
         url = self.urls['api']['ws'][publicOrPrivate]
         subscribe = {
             'event': 'subscribe',
@@ -611,7 +613,7 @@ class poloniex(ccxt.async_support.poloniex):
         #
         data = self.safe_list(message, 'data', [])
         for i in range(0, len(data)):
-            item = data[i]
+            item = self.safe_dict(data, i)
             marketId = self.safe_string(item, 'symbol')
             if marketId is not None:
                 trade = self.parse_ws_trade(item)
@@ -1041,7 +1043,7 @@ class poloniex(ccxt.async_support.poloniex):
         snapshot = type == 'snapshot'
         update = type == 'update'
         for i in range(0, len(data)):
-            item = data[i]
+            item = self.safe_dict(data, i)
             marketId = self.safe_string(item, 'symbol')
             market = self.safe_market(marketId)
             symbol = market['symbol']

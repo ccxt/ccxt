@@ -454,7 +454,7 @@ impl BitrueCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_135: bool = true;
             while { if !__for_first_135 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_135 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
-            let mut balance: Value = balances.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut balance: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "a", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut account: Value = self.account();
@@ -594,7 +594,10 @@ impl BitrueCore {
         let mut sideId: Option<i64> = self.safe_integer_k(order.clone(), "S", &[]).as_i64();
         // 1: buy
         // 2: sell
-        let mut side: Value = (if (sideId == Some(1)) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
+        let mut side: Value = Value::Str("sell".into());
+        if (sideId == Some(1)) {
+            side = Value::Str("buy".into());
+        }
         let mut statusId: Value = self.safe_string_k(order.clone(), "X", &[]);
         let mut feeCurrencyId: Value = self.safe_string_k(order.clone(), "N", &[]);
         return self.safe_order(Value::Map({
@@ -781,7 +784,7 @@ impl BitrueCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_137: bool = true;
             while { if !__for_first_137 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_137 = false; i.as_f64().unwrap_or(f64::NAN) < ((bidsAsks.len() as i64) as f64) } {
-            let mut level: Value = bidsAsks.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut level: Value = self.safe_list(bidsAsks.clone(), i.clone(), &[]);
             let mut price: Value = self.safe_number(level.clone(), Value::Int(0), &[]);
             let mut rawAmount: Value = self.safe_number(level, Value::Int(1), &[]);
             let mut amount: Value = self.convert_from_raw_quantity(symbol.clone(), rawAmount);
@@ -1303,7 +1306,7 @@ impl BitrueCore {
                 // a flight is already in progress - wake when the leader
                 // settles it: the listenKey url is then in the options
                 crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;
-                return self.options.as_map().and_then(|__m| __m.get("listenKeyUrl")).cloned().unwrap_or(Value::Null);
+                return self.safe_string_k(self.options.clone(), "listenKeyUrl", &[]);
             }
             // register before the first await, so a concurrent caller entering
             // authenticate () while this one is inside the fetch sees the flight
@@ -1350,7 +1353,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut refreshTimeout: Value = self.safe_integer_k(self.options.clone(), "listenKeyRefreshRate", &[Value::Int(1800000)]);
             self.delay(refreshTimeout, &[Value::Str("keep_alive_listen_key".into()).clone()]).await;
         }
-        return self.options.as_map().and_then(|__m| __m.get("listenKeyUrl")).cloned().unwrap_or(Value::Null);
+        return self.safe_string_k(self.options.clone(), "listenKeyUrl", &[]);
 
     Value::Null
 }

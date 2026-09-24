@@ -98,7 +98,9 @@ class kucoin(ccxt.async_support.kucoin):
         })
 
     async def negotiate(self, privateChannel: object, isFuturesMethod: bool = False, params: dict = {}):
-        connectId = 'private' if (privateChannel is True) else 'public'
+        connectId = 'public'
+        if privateChannel is True:
+            connectId = 'private'
         if isFuturesMethod:
             connectId += 'Futures'
         urls = self.safe_dict(self.options, 'urls', {})
@@ -185,7 +187,9 @@ class kucoin(ccxt.async_support.kucoin):
     async def subscribe_public_uta(self, messageHash: str, channel: str, symbol: str, params: dict = {}, subscription: dict = None):
         requestId = str(self.request_id())
         market = self.market(symbol)
-        urlType = 'futures' if (market['contract'] is True) else 'spot'
+        urlType = 'spot'
+        if market['contract'] is True:
+            urlType = 'futures'
         tradeType = urlType.upper()
         action = 'subscribe'
         if subscription is not None:
@@ -441,7 +445,9 @@ class kucoin(ccxt.async_support.kucoin):
         requestId = str(self.request_id())
         market = self.get_market_from_symbols(symbols)
         isContract = (market['contract'] is True)
-        urlType = 'futures' if isContract else 'spot'
+        urlType = 'spot'
+        if isContract:
+            urlType = 'futures'
         tradeType = urlType.upper()
         action = 'subscribe'
         if subscription is not None:
@@ -1401,8 +1407,12 @@ class kucoin(ccxt.async_support.kucoin):
         firstMarket = self.get_market_from_symbols(symbols)
         isFuturesMethod = (firstMarket['contract'] is True)
         url = await self.negotiate(False, isFuturesMethod)
-        method = '/contractMarket/level2' if isFuturesMethod else '/market/level2'
-        optionName = 'contractMethod' if isFuturesMethod else 'spotMethod'
+        method = '/market/level2'
+        if isFuturesMethod:
+            method = '/contractMarket/level2'
+        optionName = 'spotMethod'
+        if isFuturesMethod:
+            optionName = 'contractMethod'
         method, params = self.handle_option_and_params_2(params, 'watchOrderBook', optionName, 'method', method)
         if method.find('Depth') < 0:
             if (limit == 5) or (limit == 50):
@@ -1452,8 +1462,12 @@ class kucoin(ccxt.async_support.kucoin):
         firstMarket = self.get_market_from_symbols(symbols)
         isFuturesMethod = (firstMarket['contract'] is True)
         url = await self.negotiate(False, isFuturesMethod)
-        method = '/contractMarket/level2' if isFuturesMethod else '/market/level2'
-        optionName = 'contractMethod' if isFuturesMethod else 'spotMethod'
+        method = '/market/level2'
+        if isFuturesMethod:
+            method = '/contractMarket/level2'
+        optionName = 'spotMethod'
+        if isFuturesMethod:
+            optionName = 'contractMethod'
         method, params = self.handle_option_and_params_2(params, 'watchOrderBook', optionName, 'method', method)
         if method.find('Depth') < 0:
             if (limit == 5) or (limit == 50):
@@ -1627,7 +1641,7 @@ class kucoin(ccxt.async_support.kucoin):
         if nonce < firstDeltaStart - 1:
             return -1
         for i in range(0, len(cache)):
-            delta = cache[i]
+            delta = self.safe_dict(cache, i)
             deltaStart = self.safe_integer_n(delta, ['sequenceStart', 'sequence', 'O'])
             deltaEnd = self.safe_integer_n(delta, ['sequenceEnd', 'sequence', 'C'])  # todo check
             if (deltaStart is None) or (deltaEnd is None):
@@ -1653,7 +1667,9 @@ class kucoin(ccxt.async_support.kucoin):
             price = self.safe_number(splitChange, 0)
             side = self.safe_string(splitChange, 1)
             quantity = self.safe_number(splitChange, 2)
-            type = 'bids' if (side == 'buy') else 'asks'
+            type = 'asks'
+            if side == 'buy':
+                type = 'bids'
             value = [price, quantity]
             if type == 'bids':
                 storedBids.storeArray(value)
@@ -1801,7 +1817,9 @@ class kucoin(ccxt.async_support.kucoin):
             marketType, params = self.handle_market_type_and_params('watchOrders', market, params)
             isFuturesMethod = ((marketType != 'spot') and (marketType != 'margin'))
             url = await self.negotiate(True, isFuturesMethod)
-            topic = '/spotMarket/advancedOrders' if (trigger is True) else '/spotMarket/tradeOrders'
+            topic = '/spotMarket/tradeOrders'
+            if trigger is True:
+                topic = '/spotMarket/advancedOrders'
             if isFuturesMethod:
                 topic = '/contractMarket/advancedOrders' if (trigger is True) else '/contractMarket/tradeOrders'
             if symbol is None:
@@ -2194,8 +2212,12 @@ class kucoin(ccxt.async_support.kucoin):
             trades = await self.subscribe_private_uta([messageHash], channel, channel, None, params)
         else:
             url = await self.negotiate(True, isFuturesMethod)
-            topic = '/contractMarket/tradeOrders' if isFuturesMethod else '/spotMarket/tradeOrders'
-            optionName = 'contractMethod' if isFuturesMethod else 'spotMethod'
+            topic = '/spotMarket/tradeOrders'
+            if isFuturesMethod:
+                topic = '/contractMarket/tradeOrders'
+            optionName = 'spotMethod'
+            if isFuturesMethod:
+                optionName = 'contractMethod'
             topic, params = self.handle_option_and_params_2(params, 'watchMyTrades', optionName, 'method', topic)
             request = {
                 'privateChannel': True,
@@ -2386,7 +2408,9 @@ class kucoin(ccxt.async_support.kucoin):
             await self.load_markets()
         uta = await self.is_uta_enabled()
         uta, params = self.handle_option_bool_and_params(params, 'watchBalance', 'uta', uta)
-        defaultType = 'unified' if uta else 'spot'
+        defaultType = 'spot'
+        if uta:
+            defaultType = 'unified'
         type = defaultType
         if not uta:
             defaultType = self.safe_string(self.options, 'defaultType', defaultType)
@@ -2395,7 +2419,9 @@ class kucoin(ccxt.async_support.kucoin):
         accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         uniformType = self.safe_string(accountsByType, type, type)
         isClassicFuturesMethod = (uniformType == 'contract')
-        subscriptionHash = '/contractAccount/wallet' if isClassicFuturesMethod else '/account/balance'
+        subscriptionHash = '/account/balance'
+        if isClassicFuturesMethod:
+            subscriptionHash = '/contractAccount/wallet'
         url = None
         if uta:
             url = await self.get_uta_url()
@@ -2588,7 +2614,7 @@ class kucoin(ccxt.async_support.kucoin):
         account['free'] = self.safe_string(data, 'a')
         account['used'] = self.safe_string(data, 'h')
         account['total'] = self.safe_string(data, 'b')
-        if (type is not None) and (code is not None):
+        if code is not None:
             self.balance[type][code] = account
         self.balance[type] = self.safe_balance(self.balance[type])
         messageHash = type + ':balance'
@@ -2642,7 +2668,9 @@ class kucoin(ccxt.async_support.kucoin):
             await self.load_markets()
         uta = await self.is_uta_enabled()
         uta, params = self.handle_option_bool_and_params(params, 'watchPositions', 'uta', uta)
-        tradeType = 'UNIFIED' if uta else 'TRADE'
+        tradeType = 'TRADE'
+        if uta:
+            tradeType = 'UNIFIED'
         messageHash = 'positions'
         messageHashes = []
         symbols = self.market_symbols(symbols)
@@ -2909,7 +2937,9 @@ class kucoin(ccxt.async_support.kucoin):
         timestamp = self.safe_integer_product(position, 'O', 0.000001)
         amountString = self.safe_string(position, 'q')
         size = Precise.string_abs(amountString)
-        side = 'long' if Precise.string_gt(amountString, '0') else 'short'
+        side = 'short'
+        if Precise.string_gt(amountString, '0'):
+            side = 'long'
         return self.safe_position({
             'info': position,
             'id': self.safe_string(position, 'pi'),

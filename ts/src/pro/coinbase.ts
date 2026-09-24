@@ -86,7 +86,7 @@ export default class coinbase extends coinbaseRest {
         } else if (symbol !== undefined) {
             market = this.market (symbol);
             messageHash = name + '::' + symbol;
-            productIds = [ market['id'] ];
+            productIds = [ this.safeString (market, 'id') ];
         }
         const url = this.urls['api']['ws'];
         let subscribe = {
@@ -140,7 +140,7 @@ export default class coinbase extends coinbaseRest {
             market = this.market (symbol);
             watchMessageHash = name + '::' + symbol;
             unWatchMessageHash = unWatchMessageHash + '::' + symbol;
-            productIds = [ market['id'] ];
+            productIds = [ this.safeString (market, 'id') ];
         }
         const url = this.urls['api']['ws'];
         // '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'

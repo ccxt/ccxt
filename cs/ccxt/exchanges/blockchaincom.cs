@@ -1308,7 +1308,7 @@ public partial class blockchaincom : Exchange
         };
         for (int i = 0; i < balances.Count; i++)
         {
-            object entry = balances[i];
+            IDictionary<string, object> entry = this.safeDict(balances, i);
             string? currencyId = this.safeString(entry, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();

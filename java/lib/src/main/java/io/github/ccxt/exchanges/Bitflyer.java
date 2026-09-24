@@ -551,7 +551,7 @@ public class Bitflyer extends BitflyerApi
         }};
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
-            Object balance = Helpers.GetValue(response, i);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i);
             String currencyId = this.safeString(balance, "currency_code");
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
@@ -1010,7 +1010,7 @@ public class Bitflyer extends BitflyerApi
             {
                 (this.loadMarkets()).join();
             }
-            final Object finalSymbol = symbol;
+            final String finalSymbol = symbol;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "product_code", Bitflyer.this.marketId((String) (finalSymbol)) );
                 put( "child_order_acceptance_id", id );

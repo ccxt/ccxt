@@ -403,7 +403,7 @@ class lighter(Exchange, ImplicitAPI):
         if signer is not None:
             return signer
         libraryPath = None
-        libraryPath, params = self.handle_option_and_params(params, 'loadAccount', 'libraryPath')
+        libraryPath, params = self.handle_option_string_and_params(params, 'loadAccount', 'libraryPath')
         lighterPrivateKeyIsSet = (privateKey is not None) and (privateKey != '')
         if lighterPrivateKeyIsSet and (libraryPath is not None) and (apiKeyIndex is not None) and (accountIndex is not None):
             # load lighter library, and create lighter client
@@ -719,7 +719,7 @@ class lighter(Exchange, ImplicitAPI):
         apiKeyIndex, params = self.handle_api_key_index(params, 'createOrder', 'apiKeyIndex', 'api_key_index')
         accountIndex, params = self.handle_option_and_params_2(params, 'createOrder', 'accountIndex', 'account_index')
         nonce, params = self.handle_option_and_params(params, 'createOrder', 'nonce')
-        orderExpiry, params = self.handle_option_and_params(params, 'createOrder', 'orderExpiry', 0)
+        orderExpiry, params = self.handle_option_integer_and_params(params, 'createOrder', 'orderExpiry', 0)
         if nonce is not None:
             request['nonce'] = nonce
         request['api_key_index'] = apiKeyIndex
@@ -852,7 +852,7 @@ class lighter(Exchange, ImplicitAPI):
         params['accountIndex'] = accountIndex
         market = self.market(symbol)
         groupingType = None
-        groupingType, params = self.handle_option_and_params(params, method, 'groupingType', 3)  # default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
+        groupingType, params = self.handle_option_integer_and_params(params, method, 'groupingType', 3)  # default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         orderRequests = self.create_order_request(symbol, type, side, amount, price, params)
         totalOrderRequests = len(orderRequests)
         apiKeyIndex = None
@@ -1123,7 +1123,8 @@ class lighter(Exchange, ImplicitAPI):
             market = markets[i]
             id = self.safe_string(market, 'market_id')
             type = self.safe_string(market, 'market_type')
-            type = 'swap' if (type == 'perp') else type
+            if type == 'perp':
+                type = 'swap'
             baseId = self.safe_string(market, 'symbol')
             if baseId is not None and baseId.find('/') != -1:
                 baseId = baseId.split('/')[0]
@@ -1734,11 +1735,11 @@ class lighter(Exchange, ImplicitAPI):
         result = {'info': response}
         accounts = self.safe_list(response, 'accounts', [])
         for i in range(0, len(accounts)):
-            account = accounts[i]
+            account = self.safe_dict(accounts, i)
             if type == 'spot':
                 assets = self.safe_list(account, 'assets', [])
                 for j in range(0, len(assets)):
-                    asset = assets[j]
+                    asset = self.safe_dict(assets, j)
                     codeId = self.safe_string(asset, 'symbol')
                     code = self.safe_currency_code(codeId)
                     balance = self.safe_dict(result, code, self.account())
@@ -1845,7 +1846,7 @@ class lighter(Exchange, ImplicitAPI):
         allPositions = []
         accounts = self.safe_list(response, 'accounts', [])
         for i in range(0, len(accounts)):
-            account = accounts[i]
+            account = self.safe_dict(accounts, i)
             positions = self.safe_list(account, 'positions', [])
             for j in range(0, len(positions)):
                 allPositions.append(positions[j])
@@ -2277,7 +2278,7 @@ class lighter(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, type: object):
+    def parse_order_type(self, type: Str):
         types = {
             'limit': 'limit',
             'market': 'market',
@@ -2398,7 +2399,7 @@ class lighter(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchTransfers', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchTransfers', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchTransfers', code, since, limit, params, 'cursor', 'cursor', None, 50)
         accountIndex = None
@@ -2498,11 +2499,11 @@ class lighter(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchDeposits', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchDeposits', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchDeposits', code, since, limit, params, 'cursor', 'cursor', None, 50)
         address = None
-        address, params = self.handle_option_and_params_2(params, 'fetchDeposits', 'address', 'l1_address')
+        address, params = self.handle_option_string_and_params_2(params, 'fetchDeposits', 'address', 'l1_address')
         if address is None:
             raise ArgumentsRequired(self.id + ' fetchDeposits() requires an address parameter')
         accountIndex = None
@@ -2559,7 +2560,7 @@ class lighter(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchWithdrawals', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchWithdrawals', code, since, limit, params, 'cursor', 'cursor', None, 50)
         accountIndex = None
@@ -2730,7 +2731,7 @@ class lighter(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchMyTrades', symbol, since, limit, params, 'next_cursor', 'cursor', None, 50)
         accountIndex = None
@@ -2748,7 +2749,7 @@ class lighter(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = min(limit, 100)
         until = None
-        until, params = self.handle_option_and_params_2(params, 'fetchMyTrades', 'until', 'from')
+        until, params = self.handle_option_integer_and_params_2(params, 'fetchMyTrades', 'until', 'from')
         if until is not None:
             request['from'] = until
         market = None
@@ -2873,7 +2874,7 @@ class lighter(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         marginMode = None
-        marginMode, params = self.handle_option_and_params_2(params, 'setLeverage', 'marginMode', 'margin_mode')
+        marginMode, params = self.handle_option_string_and_params_2(params, 'setLeverage', 'marginMode', 'margin_mode')
         if marginMode is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires an marginMode parameter')
         return self.modify_leverage_and_margin_mode(leverage, marginMode, symbol, params)

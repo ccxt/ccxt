@@ -1574,7 +1574,12 @@ class bittrade extends Exchange {
         $feeCost = $this->safe_string_2($order, 'filled-fees', 'field-fees'); // typo in their API, filled fees
         $fee = null;
         if ($feeCost !== null) {
-            $feeCurrency = ($side === 'sell') ? $market['quote'] : $market['base'];
+            $feeCurrency = null;
+            if ($side === 'sell') {
+                $feeCurrency = $market['quote'];
+            } else {
+                $feeCurrency = $market['base'];
+            }
             $fee = array(
                 'cost' => $feeCost,
                 'currency' => $feeCurrency,
@@ -1911,7 +1916,7 @@ class bittrade extends Exchange {
         );
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "currency": "usdt",

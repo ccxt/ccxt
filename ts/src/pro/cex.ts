@@ -506,7 +506,7 @@ export default class cex extends cexRest {
             'oid': symbol,
         };
         const request = this.deepExtend (message, params);
-        const orders = await this.watch (url, messageHash, request, messageHash, request);
+        const orders: ArrayCache = await this.watch (url, messageHash, request, messageHash, request);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -1501,7 +1501,7 @@ export default class cex extends cexRest {
         //    "ok": "ok"
         //    }
         //
-        const data = this.safeValue (message, 'data');
+        const data = this.safeList (message, 'data');
         const messageHash = this.safeString (message, 'oid');
         client.resolve (data, messageHash);
     }
@@ -1515,7 +1515,7 @@ export default class cex extends cexRest {
         return message;
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         //
         //     {
         //         "e": "get-balance",

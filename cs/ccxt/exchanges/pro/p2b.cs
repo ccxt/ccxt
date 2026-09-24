@@ -249,12 +249,12 @@ public partial class p2b : ccxt.p2b
             { "id", this.milliseconds() },
         };
         Dictionary<string, object> query = this.extend(subscribe, parameters);
-        object trades = await this.watchMultiple(url, messageHashes, query, messageHashes);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watchMultiple(url, messageHashes, query, messageHashes));
         if (this.newUpdates)
         {
             IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar}));
+            limitVar = ((Int64?)trades.getLimit(tradeSymbol, limitVar));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -333,7 +333,7 @@ public partial class p2b : ccxt.p2b
                 stored = new ArrayCacheByTimestamp(limit);
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
             }
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
             client.resolve(stored, messageHash);
         }
         return message;
@@ -376,7 +376,7 @@ public partial class p2b : ccxt.p2b
         {
             object item = getValue((IList<object>)(trades), i);
             Dictionary<string, object> trade = this.parseTrade(item, market);
-            callDynamically(tradesArray, "append", new object[] {trade});
+            tradesArray.append(trade);
         }
         string messageHash = ("deals::" + symbol);
         client.resolve(tradesArray, messageHash);

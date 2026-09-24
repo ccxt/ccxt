@@ -1746,7 +1746,11 @@ public class Aster extends AsterApi
         //
         String id = this.safeString2(trade, "id", "a");
         String marketId = this.safeString(trade, "symbol");
-        String marketType = (((((Map<?, ?>)trade).containsKey("positionSide")))) ? "swap" : "spot";
+        String marketType = "spot";
+        if (((Map<?, ?>)trade).containsKey("positionSide"))
+        {
+            marketType = "swap";
+        }
         market = (Map<String, Object>) (this.safeMarket(marketId, market, null, marketType));
         String currencyId = this.safeString2(trade, "commissionAsset", "marginAsset");
         String currencyCode = this.safeCurrencyCode(currencyId);
@@ -2382,7 +2386,7 @@ public class Aster extends AsterApi
             {
                 String marketId = this.safeString((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), "symbol");
                 Map<String, Object> safeMarket = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
-                Map<String, Object> priceData = this.extend(this.parseLastPrice((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), safeMarket), parameters);
+                Map<String, Object> priceData = this.extend(this.parseLastPrice((Map<String, Object>) ((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i))), safeMarket), parameters);
                 ((List<Object>)results).add(priceData);
             }
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
@@ -2406,7 +2410,7 @@ public class Aster extends AsterApi
         return this.fetchLastPrices(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseLastPrice(Object entry, Map<String, Object> market)
+    public Object parseLastPrice(Map<String, Object> entry, Map<String, Object> market)
     {
         //
         // spot & swap
@@ -2427,7 +2431,7 @@ public class Aster extends AsterApi
             put( "info", entry );
         }};
     }
-    public Object parseLastPrice(Object entry, Object... optionalArgs)
+    public Object parseLastPrice(Map<String, Object> entry, Object... optionalArgs)
     {
         return this.parseLastPrice(entry, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -2888,7 +2892,7 @@ public class Aster extends AsterApi
         }};
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
-            Object balance = Helpers.GetValue(response, i);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i);
             String currencyId = this.safeString(balance, "asset");
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
@@ -3019,9 +3023,14 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            String strValue = ((Helpers.isTrue(hedged))) ? "true" : "false";
+            String strValue = "false";
+            if (Helpers.isTrue(hedged))
+            {
+                strValue = "true";
+            }
+            final String finalStrValue = strValue;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "dualSidePosition", strValue );
+                put( "dualSidePosition", finalStrValue );
             }};
             //
             //     {
@@ -3206,7 +3215,11 @@ public class Aster extends AsterApi
         //
         Object info = order;
         String positionSide = this.safeString(order, "positionSide");
-        String defaultType = (((!java.util.Objects.equals(positionSide, null)))) ? "swap" : "spot";
+        String defaultType = "spot";
+        if (!java.util.Objects.equals(positionSide, null))
+        {
+            defaultType = "swap";
+        }
         String marketId = this.safeString(order, "symbol");
         market = (Map<String, Object>) (this.safeMarket(marketId, market, null, defaultType));
         String side = this.safeStringLower(order, "side");
@@ -3764,14 +3777,14 @@ public class Aster extends AsterApi
 
             (this.loadMarketsAndSignIn()).join();
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
-            Object orderSymbols = new ArrayList<Object>(Arrays.asList());
+            List<Object> orderSymbols = new ArrayList<Object>(Arrays.asList());
             if (((List<?>)orders).size() > 5)
             {
                 throw new InvalidOrder((this.id + " createOrders() order list max 5 orders")) ;
             }
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i);
                 String marketId = this.safeString(rawOrder, "symbol");
                 Map<String, Object> currentMarket = (Map<String, Object>) this.market(marketId);
                 ((List<Object>)orderSymbols).add(((Map<String, Object>)currentMarket).get("symbol"));
@@ -4033,9 +4046,9 @@ public class Aster extends AsterApi
         }
         if (Boolean.TRUE.equals(timeInForceIsRequired) && (java.util.Objects.equals(this.safeString(parameters, "timeInForce"), null)) && (java.util.Objects.equals(this.safeString(request, "timeInForce"), null)))
         {
-            Object tif = null;
-            List<Object> tifparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "timeInForce");
-            tif = ((List<Object>) tifparametersVariable).get(0);
+            String tif = null;
+            List<Object> tifparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce");
+            tif = (String) ((List<Object>) tifparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) tifparametersVariable).get(1);
             ((Map<String, Object>)request).put("timeInForce", tif);
         }
@@ -4572,7 +4585,7 @@ public class Aster extends AsterApi
             //         }
             //     ]
             //
-            Object modifications = this.parseMarginModifications(this.toArray(response));
+            List<Object> modifications = this.parseMarginModifications(this.toArray(response));
             return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(MarginModification::new).collect(Collectors.toList()));
 
@@ -4745,7 +4758,7 @@ public class Aster extends AsterApi
         return this.addMargin(symbol, amount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseIncome(Object income, Map<String, Object> market)
+    public Object parseIncome(Map<String, Object> income, Map<String, Object> market)
     {
         //
         //     {
@@ -4772,7 +4785,7 @@ public class Aster extends AsterApi
             put( "amount", Aster.this.safeNumber(income, "income") );
         }};
     }
-    public Object parseIncome(Object income, Object... optionalArgs)
+    public Object parseIncome(Map<String, Object> income, Object... optionalArgs)
     {
         return this.parseIncome(income, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -5084,10 +5097,7 @@ public class Aster extends AsterApi
                     String inner = Precise.stringMul(liquidationPriceString, onePlusMaintenanceMarginPercentageString);
                     Object leftSide = Precise.stringAdd(inner, entryPriceSignString);
                     Object quotePrecision = this.precisionFromString(this.safeString2(precision, "quote", "price"));
-                    if (!java.util.Objects.equals(quotePrecision, null))
-                    {
-                        collateralString = Precise.stringDiv(Precise.stringMul(leftSide, contractsAbs), "1", quotePrecision);
-                    }
+                    collateralString = Precise.stringDiv(Precise.stringMul(leftSide, contractsAbs), "1", quotePrecision);
                 } else
                 {
                     // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
@@ -5104,10 +5114,7 @@ public class Aster extends AsterApi
                     Object leftSide = Precise.stringMul(contractsAbs, contractSizeString);
                     String rightSide = Precise.stringSub(Precise.stringDiv("1", entryPriceSignString), Precise.stringDiv(onePlusMaintenanceMarginPercentageString, liquidationPriceString));
                     Object basePrecision = this.precisionFromString(this.safeString(precision, "base"));
-                    if (!java.util.Objects.equals(basePrecision, null))
-                    {
-                        collateralString = Precise.stringDiv(Precise.stringMul(leftSide, rightSide), "1", basePrecision);
-                    }
+                    collateralString = Precise.stringDiv(Precise.stringMul(leftSide, rightSide), "1", basePrecision);
                 }
             }
         } else
@@ -5289,9 +5296,9 @@ public class Aster extends AsterApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Map<String, Object> parameters = parameters3;
-            Object defaultMethod = null;
-            List<Object> defaultMethodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositions", "method");
-            defaultMethod = ((List<Object>) defaultMethodparametersVariable).get(0);
+            String defaultMethod = null;
+            List<Object> defaultMethodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchPositions", "method");
+            defaultMethod = (String) ((List<Object>) defaultMethodparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) defaultMethodparametersVariable).get(1);
             if (java.util.Objects.equals(defaultMethod, null))
             {
@@ -5339,7 +5346,7 @@ public class Aster extends AsterApi
         Map<String, Object> balances = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)assets).size(); i++)
         {
-            Object entry = (assets == null || i < 0 || i >= assets.size() ? null : assets.get(i));
+            Map<String, Object> entry = (Map<String, Object>) this.safeDict(assets, i);
             String currencyId = this.safeString(entry, "asset");
             String code = this.safeCurrencyCode(currencyId);
             String crossWalletBalance = this.safeString(entry, "crossWalletBalance");
@@ -5677,14 +5684,14 @@ public class Aster extends AsterApi
                 List<Object> entries = this.toArray(response);
                 for (var i = 0; i < ((List<?>)entries).size(); i++)
                 {
-                    Object entry = (entries == null || i < 0 || i >= entries.size() ? null : entries.get(i));
+                    Map<String, Object> entry = (Map<String, Object>) this.safeDict(entries, i);
                     String marketId = this.safeString(entry, "symbol");
                     String symbol = this.safeSymbol(marketId, null, null, "contract");
                     List<Object> brackets = (List<Object>) this.safeList(entry, "brackets", new ArrayList<Object>(Arrays.asList()));
                     List<Object> result = new ArrayList<Object>(Arrays.asList());
                     for (var j = 0; j < ((List<?>)brackets).size(); j++)
                     {
-                        Object bracket = (brackets == null || j < 0 || j >= brackets.size() ? null : brackets.get(j));
+                        Map<String, Object> bracket = (Map<String, Object>) this.safeDict(brackets, j);
                         String floorValue = this.safeString(bracket, "notionalFloor");
                         String maintenanceMarginPercentage = this.safeString(bracket, "maintMarginRatio");
                         ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(floorValue, maintenanceMarginPercentage)));

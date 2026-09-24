@@ -517,7 +517,7 @@ func (this *Cryptomus) ParseCurrency(rawCurrency any) any {
 	var code any = nil
 	var networks map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(rawCurrency); i++ {
-		var networkEntry any = GetValue(rawCurrency, i)
+		var networkEntry map[string]any = SafeMapTyped(rawCurrency, i)
 		// set ID on first loop
 		if IsEqual(id, nil) {
 			id = DerefScalar(this.SafeString(networkEntry, "currency_code"))
@@ -672,7 +672,7 @@ func (this *Cryptomus) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 		"currencyPair": market["id"],
 	}
 	var level any = 0
-	var levelparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrderBook", "level", level)
+	var levelparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOrderBook", "level", level)
 	level = GetValue(levelparamsVariable, 0)
 	params = MapTyped(GetValue(levelparamsVariable, 1))
 	request["level"] = level
@@ -849,7 +849,7 @@ func (this *Cryptomus) ParseBalance(balance any) any {
 		"info": balance,
 	}
 	for i := 0; i < GetArrayLength(balance); i++ {
-		var balanceEntry map[string]any = MapTyped(GetValue(balance, i))
+		var balanceEntry map[string]any = SafeMapTyped(balance, i)
 		var currencyId *string = this.SafeString(balanceEntry, "ticker")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -1148,7 +1148,7 @@ func (this *Cryptomus) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 		market = this.Market(symbol)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(market, nil) {
+	if market != nil {
 		request["market"] = GetValue(market, "id")
 	}
 
@@ -1246,7 +1246,7 @@ func (this *Cryptomus) ParseOrder(order any, optionalArgs ...any) any {
 	var typeVar *string = this.SafeString(order, "type")
 	var side *string = this.SafeString(order, "direction")
 	var price *float64 = this.SafeNumber(order, "price")
-	var transaction []any = SafeListTypedDefault(deal, "transactions", []any{})
+	var transaction []any = SafeListTyped(deal, "transactions")
 	var fee map[string]any = nil
 	var firstTx map[string]any = SafeMapTyped(transaction, 0)
 	var feeCurrency *string = this.SafeString(firstTx, "feeCurrency")
@@ -1408,12 +1408,7 @@ func (this *Cryptomus) ParseFeeTiers(feeTiers []any, optionalArgs ...any) map[st
 	var takerFees []any = []any{}
 	var makerFees []any = []any{}
 	for i := 0; i < len(feeTiers); i++ {
-		var tier map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(feeTiers) {
-				return DerefScalar(feeTiers[i])
-			}
-			return nil
-		}())
+		var tier map[string]any = SafeMapTyped(feeTiers, i)
 		var turnover *float64 = this.SafeNumber(tier, "from_turnover")
 		var taker *string = this.SafeString(tier, "taker_percent")
 		var maker *string = this.SafeString(tier, "maker_percent")

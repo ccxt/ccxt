@@ -698,12 +698,10 @@ func (this *Lighter) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "size")
 	var isMakerAsk *bool = this.SafeBool(trade, "is_maker_ask")
-	var side string = func() string {
-		if isMakerAsk != nil && *isMakerAsk == true {
-			return "buy"
-		}
-		return "sell"
-	}()
+	var side string = "sell"
+	if isMakerAsk != nil && *isMakerAsk == true {
+		side = "buy"
+	}
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           tradeId,
@@ -934,14 +932,14 @@ func (this *Lighter) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
 	}
 	var fee map[string]any = nil
 	if takerOrMaker != nil {
-		var feeRateRaw any = func() any {
-			if ccxt.IsEqual(takerOrMaker, "maker") {
-				return this.SafeString(trade, "maker_fee")
-			}
-			return this.SafeString(trade, "taker_fee")
-		}()
+		var feeRateRaw *string = nil
+		if ccxt.IsEqual(takerOrMaker, "maker") {
+			feeRateRaw = this.SafeString(trade, "maker_fee")
+		} else {
+			feeRateRaw = this.SafeString(trade, "taker_fee")
+		}
 		var feeRate *string = func() *string {
-			if feeRateRaw != nil {
+			if !ccxt.IsEqual(feeRateRaw, nil) {
 				return ccxt.Precise.StringDiv(feeRateRaw, "1000000")
 			}
 			return ccxt.SafeStringPtr("0")
@@ -1166,12 +1164,10 @@ func (this *Lighter) ParseWsLiquidation(liquidation any, optionalArgs ...any) an
 	_ = market
 	var timestamp *int64 = this.SafeInteger(liquidation, "timestamp")
 	var isMakerAsk *bool = this.SafeBool(liquidation, "is_maker_ask")
-	var side string = func() string {
-		if isMakerAsk != nil && *isMakerAsk == true {
-			return "buy"
-		}
-		return "sell"
-	}()
+	var side string = "sell"
+	if isMakerAsk != nil && *isMakerAsk == true {
+		side = "buy"
+	}
 	var contracts *string = this.SafeString(liquidation, "size")
 	var contractSize *string = this.SafeString(market, "contractSize")
 	var price *string = this.SafeString(liquidation, "price")
@@ -1408,7 +1404,7 @@ func (this *Lighter) HandleBalance(client any, message any) any {
 		var assetIds []string = ccxt.ObjectKeys(assets)
 		for i := 0; i < len(assetIds); i++ {
 			var assetId string = ccxt.GetValue(assetIds, i).(string)
-			var asset map[string]any = ccxt.MapTyped(assets[assetId])
+			var asset map[string]any = ccxt.SafeMapTyped(assets, assetId)
 			var codeId *string = this.SafeString(asset, "symbol")
 			var code *string = this.SafeCurrencyCode(codeId)
 			var account map[string]any = this.Account()

@@ -564,7 +564,7 @@ func (this *Bitvavo) ParseMarkets(markets any) any {
 	var result []any = []any{}
 	var fees any = this.Fees
 	for i := 0; i < GetArrayLength(markets); i++ {
-		var market any = GetValue(markets, i)
+		var market map[string]any = SafeMapTyped(markets, i)
 		var id *string = this.SafeString(market, "market")
 		var baseId *string = this.SafeString(market, "base")
 		var quoteId *string = this.SafeString(market, "quote")
@@ -978,7 +978,7 @@ func (this *Bitvavo) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchTrades", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -1383,7 +1383,7 @@ func (this *Bitvavo) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -1413,7 +1413,7 @@ func (this *Bitvavo) ParseBalance(response any) any {
 		"datetime":  nil,
 	}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var balance map[string]any = MapTyped(GetValue(response, i))
+		var balance map[string]any = SafeMapTyped(response, i)
 		var currencyId *string = this.SafeString(balance, "symbol")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -1902,7 +1902,7 @@ func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		panic(ArgumentsRequired(this.Id + " createOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890"))
 	}
 	var selfTradePrevention any = nil
-	var selfTradePreventionparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "selfTradePrevention")
+	var selfTradePreventionparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "selfTradePrevention")
 	selfTradePrevention = GetValue(selfTradePreventionparamsVariable, 0)
 	params = MapTyped(GetValue(selfTradePreventionparamsVariable, 1))
 	if selfTradePrevention != nil {
@@ -2241,7 +2241,7 @@ func (this *Bitvavo) cancelAllOrdersAfterBody(ch chan any, timeout any, optional
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var codGroupId any = nil
-	var codGroupIdparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrdersAfter", "codGroupId", 1)
+	var codGroupIdparamsVariable []any = this.HandleOptionIntegerAndParams(params, "cancelAllOrdersAfter", "codGroupId", 1)
 	codGroupId = GetValue(codGroupIdparamsVariable, 0)
 	params = MapTyped(GetValue(codGroupIdparamsVariable, 1))
 	var request map[string]any = map[string]any{
@@ -2406,7 +2406,7 @@ func (this *Bitvavo) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOrders", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -2635,7 +2635,7 @@ func (this *Bitvavo) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var rawTrades []any = SafeListTypedDefault(order, "fills", []any{})
 	var timeInForce *string = this.SafeString(order, "timeInForce")
-	var postOnly any = this.SafeValue(order, "postOnly")
+	var postOnly *bool = this.SafeBool(order, "postOnly")
 	// https://github.com/ccxt/ccxt/issues/8489
 	return this.SafeOrder(map[string]any{
 		"info":               order,
@@ -2723,7 +2723,7 @@ func (this *Bitvavo) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {

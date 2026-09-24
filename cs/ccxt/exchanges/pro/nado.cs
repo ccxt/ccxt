@@ -359,7 +359,7 @@ public partial class nado : ccxt.nado
         List<object> subscriptionParams = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbolsAndTimeframes); i++)
         {
-            object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
+            List<object> symbolAndTimeframe = this.safeList(symbolsAndTimeframes, i);
             string? marketSymbol = this.safeString(symbolAndTimeframe, 0);
             string? timeframe = this.safeString(symbolAndTimeframe, 1, "1m");
             Dictionary<string, object> market = this.market(marketSymbol);
@@ -423,7 +423,7 @@ public partial class nado : ccxt.nado
         List<object> subscriptionParams = new List<object>() {};
         for (int i = 0; i < (symbolsAndTimeframes?.Count ?? 0); i++)
         {
-            object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
+            List<object> symbolAndTimeframe = this.safeList(symbolsAndTimeframes, i);
             string? marketSymbol = this.safeString(symbolAndTimeframe, 0);
             string? timeframe = this.safeString(symbolAndTimeframe, 1, "1m");
             Dictionary<string, object> market = this.market(marketSymbol);
@@ -1245,9 +1245,9 @@ public partial class nado : ccxt.nado
             }
             return authenticated;
         }
-        object recvWindow = null;
-        IList<object> recvWindowparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "authenticate", "recvWindow", 5000);
-        recvWindow = recvWindowparametersVariable[0];
+        Int64? recvWindow = null;
+        IList<object> recvWindowparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "authenticate", "recvWindow", 5000);
+        recvWindow = (Int64?)recvWindowparametersVariable[0];
         parameters = recvWindowparametersVariable[1];
         string? subaccount = null;
         IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "authenticate", "subaccount", "default");
@@ -1255,7 +1255,7 @@ public partial class nado : ccxt.nado
         parameters = subaccountparametersVariable[1];
         Int64 id = this.requestId();
         string sender = this.createSubaccount(this.walletAddress, subaccount);
-        object expiration = this.sum(this.milliseconds(), recvWindow);
+        Int64 expiration = this.sum(this.milliseconds(), recvWindow);
         Dictionary<string, object> tx = new Dictionary<string, object>() {
             { "sender", sender },
             { "expiration", this.numberToString(expiration) },
@@ -1527,7 +1527,7 @@ public partial class nado : ccxt.nado
             ((IDictionary<string,object>)this.trades)[(string)symbol] = trades;
         }
         Dictionary<string, object> trade = this.parseWsTrade(message, market);
-        callDynamically(trades, "append", new object[] {trade});
+        trades.append(trade);
         client.resolve(trades, messageHash);
     }
 
@@ -1540,7 +1540,7 @@ public partial class nado : ccxt.nado
             this.myTrades = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache trades = this.myTrades;
-        callDynamically(trades, "append", new object[] {trade});
+        trades.append(trade);
         string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
         client.resolve(trades, "myTrades");
         client.resolve(trades, ("myTrades:" + symbol));
@@ -1582,7 +1582,7 @@ public partial class nado : ccxt.nado
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
         }
         IList<object> parsed = this.parseOHLCV(message, market);
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         string messageHash = ((("ohlcv:" + timeframe) + ":") + symbol);
         client.resolve(new List<object>() {symbol, timeframe, stored}, messageHash);
     }
@@ -1666,7 +1666,7 @@ public partial class nado : ccxt.nado
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache orders = this.orders;
-        callDynamically(orders, "append", new object[] {order});
+        orders.append(order);
         string? symbol = ((string)(order != null && ((IDictionary<string, object>)order).ContainsKey("symbol") ? ((IDictionary<string, object>)order)["symbol"] : null));
         client.resolve(orders, "orders");
         client.resolve(orders, ("orders:" + symbol));
@@ -1757,13 +1757,13 @@ public partial class nado : ccxt.nado
         {
             Dictionary<string, object> longPosition = this.extend(new Dictionary<string, object>() {}, position);
             longPosition["side"] = "long";
-            callDynamically(positions, "append", new object[] {longPosition});
+            positions.append(longPosition);
             Dictionary<string, object> shortPosition = this.extend(new Dictionary<string, object>() {}, position);
             shortPosition["side"] = "short";
-            callDynamically(positions, "append", new object[] {shortPosition});
+            positions.append(shortPosition);
         } else
         {
-            callDynamically(positions, "append", new object[] {position});
+            positions.append(position);
         }
         string? symbol = ((string)(position != null && ((IDictionary<string, object>)position).ContainsKey("symbol") ? ((IDictionary<string, object>)position)["symbol"] : null));
         client.resolve(positions, "positions");
@@ -2011,7 +2011,7 @@ public partial class nado : ccxt.nado
         for (int i = 0; i < subscriptions.Count; i++)
         {
             string? unsubscribeHash = ((string)subscriptions[i]);
-            object subscription = getValue(client.subscriptions, unsubscribeHash);
+            IDictionary<string, object> subscription = this.safeDict(client.subscriptions, unsubscribeHash);
             string? subscriptionId = this.safeString(subscription, "id");
             if ((subscriptionId != id))
             {

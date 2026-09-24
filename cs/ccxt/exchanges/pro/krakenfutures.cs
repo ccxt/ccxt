@@ -397,7 +397,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             position["timestamp"] = timestamp;
             position["datetime"] = this.iso8601(timestamp);
             newPositions.Add(position);
-            callDynamically(cache, "append", new object[] {position});
+            cache.append(position);
         }
         List<object> messageHashes = this.findMessageHashes(client, "positions::");
         for (int i = 0; i < (messageHashes?.Count ?? 0); i++)
@@ -580,17 +580,17 @@ public partial class krakenfutures : ccxt.krakenfutures
         }
         string name = "balances";
         string messageHash = name;
-        object account = null;
-        IList<object> accountparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchBalance", "account");
-        account = accountparametersVariable[0];
+        string? account = null;
+        IList<object> accountparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchBalance", "account");
+        account = (string)accountparametersVariable[0];
         parameters = accountparametersVariable[1];
         if ((account != null))
         {
-            if (!isEqual(account, "futures") && !isEqual(account, "flex_futures"))
+            if (account != "futures" && account != "flex_futures")
             {
                 throw new ArgumentsRequired ((this.id + " watchBalance account must be either 'futures' or 'flex_futures'")) ;
             }
-            messageHash = messageHash + (":" + (account));
+            messageHash = messageHash + (":" + account);
         }
         return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(name, messageHash, parameters));
     }
@@ -655,12 +655,12 @@ public partial class krakenfutures : ccxt.krakenfutures
                     object index = subtract((length - 1), i); // need reverse to correct chronology
                     object item = getValue(trades, index);
                     Dictionary<string, object> trade = this.parseWsTrade(item);
-                    callDynamically(tradesArray, "append", new object[] {trade});
+                    tradesArray.append(trade);
                 }
             } else
             {
                 Dictionary<string, object> trade = this.parseWsTrade(message);
-                callDynamically(tradesArray, "append", new object[] {trade});
+                tradesArray.append(trade);
             }
             client.resolve(tradesArray, messageHash);
         }
@@ -868,7 +868,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             if (((previousOrder == null)) || ((reason == "edited_by_user")))
             {
                 Dictionary<string, object> parsed = this.parseWsOrder(order);
-                callDynamically(orders, "append", new object[] {parsed});
+                orders.append(parsed);
                 client.resolve(orders, messageHash);
                 client.resolve(orders, ((messageHash + ":") + symbol));
             } else
@@ -916,7 +916,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                     ((IDictionary<string,object>)GetValue(previousOrder, "fee"))["cost"] = Precise.stringAdd(stringOrderCost, stringTradeCost);
                 }
                 // update the newUpdates count
-                callDynamically(orders, "append", new object[] {this.safeOrder(previousOrder)});
+                orders.append(this.safeOrder(previousOrder));
                 client.resolve(orders, ((messageHash + ":") + symbol));
                 client.resolve(orders, messageHash);
             }
@@ -1033,7 +1033,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             {
                 symbols[(string)symbol] = true;
             }
-            callDynamically(cachedOrders, "append", new object[] {parsed});
+            cachedOrders.append(parsed);
         }
         int length = getArrayLength(this.orders);
         if (length > 0)
@@ -1346,7 +1346,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         }
         for (int i = 0; i < bids.Count; i++)
         {
-            object bid = bids[i];
+            IDictionary<string, object> bid = this.safeDict(bids, i);
             double? price = this.safeNumber(bid, "price");
             double? qty = this.safeNumber(bid, "qty");
             object bidsSide = getValue(orderbook, "bids");
@@ -1354,7 +1354,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         }
         for (int i = 0; i < asks.Count; i++)
         {
-            object ask = asks[i];
+            IDictionary<string, object> ask = this.safeDict(asks, i);
             double? price = this.safeNumber(ask, "price");
             double? qty = this.safeNumber(ask, "qty");
             object asksSide = getValue(orderbook, "asks");
@@ -1680,7 +1680,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             {
                 tradeSymbols[(string)(parsedTrade != null && ((IDictionary<string, object>)parsedTrade).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedTrade)["symbol"] : null)] = true;
             }
-            callDynamically(stored, "append", new object[] {parsedTrade});
+            stored.append(parsedTrade);
         }
         List<object> tradeSymbolKeys = new List<object>(((IDictionary<string,object>)tradeSymbols).Keys);
         for (int i = 0; i < tradeSymbolKeys.Count; i++)

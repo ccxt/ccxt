@@ -439,7 +439,7 @@ class mudrex(Exchange, ImplicitAPI):
                 items = self.safe_list(data, 'items', [])
                 # hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                 itemsLength = len(items)
-                if (itemsLength is None) or (itemsLength == 0):
+                if itemsLength == 0:
                     items = self.safe_list(data, 'results', [])
                     itemsLength = len(items)
                 if (itemsLength == 0) and ('symbol' in data):
@@ -447,7 +447,7 @@ class mudrex(Exchange, ImplicitAPI):
             else:
                 items = self.to_array(data)
             numItems = len(items)
-            if (numItems is None) or (numItems == 0):
+            if numItems == 0:
                 paging = False
                 break
             for i in range(0, numItems):
@@ -1173,7 +1173,7 @@ class mudrex(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         maxCalls = None
-        maxCalls, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginationCalls', 10)
+        maxCalls, params = self.handle_option_integer_and_params(params, 'fetchMyTrades', 'paginationCalls', 10)
         pageSize = 0
         if limit is not None:
             # every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied

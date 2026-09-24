@@ -1314,7 +1314,7 @@ class woofipro(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_incremental('fetchFundingRateHistory', symbol, since, limit, params, 'page', 25)
         request = {}
@@ -1362,7 +1362,7 @@ class woofipro(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def parse_income(self, income: object, market: Market = None) -> object:
+    def parse_income(self, income: dict, market: Market = None) -> object:
         #
         # {
         #         "symbol": "PERP_ETH_USDC",
@@ -1410,7 +1410,7 @@ class woofipro(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingHistory', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_incremental('fetchFundingHistory', symbol, since, limit, params, 'page', 500)
         request = {}
@@ -1675,7 +1675,7 @@ class woofipro(Exchange, ImplicitAPI):
         remaining = Precise.string_sub(amount, filled)
         fee = self.safe_value_2(order, 'total_fee', 'totalFee')
         feeCurrency = self.safe_string_2(order, 'fee_asset', 'feeAsset')
-        transactions = self.safe_value(order, 'Transactions')
+        transactions = self.safe_list(order, 'Transactions')
         triggerPrice = self.safe_number(order, 'triggerPrice')
         takeProfitPrice = None
         stopLossPrice = None
@@ -1931,7 +1931,7 @@ class woofipro(Exchange, ImplicitAPI):
             self.load_markets()
         ordersRequests = []
         for i in range(0, len(orders)):
-            rawOrder = orders[i]
+            rawOrder = self.safe_dict(orders, i)
             marketId = self.safe_string(rawOrder, 'symbol')
             type = self.safe_string(rawOrder, 'type')
             side = self.safe_string(rawOrder, 'side')
@@ -2299,7 +2299,7 @@ class woofipro(Exchange, ImplicitAPI):
         paginate = False
         isTrigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         maxLimit = 100 if (isTrigger is True) else 500
-        paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOrders', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_incremental('fetchOrders', symbol, since, limit, params, 'page', maxLimit)
         request = {}
@@ -2470,7 +2470,7 @@ class woofipro(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_incremental('fetchMyTrades', symbol, since, limit, params, 'page', 500)
         request = {}
@@ -2522,7 +2522,7 @@ class woofipro(Exchange, ImplicitAPI):
         }
         balances = self.safe_list(response, 'holding', [])
         for i in range(0, len(balances)):
-            balance = balances[i]
+            balance = self.safe_dict(balances, i)
             code = self.safe_currency_code(self.safe_string(balance, 'token'))
             account = self.account()
             account['total'] = self.safe_string(balance, 'holding')

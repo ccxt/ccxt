@@ -458,7 +458,7 @@ class hollaex(ccxt.async_support.hollaex):
         message = self.extend(request, params)
         return await self.watch(signedUrl, messageHash, message, messageHash)
 
-    def handle_error_message(self, client: Client, message: object) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> Bool:
         #
         #     { error: "Bearer or HMAC authentication required" }
         #     { error: "Error: wrong input" }

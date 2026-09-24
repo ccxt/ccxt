@@ -584,11 +584,11 @@ public partial class apex : Exchange
         object chains = (this.options.ContainsKey("_temp_currencies_chains") ? this.options["_temp_currencies_chains"] : null);
         for (int j = 0; j < getArrayLength(chains); j++)
         {
-            object chain = getValue(chains, j);
+            IDictionary<string, object> chain = this.safeDict(chains, j);
             List<object> tokens = this.safeList(chain, "tokens", new List<object>() {});
             for (int f = 0; f < tokens.Count; f++)
             {
-                object token = tokens[f];
+                IDictionary<string, object> token = this.safeDict(tokens, f);
                 string? tokenName = this.safeString(token, "token");
                 if ((tokenName == currencyId))
                 {
@@ -1433,7 +1433,14 @@ public partial class apex : Exchange
     public virtual string? generateRandomClientIdOmni(object _accountId)
     {
         bool hasAccountId = ((_accountId != null)) && (!isEqual(_accountId, ""));
-        object accountId = hasAccountId ? _accountId : this.randNumber(12).ToString();
+        object accountId = null;
+        if (hasAccountId)
+        {
+            accountId = _accountId;
+        } else
+        {
+            accountId = this.randNumber(12).ToString();
+        }
         return ((((("apexomni-" + (accountId)) + "-") + this.milliseconds().ToString()) + "-") + this.randNumber(6).ToString());
     }
 

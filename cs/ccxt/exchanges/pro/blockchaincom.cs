@@ -114,7 +114,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         List<object> balances = this.safeList(message, "balances", new List<object>() {});
         for (int i = 0; i < balances.Count; i++)
         {
-            object entry = balances[i];
+            IDictionary<string, object> entry = this.safeDict(balances, i);
             string? currencyId = this.safeString(entry, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -165,10 +165,10 @@ public partial class blockchaincom : ccxt.blockchaincom
         };
         request = this.deepExtend(request, parameters);
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
-        object ohlcv = await this.watch(url, messageHash, request, messageHash, request);
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)await this.watch(url, messageHash, request, messageHash, request));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)ohlcv.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
@@ -216,7 +216,7 @@ public partial class blockchaincom : ccxt.blockchaincom
                 stored = new ArrayCacheByTimestamp(limit);
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
             }
-            callDynamically(stored, "append", new object[] {ohlcv});
+            stored.append(ohlcv);
             client.resolve(stored, messageHash);
         } else if (eventVar != "subscribed")
         {
@@ -416,7 +416,7 @@ public partial class blockchaincom : ccxt.blockchaincom
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
         Dictionary<string, object> parsed = this.parseWsTrade(message, market);
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         client.resolve(getValue(this.trades, symbol), messageHash);
     }
@@ -488,10 +488,10 @@ public partial class blockchaincom : ccxt.blockchaincom
         };
         string messageHash = "orders";
         Dictionary<string, object> request = this.deepExtend(message, parameters);
-        object orders = await this.watch(url, messageHash, request, messageHash);
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, request, messageHash));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)orders.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -593,12 +593,12 @@ public partial class blockchaincom : ccxt.blockchaincom
             {
                 object order = orders[i];
                 Dictionary<string, object> parsedOrder = this.parseWsOrder(order);
-                callDynamically(cachedOrders, "append", new object[] {parsedOrder});
+                cachedOrders.append(parsedOrder);
             }
         } else if (eventVar == "updated")
         {
             Dictionary<string, object> parsedOrder = this.parseWsOrder(message);
-            callDynamically(cachedOrders, "append", new object[] {parsedOrder});
+            cachedOrders.append(parsedOrder);
         }
         this.orders = cachedOrders;
         client.resolve(this.orders, messageHash);

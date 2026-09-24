@@ -1054,7 +1054,7 @@ class indodax extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
-        $side = $this->safe_value($params, 'side');
+        $side = $this->safe_string($params, 'side');
         if ($side === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires an extra "side" param');
         }

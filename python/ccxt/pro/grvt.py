@@ -117,7 +117,9 @@ class grvt(ccxt.async_support.grvt):
             'params': request,
             'id': self.request_id(),
         }
-        apiPart = 'publicMarket' if publicOrPrivate else 'privateTrading'
+        apiPart = 'privateTrading'
+        if publicOrPrivate:
+            apiPart = 'publicMarket'
         return await self.watch_multiple(self.urls['api']['ws'][apiPart], messageHashes, payload, rawHashes)
 
     def request_id(self) -> float:
@@ -158,7 +160,7 @@ class grvt(ccxt.async_support.grvt):
         channel = None
         channel, params = self.handle_option_string_and_params(params, 'watchTickers', 'channel', 'v1.ticker.s')
         interval = 500
-        interval, params = self.handle_option_and_params(params, 'watchTickers', 'interval', interval)
+        interval, params = self.handle_option_integer_and_params(params, 'watchTickers', 'interval', interval)
         if self.markets is None:
             await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -400,7 +402,7 @@ class grvt(ccxt.async_support.grvt):
         rawHashes = []
         messageHashes = []
         for i in range(0, len(symbolsAndTimeframes)):
-            data = symbolsAndTimeframes[i]
+            data = self.safe_list(symbolsAndTimeframes, i)
             symbolString = self.safe_string(data, 0)
             market = self.market(symbolString)
             marketId = market['id']
@@ -501,9 +503,9 @@ class grvt(ccxt.async_support.grvt):
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols')
         if limit is None:
-            limit, params = self.handle_option_and_params(params, 'watchOrderBook', 'limit', 100)
+            limit, params = self.handle_option_integer_and_params(params, 'watchOrderBook', 'limit', 100)
         interval = 500
-        interval, params = self.handle_option_and_params(params, 'watchOrderBook', 'interval', interval)
+        interval, params = self.handle_option_integer_and_params(params, 'watchOrderBook', 'interval', interval)
         symbols = self.market_symbols(symbols)
         extraPart = str((interval) + '-' + str(limit)) if isSnapshot else str(interval)
         rawHashes = []

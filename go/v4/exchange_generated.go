@@ -2497,10 +2497,15 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 		var resultingCurrencies []any = []any{}
 		for i := 0; i < len(codes); i++ {
 			var code string = GetValue(codes, i).(string)
-			var groupedCurrenciesCode any = this.SafeList(groupedCurrencies, code, []any{})
+			var groupedCurrenciesCode []any = SafeListTyped(groupedCurrencies, code)
 			var highestPrecisionCurrency any = this.SafeValue(groupedCurrenciesCode, 0)
-			for j := 1; j < GetArrayLength(groupedCurrenciesCode); j++ {
-				var currentCurrency any = GetValue(groupedCurrenciesCode, j)
+			for j := 1; j < len(groupedCurrenciesCode); j++ {
+				var currentCurrency any = func() any {
+					if j >= 0 && j < len(groupedCurrenciesCode) {
+						return DerefScalar(groupedCurrenciesCode[j])
+					}
+					return nil
+				}()
 				if IsEqual(this.PrecisionMode, TICK_SIZE) {
 					highestPrecisionCurrency = func() any {
 						if IsLessThan(GetValue(currentCurrency, "precision"), GetValue(highestPrecisionCurrency, "precision")) {
@@ -3598,12 +3603,12 @@ func (this *BaseExchange) ConvertTradingViewToOHLCV(ohlcvs any, optionalArgs ...
 	var ms bool = GetArgBool(optionalArgs, 6, false)
 	_ = ms
 	var result []any = []any{}
-	var timestamps []any = SafeListTypedDefault(ohlcvs, timestamp, []any{})
-	var opens []any = SafeListTypedDefault(ohlcvs, open, []any{})
-	var highs []any = SafeListTypedDefault(ohlcvs, high, []any{})
-	var lows []any = SafeListTypedDefault(ohlcvs, low, []any{})
-	var closes []any = SafeListTypedDefault(ohlcvs, close, []any{})
-	var volumes []any = SafeListTypedDefault(ohlcvs, volume, []any{})
+	var timestamps []any = SafeListTyped(ohlcvs, timestamp)
+	var opens []any = SafeListTyped(ohlcvs, open)
+	var highs []any = SafeListTyped(ohlcvs, high)
+	var lows []any = SafeListTyped(ohlcvs, low)
+	var closes []any = SafeListTyped(ohlcvs, close)
+	var volumes []any = SafeListTyped(ohlcvs, volume)
 	for i := 0; i < len(timestamps); i++ {
 		result = append(result, []any{func() any {
 			if ms == true {
@@ -4858,11 +4863,11 @@ func (this *BaseExchange) fetch2Body(ch chan any, path any, optionalArgs ...any)
 		PanicOnError((<-this.Throttle(cost)))
 	}
 	var retries any = 0
-	var retriesparamsVariable []any = this.HandleOptionAndParams(params, path, "maxRetriesOnFailure", retries)
+	var retriesparamsVariable []any = this.HandleOptionIntegerAndParams(params, path, "maxRetriesOnFailure", retries)
 	retries = GetValue(retriesparamsVariable, 0)
 	params = GetValue(retriesparamsVariable, 1)
 	var retryDelay any = 0
-	var retryDelayparamsVariable []any = this.HandleOptionAndParams(params, path, "maxRetriesOnFailureDelay", retryDelay)
+	var retryDelayparamsVariable []any = this.HandleOptionIntegerAndParams(params, path, "maxRetriesOnFailureDelay", retryDelay)
 	retryDelay = GetValue(retryDelayparamsVariable, 0)
 	params = GetValue(retryDelayparamsVariable, 1)
 	var fetchDataCacheEnabled bool = IsGreaterThan(this.FetchHistoryCacheSize, 0)
@@ -5412,8 +5417,8 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan any, code any, optiona
 		panic(NotSupported(this.Id + " fetchTransactionFee() is not supported yet"))
 	}
 
-	var retRes677015 map[string]any = MapTyped(PanicOnError((<-this.FetchTransactionFeesAsync([]any{code}, params))))
-	ch <- BoxAbsent(retRes677015)
+	var retRes677515 map[string]any = MapTyped(PanicOnError((<-this.FetchTransactionFeesAsync([]any{code}, params))))
+	ch <- BoxAbsent(retRes677515)
 	return nil
 }
 func (this *BaseExchange) FetchTransactionFeesAsync(optionalArgs ...any) <-chan any {
@@ -5646,6 +5651,29 @@ func (this *BaseExchange) HandleOptionBoolAndParams2(params any, methodName any,
 	value := GetValue(valuenewParamsVariable, 0)
 	newParams := GetValue(valuenewParamsVariable, 1)
 	return []any{this.CheckOptionBool(methodName, optionName1, value), newParams}
+}
+
+/* eslint-disable no-unused-vars */
+/* eslint-enable no-unused-vars */
+func (this *BaseExchange) HandleOptionIntegerAndParams(params any, methodName any, optionName any, optionalArgs ...any) []any {
+	// handleOptionAndParams read as an integer; the statically typed ports throw on another type
+	var defaultValue *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
+	_ = defaultValue
+	var valuenewParamsVariable []any = this.HandleOptionAndParams(params, methodName, optionName, defaultValue)
+	value := GetValue(valuenewParamsVariable, 0)
+	newParams := GetValue(valuenewParamsVariable, 1)
+	return []any{this.CheckOptionInteger(methodName, optionName, value), newParams}
+}
+
+/* eslint-disable no-unused-vars */
+/* eslint-enable no-unused-vars */
+func (this *BaseExchange) HandleOptionIntegerAndParams2(params any, methodName any, optionName1 any, optionName2 any, optionalArgs ...any) []any {
+	var defaultValue *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
+	_ = defaultValue
+	var valuenewParamsVariable []any = this.HandleOptionAndParams2(params, methodName, optionName1, optionName2, defaultValue)
+	value := GetValue(valuenewParamsVariable, 0)
+	newParams := GetValue(valuenewParamsVariable, 1)
+	return []any{this.CheckOptionInteger(methodName, optionName1, value), newParams}
 }
 func (this *BaseExchange) HandleOption(methodName any, optionName any, optionalArgs ...any) any {
 	defaultValue := GetArg(optionalArgs, 0, nil)
@@ -7779,7 +7807,7 @@ func (this *BaseExchange) HandleMaxEntriesPerRequestAndParams(method any, option
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var newMaxEntriesPerRequest any = nil
-	var newMaxEntriesPerRequestparamsVariable []any = this.HandleOptionAndParams(params, method, "maxEntriesPerRequest")
+	var newMaxEntriesPerRequestparamsVariable []any = this.HandleOptionIntegerAndParams(params, method, "maxEntriesPerRequest")
 	newMaxEntriesPerRequest = GetValue(newMaxEntriesPerRequestparamsVariable, 0)
 	params = MapTyped(GetValue(newMaxEntriesPerRequestparamsVariable, 1))
 	if (!IsEqual(newMaxEntriesPerRequest, nil)) && (!IsEqual(newMaxEntriesPerRequest, maxEntriesPerRequest)) {
@@ -7811,11 +7839,11 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan any, method any,
 	var removeRepeated bool = GetArgBool(optionalArgs, 5, true)
 	_ = removeRepeated
 	var maxCalls any = 10
-	var maxCallsparamsVariable []any = this.HandleOptionAndParams(params, method, "paginationCalls", maxCalls)
+	var maxCallsparamsVariable []any = this.HandleOptionIntegerAndParams(params, method, "paginationCalls", maxCalls)
 	maxCalls = GetValue(maxCallsparamsVariable, 0)
 	params = GetValue(maxCallsparamsVariable, 1)
 	var maxRetries any = 3
-	var maxRetriesparamsVariable []any = this.HandleOptionAndParams(params, method, "maxRetries", maxRetries)
+	var maxRetriesparamsVariable []any = this.HandleOptionIntegerAndParams(params, method, "maxRetries", maxRetries)
 	maxRetries = GetValue(maxRetriesparamsVariable, 0)
 	params = GetValue(maxRetriesparamsVariable, 1)
 	var paginationDirection any = nil
@@ -7961,7 +7989,7 @@ func (this *BaseExchange) safeDeterministicCallBody(ch chan any, method any, opt
 	var params map[string]any = GetArgMap(optionalArgs, 4, map[string]any{})
 	_ = params
 	var maxRetries any = 3
-	var maxRetriesparamsVariable []any = this.HandleOptionAndParams(params, method, "maxRetries", maxRetries)
+	var maxRetriesparamsVariable []any = this.HandleOptionIntegerAndParams(params, method, "maxRetries", maxRetries)
 	maxRetries = GetValue(maxRetriesparamsVariable, 0)
 	params = MapTyped(GetValue(maxRetriesparamsVariable, 1))
 	var errors any = 0
@@ -8032,7 +8060,7 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan any, metho
 	maxEntriesPerRequest := GetArg(optionalArgs, 5, nil)
 	_ = maxEntriesPerRequest
 	var maxCalls any = 10
-	var maxCallsparamsVariable []any = this.HandleOptionAndParams(params, method, "paginationCalls", maxCalls)
+	var maxCallsparamsVariable []any = this.HandleOptionIntegerAndParams(params, method, "paginationCalls", maxCalls)
 	maxCalls = GetValue(maxCallsparamsVariable, 0)
 	params = GetValue(maxCallsparamsVariable, 1)
 	maxEntriesPerRequestparamsVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, params)
@@ -8126,11 +8154,11 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan any, method any, 
 	maxEntriesPerRequest := GetArg(optionalArgs, 7, nil)
 	_ = maxEntriesPerRequest
 	var maxCalls any = 10
-	var maxCallsparamsVariable []any = this.HandleOptionAndParams(params, method, "paginationCalls", maxCalls)
+	var maxCallsparamsVariable []any = this.HandleOptionIntegerAndParams(params, method, "paginationCalls", maxCalls)
 	maxCalls = GetValue(maxCallsparamsVariable, 0)
 	params = GetValue(maxCallsparamsVariable, 1)
 	var maxRetries any = 3
-	var maxRetriesparamsVariable []any = this.HandleOptionAndParams(params, method, "maxRetries", maxRetries)
+	var maxRetriesparamsVariable []any = this.HandleOptionIntegerAndParams(params, method, "maxRetries", maxRetries)
 	maxRetries = GetValue(maxRetriesparamsVariable, 0)
 	params = GetValue(maxRetriesparamsVariable, 1)
 	maxEntriesPerRequestparamsVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, params)
@@ -8280,11 +8308,11 @@ func (this *BaseExchange) fetchPaginatedCallIncrementalBody(ch chan any, method 
 	maxEntriesPerRequest := GetArg(optionalArgs, 5, nil)
 	_ = maxEntriesPerRequest
 	var maxCalls any = 10
-	var maxCallsparamsVariable []any = this.HandleOptionAndParams(params, method, "paginationCalls", maxCalls)
+	var maxCallsparamsVariable []any = this.HandleOptionIntegerAndParams(params, method, "paginationCalls", maxCalls)
 	maxCalls = GetValue(maxCallsparamsVariable, 0)
 	params = GetValue(maxCallsparamsVariable, 1)
 	var maxRetries any = 3
-	var maxRetriesparamsVariable []any = this.HandleOptionAndParams(params, method, "maxRetries", maxRetries)
+	var maxRetriesparamsVariable []any = this.HandleOptionIntegerAndParams(params, method, "maxRetries", maxRetries)
 	maxRetries = GetValue(maxRetriesparamsVariable, 0)
 	params = GetValue(maxRetriesparamsVariable, 1)
 	maxEntriesPerRequestparamsVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, params)
@@ -11096,8 +11124,8 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan any, clientOrde
 		"clientOrderIds": clientOrderIds,
 	})
 
-	var retRes1017515 []any = ListTyped(PanicOnError((<-this.CancelOrdersAsync([]any{}, symbol, extendedParams))))
-	ch <- BoxAbsent(retRes1017515)
+	var retRes1019515 []any = ListTyped(PanicOnError((<-this.CancelOrdersAsync([]any{}, symbol, extendedParams))))
+	ch <- BoxAbsent(retRes1019515)
 	return nil
 }
 func (this *Exchange) CancelAllOrdersAsync(optionalArgs ...any) <-chan any {

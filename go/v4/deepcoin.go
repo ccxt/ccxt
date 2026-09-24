@@ -1265,12 +1265,7 @@ func (this *Deepcoin) ParseBalance(response any) any {
 	}
 	var balances []any = SafeListTyped(response, "data")
 	for i := 0; i < len(balances); i++ {
-		var balance map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(balances) {
-				return DerefScalar(balances[i])
-			}
-			return nil
-		}())
+		var balance map[string]any = SafeMapTyped(balances, i)
 		var symbol *string = this.SafeString(balance, "ccy")
 		var code *string = this.SafeCurrencyCode(symbol)
 		var account map[string]any = this.Account()
@@ -1581,16 +1576,13 @@ func (this *Deepcoin) fetchDepositAddressBody(ch chan any, code any, optionalArg
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var network any = DerefScalar(this.SafeString(params, "network"))
+	var network *string = this.SafeString(params, "network")
 	var defaultNetworks map[string]any = SafeMapTyped(this.Options, "defaultNetworks")
 	var defaultNetwork *string = this.SafeString(defaultNetworks, code)
-	network = func() any {
-		if !IsEqual(network, nil) && !IsEqual(network, "") {
-			return network
-		}
-		return defaultNetwork
-	}()
-	if !IsEqual(network, nil) {
+	if (network == nil) || (network != nil && *network == "") {
+		network = defaultNetwork
+	}
+	if network != nil {
 		params = MapTyped(this.Omit(params, "network"))
 	}
 
@@ -1598,7 +1590,7 @@ func (this *Deepcoin) fetchDepositAddressBody(ch chan any, code any, optionalArg
 	PanicOnError(addressess)
 	var length int = GetArrayLength(addressess)
 	var address any = this.SafeDict(addressess, 0, map[string]any{})
-	if (!IsEqual(network, nil)) && (length > 1) {
+	if (network != nil) && (length > 1) {
 		for i := 0; i < length; i++ {
 			var entry any = GetValue(addressess, i)
 			if IsEqual(GetValue(entry, "network"), network) {
@@ -1750,12 +1742,10 @@ func (this *Deepcoin) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(item, "ts")
 	var change *string = this.SafeString(item, "balChg")
 	var amount *string = Precise.StringAbs(change)
-	var direction string = func() string {
-		if Precise.StringLt(change, "0") {
-			return "out"
-		}
-		return "in"
-	}()
+	var direction string = "in"
+	if Precise.StringLt(change, "0") {
+		direction = "out"
+	}
 	var currencyId *string = this.SafeString(item, "ccy")
 	currency = MapTyped(this.SafeCurrency(currencyId, currency))
 	var typeVar *string = this.SafeString(item, "type")
@@ -1812,7 +1802,7 @@ func (this *Deepcoin) transferBody(ch chan any, code any, amount any, fromAccoun
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var userId any = nil
-	var userIdparamsVariable []any = this.HandleOptionAndParams(params, "transfer", "userId")
+	var userIdparamsVariable []any = this.HandleOptionStringAndParams(params, "transfer", "userId")
 	userId = GetValue(userIdparamsVariable, 0)
 	params = MapTyped(GetValue(userIdparamsVariable, 1))
 	userId = func() any {
@@ -2239,8 +2229,8 @@ func (this *Deepcoin) createMarketOrderWithCostBody(ch chan any, symbol any, sid
 		"cost": cost,
 	})
 
-	var retRes180015 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", side, 0, nil, params))))
-	ch <- BoxAbsent(retRes180015)
+	var retRes180515 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", side, 0, nil, params))))
+	ch <- BoxAbsent(retRes180515)
 	return nil
 }
 
@@ -2267,8 +2257,8 @@ func (this *Deepcoin) createMarketBuyOrderWithCostBody(ch chan any, symbol any, 
 		"cost": cost,
 	})
 
-	var retRes181415 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", 0, nil, params))))
-	ch <- BoxAbsent(retRes181415)
+	var retRes181915 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", 0, nil, params))))
+	ch <- BoxAbsent(retRes181915)
 	return nil
 }
 
@@ -2295,8 +2285,8 @@ func (this *Deepcoin) createMarketSellOrderWithCostBody(ch chan any, symbol any,
 		"cost": cost,
 	})
 
-	var retRes182815 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "sell", 0, nil, params))))
-	ch <- BoxAbsent(retRes182815)
+	var retRes183315 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "sell", 0, nil, params))))
+	ch <- BoxAbsent(retRes183315)
 	return nil
 }
 
@@ -2382,7 +2372,7 @@ func (this *Deepcoin) fetchClosedOrderBody(ch chan any, id any, optionalArgs ...
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var entry map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 
 	ch <- this.ParseOrder(entry, market)
@@ -2425,7 +2415,7 @@ func (this *Deepcoin) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...an
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetDeepcoinTradeOrderByID(this.Extend(request, params))).Raw))
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var length int = len(data)
 	if length == 0 {
 		panic(OrderNotFound(Add(this.Id+" fetchOpenOrder() could not find order id ", id)))
@@ -2474,13 +2464,13 @@ func (this *Deepcoin) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchCanceledAndClosedOrders", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchCanceledAndClosedOrders", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
 
-		var retRes196119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchCanceledAndClosedOrders", symbol, since, limit, params))))
-		ch <- BoxAbsent(retRes196119)
+		var retRes196619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchCanceledAndClosedOrders", symbol, since, limit, params))))
+		ch <- BoxAbsent(retRes196619)
 		return nil
 	}
 	var trigger *bool = this.SafeBool(params, "trigger", false)
@@ -2507,7 +2497,7 @@ func (this *Deepcoin) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs
 		if !IsEqual(methodName, "fetchCanceledAndClosedOrders") {
 			panic(BadRequest(Add(Add(this.Id+" ", methodName), "() does not support trigger orders")))
 		}
-		if IsEqual(market, nil) {
+		if market == nil {
 			panic(ArgumentsRequired(this.Id + " fetchCanceledAndClosedOrders() requires a symbol argument for trigger orders"))
 		}
 		params = this.Omit(params, "trigger")
@@ -2633,8 +2623,8 @@ func (this *Deepcoin) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) 
 		"state": "canceled",
 	})
 
-	var retRes208515 []any = ListTyped(PanicOnError((<-this.FetchCanceledAndClosedOrdersAsync(symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes208515)
+	var retRes209015 []any = ListTyped(PanicOnError((<-this.FetchCanceledAndClosedOrdersAsync(symbol, since, limit, params))))
+	ch <- BoxAbsent(retRes209015)
 	return nil
 }
 
@@ -2674,8 +2664,8 @@ func (this *Deepcoin) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 		"state": "filled",
 	})
 
-	var retRes210415 []any = ListTyped(PanicOnError((<-this.FetchCanceledAndClosedOrdersAsync(symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes210415)
+	var retRes210915 []any = ListTyped(PanicOnError((<-this.FetchCanceledAndClosedOrdersAsync(symbol, since, limit, params))))
+	ch <- BoxAbsent(retRes210915)
 	return nil
 }
 
@@ -3597,7 +3587,7 @@ func (this *Deepcoin) fetchFundingRateBody(ch chan any, symbol any, optionalArgs
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rates []any = SafeListTypedDefault(data, "current_fund_rates", []any{})
+	var rates []any = SafeListTyped(data, "current_fund_rates")
 	var entry map[string]any = MapTyped(this.SafeDict(rates, 0, map[string]any{}))
 
 	ch <- this.ParseFundingRate(entry, market)
@@ -3766,13 +3756,13 @@ func (this *Deepcoin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
 
-		var retRes297019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))))
-		ch <- BoxAbsent(retRes297019)
+		var retRes297519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))))
+		ch <- BoxAbsent(retRes297519)
 		return nil
 	}
 	var market map[string]any = nil
@@ -3786,7 +3776,7 @@ func (this *Deepcoin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"instType": this.ConvertToInstrumentType(marketType),
 	}
-	if !IsEqual(market, nil) {
+	if market != nil {
 		request["instId"] = GetValue(market, "id")
 	}
 	if since != nil {
@@ -3874,8 +3864,8 @@ func (this *Deepcoin) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...
 		"ordId": id,
 	}, params)
 
-	var retRes304715 []any = ListTyped(PanicOnError((<-this.FetchMyTradesAsync(symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes304715)
+	var retRes305215 []any = ListTyped(PanicOnError((<-this.FetchMyTradesAsync(symbol, since, limit, params))))
+	ch <- BoxAbsent(retRes305215)
 	return nil
 }
 
@@ -3917,7 +3907,7 @@ func (this *Deepcoin) closePositionBody(ch chan any, symbol any, optionalArgs ..
 		"productGroup": productGroup,
 	}
 	var response map[string]any = nil
-	if (positionId == nil) && IsEqual(positionIds, nil) {
+	if (positionId == nil) && (positionIds == nil) {
 
 		response = MapTyped(PanicOnError((<-this.PrivatePostDeepcoinTradeBatchClosePosition(this.Extend(request, params))).Raw))
 	} else {
@@ -3989,7 +3979,7 @@ func (this *Deepcoin) HandleErrors(code any, reason any, url any, method any, he
 		msg = sMsg
 	}
 	var errorList []any = SafeListTyped(data, "errorList")
-	if !IsEqual(errorList, nil) {
+	if errorList != nil {
 		for i := 0; i < len(errorList); i++ {
 			var entry map[string]any = SafeMapTyped(errorList, i)
 			errorCode = this.SafeString(entry, "errorCode")
@@ -4011,7 +4001,7 @@ func (this *Deepcoin) HandleErrors(code any, reason any, url any, method any, he
 		panic(ExchangeError(feedback))
 	} else {
 		var list []any = SafeListTypedDefault(data, "list", []any{})
-		if (func() bool { _, ok := data["list"]; return ok }()) && (IsEqual(list, nil)) {
+		if (func() bool { _, ok := data["list"]; return ok }()) && ((list == nil)) {
 			panic(NullResponse(feedback))
 		}
 	}

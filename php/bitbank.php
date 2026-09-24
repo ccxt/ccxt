@@ -655,7 +655,7 @@ class bitbank extends Exchange {
         $data = $this->safe_dict($response, 'data', array());
         $assets = $this->safe_list($data, 'assets', array());
         for ($i = 0; $i < count($assets); $i++) {
-            $balance = $assets[$i];
+            $balance = $this->safe_dict($assets, $i);
             $currencyId = $this->safe_string($balance, 'asset');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -729,7 +729,7 @@ class bitbank extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order(array $order, ?array $market = null): array {
+    public function parse_order(?array $order, ?array $market = null): array {
         $id = $this->safe_string($order, 'order_id');
         $marketId = $this->safe_string($order, 'pair');
         $market = $this->safe_market($marketId, $market);
@@ -842,7 +842,7 @@ class bitbank extends Exchange {
         //        }
         //    }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_dict($response, 'data');
         return $this->parse_order($data);
     }
 
@@ -1139,7 +1139,7 @@ class bitbank extends Exchange {
             return null;
         }
         $success = $this->safe_integer($response, 'success');
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_dict($response, 'data');
         if (($success === null || $success === 0) || ($data === null)) {
             $errorMessages = array(
                 '10000' => 'URL does not exist',

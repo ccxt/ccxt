@@ -391,15 +391,15 @@ public class Opinion extends OpinionApi
         Boolean resolved = (java.util.Objects.equals(statusEnum, "Resolved"));
         String resultTokenId = this.safeString(raw, "resultTokenId");
         Boolean hasResult = Boolean.TRUE.equals(resolved) && (!java.util.Objects.equals(resultTokenId, null)) && (!java.util.Objects.equals(resultTokenId, ""));
-        List<Object> outcomeLabels = new ArrayList<Object>(Arrays.asList(this.safeString(raw, "yesLabel", "YES"), this.safeString(raw, "noLabel", "NO")));
-        List<Object> outcomeTokenIds = new ArrayList<Object>(Arrays.asList(this.safeString(raw, "yesTokenId"), this.safeString(raw, "noTokenId")));
+        List<String> outcomeLabels = new ArrayList<String>(Arrays.asList(this.safeString(raw, "yesLabel", "YES"), this.safeString(raw, "noLabel", "NO")));
+        List<String> outcomeTokenIds = new ArrayList<String>(Arrays.asList(this.safeString(raw, "yesTokenId"), this.safeString(raw, "noTokenId")));
         List<Object> outcomes = new ArrayList<Object>(Arrays.asList());
         Object resolvedOutcome = null;
         for (var i = 0; i < ((List<?>)outcomeLabels).size(); i++)
         {
-            Object label = (outcomeLabels == null || i < 0 || i >= outcomeLabels.size() ? null : outcomeLabels.get(i));
-            Object tokenId = (outcomeTokenIds == null || i < 0 || i >= outcomeTokenIds.size() ? null : outcomeTokenIds.get(i));
-            Object outcomeHandle = this.slugToOutcomeSymbol((String) (effectiveEventSlug), (String) (slug), (String) (label));
+            String label = (outcomeLabels == null || i < 0 || i >= outcomeLabels.size() ? null : outcomeLabels.get(i));
+            String tokenId = (outcomeTokenIds == null || i < 0 || i >= outcomeTokenIds.size() ? null : outcomeTokenIds.get(i));
+            Object outcomeHandle = this.slugToOutcomeSymbol((String) (effectiveEventSlug), (String) (slug), label);
             Boolean winner = null;
             Object settleFraction = null;
             if (Boolean.TRUE.equals(hasResult))
@@ -411,7 +411,7 @@ public class Opinion extends OpinionApi
                     resolvedOutcome = outcomeHandle;
                 }
             }
-final Object finalTokenId = tokenId;
+final String finalTokenId = tokenId;
             final Boolean finalWinner = winner;
             final Object finalSettleFraction = settleFraction;
                         ((List<Object>)outcomes).add(new HashMap<String, Object>() {{
@@ -793,7 +793,14 @@ final Object finalTokenId = tokenId;
         String eventId = this.safeString(rawEvent, "marketId");
         String slug = this.safeString(rawEvent, "slug");
         String title = this.safeString(rawEvent, "marketTitle");
-        String eventHandle = (((!java.util.Objects.equals(title, null)))) ? this.shortenSlug((String) (title)) : this.shortenSlug((String) (slug));
+        String eventHandle = null;
+        if (!java.util.Objects.equals(title, null))
+        {
+            eventHandle = this.shortenSlug((String) (title));
+        } else
+        {
+            eventHandle = this.shortenSlug((String) (slug));
+        }
         List<Object> rawChildren = (List<Object>) this.safeList(rawEvent, "childMarkets", new ArrayList<Object>(Arrays.asList()));
         Integer rawChildrenLength = ((List<?>)rawChildren).size();
         List<Object> marketsList = new ArrayList<Object>(Arrays.asList());
@@ -811,11 +818,12 @@ final Object finalTokenId = tokenId;
         }
         Long created = this.safeTimestamp(rawEvent, "createdAt");
         List<Object> labels = (List<Object>) this.safeList(rawEvent, "labels", new ArrayList<Object>(Arrays.asList()));
+        final String finalEventHandle = eventHandle;
         final String finalTitle = title;
         final Long finalEnd = end;
         return this.extend(new HashMap<String, Object>() {{
             put( "id", eventId );
-            put( "event", eventHandle );
+            put( "event", finalEventHandle );
             put( "title", finalTitle );
             put( "description", Opinion.this.safeString(rawEvent, "rules") );
             put( "slug", slug );
@@ -1132,7 +1140,7 @@ final Object finalTokenId = tokenId;
             Integer historyLength = ((List<?>)history).size();
             for (var i = 0; Helpers.isLessThan(i, historyLength); i++)
             {
-                Object point = (history == null || i < 0 || i >= history.size() ? null : history.get(i));
+                Map<String, Object> point = (Map<String, Object>) this.safeDict(history, i);
                 Double price = this.safeNumber(point, "p");
                 Long timestamp = this.safeTimestamp(point, "t");
                 if ((!java.util.Objects.equals(price, null)) && (!java.util.Objects.equals(timestamp, null)))
@@ -2048,7 +2056,7 @@ final Object finalTokenId = tokenId;
         Integer balancesLength = ((List<?>)balances).size();
         for (var i = 0; Helpers.isLessThan(i, balancesLength); i++)
         {
-            Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i);
             String code = this.safeString(balance, "symbol", "USDT");
             ((Map<String, Object>)result).put((String)code, new HashMap<String, Object>() {{
     put( "free", Opinion.this.safeNumber(balance, "availableBalance") );
@@ -2462,19 +2470,19 @@ final Object finalTokenId = tokenId;
         }
         if (java.util.Objects.equals(msgType, "market.depth.diff"))
         {
-            this.handleOrderBook(client, message);
+            this.handleOrderBook(client, (Map<String, Object>) (message));
         } else if (java.util.Objects.equals(msgType, "market.last.price"))
         {
-            this.handleTicker(client, message);
+            this.handleTicker(client, (Map<String, Object>) (message));
         } else if (java.util.Objects.equals(msgType, "market.last.trade"))
         {
-            this.handleTrades(client, message);
+            this.handleTrades(client, (Map<String, Object>) (message));
         } else if (java.util.Objects.equals(msgType, "trade.order.update"))
         {
-            this.handleOrder(client, message);
+            this.handleOrder(client, (Map<String, Object>) (message));
         } else if (java.util.Objects.equals(msgType, "trade.record.new"))
         {
-            this.handleMyTrade(client, message);
+            this.handleMyTrade(client, (Map<String, Object>) (message));
         }
     }
 
@@ -2497,7 +2505,7 @@ final Object finalTokenId = tokenId;
         Integer marketKeysLength = ((List<?>)marketKeys).size();
         for (var i = 0; Helpers.isLessThan(i, marketKeysLength); i++)
         {
-            Object market = (this.markets == null ? null : ((Map<?, ?>)this.markets).get((marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i))));
+            Map<String, Object> market = (Map<String, Object>) this.safeDict(this.markets, (marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i)));
             Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
             if (Helpers.isEqual(this.safeInteger(info, "marketId"), marketId))
             {
@@ -2590,7 +2598,7 @@ final Object finalTokenId = tokenId;
         return this.seedOrderBook(outcome, sym, Helpers.getArgLong(optionalArgs, 0, null));
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -2663,7 +2671,7 @@ final Object finalTokenId = tokenId;
         return this.watchTicker(outcome, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public void handleTicker(Client client, Object message)
+    public void handleTicker(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -2740,7 +2748,7 @@ final Object finalTokenId = tokenId;
         return this.watchTrades(outcome, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
-    public void handleTrades(Client client, Object message)
+    public void handleTrades(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -2874,7 +2882,7 @@ final Object finalTokenId = tokenId;
         return null;
     }
 
-    public void handleOrder(Client client, Object message)
+    public void handleOrder(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -2905,9 +2913,19 @@ final Object finalTokenId = tokenId;
         // unlike the REST order body (0 buy / 1 sell), the websocket channel uses 1 buy / 2 sell
         // per the docs and confirmed live
         Long sideInt = this.safeInteger(message, "side");
-        String side = ((((sideInt != null && sideInt == 1)))) ? "buy" : "sell";
+        String side = "sell";
+        if ((sideInt != null && sideInt == 1))
+        {
+            side = "buy";
+        }
         Long tradingMethod = this.safeInteger(message, "tradingMethod");
-        String type = ((((tradingMethod != null && tradingMethod == 1)))) ? "market" : "limit";
+        String type = "limit";
+        if ((tradingMethod != null && tradingMethod == 1))
+        {
+            type = "market";
+        }
+        final String finalType = type;
+        final String finalSide = side;
         Object order = this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Opinion.this.safeString(message, "orderId") );
             put( "clientOrderId", null );
@@ -2920,8 +2938,8 @@ final Object finalTokenId = tokenId;
             put( "outcomeId", Opinion.this.safeString(outcomeObj, "outcomeId") );
             put( "label", Opinion.this.safeString(outcomeObj, "label") );
             put( "market", Opinion.this.safeString(outcomeObj, "market") );
-            put( "type", type );
-            put( "side", side );
+            put( "type", finalType );
+            put( "side", finalSide );
             put( "price", Opinion.this.safeNumber(message, "price") );
             put( "amount", Opinion.this.safeNumber(message, "shares") );
             put( "cost", Opinion.this.safeNumber(message, "filledAmount") );
@@ -2985,7 +3003,7 @@ final Object finalTokenId = tokenId;
         return this.watchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public void handleMyTrade(Client client, Object message)
+    public void handleMyTrade(Client client, Map<String, Object> message)
     {
         //
         //     {

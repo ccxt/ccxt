@@ -74,7 +74,7 @@ class bithumb(ccxt.async_support.bithumb):
         if self.markets is None:
             await self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'watchTicker', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'watchTicker', 'generation', 2)
         isGenerationTwo = (generation == 2)
         url = self.urls['api']['ws']['publicGen2'] if isGenerationTwo else self.urls['api']['ws']['public']
         market = self.market(symbol)
@@ -114,7 +114,7 @@ class bithumb(ccxt.async_support.bithumb):
         if self.markets is None:
             await self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'watchTickers', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'watchTickers', 'generation', 2)
         isGenerationTwo = (generation == 2)
         symbols = self.market_symbols(symbols, None, False, True, True)
         symbolsLength = 0 if (symbols is None) else len(symbols)
@@ -356,7 +356,7 @@ class bithumb(ccxt.async_support.bithumb):
         if self.markets is None:
             await self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'watchOrderBook', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'watchOrderBook', 'generation', 2)
         isGenerationTwo = (generation == 2)
         url = self.urls['api']['ws']['publicGen2'] if isGenerationTwo else self.urls['api']['ws']['public']
         market = self.market(symbol)
@@ -465,7 +465,7 @@ class bithumb(ccxt.async_support.bithumb):
         asks = orderbook['asks']
         units = self.safe_list(message, 'orderbook_units', [])
         for i in range(0, len(units)):
-            entry = units[i]
+            entry = self.safe_dict(units, i)
             bidPrice = self.safe_number(entry, 'bid_price')
             bidSize = self.safe_number(entry, 'bid_size')
             askPrice = self.safe_number(entry, 'ask_price')
@@ -496,7 +496,9 @@ class bithumb(ccxt.async_support.bithumb):
         #    }
         #
         sideId = self.safe_string(delta, 'orderType')
-        side = 'bids' if (sideId == 'bid') else 'asks'
+        side = 'asks'
+        if sideId == 'bid':
+            side = 'bids'
         bidAsk = self.parse_order_book_bid_ask(delta, 'price', 'quantity')
         orderbookSide = orderbook[side]
         orderbookSide.storeArray(bidAsk)
@@ -522,7 +524,7 @@ class bithumb(ccxt.async_support.bithumb):
         if self.markets is None:
             await self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'watchTrades', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'watchTrades', 'generation', 2)
         isGenerationTwo = (generation == 2)
         url = self.urls['api']['ws']['publicGen2'] if isGenerationTwo else self.urls['api']['ws']['public']
         market = self.market(symbol)
@@ -722,7 +724,7 @@ class bithumb(ccxt.async_support.bithumb):
         if self.markets is None:
             await self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'watchBalance', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'watchBalance', 'generation', 2)
         if generation != 2:
             raise BadRequest(self.id + ' watchBalance() is only supported for the generation 2 API')
         await self.authenticate()
@@ -753,7 +755,7 @@ class bithumb(ccxt.async_support.bithumb):
         if self.balance is None:
             self.balance = {}
         for i in range(0, len(assets)):
-            asset = assets[i]
+            asset = self.safe_dict(assets, i)
             currencyId = self.safe_string(asset, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -831,7 +833,7 @@ class bithumb(ccxt.async_support.bithumb):
         if self.markets is None:
             await self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'watchOrders', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'watchOrders', 'generation', 2)
         if generation != 2:
             raise BadRequest(self.id + ' watchOrders() is only supported for the generation 2 API')
         await self.authenticate()

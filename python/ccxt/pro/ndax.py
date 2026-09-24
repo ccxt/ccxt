@@ -259,7 +259,7 @@ class ndax(ccxt.async_support.ndax):
         #
         updates = {}
         for i in range(0, len(payload)):
-            ohlcv = payload[i]
+            ohlcv = self.safe_list(payload, i)
             marketId = self.safe_string(ohlcv, 8)
             market = self.safe_market(marketId)
             symbol = market['symbol']
@@ -304,7 +304,7 @@ class ndax(ccxt.async_support.ndax):
                         parsed[4],
                         self.sum(parsed[5], previous[5]),
                     ]
-                    if (marketId is not None) and (timeframe is not None):
+                    if marketId is not None:
                         updates[marketId][timeframe] = True
                 else:
                     if (length > 0) and (self.parse_to_int(parsed[0]) < self.parse_to_int(stored[length - 1][0])):
@@ -314,7 +314,7 @@ class ndax(ccxt.async_support.ndax):
                         limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
                         if length >= limit:
                             stored.pop(0)
-                        if (marketId is not None) and (timeframe is not None):
+                        if marketId is not None:
                             updates[marketId][timeframe] = True
                 self.ohlcvs[symbol][timeframe] = stored
         name = 'SubscribeTicker'
@@ -413,7 +413,7 @@ class ndax(ccxt.async_support.ndax):
         timestamp = None
         nonce = None
         for i in range(0, len(payload)):
-            bidask = payload[i]
+            bidask = self.safe_list(payload, i)
             if timestamp is None:
                 timestamp = self.safe_integer(bidask, 2)
             else:

@@ -608,7 +608,10 @@ class blofin extends \ccxt\async\blofin {
         }
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
-        $channel = ($trigger === true) ? 'orders-algo' : 'orders';
+        $channel = 'orders';
+        if ($trigger === true) {
+            $channel = 'orders-algo';
+        }
         $orders = Async\await($this->watch_multiple_wrapper(false, $channel, 'watchOrdersForSymbols', $symbols, $params));
         if ($this->newUpdates) {
             $first = $this->safe_dict($orders, 0);
@@ -822,7 +825,10 @@ class blofin extends \ccxt\async\blofin {
             $rawSubscriptions = array( array( 'channel' => $channelName ) );
         }
         $request = $this->get_subscription_request($rawSubscriptions);
-        $privateOrPublic = $isPublic ? 'public' : 'private';
+        $privateOrPublic = 'private';
+        if ($isPublic) {
+            $privateOrPublic = 'public';
+        }
         $url = ($this->urls['api'])['ws'][$marketType][$privateOrPublic];
         return Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $messageHashes));
     }

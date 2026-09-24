@@ -267,7 +267,7 @@ public partial class cex : ccxt.cex
             object index = subtract((dataLength - 1), i);
             object rawTrade = getValue(data, index);
             Dictionary<string, object> parsed = this.parseWsOldTrade(rawTrade, market);
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
         }
         string messageHash = "trades";
         ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
@@ -544,10 +544,10 @@ public partial class cex : ccxt.cex
             { "oid", symbolVar },
         };
         Dictionary<string, object> request = this.deepExtend(message, parameters);
-        object orders = await this.watch(url, messageHash, request, messageHash, request);
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, request, messageHash, request));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)orders.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -656,7 +656,7 @@ public partial class cex : ccxt.cex
             this.myTrades = stored;
         }
         Dictionary<string, object> trade = this.parseWsTrade(data);
-        callDynamically(stored, "append", new object[] {trade});
+        stored.append(trade);
         string messageHash = ("myTrades:" + ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null)));
         client.resolve(stored, messageHash);
     }
@@ -849,7 +849,7 @@ public partial class cex : ccxt.cex
         ((IDictionary<string,object>)order)["timestamp"] = timestamp;
         ((IDictionary<string,object>)order)["datetime"] = this.iso8601(timestamp);
         order = this.safeOrder(order);
-        callDynamically(storedOrders, "append", new object[] {order});
+        storedOrders.append(order);
         string messageHash = ("orders:" + symbol);
         client.resolve(storedOrders, messageHash);
     }
@@ -1027,7 +1027,7 @@ public partial class cex : ccxt.cex
             Dictionary<string, object> market = this.safeMarket(symbol);
             Dictionary<string, object> order = this.parseOrder(rawOrder, market);
             order["status"] = "open";
-            callDynamically(myOrders, "append", new object[] {order});
+            myOrders.append(order);
         }
         this.orders = myOrders;
         string messageHash = ("orders:" + symbol);
@@ -1328,7 +1328,7 @@ public partial class cex : ccxt.cex
         for (int i = 0; i < data.Count; i++)
         {
             List<object> ohlcv = new List<object> {this.safeTimestamp(data[i], 0), this.safeNumber(data[i], 1), this.safeNumber(data[i], 2), this.safeNumber(data[i], 3), this.safeNumber(data[i], 4), this.safeNumber(data[i], 5)};
-            callDynamically(stored, "append", new object[] {ohlcv});
+            stored.append(ohlcv);
         }
         int dataLength = data.Count;
         if (dataLength > 0)
@@ -1608,7 +1608,7 @@ public partial class cex : ccxt.cex
         //    "ok": "ok"
         //    }
         //
-        object data = this.safeValue(message, "data");
+        List<object> data = this.safeList(message, "data");
         string? messageHash = this.safeString(message, "oid");
         client.resolve(data, messageHash);
     }

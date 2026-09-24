@@ -437,7 +437,7 @@ class binance(PredictionExchange, ImplicitAPI):
             #
             responseLength = len(response)
             for i in range(0, responseLength):
-                rawTopic = response[i]
+                rawTopic = self.safe_dict(response, i)
                 topicId = self.safe_string(rawTopic, 'marketTopicId')
                 if topicId is not None:
                     already = self.safe_string(seen, topicId)
@@ -595,7 +595,7 @@ class binance(PredictionExchange, ImplicitAPI):
         resolvedOutcomeRaw = None
         rawOutcomesLength = len(rawOutcomes)
         for oi in range(0, rawOutcomesLength):
-            rawOutcome = rawOutcomes[oi]
+            rawOutcome = self.safe_dict(rawOutcomes, oi)
             label = self.safe_string_upper(rawOutcome, 'name')
             tokenId = self.safe_string(rawOutcome, 'tokenId')
             outcomeHandle = marketSymbol + ':' + label
@@ -849,7 +849,7 @@ class binance(PredictionExchange, ImplicitAPI):
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         type = None
-        type, params = self.handle_option_and_params(params, 'fetchBalance', 'type', 'SPOT')
+        type, params = self.handle_option_string_and_params(params, 'fetchBalance', 'type', 'SPOT')
         response = await self.sapiPrivateGetBalancePaymentOptions(params)
         #
         # {
@@ -867,7 +867,7 @@ class binance(PredictionExchange, ImplicitAPI):
         }
         balances = self.safe_list(response, 'items', [])
         for i in range(0, len(balances)):
-            balance = balances[i]
+            balance = self.safe_dict(balances, i)
             accountType = self.safe_string(balance, 'accountType')
             if accountType == type:
                 free = self.safe_string(balance, 'availableBalanceDisplay')
@@ -983,9 +983,9 @@ class binance(PredictionExchange, ImplicitAPI):
         :returns dict[]: a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOpenOrders', 'paginate', False)
         maxEntriesPerRequest = None
-        maxEntriesPerRequest, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'maxEntriesPerRequest', 100)
+        maxEntriesPerRequest, params = self.handle_option_integer_and_params(params, 'fetchOpenOrders', 'maxEntriesPerRequest', 100)
         pageKey = 'ccxtPageKey'
         if paginate:
             return await self.fetch_paginated_call_incremental('fetchOpenOrders', outcome, since, limit, params, pageKey, maxEntriesPerRequest)
@@ -1061,9 +1061,9 @@ class binance(PredictionExchange, ImplicitAPI):
         :returns dict[]: a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOrders', 'paginate', False)
         maxEntriesPerRequest = None
-        maxEntriesPerRequest, params = self.handle_option_and_params(params, 'fetchOrders', 'maxEntriesPerRequest', 100)
+        maxEntriesPerRequest, params = self.handle_option_integer_and_params(params, 'fetchOrders', 'maxEntriesPerRequest', 100)
         pageKey = 'ccxtPageKey'
         if paginate:
             return await self.fetch_paginated_call_incremental('fetchOrders', outcome, since, limit, params, pageKey, maxEntriesPerRequest)
@@ -1306,9 +1306,9 @@ class binance(PredictionExchange, ImplicitAPI):
         :returns dict[]: a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         maxEntriesPerRequest = None
-        maxEntriesPerRequest, params = self.handle_option_and_params(params, 'fetchMyTrades', 'maxEntriesPerRequest', 100)
+        maxEntriesPerRequest, params = self.handle_option_integer_and_params(params, 'fetchMyTrades', 'maxEntriesPerRequest', 100)
         pageKey = 'ccxtPageKey'
         if paginate:
             return await self.fetch_paginated_call_incremental('fetchMyTrades', outcome, since, limit, params, pageKey, maxEntriesPerRequest)
@@ -1466,7 +1466,7 @@ class binance(PredictionExchange, ImplicitAPI):
         if cachedWallet is not None:
             return cachedWallet
         walletAddress = None
-        walletAddress, params = self.handle_option_and_params(params, methodName, 'walletAddress', self.walletAddress)
+        walletAddress, params = self.handle_option_string_and_params(params, methodName, 'walletAddress', self.walletAddress)
         response = await self.sapiPrivateGetWalletList()
         #
         # {
@@ -1737,7 +1737,7 @@ class binance(PredictionExchange, ImplicitAPI):
         if failedOrdersLength > 0:
             failedDetails = ''
             for i in range(0, failedOrdersLength):
-                failedOrder = failedOrders[i]
+                failedOrder = self.safe_dict(failedOrders, i)
                 failedOrderId = self.safe_string(failedOrder, 'orderId')
                 failedReason = self.safe_string(failedOrder, 'reason')
                 if i > 0:

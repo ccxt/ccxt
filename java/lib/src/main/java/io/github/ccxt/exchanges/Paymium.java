@@ -550,7 +550,7 @@ public class Paymium extends PaymiumApi
             //         "label": "Savings"
             //     }
             //
-            return this.parseDepositAddress(response);
+            return this.parseDepositAddress((Map<String, Object>) (response));
         }).thenApply(DepositAddress::new);
 
     }
@@ -598,7 +598,7 @@ public class Paymium extends PaymiumApi
             //         "label": "Savings"
             //     }
             //
-            return this.parseDepositAddress(response);
+            return this.parseDepositAddress((Map<String, Object>) (response));
         }).thenApply(DepositAddress::new);
 
     }
@@ -663,7 +663,7 @@ public class Paymium extends PaymiumApi
         return this.fetchDepositAddresses(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseDepositAddress(Object depositAddress, Map<String, Object> currency)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         //
         //     {
@@ -683,7 +683,7 @@ public class Paymium extends PaymiumApi
             put( "tag", null );
         }};
     }
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Object... optionalArgs)
     {
         return this.parseDepositAddress(depositAddress, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -818,7 +818,7 @@ public class Paymium extends PaymiumApi
             {
                 throw new ExchangeError((this.id + " transfer() only allows BTC or EUR")) ;
             }
-            final Object finalCode = code;
+            final String finalCode = code;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "amount", Paymium.this.currencyToPrecision((String) (finalCode), amount) );

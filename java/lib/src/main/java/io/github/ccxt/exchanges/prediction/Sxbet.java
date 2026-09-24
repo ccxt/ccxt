@@ -722,7 +722,7 @@ final Object finalOi = oi;
      */
     public Object matchesEventQuery(Map<String, Object> raw, Object queries)
     {
-        List<Object> fields = new ArrayList<Object>(Arrays.asList(this.safeString(raw, "teamOneName"), this.safeString(raw, "teamTwoName"), this.safeString(raw, "leagueLabel"), this.safeString(raw, "sportLabel"), this.safeString(raw, "outcomeOneName"), this.safeString(raw, "outcomeTwoName")));
+        List<String> fields = new ArrayList<String>(Arrays.asList(this.safeString(raw, "teamOneName"), this.safeString(raw, "teamTwoName"), this.safeString(raw, "leagueLabel"), this.safeString(raw, "sportLabel"), this.safeString(raw, "outcomeOneName"), this.safeString(raw, "outcomeTwoName")));
         Integer queriesLength = ((List<?>)queries).size();
         for (var qi = 0; Helpers.isLessThan(qi, queriesLength); qi++)
         {
@@ -733,12 +733,12 @@ final Object finalOi = oi;
             }
             for (var fi = 0; fi < ((List<?>)fields).size(); fi++)
             {
-                Object field = (fields == null || fi < 0 || fi >= fields.size() ? null : fields.get(fi));
+                String field = (fields == null || fi < 0 || fi >= fields.size() ? null : fields.get(fi));
                 if (java.util.Objects.equals(field, null))
                 {
                     continue;
                 }
-                String fieldLower = ((String)field).toLowerCase();
+                String fieldLower = field.toLowerCase();
                 if ((((String)query).indexOf(fieldLower) >= 0) || (((String)fieldLower).indexOf(query) >= 0))
                 {
                     return true;
@@ -1036,9 +1036,9 @@ final Object finalOi = oi;
             {
                 throw new BadRequest((this.id + " approve() could not resolve the base token address from /metadata/obv3")) ;
             }
-            Object spender = null;
-            List<Object> spenderparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "approve", "spender", "transferToProxySpender", executorAddress);
-            spender = ((List<Object>) spenderparametersVariable).get(0);
+            String spender = null;
+            List<Object> spenderparametersVariable = (List<Object>) this.handleOptionStringAndParams2(parameters, "approve", "spender", "transferToProxySpender", (String) (executorAddress));
+            spender = (String) ((List<Object>) spenderparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) spenderparametersVariable).get(1);
             if (java.util.Objects.equals(spender, null))
             {
@@ -1088,7 +1088,7 @@ final Object finalOi = oi;
         put( "type", "uint256" );
     }})) );
             }};
-            final Object finalSpender = spender;
+            final String finalSpender = spender;
             Map<String, Object> messageData = new HashMap<String, Object>() {{
                 put( "owner", owner );
                 put( "spender", finalSpender );
@@ -1217,10 +1217,14 @@ final Object finalOi = oi;
             String saltHex = ("0x" + saltHexPadded);
             Long defaultExpirySeconds = this.safeInteger(this.options, "defaultOrderExpirySeconds", 86400);
             Long expiry = this.safeInteger(parameters, "expiry", this.sum(this.seconds(), defaultExpirySeconds));
-            String defaultTif = (((java.util.Objects.equals(type, "limit")))) ? "GTC" : "IOC";
-            Object timeInForce = null;
-            List<Object> timeInForceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "timeInForce", defaultTif);
-            timeInForce = ((List<Object>) timeInForceparametersVariable).get(0);
+            String defaultTif = "IOC";
+            if (java.util.Objects.equals(type, "limit"))
+            {
+                defaultTif = "GTC";
+            }
+            String timeInForce = null;
+            List<Object> timeInForceparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce", defaultTif);
+            timeInForce = (String) ((List<Object>) timeInForceparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) timeInForceparametersVariable).get(1);
             // an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
             // that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
@@ -1270,7 +1274,7 @@ final Object finalOi = oi;
             Object encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
             Object digest = this.hashEip712Digest(encoded);
             Object orderSignature = this.signDigest(digest, this.privateKey);
-            final Object finalTimeInForce = timeInForce;
+            final String finalTimeInForce = timeInForce;
             Map<String, Object> orderItem = new HashMap<String, Object>() {{
                 put( "marketHash", marketHash );
                 put( "maker", maker );
@@ -1683,7 +1687,14 @@ final Object finalI = i;
         String orderId = this.safeString2(order, "id", "orderId");
         String marketHash = this.safeString(order, "marketHash", "");
         Boolean isBettingOutcomeOne = (Boolean) this.safeBool(order, "isBettingOutcomeOne", true);
-        Object outcomeId = ((Boolean.TRUE.equals(isBettingOutcomeOne))) ? marketHash : ((marketHash + "-2"));
+        Object outcomeId = null;
+        if (Boolean.TRUE.equals(isBettingOutcomeOne))
+        {
+            outcomeId = marketHash;
+        } else
+        {
+            outcomeId = ((marketHash + "-2"));
+        }
         Map<String, Object> outcomeObj = this.safeOutcome((String) (outcomeId), ((Object)market));
         String oneDenom = "100000000000000000000";
         String usdcDecimals = "1000000";
@@ -1715,6 +1726,7 @@ final Object finalI = i;
         }
         Long timestamp = this.parse8601(this.safeString(order, "createdAt"));
         final String finalStatus = status;
+        final Object finalOutcomeId = outcomeId;
         return this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", orderId );
             put( "clientOrderId", Sxbet.this.safeString(order, "clientOrderId") );
@@ -1736,7 +1748,7 @@ final Object finalI = i;
             put( "postOnly", null );
             put( "trades", new ArrayList<Object>(Arrays.asList()) );
             put( "outcome", Sxbet.this.safeString(outcomeObj, "outcome") );
-            put( "outcomeId", Sxbet.this.safeString(outcomeObj, "outcomeId", outcomeId) );
+            put( "outcomeId", Sxbet.this.safeString(outcomeObj, "outcomeId", finalOutcomeId) );
             put( "label", Sxbet.this.safeString(outcomeObj, "label") );
             put( "market", Sxbet.this.safeString(outcomeObj, "market") );
             put( "info", order );
@@ -1790,7 +1802,7 @@ final Object finalI = i;
         final String outcome3 = outcome2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             Long limit = limit3;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object outcomeObj = null;
@@ -1879,7 +1891,7 @@ final Object finalI = i;
         final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
             Object id = id3;
-            Object outcome = outcome3;
+            String outcome = outcome3;
             this.checkRequiredCredentials();
             if (java.util.Objects.equals(id, null))
             {
@@ -1933,7 +1945,7 @@ final Object finalI = i;
         final String outcome3 = outcome2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             Long limit = limit3;
             if (java.util.Objects.equals(outcome, null))
             {
@@ -1997,7 +2009,7 @@ final Object finalI = i;
         final Long since3 = since2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             Long since = since3;
             Long limit = limit3;
             this.checkRequiredCredentials();
@@ -2076,7 +2088,14 @@ final Object finalI = i;
         //
         String marketHash = this.safeString(fill, "marketHash", "");
         Boolean isBettingOutcomeOne = (Boolean) this.safeBool(fill, "isBettingOutcomeOne", true);
-        Object outcomeId = ((Boolean.TRUE.equals(isBettingOutcomeOne))) ? marketHash : ((marketHash + "-2"));
+        Object outcomeId = null;
+        if (Boolean.TRUE.equals(isBettingOutcomeOne))
+        {
+            outcomeId = marketHash;
+        } else
+        {
+            outcomeId = ((marketHash + "-2"));
+        }
         Map<String, Object> outcomeObj = this.safeOutcome((String) (outcomeId), ((Object)market));
         String oneDenom = "100000000000000000000";
         String usdcDecimals = "1000000";
@@ -2092,6 +2111,7 @@ final Object finalI = i;
         {
             takerOrMaker = (((java.util.Objects.equals(isMaker, true)))) ? "maker" : "taker";
         }
+        final Object finalOutcomeId = outcomeId;
         final String finalTakerOrMaker = takerOrMaker;
         return this.safePredictionTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Sxbet.this.safeString(fill, "id") );
@@ -2099,7 +2119,7 @@ final Object finalI = i;
             put( "timestamp", timestamp );
             put( "datetime", Sxbet.this.iso8601(timestamp) );
             put( "outcome", Sxbet.this.safeString(outcomeObj, "outcome") );
-            put( "outcomeId", Sxbet.this.safeString(outcomeObj, "outcomeId", outcomeId) );
+            put( "outcomeId", Sxbet.this.safeString(outcomeObj, "outcomeId", finalOutcomeId) );
             put( "label", Sxbet.this.safeString(outcomeObj, "label") );
             put( "market", Sxbet.this.safeString(outcomeObj, "market") );
             put( "order", Sxbet.this.safeString(fill, "orderId") );
@@ -2159,7 +2179,7 @@ final Object finalI = i;
             Integer balancesLength = ((List<?>)balances).size();
             for (var i = 0; Helpers.isLessThan(i, balancesLength); i++)
             {
-                Object row = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
+                Map<String, Object> row = (Map<String, Object>) this.safeDict(balances, i);
                 String tokenAddress = this.safeStringLower(row, "tokenAddress", "");
                 // every sxbet market is denominated in the active base token, surfaced under 'USDC';
                 // rows of any other token keep their contract address for the code
@@ -2286,20 +2306,35 @@ final Object finalI = i;
         //
         String marketHash = this.safeString(raw, "marketHash", "");
         Boolean isOutcomeOneMaxWin = (Boolean) this.safeBool(raw, "isOutcomeOneMaxWin", true);
-        Object outcomeId = ((Boolean.TRUE.equals(isOutcomeOneMaxWin))) ? marketHash : ((marketHash + "-2"));
+        Object outcomeId = null;
+        if (Boolean.TRUE.equals(isOutcomeOneMaxWin))
+        {
+            outcomeId = marketHash;
+        } else
+        {
+            outcomeId = ((marketHash + "-2"));
+        }
         Map<String, Object> outcomeObj = this.safeOutcome((String) (outcomeId));
         String oneDenom = "100000000000000000000";
         String usdcDecimals = "1000000";
         Map<String, Object> odds = (Map<String, Object>) this.safeDict(raw, "odds", new HashMap<String, Object>() {{}});
-        String ownOdds = ((Boolean.TRUE.equals(isOutcomeOneMaxWin))) ? this.safeString(odds, "outcomeOne") : this.safeString(odds, "outcomeTwo");
+        String ownOdds = null;
+        if (Boolean.TRUE.equals(isOutcomeOneMaxWin))
+        {
+            ownOdds = this.safeString(odds, "outcomeOne");
+        } else
+        {
+            ownOdds = this.safeString(odds, "outcomeTwo");
+        }
         Double entryPrice = (((!java.util.Objects.equals(ownOdds, null)))) ? this.parseNumber(Precise.stringDiv(ownOdds, oneDenom)) : null;
         String totalStake = this.safeString(raw, "totalStake", "0");
         String pnl = this.safeString(raw, "pnl");
         Long timestamp = this.parse8601(this.safeString(raw, "betTime"));
+        final Object finalOutcomeId = outcomeId;
         final String finalPnl = pnl;
         return this.safePredictionPosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "outcome", Sxbet.this.safeString(outcomeObj, "outcome") );
-            put( "outcomeId", Sxbet.this.safeString(outcomeObj, "outcomeId", outcomeId) );
+            put( "outcomeId", Sxbet.this.safeString(outcomeObj, "outcomeId", finalOutcomeId) );
             put( "label", Sxbet.this.safeString(outcomeObj, "label") );
             put( "market", Sxbet.this.safeString(outcomeObj, "market") );
             put( "timestamp", timestamp );
@@ -2332,7 +2367,7 @@ final Object finalI = i;
         final Long since3 = since2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             Long since = since3;
             Long limit = limit3;
             this.checkRequiredCredentials();
@@ -2415,7 +2450,14 @@ final Object finalI = i;
         //
         String marketHash = this.safeString(trade, "marketHash", "");
         Boolean isBettingOutcomeOne = (Boolean) this.safeBool(trade, "isBettingOutcomeOne", true);
-        Object outcomeId = ((Boolean.TRUE.equals(isBettingOutcomeOne))) ? marketHash : ((marketHash + "-2"));
+        Object outcomeId = null;
+        if (Boolean.TRUE.equals(isBettingOutcomeOne))
+        {
+            outcomeId = marketHash;
+        } else
+        {
+            outcomeId = ((marketHash + "-2"));
+        }
         Map<String, Object> outcomeObj = this.safeOutcome((String) (outcomeId), ((Object)market));
         Map<String, Object> settlement = (Map<String, Object>) this.safeDict(trade, "settlement", new HashMap<String, Object>() {{}});
         Long winner = this.safeInteger(settlement, "outcome");
@@ -2438,7 +2480,11 @@ final Object finalI = i;
         } else if (!java.util.Objects.equals(winner, null))
         {
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-            String labelKey = ((((winner != null && winner == 1)))) ? "outcomeOneName" : "outcomeTwoName";
+            String labelKey = "outcomeTwoName";
+            if ((winner != null && winner == 1))
+            {
+                labelKey = "outcomeOneName";
+            }
             resultLabel = this.safeString(info, labelKey, this.numberToString(winner));
         }
         Long timestamp = this.parse8601(this.safeString(settlement, "settleDate"));
@@ -2447,6 +2493,7 @@ final Object finalI = i;
         {
             settlePrice = (((java.util.Objects.equals(won, true)))) ? 1 : 0;
         }
+        final Object finalOutcomeId = outcomeId;
         final String finalResultLabel = resultLabel;
         final Boolean finalWon = won;
         final Object finalSettlePrice = settlePrice;
@@ -2455,8 +2502,8 @@ final Object finalI = i;
             put( "id", Sxbet.this.safeString(trade, "tradeId") );
             put( "timestamp", timestamp );
             put( "datetime", Sxbet.this.iso8601(timestamp) );
-            put( "outcome", Sxbet.this.safeString(outcomeObj, "outcome", outcomeId) );
-            put( "outcomeId", Sxbet.this.safeString(outcomeObj, "outcomeId", outcomeId) );
+            put( "outcome", Sxbet.this.safeString(outcomeObj, "outcome", finalOutcomeId) );
+            put( "outcomeId", Sxbet.this.safeString(outcomeObj, "outcomeId", finalOutcomeId) );
             put( "market", Sxbet.this.safeString(outcomeObj, "market") );
             put( "event", null );
             put( "result", finalResultLabel );
@@ -2757,8 +2804,16 @@ final Object finalI = i;
         Boolean isOutcomeOne = (java.util.Objects.equals(outcomeId, marketHash));
         Map<String, Object> outcomeOneOdds = (Map<String, Object>) this.safeDict(raw, "outcomeOne", new HashMap<String, Object>() {{}});
         Map<String, Object> outcomeTwoOdds = (Map<String, Object>) this.safeDict(raw, "outcomeTwo", new HashMap<String, Object>() {{}});
-        Map<String, Object> ownOdds = ((Boolean.TRUE.equals(isOutcomeOne))) ? outcomeOneOdds : outcomeTwoOdds;
-        Map<String, Object> oppositeOdds = ((Boolean.TRUE.equals(isOutcomeOne))) ? outcomeTwoOdds : outcomeOneOdds;
+        Map<String, Object> ownOdds = outcomeTwoOdds;
+        if (Boolean.TRUE.equals(isOutcomeOne))
+        {
+            ownOdds = outcomeOneOdds;
+        }
+        Map<String, Object> oppositeOdds = outcomeOneOdds;
+        if (Boolean.TRUE.equals(isOutcomeOne))
+        {
+            oppositeOdds = outcomeTwoOdds;
+        }
         // percentageOdds is the maker's own implied probability * 1e20 (sx.bet protocol format);
         // the opposite side's best resting maker mirrors into this outcome's ask via 1 - p
         String oneDenom = "100000000000000000000";
@@ -2909,7 +2964,7 @@ final Object finalI = i;
         Integer ownLevelsLength = ((List<?>)ownLevels).size();
         for (var i = 0; Helpers.isLessThan(i, ownLevelsLength); i++)
         {
-            Object level = (ownLevels == null || i < 0 || i >= ((List<?>)ownLevels).size() ? null : ((List<?>)ownLevels).get(i));
+            Map<String, Object> level = (Map<String, Object>) this.safeDict(ownLevels, i);
             String percentageOdds = this.safeString(level, "percentageOdds");
             String size = this.safeString(level, "size", "0");
             Double price = this.parseNumber(Precise.stringDiv(percentageOdds, oneDenom));
@@ -2920,7 +2975,7 @@ final Object finalI = i;
         Integer oppositeLevelsLength = ((List<?>)oppositeLevels).size();
         for (var i = 0; Helpers.isLessThan(i, oppositeLevelsLength); i++)
         {
-            Object level = (oppositeLevels == null || i < 0 || i >= ((List<?>)oppositeLevels).size() ? null : ((List<?>)oppositeLevels).get(i));
+            Map<String, Object> level = (Map<String, Object>) this.safeDict(oppositeLevels, i);
             String percentageOdds = this.safeString(level, "percentageOdds");
             String size = this.safeString(level, "size", "0");
             // the opposite side's resting stake mirrors into this outcome's ask - the price is the
@@ -3448,7 +3503,7 @@ final Object finalI = i;
         Integer rowsLength = ((List<?>)rows).size();
         for (var i = 0; Helpers.isLessThan(i, rowsLength); i++)
         {
-            Object entry = (rows == null || i < 0 || i >= ((List<?>)rows).size() ? null : ((List<?>)rows).get(i));
+            Map<String, Object> entry = (Map<String, Object>) this.safeDict(rows, i);
             String marketHash = this.safeString(entry, "marketHash");
             if (java.util.Objects.equals(marketHash, null))
             {
@@ -3537,7 +3592,14 @@ final Object finalI = i;
     {
         String marketHash = this.safeString(trade, "marketHash", "");
         Boolean isBettingOutcomeOne = (Boolean) this.safeBool(trade, "isBettingOutcomeOne", true);
-        Object outcomeId = ((Boolean.TRUE.equals(isBettingOutcomeOne))) ? marketHash : ((marketHash + "-2"));
+        Object outcomeId = null;
+        if (Boolean.TRUE.equals(isBettingOutcomeOne))
+        {
+            outcomeId = marketHash;
+        } else
+        {
+            outcomeId = ((marketHash + "-2"));
+        }
         Map<String, Object> outcomeObj = this.safeOutcome((String) (outcomeId));
         String oneDenom = "100000000000000000000";
         String usdcDecimals = "1000000";
@@ -3546,13 +3608,14 @@ final Object finalI = i;
         String stake = this.safeString(trade, "totalStake", "0");
         Double amount = this.parseNumber(Precise.stringDiv(stake, usdcDecimals, 6));
         Long timestamp = this.parse8601(this.safeString(trade, "betTime"));
+        final Object finalOutcomeId = outcomeId;
         return this.safePredictionTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", Sxbet.this.safeString(trade, "tradeId") );
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Sxbet.this.iso8601(timestamp) );
             put( "outcome", Sxbet.this.safeString(outcomeObj, "outcome") );
-            put( "outcomeId", Sxbet.this.safeString(outcomeObj, "outcomeId", outcomeId) );
+            put( "outcomeId", Sxbet.this.safeString(outcomeObj, "outcomeId", finalOutcomeId) );
             put( "label", Sxbet.this.safeString(outcomeObj, "label") );
             put( "market", Sxbet.this.safeString(outcomeObj, "market") );
             put( "order", null );
@@ -3613,7 +3676,7 @@ final Object finalI = i;
     {
         final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             if (java.util.Objects.equals(this.walletAddress, null))
             {
                 throw new ArgumentsRequired((this.id + " watchMyTrades() requires a walletAddress")) ;
@@ -3690,7 +3753,7 @@ final Object finalI = i;
     {
         final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             if (java.util.Objects.equals(this.walletAddress, null))
             {
                 throw new ArgumentsRequired((this.id + " watchOrders() requires a walletAddress")) ;

@@ -373,7 +373,9 @@ class delta(Exchange, ImplicitAPI):
         strike = self.safe_string(optionParts, 2)
         datetime = self.convert_expire_date(expiry)
         timestamp = self.parse8601(datetime)
-        optionTypeUnified = 'call' if (optionType == 'C') else 'put'
+        optionTypeUnified = 'put'
+        if optionType == 'C':
+            optionTypeUnified = 'call'
         return self.safe_market_structure({
             'id': optionType + '-' + base + '-' + strike + '-' + expiry,
             'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
@@ -499,7 +501,9 @@ class delta(Exchange, ImplicitAPI):
         #
         result = self.safe_dict(response, 'result', {})
         underMaintenance = self.safe_string(result, 'under_maintenance')
-        status = 'maintenance' if (underMaintenance == 'true') else 'ok'
+        status = 'ok'
+        if underMaintenance == 'true':
+            status = 'maintenance'
         updated = self.safe_integer_product(result, 'server_time', 0.001, self.milliseconds())
         return {
             'status': status,
@@ -1657,7 +1661,7 @@ class delta(Exchange, ImplicitAPI):
         result = {'info': response}
         currenciesByNumericId = self.safe_dict(self.options, 'currenciesByNumericId', {})
         for i in range(0, len(balances)):
-            balance = balances[i]
+            balance = self.safe_dict(balances, i)
             currencyId = self.safe_string(balance, 'asset_id')
             currency = self.safe_dict(currenciesByNumericId, currencyId)
             code = currencyId if (currency is None) else currency['code']
@@ -1912,7 +1916,11 @@ class delta(Exchange, ImplicitAPI):
         marketId = self.safe_string(order, 'product_id')
         marketsByNumericId = self.safe_dict(self.options, 'marketsByNumericId', {})
         market = self.safe_value(marketsByNumericId, marketId, market)
-        symbol = marketId if (market is None) else market['symbol']
+        symbol = None
+        if market is None:
+            symbol = marketId
+        else:
+            symbol = market['symbol']
         status = self.parse_order_status(self.safe_string(order, 'state'))
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'order_type')
@@ -2439,7 +2447,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         return self.parse_ledger(result, currency, since, limit)
 
-    def parse_ledger_entry_type(self, type: object):
+    def parse_ledger_entry_type(self, type: Str):
         types = {
             'pnl': 'pnl',
             'deposit': 'transaction',
@@ -2547,7 +2555,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_deposit_address(result, currency)
 
-    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         #
         #    {
         #        "id": 1915615,
@@ -3170,7 +3178,7 @@ class delta(Exchange, ImplicitAPI):
         sorted = self.sort_by(settlements, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
 
-    def parse_settlement(self, settlement: dict, market: object) -> dict:
+    def parse_settlement(self, settlement: dict, market: Market) -> dict:
         #
         #     {
         #         "contract_value": "0.001",
@@ -3234,7 +3242,7 @@ class delta(Exchange, ImplicitAPI):
             'datetime': datetime,
         }
 
-    def parse_settlements(self, settlements: list[object], market: object) -> list[dict]:
+    def parse_settlements(self, settlements: list[object], market: Market) -> list[dict]:
         result = []
         for i in range(0, len(settlements)):
             result.append(self.parse_settlement(settlements[i], market))

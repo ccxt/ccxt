@@ -105,7 +105,10 @@ class kucoin extends \ccxt\async\kucoin {
     }
 
     private function do_negotiate(mixed $privateChannel, bool $isFuturesMethod = false, $params = array()) {
-        $connectId = ($privateChannel === true) ? 'private' : 'public';
+        $connectId = 'public';
+        if ($privateChannel === true) {
+            $connectId = 'private';
+        }
         if ($isFuturesMethod) {
             $connectId .= 'Futures';
         }
@@ -212,7 +215,10 @@ class kucoin extends \ccxt\async\kucoin {
     private function do_subscribe_public_uta(string $messageHash, string $channel, string $symbol, $params = array(), ?array $subscription = null) {
         $requestId = (string) $this->request_id();
         $market = $this->market($symbol);
-        $urlType = ($market['contract'] === true) ? 'futures' : 'spot';
+        $urlType = 'spot';
+        if ($market['contract'] === true) {
+            $urlType = 'futures';
+        }
         $tradeType = strtoupper($urlType);
         $action = 'subscribe';
         if ($subscription !== null) {
@@ -540,7 +546,10 @@ class kucoin extends \ccxt\async\kucoin {
         $requestId = (string) $this->request_id();
         $market = $this->get_market_from_symbols($symbols);
         $isContract = ($market['contract'] === true);
-        $urlType = $isContract ? 'futures' : 'spot';
+        $urlType = 'spot';
+        if ($isContract) {
+            $urlType = 'futures';
+        }
         $tradeType = strtoupper($urlType);
         $action = 'subscribe';
         if ($subscription !== null) {
@@ -1617,8 +1626,14 @@ class kucoin extends \ccxt\async\kucoin {
         $firstMarket = $this->get_market_from_symbols($symbols);
         $isFuturesMethod = ($firstMarket['contract'] === true);
         $url = Async\await($this->negotiate(false, $isFuturesMethod));
-        $method = $isFuturesMethod ? '/contractMarket/level2' : '/market/level2';
-        $optionName = $isFuturesMethod ? 'contractMethod' : 'spotMethod';
+        $method = '/market/level2';
+        if ($isFuturesMethod) {
+            $method = '/contractMarket/level2';
+        }
+        $optionName = 'spotMethod';
+        if ($isFuturesMethod) {
+            $optionName = 'contractMethod';
+        }
         list($method, $params) = $this->handle_option_and_params_2($params, 'watchOrderBook', $optionName, 'method', $method);
         if (mb_strpos($method, 'Depth') === false) {
             if (($limit === 5) || ($limit === 50)) {
@@ -1679,8 +1694,14 @@ class kucoin extends \ccxt\async\kucoin {
         $firstMarket = $this->get_market_from_symbols($symbols);
         $isFuturesMethod = ($firstMarket['contract'] === true);
         $url = Async\await($this->negotiate(false, $isFuturesMethod));
-        $method = $isFuturesMethod ? '/contractMarket/level2' : '/market/level2';
-        $optionName = $isFuturesMethod ? 'contractMethod' : 'spotMethod';
+        $method = '/market/level2';
+        if ($isFuturesMethod) {
+            $method = '/contractMarket/level2';
+        }
+        $optionName = 'spotMethod';
+        if ($isFuturesMethod) {
+            $optionName = 'contractMethod';
+        }
         list($method, $params) = $this->handle_option_and_params_2($params, 'watchOrderBook', $optionName, 'method', $method);
         if (mb_strpos($method, 'Depth') === false) {
             if (($limit === 5) || ($limit === 50)) {
@@ -1874,7 +1895,7 @@ class kucoin extends \ccxt\async\kucoin {
             return -1;
         }
         for ($i = 0; $i < count($cache); $i++) {
-            $delta = $cache[$i];
+            $delta = $this->safe_dict($cache, $i);
             $deltaStart = $this->safe_integer_n($delta, array( 'sequenceStart', 'sequence', 'O' ));
             $deltaEnd = $this->safe_integer_n($delta, array( 'sequenceEnd', 'sequence', 'C' )); // todo check
             if (($deltaStart === null) || ($deltaEnd === null)) {
@@ -1905,7 +1926,10 @@ class kucoin extends \ccxt\async\kucoin {
             $price = $this->safe_number($splitChange, 0);
             $side = $this->safe_string($splitChange, 1);
             $quantity = $this->safe_number($splitChange, 2);
-            $type = ($side === 'buy') ? 'bids' : 'asks';
+            $type = 'asks';
+            if ($side === 'buy') {
+                $type = 'bids';
+            }
             $value = array( $price, $quantity );
             if ($type === 'bids') {
                 $storedBids->storeArray($value);
@@ -2078,7 +2102,10 @@ class kucoin extends \ccxt\async\kucoin {
             list($marketType, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
             $isFuturesMethod = (($marketType !== 'spot') && ($marketType !== 'margin'));
             $url = Async\await($this->negotiate(true, $isFuturesMethod));
-            $topic = ($trigger === true) ? '/spotMarket/advancedOrders' : '/spotMarket/tradeOrders';
+            $topic = '/spotMarket/tradeOrders';
+            if ($trigger === true) {
+                $topic = '/spotMarket/advancedOrders';
+            }
             if ($isFuturesMethod) {
                 $topic = ($trigger === true) ? '/contractMarket/advancedOrders' : '/contractMarket/tradeOrders';
             }
@@ -2500,8 +2527,14 @@ class kucoin extends \ccxt\async\kucoin {
             $trades = Async\await($this->subscribe_private_uta(array( $messageHash ), $channel, $channel, null, $params));
         } else {
             $url = Async\await($this->negotiate(true, $isFuturesMethod));
-            $topic = $isFuturesMethod ? '/contractMarket/tradeOrders' : '/spotMarket/tradeOrders';
-            $optionName = $isFuturesMethod ? 'contractMethod' : 'spotMethod';
+            $topic = '/spotMarket/tradeOrders';
+            if ($isFuturesMethod) {
+                $topic = '/contractMarket/tradeOrders';
+            }
+            $optionName = 'spotMethod';
+            if ($isFuturesMethod) {
+                $optionName = 'contractMethod';
+            }
             list($topic, $params) = $this->handle_option_and_params_2($params, 'watchMyTrades', $optionName, 'method', $topic);
             $request = array(
                 'privateChannel' => true,
@@ -2709,7 +2742,10 @@ class kucoin extends \ccxt\async\kucoin {
         }
         $uta = Async\await($this->is_uta_enabled());
         list($uta, $params) = $this->handle_option_bool_and_params($params, 'watchBalance', 'uta', $uta);
-        $defaultType = $uta ? 'unified' : 'spot';
+        $defaultType = 'spot';
+        if ($uta) {
+            $defaultType = 'unified';
+        }
         $type = $defaultType;
         if (!$uta) {
             $defaultType = $this->safe_string($this->options, 'defaultType', $defaultType);
@@ -2719,7 +2755,10 @@ class kucoin extends \ccxt\async\kucoin {
         $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
         $uniformType = $this->safe_string($accountsByType, $type, $type);
         $isClassicFuturesMethod = ($uniformType === 'contract');
-        $subscriptionHash = $isClassicFuturesMethod ? '/contractAccount/wallet' : '/account/balance';
+        $subscriptionHash = '/account/balance';
+        if ($isClassicFuturesMethod) {
+            $subscriptionHash = '/contractAccount/wallet';
+        }
         $url = null;
         if ($uta) {
             $url = Async\await($this->get_uta_url());
@@ -2934,7 +2973,7 @@ class kucoin extends \ccxt\async\kucoin {
         $account['free'] = $this->safe_string($data, 'a');
         $account['used'] = $this->safe_string($data, 'h');
         $account['total'] = $this->safe_string($data, 'b');
-        if (($type !== null) && ($code !== null)) {
+        if ($code !== null) {
             $this->balance[$type][$code] = $account;
         }
         $this->balance[$type] = $this->safe_balance($this->balance[$type]);
@@ -3003,7 +3042,10 @@ class kucoin extends \ccxt\async\kucoin {
         }
         $uta = Async\await($this->is_uta_enabled());
         list($uta, $params) = $this->handle_option_bool_and_params($params, 'watchPositions', 'uta', $uta);
-        $tradeType = $uta ? 'UNIFIED' : 'TRADE';
+        $tradeType = 'TRADE';
+        if ($uta) {
+            $tradeType = 'UNIFIED';
+        }
         $messageHash = 'positions';
         $messageHashes = array();
         $symbols = $this->market_symbols($symbols);
@@ -3305,7 +3347,10 @@ class kucoin extends \ccxt\async\kucoin {
         $timestamp = $this->safe_integer_product($position, 'O', 0.000001);
         $amountString = $this->safe_string($position, 'q');
         $size = Precise::string_abs($amountString);
-        $side = Precise::string_gt($amountString, '0') ? 'long' : 'short';
+        $side = 'short';
+        if (Precise::string_gt($amountString, '0')) {
+            $side = 'long';
+        }
         return $this->safe_position(array(
             'info' => $position,
             'id' => $this->safe_string($position, 'pi'),

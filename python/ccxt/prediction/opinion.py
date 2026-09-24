@@ -574,7 +574,11 @@ class opinion(PredictionExchange, ImplicitAPI):
         eventId = self.safe_string(rawEvent, 'marketId')
         slug = self.safe_string(rawEvent, 'slug')
         title = self.safe_string(rawEvent, 'marketTitle')
-        eventHandle = self.shorten_slug(title) if (title is not None) else self.shorten_slug(slug)
+        eventHandle = None
+        if title is not None:
+            eventHandle = self.shorten_slug(title)
+        else:
+            eventHandle = self.shorten_slug(slug)
         rawChildren = self.safe_list(rawEvent, 'childMarkets', [])
         rawChildrenLength = len(rawChildren)
         marketsList = []
@@ -797,7 +801,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         candles = []
         historyLength = len(history)
         for i in range(0, historyLength):
-            point = history[i]
+            point = self.safe_dict(history, i)
             price = self.safe_number(point, 'p')
             timestamp = self.safe_timestamp(point, 't')
             if (price is not None) and (timestamp is not None):
@@ -1322,7 +1326,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         balances = self.safe_list(data, 'balances', [])
         balancesLength = len(balances)
         for i in range(0, balancesLength):
-            balance = balances[i]
+            balance = self.safe_dict(balances, i)
             code = self.safe_string(balance, 'symbol', 'USDT')
             result[code] = {
                 'free': self.safe_number(balance, 'availableBalance'),
@@ -1588,7 +1592,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         marketKeys = list(self.markets.keys())
         marketKeysLength = len(marketKeys)
         for i in range(0, marketKeysLength):
-            market = self.markets[marketKeys[i]]
+            market = self.safe_dict(self.markets, marketKeys[i])
             info = self.safe_dict(market, 'info', {})
             if self.safe_integer(info, 'marketId') == marketId:
                 outcomes = self.safe_list(market, 'outcomes', [])
@@ -1639,7 +1643,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         orderbook.reset(snapshot)
         self.orderbooks[sym] = orderbook
 
-    def handle_order_book(self, client: object, message: object):
+    def handle_order_book(self, client: object, message: dict):
         #
         #     {
         #         "marketId": 2764,
@@ -1686,7 +1690,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         messageHash = 'ticker::' + sym
         return await self.subscribe_opinion_channel(messageHash, 'market.last.price', marketId)
 
-    def handle_ticker(self, client: object, message: object):
+    def handle_ticker(self, client: object, message: dict):
         #
         #     {
         #         "tokenId": "19120407572139442221452465677574895365338028945317996490376653704877573103648",
@@ -1736,7 +1740,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         trades = await self.subscribe_opinion_channel(messageHash, 'market.last.trade', marketId)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: object, message: object):
+    def handle_trades(self, client: object, message: dict):
         #
         #     {
         #         "tokenId": "19120407572139442221452465677574895365338028945317996490376653704877573103648",
@@ -1823,7 +1827,7 @@ class opinion(PredictionExchange, ImplicitAPI):
             return 'rejected'
         return None
 
-    def handle_order(self, client: object, message: object):
+    def handle_order(self, client: object, message: dict):
         #
         #     {
         #         "orderUpdateType": "orderConfirm",
@@ -1853,9 +1857,13 @@ class opinion(PredictionExchange, ImplicitAPI):
         # unlike the REST order body (0 buy / 1 sell), the websocket channel uses 1 buy / 2 sell
         # per the docs and confirmed live
         sideInt = self.safe_integer(message, 'side')
-        side = 'buy' if (sideInt == 1) else 'sell'
+        side = 'sell'
+        if sideInt == 1:
+            side = 'buy'
         tradingMethod = self.safe_integer(message, 'tradingMethod')
-        type = 'market' if (tradingMethod == 1) else 'limit'
+        type = 'limit'
+        if tradingMethod == 1:
+            type = 'market'
         order = self.safe_prediction_order({
             'id': self.safe_string(message, 'orderId'),
             'clientOrderId': None,
@@ -1906,7 +1914,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         sym = self.safe_outcome_symbol(outcome, outcomeObj)
         return self.filter_by_value_since_limit(trades, 'outcome', sym, since, limit, 'timestamp', True)
 
-    def handle_my_trade(self, client: object, message: object):
+    def handle_my_trade(self, client: object, message: dict):
         #
         #     {
         #         "orderId": "3c7af25f-e21f-11f0-9714-0a58a9feac02",

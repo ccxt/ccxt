@@ -962,7 +962,7 @@ func (this *Cryptocom) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Cryptocom) HandleBidAsk(client any, message map[string]any) {
-	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var data []any = ccxt.SafeListTyped(message, "data")
 	var ticker map[string]any = ccxt.MapTyped(this.SafeDict(data, 0, map[string]any{}))
 	var parsedTicker any = this.ParseWsBidAsk(ticker)
 	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(parsedTicker, "symbol"))
@@ -1103,7 +1103,7 @@ func (this *Cryptocom) HandleOHLCV(client any, message map[string]any) {
 	}
 	var data any = this.SafeValue(message, "data")
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var tick any = ccxt.GetValue(data, i)
+		var tick map[string]any = ccxt.SafeMapTyped(data, i)
 		var parsed any = this.ParseOHLCV(tick, market)
 		stored.(ccxt.Appender).Append(parsed)
 	}
@@ -1363,7 +1363,7 @@ func (this *Cryptocom) HandlePositions(client any, message map[string]any) {
 	//
 	// each account is connected to a different endpoint
 	// and has exactly one subscriptionhash which is the account type
-	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var data []any = ccxt.SafeListTyped(message, "data")
 	var firstData map[string]any = ccxt.SafeMapTyped(data, 0)
 	var rawPositions []any = ccxt.SafeListTyped(firstData, "positions")
 	if ccxt.IsEqual(this.Positions, nil) {
@@ -1475,12 +1475,7 @@ func (this *Cryptocom) HandleBalance(client any, message map[string]any) {
 	var positionBalances []any = ccxt.SafeListTyped(ccxt.GetValue(data, 0), "position_balances")
 	ccxt.AddElementToObject(this.Balance, "info", data)
 	for i := 0; i < len(positionBalances); i++ {
-		var balance map[string]any = ccxt.MapTyped(func() any {
-			if i >= 0 && i < len(positionBalances) {
-				return ccxt.DerefScalar(positionBalances[i])
-			}
-			return nil
-		}())
+		var balance map[string]any = ccxt.SafeMapTyped(positionBalances, i)
 		var currencyId *string = this.SafeString(balance, "instrument_name")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()

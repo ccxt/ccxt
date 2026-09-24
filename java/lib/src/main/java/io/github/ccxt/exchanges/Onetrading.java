@@ -951,7 +951,7 @@ public class Onetrading extends OnetradingApi
         List<Object> makerFees = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)feeTiers).size(); i++)
         {
-            Object tier = (feeTiers == null || i < 0 || i >= ((List<?>)feeTiers).size() ? null : ((List<?>)feeTiers).get(i));
+            Map<String, Object> tier = (Map<String, Object>) this.safeDict(feeTiers, i);
             Double volume = this.safeNumber(tier, "volume");
             String taker = this.safeString(tier, "taker_fee");
             String maker = this.safeString(tier, "maker_fee");
@@ -1432,7 +1432,7 @@ public class Onetrading extends OnetradingApi
         //     }
         //
         Map<String, Object> feeInfo = (Map<String, Object>) this.safeDict(trade, "fee", new HashMap<String, Object>() {{}});
-        trade = this.safeValue(trade, "trade", trade);
+        trade = this.safeDict(trade, "trade", trade);
         Long timestamp = this.safeInteger(trade, "trade_timestamp");
         if (java.util.Objects.equals(timestamp, null))
         {
@@ -1493,7 +1493,7 @@ public class Onetrading extends OnetradingApi
         }};
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i);
             String currencyId = this.safeString(balance, "currency_code");
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
@@ -1644,7 +1644,7 @@ public class Onetrading extends OnetradingApi
         //         ]
         //     }
         //
-        Object rawOrder = this.safeValue(order, "order", order);
+        Object rawOrder = this.safeDict(order, "order", order);
         String id = this.safeString(rawOrder, "order_id");
         String clientOrderId = this.safeString(rawOrder, "client_id");
         Long timestamp = this.parse8601(this.safeString(rawOrder, "time"));

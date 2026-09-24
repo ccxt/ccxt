@@ -333,7 +333,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             Object index = Helpers.subtract((((long) dataLength) - 1L), i);
             Object rawTrade = Helpers.GetValue(data, index);
             Object parsed = this.parseWsOldTrade(rawTrade, market);
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
         }
         String messageHash = "trades";
         Helpers.addElementToObject(this.trades, symbol, stored);
@@ -1272,7 +1272,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             }};
             Map<String,Object> request = this.deepExtend(subscribe, parameters);
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, request, messageHash, null)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -1324,7 +1324,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(new HashMap<String, Object>() {{}});
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
         ((Map<String, Object>)snapshot).put("nonce", incrementalId);
-        Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+        orderbook.reset(snapshot);
         Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("orderbook")), symbol, new HashMap<String, Object>() {{
     put( "incrementalId", incrementalId );
 }});
@@ -1561,7 +1561,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             List<Object> ohlcv = new ArrayList<Object>(Arrays.asList(this.safeTimestamp((data == null || i < 0 || i >= data.size() ? null : data.get(i)), 0), this.safeNumber((data == null || i < 0 || i >= data.size() ? null : data.get(i)), 1), this.safeNumber((data == null || i < 0 || i >= data.size() ? null : data.get(i)), 2), this.safeNumber((data == null || i < 0 || i >= data.size() ? null : data.get(i)), 3), this.safeNumber((data == null || i < 0 || i >= data.size() ? null : data.get(i)), 4), this.safeNumber((data == null || i < 0 || i >= data.size() ? null : data.get(i)), 5)));
-            Helpers.callDynamically(stored, "append", new Object[]{ohlcv});
+            stored.append(ohlcv);
         }
         Integer dataLength = ((List<?>)data).size();
         if (Helpers.isGreaterThan(dataLength, 0))
@@ -1963,7 +1963,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         //    "ok": "ok"
         //    }
         //
-        Object data = this.safeValue(message, "data");
+        List<Object> data = (List<Object>) this.safeList(message, "data");
         String messageHash = this.safeString(message, "oid");
         client.resolve(data, messageHash);
     }

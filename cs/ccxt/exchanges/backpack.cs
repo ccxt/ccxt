@@ -1145,13 +1145,13 @@ public partial class backpack : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", interval },
         };
-        object until = null;
-        IList<object> untilparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
-        until = untilparametersVariable[0];
+        Int64? until = null;
+        IList<object> untilparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "until");
+        until = (Int64?)untilparametersVariable[0];
         parameters = untilparametersVariable[1];
-        if (!isEqual(until, null))
+        if ((until != null))
         {
-            request["endTime"] = this.parseToInt(divide(until, 1000)); // convert milliseconds to seconds
+            request["endTime"] = this.parseToInt((until / 1000)); // convert milliseconds to seconds
         }
         int defaultLimit = 100;
         if ((since == null))
@@ -1161,7 +1161,7 @@ public partial class backpack : Exchange
                 limitVar = defaultLimit;
             }
             int duration = this.parseTimeframe(timeframeVar);
-            Int64? endTime = (!isEqual(until, null) && !isEqual(until, null) && !isEqual(until, 0)) ? this.parseToInt(divide(until, 1000)) : this.seconds();
+            Int64? endTime = ((until != null) && (until != null) && (until != 0)) ? this.parseToInt((until / 1000)) : this.seconds();
             object startTime = subtract(endTime, (multiply(limitVar, duration)));
             request["startTime"] = startTime;
         } else
@@ -1631,7 +1631,7 @@ public partial class backpack : Exchange
         {
             string? id = ((string)balanceKeys[i]);
             string? code = this.safeCurrencyCode(id);
-            object balance = getValue(response, id);
+            IDictionary<string, object> balance = this.safeDict(response, id);
             Dictionary<string, object> account = this.account();
             string? locked = this.safeString(balance, "locked");
             string? staked = this.safeString(balance, "staked");
@@ -1679,11 +1679,11 @@ public partial class backpack : Exchange
         {
             request["limit"] = limit; // default 100, max 1000
         }
-        object until = null;
-        IList<object> untilparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchDeposits", "until");
-        until = untilparametersVariable[0];
+        Int64? until = null;
+        IList<object> untilparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchDeposits", "until");
+        until = (Int64?)untilparametersVariable[0];
         parameters = untilparametersVariable[1];
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endTime"] = until;
         }
@@ -1724,11 +1724,11 @@ public partial class backpack : Exchange
         {
             request["limit"] = limit;
         }
-        object until = null;
-        IList<object> untilparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchWithdrawals", "until");
-        until = untilparametersVariable[0];
+        Int64? until = null;
+        IList<object> untilparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchWithdrawals", "until");
+        until = (Int64?)untilparametersVariable[0];
         parameters = untilparametersVariable[1];
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["to"] = until;
         }
@@ -2029,7 +2029,7 @@ public partial class backpack : Exchange
         List<object> ordersRequests = new List<object>() {};
         for (int i = 0; i < getArrayLength(orders); i++)
         {
-            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
+            IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
             string? type = this.safeString(rawOrder, "type");
             string? side = this.safeString(rawOrder, "side");
@@ -2063,7 +2063,11 @@ public partial class backpack : Exchange
         };
         string? triggerPrice = this.safeString(parameters, "triggerPrice");
         bool isTriggerOrder = (triggerPrice != null);
-        string quantityKey = isTriggerOrder ? "triggerQuantity" : "quantity";
+        string quantityKey = "quantity";
+        if (isTriggerOrder)
+        {
+            quantityKey = "triggerQuantity";
+        }
         // handle basic limit/market order types
         if (isEqual(type, "limit"))
         {
@@ -2131,19 +2135,19 @@ public partial class backpack : Exchange
             }
             parameters = this.omit(parameters, "stopLoss");
         }
-        object selfTradePrevention = null;
-        IList<object> selfTradePreventionparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "selfTradePrevention");
-        selfTradePrevention = selfTradePreventionparametersVariable[0];
+        string? selfTradePrevention = null;
+        IList<object> selfTradePreventionparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "selfTradePrevention");
+        selfTradePrevention = (string)selfTradePreventionparametersVariable[0];
         parameters = selfTradePreventionparametersVariable[1];
         if ((selfTradePrevention != null))
         {
-            if (isEqual(selfTradePrevention, "EXPIRE_MAKER"))
+            if (selfTradePrevention == "EXPIRE_MAKER")
             {
                 request["selfTradePrevention"] = "RejectMaker";
-            } else if (isEqual(selfTradePrevention, "EXPIRE_TAKER"))
+            } else if (selfTradePrevention == "EXPIRE_TAKER")
             {
                 request["selfTradePrevention"] = "RejectTaker";
-            } else if (isEqual(selfTradePrevention, "EXPIRE_BOTH"))
+            } else if (selfTradePrevention == "EXPIRE_BOTH")
             {
                 request["selfTradePrevention"] = "RejectBoth";
             }

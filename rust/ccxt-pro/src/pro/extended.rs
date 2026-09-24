@@ -1295,7 +1295,12 @@ impl ExtendedCore {
         let mut symbol: Value = self.safe_string_k(subscription.clone(), "symbol", &[]);
         let mut timeframe: Value = self.safe_string_k(subscription.clone(), "timeframe", &[]);
         let mut candleType: Value = self.safe_string_k(subscription.clone(), "candleType", &[]);
-        let mut cacheKey: Value = (if (candleType.as_str() == Some("trades")) { timeframe.clone() } else { Value::Str(format!("{}{}", Value::Str(format!("{}{}", timeframe, Value::Str(":".into())).into()), candleType).into()) });
+        let mut cacheKey: Value = Value::Null;
+        if (candleType.as_str() == Some("trades")) {
+            cacheKey = timeframe.clone();
+        }  else {
+            cacheKey = Value::Str(format!("{}{}", Value::Str(format!("{}{}", timeframe, Value::Str(":".into())).into()), candleType).into());
+        }
         let mut messageHash: Value = self.safe_string_k(subscription.clone(), "messageHash", &[]);
         { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

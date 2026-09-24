@@ -898,7 +898,7 @@ class krakenfutures extends Exchange {
         $makerFee = null;
         $takerFee = null;
         for ($i = 0; $i < count($tiers); $i++) {
-            $tier = $tiers[$i];
+            $tier = $this->safe_dict($tiers, $i);
             $tierVolume = $this->safe_string($tier, 'usdVolume');
             if (($volume === null) || Precise::string_ge($volume, $tierVolume)) {
                 $makerFee = $this->safe_string($tier, 'makerFee');
@@ -942,7 +942,7 @@ class krakenfutures extends Exchange {
         }
         $market = $this->market($symbol);
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 2000));
         }
@@ -1039,7 +1039,7 @@ class krakenfutures extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchTrades', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_dynamic('fetchTrades', $symbol, $since, $limit, $params));
         }
@@ -1116,7 +1116,7 @@ class krakenfutures extends Exchange {
             $length = count($elements);
             for ($i = 0; $i < $length; $i++) {
                 $index = $length - 1 - $i;
-                $element = $elements[$index];
+                $element = $this->safe_dict($elements, $index);
                 $event = $this->safe_dict($element, 'event', array());
                 $executionContainer = $this->safe_dict($event, 'Execution', array());
                 $rawTrade = $this->safe_dict($executionContainer, 'execution', array());
@@ -1342,7 +1342,7 @@ class krakenfutures extends Exchange {
         $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
         $isStopLossOrTakeProfitTrigger = $isStopLossTriggerOrder || $isTakeProfitTriggerOrder;
         $triggerSignal = $this->safe_string($params, 'triggerSignal', 'last');
-        $reduceOnly = $this->safe_value($params, 'reduceOnly');
+        $reduceOnly = $this->safe_bool($params, 'reduceOnly');
         if ($isStopLossOrTakeProfitTrigger || $isTriggerOrder) {
             $request['triggerSignal'] = $triggerSignal;
         }
@@ -1498,7 +1498,7 @@ class krakenfutures extends Exchange {
         }
         $ordersRequests = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $marketId = $this->safe_string($rawOrder, 'symbol');
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
@@ -1898,7 +1898,7 @@ class krakenfutures extends Exchange {
         $allOrders = $this->safe_list($response, 'elements', array());
         $closedOrders = array();
         for ($i = 0; $i < count($allOrders); $i++) {
-            $order = $allOrders[$i];
+            $order = $this->safe_dict($allOrders, $i);
             $event = $this->safe_dict($order, 'event', array());
             $orderPlaced = $this->safe_dict_2($event, 'OrderPlaced', 'OrderTriggerActivated');
             $orderUpdated = $this->safe_dict($event, 'OrderUpdated');
@@ -1962,7 +1962,7 @@ class krakenfutures extends Exchange {
         $allOrders = $this->safe_list($response, 'elements', array());
         $canceledAndRejected = array();
         for ($i = 0; $i < count($allOrders); $i++) {
-            $order = $allOrders[$i];
+            $order = $this->safe_dict($allOrders, $i);
             $event = $this->safe_dict($order, 'event', array());
             $isCancelledTriggerOrder = (is_array($event) && array_key_exists('OrderTriggerCancelled' ?? '', $event));
             $orderPlaced = $this->safe_dict_2($event, 'OrderPlaced', 'OrderTriggerCancelled');
@@ -2471,7 +2471,7 @@ class krakenfutures extends Exchange {
         if ($tradesLength > 0) {
             $vwapSum = '0.0';
             for ($i = 0; $i < count($trades); $i++) {
-                $trade = $trades[$i];
+                $trade = $this->safe_dict($trades, $i);
                 $tradeAmount = $this->safe_string($trade, 'amount');
                 $tradePrice = $this->safe_string($trade, 'price');
                 $filled2 = Precise::string_add($filled2, $tradeAmount);
@@ -2504,7 +2504,10 @@ class krakenfutures extends Exchange {
         }
         $cost = null;
         if (($filled !== null) && ($market !== null)) {
-            $whichPrice = ($average !== null) ? $average : $price;
+            $whichPrice = $price;
+            if ($average !== null) {
+                $whichPrice = $average;
+            }
             if ($whichPrice !== null) {
                 if ($market['linear'] === true) {
                     $cost = Precise::string_mul($filled, $whichPrice); // in quote
@@ -2764,7 +2767,7 @@ class krakenfutures extends Exchange {
         return $this->parse_incomes($logs, $market, $since, $limit);
     }
 
-    public function parse_income(mixed $income, ?array $market = null): array {
+    public function parse_income(array $income, ?array $market = null): array {
         //
         //    {
         //        "asset": "usd",
@@ -3007,14 +3010,22 @@ class krakenfutures extends Exchange {
             $type = $symbol;
         }
         if ($type === null) {
-            $type = ($symbol === null) ? 'flex' : $symbol;
+            if ($symbol === null) {
+                $type = 'flex';
+            } else {
+                $type = $symbol;
+            }
         }
         $accountName = $this->parse_account($type);
         $accounts = $this->safe_dict($response, 'accounts');
         $account = $this->safe_dict($accounts, $accountName);
         if ($account === null) {
-            $type = ($type === null) ? '' : $type;
-            $symbol = ($symbol === null) ? '' : $symbol;
+            if ($type === null) {
+                $type = '';
+            }
+            if ($symbol === null) {
+                $symbol = '';
+            }
             throw new BadRequest($this->id . ' fetchBalance has no $account for ' . $type);
         }
         $balance = $this->parse_balance($account);
@@ -3146,7 +3157,7 @@ class krakenfutures extends Exchange {
         $tickers = $this->safe_list($response, 'tickers', array());
         $fundingRates = array();
         for ($i = 0; $i < count($tickers); $i++) {
-            $entry = $tickers[$i];
+            $entry = $this->safe_dict($tickers, $i);
             $entry_symbol = $this->safe_string($entry, 'symbol');
             if ($marketIds !== null) {
                 if (!$this->in_array($entry_symbol, $marketIds)) {
@@ -3273,7 +3284,7 @@ class krakenfutures extends Exchange {
         $rates = $this->safe_value($response, 'rates');
         $result = array();
         for ($i = 0; $i < count($rates); $i++) {
-            $item = $rates[$i];
+            $item = $this->safe_dict($rates, $i);
             $datetime = $this->safe_string($item, 'timestamp');
             $result[] = array(
                 'info' => $item,

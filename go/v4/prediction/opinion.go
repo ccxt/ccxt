@@ -753,12 +753,12 @@ func (this *Opinion) ParseEvent(rawEvent any) any {
 	var eventId *string = this.SafeString(rawEvent, "marketId")
 	var slug *string = this.SafeString(rawEvent, "slug")
 	var title *string = this.SafeString(rawEvent, "marketTitle")
-	var eventHandle any = func() any {
-		if title != nil {
-			return this.ShortenSlug(title)
-		}
-		return this.ShortenSlug(slug)
-	}()
+	var eventHandle any = nil
+	if title != nil {
+		eventHandle = this.ShortenSlug(title)
+	} else {
+		eventHandle = this.ShortenSlug(slug)
+	}
 	var rawChildren []any = ccxt.SafeListTyped(rawEvent, "childMarkets")
 	var rawChildrenLength int = len(rawChildren)
 	var marketsList []any = []any{}
@@ -871,8 +871,8 @@ func (this *Opinion) ParsePredictionTicker(ticker any, optionalArgs ...any) any 
 	var priceResult map[string]any = ccxt.SafeMapTyped(priceResponse, "result")
 	var bookResponse map[string]any = ccxt.SafeMapTyped(ticker, "book")
 	var bookResult map[string]any = ccxt.SafeMapTyped(bookResponse, "result")
-	var bids []any = ccxt.SafeListTypedDefault(bookResult, "bids", []any{})
-	var asks []any = ccxt.SafeListTypedDefault(bookResult, "asks", []any{})
+	var bids []any = ccxt.SafeListTyped(bookResult, "bids")
+	var asks []any = ccxt.SafeListTyped(bookResult, "asks")
 	var bestBid map[string]any = ccxt.SafeMapTyped(bids, 0)
 	var bestAsk map[string]any = ccxt.SafeMapTyped(asks, 0)
 	var last *float64 = this.SafeNumber(priceResult, "price")
@@ -1077,12 +1077,7 @@ func (this *Opinion) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...an
 	var candles []any = []any{}
 	var historyLength int = len(history)
 	for i := 0; i < historyLength; i++ {
-		var point map[string]any = ccxt.MapTyped(func() any {
-			if i >= 0 && i < len(history) {
-				return ccxt.DerefScalar(history[i])
-			}
-			return nil
-		}())
+		var point map[string]any = ccxt.SafeMapTyped(history, i)
 		var price *float64 = this.SafeNumber(point, "p")
 		var timestamp *int64 = this.SafeTimestamp(point, "t")
 		if (price != nil) && (timestamp != nil) {
@@ -1685,8 +1680,8 @@ func (this *Opinion) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"status": "1",
 	}
 
-	var retRes126215 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchOrdersAsync(outcome, since, limit, this.Extend(request, params)))))
-	ch <- ccxt.BoxAbsent(retRes126215)
+	var retRes126715 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchOrdersAsync(outcome, since, limit, this.Extend(request, params)))))
+	ch <- ccxt.BoxAbsent(retRes126715)
 	return nil
 }
 
@@ -1722,8 +1717,8 @@ func (this *Opinion) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 		"status": "2,3,4,5",
 	}
 
-	var retRes127915 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchOrdersAsync(outcome, since, limit, this.Extend(request, params)))))
-	ch <- ccxt.BoxAbsent(retRes127915)
+	var retRes128415 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchOrdersAsync(outcome, since, limit, this.Extend(request, params)))))
+	ch <- ccxt.BoxAbsent(retRes128415)
 	return nil
 }
 
@@ -1943,12 +1938,7 @@ func (this *Opinion) ParseBalance(response any) any {
 	var balances []any = ccxt.SafeListTyped(data, "balances")
 	var balancesLength int = len(balances)
 	for i := 0; i < balancesLength; i++ {
-		var balance map[string]any = ccxt.MapTyped(func() any {
-			if i >= 0 && i < len(balances) {
-				return ccxt.DerefScalar(balances[i])
-			}
-			return nil
-		}())
+		var balance map[string]any = ccxt.SafeMapTyped(balances, i)
 		var code *string = this.SafeString(balance, "symbol", "USDT")
 		ccxt.AddElementToObject(result, code, map[string]any{
 			"free":  this.SafeNumber(balance, "availableBalance"),
@@ -2374,7 +2364,7 @@ func (this *Opinion) OpinionOutcomeByMarketIdSide(marketId any, outcomeSide any)
 	var marketKeys []string = ccxt.ObjectKeys(this.Markets)
 	var marketKeysLength int = len(marketKeys)
 	for i := 0; i < marketKeysLength; i++ {
-		var market map[string]any = ccxt.MapTyped(ccxt.GetValue(this.Markets, ccxt.GetValue(marketKeys, i)))
+		var market map[string]any = ccxt.SafeMapTyped(this.Markets, ccxt.GetValue(marketKeys, i))
 		var info map[string]any = ccxt.SafeMapTyped(market, "info")
 		if ccxt.IsEqual(this.SafeInteger(info, "marketId"), marketId) {
 			var outcomes any = this.SafeList(market, "outcomes", []any{})
@@ -2754,19 +2744,15 @@ func (this *Opinion) HandleOrder(client any, message any) {
 	// unlike the REST order body (0 buy / 1 sell), the websocket channel uses 1 buy / 2 sell
 	// per the docs and confirmed live
 	var sideInt *int64 = this.SafeInteger(message, "side")
-	var side string = func() string {
-		if sideInt != nil && *sideInt == 1 {
-			return "buy"
-		}
-		return "sell"
-	}()
+	var side string = "sell"
+	if sideInt != nil && *sideInt == 1 {
+		side = "buy"
+	}
 	var tradingMethod *int64 = this.SafeInteger(message, "tradingMethod")
-	var typeVar string = func() string {
-		if tradingMethod != nil && *tradingMethod == 1 {
-			return "market"
-		}
-		return "limit"
-	}()
+	var typeVar string = "limit"
+	if tradingMethod != nil && *tradingMethod == 1 {
+		typeVar = "market"
+	}
 	var order any = this.SafePredictionOrder(map[string]any{
 		"id":                 this.SafeString(message, "orderId"),
 		"clientOrderId":      nil,

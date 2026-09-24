@@ -1530,7 +1530,11 @@ public partial class derive : Exchange
     {
         byte[] accountHash = ((byte[])this.hash(this.ethAbiEncode(new List<object>() {"bytes32", "uint256", "uint256", "address", "bytes32", "uint256", "address", "address"}, order), keccak, "binary"));
         bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        string DOMAIN_SEPARATOR = ((sandboxMode == true)) ? "9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105" : "d96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b";
+        string DOMAIN_SEPARATOR = "d96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b";
+        if ((sandboxMode == true))
+        {
+            DOMAIN_SEPARATOR = "9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105";
+        }
         byte[] binaryDomainSeparator = this.base16ToBinary(DOMAIN_SEPARATOR);
         byte[] prefix = this.base16ToBinary("1901");
         return this.hash(this.binaryConcat(prefix, binaryDomainSeparator, accountHash), keccak, "hex");
@@ -1621,7 +1625,11 @@ public partial class derive : Exchange
         Int64? signatureExpiry = this.safeInteger(parameters, "signature_expiry_sec", (this.seconds() + 7776000));
         byte[] ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
         bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        string TRADE_MODULE_ADDRESS = ((sandboxMode == true)) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
+        string TRADE_MODULE_ADDRESS = "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
+        if ((sandboxMode == true))
+        {
+            TRADE_MODULE_ADDRESS = "0x87F2863866D85E3192a35A73b388BD625D83f2be";
+        }
         string? priceString = this.numberToString(price);
         object maxFee = null;
         IList<object> maxFeeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "max_fee");
@@ -1634,9 +1642,9 @@ public partial class derive : Exchange
         string? maxFeeString = this.numberToString(maxFee);
         string? amountString = this.numberToString(amount);
         byte[] tradeModuleDataHash = ((byte[])this.hash(this.ethAbiEncode(new List<object>() {"address", "uint", "int", "int", "uint", "uint", "bool"}, new List<object>() {getValue((market.ContainsKey("info") ? market["info"] : null), "base_asset_address"), this.parseToNumeric(getValue((market.ContainsKey("info") ? market["info"] : null), "base_asset_sub_id")), this.convertToBigInt(this.parseUnits(priceString)), this.convertToBigInt(this.parseUnits(this.amountToPrecision(symbol, amountString))), this.convertToBigInt(this.parseUnits(maxFeeString)), subaccountId, orderSideIsBuy}), keccak, "binary"));
-        object deriveWalletAddress = null;
+        string? deriveWalletAddress = null;
         IList<object> deriveWalletAddressparametersVariable = (IList<object>)this.handleDeriveWalletAddress("createOrder", parameters);
-        deriveWalletAddress = deriveWalletAddressparametersVariable[0];
+        deriveWalletAddress = (string)deriveWalletAddressparametersVariable[0];
         parameters = deriveWalletAddressparametersVariable[1];
         string? signature = this.signOrder(new List<object>() {ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress}, this.privateKey);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1814,14 +1822,18 @@ public partial class derive : Exchange
         // TODO: subaccount id / trade module address
         byte[] ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
         bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        string TRADE_MODULE_ADDRESS = ((sandboxMode == true)) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
+        string TRADE_MODULE_ADDRESS = "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
+        if ((sandboxMode == true))
+        {
+            TRADE_MODULE_ADDRESS = "0x87F2863866D85E3192a35A73b388BD625D83f2be";
+        }
         string priceString = this.numberToString(price);
         string? maxFeeString = this.safeString(parameters, "max_fee", "0");
         string? amountString = this.numberToString(amount);
         byte[] tradeModuleDataHash = ((byte[])this.hash(this.ethAbiEncode(new List<object>() {"address", "uint", "int", "int", "uint", "uint", "bool"}, new List<object>() {getValue((market.ContainsKey("info") ? market["info"] : null), "base_asset_address"), this.parseToNumeric(getValue((market.ContainsKey("info") ? market["info"] : null), "base_asset_sub_id")), this.convertToBigInt(this.parseUnits(priceString)), this.convertToBigInt(this.parseUnits(this.amountToPrecision(symbol, amountString))), this.convertToBigInt(this.parseUnits(maxFeeString)), subaccountId, orderSideIsBuy}), keccak, "binary"));
-        object deriveWalletAddress = null;
+        string? deriveWalletAddress = null;
         IList<object> deriveWalletAddressparametersVariable = (IList<object>)this.handleDeriveWalletAddress("editOrder", parameters);
-        deriveWalletAddress = deriveWalletAddressparametersVariable[0];
+        deriveWalletAddress = (string)deriveWalletAddressparametersVariable[0];
         parameters = deriveWalletAddressparametersVariable[1];
         string? signature = this.signOrder(new List<object>() {ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress}, this.privateKey);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2125,8 +2137,8 @@ public partial class derive : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -2560,8 +2572,8 @@ public partial class derive : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -2809,8 +2821,8 @@ public partial class derive : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -2926,9 +2938,9 @@ public partial class derive : Exchange
         {
             await this.loadMarkets();
         }
-        object deriveWalletAddress = null;
+        string? deriveWalletAddress = null;
         IList<object> deriveWalletAddressparametersVariable = (IList<object>)this.handleDeriveWalletAddress("fetchBalance", parameters);
-        deriveWalletAddress = deriveWalletAddressparametersVariable[0];
+        deriveWalletAddress = (string)deriveWalletAddressparametersVariable[0];
         parameters = deriveWalletAddressparametersVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "wallet", deriveWalletAddress },
@@ -2993,11 +3005,11 @@ public partial class derive : Exchange
         };
         for (int i = 0; i < getArrayLength(response); i++)
         {
-            object subaccount = getValue(response, i);
+            IDictionary<string, object> subaccount = this.safeDict(response, i);
             List<object> collaterals = this.safeList(subaccount, "collaterals", new List<object>() {});
             for (int j = 0; j < collaterals.Count; j++)
             {
-                object balance = collaterals[j];
+                IDictionary<string, object> balance = this.safeDict(collaterals, j);
                 string? code = this.safeCurrencyCode(this.safeString(balance, "currency"));
                 IDictionary<string, object> account = this.safeDict(result, code);
                 if ((account == null))
@@ -3202,11 +3214,11 @@ public partial class derive : Exchange
 
     public virtual List<object> handleDeriveWalletAddress(object methodName, object parameters)
     {
-        object deriveWalletAddress = null;
-        IList<object> deriveWalletAddressparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "deriveWalletAddress");
-        deriveWalletAddress = deriveWalletAddressparametersVariable[0];
+        string? deriveWalletAddress = null;
+        IList<object> deriveWalletAddressparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "deriveWalletAddress");
+        deriveWalletAddress = (string)deriveWalletAddressparametersVariable[0];
         parameters = deriveWalletAddressparametersVariable[1];
-        if (((deriveWalletAddress != null)) && (!isEqual(deriveWalletAddress, "")))
+        if (((deriveWalletAddress != null)) && (deriveWalletAddress != ""))
         {
             this.options["deriveWalletAddress"] = deriveWalletAddress; // saving in options
             return new List<object>() {deriveWalletAddress, parameters};

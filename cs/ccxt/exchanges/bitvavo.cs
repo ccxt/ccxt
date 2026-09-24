@@ -539,7 +539,7 @@ public partial class bitvavo : Exchange
         IDictionary<string, object> fees = ((IDictionary<string, object>)this.fees);
         for (int i = 0; i < getArrayLength(markets); i++)
         {
-            object market = getValue(markets, i);
+            IDictionary<string, object> market = this.safeDict(markets, i);
             string? id = this.safeString(market, "market");
             string? baseId = this.safeString(market, "base");
             string? quoteId = this.safeString(market, "quote");
@@ -902,8 +902,8 @@ public partial class bitvavo : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -1261,8 +1261,8 @@ public partial class bitvavo : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -1289,7 +1289,7 @@ public partial class bitvavo : Exchange
         };
         for (int i = 0; i < getArrayLength(response); i++)
         {
-            object balance = getValue(response, i);
+            IDictionary<string, object> balance = this.safeDict(response, i);
             string? currencyId = this.safeString(balance, "symbol");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -1728,13 +1728,13 @@ public partial class bitvavo : Exchange
         {
             throw new ArgumentsRequired ((this.id + " createOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
         }
-        object selfTradePrevention = null;
-        IList<object> selfTradePreventionparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "selfTradePrevention");
-        selfTradePrevention = selfTradePreventionparametersVariable[0];
+        string? selfTradePrevention = null;
+        IList<object> selfTradePreventionparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "selfTradePrevention");
+        selfTradePrevention = (string)selfTradePreventionparametersVariable[0];
         parameters = selfTradePreventionparametersVariable[1];
         if ((selfTradePrevention != null))
         {
-            if (isEqual(selfTradePrevention, "EXPIRE_BOTH"))
+            if (selfTradePrevention == "EXPIRE_BOTH")
             {
                 request["selfTradePrevention"] = "cancelBoth";
             } else
@@ -2026,9 +2026,9 @@ public partial class bitvavo : Exchange
         {
             await this.loadMarkets();
         }
-        object codGroupId = null;
-        IList<object> codGroupIdparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelAllOrdersAfter", "codGroupId", 1);
-        codGroupId = codGroupIdparametersVariable[0];
+        Int64? codGroupId = null;
+        IList<object> codGroupIdparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "cancelAllOrdersAfter", "codGroupId", 1);
+        codGroupId = (Int64?)codGroupIdparametersVariable[0];
         parameters = codGroupIdparametersVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "codGroupId", codGroupId },
@@ -2158,8 +2158,8 @@ public partial class bitvavo : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -2371,7 +2371,7 @@ public partial class bitvavo : Exchange
         }
         List<object> rawTrades = this.safeList(order, "fills", new List<object>() {});
         string? timeInForce = this.safeString(order, "timeInForce");
-        object postOnly = this.safeValue(order, "postOnly");
+        bool? postOnly = this.safeBool(order, "postOnly");
         // https://github.com/ccxt/ccxt/issues/8489
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
@@ -2444,8 +2444,8 @@ public partial class bitvavo : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {

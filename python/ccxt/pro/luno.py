@@ -116,7 +116,11 @@ class luno(ccxt.async_support.luno):
         #       "order_id": "BXEEU4S2BWF5WRB"
         #     }
         #
-        symbol = None if (market is None) else market['symbol']
+        symbol = None
+        if market is None:
+            symbol = None
+        else:
+            symbol = market['symbol']
         return self.safe_trade({
             'info': trade,
             'id': None,
@@ -201,7 +205,7 @@ class luno(ccxt.async_support.luno):
         timestamp = self.safe_integer(message, 'timestamp')
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.indexed_order_book({})
-        asks = self.safe_value(message, 'asks')
+        asks = self.safe_list(message, 'asks')
         if asks is not None:
             snapshot = self.custom_parse_order_book(message, symbol, timestamp, 'bids', 'asks', 'price', 'volume', 'id')
             self.orderbooks[symbol] = self.indexed_order_book(snapshot)
@@ -287,7 +291,7 @@ class luno(ccxt.async_support.luno):
         #         "timestamp": 1660598775360
         #     }
         #
-        createUpdate = self.safe_value(message, 'create_update')
+        createUpdate = self.safe_dict(message, 'create_update')
         asksOrderSide = orderbook['asks']
         bidsOrderSide = orderbook['bids']
         if createUpdate is not None:
@@ -297,7 +301,7 @@ class luno(ccxt.async_support.luno):
                 asksOrderSide.storeArray(bidAskArray)
             elif type == 'BID':
                 bidsOrderSide.storeArray(bidAskArray)
-        deleteUpdate = self.safe_value(message, 'delete_update')
+        deleteUpdate = self.safe_dict(message, 'delete_update')
         if deleteUpdate is not None:
             orderId = self.safe_string(deleteUpdate, 'order_id')
             asksOrderSide.storeArray([0, 0, orderId])

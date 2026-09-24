@@ -485,9 +485,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Map<String, Object> parameters = parameters3;
-            Object portfolio = null;
-            List<Object> portfolioparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "portfolio");
-            portfolio = ((List<Object>) portfolioparametersVariable).get(0);
+            String portfolio = null;
+            List<Object> portfolioparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, (String) (methodName), "portfolio");
+            portfolio = (String) ((List<Object>) portfolioparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) portfolioparametersVariable).get(1);
             if ((!java.util.Objects.equals(portfolio, null)) && (!java.util.Objects.equals(portfolio, "")))
             {
@@ -501,7 +501,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             List<Account> accounts = (this.fetchAccounts(new Object[0])).join();
             for (var i = 0; i < ((List<?>)accounts).size(); i++)
             {
-                Object account = (accounts == null || i < 0 || i >= accounts.size() ? null : accounts.get(i));
+                Map<String, Object> account = (Map<String, Object>) this.safeDict(accounts, i);
                 Map<String, Object> info = (Map<String, Object>) this.safeDict(account, "info", new HashMap<String, Object>() {{}});
                 if (java.util.Objects.equals(this.safeBool(info, "is_default"), true))
                 {
@@ -659,8 +659,8 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -772,11 +772,11 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             Object maxEntriesPerRequest = 100;
-            List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "maxEntriesPerRequest", maxEntriesPerRequest);
+            List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchFundingRateHistory", "maxEntriesPerRequest", maxEntriesPerRequest);
             maxEntriesPerRequest = ((List<Object>) maxEntriesPerRequestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestparametersVariable).get(1);
             String pageKey = "ccxtPageKey";
@@ -914,9 +914,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object portfolios = null;
-            List<Object> portfoliosparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "portfolios");
-            portfolios = ((List<Object>) portfoliosparametersVariable).get(0);
+            String portfolios = null;
+            List<Object> portfoliosparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchFundingHistory", "portfolios");
+            portfolios = (String) ((List<Object>) portfoliosparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) portfoliosparametersVariable).get(1);
             if (!java.util.Objects.equals(portfolios, null))
             {
@@ -955,7 +955,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         return this.fetchFundingHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseIncome(Object income, Map<String, Object> market)
+    public Object parseIncome(Map<String, Object> income, Map<String, Object> market)
     {
         //
         // {
@@ -997,7 +997,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             put( "rate", null );
         }};
     }
-    public Object parseIncome(Object income, Object... optionalArgs)
+    public Object parseIncome(Map<String, Object> income, Object... optionalArgs)
     {
         return this.parseIncome(income, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -1036,9 +1036,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
             }
-            Object portfolios = null;
-            List<Object> portfoliosparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "portfolios");
-            portfolios = ((List<Object>) portfoliosparametersVariable).get(0);
+            String portfolios = null;
+            List<Object> portfoliosparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchTransfers", "portfolios");
+            portfolios = (String) ((List<Object>) portfoliosparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) portfoliosparametersVariable).get(1);
             if (!java.util.Objects.equals(portfolios, null))
             {
@@ -1236,7 +1236,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         List<Object> networksArray = this.toArray(networks);
         for (var i = 0; i < ((List<?>)networksArray).size(); i++)
         {
-            Object info = Helpers.GetValue((networksArray == null || i < 0 || i >= networksArray.size() ? null : networksArray.get(i)), "info");
+            Map<String, Object> info = (Map<String, Object>) this.safeDict((networksArray == null || i < 0 || i >= networksArray.size() ? null : networksArray.get(i)), "info");
             Boolean is_default = (Boolean) this.safeBool(info, "is_default", false);
             if (java.util.Objects.equals(is_default, true))
             {
@@ -1431,12 +1431,12 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 (this.loadMarkets()).join();
             }
-            Object paginate = null;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "paginate");
-            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            Boolean paginate = null;
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchDepositsWithdrawals", "paginate");
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             Object maxEntriesPerRequest = 100;
-            List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "maxEntriesPerRequest", maxEntriesPerRequest);
+            List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchDepositsWithdrawals", "maxEntriesPerRequest", maxEntriesPerRequest);
             maxEntriesPerRequest = ((List<Object>) maxEntriesPerRequestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestparametersVariable).get(1);
             String pageKey = "ccxtPageKey";
@@ -1458,17 +1458,17 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 Object newLimit = Helpers.mathMin(limit, 100);
                 ((Map<String, Object>)request).put("result_limit", newLimit);
             }
-            Object portfolios = null;
-            List<Object> portfoliosparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "portfolios");
-            portfolios = ((List<Object>) portfoliosparametersVariable).get(0);
+            String portfolios = null;
+            List<Object> portfoliosparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchDepositsWithdrawals", "portfolios");
+            portfolios = (String) ((List<Object>) portfoliosparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) portfoliosparametersVariable).get(1);
             if (!java.util.Objects.equals(portfolios, null))
             {
                 ((Map<String, Object>)request).put("portfolios", portfolios);
             }
-            Object until = null;
-            List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "until");
-            until = ((List<Object>) untilparametersVariable).get(0);
+            Long until = null;
+            List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchDepositsWithdrawals", "until");
+            until = (Long) ((List<Object>) untilparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
@@ -2245,7 +2245,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }
             for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
-                Object instrument = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
+                Map<String, Object> instrument = (Map<String, Object>) this.safeDict(rows, i);
                 String marketId = this.safeString(instrument, "symbol");
                 String symbol = this.safeSymbol(marketId);
                 Map<String, Object> quote = (Map<String, Object>) this.safeDict(instrument, "quote", new HashMap<String, Object>() {{}});
@@ -2444,7 +2444,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         }};
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
-            Object rawBalance = Helpers.GetValue(response, i);
+            Map<String, Object> rawBalance = (Map<String, Object>) this.safeDict(response, i);
             String currencyId = this.safeString(rawBalance, "asset_name");
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
@@ -2613,7 +2613,10 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 tif = "IOC";
             } else
             {
-                tif = (((java.util.Objects.equals(tif, null)))) ? "GTC" : tif;
+                if (java.util.Objects.equals(tif, null))
+                {
+                    tif = "GTC";
+                }
             }
             if (!java.util.Objects.equals(postOnly, null))
             {
@@ -3100,11 +3103,11 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             portfolio = (String) ((List<Object>) portfolioparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) portfolioparametersVariable).get(1);
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             Object maxEntriesPerRequest = 100;
-            List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "maxEntriesPerRequest", maxEntriesPerRequest);
+            List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOpenOrders", "maxEntriesPerRequest", maxEntriesPerRequest);
             maxEntriesPerRequest = ((List<Object>) maxEntriesPerRequestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestparametersVariable).get(1);
             String pageKey = "ccxtPageKey";
@@ -3225,12 +3228,12 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             String pageKey = "ccxtPageKey";
             Object maxEntriesPerRequest = 100;
-            List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "maxEntriesPerRequest", maxEntriesPerRequest);
+            List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchMyTrades", "maxEntriesPerRequest", maxEntriesPerRequest);
             maxEntriesPerRequest = ((List<Object>) maxEntriesPerRequestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))

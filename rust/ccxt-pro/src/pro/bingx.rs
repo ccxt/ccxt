@@ -586,7 +586,10 @@ impl BingxCore {
         let mut marketId: Value = self.safe_string_k(data.clone(), "s", &[]);
         // const marketId = messageHash.split('@')[0];
         let mut isSwap: bool = Value::Int(get_value(&client, &Value::Str("url".into())).as_str().and_then(|__s| __s.find("swap")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
-        let mut marketType: Value = (if isSwap { Value::Str("swap".into()) } else { Value::Str("spot".into()) });
+        let mut marketType: Value = Value::Str("spot".into());
+        if isSwap {
+            marketType = Value::Str("swap".into());
+        }
         let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, marketType]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         // the Coin-M stream is a distinct endpoint, so it identifies an inverse
@@ -882,7 +885,10 @@ impl BingxCore {
         let mut rawHash: Value = (match message.get("dataType") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
         let mut marketId: Value = split(&rawHash, &Value::Str("@".into())).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut isSwap: bool = Value::Int(get_value(&client, &Value::Str("url".into())).as_str().and_then(|__s| __s.find("swap")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
-        let mut marketType: Value = (if isSwap { Value::Str("swap".into()) } else { Value::Str("spot".into()) });
+        let mut marketType: Value = Value::Str("spot".into());
+        if isSwap {
+            marketType = Value::Str("swap".into());
+        }
         let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, marketType]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade::".into()), symbol).into());
@@ -1107,14 +1113,17 @@ impl BingxCore {
         let mut isAllEndpoint: bool = firstPart.as_str() == Some("all");
         let mut marketId: Value = self.safe_string_k(data.clone(), "symbol", &[firstPart]);
         let mut isSwap: bool = Value::Int(get_value(&client, &Value::Str("url".into())).as_str().and_then(|__s| __s.find("swap")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
-        let mut marketType: Value = (if isSwap { Value::Str("swap".into()) } else { Value::Str("spot".into()) });
+        let mut marketType: Value = Value::Str("spot".into());
+        if isSwap {
+            marketType = Value::Str("swap".into());
+        }
         let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, marketType]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
         if (orderbook == Value::Null) {
             // const limit = [ 5, 10, 20, 50, 100 ]
             let mut subscriptionHash: Value = dataType;
-            let mut subscription: Value = get_value(&get_value(&client, &Value::Str("subscriptions".into())), &subscriptionHash);
+            let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), subscriptionHash, &[]);
             // see handleOHLCV — subscription.limit may be missing for non-orderbook callers;
             // default to a reasonable depth instead of throwing NPE in the Java port.
             let mut limit: Value = self.safe_integer_k(subscription, "limit", &[Value::Int(100)]);
@@ -1163,7 +1172,10 @@ impl BingxCore {
         // for linear swap, (T) is the opening time
         let mut isSpot: bool = (match market.get("spot") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Null }).as_bool() == Some(true);
         let mut isInverse: bool = (match market.get("inverse") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Null }).as_bool() == Some(true);
-        let mut timestamp: Value = (if isSpot { Value::Str("t".into()) } else { Value::Str("T".into()) });
+        let mut timestamp: Value = Value::Str("T".into());
+        if isSpot {
+            timestamp = Value::Str("t".into());
+        }
         if ((match market.get("swap") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Null }).as_bool() == Some(true)) {
             timestamp = (if isInverse { Value::Str("t".into()) } else { Value::Str("T".into()) });
         }
@@ -1245,7 +1257,10 @@ impl BingxCore {
         let mut firstPart: Value = parts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut isAllEndpoint: bool = firstPart.as_str() == Some("all");
         let mut marketId: Value = (match message.get("s") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => firstPart });
-        let mut marketType: Value = (if isSwap { Value::Str("swap".into()) } else { Value::Str("spot".into()) });
+        let mut marketType: Value = Value::Str("spot".into());
+        if isSwap {
+            marketType = Value::Str("swap".into());
+        }
         let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, marketType.clone()]);
         let mut candles: Value = Value::Null;
         if isSwap {
@@ -1281,7 +1296,7 @@ impl BingxCore {
         let mut unifiedTimeframe: Value = self.find_timeframe(rawTimeframe.clone(), &[timeframes]);
         if (self.safe_value(get_value(&self.ohlcvs, &symbol), rawTimeframe, &[]) == Value::Null) {
             let mut subscriptionHash: Value = dataType;
-            let mut subscription: Value = get_value(&get_value(&client, &Value::Str("subscriptions".into())), &subscriptionHash);
+            let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), subscriptionHash, &[]);
             // subscription.limit is only set when watchOHLCV registers the subscription;
             // when handleMessage routes a non-OHLCV-originated subscription here (or the
             // subscription dict was reset on reconnect), fall back to the OHLCVLimit option.
@@ -1466,10 +1481,16 @@ impl BingxCore {
         let mut isSpot: bool = type_var.as_str() == Some("spot");
         let mut spotHash: Value = Value::Str("spot:private".into());
         let mut swapHash: Value = Value::Str("swap:private".into());
-        let mut subscriptionHash: Value = (if isSpot { spotHash } else { swapHash });
+        let mut subscriptionHash: Value = swapHash;
+        if isSpot {
+            subscriptionHash = spotHash;
+        }
         let mut spotMessageHash: Value = Value::Str("spot:order".into());
         let mut swapMessageHash: Value = Value::Str("swap:order".into());
-        let mut messageHash: Value = (if isSpot { spotMessageHash } else { swapMessageHash });
+        let mut messageHash: Value = swapMessageHash;
+        if isSpot {
+            messageHash = spotMessageHash;
+        }
         if (market != Value::Null) {
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), symbol).into())).into());
         }
@@ -1544,10 +1565,16 @@ impl BingxCore {
         let mut isSpot: bool = type_var.as_str() == Some("spot");
         let mut spotHash: Value = Value::Str("spot:private".into());
         let mut swapHash: Value = Value::Str("swap:private".into());
-        let mut subscriptionHash: Value = (if isSpot { spotHash } else { swapHash });
+        let mut subscriptionHash: Value = swapHash;
+        if isSpot {
+            subscriptionHash = spotHash;
+        }
         let mut spotMessageHash: Value = Value::Str("spot:mytrades".into());
         let mut swapMessageHash: Value = Value::Str("swap:mytrades".into());
-        let mut messageHash: Value = (if isSpot { spotMessageHash } else { swapMessageHash });
+        let mut messageHash: Value = swapMessageHash;
+        if isSpot {
+            messageHash = spotMessageHash;
+        }
         if (market != Value::Null) {
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), symbol).into())).into());
         }
@@ -1616,8 +1643,14 @@ impl BingxCore {
         let mut swapSubHash: Value = Value::Str("swap:private".into());
         let mut spotMessageHash: Value = Value::Str("spot:balance".into());
         let mut swapMessageHash: Value = Value::Str("swap:balance".into());
-        let mut messageHash: Value = (if isSpot { spotMessageHash } else { swapMessageHash });
-        let mut subscriptionHash: Value = (if isSpot { spotSubHash } else { swapSubHash });
+        let mut messageHash: Value = swapMessageHash;
+        if isSpot {
+            messageHash = spotMessageHash;
+        }
+        let mut subscriptionHash: Value = swapSubHash;
+        if isSpot {
+            subscriptionHash = spotSubHash;
+        }
         let mut request: Value = Value::Null;
         let mut baseUrl: Value = Value::Null;
         let mut uuid: Value = self.uuid(&[]);
@@ -2230,7 +2263,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbol: Value = parsedOrder.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut spotHash: Value = Value::Str("spot:order".into());
         let mut swapHash: Value = Value::Str("swap:order".into());
-        let mut messageHash: Value = (if (isSpot) { spotHash } else { swapHash });
+        let mut messageHash: Value = swapHash;
+        if isSpot {
+            messageHash = spotHash;
+        }
         client.resolve(&[stored.clone(), messageHash.clone()]);
         client.resolve(&[stored, Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol).into())]);
 }
@@ -2303,14 +2339,20 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             cachedTrades = ArrayCacheBySymbolById::new(limit);
             self.myTrades = cachedTrades.clone();
         }
-        let mut type_var: Value = (if isSpot { Value::Str("spot".into()) } else { Value::Str("swap".into()) });
+        let mut type_var: Value = Value::Str("swap".into());
+        if isSpot {
+            type_var = Value::Str("spot".into());
+        }
         let mut marketId: Value = self.safe_string_k(result.clone(), "s", &[]);
         let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Str("-".into()), type_var]);
         let mut parsed: Value = self.parse_trade(result, &[market]);
         let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut spotHash: Value = Value::Str("spot:mytrades".into());
         let mut swapHash: Value = Value::Str("swap:mytrades".into());
-        let mut messageHash: Value = (if isSpot { spotHash } else { swapHash });
+        let mut messageHash: Value = swapHash;
+        if isSpot {
+            messageHash = spotHash;
+        }
         cachedTrades.append(parsed);
         client.resolve(&[cachedTrades.clone(), messageHash.clone()]);
         client.resolve(&[cachedTrades, Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol).into())]);
@@ -2363,7 +2405,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut timestamp: Value = self.safe_integer2(message.clone(), Value::Str("T".into()), Value::Str("E".into()), &[]);
         let mut spotUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("spot".into()), &[]);
         let mut isSpot: bool = (spotUrl != Value::Null) && (get_index_of(&get_value(&client, &Value::Str("url".into())), &spotUrl).as_f64() == Some(0.0));
-        let mut type_var: Value = (if isSpot { Value::Str("spot".into()) } else { Value::Str("swap".into()) });
+        let mut type_var: Value = Value::Str("swap".into());
+        if isSpot {
+            type_var = Value::Str("spot".into());
+        }
         if !(in_op(&self.balance, &type_var)) {
             if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2384,7 +2429,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("info".into(), balance.clone()); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(balance.clone(), "lk", &[])); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(balance.clone(), "wb", &[])); }
-            if (type_var != Value::Null) && (code != Value::Null) {
+            if (code != Value::Null) {
                 add_element_to_object(get_value_mut(&mut self.balance, &type_var), &code, account);
             }
         }
@@ -2394,11 +2439,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
+        // plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them
+        if matches!(&message, Value::Str(_)) {
+            if (message.as_str() == Some("Ping")) {
+                self.spawn(&[Value::Str("pong".into()).clone(), client.clone(), message.clone()]);
+            }
+            return;
+        }
         if !(self.handle_error_message(client.clone(), message.clone()).as_bool() == Some(true)) {
             return;
         }
         // public subscriptions
-        if (message.as_str() == Some("Ping")) || (in_op(&message, &Value::Str("ping".into()))) {
+        if (in_op(&message, &Value::Str("ping".into()))) {
             self.spawn(&[Value::Str("pong".into()).clone(), client.clone(), message.clone()]);
             return;
         }

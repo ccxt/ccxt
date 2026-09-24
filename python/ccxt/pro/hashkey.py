@@ -746,7 +746,9 @@ class hashkey(ccxt.async_support.hashkey):
         data = self.safe_list(message, 'B', [])
         balanceUpdate = self.safe_dict(data, 0)
         isSpot = event == 'outboundAccountInfo'
-        type = 'spot' if isSpot else 'swap'
+        type = 'swap'
+        if isSpot:
+            type = 'spot'
         if not (type in self.balance):
             self.balance[type] = {}
         self.balance[type]['info'] = message
@@ -755,7 +757,7 @@ class hashkey(ccxt.async_support.hashkey):
         account = self.account()
         account['free'] = self.safe_string(balanceUpdate, 'f')
         account['used'] = self.safe_string(balanceUpdate, 'l')
-        if (type is not None) and (code is not None):
+        if code is not None:
             self.balance[type][code] = account
         self.balance[type] = self.safe_balance(self.balance[type])
         messageHash = 'balance:' + type

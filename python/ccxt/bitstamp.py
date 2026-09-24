@@ -1153,7 +1153,11 @@ class bitstamp(Exchange, ImplicitAPI):
             market = self.get_market_from_trade(trade)
         feeCostString = self.safe_string(trade, 'fee')
         feeCurrency = self.safe_string(market, 'quote')
-        priceId = rawMarketId if (rawMarketId is not None) else self.safe_string(market, 'id')
+        priceId = None
+        if rawMarketId is not None:
+            priceId = rawMarketId
+        else:
+            priceId = self.safe_string(market, 'id')
         priceString = self.safe_string(trade, priceId, priceString)
         amountString = self.safe_string(trade, self.safe_string(market, 'baseId'), amountString)
         costString = self.safe_string(trade, self.safe_string(market, 'quoteId'), costString)
@@ -1360,7 +1364,7 @@ class bitstamp(Exchange, ImplicitAPI):
         if response is None:
             response = []
         for i in range(0, len(response)):
-            currencyBalance = response[i]
+            currencyBalance = self.safe_dict(response, i)
             currencyId = self.safe_string(currencyBalance, 'currency')
             currencyCode = self.safe_currency_code(currencyId)
             account = self.account()
@@ -1556,7 +1560,7 @@ class bitstamp(Exchange, ImplicitAPI):
         result = self.deposit_withdraw_fee(fee)
         code = self.safe_string(currency, 'code')
         for j in range(0, len(fee)):
-            networkEntry = fee[j]
+            networkEntry = self.safe_dict(fee, j)
             networkId = self.safe_string(networkEntry, 'network')
             networkCode = self.network_id_to_code(networkId, code)
             withdrawFee = self.safe_number(networkEntry, 'fee')
@@ -1847,7 +1851,7 @@ class bitstamp(Exchange, ImplicitAPI):
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params)
         if self.markets is None:
@@ -2621,7 +2625,9 @@ class bitstamp(Exchange, ImplicitAPI):
                     body = self.urlencode({'foo': 'bar'})
                     contentType = 'application/x-www-form-urlencoded'
                     headers['Content-Type'] = contentType
-            authBody = body if (body is not None and body != '') else ''
+            authBody = ''
+            if body is not None and body != '':
+                authBody = body
             auth = xAuth + method + url.replace('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             headers['X-Auth-Signature'] = signature

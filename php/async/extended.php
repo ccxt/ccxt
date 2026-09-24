@@ -844,7 +844,7 @@ class extended extends Exchange {
         $data = $this->safe_list($response, 'data', array());
         $tickers = array();
         for ($i = 0; $i < count($data); $i++) {
-            $marketData = $data[$i];
+            $marketData = $this->safe_dict($data, $i);
             $marketId = $this->safe_string($marketData, 'name');
             $market = $this->safe_market($marketId);
             $stats = $this->safe_dict($marketData, 'marketStats', array());
@@ -1033,7 +1033,7 @@ class extended extends Exchange {
          */
         Async\await($this->load_markets());
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchMyTrades', $symbol, $since, $limit, $params, 'cursor', 'cursor', null, 100));
         }
@@ -1107,7 +1107,7 @@ class extended extends Exchange {
          */
         Async\await($this->load_markets());
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingHistory', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchFundingHistory', $symbol, $since, $limit, $params, 'cursor', 'cursor', null, 100));
         }
@@ -1163,7 +1163,7 @@ class extended extends Exchange {
         return $this->parse_funding_histories($result, $market, $since, $limit);
     }
 
-    public function parse_funding_history(mixed $history, ?array $market = null) {
+    public function parse_funding_history(array $history, ?array $market = null) {
         //
         //     {
         //         "id": 8341,
@@ -1379,7 +1379,7 @@ class extended extends Exchange {
         }
         Async\await($this->load_markets());
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchFundingRateHistory', $symbol, $since, $limit, $params, 'cursor', 'cursor', null, 10000));
         }
@@ -1706,7 +1706,7 @@ class extended extends Exchange {
          */
         Async\await($this->load_markets());
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchLedger', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchLedger', $code, $since, $limit, $params, 'cursor', 'cursor', null, 50));
         }
@@ -1803,7 +1803,7 @@ class extended extends Exchange {
          */
         Async\await($this->load_markets());
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransactions', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchTransactions', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchTransactions', $code, $since, $limit, $params, 'cursor', 'cursor', null, 50));
         }
@@ -1985,7 +1985,7 @@ class extended extends Exchange {
          */
         Async\await($this->load_markets());
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchTransfers', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchTransfers', $code, $since, $limit, $params, 'cursor', 'cursor', null, 50));
         }
@@ -2503,7 +2503,7 @@ class extended extends Exchange {
             $symbols = array( $symbols );
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchPositionsHistory', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchPositionsHistory', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchPositionsHistory', $symbols, $since, $limit, $params, 'cursor', 'cursor', null, 10000));
         }
@@ -2793,7 +2793,7 @@ class extended extends Exchange {
             $params = $this->omit($params, array( 'builderFeeRate', 'defaultBuilderFeeRate', 'builderId', 'defaultBuilderId' ));
         } else {
             list($builderFeeRate, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'builderFeeRate', '0.0001');
-            list($builderId, $params) = $this->handle_option_and_params($params, 'createOrder', 'builderId');
+            list($builderId, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'builderId');
         }
         $totalFee = $fee;
         if ($builderFeeRate !== null) {
@@ -2929,7 +2929,11 @@ class extended extends Exchange {
                 $request['type'] = 'CONDITIONAL';
                 $request['trigger'] = $trigger;
             } elseif ($isStopLossOrder || $isTakeProfitOrder) {
-                $triggerPriceStr = $isStopLossOrder ? $stopLossTriggerPrice : $takeProfitTriggerPrice;
+                if ($isStopLossOrder) {
+                    $triggerPriceStr = $stopLossTriggerPrice;
+                } else {
+                    $triggerPriceStr = $takeProfitTriggerPrice;
+                }
                 $trigger = array(
                     'triggerPrice' => $this->price_to_precision($symbol, $triggerPriceStr),
                 );
@@ -3380,7 +3384,7 @@ class extended extends Exchange {
          */
         Async\await($this->load_markets());
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOrders', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchOrders', $symbol, $since, $limit, $params, 'cursor', 'cursor', null, 100));
         }
@@ -3639,7 +3643,10 @@ class extended extends Exchange {
             '"StarknetDomain"("name":"shortstring","version":"shortstring","chainId":"shortstring","revision":"shortstring")'
         ));
         $isTestnet = mb_strpos($this->urls['api']['rest'], 'sepolia') !== false;
-        $defaultChainId = $isTestnet ? 'SN_SEPOLIA' : 'SN_MAIN';
+        $defaultChainId = 'SN_MAIN';
+        if ($isTestnet) {
+            $defaultChainId = 'SN_SEPOLIA';
+        }
         $chainId = $this->safe_string($this->options, 'chainId', $defaultChainId);
         return $this->convert_to_big_int($this->extended_starknet_compute_poseidon_hash_on_elements(array(
             $domainTypeHash,

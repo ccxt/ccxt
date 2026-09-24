@@ -252,7 +252,7 @@ class upbit(ccxt.async_support.upbit):
         asks = orderbook['asks']
         data = self.safe_list(message, 'orderbook_units', [])
         for i in range(0, len(data)):
-            entry = data[i]
+            entry = self.safe_dict(data, i)
             ask_price = self.safe_float(entry, 'ask_price')
             ask_size = self.safe_float(entry, 'ask_size')
             bid_price = self.safe_float(entry, 'bid_price')
@@ -617,7 +617,7 @@ class upbit(ccxt.async_support.upbit):
         self.balance['timestamp'] = timestamp
         self.balance['datetime'] = self.iso8601(timestamp)
         for i in range(0, len(data)):
-            balance = data[i]
+            balance = self.safe_dict(data, i)
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             available = self.safe_string(balance, 'balance')

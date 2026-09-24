@@ -717,7 +717,7 @@ func (this *Zebpay) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
 		//     "customMessage": ["OK"]
 		// }
 		//
-		var responseData []any = SafeListTypedDefault(response, "data", []any{})
+		var responseData []any = SafeListTyped(response, "data")
 		data = this.SafeDict(responseData, 0, map[string]any{})
 	}
 
@@ -2341,12 +2341,7 @@ func (this *Zebpay) ParseBalance(response any) any {
 	}
 	var currencyList []any = SafeListTyped(response, "data")
 	for i := 0; i < len(currencyList); i++ {
-		var entry map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(currencyList) {
-				return DerefScalar(currencyList[i])
-			}
-			return nil
-		}())
+		var entry map[string]any = SafeMapTyped(currencyList, i)
 		var account map[string]any = this.Account()
 		account["total"] = this.SafeString(entry, "total")
 		account["free"] = this.SafeString(entry, "free")
@@ -2523,12 +2518,10 @@ func (this *Zebpay) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	params = this.Omit(params, "defaultType")
 	var isV1 bool = (GetIndexOf(path, "v1/") > -1)
-	var marketType string = func() string {
-		if isV1 {
-			return "swap"
-		}
-		return "spot"
-	}()
+	var marketType string = "spot"
+	if isV1 {
+		marketType = "swap"
+	}
 	var url any = GetValue(GetValue(this.Urls, "api"), marketType)
 	var tail any = Add("/api/", this.ImplodeParams(path, params))
 	url = Add(url, tail)
@@ -2539,7 +2532,7 @@ func (this *Zebpay) Sign(path any, optionalArgs ...any) any {
 	var access *string = this.SafeString(api, 0, "public")
 	if access != nil && *access == "public" {
 		if (method == "GET") || (method == "DELETE") {
-			if (!IsEqual(queryLength, nil)) && (queryLength != 0) {
+			if queryLength != 0 {
 				url = Add(url, "?"+this.Urlencode(query))
 			}
 		} else {

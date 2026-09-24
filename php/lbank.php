@@ -463,7 +463,7 @@ class lbank extends Exchange {
         $networksRaw = $rawCurrency;
         $networks = array();
         for ($j = 0; $j < count($networksRaw); $j++) {
-            $networkEntry = $networksRaw[$j];
+            $networkEntry = $this->safe_dict($networksRaw, $j);
             $networkId = $this->safe_string($networkEntry, 'chain');
             if ($networkId === null) {
                 $networkId = $this->safe_string($networkEntry, 'assetCode'); // use type as fallback if networkId is not present
@@ -799,7 +799,7 @@ class lbank extends Exchange {
         $market = $this->market($symbol);
         if ($market['swap'] === true) {
             $responseForSwap = $this->fetch_tickers(array( $market['symbol'] ), $params);
-            return $this->safe_value($responseForSwap, $market['symbol']);
+            return $this->safe_dict($responseForSwap, $market['symbol']);
         }
         $request = array(
             'symbol' => $market['id'],
@@ -1349,7 +1349,7 @@ class lbank extends Exchange {
         $balances = $this->safe_list($data, 'balances');
         if ($balances !== null) {
             for ($i = 0; $i < count($balances); $i++) {
-                $item = $balances[$i];
+                $item = $this->safe_dict($balances, $i);
                 $currencyId = $this->safe_string($item, 'asset');
                 $codeInner = $this->safe_currency_code($currencyId);
                 $account = $this->account();
@@ -1365,7 +1365,7 @@ class lbank extends Exchange {
         $isArray = (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)));
         if ($isArray === true) {
             for ($i = 0; $i < count($data); $i++) {
-                $item = $data[$i];
+                $item = $this->safe_dict($data, $i);
                 $currencyId = $this->safe_string($item, 'coin');
                 $codeInner = $this->safe_currency_code($currencyId);
                 $account = $this->account();
@@ -1443,7 +1443,7 @@ class lbank extends Exchange {
         }
         $market = $this->market($symbol);
         $responseForSwap = $this->fetch_funding_rates(array( $market['symbol'] ), $params);
-        return $this->safe_value($responseForSwap, $market['symbol']);
+        return $this->safe_dict($responseForSwap, $market['symbol']);
     }
 
     public function fetch_funding_rates(?array $symbols = null, $params = array()): array {
@@ -2746,7 +2746,7 @@ class lbank extends Exchange {
         $result = $this->safe_list($response, 'data', array());
         $withdrawFees = array();
         for ($i = 0; $i < count($result); $i++) {
-            $entry = $result[$i];
+            $entry = $this->safe_dict($result, $i);
             $currencyId = $this->safe_string($entry, 'coin');
             $code = $this->safe_currency_code($currencyId);
             $networkList = $this->safe_list($entry, 'networkList', array());
@@ -2754,7 +2754,7 @@ class lbank extends Exchange {
                 $withdrawFees[$code] = array();
             }
             for ($j = 0; $j < count($networkList); $j++) {
-                $networkEntry = $networkList[$j];
+                $networkEntry = $this->safe_dict($networkList, $j);
                 $fee = $this->safe_number($networkEntry, 'withdrawFee');
                 if ($fee !== null) {
                     $networkCode = $this->network_id_to_code($this->safe_string($networkEntry, 'name'), $code);
@@ -2811,7 +2811,7 @@ class lbank extends Exchange {
         $result = $this->safe_list($response, 'data', array());
         $withdrawFees = array();
         for ($i = 0; $i < count($result); $i++) {
-            $item = $result[$i];
+            $item = $this->safe_dict($result, $i);
             $canWithdraw = $this->safe_string($item, 'canWithDraw');
             if ($canWithdraw === 'true') {
                 $currencyId = $this->safe_string($item, 'assetCode');
@@ -3033,7 +3033,7 @@ class lbank extends Exchange {
         $code = $this->safe_string($currency, 'code');
         $networkList = $this->safe_list($fee, 'networkList', array());
         for ($j = 0; $j < count($networkList); $j++) {
-            $networkEntry = $networkList[$j];
+            $networkEntry = $this->safe_dict($networkList, $j);
             $networkCode = $this->network_id_to_code($this->safe_string($networkEntry, 'name'), $code);
             $withdrawFee = $this->safe_number($networkEntry, 'withdrawFee');
             $isDefault = $this->safe_bool($networkEntry, 'isDefault');

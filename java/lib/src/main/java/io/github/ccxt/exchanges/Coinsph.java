@@ -1734,7 +1734,7 @@ public class Coinsph extends CoinsphApi
         Long timestamp = this.safeInteger(trade, "time");
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "qty");
-        Object type = null;
+        List<String> type = null;
         Map<String, Object> fee = new HashMap<String, Object>() {{}};
         String feeCost = this.safeString(trade, "commission");
         if (!java.util.Objects.equals(feeCost, null))
@@ -1855,7 +1855,7 @@ public class Coinsph extends CoinsphApi
         }};
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i);
             String currencyId = this.safeString(balance, "asset");
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
@@ -2937,7 +2937,7 @@ public class Coinsph extends CoinsphApi
         String code = this.safeCurrencyCode(currencyId, currency);
         Long timestamp = null;
         timestamp = this.safeInteger2(transaction, "insertTime", "applyTime");
-        Object updated = null;
+        List<String> updated = null;
         String type = null;
         String withdrawOrderId = this.safeString(transaction, "withdrawOrderId");
         String depositOrderId = this.safeString(transaction, "depositOrderId");
@@ -3050,7 +3050,7 @@ public class Coinsph extends CoinsphApi
             //         "addressTag": ""
             //     }
             //
-            return this.parseDepositAddress(response, currency);
+            return this.parseDepositAddress((Map<String, Object>) (response), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -3069,7 +3069,7 @@ public class Coinsph extends CoinsphApi
         return this.fetchDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseDepositAddress(Object depositAddress, Map<String, Object> currency)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         //
         //     {
@@ -3088,7 +3088,7 @@ public class Coinsph extends CoinsphApi
             put( "tag", Coinsph.this.safeString(depositAddress, "addressTag") );
         }};
     }
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Object... optionalArgs)
     {
         return this.parseDepositAddress(depositAddress, Helpers.getArgMap(optionalArgs, 0, null));
     }

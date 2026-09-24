@@ -1064,7 +1064,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	var paginationCalls any = 10
-	var paginationCallsparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginationCalls", 10)
+	var paginationCallsparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOHLCV", "paginationCalls", 10)
 	paginationCalls = GetValue(paginationCallsparamsVariable, 0)
 	params = MapTyped(GetValue(paginationCallsparamsVariable, 1))
 	var request map[string]any = map[string]any{
@@ -1530,7 +1530,7 @@ func (this *Alpaca) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		request["qty"] = this.AmountToPrecision(symbol, amount)
 	}
 	var defaultTIF any = nil
-	var defaultTIFparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "timeInForce")
+	var defaultTIFparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "timeInForce")
 	defaultTIF = GetValue(defaultTIFparamsVariable, 0)
 	params = MapTyped(GetValue(defaultTIFparamsVariable, 1))
 	if defaultTIF != nil {
@@ -2396,12 +2396,10 @@ func (this *Alpaca) fetchTransactionsHelperBody(ch chan any, typeVar any, code a
 			var activityType *string = this.SafeString(entry, "activity_type")
 			var amount *string = this.SafeString(entry, "net_amount")
 			var isIncoming bool = (activityType != nil && *activityType == "CSD") || ((activityType != nil && *activityType == "TRANS") && !Precise.StringLt(amount, "0"))
-			var entryDirection string = func() string {
-				if isIncoming {
-					return "INCOMING"
-				}
-				return "OUTGOING"
-			}()
+			var entryDirection string = "OUTGOING"
+			if isIncoming {
+				entryDirection = "INCOMING"
+			}
 			if (IsEqual(typeVar, "BOTH")) || (IsEqual(entryDirection, typeVar)) {
 				filtered = append(filtered, entry)
 			}
@@ -2808,12 +2806,7 @@ func (this *Alpaca) ParseBalance(response any) any {
 		AddElementToObject(result, code, cashAccount)
 	}
 	for i := 0; i < len(positions); i++ {
-		var position map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(positions) {
-				return DerefScalar(positions[i])
-			}
-			return nil
-		}())
+		var position map[string]any = SafeMapTyped(positions, i)
 		var positionSymbol *string = this.SafeString(position, "symbol")
 		if positionSymbol == nil {
 			continue

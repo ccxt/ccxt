@@ -223,7 +223,7 @@ class bitstamp extends \ccxt\async\bitstamp {
 
     public function get_cache_index(mixed $orderbook, mixed $deltas): float {
         // we will consider it a fail
-        $firstElement = $deltas[0];
+        $firstElement = $this->safe_dict($deltas, 0);
         $firstElementNonce = $this->safe_integer($firstElement, 'microtimestamp');
         if ($firstElementNonce === null) {
             return -1;
@@ -233,7 +233,7 @@ class bitstamp extends \ccxt\async\bitstamp {
             return -1;
         }
         for ($i = 0; $i < count($deltas); $i++) {
-            $delta = $deltas[$i];
+            $delta = $this->safe_dict($deltas, $i);
             $deltaNonce = $this->safe_integer($delta, 'microtimestamp');
             if ($deltaNonce === $nonce) {
                 return $i + 1;
@@ -301,7 +301,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         return Async\await($this->un_watch_channel($channel, $subHash, 'trades', array( $symbol ), $params));
     }
 
-    public function parse_ws_trade(array $trade, ?array $market = null): array {
+    public function parse_ws_trade(?array $trade, ?array $market = null): array {
         //
         //     {
         //         "buy_order_id": 1211625836466176,
@@ -326,7 +326,10 @@ class bitstamp extends \ccxt\async\bitstamp {
         }
         $symbol = $market['symbol'];
         $sideRaw = $this->safe_integer($trade, 'type');
-        $side = ($sideRaw === 0) ? 'buy' : 'sell';
+        $side = 'sell';
+        if ($sideRaw === 0) {
+            $side = 'buy';
+        }
         return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -374,7 +377,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $messageHash = 'trades:' . $symbol;
-        $data = $this->safe_value($message, 'data');
+        $data = $this->safe_dict($message, 'data');
         $trade = $this->parse_ws_trade($data, $market);
         $tradesArray = $this->safe_value($this->trades, $symbol);
         if ($tradesArray === null) {
@@ -734,7 +737,10 @@ class bitstamp extends \ccxt\async\bitstamp {
         //
         $id = $this->safe_string($order, 'id_str');
         $orderTypeRaw = $this->safe_string_lower($order, 'order_type');
-        $side = ($orderTypeRaw === '1') ? 'sell' : 'buy';
+        $side = 'buy';
+        if ($orderTypeRaw === '1') {
+            $side = 'sell';
+        }
         $orderSubTypeRaw = $this->safe_string_lower($order, 'order_subtype'); // https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
         $orderType = null;
         $timeInForce = null;
@@ -952,7 +958,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         }
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         // {
         //     "event": "bts:error",
         //     "channel": '',

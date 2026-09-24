@@ -188,12 +188,7 @@ func (this *Bitrue) ParseWSBalances(balances []any) {
 	//
 	ccxt.AddElementToObject(this.Balance, "info", balances)
 	for i := 0; i < len(balances); i++ {
-		var balance map[string]any = ccxt.MapTyped(func() any {
-			if i >= 0 && i < len(balances) {
-				return ccxt.DerefScalar(balances[i])
-			}
-			return nil
-		}())
+		var balance map[string]any = ccxt.SafeMapTyped(balances, i)
 		var currencyId *string = this.SafeString(balance, "a")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -339,12 +334,10 @@ func (this *Bitrue) ParseWsOrder(order any, optionalArgs ...any) any {
 	var sideId *int64 = this.SafeInteger(order, "S")
 	// 1: buy
 	// 2: sell
-	var side string = func() string {
-		if sideId != nil && *sideId == 1 {
-			return "buy"
-		}
-		return "sell"
-	}()
+	var side string = "sell"
+	if sideId != nil && *sideId == 1 {
+		side = "buy"
+	}
 	var statusId *string = this.SafeString(order, "X")
 	var feeCurrencyId *string = this.SafeString(order, "N")
 	return this.SafeOrder(map[string]any{
@@ -508,12 +501,7 @@ func (this *Bitrue) FindSwapMarketByWsBaseQuote(wsBaseQuote any) any {
 func (this *Bitrue) ParseContractBidsAsks(bidsAsks []any, symbol any) []any {
 	var result []any = []any{}
 	for i := 0; i < len(bidsAsks); i++ {
-		var level any = func() any {
-			if i >= 0 && i < len(bidsAsks) {
-				return ccxt.DerefScalar(bidsAsks[i])
-			}
-			return nil
-		}()
+		var level []any = ccxt.SafeListTyped(bidsAsks, i)
 		var price *float64 = this.SafeNumber(level, 0)
 		var rawAmount *float64 = this.SafeNumber(level, 1)
 		var amount any = this.ConvertFromRawQuantity(symbol, rawAmount)
@@ -1018,7 +1006,7 @@ func (this *Bitrue) authenticateBody(ch chan any, optionalArgs ...any) any {
 
 			ccxt.PanicOnError((<-client.(ccxt.ClientInterface).Future(messageHash)))
 
-			ch <- ccxt.GetValue(this.Options, "listenKeyUrl")
+			ch <- this.SafeString(this.Options, "listenKeyUrl")
 			return nil
 		}
 		// register before the first await, so a concurrent caller entering
@@ -1082,7 +1070,7 @@ func (this *Bitrue) authenticateBody(ch chan any, optionalArgs ...any) any {
 		this.Delay(refreshTimeout, this.KeepAliveListenKeyAsync)
 	}
 
-	ch <- ccxt.GetValue(this.Options, "listenKeyUrl")
+	ch <- this.SafeString(this.Options, "listenKeyUrl")
 	return nil
 }
 func (this *Bitrue) KeepAliveListenKeyAsync(optionalArgs ...any) <-chan any {

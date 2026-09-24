@@ -645,7 +645,7 @@ class bitbank(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         assets = self.safe_list(data, 'assets', [])
         for i in range(0, len(assets)):
-            balance = assets[i]
+            balance = self.safe_dict(assets, i)
             currencyId = self.safe_string(balance, 'asset')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -821,7 +821,7 @@ class bitbank(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data')
         return self.parse_order(data)
 
     async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
@@ -1091,7 +1091,7 @@ class bitbank(Exchange, ImplicitAPI):
         if response is None:
             return None
         success = self.safe_integer(response, 'success')
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data')
         if (success is None or success == 0) or (data is None):
             errorMessages = {
                 '10000': 'URL does not exist',

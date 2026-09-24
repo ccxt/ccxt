@@ -798,7 +798,7 @@ class alpaca(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         paginationCalls = 10
-        paginationCalls, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginationCalls', 10)
+        paginationCalls, params = self.handle_option_integer_and_params(params, 'fetchOHLCV', 'paginationCalls', 10)
         request = {
             'symbols': marketId,
             'loc': loc,
@@ -1137,7 +1137,7 @@ class alpaca(Exchange, ImplicitAPI):
         }
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stop_price')
         if triggerPrice is not None:
-            newType: str
+            newType = None
             if type.find('limit') >= 0:
                 newType = 'stop_limit'
             else:
@@ -1153,7 +1153,7 @@ class alpaca(Exchange, ImplicitAPI):
         else:
             request['qty'] = self.amount_to_precision(symbol, amount)
         defaultTIF = None
-        defaultTIF, params = self.handle_option_and_params(params, 'createOrder', 'timeInForce')
+        defaultTIF, params = self.handle_option_string_and_params(params, 'createOrder', 'timeInForce')
         if defaultTIF is not None:
             # the venue only accepts lowercase values, normalize the unified uppercase spellings
             defaultTIF = defaultTIF.lower()
@@ -1678,7 +1678,7 @@ class alpaca(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
@@ -1781,7 +1781,9 @@ class alpaca(Exchange, ImplicitAPI):
                 activityType = self.safe_string(entry, 'activity_type')
                 amount = self.safe_string(entry, 'net_amount')
                 isIncoming = (activityType == 'CSD') or ((activityType == 'TRANS') and not Precise.string_lt(amount, '0'))
-                entryDirection = 'INCOMING' if isIncoming else 'OUTGOING'
+                entryDirection = 'OUTGOING'
+                if isIncoming:
+                    entryDirection = 'INCOMING'
                 if (type == 'BOTH') or (entryDirection == type):
                     filtered.append(entry)
             return self.parse_transactions(filtered, currency, since, limit, params)
@@ -2094,7 +2096,7 @@ class alpaca(Exchange, ImplicitAPI):
             cashAccount['total'] = Precise.string_sub(equity, positionsValue)  # equity minus the positions market value equals cash plus open-order holds; stringSub degrades to undefined when either field is absent and safeBalance then derives the total from free
             result[code] = cashAccount
         for i in range(0, len(positions)):
-            position = positions[i]
+            position = self.safe_dict(positions, i)
             positionSymbol = self.safe_string(position, 'symbol')
             if positionSymbol is None:
                 continue

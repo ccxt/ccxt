@@ -781,13 +781,16 @@ public partial class whitebit : Exchange
         string? id = this.safeString(market, "name");
         string? baseId = this.safeString(market, "stock");
         string? quoteId = this.safeString(market, "money");
-        quoteId = (quoteId == "PERP") ? "USDT" : quoteId;
+        if (quoteId == "PERP")
+        {
+            quoteId = "USDT";
+        }
         object bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         bool? active = this.safeBool(market, "tradesEnabled");
         bool? isCollateral = this.safeBool(market, "isCollateral");
         string? typeId = this.safeString(market, "type");
-        object type = null;
+        string? type = null;
         string? settle = null;
         string? settleId = null;
         object symbol = add(add(bs, "/"), quote);
@@ -1894,9 +1897,9 @@ public partial class whitebit : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", null, parameters);
         marketType = (string)marketTypeparametersVariable[0];
         parameters = marketTypeparametersVariable[1];
-        object method = null;
-        IList<object> methodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTickers", "method", method);
-        method = methodparametersVariable[0];
+        string? method = null;
+        IList<object> methodparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchTickers", "method", method);
+        method = (string)methodparametersVariable[0];
         parameters = methodparametersVariable[1];
         if ((method == null))
         {
@@ -1910,7 +1913,7 @@ public partial class whitebit : Exchange
             }
         }
         Dictionary<string, object> response = null;
-        if (isEqual(method, "v4PublicGetTicker"))
+        if (method == "v4PublicGetTicker")
         {
             //
             //      "BCH_RUB": {
@@ -1924,7 +1927,7 @@ public partial class whitebit : Exchange
             //      },
             //
             response = await this.v4PublicGetTicker(parameters);
-        } else if (isEqual(method, "v4PublicGetFutures"))
+        } else if (method == "v4PublicGetFutures")
         {
             //
             //     {
@@ -4271,7 +4274,7 @@ public partial class whitebit : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(contracts); i++)
         {
-            object contract = getValue(contracts, i);
+            IDictionary<string, object> contract = this.safeDict(contracts, i);
             result.Add(this.parseFundingHistory(contract, market));
         }
         List<object> sorted = this.sortBy(result, "timestamp");
@@ -4825,8 +4828,8 @@ public partial class whitebit : Exchange
         }
         int maxLimit = 100;
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {

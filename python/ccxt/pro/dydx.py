@@ -377,7 +377,7 @@ class dydx(ccxt.async_support.dydx):
         stored.append(parsed)
         client.resolve(stored, messageHash)
 
-    def handle_error_message(self, client: Client, message: object) -> bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         # {
         #     "type": "error",

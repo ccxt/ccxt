@@ -1077,7 +1077,9 @@ class bingx(Exchange, ImplicitAPI):
         quantityPrecision = self.safe_number(market, 'stepSize')
         if quantityPrecision is None:
             quantityPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'quantityPrecision')))
-        type = 'swap' if (settle is not None) else 'spot'
+        type = 'spot'
+        if settle is not None:
+            type = 'swap'
         spot = type == 'spot'
         swap = type == 'swap'
         symbol = base + '/' + quote
@@ -1225,7 +1227,7 @@ class bingx(Exchange, ImplicitAPI):
             # bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
             # the timeZone request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
             timeZone = None
-            timeZone, params = self.handle_option_and_params(params, 'fetchOHLCV', 'timeZone', 0)
+            timeZone, params = self.handle_option_integer_and_params(params, 'fetchOHLCV', 'timeZone', 0)
             if timeZone is not None:
                 request['timeZone'] = timeZone
             response = await self.spotV1PublicGetMarketKline(self.extend(request, params))
@@ -1815,7 +1817,7 @@ class bingx(Exchange, ImplicitAPI):
         if market['inverse'] is True:
             raise NotSupported(self.id + ' fetchFundingRateHistory() is not supported for inverse swap markets')
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params)
         request = {
@@ -1886,7 +1888,7 @@ class bingx(Exchange, ImplicitAPI):
         if isInverse:
             raise NotSupported(self.id + ' fetchFundingHistory() is not supported for inverse swap markets')
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingHistory', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchFundingHistory', symbol, since, limit, '24h', params)
         request = {
@@ -1922,7 +1924,7 @@ class bingx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_incomes(data, market, since, limit)
 
-    def parse_income(self, income: object, market: Market = None) -> object:
+    def parse_income(self, income: dict, market: Market = None) -> object:
         # {
         #     "symbol": "LDO-USDT",
         #     "incomeType": "FUNDING_FEE",
@@ -2336,7 +2338,9 @@ class bingx(Exchange, ImplicitAPI):
         lastQty = self.safe_string(ticker, 'lastQty')
         # in spot markets, lastQty is not present
         # it's (bad, but) the only way we can check the tickers origin
-        type = 'spot' if (lastQty is None) else 'swap'
+        type = 'swap'
+        if lastQty is None:
+            type = 'spot'
         market = self.safe_market(marketId, market, None, type)
         symbol = market['symbol']
         open = self.safe_string(ticker, 'openPrice')
@@ -2589,7 +2593,7 @@ class bingx(Exchange, ImplicitAPI):
         spotBalances = self.safe_list_2(spotData, 'balances', 'assets', [])
         if isContract:
             for i in range(0, len(contractBalances)):
-                balance = contractBalances[i]
+                balance = self.safe_dict(contractBalances, i)
                 currencyId = self.safe_string(balance, 'asset')
                 if currencyId is None:  # linear v3 returns empty asset
                     break
@@ -2602,7 +2606,7 @@ class bingx(Exchange, ImplicitAPI):
                     result[code] = account
         else:
             for i in range(0, len(spotBalances)):
-                balance = spotBalances[i]
+                balance = self.safe_dict(spotBalances, i)
                 currencyId = self.safe_string(balance, 'asset')
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
@@ -3048,7 +3052,9 @@ class bingx(Exchange, ImplicitAPI):
         isTriggerOrder = triggerPrice is not None
         isStopLossPriceOrder = stopLossPrice is not None
         isTakeProfitPriceOrder = takeProfitPrice is not None
-        exchangeClientOrderId = 'newClientOrderId' if isSpot else 'clientOrderID'
+        exchangeClientOrderId = 'clientOrderID'
+        if isSpot:
+            exchangeClientOrderId = 'newClientOrderId'
         clientOrderId = self.safe_string_2(params, exchangeClientOrderId, 'clientOrderId')
         if clientOrderId is not None:
             request[exchangeClientOrderId] = clientOrderId
@@ -3082,7 +3088,9 @@ class bingx(Exchange, ImplicitAPI):
                 elif type == 'MARKET':
                     request['type'] = 'TRIGGER_MARKET'
             elif (stopLossPrice is not None) or (takeProfitPrice is not None):
-                stopTakePrice = stopLossPrice if (stopLossPrice is not None) else takeProfitPrice
+                stopTakePrice = takeProfitPrice
+                if stopLossPrice is not None:
+                    stopTakePrice = stopLossPrice
                 if type == 'LIMIT':
                     request['type'] = 'TAKE_STOP_LIMIT'
                 elif type == 'MARKET':
@@ -3380,7 +3388,7 @@ class bingx(Exchange, ImplicitAPI):
         ordersRequests = []
         marketIds = []
         for i in range(0, len(orders)):
-            rawOrder = orders[i]
+            rawOrder = self.safe_dict(orders, i)
             marketId = self.safe_string(rawOrder, 'symbol', '')
             type = self.safe_string(rawOrder, 'type')
             marketIds.append(marketId)
@@ -3774,7 +3782,9 @@ class bingx(Exchange, ImplicitAPI):
         if newOrder is not None:
             order = newOrder
         positionSide = self.safe_string_2(order, 'positionSide', 'ps')
-        marketType = 'spot' if (positionSide is None) else 'swap'
+        marketType = 'swap'
+        if positionSide is None:
+            marketType = 'spot'
         marketId = self.safe_string_2(order, 'symbol', 's')
         if market is None:
             market = self.safe_market(marketId, None, None, marketType)
@@ -4222,7 +4232,9 @@ class bingx(Exchange, ImplicitAPI):
             parsedIds.append(stringId)
         response: dict
         if market['spot'] is True:
-            spotReqKey = 'clientOrderIDs' if areClientOrderIds else 'orderIds'
+            spotReqKey = 'orderIds'
+            if areClientOrderIds:
+                spotReqKey = 'clientOrderIDs'
             request[spotReqKey] = ','.join(parsedIds)
             response = await self.spotV1PrivatePostTradeCancelOrders(self.extend(request, params))
             #
@@ -5242,7 +5254,7 @@ class bingx(Exchange, ImplicitAPI):
                 key = self.safe_string(keys, 0)
                 return self.safe_dict(addressStructures, key)
 
-    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         #
         # {
         #     "coinId":"4",
@@ -5434,7 +5446,9 @@ class bingx(Exchange, ImplicitAPI):
             if network is not None:
                 code = code.replace(network, '')
         rawType = self.safe_string(transaction, 'transferType')
-        type = 'deposit' if (rawType == '0') else 'withdrawal'
+        type = 'withdrawal'
+        if rawType == '0':
+            type = 'deposit'
         return {
             'info': transaction,
             'id': id,
@@ -5809,14 +5823,18 @@ class bingx(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
             now = self.milliseconds()
             if since is not None:
-                startTimeReq = 'startTime' if (market['spot'] is True) else 'startTs'
+                startTimeReq = 'startTs'
+                if market['spot'] is True:
+                    startTimeReq = 'startTime'
                 request[startTimeReq] = since
             elif market['swap'] is True:
                 request['startTs'] = now - 30 * 24 * 60 * 60 * 1000  # 30 days for swap
             until = self.safe_integer(params, 'until')
             params = self.omit(params, 'until')
             if until is not None:
-                endTimeReq = 'endTime' if (market['spot'] is True) else 'endTs'
+                endTimeReq = 'endTs'
+                if market['spot'] is True:
+                    endTimeReq = 'endTime'
                 request[endTimeReq] = until
             elif market['swap'] is True:
                 request['endTs'] = now
@@ -5901,7 +5919,7 @@ class bingx(Exchange, ImplicitAPI):
         if networksLength != 0:
             for i in range(0, networksLength):
                 networkCode = networkCodes[i]
-                network = networks[networkCode]
+                network = self.safe_dict(networks, networkCode)
                 result['networks'][networkCode] = {
                     'deposit': {'fee': None, 'percentage': None},
                     'withdraw': {'fee': self.safe_number(network, 'fee'), 'percentage': False},
@@ -5929,7 +5947,7 @@ class bingx(Exchange, ImplicitAPI):
         for i in range(0, len(responseCodes)):
             code = responseCodes[i]
             if (codes is None) or (self.in_array(code, codes)):
-                entry = response[code]
+                entry = self.safe_dict(response, code)
                 depositWithdrawFees[code] = self.parse_deposit_withdraw_fee(entry)
         return depositWithdrawFees
 
@@ -6538,7 +6556,8 @@ class bingx(Exchange, ImplicitAPI):
     def parse_margin_mode(self, marginMode: dict, market: Market = None) -> MarginMode:
         marketId = self.safe_string(marginMode, 'symbol')
         marginType = self.safe_string_lower(marginMode, 'marginType')
-        marginType = 'cross' if (marginType == 'crossed') else marginType
+        if marginType == 'crossed':
+            marginType = 'cross'
         return {
             'info': marginMode,
             'symbol': self.safe_symbol(marketId, market, '-', 'swap'),

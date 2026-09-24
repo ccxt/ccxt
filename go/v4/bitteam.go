@@ -1588,7 +1588,7 @@ func (this *Bitteam) ParseOrder(order any, optionalArgs ...any) any {
 	var amount *string = this.SafeString(order, "quantity")
 	var filled *string = this.SafeString(order, "executed")
 	var fee map[string]any = nil
-	if !IsEqual(feeRaw, nil) {
+	if feeRaw != nil {
 		var feeCost *string = this.SafeString(feeRaw, "amount")
 		var feeCurrencyId *string = this.SafeString(feeRaw, "symbol")
 		fee = map[string]any{
@@ -2716,7 +2716,7 @@ func (this *Bitteam) ParseTransaction(transaction any, optionalArgs ...any) any 
 	var timestamp *int64 = this.SafeInteger(transaction, "timestamp")
 	var networkId *string = this.SafeString(transaction, "blockChain")
 	if networkId == nil {
-		var links []any = SafeListTypedDefault(currencyObject, "links", []any{})
+		var links []any = SafeListTyped(currencyObject, "links")
 		var blockChain map[string]any = SafeMapTyped(links, 0)
 		networkId = this.SafeString(blockChain, "blockChain")
 	}

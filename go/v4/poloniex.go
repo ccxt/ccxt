@@ -893,18 +893,14 @@ func (this *Poloniex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		"symbol":   market["id"],
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	var keyStart string = func() string {
-		if GetValue(market, "spot") == true {
-			return "startTime"
-		}
-		return "sTime"
-	}()
-	var keyEnd string = func() string {
-		if GetValue(market, "spot") == true {
-			return "endTime"
-		}
-		return "eTime"
-	}()
+	var keyStart string = "sTime"
+	if GetValue(market, "spot") == true {
+		keyStart = "startTime"
+	}
+	var keyEnd string = "eTime"
+	if GetValue(market, "spot") == true {
+		keyEnd = "endTime"
+	}
 	if since != nil {
 		request[keyStart] = since
 	}
@@ -1237,12 +1233,10 @@ func (this *Poloniex) ParseSwapMarket(market any) any {
 	if alias != nil {
 		typeVar = "future"
 	}
-	var marketType string = func() string {
-		if typeVar == "future" {
-			return "future"
-		}
-		return "swap"
-	}()
+	var marketType string = "swap"
+	if typeVar == "future" {
+		marketType = "future"
+	}
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         symbol,
@@ -1573,12 +1567,7 @@ func (this *Poloniex) ParseCurrency(currency any) any {
 	var chains []any = SafeListTyped(entry, "networkList")
 	var chainsLength int = len(chains)
 	for j := 0; j < chainsLength; j++ {
-		var chain any = func() any {
-			if j >= 0 && j < len(chains) {
-				return DerefScalar(chains[j])
-			}
-			return nil
-		}()
+		var chain map[string]any = SafeMapTyped(chains, j)
 		var chainId *string = this.SafeString(chain, "blockchain")
 		var networkCode *string = this.NetworkIdToCode(chainId, code)
 		if networkCode != nil {
@@ -1930,13 +1919,13 @@ func (this *Poloniex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes156419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))))
-		ch <- BoxAbsent(retRes156419)
+		var retRes157319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))))
+		ch <- BoxAbsent(retRes157319)
 		return nil
 	}
 	var market map[string]any = nil
@@ -1949,18 +1938,14 @@ func (this *Poloniex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var isContract bool = this.InArray(marketType, []any{"swap", "future"})
 	var request map[string]any = map[string]any{}
-	var startKey string = func() string {
-		if isContract {
-			return "sTime"
-		}
-		return "startTime"
-	}()
-	var endKey string = func() string {
-		if isContract {
-			return "eTime"
-		}
-		return "endTime"
-	}()
+	var startKey string = "startTime"
+	if isContract {
+		startKey = "sTime"
+	}
+	var endKey string = "endTime"
+	if isContract {
+		endKey = "eTime"
+	}
 	if since != nil {
 		request[startKey] = since
 	}
@@ -2191,7 +2176,7 @@ func (this *Poloniex) ParseOrder(order any, optionalArgs ...any) any {
 		feeCurrencyCode = DerefScalar(this.SafeCurrencyCode(feeCurrency))
 		feeCost = this.SafeString2(order, "tokenFee", "feeAmt")
 	}
-	if !IsEqual(feeCost, nil) {
+	if feeCost != nil {
 		fee = map[string]any{
 			"rate":     rate,
 			"cost":     feeCost,
@@ -2630,47 +2615,37 @@ func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any
 			} else {
 				quoteAmount = this.CostToPrecision(symbol, amount)
 			}
-			var amountKey string = func() string {
-				if GetValue(market, "spot") == true {
-					return "amount"
-				}
-				return "sz"
-			}()
+			var amountKey string = "sz"
+			if GetValue(market, "spot") == true {
+				amountKey = "amount"
+			}
 			AddElementToObject(request, amountKey, quoteAmount)
 		} else {
-			var amountKey string = func() string {
-				if GetValue(market, "spot") == true {
-					return "quantity"
-				}
-				return "sz"
-			}()
+			var amountKey string = "sz"
+			if GetValue(market, "spot") == true {
+				amountKey = "quantity"
+			}
 			AddElementToObject(request, amountKey, this.AmountToPrecision(symbol, amount))
 		}
 	} else {
-		var amountKey string = func() string {
-			if GetValue(market, "spot") == true {
-				return "quantity"
-			}
-			return "sz"
-		}()
+		var amountKey string = "sz"
+		if GetValue(market, "spot") == true {
+			amountKey = "quantity"
+		}
 		AddElementToObject(request, amountKey, this.AmountToPrecision(symbol, amount))
-		var priceKey string = func() string {
-			if GetValue(market, "spot") == true {
-				return "price"
-			}
-			return "px"
-		}()
+		var priceKey string = "px"
+		if GetValue(market, "spot") == true {
+			priceKey = "price"
+		}
 		AddElementToObject(request, priceKey, this.PriceToPrecision(symbol, price))
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "clOrdId")
 	if clientOrderId != nil {
 		// the futures v3 api silently ignores the spot key and generates its own id
-		var clientOrderIdKey string = func() string {
-			if GetValue(market, "spot") == true {
-				return "clientOrderId"
-			}
-			return "clOrdId"
-		}()
+		var clientOrderIdKey string = "clOrdId"
+		if GetValue(market, "spot") == true {
+			clientOrderIdKey = "clientOrderId"
+		}
 		AddElementToObject(request, clientOrderIdKey, clientOrderId)
 		params = this.Omit(params, []any{"clientOrderId", "clOrdId"})
 	}
@@ -3104,12 +3079,7 @@ func (this *Poloniex) ParseBalance(response any) any {
 		result["datetime"] = this.Iso8601(ts)
 		var details []any = SafeListTyped(response, "details")
 		for i := 0; i < len(details); i++ {
-			var balance any = func() any {
-				if i >= 0 && i < len(details) {
-					return DerefScalar(details[i])
-				}
-				return nil
-			}()
+			var balance map[string]any = SafeMapTyped(details, i)
 			var currencyId *string = this.SafeString(balance, "ccy")
 			var code *string = this.SafeCurrencyCode(currencyId)
 			var account map[string]any = this.Account()
@@ -4116,12 +4086,10 @@ func (this *Poloniex) ParseTransaction(transaction any, optionalArgs ...any) any
 	var status any = DerefScalar(this.SafeString(transaction, "status", "pending"))
 	status = this.ParseTransactionStatus(status)
 	var txid *string = this.SafeString(transaction, "txid")
-	var typeVar string = func() string {
-		if InOp(transaction, "withdrawalRequestsId") {
-			return "withdrawal"
-		}
-		return "deposit"
-	}()
+	var typeVar string = "deposit"
+	if InOp(transaction, "withdrawalRequestsId") {
+		typeVar = "withdrawal"
+	}
 	var id *string = this.SafeString2(transaction, "withdrawalRequestsId", "depositNumber")
 	var address *string = this.SafeString(transaction, "address")
 	var tag *string = this.SafeString(transaction, "paymentID")
@@ -4301,12 +4269,7 @@ func (this *Poloniex) ParseLeverage(leverage any, optionalArgs ...any) any {
 	var marginMode *string = nil
 	var data []any = SafeListTyped(leverage, "data")
 	for i := 0; i < len(data); i++ {
-		var entry map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(data) {
-				return DerefScalar(data[i])
-			}
-			return nil
-		}())
+		var entry map[string]any = SafeMapTyped(data, i)
 		marketId = DerefScalar(this.SafeString(entry, "symbol"))
 		// mgnMode arrives upper case; parseOrder and parsePosition read the
 		// same field with safeStringLower
@@ -4397,12 +4360,10 @@ func (this *Poloniex) setPositionModeBody(ch chan any, hedged any, optionalArgs 
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var mode string = func() string {
-		if EvalTruthy(hedged) {
-			return "HEDGE"
-		}
-		return "ONE_WAY"
-	}()
+	var mode string = "ONE_WAY"
+	if EvalTruthy(hedged) {
+		mode = "HEDGE"
+	}
 	var request map[string]any = map[string]any{
 		"posMode": mode,
 	}
@@ -4653,8 +4614,8 @@ func (this *Poloniex) reduceMarginBody(ch chan any, symbol any, amount any, opti
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes365815 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, OpNeg(amount), "reduce", params))))
-	ch <- BoxAbsent(retRes365815)
+	var retRes369415 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, OpNeg(amount), "reduce", params))))
+	ch <- BoxAbsent(retRes369415)
 	return nil
 }
 
@@ -4678,8 +4639,8 @@ func (this *Poloniex) addMarginBody(ch chan any, symbol any, amount any, optiona
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes367115 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))))
-	ch <- BoxAbsent(retRes367115)
+	var retRes370715 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))))
+	ch <- BoxAbsent(retRes370715)
 	return nil
 }
 func (this *Poloniex) Nonce() any {

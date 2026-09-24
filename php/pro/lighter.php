@@ -561,7 +561,10 @@ class lighter extends \ccxt\async\lighter {
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'size');
         $isMakerAsk = $this->safe_bool($trade, 'is_maker_ask');
-        $side = ($isMakerAsk === true) ? 'buy' : 'sell';
+        $side = 'sell';
+        if ($isMakerAsk === true) {
+            $side = 'buy';
+        }
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $tradeId,
@@ -756,7 +759,12 @@ class lighter extends \ccxt\async\lighter {
         }
         $fee = null;
         if ($takerOrMaker !== null) {
-            $feeRateRaw = ($takerOrMaker === 'maker') ? $this->safe_string($trade, 'maker_fee') : $this->safe_string($trade, 'taker_fee');
+            $feeRateRaw = null;
+            if ($takerOrMaker === 'maker') {
+                $feeRateRaw = $this->safe_string($trade, 'maker_fee');
+            } else {
+                $feeRateRaw = $this->safe_string($trade, 'taker_fee');
+            }
             $feeRate = ($feeRateRaw !== null) ? Precise::string_div($feeRateRaw, '1000000') : '0';
             $feeAmount = Precise::string_mul($costString, $feeRate);
             $fee = array(
@@ -782,7 +790,7 @@ class lighter extends \ccxt\async\lighter {
         ), $market);
     }
 
-    public function handle_my_trades(Client $client, mixed $message): bool {
+    public function handle_my_trades(Client $client, array $message): bool {
         //
         //     {
         //         "channel": "account_all_trades:723310",
@@ -950,7 +958,10 @@ class lighter extends \ccxt\async\lighter {
         //
         $timestamp = $this->safe_integer($liquidation, 'timestamp');
         $isMakerAsk = $this->safe_bool($liquidation, 'is_maker_ask');
-        $side = ($isMakerAsk === true) ? 'buy' : 'sell';
+        $side = 'sell';
+        if ($isMakerAsk === true) {
+            $side = 'buy';
+        }
         $contracts = $this->safe_string($liquidation, 'size');
         $contractSize = $this->safe_string($market, 'contractSize');
         $price = $this->safe_string($liquidation, 'price');
@@ -1092,7 +1103,7 @@ class lighter extends \ccxt\async\lighter {
         }
     }
 
-    public function handle_balance(Client $client, mixed $message): bool {
+    public function handle_balance(Client $client, array $message): bool {
         //
         //    spot balance
         //    {
@@ -1158,7 +1169,7 @@ class lighter extends \ccxt\async\lighter {
             $assetIds = is_array($assets) ? array_keys($assets) : array();
             for ($i = 0; $i < count($assetIds); $i++) {
                 $assetId = $assetIds[$i];
-                $asset = $assets[$assetId];
+                $asset = $this->safe_dict($assets, $assetId);
                 $codeId = $this->safe_string($asset, 'symbol');
                 $code = $this->safe_currency_code($codeId);
                 $account = $this->account();
@@ -1391,7 +1402,7 @@ class lighter extends \ccxt\async\lighter {
         $client->resolve($message, 'jsonapi/sendtx:' . $id);
     }
 
-    public function handle_orders(Client $client, mixed $message): bool {
+    public function handle_orders(Client $client, array $message): bool {
         //
         //    {
         //        "account": {ACCOUNT_INDEX},
@@ -1441,7 +1452,7 @@ class lighter extends \ccxt\async\lighter {
         return true;
     }
 
-    public function handle_error_message(Client $client, mixed $message): bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //     {
         //         "error": {
@@ -1676,7 +1687,7 @@ class lighter extends \ccxt\async\lighter {
         $this->clean_cache($ordersStructure);
     }
 
-    public function handle_ping(Client $client, mixed $message) {
+    public function handle_ping(Client $client, array $message) {
         //
         //     { "type": "ping" }
         //

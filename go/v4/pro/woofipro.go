@@ -864,12 +864,10 @@ func (this *Woofipro) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger", false)
-	var topic string = func() string {
-		if trigger != nil && *trigger == true {
-			return "algoexecutionreport"
-		}
-		return "executionreport"
-	}()
+	var topic string = "executionreport"
+	if trigger != nil && *trigger == true {
+		topic = "algoexecutionreport"
+	}
 	params = ccxt.MapTyped(this.Omit(params, []any{"stop", "trigger"}))
 	var messageHash any = topic
 	if symbol != nil {
@@ -926,12 +924,10 @@ func (this *Woofipro) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger", false)
-	var topic string = func() string {
-		if trigger != nil && *trigger == true {
-			return "algoexecutionreport"
-		}
-		return "executionreport"
-	}()
+	var topic string = "executionreport"
+	if trigger != nil && *trigger == true {
+		topic = "algoexecutionreport"
+	}
 	params = ccxt.MapTyped(this.Omit(params, "stop"))
 	var messageHash any = "myTrades"
 	if symbol != nil {
@@ -1521,7 +1517,7 @@ func (this *Woofipro) HandleBalance(client any, message map[string]any) {
 	ccxt.AddElementToObject(this.Balance, "datetime", this.Iso8601(ts))
 	for i := 0; i < len(keys); i++ {
 		var key string = ccxt.GetValue(keys, i).(string)
-		var value map[string]any = ccxt.MapTyped(balances[key])
+		var value map[string]any = ccxt.SafeMapTyped(balances, key)
 		var code *string = this.SafeCurrencyCode(key)
 		var account any = this.Account()
 		if (code != nil) && (ccxt.InOp(this.Balance, code)) {

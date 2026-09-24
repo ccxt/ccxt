@@ -1003,7 +1003,7 @@ public partial class alpaca : Exchange
         paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         object paginationCalls = 10;
-        IList<object> paginationCallsparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginationCalls", 10);
+        IList<object> paginationCallsparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "paginationCalls", 10);
         paginationCalls = paginationCallsparametersVariable[0];
         parameters = paginationCallsparametersVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1397,7 +1397,7 @@ public partial class alpaca : Exchange
         string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stop_price");
         if ((triggerPrice != null))
         {
-            object newType = null;
+            string? newType = null;
             if (getIndexOf(type, "limit") >= 0)
             {
                 newType = "stop_limit";
@@ -1421,14 +1421,14 @@ public partial class alpaca : Exchange
         {
             request["qty"] = this.amountToPrecision(symbol, amount);
         }
-        object defaultTIF = null;
-        IList<object> defaultTIFparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "timeInForce");
-        defaultTIF = defaultTIFparametersVariable[0];
+        string? defaultTIF = null;
+        IList<object> defaultTIFparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce");
+        defaultTIF = (string)defaultTIFparametersVariable[0];
         parameters = defaultTIFparametersVariable[1];
         if ((defaultTIF != null))
         {
             // the venue only accepts lowercase values, normalize the unified uppercase spellings
-            defaultTIF = ((string)defaultTIF).ToLower();
+            defaultTIF = defaultTIF.ToLower();
         }
         request["time_in_force"] = defaultTIF;
         parameters = this.omit(parameters, new List<object>() {"timeInForce", "triggerPrice"});
@@ -2168,7 +2168,11 @@ public partial class alpaca : Exchange
                 string? activityType = this.safeString(entry, "activity_type");
                 string? amount = this.safeString(entry, "net_amount");
                 bool isIncoming = (activityType == "CSD") || ((activityType == "TRANS") && !Precise.stringLt(amount, "0"));
-                string entryDirection = isIncoming ? "INCOMING" : "OUTGOING";
+                string entryDirection = "OUTGOING";
+                if (isIncoming)
+                {
+                    entryDirection = "INCOMING";
+                }
                 if ((isEqual(type, "BOTH")) || (isEqual(entryDirection, type)))
                 {
                     filtered.Add(entry);
@@ -2524,7 +2528,7 @@ public partial class alpaca : Exchange
         }
         for (int i = 0; i < positions.Count; i++)
         {
-            object position = positions[i];
+            IDictionary<string, object> position = this.safeDict(positions, i);
             string? positionSymbol = this.safeString(position, "symbol");
             if ((positionSymbol == null))
             {

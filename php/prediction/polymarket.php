@@ -1353,7 +1353,7 @@ class polymarket extends Exchange {
         $resolutionMs = $fidelityMin * 60 * 1000;
         $buckets = array();
         for ($i = 0; $i < count($history); $i++) {
-            $item = $history[$i];
+            $item = $this->safe_dict($history, $i);
             $t = $this->safe_integer($item, 't');
             $price = $this->safe_number($item, 'p');
             if (($t === null) || ($price === null)) {
@@ -1668,12 +1668,23 @@ class polymarket extends Exchange {
         $price = $this->safe_number($trade, 'price');
         $amount = $this->safe_number($trade, 'size');
         $rawSide = $this->safe_string_lower($trade, 'side');
-        $side = ($rawSide === 'buy' || $rawSide === 'sell') ? $rawSide : null;
+        $side = null;
+        if ($rawSide === 'buy' || $rawSide === 'sell') {
+            $side = $rawSide;
+        }
         $assetId = $this->safe_string_2($trade, 'asset', 'asset_id');
-        $mkt = ($market !== null) ? $market : $this->safe_outcome($assetId);
+        $mkt = null;
+        if ($market !== null) {
+            $mkt = $market;
+        } else {
+            $mkt = $this->safe_outcome($assetId);
+        }
         $outcome = $this->safe_outcome_symbol(null, $mkt);
         $rawTakerOrMaker = $this->safe_string_lower($trade, 'trader_side');
-        $takerOrMaker = ($rawTakerOrMaker === 'taker' || $rawTakerOrMaker === 'maker') ? $rawTakerOrMaker : null;
+        $takerOrMaker = null;
+        if ($rawTakerOrMaker === 'taker' || $rawTakerOrMaker === 'maker') {
+            $takerOrMaker = $rawTakerOrMaker;
+        }
         $feeRateBps = $this->safe_string($trade, 'fee_rate_bps');
         $fee = null;
         if ($feeRateBps !== null) {
@@ -2063,7 +2074,7 @@ class polymarket extends Exchange {
         // requested outcomes first (one gamma request for all uncached token ids)
         $orderOutcomes = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $o = $orders[$i];
+            $o = $this->safe_dict($orders, $i);
             $__oc = $this->safe_string($o, 'outcome');
             if ($__oc !== null) {
                 $orderOutcomes[] = $__oc;
@@ -2074,7 +2085,7 @@ class polymarket extends Exchange {
         $outcomes = array();
         $requests = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $o = $orders[$i];
+            $o = $this->safe_dict($orders, $i);
             $orderParams = $this->safe_dict($o, 'params', array());
             if ($this->safe_string($orderParams, 'salt') === null) {
                 // a distinct salt per order so two identical orders don't collide, within a batch or across calls
@@ -2199,7 +2210,10 @@ class polymarket extends Exchange {
         // wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet (the EOA
         // still produces the signature and is checked on-chain as the wallet owner). Otherwise signer = EOA.
         $maker = $funder;
-        $signer = ($signatureType === 3) ? $funder : $eoa;
+        $signer = $eoa;
+        if ($signatureType === 3) {
+            $signer = $funder;
+        }
         $message = array(
             'salt' => $salt,
             'maker' => $maker,
@@ -2215,7 +2229,10 @@ class polymarket extends Exchange {
         );
         $exchangeV2 = $this->safe_string($this->options, 'exchangeAddress', '0xE111180000d2663C0091e4f400237545B87B996B');
         $negRiskExchangeV2 = $this->safe_string($this->options, 'negRiskExchangeAddress', '0xe2222d279d744050d28e00520010520000310F59');
-        $exchangeAddress = ($negRisk === true) ? $negRiskExchangeV2 : $exchangeV2;
+        $exchangeAddress = $exchangeV2;
+        if ($negRisk === true) {
+            $exchangeAddress = $negRiskExchangeV2;
+        }
         $domainVersion = $this->safe_string($this->options, 'ctfExchangeVersion', '2');
         $signature = $this->sign_clob_order($message, $exchangeAddress, $domainVersion, $signatureType);
         $owner = $this->safe_string($this->options, 'l2ApiKey', $this->apiKey);
@@ -2433,7 +2450,10 @@ class polymarket extends Exchange {
         // fields, so report the cancellation outcome explicitly rather than parsing an empty order
         $notCanceled = $this->safe_dict($response, 'not_canceled', array());
         $failureReason = $this->safe_string($notCanceled, $id);
-        $status = ($failureReason === null) ? 'canceled' : 'open';
+        $status = 'open';
+        if ($failureReason === null) {
+            $status = 'canceled';
+        }
         return $this->safe_prediction_order(array( 'id' => $id, 'status' => $status, 'info' => $response ));
     }
 
@@ -2820,7 +2840,12 @@ class polymarket extends Exchange {
                     $hasArrayParam = true;
                 }
             }
-            $querystring = $hasArrayParam ? $this->urlencode_with_array_repeat($query) : $this->urlencode($query);
+            $querystring = null;
+            if ($hasArrayParam) {
+                $querystring = $this->urlencode_with_array_repeat($query);
+            } else {
+                $querystring = $this->urlencode($query);
+            }
             if ($querystring !== '') {
                 $url .= '?' . $querystring;
             }
@@ -2869,7 +2894,12 @@ class polymarket extends Exchange {
                 $secret = $this->safe_string($this->options, 'l2Secret', $this->secret);
                 $passphrase = $this->safe_string($this->options, 'l2Passphrase', $this->password);
                 // POLY_ADDRESS is the api-key owner = the signer EOA (derived from the privateKey when present)
-                $address = ($this->privateKey !== null) ? $this->eth_checksum_address($this->eth_get_address_from_private_key($this->privateKey)) : $this->walletAddress;
+                $address = null;
+                if ($this->privateKey !== null) {
+                    $address = $this->eth_checksum_address($this->eth_get_address_from_private_key($this->privateKey));
+                } else {
+                    $address = $this->walletAddress;
+                }
                 $timestamp = (string) $this->seconds();
                 // the L2 HMAC signs only the request path (no query string), matching
                 // @polymarket/clob-client — query params are sent separately, not signed
@@ -3067,7 +3097,12 @@ class polymarket extends Exchange {
             return;
         }
         $apiKey = ($this->apiKey !== null) ? $this->apiKey : $this->safe_string($this->options, 'l2ApiKey');
-        $secret = ($this->secret !== null) ? $this->secret : $this->safe_string($this->options, 'l2Secret');
+        $secret = null;
+        if ($this->secret !== null) {
+            $secret = $this->secret;
+        } else {
+            $secret = $this->safe_string($this->options, 'l2Secret');
+        }
         $passphrase = ($this->password !== null) ? $this->password : $this->safe_string($this->options, 'l2Passphrase');
         $hasL2 = ($apiKey !== null) && ($secret !== null) && ($passphrase !== null);
         if ($hasL2) {
@@ -3112,7 +3147,7 @@ class polymarket extends Exchange {
         }
     }
 
-    public function handle_order_book_snapshot(mixed $client, mixed $event) {
+    public function handle_order_book_snapshot(mixed $client, array $event) {
         $tokenId = $this->safe_string($event, 'asset_id');
         $outcome = $this->token_id_to_symbol($tokenId);
         if ($outcome === null) {
@@ -3128,12 +3163,12 @@ class polymarket extends Exchange {
         $rawAsks = $this->safe_list($event, 'asks', array());
         $bids = array();
         for ($i = 0; $i < count($rawBids); $i++) {
-            $b = $rawBids[$i];
+            $b = $this->safe_dict($rawBids, $i);
             $bids[] = array( $this->safe_number($b, 'price'), $this->safe_number($b, 'size') );
         }
         $asks = array();
         for ($j = 0; $j < count($rawAsks); $j++) {
-            $a = $rawAsks[$j];
+            $a = $this->safe_dict($rawAsks, $j);
             $asks[] = array( $this->safe_number($a, 'price'), $this->safe_number($a, 'size') );
         }
         $outcomeObj = $this->safe_outcome($outcome);
@@ -3150,12 +3185,12 @@ class polymarket extends Exchange {
         $client->resolve($orderbook, 'ticker::' . $outcome);
     }
 
-    public function handle_order_book_delta(mixed $client, mixed $event) {
+    public function handle_order_book_delta(mixed $client, array $event) {
         $timestamp = $this->parse_poly_timestamp($this->safe_string($event, 'timestamp'));
         $changes = $this->safe_list($event, 'price_changes', array());
         $updated = array();
         for ($i = 0; $i < count($changes); $i++) {
-            $change = $changes[$i];
+            $change = $this->safe_dict($changes, $i);
             $tokenId = $this->safe_string($change, 'asset_id');
             $outcome = $this->token_id_to_symbol($tokenId);
             if (($outcome === null) || !(is_array($this->orderbooks) && array_key_exists($outcome ?? '', $this->orderbooks))) {
@@ -3182,7 +3217,7 @@ class polymarket extends Exchange {
         }
     }
 
-    public function handle_trade(mixed $client, mixed $event) {
+    public function handle_trade(mixed $client, array $event) {
         $tokenId = $this->safe_string($event, 'asset_id');
         $outcome = $this->token_id_to_symbol($tokenId);
         if ($outcome === null) {
@@ -3424,7 +3459,12 @@ class polymarket extends Exchange {
     private function do_subscribe_user_channel(string $messageHash, $params = array()) {
         // the user channel authenticates inside the subscribe frame, not via HMAC headers
         $apiKey = ($this->apiKey !== null) ? $this->apiKey : $this->safe_string($this->options, 'l2ApiKey');
-        $secret = ($this->secret !== null) ? $this->secret : $this->safe_string($this->options, 'l2Secret');
+        $secret = null;
+        if ($this->secret !== null) {
+            $secret = $this->secret;
+        } else {
+            $secret = $this->safe_string($this->options, 'l2Secret');
+        }
         $passphrase = ($this->password !== null) ? $this->password : $this->safe_string($this->options, 'l2Passphrase');
         $auth = array( 'apiKey' => $apiKey, 'secret' => $secret, 'passphrase' => $passphrase );
         // an empty markets list subscribes to every market the user is active in
@@ -3434,7 +3474,7 @@ class polymarket extends Exchange {
         return Async\await($this->watch($url, $messageHash, $this->extend($subscribeMsg, $params), $subscribeHash));
     }
 
-    public function handle_order(mixed $client, mixed $event) {
+    public function handle_order(mixed $client, array $event) {
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheByOutcomeById($limit);
@@ -3449,7 +3489,7 @@ class polymarket extends Exchange {
         }
     }
 
-    public function handle_my_trade(mixed $client, mixed $event) {
+    public function handle_my_trade(mixed $client, array $event) {
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $this->myTrades = new ArrayCacheByOutcomeById($limit);
@@ -3484,10 +3524,6 @@ class polymarket extends Exchange {
         if ($raw === null) {
             return null;
         }
-        $n = $this->parse_to_int($raw);
-        if ($n === null) {
-            return null;
-        }
-        return $n;
+        return $this->parse_to_int($raw);
     }
 }

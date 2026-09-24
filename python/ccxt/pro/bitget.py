@@ -147,8 +147,12 @@ class bitget(ccxt.async_support.bitget):
         args = {
             'instType': instType,
         }
-        topicOrChannel = 'topic' if uta else 'channel'
-        symbolOrInstId = 'symbol' if uta else 'instId'
+        topicOrChannel = 'channel'
+        if uta:
+            topicOrChannel = 'topic'
+        symbolOrInstId = 'instId'
+        if uta:
+            symbolOrInstId = 'symbol'
         args[topicOrChannel] = 'ticker'
         args[symbolOrInstId] = market['id']
         return await self.watch_public(uta, messageHash, args, params)
@@ -197,8 +201,12 @@ class bitget(ccxt.async_support.bitget):
             args = {
                 'instType': instType,
             }
-            topicOrChannel = 'topic' if uta else 'channel'
-            symbolOrInstId = 'symbol' if uta else 'instId'
+            topicOrChannel = 'channel'
+            if uta:
+                topicOrChannel = 'topic'
+            symbolOrInstId = 'instId'
+            if uta:
+                symbolOrInstId = 'symbol'
             args[topicOrChannel] = 'ticker'
             args[symbolOrInstId] = marketInner['id']
             topics.append(args)
@@ -374,7 +382,9 @@ class bitget(ccxt.async_support.bitget):
         utaTimestamp = self.safe_integer(message, 'ts')
         timestamp = self.safe_integer(ticker, 'ts', utaTimestamp)
         instType = self.safe_string_lower(arg, 'instType')
-        marketType = 'spot' if (instType == 'spot') else 'contract'
+        marketType = 'contract'
+        if instType == 'spot':
+            marketType = 'spot'
         utaMarketId = self.safe_string(arg, 'symbol')
         marketId = self.safe_string(ticker, 'instId', utaMarketId)
         market = self.safe_market(marketId, market, None, marketType)
@@ -435,8 +445,12 @@ class bitget(ccxt.async_support.bitget):
             args = {
                 'instType': instType,
             }
-            topicOrChannel = 'topic' if uta else 'channel'
-            symbolOrInstId = 'symbol' if uta else 'instId'
+            topicOrChannel = 'channel'
+            if uta:
+                topicOrChannel = 'topic'
+            symbolOrInstId = 'instId'
+            if uta:
+                symbolOrInstId = 'symbol'
             args[topicOrChannel] = 'ticker'
             args[symbolOrInstId] = marketInner['id']
             topics.append(args)
@@ -463,7 +477,9 @@ class bitget(ccxt.async_support.bitget):
         utaTimestamp = self.safe_integer(message, 'ts')
         timestamp = self.safe_integer(ticker, 'ts', utaTimestamp)
         instType = self.safe_string_lower(arg, 'instType')
-        marketType = 'spot' if (instType == 'spot') else 'contract'
+        marketType = 'contract'
+        if instType == 'spot':
+            marketType = 'spot'
         utaMarketId = self.safe_string(arg, 'symbol')
         marketId = self.safe_string(ticker, 'instId', utaMarketId)
         market = self.safe_market(marketId, market, None, marketType)
@@ -626,7 +642,9 @@ class bitget(ccxt.async_support.bitget):
         #
         arg = self.safe_dict(message, 'arg', {})
         instType = self.safe_string_lower(arg, 'instType')
-        marketType = 'spot' if (instType == 'spot') else 'contract'
+        marketType = 'contract'
+        if instType == 'spot':
+            marketType = 'spot'
         marketId = self.safe_string_2(arg, 'instId', 'symbol')
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
@@ -792,8 +810,12 @@ class bitget(ccxt.async_support.bitget):
             args = {
                 'instType': instType,
             }
-            topicOrChannel = 'topic' if uta else 'channel'
-            symbolOrInstId = 'symbol' if uta else 'instId'
+            topicOrChannel = 'channel'
+            if uta:
+                topicOrChannel = 'topic'
+            symbolOrInstId = 'instId'
+            if uta:
+                symbolOrInstId = 'symbol'
             args[topicOrChannel] = channel
             args[symbolOrInstId] = market['id']
             topics.append(args)
@@ -856,7 +878,9 @@ class bitget(ccxt.async_support.bitget):
         arg = self.safe_dict(message, 'arg')
         channel = self.safe_string_2(arg, 'channel', 'topic', '')
         instType = self.safe_string_lower(arg, 'instType')
-        marketType = 'spot' if (instType == 'spot') else 'contract'
+        marketType = 'contract'
+        if instType == 'spot':
+            marketType = 'spot'
         marketId = self.safe_string_2(arg, 'instId', 'symbol')
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
@@ -984,8 +1008,12 @@ class bitget(ccxt.async_support.bitget):
             args = {
                 'instType': instType,
             }
-            topicOrChannel = 'topic' if uta else 'channel'
-            symbolOrInstId = 'symbol' if uta else 'instId'
+            topicOrChannel = 'channel'
+            if uta:
+                topicOrChannel = 'topic'
+            symbolOrInstId = 'instId'
+            if uta:
+                symbolOrInstId = 'symbol'
             args[topicOrChannel] = 'publicTrade' if uta else 'trade'
             args[symbolOrInstId] = market['id']
             topics.append(args)
@@ -1019,7 +1047,9 @@ class bitget(ccxt.async_support.bitget):
         """
         values = self.handle_option_bool_and_params(params, 'watchTrades', 'uta', False)
         uta = values[0]
-        channelTopic = 'publicTrade' if uta else 'trade'
+        channelTopic = 'trade'
+        if uta:
+            channelTopic = 'publicTrade'
         return await self.un_watch_channel(symbol, channelTopic, 'trade', 'watchTrades', params)
 
     def handle_trades(self, client: Client, message: dict):
@@ -1059,7 +1089,9 @@ class bitget(ccxt.async_support.bitget):
         #
         arg = self.safe_dict(message, 'arg', {})
         instType = self.safe_string_lower(arg, 'instType')
-        marketType = 'spot' if (instType == 'spot') else 'contract'
+        marketType = 'contract'
+        if instType == 'spot':
+            marketType = 'spot'
         marketId = self.safe_string_2(arg, 'instId', 'symbol')
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
@@ -1244,8 +1276,12 @@ class bitget(ccxt.async_support.bitget):
         args = {
             'instType': instType,
         }
-        topicOrChannel = 'topic' if uta else 'channel'
-        channel = 'position' if uta else 'positions'
+        topicOrChannel = 'channel'
+        if uta:
+            topicOrChannel = 'topic'
+        channel = 'positions'
+        if uta:
+            channel = 'position'
         args[topicOrChannel] = channel
         if not uta:
             args['instId'] = 'default'
@@ -1423,7 +1459,9 @@ class bitget(ccxt.async_support.bitget):
             'isolated': 'isolated',
         })
         hedgedId = self.safe_string_2(position, 'posMode', 'holdMode')
-        hedged = True if (hedgedId == 'hedge_mode') else False
+        hedged = False
+        if hedgedId == 'hedge_mode':
+            hedged = True
         timestamp = self.safe_integer_n(position, ['updatedTime', 'uTime', 'cTime', 'createdTime'])
         percentageDecimal = self.safe_string_2(position, 'unrealizedPLR', 'profitRate')
         percentage = Precise.string_mul(percentageDecimal, '100')
@@ -1485,7 +1523,9 @@ class bitget(ccxt.async_support.bitget):
         marketId = None
         isTrigger = None
         isTrigger, params = self.is_trigger_order(params)
-        messageHash = 'triggerOrder' if (isTrigger is True) else 'order'
+        messageHash = 'order'
+        if isTrigger is True:
+            messageHash = 'triggerOrder'
         subscriptionHash = 'order:trades'
         if symbol is not None:
             market = self.market(symbol)
@@ -1518,8 +1558,13 @@ class bitget(ccxt.async_support.bitget):
             subscriptionHash = subscriptionHash + ':' + symbol
         if isTrigger is True:
             subscriptionHash = subscriptionHash + ':stop'  # we don't want to re-use the same subscription hash for stop orders
-        instId = marketId if (type == 'spot' or type == 'margin') else 'default'  # different from other streams here the 'rest' id is required for spot markets, contract markets require default here
-        channel = 'orders-algo' if (isTrigger is True) else 'orders'
+        # different from other streams here the 'rest' id is required for spot markets, contract markets require default here
+        instId = 'default'
+        if type == 'spot' or type == 'margin':
+            instId = marketId
+        channel = 'orders'
+        if isTrigger is True:
+            channel = 'orders-algo'
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('watchOrders', params)
         if marginMode is not None:
@@ -1536,7 +1581,9 @@ class bitget(ccxt.async_support.bitget):
         args = {
             'instType': instType,
         }
-        topicOrChannel = 'topic' if uta else 'channel'
+        topicOrChannel = 'channel'
+        if uta:
+            topicOrChannel = 'topic'
         args[topicOrChannel] = channel
         if not uta:
             args['instId'] = instId
@@ -1661,7 +1708,9 @@ class bitget(ccxt.async_support.bitget):
             self.triggerOrders = ArrayCacheBySymbolById(limit)
         isTrigger = (channel == 'orders-algo') or (channel == 'ordersAlgo')
         stored = self.triggerOrders if isTrigger else self.orders
-        messageHash = 'triggerOrder' if isTrigger else 'order'
+        messageHash = 'order'
+        if isTrigger:
+            messageHash = 'triggerOrder'
         marketSymbols = {}
         for i in range(0, len(data)):
             order = data[i]
@@ -1986,7 +2035,9 @@ class bitget(ccxt.async_support.bitget):
         args = {
             'instType': instType,
         }
-        topicOrChannel = 'topic' if uta else 'channel'
+        topicOrChannel = 'channel'
+        if uta:
+            topicOrChannel = 'topic'
         args[topicOrChannel] = 'fill'
         if not uta:
             args['instId'] = 'default'
@@ -2178,7 +2229,9 @@ class bitget(ccxt.async_support.bitget):
         args = {
             'instType': instType,
         }
-        topicOrChannel = 'topic' if uta else 'channel'
+        topicOrChannel = 'channel'
+        if uta:
+            topicOrChannel = 'topic'
         args[topicOrChannel] = channel
         if not uta:
             args['coin'] = 'default'
@@ -2285,7 +2338,7 @@ class bitget(ccxt.async_support.bitget):
             if instType == 'uta':
                 coins = self.safe_list(rawBalance, 'coin', [])
                 for j in range(0, len(coins)):
-                    entry = coins[j]
+                    entry = self.safe_dict(coins, j)
                     currencyId = self.safe_string(entry, 'coin')
                     code = self.safe_currency_code(currencyId)
                     account = self.account()
@@ -2310,7 +2363,9 @@ class bitget(ccxt.async_support.bitget):
                 if borrow is not None:
                     interest = self.safe_string(rawBalance, 'interest')
                     account['debt'] = Precise.string_add(borrow, interest)
-                freeQuery = 'maxTransferOut' if ('maxTransferOut' in rawBalance) else 'available'
+                freeQuery = 'available'
+                if 'maxTransferOut' in rawBalance:
+                    freeQuery = 'maxTransferOut'
                 account['free'] = self.safe_string(rawBalance, freeQuery)
                 account['total'] = self.safe_string(rawBalance, 'equity')
                 account['used'] = self.safe_string(rawBalance, 'frozen')
@@ -2531,13 +2586,14 @@ class bitget(ccxt.async_support.bitget):
         #         }
         #     }
         #
+        if isinstance(message, str):
+            if message == 'pong':
+                self.handle_pong(client, message)
+            return
         if self.handle_error_message(client, message) is True:
             return
         content = self.safe_string(message, 'message')
         if content == 'pong':
-            self.handle_pong(client, message)
-            return
-        if message == 'pong':
             self.handle_pong(client, message)
             return
         event = self.safe_string(message, 'event')
@@ -2581,7 +2637,7 @@ class bitget(ccxt.async_support.bitget):
     def ping(self, client: Client) -> str:
         return 'ping'
 
-    def handle_pong(self, client: Client, message: dict) -> dict:
+    def handle_pong(self, client: Client, message: object):
         client.lastPong = self.milliseconds()
         return message
 
@@ -2604,7 +2660,9 @@ class bitget(ccxt.async_support.bitget):
         #
         arg = self.safe_dict(message, 'arg', {})
         instType = self.safe_string_lower(arg, 'instType')
-        type = 'spot' if (instType == 'spot') else 'contract'
+        type = 'contract'
+        if instType == 'spot':
+            type = 'spot'
         instId = self.safe_string_2(arg, 'instId', 'symbol')
         market = self.safe_market(instId, None, None, type)
         symbol = market['symbol']
@@ -2627,7 +2685,9 @@ class bitget(ccxt.async_support.bitget):
         #
         arg = self.safe_dict(message, 'arg', {})
         instType = self.safe_string_lower(arg, 'instType')
-        type = 'spot' if (instType == 'spot') else 'contract'
+        type = 'contract'
+        if instType == 'spot':
+            type = 'spot'
         instId = self.safe_string_2(arg, 'instId', 'symbol')
         market = self.safe_market(instId, None, None, type)
         symbol = market['symbol']
@@ -2650,7 +2710,9 @@ class bitget(ccxt.async_support.bitget):
         #
         arg = self.safe_dict(message, 'arg', {})
         instType = self.safe_string_lower(arg, 'instType')
-        type = 'spot' if (instType == 'spot') else 'contract'
+        type = 'contract'
+        if instType == 'spot':
+            type = 'spot'
         instId = self.safe_string_2(arg, 'instId', 'symbol')
         market = self.safe_market(instId, None, None, type)
         symbol = market['symbol']
@@ -2677,7 +2739,9 @@ class bitget(ccxt.async_support.bitget):
         #
         arg = self.safe_dict(message, 'arg', {})
         instType = self.safe_string_lower(arg, 'instType')
-        type = 'spot' if (instType == 'spot') else 'contract'
+        type = 'contract'
+        if instType == 'spot':
+            type = 'spot'
         instId = self.safe_string_2(arg, 'instId', 'symbol')
         channel = self.safe_string_2(arg, 'channel', 'topic', '')
         interval = self.safe_string(arg, 'interval')
@@ -2728,7 +2792,7 @@ class bitget(ccxt.async_support.bitget):
         if argsList is None:
             argsList = [self.safe_dict(message, 'arg', {})]
         for i in range(0, len(argsList)):
-            arg = argsList[i]
+            arg = self.safe_dict(argsList, i)
             channel = self.safe_string_2(arg, 'channel', 'topic', '')
             if channel.find('books') >= 0:
                 # for now only unWatchOrderBook is supported

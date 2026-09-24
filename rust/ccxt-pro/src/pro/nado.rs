@@ -738,7 +738,7 @@ impl NadoCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_493: bool = true;
             while { if !__for_first_493 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_493 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsAndTimeframes.len() as i64) as f64) } {
-            let mut symbolAndTimeframe: Value = symbolsAndTimeframes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut symbolAndTimeframe: Value = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]);
             let mut marketSymbol: Value = self.safe_string(symbolAndTimeframe.clone(), Value::Int(0), &[]);
             let mut timeframe: Value = self.safe_string(symbolAndTimeframe, Value::Int(1), &[Value::Str("1m".into())]);
             let mut market: Value = self.market(marketSymbol);
@@ -813,7 +813,7 @@ impl NadoCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_494: bool = true;
             while { if !__for_first_494 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_494 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsAndTimeframes.len() as i64) as f64) } {
-            let mut symbolAndTimeframe: Value = symbolsAndTimeframes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut symbolAndTimeframe: Value = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]);
             let mut marketSymbol: Value = self.safe_string(symbolAndTimeframe.clone(), Value::Int(0), &[]);
             let mut timeframe: Value = self.safe_string(symbolAndTimeframe, Value::Int(1), &[Value::Str("1m".into())]);
             let mut market: Value = self.market(marketSymbol);
@@ -1790,7 +1790,7 @@ impl NadoCore {
             return authenticated;
         }
         let mut recvWindow: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("authenticate".into()), Value::Str("recvWindow".into()), &[Value::Int(5000)]); recvWindow = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_integer_and_params(params.clone(), Value::Str("authenticate".into()), Value::Str("recvWindow".into()), &[Value::Int(5000)]); recvWindow = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut subaccount: Value = Value::Null;
         { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("authenticate".into()), Value::Str("subaccount".into()), &[Value::Str("default".into())]); subaccount = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut id: Value = self.request_id();
@@ -2630,7 +2630,7 @@ impl NadoCore {
             let mut __for_first_502: bool = true;
             while { if !__for_first_502 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_502 = false; i.as_f64().unwrap_or(f64::NAN) < ((subscriptions.len() as i64) as f64) } {
             let mut unsubscribeHash: Value = subscriptions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut subscription: Value = get_value(&get_value(&client, &Value::Str("subscriptions".into())), &unsubscribeHash);
+            let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), unsubscribeHash.clone(), &[]);
             let mut subscriptionId: Value = self.safe_string_k(subscription.clone(), "id", &[]);
             if (subscriptionId.as_str() != id.as_str()) {
                 continue;

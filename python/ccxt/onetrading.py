@@ -772,7 +772,7 @@ class onetrading(Exchange, ImplicitAPI):
         takerFees = []
         makerFees = []
         for i in range(0, len(feeTiers)):
-            tier = feeTiers[i]
+            tier = self.safe_dict(feeTiers, i)
             volume = self.safe_number(tier, 'volume')
             taker = self.safe_string(tier, 'taker_fee')
             maker = self.safe_string(tier, 'maker_fee')
@@ -1136,7 +1136,7 @@ class onetrading(Exchange, ImplicitAPI):
         #     }
         #
         feeInfo = self.safe_dict(trade, 'fee', {})
-        trade = self.safe_value(trade, 'trade', trade)
+        trade = self.safe_dict(trade, 'trade', trade)
         timestamp = self.safe_integer(trade, 'trade_timestamp')
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(trade, 'time'))
@@ -1179,7 +1179,7 @@ class onetrading(Exchange, ImplicitAPI):
         balances = self.safe_list(response, 'balances', [])
         result = {'info': response}
         for i in range(0, len(balances)):
-            balance = balances[i]
+            balance = self.safe_dict(balances, i)
             currencyId = self.safe_string(balance, 'currency_code')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -1302,7 +1302,7 @@ class onetrading(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        rawOrder = self.safe_value(order, 'order', order)
+        rawOrder = self.safe_dict(order, 'order', order)
         id = self.safe_string(rawOrder, 'order_id')
         clientOrderId = self.safe_string(rawOrder, 'client_id')
         timestamp = self.parse8601(self.safe_string(rawOrder, 'time'))

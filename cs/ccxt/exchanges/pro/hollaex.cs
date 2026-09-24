@@ -187,7 +187,7 @@ public partial class hollaex : ccxt.hollaex
         IList<object> parsedTrades = this.parseTrades(data, market);
         for (int j = 0; j < (parsedTrades?.Count ?? 0); j++)
         {
-            callDynamically(stored, "append", new object[] {parsedTrades[j]});
+            stored.append(parsedTrades[j]);
         }
         string? messageHash = ((string)add(add(channel, ":"), marketId));
         client.resolve(stored, messageHash);
@@ -274,7 +274,7 @@ public partial class hollaex : ccxt.hollaex
         {
             object trade = getValue(rawTrades, i);
             Dictionary<string, object> parsed = this.parseTrade(trade);
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
             object symbol = getValue(trade, "symbol");
             Dictionary<string, object> market = this.market(symbol);
             string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
@@ -416,7 +416,7 @@ public partial class hollaex : ccxt.hollaex
         {
             object order = getValue(rawOrders, i);
             Dictionary<string, object> parsed = this.parseOrder(order);
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
             object symbol = getValue(order, "symbol");
             Dictionary<string, object> market = this.market(symbol);
             string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));

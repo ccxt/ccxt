@@ -710,8 +710,12 @@ class poloniex(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        keyStart = 'startTime' if (market['spot'] is True) else 'sTime'
-        keyEnd = 'endTime' if (market['spot'] is True) else 'eTime'
+        keyStart = 'sTime'
+        if market['spot'] is True:
+            keyStart = 'startTime'
+        keyEnd = 'eTime'
+        if market['spot'] is True:
+            keyEnd = 'endTime'
         if since is not None:
             request[keyStart] = since
         if limit is not None:
@@ -974,7 +978,9 @@ class poloniex(Exchange, ImplicitAPI):
         type = 'swap'
         if alias is not None:
             type = 'future'
-        marketType = 'future' if (type == 'future') else 'swap'
+        marketType = 'swap'
+        if type == 'future':
+            marketType = 'future'
         return self.safe_market_structure({
             'id': id,
             'symbol': symbol,
@@ -1250,7 +1256,7 @@ class poloniex(Exchange, ImplicitAPI):
         chains = self.safe_list(entry, 'networkList', [])
         chainsLength = len(chains)
         for j in range(0, chainsLength):
-            chain = chains[j]
+            chain = self.safe_dict(chains, j)
             chainId = self.safe_string(chain, 'blockchain')
             networkCode = self.network_id_to_code(chainId, code)
             if networkCode is not None:
@@ -1538,7 +1544,7 @@ class poloniex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params)
         market = None
@@ -1551,8 +1557,12 @@ class poloniex(Exchange, ImplicitAPI):
             # 'from': 12345678, // A 'trade Id'. The query begins at ‘from'.
             # 'direction': 'PRE', // PRE, NEXT The direction before or after ‘from'.
         }
-        startKey = 'sTime' if isContract else 'startTime'
-        endKey = 'eTime' if isContract else 'endTime'
+        startKey = 'startTime'
+        if isContract:
+            startKey = 'sTime'
+        endKey = 'endTime'
+        if isContract:
+            endKey = 'eTime'
         if since is not None:
             request[startKey] = since
         if limit is not None:
@@ -2089,20 +2099,30 @@ class poloniex(Exchange, ImplicitAPI):
                         quoteAmount = self.cost_to_precision(symbol, costRequest)
                 else:
                     quoteAmount = self.cost_to_precision(symbol, amount)
-                amountKey = 'amount' if (market['spot'] is True) else 'sz'
+                amountKey = 'sz'
+                if market['spot'] is True:
+                    amountKey = 'amount'
                 request[amountKey] = quoteAmount
             else:
-                amountKey = 'quantity' if (market['spot'] is True) else 'sz'
+                amountKey = 'sz'
+                if market['spot'] is True:
+                    amountKey = 'quantity'
                 request[amountKey] = self.amount_to_precision(symbol, amount)
         else:
-            amountKey = 'quantity' if (market['spot'] is True) else 'sz'
+            amountKey = 'sz'
+            if market['spot'] is True:
+                amountKey = 'quantity'
             request[amountKey] = self.amount_to_precision(symbol, amount)
-            priceKey = 'price' if (market['spot'] is True) else 'px'
+            priceKey = 'px'
+            if market['spot'] is True:
+                priceKey = 'price'
             request[priceKey] = self.price_to_precision(symbol, price)
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clOrdId')
         if clientOrderId is not None:
             # the futures v3 api silently ignores the spot key and generates its own id
-            clientOrderIdKey = 'clientOrderId' if (market['spot'] is True) else 'clOrdId'
+            clientOrderIdKey = 'clOrdId'
+            if market['spot'] is True:
+                clientOrderIdKey = 'clientOrderId'
             request[clientOrderIdKey] = clientOrderId
             params = self.omit(params, ['clientOrderId', 'clOrdId'])
         # remember the timestamp before issuing the request
@@ -2397,7 +2417,7 @@ class poloniex(Exchange, ImplicitAPI):
             result['datetime'] = self.iso8601(ts)
             details = self.safe_list(response, 'details', [])
             for i in range(0, len(details)):
-                balance = details[i]
+                balance = self.safe_dict(details, i)
                 currencyId = self.safe_string(balance, 'ccy')
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
@@ -3108,7 +3128,9 @@ class poloniex(Exchange, ImplicitAPI):
         status = self.safe_string(transaction, 'status', 'pending')
         status = self.parse_transaction_status(status)
         txid = self.safe_string(transaction, 'txid')
-        type = 'withdrawal' if ('withdrawalRequestsId' in transaction) else 'deposit'
+        type = 'deposit'
+        if 'withdrawalRequestsId' in transaction:
+            type = 'withdrawal'
         id = self.safe_string_2(transaction, 'withdrawalRequestsId', 'depositNumber')
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string(transaction, 'paymentID')
@@ -3243,7 +3265,7 @@ class poloniex(Exchange, ImplicitAPI):
         marginMode = None
         data = self.safe_list(leverage, 'data', [])
         for i in range(0, len(data)):
-            entry = data[i]
+            entry = self.safe_dict(data, i)
             marketId = self.safe_string(entry, 'symbol')
             # mgnMode arrives upper case; parseOrder and parsePosition read the
             # same field with safeStringLower
@@ -3304,7 +3326,9 @@ class poloniex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
-        mode = 'HEDGE' if hedged else 'ONE_WAY'
+        mode = 'ONE_WAY'
+        if hedged:
+            mode = 'HEDGE'
         request = {
             'posMode': mode,
         }

@@ -369,7 +369,7 @@ class nado extends \ccxt\async\nado {
         $messageHashes = array();
         $subscriptionParams = array();
         for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-            $symbolAndTimeframe = $symbolsAndTimeframes[$i];
+            $symbolAndTimeframe = $this->safe_list($symbolsAndTimeframes, $i);
             $marketSymbol = $this->safe_string($symbolAndTimeframe, 0);
             $timeframe = $this->safe_string($symbolAndTimeframe, 1, '1m');
             $market = $this->market($marketSymbol);
@@ -429,7 +429,7 @@ class nado extends \ccxt\async\nado {
         $messageHashes = array();
         $subscriptionParams = array();
         for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-            $symbolAndTimeframe = $symbolsAndTimeframes[$i];
+            $symbolAndTimeframe = $this->safe_list($symbolsAndTimeframes, $i);
             $marketSymbol = $this->safe_string($symbolAndTimeframe, 0);
             $timeframe = $this->safe_string($symbolAndTimeframe, 1, '1m');
             $market = $this->market($marketSymbol);
@@ -1226,7 +1226,7 @@ class nado extends \ccxt\async\nado {
             return $authenticated;
         }
         $recvWindow = null;
-        list($recvWindow, $params) = $this->handle_option_and_params($params, 'authenticate', 'recvWindow', 5000);
+        list($recvWindow, $params) = $this->handle_option_integer_and_params($params, 'authenticate', 'recvWindow', 5000);
         $subaccount = null;
         list($subaccount, $params) = $this->handle_option_string_and_params($params, 'authenticate', 'subaccount', 'default');
         $id = $this->request_id();
@@ -1921,7 +1921,7 @@ class nado extends \ccxt\async\nado {
         $subscriptions = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
         for ($i = 0; $i < count($subscriptions); $i++) {
             $unsubscribeHash = $subscriptions[$i];
-            $subscription = $client->subscriptions[$unsubscribeHash];
+            $subscription = $this->safe_dict($client->subscriptions, $unsubscribeHash);
             $subscriptionId = $this->safe_string($subscription, 'id');
             if ($subscriptionId !== $id) {
                 continue;

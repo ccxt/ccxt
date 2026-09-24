@@ -744,7 +744,10 @@ class modetrade extends \ccxt\async\modetrade {
             Async\await($this->load_markets());
         }
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
-        $topic = ($trigger === true) ? 'algoexecutionreport' : 'executionreport';
+        $topic = 'executionreport';
+        if ($trigger === true) {
+            $topic = 'algoexecutionreport';
+        }
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         $messageHash = $topic;
         if ($symbol !== null) {
@@ -786,7 +789,10 @@ class modetrade extends \ccxt\async\modetrade {
             Async\await($this->load_markets());
         }
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
-        $topic = ($trigger === true) ? 'algoexecutionreport' : 'executionreport';
+        $topic = 'executionreport';
+        if ($trigger === true) {
+            $topic = 'algoexecutionreport';
+        }
         $params = $this->omit($params, 'stop');
         $messageHash = 'myTrades';
         if ($symbol !== null) {
@@ -1184,7 +1190,7 @@ class modetrade extends \ccxt\async\modetrade {
         $cache = $this->positions;
         $newPositions = array();
         for ($i = 0; $i < count($rawPositions); $i++) {
-            $rawPosition = $rawPositions[$i];
+            $rawPosition = $this->safe_dict($rawPositions, $i);
             $marketId = $this->safe_string($rawPosition, 'symbol');
             $market = $this->safe_market($marketId);
             $position = $this->parse_ws_position($rawPosition, $market);
@@ -1332,7 +1338,7 @@ class modetrade extends \ccxt\async\modetrade {
         $this->balance['datetime'] = $this->iso8601($ts);
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            $value = $balances[$key];
+            $value = $this->safe_dict($balances, $key);
             $code = $this->safe_currency_code($key);
             $account = $this->account();
             if (($code !== null) && (is_array($this->balance) && array_key_exists($code ?? '', $this->balance))) {
@@ -1351,7 +1357,7 @@ class modetrade extends \ccxt\async\modetrade {
         $client->resolve($this->balance, 'balance');
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         //

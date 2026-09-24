@@ -940,7 +940,7 @@ class hibachi(Exchange, ImplicitAPI):
         nonce = self.incrementing_nonce()
         requestOrders = []
         for i in range(0, len(orders)):
-            rawOrder = orders[i]
+            rawOrder = self.safe_dict(orders, i)
             symbol = self.safe_string(rawOrder, 'symbol')
             type = self.safe_string(rawOrder, 'type')
             side = self.safe_string(rawOrder, 'side')
@@ -1037,7 +1037,7 @@ class hibachi(Exchange, ImplicitAPI):
         nonce = self.incrementing_nonce()
         requestOrders = []
         for i in range(0, len(orders)):
-            rawOrder = orders[i]
+            rawOrder = self.safe_dict(orders, i)
             id = self.safe_string(rawOrder, 'id')
             symbol = self.safe_string(rawOrder, 'symbol')
             type = self.safe_string(rawOrder, 'type')
@@ -1493,7 +1493,7 @@ class hibachi(Exchange, ImplicitAPI):
         if since is not None:
             request['startTime'] = since
         until = None
-        until, params = self.handle_option_and_params(params, 'fetchOrdersByStatus', 'until')
+        until, params = self.handle_option_integer_and_params(params, 'fetchOrdersByStatus', 'until')
         if until is not None:
             request['endTime'] = until
         response = await self.privateGetTradeOrdersHistory(self.extend(request, params))
@@ -1588,7 +1588,7 @@ class hibachi(Exchange, ImplicitAPI):
         if since is not None:
             request['fromMs'] = since
         until = None
-        until, params = self.handle_option_and_params(params, 'fetchOHLCV', 'until')
+        until, params = self.handle_option_integer_and_params(params, 'fetchOHLCV', 'until')
         if until is not None:
             request['toMs'] = until
         response = await self.publicGetMarketDataKlines(self.extend(request, params))
@@ -1843,7 +1843,7 @@ class hibachi(Exchange, ImplicitAPI):
             self.privateGetTradeAccountTradingHistory(self.extend(request, params)),
         ]
         promises = await asyncio.gather(*rawPromises)
-        responseCapitalHistory = promises[0]
+        responseCapitalHistory = self.safe_dict(promises, 0)
         #
         # {
         #     "transactions": [
@@ -1898,7 +1898,7 @@ class hibachi(Exchange, ImplicitAPI):
         # }
         #
         rowsCapitalHistory = self.safe_list(responseCapitalHistory, 'transactions', [])
-        responseTradingHistory = promises[1]
+        responseTradingHistory = self.safe_dict(promises, 1)
         #
         # {
         #     "tradingHistory": [
@@ -2123,7 +2123,7 @@ class hibachi(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         until = None
-        until, params = self.handle_option_and_params(params, 'fetchMySettlementHistory', 'until')
+        until, params = self.handle_option_integer_and_params(params, 'fetchMySettlementHistory', 'until')
         if until is not None:
             request['endTime'] = self.parse_to_int(until / 1000)
         response = await self.privateGetTradeAccountSettlementsHistory(self.extend(request, params))

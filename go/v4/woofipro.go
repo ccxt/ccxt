@@ -1855,7 +1855,7 @@ func (this *Woofipro) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -1995,7 +1995,7 @@ func (this *Woofipro) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingHistory", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -2333,14 +2333,14 @@ func (this *Woofipro) ParseOrder(order any, optionalArgs ...any) any {
 	var remaining *string = Precise.StringSub(amount, filled)
 	var fee any = this.SafeValue2(order, "total_fee", "totalFee")
 	var feeCurrency *string = this.SafeString2(order, "fee_asset", "feeAsset")
-	var transactions any = this.SafeValue(order, "Transactions")
+	var transactions []any = SafeListTyped(order, "Transactions")
 	var triggerPrice *float64 = this.SafeNumber(order, "triggerPrice")
 	var takeProfitPrice *float64 = nil
 	var stopLossPrice *float64 = nil
 	var childOrders []any = SafeListTyped(order, "childOrders")
-	if !IsEqual(childOrders, nil) {
+	if childOrders != nil {
 		var first map[string]any = SafeMapTyped(childOrders, 0)
-		var innerChildOrders []any = SafeListTypedDefault(first, "childOrders", []any{})
+		var innerChildOrders []any = SafeListTyped(first, "childOrders")
 		var innerChildOrdersLength int = len(innerChildOrders)
 		if innerChildOrdersLength > 0 {
 			var takeProfitOrder map[string]any = SafeMapTyped(innerChildOrders, 0)
@@ -2452,8 +2452,8 @@ func (this *Woofipro) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
 	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
-	var hasStopLoss bool = (!IsEqual(stopLoss, nil))
-	var hasTakeProfit bool = (!IsEqual(takeProfit, nil))
+	var hasStopLoss bool = ((stopLoss != nil))
+	var hasTakeProfit bool = ((takeProfit != nil))
 	var algoType *string = this.SafeString(params, "algoType")
 	var isConditional bool = (triggerPrice != nil) || hasStopLoss || hasTakeProfit || (!IsEqual(this.SafeValue(params, "childOrders"), nil))
 	var isMarket bool = (orderType == "MARKET")
@@ -2634,7 +2634,7 @@ func (this *Woofipro) createOrdersBody(ch chan any, orders any, optionalArgs ...
 	}
 	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
+		var rawOrder map[string]any = SafeMapTyped(orders, i)
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
@@ -3171,7 +3171,7 @@ func (this *Woofipro) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		}
 		return 500
 	}()
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOrders", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -3445,7 +3445,7 @@ func (this *Woofipro) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -3511,12 +3511,7 @@ func (this *Woofipro) ParseBalance(response any) any {
 	}
 	var balances []any = SafeListTyped(response, "holding")
 	for i := 0; i < len(balances); i++ {
-		var balance map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(balances) {
-				return DerefScalar(balances[i])
-			}
-			return nil
-		}())
+		var balance map[string]any = SafeMapTyped(balances, i)
 		var code *string = this.SafeCurrencyCode(this.SafeString(balance, "token"))
 		var account map[string]any = this.Account()
 		account["total"] = this.SafeString(balance, "holding")

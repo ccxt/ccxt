@@ -1193,7 +1193,14 @@ public partial class hashkey : Exchange
             }
         }
         IDictionary<string, object> tradingFees = this.safeDict(this.fees, "trading");
-        IDictionary<string, object> fees = isSpot ? this.safeDict(tradingFees, "spot") : this.safeDict(tradingFees, "swap");
+        IDictionary<string, object> fees = null;
+        if (isSpot)
+        {
+            fees = this.safeDict(tradingFees, "spot");
+        } else
+        {
+            fees = this.safeDict(tradingFees, "swap");
+        }
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", symbol },
@@ -1330,7 +1337,11 @@ public partial class hashkey : Exchange
             }
         }
         string? rawType = this.safeString(rawCurrency, "tokenType");
-        string type = (rawType == "REAL_MONEY") ? "fiat" : "crypto";
+        string type = "crypto";
+        if (rawType == "REAL_MONEY")
+        {
+            type = "fiat";
+        }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", currencyId },
             { "code", code },
@@ -1495,9 +1506,9 @@ public partial class hashkey : Exchange
         {
             request["endTime"] = until;
         }
-        object accountId = null;
-        IList<object> accountIdparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "accountId");
-        accountId = accountIdparametersVariable[0];
+        string? accountId = null;
+        IList<object> accountIdparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "accountId");
+        accountId = (string)accountIdparametersVariable[0];
         parameters = accountIdparametersVariable[1];
         List<object> response = null;
         if (marketType == "spot")
@@ -1672,8 +1683,8 @@ public partial class hashkey : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, methodName, "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -1989,7 +2000,7 @@ public partial class hashkey : Exchange
         List<object> balances = this.safeList(balance, "balances", new List<object>() {});
         for (int i = 0; i < (balances?.Count ?? 0); i++)
         {
-            object balanceEntry = balances[i];
+            IDictionary<string, object> balanceEntry = this.safeDict(balances, i);
             string? currencyId = this.safeString(balanceEntry, "asset");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -2603,17 +2614,17 @@ public partial class hashkey : Exchange
             request["limit"] = limit;
         }
         request["endTime"] = until;
-        object flowType = null;
-        IList<object> flowTypeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "flowType");
-        flowType = flowTypeparametersVariable[0];
+        string? flowType = null;
+        IList<object> flowTypeparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "flowType");
+        flowType = (string)flowTypeparametersVariable[0];
         parameters = flowTypeparametersVariable[1];
         if ((flowType != null))
         {
             request["flowType"] = this.encodeFlowType(flowType);
         }
-        object accountType = null;
-        IList<object> accountTypeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "accountType");
-        accountType = accountTypeparametersVariable[0];
+        string? accountType = null;
+        IList<object> accountTypeparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "accountType");
+        accountType = (string)accountTypeparametersVariable[0];
         parameters = accountTypeparametersVariable[1];
         if ((accountType != null))
         {
@@ -3075,7 +3086,7 @@ public partial class hashkey : Exchange
         List<object> ordersRequests = new List<object>() {};
         for (int i = 0; i < getArrayLength(orders); i++)
         {
-            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
+            IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? symbol = this.safeString(rawOrder, "symbol");
             string? type = this.safeString(rawOrder, "type");
             string? side = this.safeString(rawOrder, "side");
@@ -3090,7 +3101,7 @@ public partial class hashkey : Exchange
             }
             ordersRequests.Add(orderRequest);
         }
-        Dictionary<string, object> firstOrder = ((Dictionary<string, object>)getValue(ordersRequests, 0));
+        IDictionary<string, object> firstOrder = this.safeDict(ordersRequests, 0);
         string? firstSymbol = this.safeString(firstOrder, "symbol");
         Dictionary<string, object> market = this.market(firstSymbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3436,9 +3447,9 @@ public partial class hashkey : Exchange
         IDictionary<string, object> market = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         List<object> response = null;
-        object accountId = null;
-        IList<object> accountIdparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "accountId");
-        accountId = accountIdparametersVariable[0];
+        string? accountId = null;
+        IList<object> accountIdparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "accountId");
+        accountId = (string)accountIdparametersVariable[0];
         parameters = accountIdparametersVariable[1];
         if ((accountId != null))
         {
@@ -3508,9 +3519,9 @@ public partial class hashkey : Exchange
             request["limit"] = limit;
         }
         List<object> response = null;
-        object accountId = null;
-        IList<object> accountIdparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "accountId");
-        accountId = accountIdparametersVariable[0];
+        string? accountId = null;
+        IList<object> accountIdparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "accountId");
+        accountId = (string)accountIdparametersVariable[0];
         parameters = accountIdparametersVariable[1];
         if ((accountId != null))
         {
@@ -3570,9 +3581,9 @@ public partial class hashkey : Exchange
         {
             request["endTime"] = until;
         }
-        object accountId = null;
-        IList<object> accountIdparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "accountId");
-        accountId = accountIdparametersVariable[0];
+        string? accountId = null;
+        IList<object> accountIdparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "accountId");
+        accountId = (string)accountIdparametersVariable[0];
         parameters = accountIdparametersVariable[1];
         IDictionary<string, object> market = null;
         if ((symbol != null))

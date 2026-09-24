@@ -875,7 +875,7 @@ class bydfi extends Exchange {
         }
         $maxLimit = 500; // docs says max 1500, but in practice only 500 works
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimit);
         }
@@ -888,7 +888,7 @@ class bydfi extends Exchange {
         $startTime = $since;
         $numberOfCandles = ($limit !== null && $limit !== null && $limit !== 0) ? $limit : $maxLimit;
         $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'until');
+        list($until, $params) = $this->handle_option_integer_and_params($params, 'fetchOHLCV', 'until');
         $now = $this->milliseconds();
         $duration = $this->parse_timeframe($timeframe) * 1000;
         $timeDelta = $duration * $numberOfCandles;
@@ -1175,7 +1175,7 @@ class bydfi extends Exchange {
             $request['limit'] = $limit;
         }
         $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'until');
+        list($until, $params) = $this->handle_option_integer_and_params($params, 'fetchFundingRateHistory', 'until');
         if ($until !== null) {
             $request['endTime'] = $until;
         }
@@ -1435,7 +1435,7 @@ class bydfi extends Exchange {
         }
         $ordersRequests = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $symbol = $this->safe_string($rawOrder, 'symbol');
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
@@ -1513,7 +1513,7 @@ class bydfi extends Exchange {
         }
         $ordersRequests = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $id = $this->safe_string($rawOrder, 'id');
             $symbol = $this->safe_string($rawOrder, 'symbol');
             $side = $this->safe_string($rawOrder, 'side');
@@ -1843,7 +1843,7 @@ class bydfi extends Exchange {
 
     public function handle_since_and_until(string $methodName, ?int $since = null, $params = array()): array {
         $until = null;
-        list($until, $params) = $this->handle_option_and_params_2($params, $methodName, 'until', 'endTime');
+        list($until, $params) = $this->handle_option_integer_and_params_2($params, $methodName, 'until', 'endTime');
         $now = $this->milliseconds();
         $sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
         $startTime = $since;
@@ -2550,7 +2550,10 @@ class bydfi extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $positionType = $hedged ? 'HEDGE' : 'ONEWAY';
+        $positionType = 'ONEWAY';
+        if ($hedged) {
+            $positionType = 'HEDGE';
+        }
         $wallet = 'W001';
         list($wallet, $params) = $this->handle_option_string_and_params($params, 'setPositionMode', 'wallet', $wallet);
         $contractType = 'FUTURE';
@@ -2658,7 +2661,7 @@ class bydfi extends Exchange {
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $wallet = null;
-        list($wallet, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'wallet');
+        list($wallet, $params) = $this->handle_option_string_and_params($params, 'fetchBalance', 'wallet');
         $request = array();
         if ($wallet === null) {
             $options = $this->safe_dict($this->options, 'accountsByType', array());
@@ -2724,7 +2727,7 @@ class bydfi extends Exchange {
             'datetime' => null,
         );
         for ($i = 0; $i < count($response); $i++) {
-            $balance = $response[$i];
+            $balance = $this->safe_dict($response, $i);
             $symbol = $this->safe_string($balance, 'asset');
             $code = $this->safe_currency_code($symbol);
             $account = $this->account();
@@ -2823,7 +2826,7 @@ class bydfi extends Exchange {
             'asset' => $currency['id'],
         );
         $until = null;
-        list($until, $params) = $this->handle_option_and_params_2($params, 'fetchTransfers', 'until', 'endTime');
+        list($until, $params) = $this->handle_option_integer_and_params_2($params, 'fetchTransfers', 'until', 'endTime');
         if ($until === null) {
             $until = $this->milliseconds(); // exchange requires endTime
         }
@@ -2953,7 +2956,10 @@ class bydfi extends Exchange {
     }
 
     private function do_fetch_transactions_helper(mixed $type, mixed $code, mixed $since, mixed $limit, mixed $params) {
-        $methodName = ($type === 'deposit') ? 'fetchDeposits' : 'fetchWithdrawals';
+        $methodName = 'fetchWithdrawals';
+        if ($type === 'deposit') {
+            $methodName = 'fetchDeposits';
+        }
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $code argument');
         }
@@ -2973,7 +2979,7 @@ class bydfi extends Exchange {
             'asset' => $currency['id'],
         );
         $until = null;
-        list($until, $params) = $this->handle_option_and_params_2($params, 'fetchTransfers', 'until', 'endTime');
+        list($until, $params) = $this->handle_option_integer_and_params_2($params, 'fetchTransfers', 'until', 'endTime');
         $now = $this->milliseconds();
         $sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
         $startTime = $since;

@@ -555,7 +555,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object symbolAndTimeframe = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
+                List<Object> symbolAndTimeframe = (List<Object>) this.safeList(symbolsAndTimeframes, i);
                 String marketId = this.safeString(symbolAndTimeframe, 0);
                 Map<String, Object> market = (Map<String, Object>) this.market(marketId);
                 String tf = this.safeString(symbolAndTimeframe, 1);
@@ -617,7 +617,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object symbolAndTimeframe = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
+                List<Object> symbolAndTimeframe = (List<Object>) this.safeList(symbolsAndTimeframes, i);
                 String marketId = this.safeString(symbolAndTimeframe, 0);
                 Map<String, Object> market = (Map<String, Object>) this.market(marketId);
                 String tf = this.safeString(symbolAndTimeframe, 1);
@@ -688,7 +688,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         }
         io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe));
         Object parsed = this.parseWsOHLCV(message);
-        Helpers.callDynamically(ohlcv, "append", new Object[]{parsed});
+        ohlcv.append(parsed);
         String messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
         client.resolve(new ArrayList<Object>(Arrays.asList(symbol, timeframe, ohlcv)), messageHash);
     }
@@ -922,7 +922,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Map<String, Object> parsed = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "b", "a");
-        Helpers.callDynamically(orderbook, "reset", new Object[]{parsed});
+        orderbook.reset(parsed);
         String messageHash = ("orderbook::" + symbol);
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         client.resolve(orderbook, messageHash);
@@ -1484,7 +1484,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             }};
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
-                Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
+                Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i);
                 String currencyId = this.safeString(balance, "a");
                 String code = this.safeCurrencyCode((String) (currencyId));
                 Map<String, Object> account = (Map<String, Object>) this.account();

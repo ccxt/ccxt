@@ -525,7 +525,10 @@ class bitfinex extends \ccxt\async\bitfinex {
         //
         $numFields = count($trade);
         $isPublic = $numFields <= 8;
-        $marketId = (!$isPublic) ? $this->safe_string($trade, 1) : null;
+        $marketId = null;
+        if (!$isPublic) {
+            $marketId = $this->safe_string($trade, 1);
+        }
         $market = $this->safe_market($marketId, $market);
         $createdKey = $isPublic ? 1 : 2;
         $priceKey = $isPublic ? 3 : 5;
@@ -539,7 +542,10 @@ class bitfinex extends \ccxt\async\bitfinex {
                 $type = 'market';
             }
         }
-        $orderId = (!$isPublic) ? $this->safe_string($trade, 3) : null;
+        $orderId = null;
+        if (!$isPublic) {
+            $orderId = $this->safe_string($trade, 3);
+        }
         $id = $this->safe_string($trade, 0);
         $timestamp = $this->safe_integer($trade, $createdKey);
         $price = $this->safe_string($trade, $priceKey);
@@ -744,7 +750,7 @@ class bitfinex extends \ccxt\async\bitfinex {
             } else {
                 $deltas = $message[1];
                 for ($i = 0; $i < count($deltas); $i++) {
-                    $delta = $deltas[$i];
+                    $delta = $this->safe_list($deltas, $i);
                     $amount = $this->safe_number($delta, 2);
                     if ($amount === null) {
                         continue;

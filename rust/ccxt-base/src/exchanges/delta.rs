@@ -833,7 +833,10 @@ impl DeltaCore {
         let mut strike: Value = self.safe_string(optionParts, Value::Int(2), &[]);
         let mut datetime: Value = self.convert_expire_date(expiry.clone());
         let mut timestamp: Value = self.parse8601(datetime.clone());
-        let mut optionTypeUnified: Value = (if (optionType.as_str() == Some("C")) { Value::Str("call".into()) } else { Value::Str("put".into()) });
+        let mut optionTypeUnified: Value = Value::Str("put".into());
+        if (optionType.as_str() == Some("C")) {
+            optionTypeUnified = Value::Str("call".into());
+        }
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", optionType, Value::Str("-".into())).into()), base).into()), Value::Str("-".into())).into()), strike).into()), Value::Str("-".into())).into()), expiry).into()));
@@ -1002,7 +1005,10 @@ impl DeltaCore {
     m
 })]);
         let mut underMaintenance: Option<String> = self.safe_string_k(result.clone(), "under_maintenance", &[]).as_str().map(str::to_owned);
-        let mut status: Value = (if (underMaintenance.as_deref() == Some("true")) { Value::Str("maintenance".into()) } else { Value::Str("ok".into()) });
+        let mut status: Value = Value::Str("ok".into());
+        if (underMaintenance.as_deref() == Some("true")) {
+            status = Value::Str("maintenance".into());
+        }
         let mut updated: Value = self.safe_integer_product_k(result, "server_time", Value::Float(0.001), &[self.milliseconds()]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2366,7 +2372,7 @@ impl DeltaCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_615: bool = true;
             while { if !__for_first_615 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_615 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
-            let mut balance: Value = balances.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut balance: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "asset_id", &[]);
             let mut currency: Value = self.safe_dict(currenciesByNumericId.clone(), currencyId.clone(), &[]);
             let mut code: Value = (if (currency == Value::Null) { currencyId } else { currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null) });
@@ -2652,7 +2658,12 @@ impl DeltaCore {
     m
 })]);
         market = self.safe_value(marketsByNumericId, marketId.clone(), &[market.clone()]);
-        let mut symbol: Value = (if (market == Value::Null) { marketId } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
+        let mut symbol: Value = Value::Null;
+        if (market == Value::Null) {
+            symbol = marketId;
+        }  else {
+            symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        }
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "state", &[]));
         let mut side: Value = self.safe_string_k(order.clone(), "side", &[]);
         let mut type_var: Value = self.safe_string_k(order.clone(), "order_type", &[]);

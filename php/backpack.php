@@ -981,7 +981,7 @@ class backpack extends Exchange {
             'interval' => $interval,
         );
         $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'until');
+        list($until, $params) = $this->handle_option_integer_and_params($params, 'fetchOHLCV', 'until');
         if ($until !== null) {
             $request['endTime'] = $this->parse_to_int($until / 1000); // convert milliseconds to seconds
         }
@@ -1426,7 +1426,7 @@ class backpack extends Exchange {
         for ($i = 0; $i < count($balanceKeys); $i++) {
             $id = $balanceKeys[$i];
             $code = $this->safe_currency_code($id);
-            $balance = $response[$id];
+            $balance = $this->safe_dict($response, $id);
             $account = $this->account();
             $locked = $this->safe_string($balance, 'locked');
             $staked = $this->safe_string($balance, 'staked');
@@ -1469,7 +1469,7 @@ class backpack extends Exchange {
             $request['limit'] = $limit; // default 100, max 1000
         }
         $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'until');
+        list($until, $params) = $this->handle_option_integer_and_params($params, 'fetchDeposits', 'until');
         if ($until !== null) {
             $request['endTime'] = $until;
         }
@@ -1505,7 +1505,7 @@ class backpack extends Exchange {
             $request['limit'] = $limit;
         }
         $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'until');
+        list($until, $params) = $this->handle_option_integer_and_params($params, 'fetchWithdrawals', 'until');
         if ($until !== null) {
             $request['to'] = $until;
         }
@@ -1708,7 +1708,7 @@ class backpack extends Exchange {
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "address": "0xfBe7CbfCde93c8a4204a4be6B56732Eb32690170"
@@ -1781,7 +1781,7 @@ class backpack extends Exchange {
         }
         $ordersRequests = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $marketId = $this->safe_string($rawOrder, 'symbol');
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
@@ -1811,7 +1811,10 @@ class backpack extends Exchange {
         );
         $triggerPrice = $this->safe_string($params, 'triggerPrice');
         $isTriggerOrder = $triggerPrice !== null;
-        $quantityKey = $isTriggerOrder ? 'triggerQuantity' : 'quantity';
+        $quantityKey = 'quantity';
+        if ($isTriggerOrder) {
+            $quantityKey = 'triggerQuantity';
+        }
         // handle basic limit/market order types
         if ($type === 'limit') {
             $request['price'] = $this->price_to_precision($symbol, $price);
@@ -1865,7 +1868,7 @@ class backpack extends Exchange {
             $params = $this->omit($params, 'stopLoss');
         }
         $selfTradePrevention = null;
-        list($selfTradePrevention, $params) = $this->handle_option_and_params($params, 'createOrder', 'selfTradePrevention');
+        list($selfTradePrevention, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'selfTradePrevention');
         if ($selfTradePrevention !== null) {
             if ($selfTradePrevention === 'EXPIRE_MAKER') {
                 $request['selfTradePrevention'] = 'RejectMaker';
@@ -2315,7 +2318,7 @@ class backpack extends Exchange {
         return $this->parse_incomes($response, $market, $since, $limit);
     }
 
-    public function parse_income(mixed $income, ?array $market = null): array {
+    public function parse_income(array $income, ?array $market = null): array {
         //
         //     {
         //         "fundingRate": "0.0001",

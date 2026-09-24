@@ -1341,7 +1341,7 @@ class xt(Exchange, ImplicitAPI):
         maxPrice = None
         amountPrecision = None
         for i in range(0, len(filters)):
-            entry = filters[i]
+            entry = self.safe_dict(filters, i)
             filter = self.safe_string(entry, 'filter')
             if filter == 'QUANTITY':
                 minAmount = self.safe_number(entry, 'min')
@@ -1578,7 +1578,9 @@ class xt(Exchange, ImplicitAPI):
         #     }
         #
         isInverse = self.safe_bool(market, 'inverse')
-        volumeIndex = 'v' if (isInverse is True) else 'a'
+        volumeIndex = 'a'
+        if isInverse is True:
+            volumeIndex = 'v'
         return [
             self.safe_integer(ohlcv, 't'),
             self.safe_number(ohlcv, 'o'),
@@ -1913,7 +1915,9 @@ class xt(Exchange, ImplicitAPI):
             # the spot and contract payloads share the same field names, so
             # the market type cannot be inferred from the entry itself
             marketId = self.safe_string(rawTicker, 's')
-            marketType = 'contract' if isContract else 'spot'
+            marketType = 'spot'
+            if isContract:
+                marketType = 'contract'
             marketInner = self.safe_market(marketId, market, '_', marketType)
             ticker = self.parse_ticker(rawTicker, marketInner)
             symbol = ticker['symbol']
@@ -2108,7 +2112,9 @@ class xt(Exchange, ImplicitAPI):
         else:
             marginMode = None
             marginMode, params = self.handle_margin_mode_and_params('fetchMyTrades', params)
-            marginOrSpotRequest = 'LEVER' if (marginMode is not None) else 'SPOT'
+            marginOrSpotRequest = 'SPOT'
+            if marginMode is not None:
+                marginOrSpotRequest = 'LEVER'
             request['bizType'] = marginOrSpotRequest
             if limit is not None:
                 request['limit'] = limit
@@ -2444,7 +2450,7 @@ class xt(Exchange, ImplicitAPI):
         #
         result = {'info': response}
         for i in range(0, len(response)):
-            balance = response[i]
+            balance = self.safe_dict(response, i)
             currencyId = self.safe_string_2(balance, 'currency', 'coin')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -2534,7 +2540,9 @@ class xt(Exchange, ImplicitAPI):
         timeInForce = None
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
-        marginOrSpotRequest = 'LEVER' if (marginMode is not None) else 'SPOT'
+        marginOrSpotRequest = 'SPOT'
+        if marginMode is not None:
+            marginOrSpotRequest = 'LEVER'
         request['bizType'] = marginOrSpotRequest
         if type == 'market':
             timeInForce = self.safe_string_upper(params, 'timeInForce', 'FOK')
@@ -2600,10 +2608,14 @@ class xt(Exchange, ImplicitAPI):
             request['timeInForce'] = timeInForce
         reduceOnly = self.safe_bool(params, 'reduceOnly', False)
         if side == 'buy':
-            requestType = 'SHORT' if (reduceOnly is True) else 'LONG'
+            requestType = 'LONG'
+            if reduceOnly is True:
+                requestType = 'SHORT'
             request['positionSide'] = requestType
         else:
-            requestType = 'LONG' if (reduceOnly is True) else 'SHORT'
+            requestType = 'SHORT'
+            if reduceOnly is True:
+                requestType = 'LONG'
             request['positionSide'] = requestType
         response = {}
         triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
@@ -2648,7 +2660,9 @@ class xt(Exchange, ImplicitAPI):
             request['triggerPriceType'] = self.safe_string(params, 'triggerPriceType', 'LATEST_PRICE')
             request['orderSide'] = side.upper()
             request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
-            entrustType = 'STOP_MARKET' if (type == 'market') else 'STOP'
+            entrustType = 'STOP'
+            if type == 'market':
+                entrustType = 'STOP_MARKET'
             request['entrustType'] = entrustType
             params = self.omit(params, 'triggerPrice')
             if market['linear'] is True:
@@ -2928,7 +2942,9 @@ class xt(Exchange, ImplicitAPI):
         else:
             marginMode = None
             marginMode, params = self.handle_margin_mode_and_params('fetchOrders', params)
-            marginOrSpotRequest = 'LEVER' if (marginMode is not None) else 'SPOT'
+            marginOrSpotRequest = 'SPOT'
+            if marginMode is not None:
+                marginOrSpotRequest = 'LEVER'
             request['bizType'] = marginOrSpotRequest
             response = self.privateSpotGetHistoryOrder(self.extend(request, params))
         #
@@ -3127,7 +3143,9 @@ class xt(Exchange, ImplicitAPI):
         else:
             marginMode = None
             marginMode, params = self.handle_margin_mode_and_params('fetchOrdersByStatus', params)
-            marginOrSpotRequest = 'LEVER' if (marginMode is not None) else 'SPOT'
+            marginOrSpotRequest = 'SPOT'
+            if marginMode is not None:
+                marginOrSpotRequest = 'LEVER'
             request['bizType'] = marginOrSpotRequest
             if status != 'open':
                 if since is not None:
@@ -3548,7 +3566,9 @@ class xt(Exchange, ImplicitAPI):
         else:
             marginMode = None
             marginMode, params = self.handle_margin_mode_and_params('cancelAllOrders', params)
-            marginOrSpotRequest = 'LEVER' if (marginMode is not None) else 'SPOT'
+            marginOrSpotRequest = 'SPOT'
+            if marginMode is not None:
+                marginOrSpotRequest = 'LEVER'
             request['bizType'] = marginOrSpotRequest
             response = self.privateSpotDeleteOpenOrder(self.extend(request, params))
         #
@@ -3892,7 +3912,9 @@ class xt(Exchange, ImplicitAPI):
         #     }
         #
         side = self.safe_string(item, 'side')
-        direction = 'in' if (side == 'ADD') else 'out'
+        direction = 'out'
+        if side == 'ADD':
+            direction = 'in'
         currencyId = self.safe_string(item, 'coin')
         currency = self.safe_currency(currencyId, currency)
         timestamp = self.safe_integer(item, 'createdTime')
@@ -3917,7 +3939,7 @@ class xt(Exchange, ImplicitAPI):
             },
         }, currency)
 
-    def parse_ledger_entry_type(self, type: object):
+    def parse_ledger_entry_type(self, type: Str):
         ledgerType = {
             'EXCHANGE': 'transfer',
             'CLOSE_POSITION': 'trade',
@@ -3967,7 +3989,7 @@ class xt(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_deposit_address(result, currency)
 
-    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "address": "0x7f7173cf29d3846d20ca5a3aec1120b93dbd157a",
@@ -4298,7 +4320,9 @@ class xt(Exchange, ImplicitAPI):
 
     def modify_margin_helper(self, symbol: str, amount: object, addOrReduce: object, params: dict = {}) -> MarginModification:
         positionSide = self.safe_string(params, 'positionSide')
-        methodName = 'addMargin' if (addOrReduce == 'ADD') else 'reduceMargin'
+        methodName = 'reduceMargin'
+        if addOrReduce == 'ADD':
+            methodName = 'addMargin'
         self.check_required_argument(methodName, positionSide, 'positionSide', ['LONG', 'SHORT'])
         if self.markets is None:
             self.load_markets()
@@ -4407,7 +4431,7 @@ class xt(Exchange, ImplicitAPI):
         #
         result = {}
         for i in range(0, len(response)):
-            entry = response[i]
+            entry = self.safe_dict(response, i)
             marketId = self.safe_string(entry, 'symbol')
             market = self.safe_market(marketId, None, '_', 'contract')
             symbol = self.safe_symbol(marketId, market)
@@ -4487,7 +4511,7 @@ class xt(Exchange, ImplicitAPI):
         tiers = []
         brackets = self.safe_list(info, 'leverageBrackets', [])
         for i in range(0, len(brackets)):
-            tier = brackets[i]
+            tier = self.safe_dict(brackets, i)
             marketId = self.safe_string(info, 'symbol')
             market = self.safe_market(marketId, market, '_', 'contract')
             minNotional = self.safe_number(brackets[i - 1], 'maxNominalValue', 0)
@@ -4521,7 +4545,7 @@ class xt(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, params, 'id', 'id', 1, 200)
         market = self.market(symbol)
@@ -4875,12 +4899,12 @@ class xt(Exchange, ImplicitAPI):
         items = self.safe_list(data, 'items', [])
         result = []
         for i in range(0, len(items)):
-            entry = items[i]
+            entry = self.safe_dict(items, i)
             result.append(self.parse_funding_history(entry, market))
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_since_limit(sorted, since, limit)
 
-    def parse_funding_history(self, contract: object, market: Market = None):
+    def parse_funding_history(self, contract: dict, market: Market = None):
         #
         #     {
         #         "id": "210804044057280512",
@@ -5229,7 +5253,9 @@ class xt(Exchange, ImplicitAPI):
         # "ISOLATED"/"CROSSED" on position/list, 1 = cross / 2 = isolated on position/list-history
         positionType = self.safe_string(position, 'positionType')
         isCross = (positionType == 'CROSSED') or (positionType == '1')
-        marginMode = 'cross' if (isCross) else 'isolated'
+        marginMode = 'isolated'
+        if isCross:
+            marginMode = 'cross'
         collateral = self.safe_number(position, 'isolatedMargin')
         # history entries carry the liquidation price in forceMarkPrice when force is true
         liquidationPriceString = self.omit_zero(self.safe_string_2(position, 'breakPrice', 'forceMarkPrice'))

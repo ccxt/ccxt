@@ -585,7 +585,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var result []any = []any{}
 	var request map[string]any = map[string]any{}
 	var generation any = nil
-	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchMarkets", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchMarkets", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = MapTyped(GetValue(generationparamsVariable, 1))
 	if IsEqual(generation, 2) {
@@ -684,7 +684,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		for i := 0; i < len(quotes); i++ {
 			var quote string = quotes[i]
 			var quoteId any = quote
-			var response any = GetValue(results, i)
+			var response map[string]any = SafeMapTyped(results, i)
 			var data map[string]any = SafeMapTyped(response, "data")
 			var extension any = this.SafeDict(quoteCurrencies, quote, map[string]any{})
 			var currencyIds []string = ObjectKeys(data)
@@ -786,7 +786,7 @@ func (this *Bithumb) ParseBalance(response any) any {
 		"info": response,
 	}
 	var balances map[string]any = SafeMapTyped(response, "data")
-	if !IsEqual(balances, nil) {
+	if balances != nil {
 		var codes []string = ObjectKeys(this.Currencies)
 		for i := 0; i < len(codes); i++ {
 			var code string = GetValue(codes, i).(string)
@@ -800,7 +800,7 @@ func (this *Bithumb) ParseBalance(response any) any {
 		}
 	} else {
 		for i := 0; i < GetArrayLength(response); i++ {
-			var entry map[string]any = MapTyped(GetValue(response, i))
+			var entry map[string]any = SafeMapTyped(response, i)
 			var account map[string]any = this.Account()
 			var currencyId *string = this.SafeString(entry, "currency")
 			var code *string = this.SafeCurrencyCode(currencyId)
@@ -840,7 +840,7 @@ func (this *Bithumb) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var generation any = nil
-	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchBalance", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchBalance", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = MapTyped(GetValue(generationparamsVariable, 1))
 	var response any = nil
@@ -890,7 +890,7 @@ func (this *Bithumb) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var generation any = nil
-	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrderBook", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOrderBook", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = MapTyped(GetValue(generationparamsVariable, 1))
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -927,12 +927,7 @@ func (this *Bithumb) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		var bids []any = []any{}
 		var asks []any = []any{}
 		for i := 0; i < len(orderBookUnits); i++ {
-			var entry map[string]any = MapTyped(func() any {
-				if i >= 0 && i < len(orderBookUnits) {
-					return DerefScalar(orderBookUnits[i])
-				}
-				return nil
-			}())
+			var entry map[string]any = SafeMapTyped(orderBookUnits, i)
 			bids = append(bids, map[string]any{
 				"price":    this.SafeString(entry, "bid_price"),
 				"quantity": this.SafeString(entry, "bid_size"),
@@ -1149,7 +1144,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var generation any = nil
-	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchTickers", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchTickers", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = MapTyped(GetValue(generationparamsVariable, 1))
 	var request map[string]any = map[string]any{}
@@ -1246,7 +1241,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 				response = GetValue(response, "data")
 			}
 			var expectedMarketId any = nil
-			var marketIdsChunk []any = SafeListTypedDefault(marketIdsChunks, i, []any{})
+			var marketIdsChunk []any = SafeListTyped(marketIdsChunks, i)
 			var firstMarketId *string = this.SafeString(marketIdsChunk, 0)
 			if (firstMarketId != nil) && (this.SafeString(marketIdsChunk, 1) == nil) {
 				expectedMarketId = firstMarketId
@@ -1318,7 +1313,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(responses)
 		for i := 0; i < len(quotes); i++ {
 			var quote string = GetValue(quotes, i).(string)
-			var response any = GetValue(responses, i)
+			var response map[string]any = SafeMapTyped(responses, i)
 			var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 			var timestamp *int64 = this.SafeInteger(data, "date")
 			var tickers any = this.Omit(data, "date")
@@ -1365,7 +1360,7 @@ func (this *Bithumb) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var generation any = nil
-	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchTicker", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchTicker", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = MapTyped(GetValue(generationparamsVariable, 1))
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -1519,7 +1514,7 @@ func (this *Bithumb) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var generation any = nil
-	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOHLCV", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = MapTyped(GetValue(generationparamsVariable, 1))
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -1777,7 +1772,7 @@ func (this *Bithumb) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var generation any = nil
-	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchTrades", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = MapTyped(GetValue(generationparamsVariable, 1))
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -1864,7 +1859,7 @@ func (this *Bithumb) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var generation any = nil
-	var generationparamsVariable []any = this.HandleOptionAndParams(params, "createOrders", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionIntegerAndParams(params, "createOrders", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = MapTyped(GetValue(generationparamsVariable, 1))
 	if !IsEqual(generation, 2) {
@@ -1877,7 +1872,7 @@ func (this *Bithumb) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 	var ordersRequests []any = []any{}
 	var orderSymbols any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
+		var rawOrder map[string]any = SafeMapTyped(orders, i)
 		var symbol *string = this.SafeString(rawOrder, "symbol")
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " createOrders() requires each order to have a symbol"))
@@ -2057,7 +2052,7 @@ func (this *Bithumb) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var generation any = nil
-	var generationparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionIntegerAndParams(params, "createOrder", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = MapTyped(GetValue(generationparamsVariable, 1))
 	var request any = map[string]any{}
@@ -2131,7 +2126,7 @@ func (this *Bithumb) createMarketBuyOrderWithCostBody(ch chan any, symbol any, c
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var generation any = nil
-	var generationparamsVariable []any = this.HandleOptionAndParams(params, "createMarketBuyOrderWithCost", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionIntegerAndParams(params, "createMarketBuyOrderWithCost", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = MapTyped(GetValue(generationparamsVariable, 1))
 	if !IsEqual(generation, 2) {
@@ -2174,7 +2169,7 @@ func (this *Bithumb) createTwapOrderBody(ch chan any, symbol any, side any, amou
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var generation any = nil
-	var generationparamsVariable []any = this.HandleOptionAndParams(params, "createTwapOrder", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionIntegerAndParams(params, "createTwapOrder", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = MapTyped(GetValue(generationparamsVariable, 1))
 	if !IsEqual(generation, 2) {
@@ -2242,7 +2237,7 @@ func (this *Bithumb) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var generation any = nil
-	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrder", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOrder", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = MapTyped(GetValue(generationparamsVariable, 1))
 	var market any = nil
@@ -2286,7 +2281,7 @@ func (this *Bithumb) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 			//         ]
 			//     }
 			//
-			var orders []any = SafeListTypedDefault(response, "orders", []any{})
+			var orders []any = SafeListTyped(response, "orders")
 			data = this.SafeDict(orders, 0, map[string]any{})
 		} else {
 			var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_order_id")
@@ -2652,7 +2647,7 @@ func (this *Bithumb) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var generation any = nil
-	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOpenOrders", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = MapTyped(GetValue(generationparamsVariable, 1))
 	var request map[string]any = map[string]any{}
@@ -2730,7 +2725,7 @@ func (this *Bithumb) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var generation any = nil
-	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOrders", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = MapTyped(GetValue(generationparamsVariable, 1))
 	if !IsEqual(generation, 2) {
@@ -2929,7 +2924,7 @@ func (this *Bithumb) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var generation any = nil
-	var generationparamsVariable []any = this.HandleOptionAndParams(params, "cancelOrder", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionIntegerAndParams(params, "cancelOrder", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = MapTyped(GetValue(generationparamsVariable, 1))
 	var market any = nil
@@ -3023,7 +3018,7 @@ func (this *Bithumb) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var generation any = nil
-	var generationparamsVariable []any = this.HandleOptionAndParams(params, "cancelOrders", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionIntegerAndParams(params, "cancelOrders", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = MapTyped(GetValue(generationparamsVariable, 1))
 	if !IsEqual(generation, 2) {
@@ -3121,7 +3116,7 @@ func (this *Bithumb) withdrawBody(ch chan any, code any, amount any, address any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var generation any = nil
-	var generationparamsVariable []any = this.HandleOptionAndParams(params, "withdraw", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionIntegerAndParams(params, "withdraw", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = MapTyped(GetValue(generationparamsVariable, 1))
 	var tagparamsVariable []any = this.HandleWithdrawTagAndParams(tag, params)
@@ -3322,7 +3317,7 @@ func (this *Bithumb) fetchWithdrawalWhitelistBody(ch chan any, optionalArgs ...a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var generation any = nil
-	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchWithdrawalWhitelist", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchWithdrawalWhitelist", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = MapTyped(GetValue(generationparamsVariable, 1))
 	if !IsEqual(generation, 2) {
@@ -3379,7 +3374,7 @@ func (this *Bithumb) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var generation any = nil
-	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchWithdrawal", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchWithdrawal", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = MapTyped(GetValue(generationparamsVariable, 1))
 	if !IsEqual(generation, 2) {
@@ -3456,7 +3451,7 @@ func (this *Bithumb) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var generation any = nil
-	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchWithdrawals", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchWithdrawals", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = MapTyped(GetValue(generationparamsVariable, 1))
 	if !IsEqual(generation, 2) {
@@ -3531,7 +3526,7 @@ func (this *Bithumb) fetchDepositBody(ch chan any, id any, optionalArgs ...any) 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var generation any = nil
-	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchDeposit", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchDeposit", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = MapTyped(GetValue(generationparamsVariable, 1))
 	if !IsEqual(generation, 2) {
@@ -3608,7 +3603,7 @@ func (this *Bithumb) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var generation any = nil
-	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchDeposits", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchDeposits", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = MapTyped(GetValue(generationparamsVariable, 1))
 	if !IsEqual(generation, 2) {
@@ -3680,7 +3675,7 @@ func (this *Bithumb) createDepositAddressBody(ch chan any, code any, optionalArg
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var generation any = nil
-	var generationparamsVariable []any = this.HandleOptionAndParams(params, "createDepositAddress", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionIntegerAndParams(params, "createDepositAddress", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = MapTyped(GetValue(generationparamsVariable, 1))
 	if !IsEqual(generation, 2) {
@@ -3737,7 +3732,7 @@ func (this *Bithumb) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var generation any = nil
-	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchDepositAddress", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchDepositAddress", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = MapTyped(GetValue(generationparamsVariable, 1))
 	if !IsEqual(generation, 2) {
@@ -3795,7 +3790,7 @@ func (this *Bithumb) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var generation any = nil
-	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchDepositAddresses", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchDepositAddresses", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = MapTyped(GetValue(generationparamsVariable, 1))
 	if !IsEqual(generation, 2) {
@@ -3987,7 +3982,7 @@ func (this *Bithumb) HandleErrors(httpCode any, reason any, url any, method any,
 	//     {"error":{"name":400,"message":"Missing request parameter error. Check the required parameters!"}}
 	//
 	var error map[string]any = SafeMapTyped(response, "error")
-	if !IsEqual(error, nil) {
+	if error != nil {
 		var errorName *string = this.SafeString(error, "name")
 		var message *string = this.SafeString(error, "message")
 		var feedback any = Add(this.Id+" ", message)

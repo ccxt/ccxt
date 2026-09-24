@@ -1154,7 +1154,7 @@ public partial class indodax : Exchange
         {
             throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
-        object side = this.safeValue(parameters, "side");
+        string? side = this.safeString(parameters, "side");
         if ((side == null))
         {
             throw new ArgumentsRequired ((this.id + " cancelOrder() requires an extra \"side\" param")) ;

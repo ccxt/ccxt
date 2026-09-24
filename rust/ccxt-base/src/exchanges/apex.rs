@@ -913,14 +913,13 @@ impl ApexCore {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_218: bool = true;
             while { if !__for_first_218 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_218 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&chains).as_f64().unwrap_or(f64::NAN) } {
-            let mut chain: Value = get_value(&chains, &j);
-            let mut chain: Value = get_value(&chains, &j);
+            let mut chain: Value = self.safe_dict(chains.clone(), j.clone(), &[]);
             let mut tokens: Value = self.safe_list_k(chain.clone(), "tokens", &[Value::from(vec![])]);
             {
                                 let mut f: Value = Value::Int(0);
                 let mut __for_first_217: bool = true;
                 while { if !__for_first_217 { f = (match (&(f), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_217 = false; f.as_f64().unwrap_or(f64::NAN) < ((tokens.len() as i64) as f64) } {
-                let mut token: Value = tokens.as_array().and_then(|__arr| match &f { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut token: Value = self.safe_dict(tokens.clone(), f.clone(), &[]);
                 let mut tokenName: Value = self.safe_string_k(token.clone(), "token", &[]);
                 if (tokenName.as_str() == currencyId.as_str()) {
                     let mut networkId: Value = self.safe_string_k(chain.clone(), "chainId", &[]);
@@ -1822,7 +1821,12 @@ impl ApexCore {
 
     pub fn generate_random_client_id_omni(&self, mut _accountId: Value) -> Value {
         let mut hasAccountId: bool = (_accountId != Value::Null) && (_accountId.as_str() != Some(""));
-        let mut accountId: Value = (if hasAccountId { _accountId } else { to_string_val(&self.rand_number(Value::Int(12))) });
+        let mut accountId: Value = Value::Null;
+        if hasAccountId {
+            accountId = _accountId;
+        }  else {
+            accountId = to_string_val(&self.rand_number(Value::Int(12)));
+        }
         return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("apexomni-".into()), accountId).into()), Value::Str("-".into())).into()), to_string_val(&self.milliseconds())).into()), Value::Str("-".into())).into()), to_string_val(&self.rand_number(Value::Int(6)))).into());
 
     Value::Null

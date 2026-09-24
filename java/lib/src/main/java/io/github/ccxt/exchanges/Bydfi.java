@@ -1124,8 +1124,8 @@ public class Bydfi extends BydfiApi
             }
             Object maxLimit = 500; // docs says max 1500, but in practice only 500 works
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -1140,7 +1140,7 @@ public class Bydfi extends BydfiApi
             Object startTime = since;
             Object numberOfCandles = (((!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(limit, null) && !Helpers.isEqual(limit, 0)))) ? limit : maxLimit;
             Object until = null;
-            List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
+            List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "until");
             until = ((List<Object>) untilparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             Long now = this.milliseconds();
@@ -1524,9 +1524,9 @@ public class Bydfi extends BydfiApi
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            Object until = null;
-            List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "until");
-            until = ((List<Object>) untilparametersVariable).get(0);
+            Long until = null;
+            List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchFundingRateHistory", "until");
+            until = (Long) ((List<Object>) untilparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
@@ -1877,7 +1877,7 @@ public class Bydfi extends BydfiApi
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i);
                 String symbol = this.safeString(rawOrder, "symbol");
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
@@ -2002,7 +2002,7 @@ public class Bydfi extends BydfiApi
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i);
                 String id = this.safeString(rawOrder, "id");
                 String symbol = this.safeString(rawOrder, "symbol");
                 String side = this.safeString(rawOrder, "side");
@@ -2486,7 +2486,7 @@ public class Bydfi extends BydfiApi
     public Object handleSinceAndUntil(Object methodName, Long since, Map<String, Object> parameters)
     {
         Object until = null;
-        List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, methodName, "until", "endTime");
+        List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams2(parameters, methodName, "until", "endTime");
         until = ((List<Object>) untilparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
         Long now = this.milliseconds();
@@ -2618,7 +2618,7 @@ public class Bydfi extends BydfiApi
             ((Map<String, Object>)fee).put("currency", ((Map<String, Object>)market).get("quote"));
         }
         final Map<String, Object> finalMarket = market;
-        final Object finalRawType = rawType;
+        final String finalRawType = rawType;
         final String finalTimeInForce = timeInForce;
         final Boolean finalPostOnly = postOnly;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
@@ -3448,7 +3448,11 @@ public class Bydfi extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            String positionType = ((Helpers.isTrue(hedged))) ? "HEDGE" : "ONEWAY";
+            String positionType = "ONEWAY";
+            if (Helpers.isTrue(hedged))
+            {
+                positionType = "HEDGE";
+            }
             String wallet = "W001";
             List<Object> walletparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "setPositionMode", "wallet", wallet);
             wallet = (String) ((List<Object>) walletparametersVariable).get(0);
@@ -3463,11 +3467,12 @@ public class Bydfi extends BydfiApi
             parameters = (Map<String, Object>) ((List<Object>) settleCoinparametersVariable).get(1);
             final String finalContractType = contractType;
             final String finalWallet = wallet;
+            final String finalPositionType = positionType;
             final String finalSettleCoin = settleCoin;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "contractType", finalContractType );
                 put( "wallet", finalWallet );
-                put( "positionType", positionType );
+                put( "positionType", finalPositionType );
                 put( "settleCoin", finalSettleCoin );
             }};
             //
@@ -3618,9 +3623,9 @@ public class Bydfi extends BydfiApi
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
-            Object wallet = null;
-            List<Object> walletparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchBalance", "wallet");
-            wallet = ((List<Object>) walletparametersVariable).get(0);
+            String wallet = null;
+            List<Object> walletparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchBalance", "wallet");
+            wallet = (String) ((List<Object>) walletparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) walletparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
@@ -3710,7 +3715,7 @@ public class Bydfi extends BydfiApi
         }};
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
-            Object balance = Helpers.GetValue(response, i);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i);
             String symbol = this.safeString(balance, "asset");
             String code = this.safeCurrencyCode(symbol);
             Map<String, Object> account = (Map<String, Object>) this.account();
@@ -3841,7 +3846,7 @@ public class Bydfi extends BydfiApi
                 put( "asset", ((Map<String, Object>)currency).get("id") );
             }};
             Object until = null;
-            List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchTransfers", "until", "endTime");
+            List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams2(parameters, "fetchTransfers", "until", "endTime");
             until = ((List<Object>) untilparametersVariable).get(0);
             parameters = ((List<Object>) untilparametersVariable).get(1);
             if (java.util.Objects.equals(until, null))
@@ -4040,7 +4045,11 @@ public class Bydfi extends BydfiApi
             Object code = code3;
             Object limit = limit3;
             Object parameters = parameters3;
-            String methodName = (((java.util.Objects.equals(type, "deposit")))) ? "fetchDeposits" : "fetchWithdrawals";
+            String methodName = "fetchWithdrawals";
+            if (java.util.Objects.equals(type, "deposit"))
+            {
+                methodName = "fetchDeposits";
+            }
             if (java.util.Objects.equals(code, null))
             {
                 throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a code argument")) ;
@@ -4065,7 +4074,7 @@ public class Bydfi extends BydfiApi
                 put( "asset", ((Map<String, Object>)currency).get("id") );
             }};
             Object until = null;
-            List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchTransfers", "until", "endTime");
+            List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams2(parameters, "fetchTransfers", "until", "endTime");
             until = ((List<Object>) untilparametersVariable).get(0);
             parameters = ((List<Object>) untilparametersVariable).get(1);
             Long now = this.milliseconds();

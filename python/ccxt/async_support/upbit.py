@@ -589,7 +589,7 @@ class upbit(Exchange, ImplicitAPI):
             'datetime': None,
         }
         for i in range(0, len(response)):
-            balance = response[i]
+            balance = self.safe_dict(response, i)
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -713,7 +713,7 @@ class upbit(Exchange, ImplicitAPI):
         :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         orderbooks = await self.fetch_order_books([symbol], limit, params)
-        return self.safe_value(orderbooks, symbol)
+        return self.safe_dict(orderbooks, symbol)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
@@ -877,7 +877,7 @@ class upbit(Exchange, ImplicitAPI):
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         tickers = await self.fetch_tickers([symbol], params)
-        return self.safe_value(tickers, symbol)
+        return self.safe_dict(tickers, symbol)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -1830,7 +1830,7 @@ class upbit(Exchange, ImplicitAPI):
                 feeCost = '0'
             cost = '0'
             for i in range(0, numTrades):
-                trade = trades[i]
+                trade = self.safe_dict(trades, i)
                 cost = Precise.string_add(cost, self.safe_string(trade, 'cost'))
                 if getFeesFromTrades:
                     tradeFee = self.safe_dict(trades[i], 'fee', {})
@@ -2121,7 +2121,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_addresses(response, codes, False)
 
-    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         #
         #    {
         #        currency: 'XRP',
@@ -2295,7 +2295,7 @@ class upbit(Exchange, ImplicitAPI):
             if (method != 'GET') and (method != 'DELETE'):
                 body = self.json(params)
                 headers['Content-Type'] = 'application/json'
-            if (hasQuery is not None) and (hasQuery != 0):
+            if hasQuery != 0:
                 auth = self.rawencode(query)
             if auth is not None:
                 hash = self.hash(self.encode(auth), 'sha512')

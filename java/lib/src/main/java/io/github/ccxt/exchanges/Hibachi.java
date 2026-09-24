@@ -1291,7 +1291,7 @@ public class Hibachi extends HibachiApi
             List<Object> requestOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i);
                 String symbol = this.safeString(rawOrder, "symbol");
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
@@ -1451,7 +1451,7 @@ public class Hibachi extends HibachiApi
             List<Object> requestOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i);
                 String id = this.safeString(rawOrder, "id");
                 String symbol = this.safeString(rawOrder, "symbol");
                 String type = this.safeString(rawOrder, "type");
@@ -2126,9 +2126,9 @@ public class Hibachi extends HibachiApi
             {
                 ((Map<String, Object>)request).put("startTime", since);
             }
-            Object until = null;
-            List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrdersByStatus", "until");
-            until = ((List<Object>) untilparametersVariable).get(0);
+            Long until = null;
+            List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOrdersByStatus", "until");
+            until = (Long) ((List<Object>) untilparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
@@ -2206,7 +2206,7 @@ public class Hibachi extends HibachiApi
         return BaseExchange.supplyAsync(() -> {
 
             Object orders = (this.fetchOrdersByStatus("filled", symbol, since, limit, parameters)).join();
-            Object filtered = this.filterBy(orders, "status", "closed");
+            List<Object> filtered = this.filterBy(orders, "status", "closed");
             return this.filterBySinceLimit(filtered, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2248,7 +2248,7 @@ public class Hibachi extends HibachiApi
         return BaseExchange.supplyAsync(() -> {
 
             Object orders = (this.fetchOrdersByStatus(null, symbol, since, limit, parameters)).join();
-            Object filtered = this.filterBy(orders, "status", "canceled");
+            List<Object> filtered = this.filterBy(orders, "status", "canceled");
             return this.filterBySinceLimit(filtered, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2308,9 +2308,9 @@ public class Hibachi extends HibachiApi
             {
                 ((Map<String, Object>)request).put("fromMs", since);
             }
-            Object until = null;
-            List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
-            until = ((List<Object>) untilparametersVariable).get(0);
+            Long until = null;
+            List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "until");
+            until = (Long) ((List<Object>) untilparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
@@ -2684,7 +2684,7 @@ public class Hibachi extends HibachiApi
             }};
             List<Object> rawPromises = new ArrayList<Object>(Arrays.asList(this.privateGetCapitalHistory(this.extend(request, parameters)), this.privateGetTradeAccountTradingHistory(this.extend(request, parameters))));
             Object promises = (Helpers.promiseAll(rawPromises)).join();
-            Object responseCapitalHistory = (promises == null || 0 >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(0));
+            Map<String, Object> responseCapitalHistory = (Map<String, Object>) this.safeDict(promises, 0);
             //
             // {
             //     "transactions": [
@@ -2739,7 +2739,7 @@ public class Hibachi extends HibachiApi
             // }
             //
             List<Object> rowsCapitalHistory = (List<Object>) this.safeList(responseCapitalHistory, "transactions", new ArrayList<Object>(Arrays.asList()));
-            Object responseTradingHistory = (promises == null || 1 >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(1));
+            Map<String, Object> responseTradingHistory = (Map<String, Object>) this.safeDict(promises, 1);
             //
             // {
             //     "tradingHistory": [
@@ -3107,13 +3107,13 @@ public class Hibachi extends HibachiApi
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            Object until = null;
-            List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMySettlementHistory", "until");
-            until = ((List<Object>) untilparametersVariable).get(0);
+            Long until = null;
+            List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchMySettlementHistory", "until");
+            until = (Long) ((List<Object>) untilparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("endTime", this.parseToInt(Helpers.divide(until, 1000)));
+                ((Map<String, Object>)request).put("endTime", this.parseToInt((((double) until) / ((double) 1000))));
             }
             Map<String, Object> response = (this.privateGetTradeAccountSettlementsHistory(this.extend(request, parameters))).join();
             //
