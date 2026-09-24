@@ -715,8 +715,59 @@ export default class umx extends Exchange {
         //     {
         //         "code": "0",
         //         "msg": "Success",
-        //         "data": [ { ... } ],   // see parseMarket () below for a sample of every businessType
-        //         "ts": "1790161596695"
+        //         "data": [
+        //             {
+        //                 "businessType": "spot",
+        //                 "symbol": "ETH-USDT",
+        //                 "symbolFamily": "ETH-USDT",
+        //                 "quoteCurrency": "USDT",
+        //                 "baseCurrency": "ETH",
+        //                 "settleCurrency": "USDT",
+        //                 "ctVal": "0",
+        //                 "optType": null,
+        //                 "strikePrice": "0",
+        //                 "tickSize": "0.01",
+        //                 "status": "trading",
+        //                 "deliveryTime": null,
+        //                 "deliveryFeeRate": null,
+        //                 "pricePrecision": "2",
+        //                 "quantityPrecision": "4",
+        //                 "onlineTime": "1749709380000",
+        //                 "riskEngineRate": null,
+        //                 "maxLeverage": "10.000000000000000000",
+        //                 "contractType": null,
+        //                 "orderParameters": {
+        //                     "minOrderQty": "0.0001",
+        //                     "minOrderAmt": "5",
+        //                     "maxOrderNum": "500",
+        //                     "maxBaseNum": null,
+        //                     "maxComboleg": "0",
+        //                     "maxTriggerOrderNum": "30",
+        //                     "maxTpslOrderNum": "30",
+        //                     "maxLmtOrderAmt": "2000000",
+        //                     "maxMktOrderAmt": "1200000",
+        //                     "maxLmtOrderQty": null,
+        //                     "maxMktOrderQty": null,
+        //                     "basisLimitRatio": null,
+        //                     "minRfqQty": null,
+        //                     "minComboQty": null
+        //                 },
+        //                 "priceParameters": {
+        //                     "maxLmtPriceUp": "0.03",
+        //                     "minLmtPriceDown": "0.03",
+        //                     "maxMktPriceUp": "0.015",
+        //                     "minMktPriceDown": "0.015"
+        //                 },
+        //                 "positionParameters": null,
+        //                 "group": [
+        //                     "0.01",
+        //                     "0.1",
+        //                     "1",
+        //                     "10"
+        //                 ]
+        //             }
+        //         ],
+        //         "ts": "1790260820564"
         //     }
         //
         // businessType is documented as required, but the live endpoint returns every instrument
@@ -1938,10 +1989,21 @@ export default class umx extends Exchange {
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
-        // the public rows carry id, side, price, qty and time. a private fetchMyTrades row is a
-        // live capture below, with the account ids masked. the venue signs its fee the other way
-        // around, a positive fee is a rebate
+        // fetchTrades
+        //     {
+        //         "id": "1962406371",
+        //         "symbol": "ETH-USDT",
+        //         "side": "buy",
+        //         "price": "2715.42",
+        //         "qty": "0.0035",
+        //         "time": "1790171929955",
+        //         "indexPrice": "2715.55",
+        //         "markPrice": "0",
+        //         "iv": null,
+        //         "markIv": null
+        //     }
         //
+        // fetchMyTrades
         //     {
         //         "accountName": "1000000000000000000",
         //         "id": "3538114212218466306",
@@ -1977,6 +2039,21 @@ export default class umx extends Exchange {
         //         "uid": "100000000000001"
         //     }
         //
+        // watchMyTrades
+        //     {
+        //         "orderId": "3538205804946128896",
+        //         "symbol": "ETH-USDT-PERP",
+        //         "clientOrderId": "3538205804946128896",
+        //         "fillPrice": "2670.960000000000000000",
+        //         "fillQty": "0.001000000000000000000",
+        //         "side": "buy",
+        //         "fillTime": "1790258800577",
+        //         "matchId": "12521655192",
+        //         "role": "taker",
+        //         "businessType": "linear_perpetual",
+        //         "pid": "1000000000000000000"
+        //     }
+        //
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger2 (trade, 'time', 'fillTime');
@@ -1988,9 +2065,12 @@ export default class umx extends Exchange {
                 'cost': Precise.stringNeg (feeString),
             };
         }
+        // an own fill is identified by matchId, the only id the rest history and the ws push
+        // share (the push carries no tradeId), the public tape uses an id space of its own
+        const tradeId = this.safeStringN (trade, [ 'matchId', 'tradeId', 'id' ]);
         // qty is denominated in the base currency on every instrument type
         return this.safeTrade ({
-            'id': this.safeString2 (trade, 'tradeId', 'id'),
+            'id': tradeId,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -2068,10 +2148,10 @@ export default class umx extends Exchange {
         //         "msg": "Success",
         //         "data": [
         //             {
-        //                 "accountName": "...",
-        //                 "pid": "...",
-        //                 "uid": "...",
-        //                 "cid": "...",
+        //                 "accountName": "1000000000000000000",
+        //                 "pid": "1000000000000000000",
+        //                 "uid": "100000000000001",
+        //                 "cid": "100000000000002",
         //                 "currency": "USDT",
         //                 "currencyType": "crypto",
         //                 "name": "Tether",
@@ -4647,7 +4727,21 @@ export default class umx extends Exchange {
         }
         // every response carries a string code, "0" means success
         //
-        //     { "code": "0", "msg": "Success", "ts": "...", "data": ... }
+        //     {
+        //         "code": "0",
+        //         "msg": "Success",
+        //         "data": {
+        //             "time": "1790260820903"
+        //         },
+        //         "ts": "1790260820903"
+        //     }
+        //
+        //     {
+        //         "code": "40015",
+        //         "msg": "limit parameter is invalid or doesn't exist.",
+        //         "data": "",
+        //         "ts": "1790244939561"
+        //     }
         //
         const errorCode = this.safeString (response, 'code');
         if ((errorCode !== undefined) && (errorCode !== '0')) {

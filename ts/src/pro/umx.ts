@@ -971,7 +971,11 @@ export default class umx extends umxRest {
 
     handleAuthenticate (client: Client, message: Dict) {
         //
-        //     { "event": "authorization", "data": "", "code": 0, "message": "...", "ts": 1790000000000 }
+        //     {
+        //         "event": "authorization",
+        //         "code": 0,
+        //         "message": "成功"
+        //     }
         //
         const code = this.safeString (message, 'code');
         const future = this.safeValue (client.futures, 'authenticated');
@@ -1046,11 +1050,69 @@ export default class umx extends umxRest {
     handleOrders (client: Client, message: Dict) {
         //
         //     {
-        //         "businessType": "linear_perpetual",
-        //         "symbol": "ETH-USDT-PERP",
         //         "stream": "order",
-        //         "data": [ { ... a rest style order row with a tradeList ... } ],
-        //         "ts": 1790000000000
+        //         "ts": "1790258800584",
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "avgPrice": "2670.96",
+        //                 "businessType": "linear_perpetual",
+        //                 "clientOrderId": "3538205804946128896",
+        //                 "createTime": "1790258800576",
+        //                 "createType": "order",
+        //                 "eventId": "1",
+        //                 "isLeverage": "",
+        //                 "lever": "10",
+        //                 "marketUnit": "baseCoin",
+        //                 "massQuoteOrder": {
+        //                     "priceAdjustment": false,
+        //                     "quote": false
+        //                 },
+        //                 "orderId": "3538205804946128896",
+        //                 "orderType": "market",
+        //                 "pid": "1000000000000000000",
+        //                 "pnl": "0",
+        //                 "price": "2710.61",
+        //                 "qty": "0.001",
+        //                 "quoteFee": "-0.00133548",
+        //                 "reduceOnly": false,
+        //                 "riskReducing": false,
+        //                 "side": "buy",
+        //                 "source": "api",
+        //                 "status": "filled",
+        //                 "symbol": "ETH-USDT-PERP",
+        //                 "timeInForce": "ioc",
+        //                 "totalFillQty": "0.001",
+        //                 "tradeList": [
+        //                     {
+        //                         "businessType": "linear_perpetual",
+        //                         "clientOrderId": "3538205804946128896",
+        //                         "eventId": "1",
+        //                         "fee": "-0.00133548",
+        //                         "feeCurrency": "USDT",
+        //                         "fillPrice": "2670.96",
+        //                         "fillQty": "0.001",
+        //                         "fillTime": "1790258800577",
+        //                         "lever": "10",
+        //                         "matchId": "12521655192",
+        //                         "orderId": "3538205804946128896",
+        //                         "orderType": "market",
+        //                         "pnl": "0",
+        //                         "postAvgPrice": "2670.96",
+        //                         "postPositionQty": "0.001",
+        //                         "preAvgPrice": "0",
+        //                         "prePositionQty": "0",
+        //                         "role": "taker",
+        //                         "side": "buy",
+        //                         "symbol": "ETH-USDT-PERP",
+        //                         "tradeId": "3538205804946149378"
+        //                     }
+        //                 ],
+        //                 "uid": "100000000000001",
+        //                 "updateTime": "1790258800577",
+        //                 "username": "John Doe"
+        //             }
+        //         ]
         //     }
         //
         if (this.orders === undefined) {
@@ -1104,11 +1166,24 @@ export default class umx extends umxRest {
     handleMyTrades (client: Client, message: Dict) {
         //
         //     {
-        //         "businessType": "linear_perpetual",
-        //         "symbol": "ETH-USDT-PERP",
         //         "stream": "trade",
-        //         "data": [ { ... a rest style fill row ... } ],
-        //         "ts": 1790000000000
+        //         "ts": "1790258800579",
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "orderId": "3538205804946128896",
+        //                 "symbol": "ETH-USDT-PERP",
+        //                 "clientOrderId": "3538205804946128896",
+        //                 "fillPrice": "2670.960000000000000000",
+        //                 "fillQty": "0.001000000000000000000",
+        //                 "side": "buy",
+        //                 "fillTime": "1790258800577",
+        //                 "matchId": "12521655192",
+        //                 "role": "taker",
+        //                 "businessType": "linear_perpetual",
+        //                 "pid": "1000000000000000000"
+        //             }
+        //         ]
         //     }
         //
         if (this.myTrades === undefined) {
@@ -1154,8 +1229,44 @@ export default class umx extends umxRest {
         //
         //     {
         //         "stream": "trading_account",
-        //         "data": [ { ... the rest style trading account snapshot with a details list ... } ],
-        //         "ts": 1790000000000
+        //         "ts": "1790258800584",
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "accountLeverage": "0.08977743",
+        //                 "contractUpl": "-0.0004",
+        //                 "details": [
+        //                     {
+        //                         "availableMargin": "29.484931015",
+        //                         "balance": "29.485331015",
+        //                         "borrow": "0",
+        //                         "currency": "USDT",
+        //                         "equity": "29.484931015",
+        //                         "fixedBalance": "0",
+        //                         "frozen": "0",
+        //                         "initialMargin": "0.267056",
+        //                         "intLiability": "0",
+        //                         "liabilityInitialMargin": "0",
+        //                         "optionUpl": "0",
+        //                         "potentialLiability": "0",
+        //                         "realLiability": "0",
+        //                         "realLiabilityValue": "0",
+        //                         "upl": "-0.0004"
+        //                     }
+        //                 ],
+        //                 "imr": "0.00897774",
+        //                 "mmr": "0.00053866",
+        //                 "pid": "1000000000000000000",
+        //                 "totalAvailableBalance": "29.479395285",
+        //                 "totalEffectiveMargin": "29.746451285",
+        //                 "totalEquity": "29.746451285",
+        //                 "totalIm": "0.267056",
+        //                 "totalMarginBalance": "29.746451285",
+        //                 "totalMm": "0.01602336",
+        //                 "totalOpenLoss": "0",
+        //                 "totalPositionValue": "2.67056"
+        //             }
+        //         ]
         //     }
         //
         const data = this.safeList (message, 'data', []);
@@ -1227,11 +1338,32 @@ export default class umx extends umxRest {
     handlePositions (client: Client, message: Dict) {
         //
         //     {
-        //         "businessType": "linear_perpetual",
-        //         "symbol": "ETH-USDT-PERP",
         //         "stream": "position",
-        //         "data": [ { ... a rest style position row ... } ],
-        //         "ts": 1790000000000
+        //         "ts": "1790258800584",
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "avgPrice": "2670.96",
+        //                 "businessType": "linear_perpetual",
+        //                 "createTime": "1790258800577",
+        //                 "delta": "0.001",
+        //                 "fee": "-0.00133548",
+        //                 "fundingFee": "0",
+        //                 "im": "0.267056",
+        //                 "indexPrice": "2671.3",
+        //                 "lever": "10",
+        //                 "liquidationPrice": "0",
+        //                 "markPrice": "2670.56",
+        //                 "pid": "1000000000000000000",
+        //                 "pnl": "-0.00133548",
+        //                 "positionId": "3538205804946149376",
+        //                 "positionQty": "0.001",
+        //                 "symbol": "ETH-USDT-PERP",
+        //                 "tradedType": "OPEN",
+        //                 "updateTime": "1790258800577",
+        //                 "upl": "-0.0004"
+        //             }
+        //         ]
         //     }
         //
         if (this.positions === undefined) {
@@ -1318,14 +1450,13 @@ export default class umx extends umxRest {
         //         "event": "subscribe",
         //         "data": [
         //             {
-        //                 "businessType": "spot",
-        //                 "symbol": "BTC-USDT",
-        //                 "stream": "trade",
-        //                 "message": "...",
+        //                 "businessType": "linear_perpetual",
+        //                 "stream": "order",
+        //                 "message": "成功",
         //                 "code": 0
         //             }
         //         ],
-        //         "ts": 1773138335728
+        //         "ts": 1790258794977
         //     }
         //
         const event = this.safeString (message, 'event');
