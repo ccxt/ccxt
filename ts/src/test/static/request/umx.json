@@ -1071,6 +1071,52 @@
                 ],
                 "output": "{\"symbol\":\"ETH-USDT-PERP\",\"side\":\"buy\",\"orderType\":\"limit\",\"price\":\"1900\",\"qty\":\"0.001\",\"tpslOrder\":{\"takeProfit\":\"3500\",\"takeProfitType\":\"mark_price\",\"tpOrderType\":\"market\",\"stopLoss\":\"1500\",\"stopLossType\":\"index_price\",\"slOrderType\":\"market\"}}"
             }
+        ],
+        "createOrders": [
+            {
+                "description": "two limit orders in one batch",
+                "method": "createOrders",
+                "url": "https://api.umx.com/api/v2/trade/batchOrder",
+                "input": [
+                    [
+                        {
+                            "symbol": "ETH/USDT:USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.001,
+                            "price": 1900
+                        },
+                        {
+                            "symbol": "ETH/USDT:USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.001,
+                            "price": 1850
+                        }
+                    ]
+                ],
+                "output": "{\"orderReqList\":[{\"symbol\":\"ETH-USDT-PERP\",\"side\":\"buy\",\"orderType\":\"limit\",\"price\":\"1900\",\"qty\":\"0.001\"},{\"symbol\":\"ETH-USDT-PERP\",\"side\":\"buy\",\"orderType\":\"limit\",\"price\":\"1850\",\"qty\":\"0.001\"}]}"
+            }
+        ],
+        "cancelAllOrdersAfter": [
+            {
+                "description": "arm the dead man switch for 15 seconds",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://api.umx.com/api/v1/trade/countdownCancelAll",
+                "input": [
+                    15000
+                ],
+                "output": "{\"countdown\":\"15\"}"
+            },
+            {
+                "description": "disarm the dead man switch",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://api.umx.com/api/v1/trade/countdownCancelAll",
+                "input": [
+                    0
+                ],
+                "output": "{\"countdown\":\"0\"}"
+            }
         ]
     },
     "outputType": "both"

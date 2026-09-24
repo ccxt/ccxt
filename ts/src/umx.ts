@@ -5,7 +5,7 @@ import Exchange from './abstract/umx.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, NotSupported, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Bool, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, DepositAddresses, Dict, Endpoint, Fee, FundingRate, FundingRateHistory, FundingRates, Int, Leverage, List, MarginMode, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, Bool, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, DepositAddresses, Dict, Endpoint, Fee, FundingRate, FundingRateHistory, FundingRates, Int, Leverage, List, MarginMode, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -36,7 +36,7 @@ export default class umx extends Exchange {
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
                 'cancelAllOrders': true,
-                'cancelAllOrdersAfter': false,
+                'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'closeAllPositions': false,
@@ -45,7 +45,7 @@ export default class umx extends Exchange {
                 'createMarketOrderWithCost': true,
                 'createMarketSellOrderWithCost': true,
                 'createOrder': true,
-                'createOrders': false,
+                'createOrders': true,
                 'createPostOnlyOrder': true,
                 'createOrderWithTakeProfitAndStopLoss': true,
                 'createReduceOnlyOrder': true,
@@ -509,7 +509,9 @@ export default class umx extends Exchange {
                         'selfTradePrevention': true,
                         'iceberg': false,
                     },
-                    'createOrders': undefined,
+                    'createOrders': {
+                        'max': 20,
+                    },
                     'fetchMyTrades': {
                         'marginMode': false,
                         'daysBack': undefined,
@@ -3055,6 +3057,40 @@ export default class umx extends Exchange {
 
     /**
      * @method
+     * @name umx#createOrders
+     * @description create a list of trade orders in one batch, regular orders only, the venue has no batch endpoint for the trigger family
+     * @see https://www.umx.com/docs/coin-apis/trading/regular-trading/place-batch-orders
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params, at most 20 entries
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    override async createOrders (orders: OrderRequest[], params: Dict = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        const ordersRequests = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const symbol = this.safeString (rawOrder, 'symbol');
+            const orderType = this.safeString (rawOrder, 'type');
+            const orderSide = this.safeString (rawOrder, 'side');
+            const amount = this.safeValue (rawOrder, 'amount');
+            const price = this.safeValue (rawOrder, 'price');
+            const orderParams = this.safeDict (rawOrder, 'params', {});
+            const orderRequest = this.createOrderRequest (symbol as string, orderType as OrderType, orderSide as OrderSide, amount, price, orderParams);
+            if ('complexType' in orderRequest) {
+                throw new NotSupported (this.id + ' createOrders() does not support trigger orders');
+            }
+            ordersRequests.push (orderRequest);
+        }
+        const request: Dict = {
+            'orderReqList': ordersRequests,
+        };
+        const response = await this.privatePostV2TradeBatchOrder (this.extend (request, params));
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrders (data);
+    }
+
+    /**
+     * @method
      * @name umx#createMarketBuyOrderWithCost
      * @description create a market buy order by providing the symbol and the cost in the quote currency
      * @see https://www.umx.com/docs/coin-apis/trading/regular-trading/place-order
@@ -3558,6 +3594,29 @@ export default class umx extends Exchange {
         //     }
         //
         return [ this.safeOrder ({ 'info': response }) ];
+    }
+
+    /**
+     * @method
+     * @name umx#cancelAllOrdersAfter
+     * @description dead man's switch, cancel all orders after the given timeout
+     * @see https://www.umx.com/docs/coin-apis/trading/regular-trading/count-down-cancel-all
+     * @param {number} timeout time in milliseconds, 0 represents cancel the timer, the venue accepts 0 or the 10-120 seconds range
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] arm the switch only for the orders carrying this tag, the venue allows at most 20 armed tags
+     * @returns {object} the api result
+     */
+    override async cancelAllOrdersAfter (timeout: Int, params: Dict = {}): Promise<Dict> {
+        await this.loadMarkets ();
+        let countdown = 0;
+        if ((timeout !== undefined) && (timeout > 0)) {
+            countdown = this.parseToInt (timeout / 1000);
+        }
+        const countdownString = this.numberToString (countdown);
+        const request: Dict = {
+            'countdown': countdownString,
+        };
+        return await this.privatePostV1TradeCountdownCancelAll (this.extend (request, params));
     }
 
     /**

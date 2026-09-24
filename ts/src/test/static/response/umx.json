@@ -5601,6 +5601,156 @@
                     }
                 ]
             }
+        ],
+        "createOrders": [
+            {
+                "description": "acknowledgements of a batch of two orders",
+                "method": "createOrders",
+                "input": [
+                    [
+                        {
+                            "symbol": "ETH/USDT:USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.001,
+                            "price": 1900
+                        },
+                        {
+                            "symbol": "ETH/USDT:USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.001,
+                            "price": 1850
+                        }
+                    ]
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "orderId": "3538138026671218688",
+                            "clientOrderId": "3538138026671218688",
+                            "code": "0",
+                            "msg": "",
+                            "ts": "1790242640979",
+                            "tag": ""
+                        },
+                        {
+                            "orderId": "3538138026671218689",
+                            "clientOrderId": "3538138026671218689",
+                            "code": "0",
+                            "msg": "",
+                            "ts": "1790242640979",
+                            "tag": ""
+                        }
+                    ],
+                    "ts": "1790242640979"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "orderId": "3538138026671218688",
+                            "clientOrderId": "3538138026671218688",
+                            "code": "0",
+                            "msg": "",
+                            "ts": "1790242640979",
+                            "tag": ""
+                        },
+                        "id": "3538138026671218688",
+                        "clientOrderId": "3538138026671218688",
+                        "timestamp": 1790242640979,
+                        "datetime": "2026-09-24T09:37:20.979Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": null,
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "side": null,
+                        "price": null,
+                        "triggerPrice": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "status": null,
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    },
+                    {
+                        "info": {
+                            "orderId": "3538138026671218689",
+                            "clientOrderId": "3538138026671218689",
+                            "code": "0",
+                            "msg": "",
+                            "ts": "1790242640979",
+                            "tag": ""
+                        },
+                        "id": "3538138026671218689",
+                        "clientOrderId": "3538138026671218689",
+                        "timestamp": 1790242640979,
+                        "datetime": "2026-09-24T09:37:20.979Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": null,
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "side": null,
+                        "price": null,
+                        "triggerPrice": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "status": null,
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "cancelAllOrdersAfter": [
+            {
+                "description": "the armed countdown with its trigger time",
+                "method": "cancelAllOrdersAfter",
+                "input": [
+                    15000
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": {
+                        "countdown": "15",
+                        "triggerTime": "1790242676804",
+                        "tag": null
+                    },
+                    "ts": "1790242661805"
+                },
+                "parsedResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": {
+                        "countdown": "15",
+                        "triggerTime": "1790242676804",
+                        "tag": null
+                    },
+                    "ts": "1790242661805"
+                }
+            }
         ]
     }
 }
