@@ -6555,7 +6555,8 @@ class bingx(Exchange, ImplicitAPI):
     def parse_margin_mode(self, marginMode: dict, market: Market = None) -> MarginMode:
         marketId = self.safe_string(marginMode, 'symbol')
         marginType = self.safe_string_lower(marginMode, 'marginType')
-        marginType = 'cross' if (marginType == 'crossed') else marginType
+        if marginType == 'crossed':
+            marginType = 'cross'
         return {
             'info': marginMode,
             'symbol': self.safe_symbol(marketId, market, '-', 'swap'),

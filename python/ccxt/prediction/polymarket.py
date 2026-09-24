@@ -3086,7 +3086,4 @@ class polymarket(PredictionExchange, ImplicitAPI):
     def parse_poly_timestamp(self, raw: Str) -> Int:
         if raw is None:
             return None
-        n = self.parse_to_int(raw)
-        if n is None:
-            return None
-        return n
+        return self.parse_to_int(raw)
