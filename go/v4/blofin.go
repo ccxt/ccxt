@@ -1306,7 +1306,7 @@ func (this *Blofin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if limit != nil {
 		request["limit"] = limit // default 100
 	}
@@ -1316,8 +1316,7 @@ func (this *Blofin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	params = MapTyped(GetValue(methodparamsVariable, 1))
 	if IsEqual(method, "publicGetMarketTrades") {
 
-		response = (<-this.PublicGetMarketTrades(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicGetMarketTrades(this.Extend(request, params))).Raw))
 	}
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
@@ -1733,18 +1732,16 @@ func (this *Blofin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	accountType = GetValue(accountTypeparamsVariable, 0)
 	params = MapTyped(GetValue(accountTypeparamsVariable, 1))
 	var request map[string]any = map[string]any{}
-	var response any = nil
+	var response map[string]any = nil
 	if (accountType != nil) && (!IsEqual(accountType, "swap")) {
 		var options map[string]any = SafeMapTyped(this.Options, "accountsByType")
 		var parsedAccountType *string = this.SafeString(options, accountType, accountType)
 		request["accountType"] = parsedAccountType
 
-		response = (<-this.PrivateGetAssetBalances(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetAssetBalances(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivateGetAccountBalance(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetAccountBalance(this.Extend(request, params))).Raw))
 	}
 
 	ch <- this.ParseBalanceByType(response)
@@ -1808,8 +1805,8 @@ func (this *Blofin) CreateOrderRequest(symbol any, typeVar any, side any, amount
 	if postOnly {
 		request["type"] = "post_only"
 	}
-	var stopLoss any = this.SafeDict(params, "stopLoss")
-	var takeProfit any = this.SafeDict(params, "takeProfit")
+	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
+	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
 	params = MapTyped(this.Omit(params, []any{"stopLoss", "takeProfit", "hedged"}))
 	var hasStopLoss bool = !IsEqual(stopLoss, nil)
 	var hasTakeProfit bool = !IsEqual(takeProfit, nil)
@@ -3130,7 +3127,7 @@ func (this *Blofin) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountPositions(this.Extend(request, params))).Raw))
 	var data []any = SafeListTypedDefault(response, "data", []any{})
-	var position any = this.SafeDict(data, 0)
+	var position map[string]any = SafeMapTyped(data, 0)
 	if IsEqual(position, nil) {
 		panic(NullResponse(this.Id + " fetchPosition() returned empty position"))
 	}

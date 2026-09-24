@@ -617,13 +617,18 @@ func (this *Toobit) HandleTickers(client any, message map[string]any) {
 	//        "shared": false
 	//    }
 	//
-	var data any = this.SafeList(message, "data")
+	var data []any = ccxt.SafeListTyped(message, "data")
 	if ccxt.IsEqual(data, nil) {
 		return
 	}
 	var newTickers map[string]any = map[string]any{}
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var ticker any = ccxt.GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var ticker any = func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var parsed map[string]any = ccxt.MapTyped(this.ParseWsTicker(ticker))
 		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 		if symbol != nil {

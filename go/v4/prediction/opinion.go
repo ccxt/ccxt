@@ -507,24 +507,22 @@ func (this *Opinion) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.RequireEventQuery(params)
-	var queries any = this.ParseSearchQueries(params)
+	var queries []any = this.ParseSearchQueries(params)
 	var eventId *string = this.SafeString(params, "eventId")
 	var slug *string = this.SafeString(params, "slug")
 	if (eventId != nil) || (slug != nil) {
 		var singleRest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"eventId", "slug", "query", "queries", "tags", "status", "sort", "searchIn", "limit"}))
-		var singleResponse any = nil
+		var singleResponse map[string]any = nil
 		if slug != nil {
 
-			singleResponse = (<-this.OpinionPublicGetMarketSlugSlug(this.Extend(map[string]any{
+			singleResponse = ccxt.MapTyped(ccxt.PanicOnError((<-this.OpinionPublicGetMarketSlugSlug(this.Extend(map[string]any{
 				"slug": slug,
-			}, singleRest))).Raw
-			ccxt.PanicOnError(singleResponse)
+			}, singleRest))).Raw))
 		} else {
 
-			singleResponse = (<-this.OpinionPublicGetMarketCategoricalMarketId(this.Extend(map[string]any{
+			singleResponse = ccxt.MapTyped(ccxt.PanicOnError((<-this.OpinionPublicGetMarketCategoricalMarketId(this.Extend(map[string]any{
 				"marketId": eventId,
-			}, singleRest))).Raw
-			ccxt.PanicOnError(singleResponse)
+			}, singleRest))).Raw))
 		}
 		var singleResult map[string]any = ccxt.SafeMapTyped(singleResponse, "result")
 		var singleData any = this.SafeDict(singleResult, "data", map[string]any{})
@@ -634,19 +632,17 @@ func (this *Opinion) fetchEventBody(ch chan any, id any, optionalArgs ...any) an
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var isSlug bool = (ccxt.GetIndexOf(id, "-") >= 0)
-	var response any = nil
+	var response map[string]any = nil
 	if isSlug {
 
-		response = (<-this.OpinionPublicGetMarketSlugSlug(this.Extend(map[string]any{
+		response = ccxt.MapTyped(ccxt.PanicOnError((<-this.OpinionPublicGetMarketSlugSlug(this.Extend(map[string]any{
 			"slug": id,
-		}, params))).Raw
-		ccxt.PanicOnError(response)
+		}, params))).Raw))
 	} else {
 
-		response = (<-this.OpinionPublicGetMarketCategoricalMarketId(this.Extend(map[string]any{
+		response = ccxt.MapTyped(ccxt.PanicOnError((<-this.OpinionPublicGetMarketCategoricalMarketId(this.Extend(map[string]any{
 			"marketId": id,
-		}, params))).Raw
-		ccxt.PanicOnError(response)
+		}, params))).Raw))
 	}
 	var result map[string]any = ccxt.SafeMapTyped(response, "result")
 	var data any = this.SafeDict(result, "data", map[string]any{})
@@ -938,8 +934,8 @@ func (this *Opinion) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var outcomesLength int = ccxt.GetArrayLength(outcomes)
 	var promises []any = []any{}
 	for i := 0; i < outcomesLength; i++ {
-		var outcomeObj any = this.Outcome(ccxt.GetValue(outcomes, i))
-		var tokenId *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeObj, "outcomeId"))
+		var outcomeObj map[string]any = this.Outcome(ccxt.GetValue(outcomes, i))
+		var tokenId *string = ccxt.SafeStringPtr(outcomeObj["outcomeId"])
 		promises = append(promises, ccxt.EndpointRaw(this.OpinionPublicGetTokenLatestPrice(this.Extend(map[string]any{
 			"token_id": tokenId,
 		}, params))))
@@ -951,7 +947,7 @@ func (this *Opinion) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var responses []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(promises))))
 	var result map[string]any = map[string]any{}
 	for i := 0; i < outcomesLength; i++ {
-		var outcomeObj any = this.Outcome(ccxt.GetValue(outcomes, i))
+		var outcomeObj map[string]any = this.Outcome(ccxt.GetValue(outcomes, i))
 		var priceIndex any = ccxt.Multiply(i, 2)
 		var priceResponse any = ccxt.GetValue(responses, priceIndex)
 		var bookResponse any = ccxt.GetValue(responses, this.Sum(priceIndex, 1))
@@ -1865,7 +1861,7 @@ func (this *Opinion) ParsePredictionTrade(trade any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var tokenId *string = this.SafeString(trade, "tokenId")
-	var outcomeObj any = this.SafeOutcome(tokenId, market)
+	var outcomeObj map[string]any = this.SafeOutcome(tokenId, market)
 	var timestamp *int64 = this.SafeTimestamp(trade, "createdAt")
 	var side *string = this.SafeStringLower(trade, "side")
 	return this.SafePredictionTrade(map[string]any{
@@ -2017,7 +2013,7 @@ func (this *Opinion) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		return outcomes
 	}()
 	for i := 0; i < ccxt.GetArrayLength(outcomesList); i++ {
-		var outcomeObj any = this.Outcome(ccxt.GetValue(outcomesList, i))
+		var outcomeObj map[string]any = this.Outcome(ccxt.GetValue(outcomesList, i))
 		var tokenId *string = this.SafeString(outcomeObj, "outcomeId")
 		if tokenId != nil {
 			ccxt.AddElementToObject(wantedTokenIds, tokenId, true)
@@ -2056,7 +2052,7 @@ func (this *Opinion) ParsePredictionPosition(position any, optionalArgs ...any) 
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var tokenId *string = this.SafeString(position, "tokenId")
-	var outcomeObj any = this.SafeOutcome(tokenId, market)
+	var outcomeObj map[string]any = this.SafeOutcome(tokenId, market)
 	var outcomeSideEnum *string = this.SafeStringLower(position, "outcomeSideEnum")
 	return this.SafePredictionPosition(map[string]any{
 		"contracts":     this.SafeNumber(position, "sharesOwned"),

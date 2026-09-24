@@ -872,7 +872,7 @@ func (this *Cex) HandleOrderUpdate(client any, message map[string]any) {
 	var remains any = ccxt.DerefScalar(this.SafeString(data, "remains"))
 	var baseId *string = this.SafeString(data, "symbol")
 	var quoteId *string = this.SafeString(data, "symbol2")
-	var pair any = this.SafeDict(data, "pair")
+	var pair map[string]any = ccxt.SafeMapTyped(data, "pair")
 	if !ccxt.IsEqual(pair, nil) {
 		baseId = this.SafeString(pair, "symbol1")
 		quoteId = this.SafeString(pair, "symbol2")
@@ -973,7 +973,7 @@ func (this *Cex) ParseWsOrderUpdate(order any, optionalArgs ...any) any {
 	}
 	var baseId *string = this.SafeString(order, "symbol")
 	var quoteId *string = this.SafeString(order, "symbol2")
-	var pair any = this.SafeDict(order, "pair")
+	var pair map[string]any = ccxt.SafeMapTyped(order, "pair")
 	if !ccxt.IsEqual(pair, nil) {
 		baseId = this.SafeString(order, "symbol1")
 		quoteId = this.SafeString(order, "symbol2")

@@ -1501,7 +1501,7 @@ func (this *Upbit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		"timeframe": timeframeValue,
 		"count":     limit,
 	}
-	var response any = nil
+	var response []any = nil
 	if since != nil {
 		// convert `since` to `to` value
 		request["to"] = this.Iso8601(this.Sum(since, Multiply(Multiply(timeframePeriod, limit), 1000)))
@@ -1510,12 +1510,10 @@ func (this *Upbit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		var numMinutes float64 = MathRound(timeframePeriod / 60)
 		request["unit"] = numMinutes
 
-		response = (<-this.PublicGetCandlesTimeframeUnit(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.PublicGetCandlesTimeframeUnit(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PublicGetCandlesTimeframe(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.PublicGetCandlesTimeframe(this.Extend(request, params))).Raw))
 	}
 	//
 	//     [
@@ -3083,7 +3081,7 @@ func (this *Upbit) HandleErrors(httpCode any, reason any, url any, method any, h
 	//   { 'error': { 'message': "잘못된 엑세스 키입니다.", 'name': "invalid_access_key" } },
 	//   { 'error': { 'message': "Jwt 토큰 검증에 실패했습니다.", 'name': "jwt_verification" } }
 	//
-	var error any = this.SafeDict(response, "error")
+	var error map[string]any = SafeMapTyped(response, "error")
 	if !IsEqual(error, nil) {
 		var message *string = this.SafeString(error, "message")
 		var name *string = this.SafeString(error, "name")

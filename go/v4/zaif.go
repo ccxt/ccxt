@@ -406,7 +406,7 @@ func (this *Zaif) ParseMarket(market any) any {
 }
 func (this *Zaif) ParseBalance(response any) any {
 	var balances map[string]any = SafeMapTyped(response, "return")
-	var deposit any = this.SafeDict(balances, "deposit")
+	var deposit map[string]any = SafeMapTyped(balances, "deposit")
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
@@ -422,7 +422,7 @@ func (this *Zaif) ParseBalance(response any) any {
 		account["free"] = balance
 		account["total"] = balance
 		if !IsEqual(deposit, nil) {
-			if InOp(deposit, currencyId) {
+			if func() bool { _, ok := deposit[currencyId]; return ok }() {
 				account["total"] = this.SafeString(deposit, currencyId)
 			}
 		}

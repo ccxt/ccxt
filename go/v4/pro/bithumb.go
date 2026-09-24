@@ -572,7 +572,7 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 	//         "stream_type": "SNAPSHOT"
 	//     }
 	//
-	var content any = this.SafeDict(message, "content")
+	var content map[string]any = ccxt.SafeMapTyped(message, "content")
 	if !ccxt.IsEqual(content, nil) {
 		var list []any = ccxt.SafeListTypedDefault(content, "list", []any{})
 		var first map[string]any = ccxt.SafeMapTyped(list, 0)
@@ -904,7 +904,7 @@ func (this *Bithumb) HandleErrorMessage(client any, message any) any {
 	//        "resmsg" : "Invalid Filter Syntax"
 	//    }
 	//
-	var error any = this.SafeDict(message, "error")
+	var error map[string]any = ccxt.SafeMapTyped(message, "error")
 	if !ccxt.IsEqual(error, nil) {
 		var errorName *string = this.SafeString(error, "name", "Error")
 		var errorMessage *string = this.SafeString(error, "message", "")

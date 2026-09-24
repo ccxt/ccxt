@@ -411,15 +411,13 @@ func (this *Mudrex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	request["start_time"] = startTime
 	request["end_time"] = endTime
-	var response any = nil
+	var response map[string]any = nil
 	if priceType != nil && *priceType == "mark" {
 
-		response = (<-this.MarketGetPriceMarkKline(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.MarketGetPriceMarkKline(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.MarketGetPriceKline(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.MarketGetPriceKline(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {
@@ -769,21 +767,19 @@ func (this *Mudrex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var requested *string = this.SafeStringN(params, []any{"trade_currency", "tradeCurrency", "currency"})
 	params = MapTyped(this.Omit(params, []any{"trade_currency", "tradeCurrency", "currency"}))
 	var request map[string]any = map[string]any{}
-	var response any = nil
+	var response map[string]any = nil
 	if typeVar != nil && *typeVar == "spot" {
 		if requested != nil {
 			request["currency"] = requested
 		}
 
-		response = (<-this.PrivateGetWalletFunds(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetWalletFunds(this.Extend(request, params))).Raw))
 	} else {
 		if requested != nil {
 			request["trade_currency"] = requested
 		}
 
-		response = (<-this.PrivateGetFuturesFunds(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetFuturesFunds(this.Extend(request, params))).Raw))
 	}
 	var currency *string = requested
 	if currency == nil {
@@ -1002,8 +998,8 @@ func (this *Mudrex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		"reduce_only": this.SafeBool(params, "reduceOnly", false),
 	}
 	// mudrex only supports take-profit / stop-loss orders attached to the position-opening order
-	var takeProfit any = this.SafeDict(params, "takeProfit")
-	var stopLoss any = this.SafeDict(params, "stopLoss")
+	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
+	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
 	if !IsEqual(takeProfit, nil) {
 		request["is_takeprofit"] = true
 		request["takeprofit_price"] = this.PriceToPrecision(symbol, this.SafeStringN(takeProfit, []any{"triggerPrice", "stopPrice", "price"}))
@@ -1288,15 +1284,13 @@ func (this *Mudrex) fetchOrdersByStateBody(ch chan any, state any, optionalArgs 
 		q["limit"] = limit
 	}
 	var request map[string]any = this.Extend(q, params)
-	var response any = nil
+	var response map[string]any = nil
 	if IsEqual(state, "closed") {
 
-		response = (<-this.PrivateGetFuturesOrdersHistory(request)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetFuturesOrdersHistory(request)).Raw))
 	} else {
 
-		response = (<-this.PrivateGetFuturesOrders(request)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetFuturesOrders(request)).Raw))
 	}
 	var data any = this.SafeValue(response, "data", []any{})
 	var rows []any = this.ToArray(data)
@@ -2014,15 +2008,13 @@ func (this *Mudrex) transferBody(ch chan any, code any, amount any, fromAccount 
 			useInr = true
 		}
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if useInr {
 
-		response = (<-this.PrivatePostFuturesTransfersInr(this.Extend(body, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostFuturesTransfersInr(this.Extend(body, params))).Raw))
 	} else {
 
-		response = (<-this.PrivatePostWalletFuturesTransfer(this.Extend(body, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostWalletFuturesTransfer(this.Extend(body, params))).Raw))
 	}
 	var data any = this.SafeDict(response, "data", response)
 

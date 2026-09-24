@@ -122,7 +122,7 @@ export const CCXT_GO_BOOL_METHOD_NAMES = [
 
 // Base methods whose every TS return is a string or undefined (`Str`): build/goTranspiler.ts
 // coerceStringPtrMethods retypes the base copy and every venue override to `*string`.
-export const CCXT_GO_STRING_PTR_METHOD_NAMES = [ 'NetworkIdToCode', 'FindTimeframe' ];
+export const CCXT_GO_STRING_PTR_METHOD_NAMES = [ 'NetworkIdToCode', 'FindTimeframe', 'AmountToPrecision', 'PriceToPrecision' ];
 
 export const CCXT_GO_HELPER_RETURN_TYPES = {
     // Typed twins of GetArg (go/v4/exchange_helpers.go) -- the `var x <T> = GetArg<T>(...)`
@@ -158,6 +158,10 @@ export const CCXT_GO_HELPER_RETURN_TYPES = {
     'this.Account': 'map[string]any',
     'this.ParseOrderBook': 'map[string]any',
     'this.Market': 'map[string]any',
+    // exchange_prediction.go: retyped by transpilePredictionBaseMethods (no venue overrides)
+    'this.Outcome': 'map[string]any',
+    'this.SafeOutcome': 'map[string]any',
+    'this.ParseSearchQueries': '[]any',
     // exchange.go / exchange_string.go
     'this.StringToCharsArray': '[]string',
     'this.Capitalize': 'string',
@@ -1399,7 +1403,8 @@ function ccxtGoSafeCollectionLocalType (goTranspiler, declaration, families, res
         return undefined;
     }
     const sourceName = declaration.name.text;
-    const defaulted = found.fallback !== undefined;
+    // derefScalar reads a nil map/slice as absent, so a 2-arg site admits every defaulted use
+    const defaulted = true;
     const restTree = restUses && !ccxtGoSafeCollectionReadsThisField (found.args[0])
         && (ccxtGoSafeCollectionIsRestSource (declaration) || ccxtGoSafeCollectionReadsDecodedValue (goTranspiler, found.args[0]));
     // a property name is never a reference, and the checker resolves every other binding of the
@@ -1494,6 +1499,11 @@ function ccxtGoSafeCollectionRestUse (goTranspiler, node, family, defaulted) {
     }
     if (parent.kind === ts.SyntaxKind.CallExpression) {
         if ((parent.expression === node) || (parent.arguments.indexOf (node) < 0)) {
+            return false;
+        }
+        // a typed []any folds Array.isArray to `true`, but an absent member is not an array in JS
+        if ((parent.expression?.kind === ts.SyntaxKind.PropertyAccessExpression) && (parent.expression.expression?.kind === ts.SyntaxKind.Identifier)
+            && (parent.expression.expression.text === 'Array') && (parent.expression.name?.text === 'isArray')) {
             return false;
         }
         const callee = typeof goTranspiler.goPrintedCallee === 'function' ? goTranspiler.goPrintedCallee (goTranspiler.printNode (parent, 0)) : undefined;
@@ -3380,7 +3390,6 @@ function ccxtGoNilDeclaredContainerJoinTypeUncached (goTranspiler, declaration) 
                     if (ccxtGoNilJoinIsPush (node)) {
                         fail ();                          // AppendToArray(&x) needs an `any` box
                     } else if (!assigned) {
-                        state.relaxed = true;             // only a typed-nil MAP reads as absent
                         if (!ccxtGoNilJoinReadSeesAbsent (goTranspiler, node)) {
                             fail ();
                         }
@@ -3511,9 +3520,6 @@ function ccxtGoNilDeclaredContainerJoinTypeUncached (goTranspiler, declaration) 
         }
     };
     visitStatement (scope.body, false);
-    if ((state.relaxed || state.copies) && (state.goType === '[]any')) {
-        return undefined;                                 // a nil []any is an empty list, not absent
-    }
     if (state.copies && state.mutated) {
         return undefined;                                 // the converted copy would drop the write
     }
@@ -3635,12 +3641,24 @@ function ccxtGoWriteSiteConversion (goTranspiler, goType, right, nilJoin = false
     if ((goType === '*string') && ccxtGoWriteSiteIsStringProducer (goTranspiler, right)) {
         return 'SafeStringPtr';
     }
+    if (nilJoin && (ccxtGoNilJoinEndpointElement (goTranspiler, right) === goType)) {
+        return CCXT_GO_ASYNC_UNBOX[goType];
+    }
     const callee = ccxtGoWriteSiteCallee (goTranspiler, right);
     if (callee === undefined) {
         return undefined;
     }
     const admitted = CCXT_GO_WRITESITE_CONVERSIONS[callee] ?? (nilJoin ? CCXT_GO_NIL_JOIN_WRITE_CONVERSIONS[callee] : undefined);
     return (admitted === undefined) ? undefined : admitted[goType];
+}
+
+// the container element of an awaited typed implicit-API stub (`await this.<endpoint>(…)`), or undefined
+function ccxtGoNilJoinEndpointElement (goTranspiler, right) {
+    if (right?.kind !== ts.SyntaxKind.AwaitExpression) {
+        return undefined;
+    }
+    const element = ccxtGoEndpointElement (goTranspiler, right.expression);
+    return NIL_JOIN_TYPES.includes (element) ? element : undefined;
 }
 
 // accessors whose TS return type is a dict/list (absent reads as the nil container): admitted
@@ -3818,6 +3836,10 @@ function ccxtGoWriteSiteAssignment (goTranspiler, node, identation) {
     }
     const leftVar = goTranspiler.printNode (node.left, 0);
     const rightVar = goTranspiler.printNode (node.right, identation);
+    if (node.right.kind === ts.SyntaxKind.AwaitExpression) {
+        // PanicOnError sees the received Raw before the conversion, as the const receive does
+        return '\n' + goTranspiler.getIden (identation) + leftVar + ' = ' + conversion + '(PanicOnError(' + rightVar.trim () + '))';
+    }
     const separator = (typeof goTranspiler.goBinarySeparator === 'function')
         ? goTranspiler.goBinarySeparator ('=', rightVar.trim (), node.left, node.right)
         : ' ';

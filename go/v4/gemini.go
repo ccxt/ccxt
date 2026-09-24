@@ -1048,7 +1048,7 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan any, optionalArgs ...any) an
 					}
 					return nil
 				}()
-				var pairInfo any = this.SafeList(indexedTradingPairs, ToUpper(marketId))
+				var pairInfo []any = SafeListTyped(indexedTradingPairs, ToUpper(marketId))
 				if !IsEqual(pairInfo, nil) && !this.InArray(marketId, brokenPairs) {
 					result = append(result, this.ParseMarket(pairInfo))
 				}
@@ -2163,8 +2163,8 @@ func (this *Gemini) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		clientOrderId = SafeStringPtr(ToString(this.Milliseconds()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var amountString any = this.AmountToPrecision(symbol, amount)
-	var priceString any = this.PriceToPrecision(symbol, price)
+	var amountString *string = this.AmountToPrecision(symbol, amount)
+	var priceString *string = this.PriceToPrecision(symbol, price)
 	var request map[string]any = map[string]any{
 		"client_order_id": clientOrderId,
 		"symbol":          market["id"],

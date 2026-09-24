@@ -1679,6 +1679,7 @@ func IsArray(v any) bool {
 }
 
 func Shift(slice any) (any, any) {
+	slice = derefScalar(slice)
 	sliceVal, ok := castToSlice(slice)
 	if !ok || len(sliceVal) == 0 {
 		return slice, nil
@@ -1688,7 +1689,8 @@ func Shift(slice any) (any, any) {
 
 // Reverse reverses the elements of a slice in place
 func Reverse(slice any) {
-	sliceVal, ok := castToSlice(slice)
+	// a typed-nil container reads like untyped nil (same panic / nil path)
+	sliceVal, ok := castToSlice(derefScalar(slice))
 	if !ok {
 		panic("provided value is not a slice")
 	}
@@ -1852,8 +1854,11 @@ func derefScalar(v any) any {
 		}
 		return derefScalar(*p)
 	case map[string]any:
-		// a typed-nil map local boxed into `any` reads as absent; a nil []any stays an
-		// (empty) list because hand-written helpers (FilterBy, Sort, ...) return one
+		// a typed-nil container local boxed into `any` reads as absent, like untyped nil
+		if p == nil {
+			return nil
+		}
+	case []any:
 		if p == nil {
 			return nil
 		}

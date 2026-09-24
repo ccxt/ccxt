@@ -1666,7 +1666,7 @@ func (this *Cryptocom) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
 	var data []any = SafeListTypedDefault(result, "data", []any{})
-	var orderBook any = this.SafeDict(data, 0)
+	var orderBook map[string]any = SafeMapTyped(data, 0)
 	var timestamp *int64 = this.SafeInteger(orderBook, "t")
 
 	ch <- this.ParseOrderBook(orderBook, symbol, timestamp)
@@ -2832,7 +2832,7 @@ func (this *Cryptocom) fetchDepositAddressesByNetworkBody(ch chan any, code any,
 	}
 	var result map[string]any = map[string]any{}
 	for i := 0; i < addressesLength; i++ {
-		var value any = this.SafeDict(addresses, i)
+		var value map[string]any = SafeMapTyped(addresses, i)
 		var addressString *string = this.SafeString(value, "address")
 		var currencyId *string = this.SafeString(value, "currency")
 		var responseCode *string = this.SafeCurrencyCode(currencyId)
@@ -3280,12 +3280,17 @@ func (this *Cryptocom) ParseOrder(order any, optionalArgs ...any) any {
 	var created *int64 = this.SafeInteger(order, "create_time")
 	var marketId *string = this.SafeString(order, "instrument_name")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	var execInst any = this.SafeList(order, "exec_inst")
+	var execInst []any = SafeListTyped(order, "exec_inst")
 	var postOnly any = nil
 	if !IsEqual(execInst, nil) {
 		postOnly = false
-		for i := 0; i < GetArrayLength(execInst); i++ {
-			var inst any = GetValue(execInst, i)
+		for i := 0; i < len(execInst); i++ {
+			var inst any = func() any {
+				if i >= 0 && i < len(execInst) {
+					return DerefScalar(execInst[i])
+				}
+				return nil
+			}()
 			if IsEqual(inst, "POST_ONLY") {
 				postOnly = true
 				break
@@ -3556,7 +3561,7 @@ func (this *Cryptocom) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ..
 	response := (<-this.V1PrivatePostPrivateGetCurrencyNetworks(params))
 	PanicOnError(response)
 	var data map[string]any = SafeMapTyped(response, "result")
-	var currencyMap any = this.SafeList(data, "currency_map")
+	var currencyMap []any = SafeListTyped(data, "currency_map")
 
 	ch <- this.ParseDepositWithdrawFees(currencyMap, codes, "full_name")
 	return nil

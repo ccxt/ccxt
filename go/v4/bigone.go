@@ -1181,14 +1181,13 @@ func (this *Bigone) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var response any = nil
+	var response map[string]any = nil
 	if GetValue(market, "contract") == true {
 		var request map[string]any = map[string]any{
 			"symbol": market["id"],
 		}
 
-		response = (<-this.ContractPublicGetDepthSymbolSnapshot(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.ContractPublicGetDepthSymbolSnapshot(this.Extend(request, params))).Raw))
 
 		//
 		//    {
@@ -1227,8 +1226,7 @@ func (this *Bigone) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 			request["limit"] = limit // default 50, max 200
 		}
 
-		response = (<-this.PublicGetAssetPairsAssetPairNameDepth(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicGetAssetPairsAssetPairNameDepth(this.Extend(request, params))).Raw))
 		//
 		//     {
 		//         "code":0,
@@ -1262,8 +1260,8 @@ func (this *Bigone) ParseContractBidsAsks(bidsAsks any) any {
 func (this *Bigone) ParseContractOrderBook(orderbook any, symbol any, optionalArgs ...any) any {
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
-	var responseBids any = this.SafeDict(orderbook, "bids")
-	var responseAsks any = this.SafeDict(orderbook, "asks")
+	var responseBids map[string]any = SafeMapTyped(orderbook, "bids")
+	var responseAsks map[string]any = SafeMapTyped(orderbook, "asks")
 	var bids any = this.ParseContractBidsAsks(responseBids)
 	var asks any = this.ParseContractBidsAsks(responseAsks)
 	return map[string]any{
@@ -1661,15 +1659,13 @@ func (this *Bigone) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var typeVar *string = this.SafeString(params, "type", "")
 	params = MapTyped(this.Omit(params, "type"))
-	var response any = nil
+	var response map[string]any = nil
 	if (typeVar != nil && *typeVar == "funding") || (typeVar != nil && *typeVar == "fund") {
 
-		response = (<-this.PrivateGetFundAccounts(params)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetFundAccounts(params)).Raw))
 	} else {
 
-		response = (<-this.PrivateGetAccounts(params)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetAccounts(params)).Raw))
 	}
 
 	//

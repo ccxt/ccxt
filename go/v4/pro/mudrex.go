@@ -244,7 +244,7 @@ func (this *Mudrex) HandleMessage(client any, message any) {
 	if this.SafeString(message, "method") != nil && *this.SafeString(message, "method") == "PONG" {
 		return
 	}
-	var error any = this.SafeDict(message, "error")
+	var error map[string]any = ccxt.SafeMapTyped(message, "error")
 	if !ccxt.IsEqual(error, nil) {
 		this.HandleErrorMessage(client, message)
 		return

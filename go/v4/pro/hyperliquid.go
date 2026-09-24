@@ -1288,7 +1288,7 @@ func (this *Hyperliquid) HandleWsPost(client any, message map[string]any) {
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var id *string = this.SafeString(data, "id")
 	var response map[string]any = ccxt.SafeMapTyped(data, "response")
-	var payload any = this.SafeDict(response, "payload")
+	var payload map[string]any = ccxt.SafeMapTyped(response, "payload")
 	client.(ccxt.ClientInterface).Resolve(payload, id)
 }
 

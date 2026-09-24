@@ -61,7 +61,7 @@ func (this *BaseExchange) Keysort(parameters2 any) map[string]any {
 }
 
 func (this *BaseExchange) Sort(input any) []any {
-	var list []any
+	list := []any{}
 
 	switch v := input.(type) {
 	case []string:
@@ -140,6 +140,7 @@ func (this *BaseExchange) Omit(a any, parameters ...any) any {
 
 // omitMap removes specified keys from a map.
 func (this *BaseExchange) OmitMap(aa any, k any) any {
+	aa = derefScalar(aa) // a typed-nil container is absent, like untyped nil
 	// if reflect.TypeOf(aa).Kind() == reflect.Slice {
 	// 	return aa
 	// 	//  if ok {
@@ -186,6 +187,7 @@ func (this *BaseExchange) OmitMap(aa any, k any) any {
 
 // omitN removes specified keys from a map.
 func (this *BaseExchange) OmitN(aa any, keys []any) any {
+	aa = derefScalar(aa)
 	outDict := make(map[string]any)
 	a, ok := aa.(map[string]any)
 	if ok {
@@ -251,6 +253,7 @@ func (this *BaseExchange) ToArray(a any) []any {
 // TS `arrayConcat (a: any[], b: any[])` is always an array, so the Go twin reports `[]any`
 // instead of boxing it back into `any` (nil when an operand is not a slice, as before).
 func (this *BaseExchange) ArrayConcat(aa, bb any) []any {
+	aa, bb = derefScalar(aa), derefScalar(bb)
 	if aa != nil && bb != nil && reflect.TypeOf(aa).Kind() == reflect.Slice && reflect.TypeOf(bb).Kind() == reflect.Slice {
 		va := reflect.ValueOf(aa)
 		vb := reflect.ValueOf(bb)

@@ -1033,15 +1033,13 @@ func (this *Tokocrypto) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 	if limit != nil {
 		request["limit"] = limit // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if EvalTruthy(this.IsNativeMarket(market)) {
 
-		response = (<-this.PublicGetOpenV1MarketDepth(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicGetOpenV1MarketDepth(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.BinanceGetDepth(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.BinanceGetDepth(this.Extend(request, params))).Raw))
 	}
 	//
 	// future
@@ -1323,19 +1321,17 @@ func (this *Tokocrypto) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 	}
 	var defaultMethod string = "binanceGetTrades"
 	var method *string = this.SafeString(this.Options, "fetchTradesMethod", defaultMethod)
-	var response any = nil
+	var response []any = nil
 	if (method != nil && *method == "binanceGetAggTrades") && (since != nil) {
 		request["startTime"] = since
 		// https://github.com/ccxt/ccxt/issues/6400
 		// https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
 		request["endTime"] = this.Sum(since, 3600000)
 
-		response = (<-this.BinanceGetAggTrades(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.BinanceGetAggTrades(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.BinanceGetTrades(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.BinanceGetTrades(this.Extend(request, params))).Raw))
 	}
 	//
 	// Caveats:

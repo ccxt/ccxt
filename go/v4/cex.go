@@ -2109,15 +2109,13 @@ func (this *Cex) transferBetweenMainAndSubAccountBody(ch chan any, code any, amo
 		"accountId":  targetAccount,
 		"clientTxId": guid,
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if fromMain {
 
-		response = (<-this.PrivatePostDoDepositFundsFromWallet(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostDoDepositFundsFromWallet(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivatePostDoWithdrawalFundsToWallet(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostDoWithdrawalFundsToWallet(this.Extend(request, params))).Raw))
 	}
 	// both endpoints return the same structure, the only difference is that
 	// the "accountId" is filled with the "subAccount"

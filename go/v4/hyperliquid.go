@@ -1297,13 +1297,18 @@ func (this *Hyperliquid) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	//            }
 	//     }
 	//
-	var balances any = this.SafeList(response, "balances")
+	var balances []any = SafeListTyped(response, "balances")
 	if !IsEqual(balances, nil) {
 		var spotBalances map[string]any = map[string]any{
 			"info": response,
 		}
-		for i := 0; i < GetArrayLength(balances); i++ {
-			var balance map[string]any = MapTyped(GetValue(balances, i))
+		for i := 0; i < len(balances); i++ {
+			var balance map[string]any = MapTyped(func() any {
+				if i >= 0 && i < len(balances) {
+					return DerefScalar(balances[i])
+				}
+				return nil
+			}())
 			var unifiedCode *string = this.SafeCurrencyCode(this.SafeString(balance, "coin"))
 			var code any = func() any {
 				if isSpot == true {
@@ -1885,7 +1890,7 @@ func (this *Hyperliquid) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 	ch <- this.ParseTrades(fills, market, since, limit)
 	return nil
 }
-func (this *Hyperliquid) AmountToPrecision(symbol any, amount any) any {
+func (this *Hyperliquid) AmountToPrecision(symbol any, amount any) *string {
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var result string = this.DecimalToPrecision(amount, ROUND, GetValue(market["precision"], "amount"), this.PrecisionMode, this.PaddingMode)
 	// a size of zero is meaningful to hyperliquid, a whole position tp/sl order is sent
@@ -1894,9 +1899,9 @@ func (this *Hyperliquid) AmountToPrecision(symbol any, amount any) any {
 	if Precise.StringEq(result, "0") && Precise.StringGt(this.NumberToString(amount), "0") {
 		panic(InvalidOrder(Add(Add(Add(this.Id+" amount of ", market["symbol"]), " must be greater than minimum amount precision of "), this.NumberToString(GetValue(market["precision"], "amount")))))
 	}
-	return result
+	return SafeStringPtr(result)
 }
-func (this *Hyperliquid) PriceToPrecision(symbol any, price any) any {
+func (this *Hyperliquid) PriceToPrecision(symbol any, price any) *string {
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var priceStr *string = this.NumberToString(price)
 	var integerPart *string = SafeStringPtr(GetValue(Split(priceStr, "."), 0))
@@ -1909,7 +1914,7 @@ func (this *Hyperliquid) PriceToPrecision(symbol any, price any) any {
 		return 6
 	}()
 	var subtractedValue int64 = Subtract(maxDecimals, this.PrecisionFromString(this.SafeString(market["precision"], "amount"))).(int64)
-	return this.DecimalToPrecision(result, ROUND, subtractedValue, DECIMAL_PLACES, this.PaddingMode)
+	return SafeStringPtr(this.DecimalToPrecision(result, ROUND, subtractedValue, DECIMAL_PLACES, this.PaddingMode))
 }
 func (this *Hyperliquid) HashMessage(message any) any {
 	return Add("0x", this.Hash(message, keccak, "hex"))
@@ -2832,7 +2837,7 @@ func (this *Hyperliquid) CreateOrderRequest(symbol any, typeVar any, side any, a
 	}
 	var timeInForce *string = this.SafeStringLower(params, "timeInForce", defaultTimeInForce)
 	timeInForce = SafeStringPtr(this.Capitalize(timeInForce))
-	var triggerPrice any = DerefScalar(this.SafeString2(params, "triggerPrice", "stopPrice"))
+	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice", triggerPrice)
 	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice")
 	var isTrigger bool = ((stopLossPrice != nil) || (takeProfitPrice != nil))
@@ -2847,11 +2852,11 @@ func (this *Hyperliquid) CreateOrderRequest(symbol any, typeVar any, side any, a
 			}
 			return Precise.StringMul(price, Precise.StringSub("1", slippage))
 		}()
-		px = this.PriceToPrecision(symbol, px) // round after adding slippage
+		px = DerefScalar(this.PriceToPrecision(symbol, px)) // round after adding slippage
 	} else {
-		px = this.PriceToPrecision(symbol, price)
+		px = DerefScalar(this.PriceToPrecision(symbol, price))
 	}
-	var sz any = this.AmountToPrecision(symbol, amount)
+	var sz *string = this.AmountToPrecision(symbol, amount)
 	var reduceOnly *bool = this.SafeBool(params, "reduceOnly", false)
 	var orderType map[string]any = map[string]any{}
 	if isTrigger {
@@ -2941,8 +2946,8 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) an
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var slippage *string = this.SafeString(orderParams, "slippage", defaultSlippage)
 		AddElementToObject(orderParams, "slippage", slippage)
-		var stopLoss any = this.SafeDict(orderParams, "stopLoss")
-		var takeProfit any = this.SafeDict(orderParams, "takeProfit")
+		var stopLoss map[string]any = SafeMapTyped(orderParams, "stopLoss")
+		var takeProfit map[string]any = SafeMapTyped(orderParams, "takeProfit")
 		var hasStopLoss bool = (!IsEqual(stopLoss, nil))
 		var hasTakeProfit bool = (!IsEqual(takeProfit, nil))
 		orderParams = this.Omit(orderParams, []any{"stopLoss", "takeProfit"})
@@ -3519,7 +3524,7 @@ func (this *Hyperliquid) EditOrdersRequest(orders any, optionalArgs ...any) any 
 		var timeInForce *string = this.SafeStringLower(orderParams, "timeInForce", defaultTimeInForce)
 		timeInForce = SafeStringPtr(this.Capitalize(timeInForce))
 		var clientOrderId *string = this.SafeString2(orderParams, "clientOrderId", "client_id")
-		var triggerPrice any = DerefScalar(this.SafeString2(orderParams, "triggerPrice", "stopPrice"))
+		var triggerPrice *string = this.SafeString2(orderParams, "triggerPrice", "stopPrice")
 		var stopLossPrice *string = this.SafeString(orderParams, "stopLossPrice", triggerPrice)
 		var takeProfitPrice *string = this.SafeString(orderParams, "takeProfitPrice")
 		var isTrigger bool = ((stopLossPrice != nil) || (takeProfitPrice != nil))
@@ -3533,11 +3538,11 @@ func (this *Hyperliquid) EditOrdersRequest(orders any, optionalArgs ...any) any 
 				}
 				return Precise.StringMul(px, Precise.StringSub("1", slippage))
 			}()
-			px = this.PriceToPrecision(symbol, px)
+			px = DerefScalar(this.PriceToPrecision(symbol, px))
 		} else {
-			px = this.PriceToPrecision(symbol, px)
+			px = DerefScalar(this.PriceToPrecision(symbol, px))
 		}
-		var sz any = this.AmountToPrecision(symbol, amount)
+		var sz *string = this.AmountToPrecision(symbol, amount)
 		var orderType map[string]any = map[string]any{}
 		if isTrigger {
 			var isTp bool = false
@@ -3563,8 +3568,8 @@ func (this *Hyperliquid) EditOrdersRequest(orders any, optionalArgs ...any) any 
 				"tif": timeInForce,
 			}
 		}
-		if IsEqual(triggerPrice, nil) {
-			triggerPrice = "0"
+		if triggerPrice == nil {
+			triggerPrice = SafeStringPtr("0")
 		}
 		var orderReq map[string]any = map[string]any{
 			"a": this.ParseToInt(market["baseId"]),

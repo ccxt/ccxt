@@ -1583,7 +1583,7 @@ func (this *Bitteam) ParseOrder(order any, optionalArgs ...any) any {
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var typeVar *string = this.ParseOrderType(this.SafeString(order, "type"))
 	var side *string = this.SafeString(order, "side")
-	var feeRaw any = this.SafeDict(order, "fee")
+	var feeRaw map[string]any = SafeMapTyped(order, "fee")
 	var price *string = this.SafeString(order, "price")
 	var amount *string = this.SafeString(order, "quantity")
 	var filled *string = this.SafeString(order, "executed")
@@ -2707,7 +2707,7 @@ func (this *Bitteam) ParseTransaction(transaction any, optionalArgs ...any) any 
 	//
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	var currencyObject any = this.SafeDict(transaction, "currency")
+	var currencyObject map[string]any = SafeMapTyped(transaction, "currency")
 	var currencyId *string = this.SafeString(currencyObject, "symbol")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var id *string = this.SafeString(transaction, "id")

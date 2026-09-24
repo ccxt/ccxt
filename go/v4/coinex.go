@@ -1676,15 +1676,13 @@ func (this *Coinex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if GetValue(market, "swap") == true {
 
-		response = (<-this.V2PublicGetFuturesTicker(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V2PublicGetFuturesTicker(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.V2PublicGetSpotTicker(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V2PublicGetSpotTicker(this.Extend(request, params))).Raw))
 	}
 	//
 	// Spot
@@ -1775,15 +1773,13 @@ func (this *Coinex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var marketTypequeryVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	var marketType *string = SafeStringPtr(GetValue(marketTypequeryVariable, 0))
 	query := GetValue(marketTypequeryVariable, 1)
-	var response any = nil
+	var response map[string]any = nil
 	if marketType != nil && *marketType == "swap" {
 
-		response = (<-this.V2PublicGetFuturesTicker(query)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V2PublicGetFuturesTicker(query)).Raw))
 	} else {
 
-		response = (<-this.V2PublicGetSpotTicker(query)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V2PublicGetSpotTicker(query)).Raw))
 	}
 	//
 	// Spot
@@ -1909,15 +1905,13 @@ func (this *Coinex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		"limit":    limit,
 		"interval": "0",
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if GetValue(market, "swap") == true {
 
-		response = (<-this.V2PublicGetFuturesDepth(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V2PublicGetFuturesDepth(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.V2PublicGetSpotDepth(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V2PublicGetSpotDepth(this.Extend(request, params))).Raw))
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
 	var depth map[string]any = MapTyped(this.SafeDict(data, "depth", map[string]any{}))
@@ -2039,15 +2033,13 @@ func (this *Coinex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if GetValue(market, "swap") == true {
 
-		response = (<-this.V2PublicGetFuturesDeals(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V2PublicGetFuturesDeals(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.V2PublicGetSpotDeals(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V2PublicGetSpotDeals(this.Extend(request, params))).Raw))
 	}
 
 	//
@@ -2099,15 +2091,13 @@ func (this *Coinex) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if GetValue(market, "spot") == true {
 
-		response = (<-this.V2PublicGetSpotMarket(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V2PublicGetSpotMarket(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.V2PublicGetFuturesMarket(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V2PublicGetFuturesMarket(this.Extend(request, params))).Raw))
 	}
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var result map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
@@ -2143,15 +2133,13 @@ func (this *Coinex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTradingFees", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	var response any = nil
+	var response map[string]any = nil
 	if IsEqual(typeVar, "swap") {
 
-		response = (<-this.V2PublicGetFuturesMarket(params)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V2PublicGetFuturesMarket(params)).Raw))
 	} else {
 
-		response = (<-this.V2PublicGetSpotMarket(params)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V2PublicGetSpotMarket(params)).Raw))
 	}
 	var data []any = SafeListTyped(response, "data")
 	var result map[string]any = map[string]any{}
@@ -2244,15 +2232,13 @@ func (this *Coinex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if GetValue(market, "swap") == true {
 
-		response = (<-this.V2PublicGetFuturesKline(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V2PublicGetFuturesKline(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.V2PublicGetSpotKline(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V2PublicGetSpotKline(this.Extend(request, params))).Raw))
 	}
 	//
 	// Spot and Swap
@@ -3177,22 +3163,19 @@ func (this *Coinex) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		"market": market["id"],
 		"orders": ordersRequests,
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if GetValue(market, "spot") == true {
 		if isTriggerOrder {
 
-			response = (<-this.V2PrivatePostSpotBatchStopOrder(request)).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.V2PrivatePostSpotBatchStopOrder(request)).Raw))
 		} else {
 
-			response = (<-this.V2PrivatePostSpotBatchOrder(request)).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.V2PrivatePostSpotBatchOrder(request)).Raw))
 		}
 	} else {
 		if isTriggerOrder {
 
-			response = (<-this.V2PrivatePostFuturesBatchStopOrder(request)).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.V2PrivatePostFuturesBatchStopOrder(request)).Raw))
 		} else if isStopLossOrTakeProfitTrigger {
 			panic(NotSupported(this.Id + " createOrders() does not support stopLossPrice or takeProfitPrice orders"))
 		} else {
@@ -3200,8 +3183,7 @@ func (this *Coinex) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 				panic(NotSupported(this.Id + " createOrders() does not support reduceOnly orders"))
 			} else {
 
-				response = (<-this.V2PrivatePostFuturesBatchOrder(request)).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.V2PrivatePostFuturesBatchOrder(request)).Raw))
 			}
 		}
 	}
@@ -3278,7 +3260,7 @@ func (this *Coinex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 	}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	params = MapTyped(this.Omit(params, []any{"stop", "trigger"}))
-	var response any = nil
+	var response map[string]any = nil
 	var requestIds []any = []any{}
 	for i := 0; i < GetArrayLength(ids); i++ {
 		requestIds = append(requestIds, ParseInt(GetValue(ids, i)))
@@ -3291,23 +3273,19 @@ func (this *Coinex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 	if GetValue(market, "spot") == true {
 		if trigger != nil && *trigger == true {
 
-			response = (<-this.V2PrivatePostSpotCancelBatchStopOrder(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.V2PrivatePostSpotCancelBatchStopOrder(this.Extend(request, params))).Raw))
 		} else {
 
-			response = (<-this.V2PrivatePostSpotCancelBatchOrder(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.V2PrivatePostSpotCancelBatchOrder(this.Extend(request, params))).Raw))
 		}
 	} else {
 		request["market_type"] = "FUTURES"
 		if trigger != nil && *trigger == true {
 
-			response = (<-this.V2PrivatePostFuturesCancelBatchStopOrder(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.V2PrivatePostFuturesCancelBatchStopOrder(this.Extend(request, params))).Raw))
 		} else {
 
-			response = (<-this.V2PrivatePostFuturesCancelBatchOrder(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.V2PrivatePostFuturesCancelBatchOrder(this.Extend(request, params))).Raw))
 		}
 	}
 	var data []any = SafeListTyped(response, "data")
@@ -3685,12 +3663,11 @@ func (this *Coinex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if GetValue(market, "swap") == true {
 		request["market_type"] = "FUTURES"
 
-		response = (<-this.V2PrivatePostFuturesCancelAllOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V2PrivatePostFuturesCancelAllOrder(this.Extend(request, params))).Raw))
 	} else {
 		var marginMode any = nil
 		var marginModeparamsVariable []any = this.HandleMarginModeAndParams("cancelAllOrders", params)
@@ -3702,8 +3679,7 @@ func (this *Coinex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 			request["market_type"] = "SPOT"
 		}
 
-		response = (<-this.V2PrivatePostSpotCancelAllOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V2PrivatePostSpotCancelAllOrder(this.Extend(request, params))).Raw))
 	}
 
 	ch <- []any{this.SafeOrder(map[string]any{
@@ -3747,15 +3723,13 @@ func (this *Coinex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		"market":   market["id"],
 		"order_id": this.ParseToNumeric(id),
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if GetValue(market, "swap") == true {
 
-		response = (<-this.V2PrivateGetFuturesOrderStatus(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V2PrivateGetFuturesOrderStatus(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.V2PrivateGetSpotOrderStatus(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V2PrivateGetSpotOrderStatus(this.Extend(request, params))).Raw))
 	}
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
@@ -3815,7 +3789,7 @@ func (this *Coinex) fetchOrdersByStatusBody(ch chan any, status any, optionalArg
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrdersByStatus", market, params)
 	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
-	var response any = nil
+	var response map[string]any = nil
 	var isClosed bool = (IsEqual(status, "finished")) || (IsEqual(status, "closed"))
 	var isOpen bool = (IsEqual(status, "pending")) || (IsEqual(status, "open"))
 	if marketType != nil && *marketType == "swap" {
@@ -3823,22 +3797,18 @@ func (this *Coinex) fetchOrdersByStatusBody(ch chan any, status any, optionalArg
 		if isClosed {
 			if trigger != nil && *trigger == true {
 
-				response = (<-this.V2PrivateGetFuturesFinishedStopOrder(this.Extend(request, params))).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.V2PrivateGetFuturesFinishedStopOrder(this.Extend(request, params))).Raw))
 			} else {
 
-				response = (<-this.V2PrivateGetFuturesFinishedOrder(this.Extend(request, params))).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.V2PrivateGetFuturesFinishedOrder(this.Extend(request, params))).Raw))
 			}
 		} else if isOpen {
 			if trigger != nil && *trigger == true {
 
-				response = (<-this.V2PrivateGetFuturesPendingStopOrder(this.Extend(request, params))).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.V2PrivateGetFuturesPendingStopOrder(this.Extend(request, params))).Raw))
 			} else {
 
-				response = (<-this.V2PrivateGetFuturesPendingOrder(this.Extend(request, params))).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.V2PrivateGetFuturesPendingOrder(this.Extend(request, params))).Raw))
 			}
 		}
 	} else {
@@ -3854,22 +3824,18 @@ func (this *Coinex) fetchOrdersByStatusBody(ch chan any, status any, optionalArg
 		if isClosed {
 			if trigger != nil && *trigger == true {
 
-				response = (<-this.V2PrivateGetSpotFinishedStopOrder(this.Extend(request, params))).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.V2PrivateGetSpotFinishedStopOrder(this.Extend(request, params))).Raw))
 			} else {
 
-				response = (<-this.V2PrivateGetSpotFinishedOrder(this.Extend(request, params))).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.V2PrivateGetSpotFinishedOrder(this.Extend(request, params))).Raw))
 			}
 		} else if IsEqual(status, "pending") {
 			if trigger != nil && *trigger == true {
 
-				response = (<-this.V2PrivateGetSpotPendingStopOrder(this.Extend(request, params))).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.V2PrivateGetSpotPendingStopOrder(this.Extend(request, params))).Raw))
 			} else {
 
-				response = (<-this.V2PrivateGetSpotPendingOrder(this.Extend(request, params))).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.V2PrivateGetSpotPendingOrder(this.Extend(request, params))).Raw))
 			}
 		}
 	}
@@ -4144,12 +4110,11 @@ func (this *Coinex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var requestparamsVariable []any = this.HandleUntilOption("end_time", request, params)
 	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
-	var response any = nil
+	var response map[string]any = nil
 	if GetValue(market, "swap") == true {
 		request["market_type"] = "FUTURES"
 
-		response = (<-this.V2PrivateGetFuturesUserDeals(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V2PrivateGetFuturesUserDeals(this.Extend(request, params))).Raw))
 	} else {
 		var marginMode any = nil
 		var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchMyTrades", params)
@@ -4161,8 +4126,7 @@ func (this *Coinex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			request["market_type"] = "SPOT"
 		}
 
-		response = (<-this.V2PrivateGetSpotUserDeals(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V2PrivateGetSpotUserDeals(this.Extend(request, params))).Raw))
 	}
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
@@ -4220,15 +4184,13 @@ func (this *Coinex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["market"] = GetValue(market, "id")
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if IsEqual(defaultMethod, "v2PrivateGetFuturesPendingPosition") {
 
-		response = (<-this.V2PrivateGetFuturesPendingPosition(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V2PrivateGetFuturesPendingPosition(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.V2PrivateGetFuturesFinishedPosition(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V2PrivateGetFuturesFinishedPosition(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {
@@ -4668,8 +4630,8 @@ func (this *Coinex) modifyMarginHelperBody(ch chan any, symbol any, amount any, 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var rawAmount any = this.AmountToPrecision(symbol, amount)
-	var requestAmount any = rawAmount
+	var rawAmount *string = this.AmountToPrecision(symbol, amount)
+	var requestAmount *string = rawAmount
 	if IsEqual(addOrReduce, "reduce") {
 		requestAmount = Precise.StringNeg(rawAmount)
 	}

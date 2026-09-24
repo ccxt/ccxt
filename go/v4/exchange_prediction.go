@@ -74,15 +74,15 @@ func (this *PredictionExchange) Describe() any {
 func (this *PredictionExchange) IsPrediction() any {
 	return this.SafeBool(this.Has, "prediction", false)
 }
-func (this *PredictionExchange) ParseSearchQueries(optionalArgs ...any) any {
+func (this *PredictionExchange) ParseSearchQueries(optionalArgs ...any) []any {
 	// accepts either `query` (a single search string) or `queries` (a list of strings)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var singleQuery *string = this.SafeString(params, "query")
 	if singleQuery != nil {
-		return []any{singleQuery}
+		return ListTyped([]any{singleQuery})
 	}
-	return this.SafeList(params, "queries", []any{})
+	return ListTyped(this.SafeList(params, "queries", []any{}))
 }
 func (this *PredictionExchange) RequireEventQuery(optionalArgs ...any) any {
 	// fetchEvents must be scoped by at least one selector — an unfiltered call would page the
@@ -465,7 +465,7 @@ func (this *PredictionExchange) GetEvent(eventIdOrSlug any) any {
 	}
 	panic(BadSymbol(Add(Add(this.Id+" has no cached event ", eventIdOrSlug), " - call fetchEvents ({ 'query': ... }) first")))
 }
-func (this *PredictionExchange) Outcome(outcomeSymbol any) any {
+func (this *PredictionExchange) Outcome(outcomeSymbol any) map[string]any {
 	if IsEqual(outcomeSymbol, nil) {
 		panic(ArgumentsRequired(this.Id + " outcome() requires an outcomeSymbol argument"))
 	}
@@ -473,10 +473,10 @@ func (this *PredictionExchange) Outcome(outcomeSymbol any) any {
 		panic(ExchangeError(this.Id + " outcomes not loaded - call loadOutcomes () or an outcome-addressed method first"))
 	}
 	if InOp(this.Outcomes, outcomeSymbol) {
-		return GetValue(this.Outcomes, outcomeSymbol)
+		return MapTyped(GetValue(this.Outcomes, outcomeSymbol))
 	}
 	if (!IsEqual(this.Outcomes_by_id, nil)) && (InOp(this.Outcomes_by_id, outcomeSymbol)) {
-		return GetValue(this.Outcomes_by_id, outcomeSymbol)
+		return MapTyped(GetValue(this.Outcomes_by_id, outcomeSymbol))
 	}
 	panic(BadSymbol(Add(Add(this.Id+" does not have outcome ", outcomeSymbol), " - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first")))
 }
@@ -495,19 +495,19 @@ func (this *PredictionExchange) HasOutcome(outcomeIdOrSymbol any) any {
 	}
 	return false
 }
-func (this *PredictionExchange) SafeOutcome(outcomeIdOrSymbol any, optionalArgs ...any) any {
+func (this *PredictionExchange) SafeOutcome(outcomeIdOrSymbol any, optionalArgs ...any) map[string]any {
 	outcomeObj := GetArg(optionalArgs, 0, nil)
 	_ = outcomeObj
 	if !IsEqual(outcomeIdOrSymbol, nil) {
 		if (!IsEqual(this.Outcomes, nil)) && (InOp(this.Outcomes, outcomeIdOrSymbol)) {
-			return GetValue(this.Outcomes, outcomeIdOrSymbol)
+			return MapTyped(GetValue(this.Outcomes, outcomeIdOrSymbol))
 		}
 		if (!IsEqual(this.Outcomes_by_id, nil)) && (InOp(this.Outcomes_by_id, outcomeIdOrSymbol)) {
-			return GetValue(this.Outcomes_by_id, outcomeIdOrSymbol)
+			return MapTyped(GetValue(this.Outcomes_by_id, outcomeIdOrSymbol))
 		}
 	}
 	if !IsEqual(outcomeObj, nil) {
-		return outcomeObj
+		return MapTyped(outcomeObj)
 	}
 	// stub for an unknown handle; it only carries the identity keys, not the market fields
 	outcomeObj = map[string]any{
@@ -518,7 +518,7 @@ func (this *PredictionExchange) SafeOutcome(outcomeIdOrSymbol any, optionalArgs 
 		"event":     nil,
 		"info":      map[string]any{},
 	}
-	return outcomeObj
+	return MapTyped(outcomeObj)
 }
 func (this *PredictionExchange) SafeOutcomeSymbol(outcomeIdOrSymbol any, optionalArgs ...any) any {
 	outcomeObj := GetArg(optionalArgs, 0, nil)
@@ -2209,17 +2209,17 @@ func (this *PredictionExchange) FilterByOutcomesSinceLimit(array any, optionalAr
 	return this.FilterBySinceLimit(result, since, limit, "timestamp", tail)
 }
 func (this *PredictionExchange) AmountToPredictionPrecision(outcome any, amount any) any {
-	var outcomeObj any = this.Outcome(outcome)
+	var outcomeObj map[string]any = this.Outcome(outcome)
 	var marketSymbol *string = this.SafeString(outcomeObj, "market")
 	return this.AmountToPrecision(marketSymbol, amount)
 }
 func (this *PredictionExchange) PriceToPredictionPrecision(outcome any, price any) any {
-	var outcomeObj any = this.Outcome(outcome)
+	var outcomeObj map[string]any = this.Outcome(outcome)
 	var marketSymbol *string = this.SafeString(outcomeObj, "market")
 	return this.PriceToPrecision(marketSymbol, price)
 }
 func (this *PredictionExchange) CostToPredictionPrecision(outcome any, cost any) any {
-	var outcomeObj any = this.Outcome(outcome)
+	var outcomeObj map[string]any = this.Outcome(outcome)
 	var marketSymbol *string = this.SafeString(outcomeObj, "market")
 	return this.CostToPrecision(marketSymbol, cost)
 }

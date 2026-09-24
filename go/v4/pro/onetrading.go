@@ -1307,7 +1307,7 @@ func (this *Onetrading) HandleOHLCV(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "instrument_code")
 	var symbol *string = this.SafeSymbol(marketId)
 	var dateTime *string = this.SafeString(message, "time")
-	var timeframeId any = this.SafeDict(message, "granularity")
+	var timeframeId map[string]any = ccxt.SafeMapTyped(message, "granularity")
 	var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any{})
 	var timeframe *string = this.FindTimeframe(timeframeId, timeframes)
 	var channel any = ccxt.Add("ohlcv."+*symbol+".", timeframe)

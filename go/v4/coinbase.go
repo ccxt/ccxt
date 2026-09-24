@@ -2744,19 +2744,17 @@ func (this *Coinbase) fetchTickersV3Body(ch chan any, optionalArgs ...any) any {
 			return "SPOT"
 		}()
 	}
-	var response any = nil
+	var response map[string]any = nil
 	var usePrivate bool = false
 	var usePrivateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTickers", "usePrivate", false)
 	usePrivate = GetValueBool(usePrivateparamsVariable, 0, false)
 	params = MapTyped(GetValue(usePrivateparamsVariable, 1))
 	if usePrivate {
 
-		response = (<-this.V3PrivateGetBrokerageProducts(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V3PrivateGetBrokerageProducts(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.V3PublicGetBrokerageMarketProducts(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V3PublicGetBrokerageMarketProducts(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {
@@ -2919,15 +2917,13 @@ func (this *Coinbase) fetchTickerV3Body(ch chan any, symbol any, optionalArgs ..
 	var usePrivateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTicker", "usePrivate", false)
 	usePrivate = GetValueBool(usePrivateparamsVariable, 0, false)
 	params = MapTyped(GetValue(usePrivateparamsVariable, 1))
-	var response any = nil
+	var response map[string]any = nil
 	if usePrivate {
 
-		response = (<-this.V3PrivateGetBrokerageProductsProductIdTicker(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V3PrivateGetBrokerageProductsProductIdTicker(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.V3PublicGetBrokerageMarketProductsProductIdTicker(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V3PublicGetBrokerageMarketProductsProductIdTicker(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {
@@ -3108,7 +3104,7 @@ func (this *Coinbase) ParseCustomBalance(response any, optionalArgs ...any) any 
 		}())
 		var typeVar *string = this.SafeString(balance, "type")
 		if this.InArray(typeVar, accounts) {
-			var value any = this.SafeDict(balance, "balance")
+			var value map[string]any = SafeMapTyped(balance, "balance")
 			if !IsEqual(value, nil) {
 				var currencyId *string = this.SafeString(value, "currency")
 				var code *string = this.SafeCurrencyCode(currencyId)
@@ -3128,8 +3124,8 @@ func (this *Coinbase) ParseCustomBalance(response any, optionalArgs ...any) any 
 				}
 			}
 		} else if this.InArray(typeVar, v3Accounts) {
-			var available any = this.SafeDict(balance, "available_balance")
-			var hold any = this.SafeDict(balance, "hold")
+			var available map[string]any = SafeMapTyped(balance, "available_balance")
+			var hold map[string]any = SafeMapTyped(balance, "hold")
 			if !IsEqual(available, nil) && !IsEqual(hold, nil) {
 				var currencyId *string = this.SafeString(available, "currency")
 				var code *string = this.SafeCurrencyCode(currencyId)
@@ -3650,7 +3646,7 @@ func (this *Coinbase) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var fee map[string]any = nil
 	var networkInfo map[string]any = SafeMapTyped(item, "network")
 	// txid = network['hash']; // txid does not belong to the unified ledger structure
-	var feeInfo any = this.SafeDict(networkInfo, "transaction_fee")
+	var feeInfo map[string]any = SafeMapTyped(networkInfo, "transaction_fee")
 	if !IsEqual(feeInfo, nil) {
 		var feeCurrencyId *string = this.SafeString(feeInfo, "currency")
 		var feeCurrencyCode *string = this.SafeCurrencyCode(feeCurrencyId, currency)
@@ -3918,7 +3914,7 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar any, side
 				})
 			}
 		} else if isStopLoss || isTakeProfit {
-			var tpslPrice any = nil
+			var tpslPrice *string = nil
 			if isStopLoss {
 				if stopDirection == nil {
 					stopDirection = SafeStringPtr(func() string {
@@ -4034,17 +4030,15 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar any, side
 	}
 	params = MapTyped(this.Omit(params, []any{"timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "stopPrice", "stop_price", "stopDirection", "stop_direction", "clientOrderId", "postOnly", "post_only", "end_time", "marginMode"}))
 	var preview *bool = this.SafeBool2(params, "preview", "test", false)
-	var response any = nil
+	var response map[string]any = nil
 	if preview != nil && *preview == true {
 		params = MapTyped(this.Omit(params, []any{"preview", "test"}))
 		request = this.Omit(request, "client_order_id")
 
-		response = (<-this.V3PrivatePostBrokerageOrdersPreview(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V3PrivatePostBrokerageOrdersPreview(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.V3PrivatePostBrokerageOrders(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V3PrivatePostBrokerageOrders(this.Extend(request, params))).Raw))
 	}
 	//
 	// successful order
@@ -4085,7 +4079,7 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar any, side
 	//
 	var success *bool = this.SafeBool(response, "success")
 	if success == nil || *success != true {
-		var errorResponse any = this.SafeDict(response, "error_response")
+		var errorResponse map[string]any = SafeMapTyped(response, "error_response")
 		var errorTitle *string = this.SafeString(errorResponse, "error")
 		var errorMessage *string = this.SafeString(errorResponse, "message")
 		if !IsEqual(errorResponse, nil) {
@@ -4415,16 +4409,14 @@ func (this *Coinbase) editOrderBody(ch chan any, id any, symbol any, typeVar any
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	var preview *bool = this.SafeBool2(params, "preview", "test", false)
-	var response any = nil
+	var response map[string]any = nil
 	if preview != nil && *preview == true {
 		params = MapTyped(this.Omit(params, []any{"preview", "test"}))
 
-		response = (<-this.V3PrivatePostBrokerageOrdersEditPreview(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V3PrivatePostBrokerageOrdersEditPreview(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.V3PrivatePostBrokerageOrdersEdit(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V3PrivatePostBrokerageOrdersEdit(this.Extend(request, params))).Raw))
 	}
 
 	//
@@ -4942,19 +4934,17 @@ func (this *Coinbase) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		// 300 candles max
 		request["end"] = Precise.StringAdd(sinceString, ToString(requestedDuration))
 	}
-	var response any = nil
+	var response map[string]any = nil
 	var usePrivate bool = false
 	var usePrivateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "usePrivate", false)
 	usePrivate = GetValueBool(usePrivateparamsVariable, 0, false)
 	params = MapTyped(GetValue(usePrivateparamsVariable, 1))
 	if usePrivate {
 
-		response = (<-this.V3PrivateGetBrokerageProductsProductIdCandles(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V3PrivateGetBrokerageProductsProductIdCandles(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.V3PublicGetBrokerageMarketProductsProductIdCandles(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V3PublicGetBrokerageMarketProductsProductIdCandles(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {
@@ -5043,19 +5033,17 @@ func (this *Coinbase) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	} else if since != nil {
 		panic(ArgumentsRequired(this.Id + " fetchTrades() requires a `until` parameter when you use `since` argument"))
 	}
-	var response any = nil
+	var response map[string]any = nil
 	var usePrivate bool = false
 	var usePrivateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "usePrivate", false)
 	usePrivate = GetValueBool(usePrivateparamsVariable, 0, false)
 	params = MapTyped(GetValue(usePrivateparamsVariable, 1))
 	if usePrivate {
 
-		response = (<-this.V3PrivateGetBrokerageProductsProductIdTicker(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V3PrivateGetBrokerageProductsProductIdTicker(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.V3PublicGetBrokerageMarketProductsProductIdTicker(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V3PublicGetBrokerageMarketProductsProductIdTicker(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {
@@ -5213,19 +5201,17 @@ func (this *Coinbase) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var response any = nil
+	var response map[string]any = nil
 	var usePrivate bool = false
 	var usePrivateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrderBook", "usePrivate", false)
 	usePrivate = GetValueBool(usePrivateparamsVariable, 0, false)
 	params = MapTyped(GetValue(usePrivateparamsVariable, 1))
 	if usePrivate {
 
-		response = (<-this.V3PrivateGetBrokerageProductBook(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V3PrivateGetBrokerageProductBook(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.V3PublicGetBrokerageMarketProductBook(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V3PublicGetBrokerageMarketProductBook(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {
@@ -6220,11 +6206,10 @@ func (this *Coinbase) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchPositions", market, params)
 	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	var response any = nil
+	var response map[string]any = nil
 	if typeVar != nil && *typeVar == "future" {
 
-		response = (<-this.V3PrivateGetBrokerageCfmPositions(params)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V3PrivateGetBrokerageCfmPositions(params)).Raw))
 	} else {
 		var portfolio any = nil
 		var portfolioparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositions", "portfolio")
@@ -6237,8 +6222,7 @@ func (this *Coinbase) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 			"portfolio_uuid": portfolio,
 		}
 
-		response = (<-this.V3PrivateGetBrokerageIntxPositionsPortfolioUuid(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V3PrivateGetBrokerageIntxPositionsPortfolioUuid(this.Extend(request, params))).Raw))
 	}
 	var positions []any = SafeListTypedDefault(response, "positions", []any{})
 
@@ -6273,7 +6257,7 @@ func (this *Coinbase) fetchPositionBody(ch chan any, symbol any, optionalArgs ..
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var response any = nil
+	var response map[string]any = nil
 	if GetValue(market, "future") == true {
 		var productId *string = this.SafeString(market, "product_id")
 		if productId == nil {
@@ -6283,8 +6267,7 @@ func (this *Coinbase) fetchPositionBody(ch chan any, symbol any, optionalArgs ..
 			"product_id": productId,
 		}
 
-		response = (<-this.V3PrivateGetBrokerageCfmPositionsProductId(this.Extend(futureRequest, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V3PrivateGetBrokerageCfmPositionsProductId(this.Extend(futureRequest, params))).Raw))
 	} else {
 		var portfolio any = nil
 		var portfolioparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositions", "portfolio")
@@ -6298,8 +6281,7 @@ func (this *Coinbase) fetchPositionBody(ch chan any, symbol any, optionalArgs ..
 			"portfolio_uuid": portfolio,
 		}
 
-		response = (<-this.V3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol(this.Extend(request, params))).Raw))
 	}
 	var position map[string]any = MapTyped(this.SafeDict(response, "position", map[string]any{}))
 
@@ -6860,7 +6842,7 @@ func (this *Coinbase) HandleErrors(code any, reason any, url any, method any, he
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessage, feedback)
 		panic(ExchangeError(feedback))
 	}
-	var errorResponse any = this.SafeDict(response, "error_response")
+	var errorResponse map[string]any = SafeMapTyped(response, "error_response")
 	if !IsEqual(errorResponse, nil) {
 		var errorMessageInner *string = this.SafeString2(errorResponse, "preview_failure_reason", "preview_failure_reason")
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorMessageInner, feedback)

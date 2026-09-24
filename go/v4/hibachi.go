@@ -442,7 +442,7 @@ func (this *Hibachi) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     "underlyingDecimals": 9,
 	//     "underlyingSymbol": "ETH"
 	// },
-	var rows any = this.SafeList(response, "futureContracts")
+	var rows []any = SafeListTyped(response, "futureContracts")
 
 	ch <- this.ParseMarkets(rows)
 	return nil
@@ -983,7 +983,7 @@ func (this *Hibachi) OrderMessage(market any, nonce any, feeRate any, typeVar an
 	// - Quantity: Internal = External * (10^underlyingDecimals)
 	// - Price: Internal = External * (2^32) * (10^(settlementDecimals-underlyingDecimals))
 	// - FeeRate: Internal = External * (10^8)
-	var amountStr any = this.AmountToPrecision(this.SafeString(market, "symbol"), amount)
+	var amountStr *string = this.AmountToPrecision(this.SafeString(market, "symbol"), amount)
 	var feeRateStr *string = this.NumberToString(feeRate)
 	var info map[string]any = SafeMapTyped(market, "info")
 	var underlying any = Add("1e", this.SafeString(info, "underlyingDecimals"))
@@ -1011,7 +1011,7 @@ func (this *Hibachi) OrderMessage(market any, nonce any, feeRate any, typeVar an
 	var encodedFeeRate []byte = this.Base16ToBinary(feeRatePadded)
 	var encodedPrice []byte = this.BinaryConcat()
 	if IsEqual(typeVar, "limit") {
-		var priceStr any = this.PriceToPrecision(this.SafeString(market, "symbol"), price)
+		var priceStr *string = this.PriceToPrecision(this.SafeString(market, "symbol"), price)
 		var priceInternal *string = Precise.StringDiv(Precise.StringDiv(Precise.StringMul(Precise.StringMul(priceStr, priceFactor), settlement), underlying), one, 0)
 		var price16 string = this.IntToBase16(this.ParseToInt(priceInternal))
 		var pricePadded string = PadStart(price16, 16, "0")
@@ -1056,7 +1056,7 @@ func (this *Hibachi) CreateOrderRequest(nonce any, symbol any, typeVar any, side
 	}
 	var priceInternal any = ""
 	if (price != nil) && (price == nil || *price != 0) {
-		priceInternal = this.PriceToPrecision(symbol, price)
+		priceInternal = DerefScalar(this.PriceToPrecision(symbol, price))
 	}
 	var message any = this.OrderMessage(market, nonce, feeRate, typeVar, side, amount, price)
 	var signature any = this.SignMessage(message, this.PrivateKey)

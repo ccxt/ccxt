@@ -212,7 +212,7 @@ func (this *Bitstamp) HandleOrderBook(client any, message map[string]any) {
 	var symbol *string = this.SafeSymbol(marketId)
 	var storedOrderBook any = this.SafeValue(this.Orderbooks, symbol)
 	var nonce *int64 = this.SafeInteger(storedOrderBook, "nonce")
-	var delta any = this.SafeDict(message, "data")
+	var delta map[string]any = ccxt.SafeMapTyped(message, "data")
 	var deltaNonce *int64 = this.SafeInteger(delta, "microtimestamp")
 	if deltaNonce == nil {
 		return

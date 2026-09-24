@@ -395,19 +395,16 @@ func (this *Btcmarkets) fetchTransactionsWithMethodBody(ch chan any, method any,
 	if code != nil {
 		currency = MapTyped(this.Currency(code))
 	}
-	var response any = nil
+	var response []any = nil
 	if IsEqual(method, "privateGetTransfers") {
 
-		response = (<-this.PrivateGetTransfers(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.PrivateGetTransfers(this.Extend(request, params))).Raw))
 	} else if IsEqual(method, "privateGetDeposits") {
 
-		response = (<-this.PrivateGetDeposits(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.PrivateGetDeposits(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivateGetWithdrawals(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.PrivateGetWithdrawals(this.Extend(request, params))).Raw))
 	}
 
 	ch <- this.ParseTransactions(response, currency, since, limit)
@@ -1431,7 +1428,7 @@ func (this *Btcmarkets) CalculateFee(symbol any, typeVar any, side any, amount a
 		cost = this.CostToPrecision(symbol, otherUnitsAmount)
 	} else {
 		currency = market["base"]
-		cost = this.AmountToPrecision(symbol, amount)
+		cost = DerefScalar(this.AmountToPrecision(symbol, amount))
 	}
 	var rate any = this.SafeValue(market, takerOrMaker)
 	var rateCost *string = Precise.StringMul(this.NumberToString(rate), cost)

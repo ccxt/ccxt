@@ -598,9 +598,9 @@ func (this *Polymarket) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var queries any = this.ParseSearchQueries(params)
+	var queries []any = this.ParseSearchQueries(params)
 	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"query", "queries"}))
-	var queriesLength int = ccxt.GetArrayLength(queries)
+	var queriesLength int = len(queries)
 	var rawEvents any = []any{}
 	if queriesLength > 0 {
 
@@ -1532,7 +1532,7 @@ func (this *Polymarket) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var outcomesByTokenId map[string]any = map[string]any{}
 	var tokenIds []any = []any{}
 	for i := 0; i < len(targets); i++ {
-		var outcomeObj any = this.Outcome(func() any {
+		var outcomeObj map[string]any = this.Outcome(func() any {
 			if i >= 0 && i < len(targets) {
 				return ccxt.DerefScalar(targets[i])
 			}
@@ -2512,8 +2512,8 @@ func (this *Polymarket) fetchPositionsBody(ch chan any, optionalArgs ...any) any
 		panic(ccxt.ExchangeError(this.Id + " fetchPositions() missing outcomes"))
 	}
 	for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {
-		var outcomeObj any = this.Outcome(ccxt.GetValue(outcomes, i))
-		ccxt.AddElementToObject(wantedIds, ccxt.GetValue(outcomeObj, "outcomeId"), true)
+		var outcomeObj map[string]any = this.Outcome(ccxt.GetValue(outcomes, i))
+		ccxt.AddElementToObject(wantedIds, outcomeObj["outcomeId"], true)
 	}
 	var result []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(parsed); i++ {
@@ -2574,7 +2574,7 @@ func (this *Polymarket) ParsePredictionPosition(position any, optionalArgs ...an
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var tokenId *string = this.SafeString(position, "asset")
-	var marketData any = this.SafeOutcome(tokenId, market)
+	var marketData map[string]any = this.SafeOutcome(tokenId, market)
 	var size *float64 = this.SafeNumber(position, "size")
 	var entryPrice *float64 = this.SafeNumber(position, "avgPrice")
 	var curPrice *float64 = this.SafeNumber(position, "currentPrice")
@@ -2720,7 +2720,7 @@ func (this *Polymarket) ParsePredictionOrder(order any, optionalArgs ...any) any
 	_ = market
 	var id *string = this.SafeString2(order, "id", "orderID")
 	var tokenId *string = this.SafeString(order, "asset_id")
-	var mkt any = this.SafeOutcome(tokenId, market)
+	var mkt map[string]any = this.SafeOutcome(tokenId, market)
 	// REST returns 'status'; the user-websocket order event carries lifecycle in 'type'
 	var status *string = this.ParseOrderStatus(this.SafeString2(order, "status", "type"))
 	var side *string = this.SafeStringLower(order, "side")
@@ -2736,7 +2736,7 @@ func (this *Polymarket) ParsePredictionOrder(order any, optionalArgs ...any) any
 		"datetime":           this.Iso8601(ts),
 		"lastTradeTimestamp": nil,
 		"status":             status,
-		"outcome":            ccxt.GetValue(mkt, "outcome"),
+		"outcome":            mkt["outcome"],
 		"outcomeId":          this.SafeString(mkt, "outcomeId"),
 		"label":              this.SafeString(mkt, "label"),
 		"market":             this.SafeString(mkt, "market"),
@@ -2931,8 +2931,8 @@ func (this *Polymarket) BuildClobOrderBody(outcome any, typeVar any, side any, a
 	_ = price
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var outcomeObj any = this.Outcome(outcome)
-	var tokenId *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeObj, "outcomeId"))
+	var outcomeObj map[string]any = this.Outcome(outcome)
+	var tokenId *string = ccxt.SafeStringPtr(outcomeObj["outcomeId"])
 	var sideStr string = ccxt.ToUpper(side)
 	var isMarket bool = (ccxt.IsEqual(typeVar, "market"))
 	// CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
@@ -3423,7 +3423,7 @@ func (this *Polymarket) cancelAllOrdersBody(ch chan any, optionalArgs ...any) an
 	_ = params
 
 	ccxt.PanicOnError((<-this.LoadApiCredentialsAsync()))
-	var response any = nil
+	var response map[string]any = nil
 	if outcome != nil {
 		// scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
 
@@ -3432,13 +3432,11 @@ func (this *Polymarket) cancelAllOrdersBody(ch chan any, optionalArgs ...any) an
 			"asset_id": ccxt.GetValue(outcomeObj, "outcomeId"),
 		}
 
-		response = (<-this.ClobPrivateDeleteCancelMarketOrders(this.Extend(request, params))).Raw
-		ccxt.PanicOnError(response)
+		response = ccxt.MapTyped(ccxt.PanicOnError((<-this.ClobPrivateDeleteCancelMarketOrders(this.Extend(request, params))).Raw))
 	} else {
 		// cancel every open order via DELETE /cancel-all (no body, no market data needed)
 
-		response = (<-this.ClobPrivateDeleteCancelAll(params)).Raw
-		ccxt.PanicOnError(response)
+		response = ccxt.MapTyped(ccxt.PanicOnError((<-this.ClobPrivateDeleteCancelAll(params)).Raw))
 	}
 	var canceled any = this.SafeList(response, "canceled", []any{})
 	var orders []any = []any{}
@@ -3487,12 +3485,12 @@ func (this *Polymarket) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	this.RequireEventQuery(params)
 	var requestedEventId *string = this.SafeString(params, "eventId")
 	var requestedSlug *string = this.SafeString(params, "slug")
-	var queries any = this.ParseSearchQueries(params)
+	var queries []any = this.ParseSearchQueries(params)
 	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"query", "queries", "eventId", "slug"}))
 	if ccxt.IsEqual(queries, nil) {
 		panic(ccxt.ExchangeError(this.Id + " fetchEvents() missing queries"))
 	}
-	var queriesLength int = ccxt.GetArrayLength(queries)
+	var queriesLength int = len(queries)
 	var rawEvents any = []any{}
 	if (requestedEventId != nil) || (requestedSlug != nil) {
 		// direct lookup by event id or slug via the events endpoint (returns a list)
@@ -3606,19 +3604,17 @@ func (this *Polymarket) fetchEventBody(ch chan any, id any, optionalArgs ...any)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var response any = nil
+	var response map[string]any = nil
 	if ccxt.GetIndexOf(id, "-") >= 0 {
 
-		response = (<-this.GammaPublicGetEventsSlugSlug(this.Extend(map[string]any{
+		response = ccxt.MapTyped(ccxt.PanicOnError((<-this.GammaPublicGetEventsSlugSlug(this.Extend(map[string]any{
 			"slug": id,
-		}, params))).Raw
-		ccxt.PanicOnError(response)
+		}, params))).Raw))
 	} else {
 
-		response = (<-this.GammaPublicGetEventsId(this.Extend(map[string]any{
+		response = ccxt.MapTyped(ccxt.PanicOnError((<-this.GammaPublicGetEventsId(this.Extend(map[string]any{
 			"id": id,
-		}, params))).Raw
-		ccxt.PanicOnError(response)
+		}, params))).Raw))
 	}
 	var eventForParsing any = this.SafeDict(response, "event", response)
 	if ccxt.IsEqual(eventForParsing, nil) {
@@ -4265,7 +4261,7 @@ func (this *Polymarket) HandleOrderBookSnapshot(client any, event any) {
 		}())
 		asks = append(asks, []any{this.SafeNumber(a, "price"), this.SafeNumber(a, "size")})
 	}
-	var outcomeObj any = this.SafeOutcome(outcome)
+	var outcomeObj map[string]any = this.SafeOutcome(outcome)
 	orderbook.(ccxt.OrderBookInterface).Reset(map[string]any{
 		"bids":      bids,
 		"asks":      asks,
@@ -4328,7 +4324,7 @@ func (this *Polymarket) HandleTrade(client any, event any) {
 	var timestamp any = this.ParsePolyTimestamp(this.SafeString(event, "timestamp"))
 	var price *float64 = this.SafeNumber(event, "price")
 	var amount *float64 = this.SafeNumber(event, "size")
-	var market any = this.SafeOutcome(tokenId)
+	var market map[string]any = this.SafeOutcome(tokenId)
 	var trade any = this.SafePredictionTrade(map[string]any{
 		"id":           this.SafeString(event, "transaction_hash"),
 		"info":         event,
@@ -4514,7 +4510,7 @@ func (this *Polymarket) watchTickerBody(ch chan any, outcome any, optionalArgs .
 	} else {
 		mid = bestAsk
 	}
-	var market any = this.SafeOutcome(outcome)
+	var market map[string]any = this.SafeOutcome(outcome)
 
 	ch <- this.SafePredictionTicker(map[string]any{
 		"outcome":       outcome,

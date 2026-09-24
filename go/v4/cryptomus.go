@@ -596,7 +596,7 @@ func (this *Cryptomus) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//         ...
 	//     }
 	//
-	var data any = this.SafeList(response, "data")
+	var data []any = SafeListTyped(response, "data")
 
 	ch <- this.ParseTickers(data, symbols)
 	return nil

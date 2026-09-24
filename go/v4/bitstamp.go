@@ -2432,38 +2432,32 @@ func (this *Bitstamp) createOrderBody(ch chan any, symbol any, typeVar any, side
 		request["client_order_id"] = clientOrderId
 		params = MapTyped(this.Omit(params, []any{"clientOrderId"}))
 	}
-	var response any = nil
+	var response map[string]any = nil
 	var capitalizedSide string = this.Capitalize(side)
 	if IsEqual(typeVar, "market") {
 		if capitalizedSide == "Buy" {
 
-			response = (<-this.PrivatePostBuyMarketPair(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivatePostBuyMarketPair(this.Extend(request, params))).Raw))
 		} else {
 
-			response = (<-this.PrivatePostSellMarketPair(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivatePostSellMarketPair(this.Extend(request, params))).Raw))
 		}
 	} else if IsEqual(typeVar, "instant") {
 		if capitalizedSide == "Buy" {
 
-			response = (<-this.PrivatePostBuyInstantPair(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivatePostBuyInstantPair(this.Extend(request, params))).Raw))
 		} else {
 
-			response = (<-this.PrivatePostSellInstantPair(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivatePostSellInstantPair(this.Extend(request, params))).Raw))
 		}
 	} else {
 		request["price"] = this.PriceToPrecision(symbol, price)
 		if capitalizedSide == "Buy" {
 
-			response = (<-this.PrivatePostBuyPair(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivatePostBuyPair(this.Extend(request, params))).Raw))
 		} else {
 
-			response = (<-this.PrivatePostSellPair(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivatePostSellPair(this.Extend(request, params))).Raw))
 		}
 	}
 	var orderResponse any = func() any {
@@ -2608,17 +2602,15 @@ func (this *Bitstamp) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	}
 	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
-	var response any = nil
+	var response map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["pair"] = GetValue(market, "id")
 
-		response = (<-this.PrivatePostCancelAllOrdersPair(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostCancelAllOrdersPair(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivatePostCancelAllOrders(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostCancelAllOrders(this.Extend(request, params))).Raw))
 	}
 	//
 	//    {
@@ -2635,7 +2627,7 @@ func (this *Bitstamp) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	//        "success": true
 	//    }
 	//
-	var canceled any = this.SafeList(response, "canceled")
+	var canceled []any = SafeListTyped(response, "canceled")
 
 	ch <- this.ParseOrders(canceled)
 	return nil
@@ -2785,15 +2777,13 @@ func (this *Bitstamp) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var response any = nil
+	var response []any = nil
 	if symbol != nil {
 
-		response = (<-this.PrivatePostUserTransactionsPair(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.PrivatePostUserTransactionsPair(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivatePostUserTransactions(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.PrivatePostUserTransactions(this.Extend(request, params))).Raw))
 	}
 	var result []any = this.FilterBy(response, "type", "2")
 

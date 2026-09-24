@@ -355,17 +355,15 @@ func (this *Zebpay) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var isSpot bool = (typeVar != nil && *typeVar == "spot")
-	var response any = nil
+	var response map[string]any = nil
 	var data any = map[string]any{}
 	if isSpot {
 
-		response = (<-this.PublicSpotGetV2SystemStatus(params)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicSpotGetV2SystemStatus(params)).Raw))
 		data = response
 	} else {
 
-		response = (<-this.PublicSwapGetV1SystemStatus(params)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicSwapGetV1SystemStatus(params)).Raw))
 		data = this.SafeDict(response, "data", map[string]any{})
 	}
 	//
@@ -415,17 +413,15 @@ func (this *Zebpay) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var isSpot bool = (typeVar != nil && *typeVar == "spot")
-	var response any = nil
+	var response map[string]any = nil
 	var data any = map[string]any{}
 	if isSpot {
 
-		response = (<-this.PublicSpotGetV2SystemTime(params)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicSpotGetV2SystemTime(params)).Raw))
 		data = response
 	} else {
 
-		response = (<-this.PublicSwapGetV1SystemTime(params)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicSwapGetV1SystemTime(params)).Raw))
 		data = this.SafeDict(response, "data", map[string]any{})
 	}
 	//
@@ -682,15 +678,14 @@ func (this *Zebpay) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var response any = nil
+	var response map[string]any = nil
 	var data any = nil
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 	if GetValue(market, "spot") == true {
 
-		response = (<-this.PrivateSpotGetV2ExTradefee(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateSpotGetV2ExTradefee(this.Extend(request, params))).Raw))
 		//
 		// {
 		//     "statusDescription": "Success",
@@ -706,8 +701,7 @@ func (this *Zebpay) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
 		data = this.SafeDict(response, "data", map[string]any{})
 	} else {
 
-		response = (<-this.PublicSwapGetV1ExchangeTradefee(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicSwapGetV1ExchangeTradefee(this.Extend(request, params))).Raw))
 		//
 		// {
 		//     "statusDescription": "OK",
@@ -753,15 +747,13 @@ func (this *Zebpay) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTradingFees", nil, params)
 	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	var response any = nil
+	var response map[string]any = nil
 	if typeVar != nil && *typeVar == "spot" {
 
-		response = (<-this.PublicSpotGetV2ExTradefees(params)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicSpotGetV2ExTradefees(params)).Raw))
 	} else {
 
-		response = (<-this.PublicSwapGetV1ExchangeTradefees(params)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicSwapGetV1ExchangeTradefees(params)).Raw))
 	}
 	//
 	// {
@@ -827,7 +819,7 @@ func (this *Zebpay) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if GetValue(market, "spot") == true {
 		if limit != nil {
 			request["limit"] = limit
@@ -845,12 +837,10 @@ func (this *Zebpay) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		//       }
 		// }
 
-		response = (<-this.PublicSpotGetV2MarketOrderbook(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicSpotGetV2MarketOrderbook(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PublicSwapGetV1MarketOrderBook(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicSwapGetV1MarketOrderBook(this.Extend(request, params))).Raw))
 	}
 	var bookData map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var orderbook map[string]any = this.ParseOrderBook(bookData, market["symbol"], nil, "bids", "asks", 0, 1)
@@ -888,15 +878,13 @@ func (this *Zebpay) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if GetValue(market, "spot") == true {
 
-		response = (<-this.PublicSpotGetV2MarketTicker(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicSpotGetV2MarketTicker(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PublicSwapGetV1MarketTicker24Hr(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicSwapGetV1MarketTicker24Hr(this.Extend(request, params))).Raw))
 	}
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
@@ -1024,18 +1012,16 @@ func (this *Zebpay) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		request["endTime"] = until
 		params = MapTyped(this.Omit(params, []any{"endtime", "until"}))
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if GetValue(market, "spot") == true {
 		if (until == nil) || (since == nil) {
 			panic(ArgumentsRequired(this.Id + " fetchOHLCV() requires a both a since and until/endtime parameter for spot markets"))
 		}
 
-		response = (<-this.PublicSpotGetV2MarketKlines(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicSpotGetV2MarketKlines(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PublicSwapPostV1MarketKlines(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicSwapPostV1MarketKlines(this.Extend(request, params))).Raw))
 	}
 	//
 	//             [
@@ -1111,15 +1097,13 @@ func (this *Zebpay) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	if (GetValue(market, "spot") == true) && (limit != nil) {
 		request["limit"] = limit
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if GetValue(market, "spot") == true {
 
-		response = (<-this.PublicSpotGetV2MarketTrades(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicSpotGetV2MarketTrades(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PublicSwapGetV1MarketAggTrade(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicSwapGetV1MarketAggTrade(this.Extend(request, params))).Raw))
 	}
 	//
 	//     [
@@ -1178,13 +1162,12 @@ func (this *Zebpay) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
 	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	var response any = nil
+	var response map[string]any = nil
 	if typeVar != nil && *typeVar == "spot" {
 		panic(NotSupported(this.Id + " fetchMyTrades() does not support spot markets"))
 	} else {
 
-		response = (<-this.PrivateSwapGetV1TradeHistory(params)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateSwapGetV1TradeHistory(params)).Raw))
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
 	var items []any = SafeListTypedDefault(data, "items", []any{})
@@ -1349,15 +1332,13 @@ func (this *Zebpay) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var isSpot bool = (typeVar != nil && *typeVar == "spot")
-	var response any = nil
+	var response map[string]any = nil
 	if isSpot {
 
-		response = (<-this.PrivateSpotGetV2AccountBalance(params)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateSpotGetV2AccountBalance(params)).Raw))
 	} else {
 
-		response = (<-this.PrivateSwapGetV1WalletBalance(params)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateSwapGetV1WalletBalance(params)).Raw))
 	}
 
 	//
@@ -1429,14 +1410,13 @@ func (this *Zebpay) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		"symbol": market["id"],
 		"side":   ToUpper(side),
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if GetValue(market, "spot") == true {
 		requestparamsVariable := this.OrderRequest(symbol, typeVar, amount, request, price, params)
 		request = GetValue(requestparamsVariable, 0)
 		params = GetValue(requestparamsVariable, 1)
 
-		response = (<-this.PrivateSpotPostV2ExOrders(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateSpotPostV2ExOrders(this.Extend(request, params))).Raw))
 	} else {
 		var marginAsset *string = this.SafeString(params, "marginAsset", "INR")
 		var formType *string = this.SafeStringUpper(params, "formType", "ORDER_FORM")
@@ -1453,8 +1433,7 @@ func (this *Zebpay) createOrderBody(ch chan any, symbol any, typeVar any, side a
 				AddElementToObject(request, "stopLossPrice", this.ParseToNumeric(this.PriceToPrecision(symbol, stopLossPrice)))
 			}
 
-			response = (<-this.PrivateSwapPostV1TradeOrderAddTPSL(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateSwapPostV1TradeOrderAddTPSL(this.Extend(request, params))).Raw))
 		} else {
 			AddElementToObject(request, "type", upperCaseType)
 			if IsEqual(typeVar, "limit") {
@@ -1464,8 +1443,7 @@ func (this *Zebpay) createOrderBody(ch chan any, symbol any, typeVar any, side a
 				AddElementToObject(request, "price", this.ParseToNumeric(this.PriceToPrecision(symbol, price)))
 			}
 
-			response = (<-this.PrivateSwapPostV1TradeOrder(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateSwapPostV1TradeOrder(this.Extend(request, params))).Raw))
 		}
 	}
 	//
@@ -1538,13 +1516,12 @@ func (this *Zebpay) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var response any = nil
+	var response map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if GetValue(market, "spot") == true {
 		request["orderId"] = id
 
-		response = (<-this.PrivateSpotDeleteV2ExOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateSpotDeleteV2ExOrder(this.Extend(request, params))).Raw))
 	} else {
 		var clientOrderId *string = this.SafeString(params, "clientOrderId")
 		if clientOrderId == nil {
@@ -1553,8 +1530,7 @@ func (this *Zebpay) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		request["clientOrderId"] = clientOrderId
 		request["symbol"] = market["id"]
 
-		response = (<-this.PrivateSwapDeleteV1TradeOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateSwapDeleteV1TradeOrder(this.Extend(request, params))).Raw))
 	}
 
 	//
@@ -1655,7 +1631,7 @@ func (this *Zebpay) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	var response any = nil
+	var response map[string]any = nil
 	var orders any = []any{}
 	if GetValue(market, "spot") == true {
 		request["currentPage"] = 1
@@ -1663,8 +1639,7 @@ func (this *Zebpay) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 			request["pageSize"] = limit
 		}
 
-		response = (<-this.PrivateSpotGetV2ExOrders(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateSpotGetV2ExOrders(this.Extend(request, params))).Raw))
 		var responseData map[string]any = SafeMapTyped(response, "data")
 		orders = this.SafeList(responseData, "items", []any{})
 	} else {
@@ -1675,8 +1650,7 @@ func (this *Zebpay) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 			request["limit"] = limit
 		}
 
-		response = (<-this.PrivateSwapGetV1TradeOrderOpenOrders(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateSwapGetV1TradeOrderOpenOrders(this.Extend(request, params))).Raw))
 		var responseData map[string]any = SafeMapTyped(response, "data")
 		orders = this.SafeList(responseData, "data", []any{})
 	}
@@ -1741,17 +1715,15 @@ func (this *Zebpay) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{}
-	var response any = nil
+	var response map[string]any = nil
 	if GetValue(market, "spot") == true {
 		request["orderId"] = id
 
-		response = (<-this.PrivateSpotGetV2ExOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateSpotGetV2ExOrder(this.Extend(request, params))).Raw))
 	} else {
 		request["id"] = id
 
-		response = (<-this.PrivateSwapGetV1TradeOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateSwapGetV1TradeOrder(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {
@@ -2428,7 +2400,7 @@ func (this *Zebpay) ParseLeverage(leverage any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "symbol")
-	var info any = this.SafeDict(leverage, "info")
+	var info map[string]any = SafeMapTyped(leverage, "info")
 	var leverageValue *int64 = this.SafeInteger(leverage, "longLeverage")
 	var leverageValueShort *int64 = this.SafeInteger(leverage, "shortLeverage")
 	var marginMode *string = this.SafeString(leverage, "marginMode")

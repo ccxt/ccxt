@@ -13595,16 +13595,16 @@ public Object describe()
         return "";
     }
 
-    public CompletableFuture<Object> isUTAEnabled(Map<String, Object> parameters)
+    public CompletableFuture<Boolean> isUTAEnabled(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             return false;  // stub
-        });
+        }).thenApply(res -> (Boolean) res);
 
     }
-    public CompletableFuture<Object> isUTAEnabled(Object... optionalArgs)
+    public CompletableFuture<Boolean> isUTAEnabled(Object... optionalArgs)
     {
         return this.isUTAEnabled(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }

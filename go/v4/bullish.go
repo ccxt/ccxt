@@ -1279,11 +1279,10 @@ func (this *Bullish) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["symbol"] = GetValue(market, "id")
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
-	var response any = nil
+	var response []any = nil
 	if clientOrderId != nil {
 
-		response = (<-this.PrivateGetV1TradesClientOrderIdClientOrderId(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.PrivateGetV1TradesClientOrderIdClientOrderId(this.Extend(request, params))).Raw))
 	} else {
 		var paginate bool = false
 		var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
@@ -1321,8 +1320,7 @@ func (this *Bullish) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		//     ]
 		//
 
-		response = (<-this.PrivateGetV1HistoryTrades(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.PrivateGetV1HistoryTrades(this.Extend(request, params))).Raw))
 	}
 
 	ch <- this.ParseTrades(response, market, since, limit)

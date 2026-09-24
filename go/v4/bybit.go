@@ -2854,14 +2854,14 @@ func (this *Bybit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
 	var promisesUnresolved []any = []any{}
-	var types any = nil
+	var types []any = nil
 	var defaultTypes []any = []any{"spot", "linear", "inverse", "option"}
 	var fetchMarketsOptions any = this.SafeDict(this.Options, "fetchMarkets")
 	if !IsEqual(fetchMarketsOptions, nil) {
-		types = this.SafeList(fetchMarketsOptions, "types", defaultTypes)
+		types = ListTyped(this.SafeList(fetchMarketsOptions, "types", defaultTypes))
 	} else {
 		// for backward-compatibility
-		types = this.SafeList(this.Options, "fetchMarkets", defaultTypes)
+		types = ListTyped(this.SafeList(this.Options, "fetchMarkets", defaultTypes))
 	}
 	for i := 0; i < GetArrayLength(types); i++ {
 		var marketType *string = SafeStringPtr(GetValue(types, i))
@@ -2926,15 +2926,13 @@ func (this *Bybit) fetchSpotMarketsBody(ch chan any, params any) any {
 		"category": "spot",
 	}
 	var usePrivateInstrumentsInfo any = this.HandleOption("fetchMarkets", "usePrivateInstrumentsInfo", false)
-	var response any = nil
+	var response map[string]any = nil
 	if usePrivateInstrumentsInfo == true {
 
-		response = (<-this.PrivateGetV5MarketInstrumentsInfo(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetV5MarketInstrumentsInfo(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PublicGetV5MarketInstrumentsInfo(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicGetV5MarketInstrumentsInfo(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {
@@ -3063,18 +3061,17 @@ func (this *Bybit) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) any 
 	AddElementToObject(params, "limit", 1000) // minimize number of requests
 	var preLaunchMarkets any = []any{}
 	var usePrivateInstrumentsInfo any = this.HandleOption("fetchMarkets", "usePrivateInstrumentsInfo", false)
-	var response any = nil
+	var response map[string]any = nil
 	if usePrivateInstrumentsInfo == true {
 
-		response = (<-this.PrivateGetV5MarketInstrumentsInfo(params)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetV5MarketInstrumentsInfo(params)).Raw))
 	} else {
 		var linearPromises []any = []any{EndpointRaw(this.PublicGetV5MarketInstrumentsInfo(params)), EndpointRaw(this.PublicGetV5MarketInstrumentsInfo(this.Extend(params, map[string]any{
 			"status": "PreLaunch",
 		})))}
 
 		var promises []any = ListTyped(PanicOnError((<-promiseAll(linearPromises))))
-		response = this.SafeDict(promises, 0, map[string]any{})
+		response = MapTyped(this.SafeDict(promises, 0, map[string]any{}))
 		preLaunchMarkets = this.SafeDict(promises, 1, map[string]any{})
 	}
 	var data map[string]any = SafeMapTyped(response, "result")
@@ -3083,15 +3080,13 @@ func (this *Bybit) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) any 
 	if paginationCursor != nil {
 		for paginationCursor != nil {
 			AddElementToObject(params, "cursor", paginationCursor)
-			var responseInner any = nil
+			var responseInner map[string]any = nil
 			if usePrivateInstrumentsInfo == true {
 
-				responseInner = (<-this.PrivateGetV5MarketInstrumentsInfo(params)).Raw
-				PanicOnError(responseInner)
+				responseInner = MapTyped(PanicOnError((<-this.PrivateGetV5MarketInstrumentsInfo(params)).Raw))
 			} else {
 
-				responseInner = (<-this.PublicGetV5MarketInstrumentsInfo(params)).Raw
-				PanicOnError(responseInner)
+				responseInner = MapTyped(PanicOnError((<-this.PublicGetV5MarketInstrumentsInfo(params)).Raw))
 			}
 			var dataNew map[string]any = SafeMapTyped(responseInner, "result")
 			var rawMarkets []any = SafeListTypedDefault(dataNew, "list", []any{})
@@ -3288,15 +3283,13 @@ func (this *Bybit) fetchOptionMarketsBody(ch chan any, params any) any {
 		"category": "option",
 	}
 	var usePrivateInstrumentsInfo any = this.HandleOption("fetchMarkets", "usePrivateInstrumentsInfo", false)
-	var response any = nil
+	var response map[string]any = nil
 	if usePrivateInstrumentsInfo == true {
 
-		response = (<-this.PrivateGetV5MarketInstrumentsInfo(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetV5MarketInstrumentsInfo(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PublicGetV5MarketInstrumentsInfo(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicGetV5MarketInstrumentsInfo(this.Extend(request, params))).Raw))
 	}
 	var data map[string]any = SafeMapTyped(response, "result")
 	var markets any = this.SafeList(data, "list", []any{})
@@ -3307,15 +3300,13 @@ func (this *Bybit) fetchOptionMarketsBody(ch chan any, params any) any {
 		if paginationCursor != nil {
 			for paginationCursor != nil {
 				request["cursor"] = paginationCursor
-				var responseInner any = nil
+				var responseInner map[string]any = nil
 				if usePrivateInstrumentsInfo == true {
 
-					responseInner = (<-this.PrivateGetV5MarketInstrumentsInfo(this.Extend(request, params))).Raw
-					PanicOnError(responseInner)
+					responseInner = MapTyped(PanicOnError((<-this.PrivateGetV5MarketInstrumentsInfo(this.Extend(request, params))).Raw))
 				} else {
 
-					responseInner = (<-this.PublicGetV5MarketInstrumentsInfo(this.Extend(request, params))).Raw
-					PanicOnError(responseInner)
+					responseInner = MapTyped(PanicOnError((<-this.PublicGetV5MarketInstrumentsInfo(this.Extend(request, params))).Raw))
 				}
 				var dataNew map[string]any = SafeMapTyped(responseInner, "result")
 				var rawMarkets []any = SafeListTypedDefault(dataNew, "list", []any{})
@@ -3920,12 +3911,11 @@ func (this *Bybit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	request["interval"] = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var response any = nil
+	var response map[string]any = nil
 	if GetValue(market, "spot") == true {
 		request["category"] = "spot"
 
-		response = (<-this.PublicGetV5MarketKline(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicGetV5MarketKline(this.Extend(request, params))).Raw))
 	} else {
 		var price *string = this.SafeString(params, "price")
 		params = MapTyped(this.Omit(params, "price"))
@@ -3938,20 +3928,16 @@ func (this *Bybit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		}
 		if price != nil && *price == "mark" {
 
-			response = (<-this.PublicGetV5MarketMarkPriceKline(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PublicGetV5MarketMarkPriceKline(this.Extend(request, params))).Raw))
 		} else if price != nil && *price == "index" {
 
-			response = (<-this.PublicGetV5MarketIndexPriceKline(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PublicGetV5MarketIndexPriceKline(this.Extend(request, params))).Raw))
 		} else if price != nil && *price == "premiumIndex" {
 
-			response = (<-this.PublicGetV5MarketPremiumIndexPriceKline(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PublicGetV5MarketPremiumIndexPriceKline(this.Extend(request, params))).Raw))
 		} else {
 
-			response = (<-this.PublicGetV5MarketKline(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PublicGetV5MarketKline(this.Extend(request, params))).Raw))
 		}
 	}
 	//
@@ -4978,23 +4964,20 @@ func (this *Bybit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchBalance", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
-	var response any = nil
+	var response map[string]any = nil
 	if isSpot && (marginMode != nil) {
 
-		response = (<-this.PrivateGetV5SpotCrossMarginTradeAccount(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetV5SpotCrossMarginTradeAccount(this.Extend(request, params))).Raw))
 	} else if isFunding {
 		// use this endpoint only we have no other choice
 		// because it requires transfer permission
 		request["accountType"] = "FUND"
 
-		response = (<-this.PrivateGetV5AssetTransferQueryAccountCoinsBalance(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetV5AssetTransferQueryAccountCoinsBalance(this.Extend(request, params))).Raw))
 	} else {
 		request["accountType"] = unifiedType
 
-		response = (<-this.PrivateGetV5AccountWalletBalance(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetV5AccountWalletBalance(this.Extend(request, params))).Raw))
 	}
 
 	//
@@ -8581,15 +8564,14 @@ func (this *Bybit) fetchPositionBody(ch chan any, symbol any, optionalArgs ...an
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	var response any = nil
+	var response map[string]any = nil
 	var typeVar any = nil
 	typeVarparamsVariable := this.GetBybitType("fetchPosition", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	request["category"] = typeVar
 
-	response = (<-this.PrivateGetV5PositionList(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	response = MapTyped(PanicOnError((<-this.PrivateGetV5PositionList(this.Extend(request, params))).Raw))
 	//
 	//     {
 	//         "retCode": 0,
@@ -9124,7 +9106,7 @@ func (this *Bybit) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
 	enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 1)
 	var isUnifiedAccount bool = (IsEqual(enableUnifiedMargin, true)) || (IsEqual(enableUnifiedAccount, true))
 	var market map[string]any = nil
-	var response any = nil
+	var response map[string]any = nil
 	if isUnifiedAccount {
 		if IsEqual(marginMode, "isolated") {
 			marginMode = "ISOLATED_MARGIN"
@@ -9139,8 +9121,7 @@ func (this *Bybit) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
 			"setMarginMode": marginMode,
 		}
 
-		response = (<-this.PrivatePostV5AccountSetMarginMode(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostV5AccountSetMarginMode(this.Extend(request, params))).Raw))
 	} else {
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " setMarginMode() requires a symbol parameter for non unified account"))
@@ -9159,8 +9140,7 @@ func (this *Bybit) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
 				"setMarginMode": marginMode,
 			}
 
-			response = (<-this.PrivatePostV5AccountSetMarginMode(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivatePostV5AccountSetMarginMode(this.Extend(request, params))).Raw))
 		} else {
 			var typeVar *string = nil
 			typeVarparamsVariable := this.GetBybitType("setPositionMode", market, params)
@@ -9203,8 +9183,7 @@ func (this *Bybit) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
 				"sellLeverage": sellLeverage,
 			}
 
-			response = (<-this.PrivatePostV5PositionSwitchIsolated(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivatePostV5PositionSwitchIsolated(this.Extend(request, params))).Raw))
 		}
 	}
 
@@ -10277,7 +10256,7 @@ func (this *Bybit) fetchDerivativesMarketLeverageTiersBody(ch chan any, symbol a
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var tiers any = this.SafeList(result, "list")
+	var tiers []any = SafeListTyped(result, "list")
 
 	ch <- this.ParseMarketLeverageTiers(tiers, market)
 	return nil

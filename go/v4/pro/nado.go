@@ -2523,7 +2523,7 @@ func (this *Nado) HandleMessage(client any, message any) {
 	}
 	var id *string = this.SafeString(message, "id")
 	var hasResult bool = (ccxt.InOp(message, "result"))
-	var result any = this.SafeDict(message, "result")
+	var result map[string]any = ccxt.SafeMapTyped(message, "result")
 	var method *string = this.SafeString(result, "method")
 	if method != nil && *method == "pong" {
 		// pong replies carry both 'id' and 'result' so they must be routed

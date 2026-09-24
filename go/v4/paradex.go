@@ -829,7 +829,7 @@ func (this *Paradex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "results")
+	var data []any = SafeListTyped(response, "results")
 
 	ch <- this.ParseMarkets(data)
 	return nil
@@ -2186,7 +2186,7 @@ func (this *Paradex) ParseOrder(order any, optionalArgs ...any) any {
 	var remaining any = this.OmitZero(this.SafeString(order, "remaining_size"))
 	var triggerPrice any = this.OmitZero(this.SafeString(order, "trigger_price"))
 	var lastUpdateTimestamp *int64 = this.SafeInteger(order, "last_updated_at")
-	var flags any = this.SafeList(order, "flags")
+	var flags []any = SafeListTyped(order, "flags")
 	var reduceOnly any = nil
 	if !IsEqual(flags, nil) {
 		reduceOnly = this.InArray("REDUCE_ONLY", flags)
@@ -2304,35 +2304,35 @@ func (this *Paradex) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		// flags: Reduce_Only must be provided for TPSL orders.
 		if isMarket {
 			if isStopLossOrder {
-				stopPrice = this.PriceToPrecision(symbol, stopLossPrice)
+				stopPrice = DerefScalar(this.PriceToPrecision(symbol, stopLossPrice))
 				reduceOnly = true
 				request["type"] = "STOP_LOSS_MARKET"
 			} else if isTakeProfitOrder {
-				stopPrice = this.PriceToPrecision(symbol, takeProfitPrice)
+				stopPrice = DerefScalar(this.PriceToPrecision(symbol, takeProfitPrice))
 				reduceOnly = true
 				request["type"] = "TAKE_PROFIT_MARKET"
 			} else {
-				stopPrice = this.PriceToPrecision(symbol, triggerPrice)
-				sizeString = this.AmountToPrecision(symbol, amount)
+				stopPrice = DerefScalar(this.PriceToPrecision(symbol, triggerPrice))
+				sizeString = DerefScalar(this.AmountToPrecision(symbol, amount))
 				request["type"] = "STOP_MARKET"
 			}
 		} else {
 			if isStopLossOrder {
-				stopPrice = this.PriceToPrecision(symbol, stopLossPrice)
+				stopPrice = DerefScalar(this.PriceToPrecision(symbol, stopLossPrice))
 				reduceOnly = true
 				request["type"] = "STOP_LOSS_LIMIT"
 			} else if isTakeProfitOrder {
-				stopPrice = this.PriceToPrecision(symbol, takeProfitPrice)
+				stopPrice = DerefScalar(this.PriceToPrecision(symbol, takeProfitPrice))
 				reduceOnly = true
 				request["type"] = "TAKE_PROFIT_LIMIT"
 			} else {
-				stopPrice = this.PriceToPrecision(symbol, triggerPrice)
-				sizeString = this.AmountToPrecision(symbol, amount)
+				stopPrice = DerefScalar(this.PriceToPrecision(symbol, triggerPrice))
+				sizeString = DerefScalar(this.AmountToPrecision(symbol, amount))
 				request["type"] = "STOP_LIMIT"
 			}
 		}
 	} else {
-		sizeString = this.AmountToPrecision(symbol, amount)
+		sizeString = DerefScalar(this.AmountToPrecision(symbol, amount))
 	}
 	if stopPrice != nil {
 		request["trigger_price"] = stopPrice
@@ -2719,17 +2719,15 @@ func (this *Paradex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	}
 	var request map[string]any = map[string]any{}
 	var clientOrderId *string = this.SafeStringN(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
-	var response any = nil
+	var response map[string]any = nil
 	if clientOrderId != nil {
 		request["client_id"] = clientOrderId
 
-		response = (<-this.PrivateDeleteOrdersByClientIdClientId(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateDeleteOrdersByClientIdClientId(this.Extend(request, params))).Raw))
 	} else {
 		request["order_id"] = id
 
-		response = (<-this.PrivateDeleteOrdersOrderId(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateDeleteOrdersOrderId(this.Extend(request, params))).Raw))
 	}
 
 	//
@@ -2921,17 +2919,15 @@ func (this *Paradex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var request map[string]any = map[string]any{}
 	var clientOrderId *string = this.SafeStringN(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
 	params = MapTyped(this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id"}))
-	var response any = nil
+	var response map[string]any = nil
 	if clientOrderId != nil {
 		request["client_id"] = clientOrderId
 
-		response = (<-this.PrivateGetOrdersByClientIdClientId(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetOrdersByClientIdClientId(this.Extend(request, params))).Raw))
 	} else {
 		request["order_id"] = id
 
-		response = (<-this.PrivateGetOrdersOrderId(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetOrdersOrderId(this.Extend(request, params))).Raw))
 	}
 
 	//

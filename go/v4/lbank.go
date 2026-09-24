@@ -1629,10 +1629,15 @@ func (this *Lbank) ParseBalance(response any) any {
 		return this.SafeBalance(result)
 	}
 	// from spotPrivatePostSupplementUserInfoAccount
-	var balances any = this.SafeList(data, "balances")
+	var balances []any = SafeListTyped(data, "balances")
 	if !IsEqual(balances, nil) {
-		for i := 0; i < GetArrayLength(balances); i++ {
-			var item any = GetValue(balances, i)
+		for i := 0; i < len(balances); i++ {
+			var item any = func() any {
+				if i >= 0 && i < len(balances) {
+					return DerefScalar(balances[i])
+				}
+				return nil
+			}()
 			var currencyId *string = this.SafeString(item, "asset")
 			var codeInner *string = this.SafeCurrencyCode(currencyId)
 			var account map[string]any = this.Account()
@@ -2112,15 +2117,13 @@ func (this *Lbank) createOrderBody(ch chan any, symbol any, typeVar any, side an
 	var defaultMethod *string = this.SafeString(options, "method", "spotPrivatePostSupplementCreateOrder")
 	var method *string = this.SafeString(params, "method", defaultMethod)
 	params = MapTyped(this.Omit(params, "method"))
-	var response any = nil
+	var response map[string]any = nil
 	if method != nil && *method == "spotPrivatePostCreateOrder" {
 
-		response = (<-this.SpotPrivatePostCreateOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.SpotPrivatePostCreateOrder(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.SpotPrivatePostSupplementCreateOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.SpotPrivatePostSupplementCreateOrder(this.Extend(request, params))).Raw))
 	}
 	//
 	//      {
@@ -3713,7 +3716,7 @@ func (this *Lbank) ParsePublicDepositWithdrawFees(response []any, optionalArgs .
 			if (code != nil) && ((codes == nil) || this.InArray(code, codes)) {
 				var withdrawFee *float64 = this.SafeNumber(fee, "fee")
 				if withdrawFee != nil {
-					var resultValue any = this.SafeDict(result, code)
+					var resultValue map[string]any = SafeMapTyped(result, code)
 					if IsEqual(resultValue, nil) {
 						AddElementToObject(result, code, this.DepositWithdrawFee([]any{fee}))
 					} else {

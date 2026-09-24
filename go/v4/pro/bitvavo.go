@@ -581,7 +581,7 @@ func (this *Bitvavo) HandleFetchOHLCV(client any, message map[string]any) {
 	//        ]
 	//    }
 	//
-	var response any = this.SafeList(message, "response")
+	var response []any = ccxt.SafeListTyped(message, "response")
 	var ohlcv any = this.ParseOHLCVs(response, nil, nil, nil)
 	var messageHash *string = this.SafeString(message, "requestId")
 	client.(ccxt.ClientInterface).Resolve(ohlcv, messageHash)
@@ -1098,7 +1098,7 @@ func (this *Bitvavo) WatchOrderBookSnapshotAsync(client any, message any, subscr
 func (this *Bitvavo) watchOrderBookSnapshotBody(ch chan any, client any, message any, subscription any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var params any = this.SafeDict(subscription, "params")
+	var params map[string]any = ccxt.SafeMapTyped(subscription, "params")
 	// multi-symbol watches share one subscription object without a marketId,
 	// in that case the buffered delta message identifies the market
 	var marketId *string = this.SafeString2(subscription, "marketId", "market", this.SafeString(message, "market"))
@@ -1142,7 +1142,7 @@ func (this *Bitvavo) HandleOrderBookSnapshot(client any, message map[string]any)
 	//         }
 	//     }
 	//
-	var response any = this.SafeDict(message, "response")
+	var response map[string]any = ccxt.SafeMapTyped(message, "response")
 	if ccxt.IsEqual(response, nil) {
 		return
 	}
@@ -1558,7 +1558,7 @@ func (this *Bitvavo) HandleMultipleOrders(client any, message map[string]any) {
 	//    }
 	//
 	// const action = this.safeString (message, 'action')
-	var response any = this.SafeList(message, "response")
+	var response []any = ccxt.SafeListTyped(message, "response")
 	// const firstRawOrder = this.safeValue (response, 0, {})
 	// const marketId = this.safeString (firstRawOrder, 'market')
 	var orders any = this.ParseOrders(response)
@@ -2124,7 +2124,7 @@ func (this *Bitvavo) HandleFetchCurrencies(client any, message map[string]any) {
 	//    }
 	//
 	var messageHash *string = this.SafeString(message, "requestId")
-	var response any = this.SafeList(message, "response")
+	var response []any = ccxt.SafeListTyped(message, "response")
 	var currencies any = this.ParseCurrencies(response)
 	client.(ccxt.ClientInterface).Resolve(currencies, messageHash)
 }
@@ -2142,7 +2142,7 @@ func (this *Bitvavo) HandleTradingFees(client any, message map[string]any) {
 	//    }
 	//
 	var messageHash *string = this.SafeString(message, "requestId")
-	var response any = this.SafeDict(message, "response")
+	var response map[string]any = ccxt.SafeMapTyped(message, "response")
 	var fees any = this.ParseTradingFees(response)
 	client.(ccxt.ClientInterface).Resolve(fees, messageHash)
 }

@@ -1112,7 +1112,7 @@ func (this *Poloniex) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any
 	//                "limitMaxQty": "1000000"
 	//            },
 	//
-	var markets any = this.SafeList(response, "data")
+	var markets []any = SafeListTyped(response, "data")
 
 	ch <- this.ParseMarkets(markets)
 	return nil
@@ -1476,7 +1476,7 @@ func (this *Poloniex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		//                "iPx": "2.1834"
 		//            },
 		//
-		var data any = this.SafeList(responseRaw, "data")
+		var data []any = SafeListTyped(responseRaw, "data")
 
 		ch <- this.ParseTickers(data, symbols)
 		return nil
@@ -4574,7 +4574,7 @@ func (this *Poloniex) modifyMarginHelperBody(ch chan any, symbol any, amount any
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = MapTyped(this.Market(symbol))
-	amount = this.AmountToPrecision(symbol, amount)
+	amount = DerefScalar(this.AmountToPrecision(symbol, amount))
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 		"amt":    Precise.StringAbs(amount),

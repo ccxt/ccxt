@@ -97,7 +97,7 @@ func (this *Paradex) HandleAuthenticationMessage(client any, message any) {
 	//         "result": { "node_id": "73cf456f7cb78d59" }
 	//     }
 	//
-	var result any = this.SafeDict(message, "result")
+	var result map[string]any = ccxt.SafeMapTyped(message, "result")
 	if !ccxt.IsEqual(result, nil) {
 		// client.resolve (true, messageHash)
 		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), "authenticated")
@@ -726,7 +726,7 @@ func (this *Paradex) HandleErrorMessage(client any, message any) any {
 	//         "usOut": 1718179125962495
 	//     }
 	//
-	var error any = this.SafeDict(message, "error")
+	var error map[string]any = ccxt.SafeMapTyped(message, "error")
 	if ccxt.IsEqual(error, nil) {
 		return true
 	} else {
@@ -774,12 +774,12 @@ func (this *Paradex) HandleMessage(client any, message any) {
 	//         }
 	//     }
 	//
-	var result any = this.SafeDict(message, "result")
+	var result map[string]any = ccxt.SafeMapTyped(message, "result")
 	if !ccxt.IsEqual(result, nil) {
 		this.HandleAuthenticationMessage(client, message)
 		return
 	}
-	var data any = this.SafeDict(message, "params")
+	var data map[string]any = ccxt.SafeMapTyped(message, "params")
 	if !ccxt.IsEqual(data, nil) {
 		var channel *string = this.SafeString(data, "channel")
 		var parts []string = ccxt.Split(channel, ".")

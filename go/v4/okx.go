@@ -4536,8 +4536,8 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 	var slOrdPx *float64 = this.SafeNumber(params, "slOrdPx", price)
 	var slTriggerPxType *string = this.SafeString(params, "slTriggerPxType", "last")
 	var clientOrderId *string = this.SafeString2(params, "clOrdId", "clientOrderId")
-	var stopLoss any = this.SafeDict(params, "stopLoss")
-	var takeProfit any = this.SafeDict(params, "takeProfit")
+	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
+	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
 	var hasStopLoss bool = (!IsEqual(stopLoss, nil))
 	var hasTakeProfit bool = (!IsEqual(takeProfit, nil))
 	var trailingPercent *string = this.SafeString2(params, "trailingPercent", "callbackRatio")
@@ -4693,7 +4693,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 			if IsEqual(stopLossTriggerPrice, nil) {
 				panic(InvalidOrder(this.Id + " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"], or params[\"stopLoss\"][\"stopPrice\"], or params[\"stopLoss\"][\"slTriggerPx\"] for a stop loss order"))
 			}
-			var slTriggerPx any = this.PriceToPrecision(symbol, stopLossTriggerPrice)
+			var slTriggerPx *string = this.PriceToPrecision(symbol, stopLossTriggerPrice)
 			var slOrder map[string]any = map[string]any{}
 			slOrder["slTriggerPx"] = slTriggerPx
 			var stopLossLimitPrice any = this.SafeValueN(stopLoss, []any{"price", "stopLossPrice", "slOrdPx"})
@@ -4802,7 +4802,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 			AddElementToObject(request, "tpTriggerPx", this.PriceToPrecision(symbol, takeProfitPrice))
 			var tpOrdPxReq any = "-1"
 			if tpOrdPx != nil {
-				tpOrdPxReq = this.PriceToPrecision(symbol, tpOrdPx)
+				tpOrdPxReq = DerefScalar(this.PriceToPrecision(symbol, tpOrdPx))
 			}
 			AddElementToObject(request, "tpOrdPx", tpOrdPxReq)
 			AddElementToObject(request, "tpTriggerPxType", tpTriggerPxType)
@@ -4811,7 +4811,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 			AddElementToObject(request, "slTriggerPx", this.PriceToPrecision(symbol, stopLossPrice))
 			var slOrdPxReq any = "-1"
 			if slOrdPx != nil {
-				slOrdPxReq = this.PriceToPrecision(symbol, slOrdPx)
+				slOrdPxReq = DerefScalar(this.PriceToPrecision(symbol, slOrdPx))
 			}
 			AddElementToObject(request, "slOrdPx", slOrdPxReq)
 			AddElementToObject(request, "slTriggerPxType", slTriggerPxType)
@@ -5022,8 +5022,8 @@ func (this *Okx) EditOrderRequest(id any, symbol any, typeVar any, side any, opt
 	var takeProfitTriggerPrice *float64 = this.SafeNumber2(params, "takeProfitPrice", "newTpTriggerPx")
 	var takeProfitPrice *float64 = this.SafeNumber(params, "newTpOrdPx")
 	var takeProfitTriggerPriceType *string = this.SafeString(params, "newTpTriggerPxType", "last")
-	var stopLoss any = this.SafeDict(params, "stopLoss")
-	var takeProfit any = this.SafeDict(params, "takeProfit")
+	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
+	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
 	var hasStopLoss bool = (!IsEqual(stopLoss, nil))
 	var hasTakeProfit bool = (!IsEqual(takeProfit, nil))
 	if isAlgoOrder == true {
@@ -5270,7 +5270,7 @@ func (this *Okx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	PanicOnError(response)
 	// {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
 	var data []any = SafeListTypedDefault(response, "data", []any{})
-	var order any = this.SafeDict(data, 0)
+	var order map[string]any = SafeMapTyped(data, 0)
 
 	ch <- this.ParseOrder(order, market)
 	return nil
@@ -6045,7 +6045,7 @@ func (this *Okx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	//     }
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
-	var order any = this.SafeDict(data, 0)
+	var order map[string]any = SafeMapTyped(data, 0)
 
 	ch <- this.ParseOrder(order, market)
 	return nil
@@ -7337,7 +7337,7 @@ func (this *Okx) withdrawBody(ch chan any, code any, amount any, address any, op
 	//     }
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
-	var transaction any = this.SafeDict(data, 0)
+	var transaction map[string]any = SafeMapTyped(data, 0)
 
 	ch <- this.ParseTransaction(transaction, currency)
 	return nil
@@ -7987,7 +7987,7 @@ func (this *Okx) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any)
 	//     }
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
-	var position any = this.SafeDict(data, 0)
+	var position map[string]any = SafeMapTyped(data, 0)
 	if IsEqual(position, nil) {
 		panic(NullResponse(Add(this.Id+" fetchPosition() could not find a position for ", symbol)))
 	}
@@ -8038,15 +8038,13 @@ func (this *Okx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var fetchPositionsOptions map[string]any = SafeMapTyped(this.Options, "fetchPositions")
 	var method *string = this.SafeString(fetchPositionsOptions, "method", "privateGetAccountPositions")
-	var response any = nil
+	var response map[string]any = nil
 	if method != nil && *method == "privateGetAccountPositionsHistory" {
 
-		response = (<-this.PrivateGetAccountPositionsHistory(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetAccountPositionsHistory(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivateGetAccountPositions(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetAccountPositions(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {
@@ -8537,7 +8535,7 @@ func (this *Okx) fetchTransferBody(ch chan any, id any, optionalArgs ...any) any
 	//     }
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
-	var transfer any = this.SafeDict(data, 0)
+	var transfer map[string]any = SafeMapTyped(data, 0)
 
 	ch <- this.ParseTransfer(transfer)
 	return nil
@@ -10358,14 +10356,13 @@ func (this *Okx) fetchOpenInterestHistoryBody(ch chan any, symbol any, optionalA
 		"period": timeframe,
 	}
 	var typeVar *string = nil
-	var response any = nil
+	var response map[string]any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchOpenInterestHistory", market, params)
 	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = GetValue(typeVarparamsVariable, 1)
 	if typeVar != nil && *typeVar == "option" {
 
-		response = (<-this.PublicGetRubikStatOptionOpenInterestVolume(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicGetRubikStatOptionOpenInterestVolume(this.Extend(request, params))).Raw))
 	} else {
 		if since != nil {
 			request["begin"] = since
@@ -10376,8 +10373,7 @@ func (this *Okx) fetchOpenInterestHistoryBody(ch chan any, symbol any, optionalA
 			params = this.Omit(params, []any{"until"})
 		}
 
-		response = (<-this.PublicGetRubikStatContractsOpenInterestVolume(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicGetRubikStatContractsOpenInterestVolume(this.Extend(request, params))).Raw))
 	}
 	//
 	//    {
@@ -10540,7 +10536,7 @@ func (this *Okx) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any) 
 	//        "msg": ""
 	//    }
 	//
-	var data any = this.SafeList(response, "data")
+	var data []any = SafeListTyped(response, "data")
 
 	ch <- this.ParseDepositWithdrawFees(data, codes)
 	return nil
@@ -10578,7 +10574,7 @@ func (this *Okx) ParseDepositWithdrawFees(response any, optionalArgs ...any) any
 		var currencyId *string = this.SafeString(feeInfo, "ccy")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (code != nil) && ((codes == nil) || (this.InArray(code, codes))) {
-			var depositWithdrawFee any = this.SafeDict(depositWithdrawFees, code)
+			var depositWithdrawFee map[string]any = SafeMapTyped(depositWithdrawFees, code)
 			if IsEqual(depositWithdrawFee, nil) {
 				AddElementToObject(depositWithdrawFees, code, this.DepositWithdrawFee(map[string]any{}))
 			}
@@ -11126,7 +11122,7 @@ func (this *Okx) closePositionBody(ch chan any, symbol any, optionalArgs ...any)
 	//    }
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
-	var order any = this.SafeDict(data, 0)
+	var order map[string]any = SafeMapTyped(data, 0)
 
 	ch <- this.ParseOrder(order, market)
 	return nil
@@ -11862,18 +11858,16 @@ func (this *Okx) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs ...a
 	if until != nil {
 		request["endTime"] = until
 	}
-	var response any = nil
+	var response map[string]any = nil
 	var now int64 = this.Milliseconds()
 	var oneWeekAgo int64 = now - 604800000
 	var threeMonthsAgo int64 = now - 7776000000
 	if (since == nil) || (IsGreaterThan(since, oneWeekAgo)) {
 
-		response = (<-this.PrivateGetAccountBills(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetAccountBills(this.Extend(request, params))).Raw))
 	} else if IsGreaterThan(since, threeMonthsAgo) {
 
-		response = (<-this.PrivateGetAccountBillsArchive(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetAccountBillsArchive(this.Extend(request, params))).Raw))
 	} else {
 		panic(BadRequest(this.Id + " fetchMarginAdjustmentHistory () cannot fetch margin adjustments older than 3 months"))
 	}

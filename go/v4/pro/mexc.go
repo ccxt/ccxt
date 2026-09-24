@@ -2408,7 +2408,7 @@ func (this *Mexc) authenticateBody(ch chan any, subscriptionHash any, optionalAr
 	}
 	this.Options.Store("listenKeyFetching", true)
 	client.(ccxt.ClientInterface).Future(messageHash) // created ahead of the request below, so concurrent callers can find it
-	var response any = nil
+	var response map[string]any = nil
 
 	{
 		func(this *Mexc) (ret_ any) {
@@ -2428,8 +2428,7 @@ func (this *Mexc) authenticateBody(ch chan any, subscriptionHash any, optionalAr
 			}()
 			// try block:
 
-			response = (<-this.SpotPrivatePostUserDataStream(params)).Raw
-			ccxt.PanicOnError(response)
+			response = ccxt.MapTyped(ccxt.PanicOnError((<-this.SpotPrivatePostUserDataStream(params)).Raw))
 			return nil
 		}(this)
 

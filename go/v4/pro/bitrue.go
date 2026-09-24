@@ -764,7 +764,7 @@ func (this *Bitrue) HandleOHLCV(client any, message any) {
 	var wsInterval *string = this.SafeString(parts, 4)
 	var futuresTimeframes any = this.SafeDict(this.Options, "futuresTimeframes", map[string]any{})
 	var timeframe *string = this.FindTimeframe(wsInterval, futuresTimeframes)
-	var tick any = this.SafeDict(message, "tick")
+	var tick map[string]any = ccxt.SafeMapTyped(message, "tick")
 	if ccxt.IsEqual(tick, nil) {
 		return
 	}
@@ -872,7 +872,7 @@ func (this *Bitrue) HandleTicker(client any, message any) {
 		return
 	}
 	var symbol any = ccxt.GetValue(market, "symbol")
-	var tick any = this.SafeDict(message, "tick")
+	var tick map[string]any = ccxt.SafeMapTyped(message, "tick")
 	if ccxt.IsEqual(tick, nil) {
 		return
 	}
@@ -882,7 +882,7 @@ func (this *Bitrue) HandleTicker(client any, message any) {
 	var messageHash any = ccxt.Add("ticker:", symbol)
 	client.(ccxt.ClientInterface).Resolve(parsed, messageHash)
 }
-func (this *Bitrue) ParseWsTicker(tick any, market any, optionalArgs ...any) any {
+func (this *Bitrue) ParseWsTicker(tick map[string]any, market any, optionalArgs ...any) any {
 	var timestamp *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = timestamp
 	var symbol any = ccxt.GetValue(market, "symbol")

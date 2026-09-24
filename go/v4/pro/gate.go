@@ -907,7 +907,7 @@ func (this *Gate) HandleOrderBook(client any, message any) {
 		}
 		return "contract"
 	}()
-	var delta any = this.SafeDict(message, "result")
+	var delta map[string]any = ccxt.SafeMapTyped(message, "result")
 	var deltaStart *int64 = this.SafeInteger(delta, "U")
 	var deltaEnd *int64 = this.SafeInteger(delta, "u")
 	var marketId *string = this.SafeString(delta, "s")
@@ -2542,7 +2542,7 @@ func (this *Gate) HandleErrorMessage(client any, message any) any {
 	//     }
 	//
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
-	var errs any = this.SafeDict(data, "errs")
+	var errs map[string]any = ccxt.SafeMapTyped(data, "errs")
 	var error any = this.SafeDict(message, "error", errs)
 	var code *string = this.SafeString2(error, "code", "label")
 	var id *string = this.SafeStringN(message, []any{"id", "requestId", "request_id"})

@@ -358,7 +358,7 @@ func (this *Blockchaincom) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 	var result []any = []any{}
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = GetValue(marketIds, i).(string)
-		var market any = this.SafeDict(markets, marketId)
+		var market map[string]any = SafeMapTyped(markets, marketId)
 		var baseId *string = this.SafeString(market, "base_currency")
 		var quoteId *string = this.SafeString(market, "counter_currency")
 		var base *string = this.SafeCurrencyCode(baseId)
@@ -1576,15 +1576,20 @@ func (this *Blockchaincom) fetchBalanceBody(ch chan any, optionalArgs ...any) an
 	//         ]
 	//     }
 	//
-	var balances any = this.SafeList(response, accountName)
+	var balances []any = SafeListTyped(response, accountName)
 	if IsEqual(balances, nil) {
 		panic(ExchangeError(this.Id + " fetchBalance() could not find the \"" + *accountName + "\" account"))
 	}
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	for i := 0; i < GetArrayLength(balances); i++ {
-		var entry map[string]any = MapTyped(GetValue(balances, i))
+	for i := 0; i < len(balances); i++ {
+		var entry map[string]any = MapTyped(func() any {
+			if i >= 0 && i < len(balances) {
+				return DerefScalar(balances[i])
+			}
+			return nil
+		}())
 		var currencyId *string = this.SafeString(entry, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()

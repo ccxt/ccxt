@@ -124,7 +124,7 @@ func (this *Hollaex) HandleOrderBook(client any, message map[string]any) {
 	if symbol == nil {
 		return
 	}
-	var data any = this.SafeDict(message, "data")
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var timestamp *string = this.SafeString(data, "timestamp")
 	var timestampMs *int64 = this.Parse8601(timestamp)
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestampMs)

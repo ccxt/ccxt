@@ -6015,11 +6015,10 @@ func (this *Binance) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	if limit != nil {
 		request["limit"] = limit // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if GetValue(market, "option") == true {
 
-		response = (<-this.EapiPublicGetDepth(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.EapiPublicGetDepth(this.Extend(request, params))).Raw))
 	} else if GetValue(market, "linear") == true {
 		var rpi *bool = this.SafeBool(params, "rpi", false)
 		params = MapTyped(this.Omit(params, "rpi"))
@@ -6027,21 +6026,17 @@ func (this *Binance) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 			// rpi limit only supports 1000
 			request["limit"] = 1000
 
-			response = (<-this.FapiPublicGetRpiDepth(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.FapiPublicGetRpiDepth(this.Extend(request, params))).Raw))
 		} else {
 
-			response = (<-this.FapiPublicGetDepth(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.FapiPublicGetDepth(this.Extend(request, params))).Raw))
 		}
 	} else if GetValue(market, "inverse") == true {
 
-		response = (<-this.DapiPublicGetDepth(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.DapiPublicGetDepth(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PublicGetDepth(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicGetDepth(this.Extend(request, params))).Raw))
 	}
 	//
 	// future
@@ -8910,23 +8905,20 @@ func (this *Binance) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 	if GetValue(market, "spot") == true {
 		panic(NotSupported(Add(Add(this.Id+" createOrders() does not support ", market["type"]), " orders")))
 	}
-	var response any = nil
+	var response []any = nil
 	var request map[string]any = map[string]any{
 		"batchOrders": ordersRequests,
 	}
 	request = this.Extend(request, params)
 	if GetValue(market, "linear") == true {
 
-		response = (<-this.FapiPrivatePostBatchOrders(request)).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.FapiPrivatePostBatchOrders(request)).Raw))
 	} else if GetValue(market, "option") == true {
 
-		response = (<-this.EapiPrivatePostBatchOrders(request)).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.EapiPrivatePostBatchOrders(request)).Raw))
 	} else {
 
-		response = (<-this.DapiPrivatePostBatchOrders(request)).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.DapiPrivatePostBatchOrders(request)).Raw))
 	}
 
 	//
@@ -9242,7 +9234,7 @@ func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 				priceRequiredForTrailing = false
 			}
 			if trailingTriggerPrice != nil {
-				stopPrice = this.PriceToPrecision(symbol, trailingTriggerPrice)
+				stopPrice = DerefScalar(this.PriceToPrecision(symbol, trailingTriggerPrice))
 			}
 			var trailingPercentConverted *string = Precise.StringMul(trailingPercent, "100")
 			request["trailingDelta"] = trailingPercentConverted
@@ -16578,24 +16570,22 @@ func (this *Binance) modifyMarginHelperBody(ch chan any, symbol any, amount any,
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	amount = this.AmountToPrecision(symbol, amount)
+	amount = DerefScalar(this.AmountToPrecision(symbol, amount))
 	var request map[string]any = map[string]any{
 		"type":   addOrReduce,
 		"symbol": market["id"],
 		"amount": amount,
 	}
-	var response any = nil
+	var response map[string]any = nil
 	var code any = nil
 	if GetValue(market, "linear") == true {
 		code = market["quote"]
 
-		response = (<-this.FapiPrivatePostPositionMargin(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.FapiPrivatePostPositionMargin(this.Extend(request, params))).Raw))
 	} else {
 		code = market["base"]
 
-		response = (<-this.DapiPrivatePostPositionMargin(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.DapiPrivatePostPositionMargin(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {
@@ -16765,7 +16755,7 @@ func (this *Binance) fetchCrossBorrowRateBody(ch chan any, code any, optionalArg
 	//         },
 	//     ]
 	//
-	var rate any = this.SafeDict(response, 0)
+	var rate map[string]any = SafeMapTyped(response, 0)
 
 	ch <- this.ParseBorrowRate(rate)
 	return nil
@@ -17229,7 +17219,7 @@ func (this *Binance) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) a
 	//         ]
 	//     }
 	//
-	var rows any = this.SafeList(response, "rows")
+	var rows []any = SafeListTyped(response, "rows")
 	var interest any = this.ParseBorrowInterests(rows, market)
 
 	ch <- this.FilterByCurrencySinceLimit(interest, code, since, limit)
@@ -17589,15 +17579,13 @@ func (this *Binance) fetchOpenInterestHistoryBody(ch chan any, symbol any, optio
 		var duration int64 = this.ParseTimeframe(timeframe)
 		request["endTime"] = this.Sum(since, Multiply(Multiply(duration, limit), 1000))
 	}
-	var response any = nil
+	var response []any = nil
 	if GetValue(market, "inverse") == true {
 
-		response = (<-this.DapiDataGetOpenInterestHist(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.DapiDataGetOpenInterestHist(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.FapiDataGetOpenInterestHist(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.FapiDataGetOpenInterestHist(this.Extend(request, params))).Raw))
 	}
 
 	//
@@ -17651,19 +17639,16 @@ func (this *Binance) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs
 	} else {
 		request["symbol"] = market["id"]
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if GetValue(market, "option") == true {
 
-		response = (<-this.EapiPublicGetOpenInterest(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.EapiPublicGetOpenInterest(this.Extend(request, params))).Raw))
 	} else if GetValue(market, "inverse") == true {
 
-		response = (<-this.DapiPublicGetOpenInterest(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.DapiPublicGetOpenInterest(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.FapiPublicGetOpenInterest(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.FapiPublicGetOpenInterest(this.Extend(request, params))).Raw))
 	}
 	//
 	// futures (fapi)
@@ -18260,17 +18245,15 @@ func (this *Binance) fetchPositionModeBody(ch chan any, optionalArgs ...any) any
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchPositionMode", market, params)
 	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
-	var response any = nil
+	var response map[string]any = nil
 	// we still have two working endpoints but positionMode is common for linear and inverse markets
 	// thus we do not throw an error if the subType is not specified and default to linear for now
 	if subType != nil && *subType == "inverse" {
 
-		response = (<-this.DapiPrivateGetPositionSideDual(params)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.DapiPrivateGetPositionSideDual(params)).Raw))
 	} else {
 
-		response = (<-this.FapiPrivateGetPositionSideDual(params)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.FapiPrivateGetPositionSideDual(params)).Raw))
 	}
 	//
 	//    {
@@ -18374,14 +18357,13 @@ func (this *Binance) fetchMarginModeBody(ch chan any, symbol any, optionalArgs .
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchMarginMode", market, params)
 	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
-	var response any = nil
+	var response []any = nil
 	if subType != nil && *subType == "linear" {
 		var request map[string]any = map[string]any{
 			"symbol": market["id"],
 		}
 
-		response = (<-this.FapiPrivateGetSymbolConfig(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.FapiPrivateGetSymbolConfig(this.Extend(request, params))).Raw))
 	} else if subType != nil && *subType == "inverse" {
 
 		fetchMarginModesResponse := (<-this.FetchMarginModesAsync([]any{symbol}, params))

@@ -646,15 +646,13 @@ func (this *Coinspot) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var method *string = this.SafeString(this.Options, "fetchBalance", "private_post_my_balances")
-	var response any = nil
+	var response map[string]any = nil
 	if (method != nil && *method == "private_post_ro_my_balances") || (method != nil && *method == "privatePostRoMyBalances") {
 
-		response = (<-this.PrivatePostRoMyBalances(params)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostRoMyBalances(params)).Raw))
 	} else {
 
-		response = (<-this.PrivatePostMyBalances(params)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostMyBalances(params)).Raw))
 	}
 
 	//
@@ -1102,15 +1100,13 @@ func (this *Coinspot) createOrderBody(ch chan any, symbol any, typeVar any, side
 		"amount":   amount,
 		"rate":     price,
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if sideUpper == "BUY" {
 
-		response = (<-this.PrivatePostMyBuy(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostMyBuy(this.Extend(request, params))).Raw))
 	} else if sideUpper == "SELL" {
 
-		response = (<-this.PrivatePostMySell(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostMySell(this.Extend(request, params))).Raw))
 	} else {
 		panic(NotSupported(this.Id + " createOrder only support buy/sell side"))
 	}
@@ -1155,15 +1151,13 @@ func (this *Coinspot) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	var request map[string]any = map[string]any{
 		"id": id,
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if side != nil && *side == "buy" {
 
-		response = (<-this.PrivatePostMyBuyCancel(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostMyBuyCancel(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivatePostMySellCancel(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostMySellCancel(this.Extend(request, params))).Raw))
 	}
 
 	//

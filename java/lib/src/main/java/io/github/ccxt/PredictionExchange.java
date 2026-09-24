@@ -116,7 +116,7 @@ public Object describe()
         return this.safeBool(this.has, "prediction", false);
     }
 
-    public Object parseSearchQueries(Map<String, Object> parameters)
+    public List<Object> parseSearchQueries(Map<String, Object> parameters)
     {
         // accepts either `query` (a single search string) or `queries` (a list of strings)
         String singleQuery = this.safeString(parameters, "query");
@@ -124,9 +124,9 @@ public Object describe()
         {
             return new ArrayList<Object>(Arrays.asList(singleQuery));
         }
-        return this.safeList(parameters, "queries", new ArrayList<Object>(Arrays.asList()));
+        return (List<Object>) (this.safeList(parameters, "queries", new ArrayList<Object>(Arrays.asList())));
     }
-    public Object parseSearchQueries(Object... optionalArgs)
+    public List<Object> parseSearchQueries(Object... optionalArgs)
     {
         return this.parseSearchQueries(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
@@ -1012,7 +1012,7 @@ public Object describe()
 
     }
 
-    public CompletableFuture<Object> loadOutcome(String outcomeSymbol2, Object reload)
+    public CompletableFuture<Map<String, Object>> loadOutcome(String outcomeSymbol2, Object reload)
     {
         final Object outcomeSymbol3 = outcomeSymbol2;
         return BaseExchange.supplyAsync(() -> {
@@ -1061,10 +1061,10 @@ public Object describe()
                 }
             }
             return (this.fetchOutcome(outcomeSymbol)).join();
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
-    public CompletableFuture<Object> loadOutcome(String outcomeSymbol, Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>> loadOutcome(String outcomeSymbol, Object... optionalArgs)
     {
         return this.loadOutcome(outcomeSymbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false);
     }
@@ -2437,11 +2437,11 @@ public Object describe()
         return this.safePredictionOrderBook(orderbook, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
     }
 
-    public Object parsePredictionTicker(Map<String, Object> ticker, Map<String, Object> market)
+    public Map<String, Object> parsePredictionTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         throw new NotSupported((this.id + " parsePredictionTicker() is not supported yet")) ;
     }
-    public Object parsePredictionTicker(Map<String, Object> ticker, Object... optionalArgs)
+    public Map<String, Object> parsePredictionTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         return this.parsePredictionTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
     }

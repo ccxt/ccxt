@@ -1771,7 +1771,7 @@ func (this *Lighter) HandleErrorMessage(client any, message any) any {
 	//         }
 	//     }
 	//
-	var error any = this.SafeDict(message, "error")
+	var error map[string]any = ccxt.SafeMapTyped(message, "error")
 
 	{
 		func(this *Lighter) (ret_ any) {

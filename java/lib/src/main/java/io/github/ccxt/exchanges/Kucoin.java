@@ -15935,7 +15935,7 @@ final Map<String, Object> finalMarket = market;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {boolean} true if unified account is enabled, false otherwise
      */
-    public CompletableFuture<Object> isUTAEnabled(Map<String, Object> parameters)
+    public CompletableFuture<Boolean> isUTAEnabled(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -15950,7 +15950,7 @@ final Map<String, Object> finalMarket = market;
                 Helpers.addElementToObject(this.options, "uta", uta);
             }
             return uta;
-        });
+        }).thenApply(res -> (Boolean) res);
 
     }
     /**
@@ -15961,7 +15961,7 @@ final Map<String, Object> finalMarket = market;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {boolean} true if unified account is enabled, false otherwise
      */
-    public CompletableFuture<Object> isUTAEnabled(Object... optionalArgs)
+    public CompletableFuture<Boolean> isUTAEnabled(Object... optionalArgs)
     {
         return this.isUTAEnabled(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }

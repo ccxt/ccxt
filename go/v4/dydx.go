@@ -1658,8 +1658,8 @@ func (this *Dydx) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 	var isMarket bool = (orderType == "MARKET")
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce", "GTT")
 	var postOnly bool = this.IsPostOnly(isMarket, nil, params)
-	var amountStr any = this.AmountToPrecision(symbol, amount)
-	var priceStr any = this.PriceToPrecision(symbol, price)
+	var amountStr *string = this.AmountToPrecision(symbol, amount)
+	var priceStr *string = this.PriceToPrecision(symbol, price)
 	var marketInfo map[string]any = SafeMapTyped(market, "info")
 	var atomicResolution any = marketInfo["atomicResolution"]
 	var quantumScale any = this.Pow("10", Precise.StringNeg(atomicResolution))
@@ -1706,10 +1706,10 @@ func (this *Dydx) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 		orderFlag = 32
 		if !IsEqual(stopLossPrice, nil) {
 			conditionalType = 1
-			conditionalOrderTriggerSubticks = this.PriceToPrecision(symbol, stopLossPrice)
+			conditionalOrderTriggerSubticks = DerefScalar(this.PriceToPrecision(symbol, stopLossPrice))
 		} else if !IsEqual(takeProfitPrice, nil) {
 			conditionalType = 2
-			conditionalOrderTriggerSubticks = this.PriceToPrecision(symbol, takeProfitPrice)
+			conditionalOrderTriggerSubticks = DerefScalar(this.PriceToPrecision(symbol, takeProfitPrice))
 		}
 		conditionalOrderTriggerSubticks = Precise.StringMul(conditionalOrderTriggerSubticks, priceScale)
 	}
@@ -1917,7 +1917,7 @@ func (this *Dydx) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	//     }
 	// }
 	//
-	var result any = this.SafeDict(response, "result")
+	var result map[string]any = SafeMapTyped(response, "result")
 
 	ch <- this.SafeOrder(map[string]any{
 		"info":          result,
@@ -2052,7 +2052,7 @@ func (this *Dydx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	//     }
 	// }
 	//
-	var result any = this.SafeDict(response, "result")
+	var result map[string]any = SafeMapTyped(response, "result")
 
 	ch <- this.SafeOrder(map[string]any{
 		"info": result,
@@ -2088,7 +2088,7 @@ func (this *Dydx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var clientOrderIds any = this.SafeList(params, "clientOrderIds")
+	var clientOrderIds []any = SafeListTyped(params, "clientOrderIds")
 	if IsEqual(clientOrderIds, nil) {
 		panic(NotSupported(this.Id + " cancelOrders only support clientOrderIds."))
 	}
@@ -2145,7 +2145,7 @@ func (this *Dydx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 	//     }
 	// }
 	//
-	var result any = this.SafeDict(response, "result")
+	var result map[string]any = SafeMapTyped(response, "result")
 
 	ch <- []any{this.SafeOrder(map[string]any{
 		"info": result,
@@ -2339,7 +2339,7 @@ func (this *Dydx) estimateTxFeeBody(ch chan any, message any, memo any, account 
 	//     }
 	// }
 	//
-	var gasInfo any = this.SafeDict(response, "gas_info")
+	var gasInfo map[string]any = SafeMapTyped(response, "gas_info")
 	if IsEqual(gasInfo, nil) {
 		panic(ExchangeError(this.Id + " failed to simulate transaction."))
 	}
@@ -3128,7 +3128,7 @@ func (this *Dydx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "subaccount")
+	var data map[string]any = SafeMapTyped(response, "subaccount")
 
 	ch <- this.ParseBalance(data)
 	return nil

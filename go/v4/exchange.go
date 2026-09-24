@@ -761,7 +761,7 @@ func (this *BaseExchange) CallDynamically(name2 any, args ...any) <-chan any {
 
 // clone creates a deep copy of the input object. It supports arrays, slices, and maps.
 func (this *BaseExchange) Clone(object any) any {
-	if object == nil {
+	if derefScalar(object) == nil {
 		return nil
 	}
 	result := this.DeepCopy(reflect.ValueOf(object))

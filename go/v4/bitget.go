@@ -3757,14 +3757,14 @@ func (this *Bitget) FetchDefaultMarketsAsync(params any) <-chan any {
 func (this *Bitget) fetchDefaultMarketsBody(ch chan any, params any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var types any = nil
+	var types []any = nil
 	var fetchMarketsOptions any = this.SafeDict(this.Options, "fetchMarkets")
 	var defaultMarkets []any = []any{"spot", "swap"}
 	if !IsEqual(fetchMarketsOptions, nil) {
-		types = this.SafeList(fetchMarketsOptions, "types", defaultMarkets)
+		types = ListTyped(this.SafeList(fetchMarketsOptions, "types", defaultMarkets))
 	} else {
 		// for backward-compatibility
-		types = this.SafeList(this.Options, "fetchMarkets", defaultMarkets)
+		types = ListTyped(this.SafeList(this.Options, "fetchMarkets", defaultMarkets))
 	}
 	var promises []any = []any{}
 	var fetchMargins bool = false
@@ -4533,7 +4533,7 @@ func (this *Bitget) fetchMarketLeverageTiersBody(ch chan any, symbol any, option
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{}
-	var response any = nil
+	var response map[string]any = nil
 	var marginMode any = nil
 	var productType any = nil
 	var uta any = nil
@@ -4555,19 +4555,16 @@ func (this *Bitget) fetchMarketLeverageTiersBody(ch chan any, symbol any, option
 		request["symbol"] = market["id"]
 		request["category"] = productType
 
-		response = (<-this.PublicUtaGetV3MarketPositionTier(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicUtaGetV3MarketPositionTier(this.Extend(request, params))).Raw))
 	} else if (GetValue(market, "swap") == true) || (GetValue(market, "future") == true) {
 		request["productType"] = productType
 		request["symbol"] = market["id"]
 
-		response = (<-this.PublicMixGetV2MixMarketQueryPositionLever(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicMixGetV2MixMarketQueryPositionLever(this.Extend(request, params))).Raw))
 	} else if IsEqual(marginMode, "isolated") {
 		request["symbol"] = market["id"]
 
-		response = (<-this.PrivateMarginGetV2MarginIsolatedTierData(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateMarginGetV2MarginIsolatedTierData(this.Extend(request, params))).Raw))
 	} else if IsEqual(marginMode, "cross") {
 		var code *string = this.SafeString(params, "code")
 		if code == nil {
@@ -4577,8 +4574,7 @@ func (this *Bitget) fetchMarketLeverageTiersBody(ch chan any, symbol any, option
 		var currency map[string]any = MapTyped(this.Currency(code))
 		request["coin"] = currency["id"]
 
-		response = (<-this.PrivateMarginGetV2MarginCrossedTierData(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateMarginGetV2MarginCrossedTierData(this.Extend(request, params))).Raw))
 	} else {
 		panic(BadRequest(Add(this.Id+" fetchMarketLeverageTiers() symbol does not support market ", market["symbol"])))
 	}
@@ -4820,15 +4816,13 @@ func (this *Bitget) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
 	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = GetValue(requestparamsVariable, 1)
-	var response any = nil
+	var response map[string]any = nil
 	if uta == true {
 
-		response = (<-this.PrivateUtaGetV3AccountDepositRecords(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateUtaGetV3AccountDepositRecords(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivateSpotGetV2SpotWalletDepositRecords(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateSpotGetV2SpotWalletDepositRecords(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {
@@ -4972,15 +4966,13 @@ func (this *Bitget) withdrawBody(ch chan any, code any, amount any, address any,
 	if tag != nil {
 		request["tag"] = tag
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if uta == true {
 
-		response = (<-this.PrivateUtaPostV3AccountWithdrawal(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateUtaPostV3AccountWithdrawal(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivateSpotPostV2SpotWalletWithdrawal(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateSpotPostV2SpotWalletWithdrawal(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {
@@ -5091,15 +5083,13 @@ func (this *Bitget) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if uta == true {
 
-		response = (<-this.PrivateUtaGetV3AccountWithdrawalRecords(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateUtaGetV3AccountWithdrawalRecords(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivateSpotGetV2SpotWalletWithdrawalRecords(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateSpotGetV2SpotWalletWithdrawalRecords(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {
@@ -5351,15 +5341,13 @@ func (this *Bitget) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	if networkCode != nil {
 		request["chain"] = this.NetworkCodeToId(networkCode, code)
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if uta == true {
 
-		response = (<-this.PrivateUtaGetV3AccountDepositAddress(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateUtaGetV3AccountDepositAddress(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivateSpotGetV2SpotWalletDepositAddress(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateSpotGetV2SpotWalletDepositAddress(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {
@@ -5448,7 +5436,7 @@ func (this *Bitget) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	productTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
 	productType = GetValue(productTypeparamsVariable, 0)
 	params = GetValue(productTypeparamsVariable, 1)
-	var response any = nil
+	var response map[string]any = nil
 	var uta any = nil
 	var utaparamsVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchOrderBook", false))))
 	uta = GetValue(utaparamsVariable, 0)
@@ -5456,17 +5444,14 @@ func (this *Bitget) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	if uta == true {
 		request["category"] = productType
 
-		response = (<-this.PublicUtaGetV3MarketOrderbook(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicUtaGetV3MarketOrderbook(this.Extend(request, params))).Raw))
 	} else if GetValue(market, "spot") == true {
 
-		response = (<-this.PublicSpotGetV2SpotMarketOrderbook(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicSpotGetV2SpotMarketOrderbook(this.Extend(request, params))).Raw))
 	} else {
 		request["productType"] = productType
 
-		response = (<-this.PublicMixGetV2MixMarketMergeDepth(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicMixGetV2MixMarketMergeDepth(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {
@@ -5690,7 +5675,7 @@ func (this *Bitget) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	productTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
 	productType = GetValue(productTypeparamsVariable, 0)
 	params = GetValue(productTypeparamsVariable, 1)
-	var response any = nil
+	var response map[string]any = nil
 	var uta any = nil
 	var utaparamsVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchTicker", false))))
 	uta = GetValue(utaparamsVariable, 0)
@@ -5698,17 +5683,14 @@ func (this *Bitget) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	if uta == true {
 		request["category"] = productType
 
-		response = (<-this.PublicUtaGetV3MarketTickers(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicUtaGetV3MarketTickers(this.Extend(request, params))).Raw))
 	} else if GetValue(market, "spot") == true {
 
-		response = (<-this.PublicSpotGetV2SpotMarketTickers(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicSpotGetV2SpotMarketTickers(this.Extend(request, params))).Raw))
 	} else {
 		request["productType"] = productType
 
-		response = (<-this.PublicMixGetV2MixMarketTicker(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicMixGetV2MixMarketTicker(this.Extend(request, params))).Raw))
 	}
 	//
 	// spot
@@ -5871,7 +5853,7 @@ func (this *Bitget) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if GetValue(market, "spot") == true {
 		panic(NotSupported(this.Id + " fetchMarkPrice() is not supported for spot markets"))
 	} else {
@@ -5881,8 +5863,7 @@ func (this *Bitget) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...
 		params = MapTyped(GetValue(productTypeparamsVariable, 1))
 		request["productType"] = productType
 
-		response = (<-this.PublicMixGetV2MixMarketSymbolPrice(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicMixGetV2MixMarketSymbolPrice(this.Extend(request, params))).Raw))
 	}
 	var data []any = SafeListTyped(response, "data")
 
@@ -5930,7 +5911,7 @@ func (this *Bitget) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var symbol *string = this.SafeString(symbols, 0)
 		market = this.Market(symbol)
 	}
-	var response any = nil
+	var response map[string]any = nil
 	var request map[string]any = map[string]any{}
 	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
@@ -5958,17 +5939,14 @@ func (this *Bitget) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}
 		request["category"] = productType
 
-		response = (<-this.PublicUtaGetV3MarketTickers(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicUtaGetV3MarketTickers(this.Extend(request, params))).Raw))
 	} else if (typeVar != nil && *typeVar == "spot") && (passedSubType == nil) {
 
-		response = (<-this.PublicSpotGetV2SpotMarketTickers(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicSpotGetV2SpotMarketTickers(this.Extend(request, params))).Raw))
 	} else {
 		request["productType"] = productType
 
-		response = (<-this.PublicMixGetV2MixMarketTickers(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicMixGetV2MixMarketTickers(this.Extend(request, params))).Raw))
 	}
 	//
 	// spot
@@ -6321,7 +6299,7 @@ func (this *Bitget) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		}
 	}
 	var options map[string]any = SafeMapTyped(this.Options, "fetchTrades")
-	var response any = nil
+	var response map[string]any = nil
 	var productType any = nil
 	productTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
 	productType = GetValue(productTypeparamsVariable, 0)
@@ -6338,8 +6316,7 @@ func (this *Bitget) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		}
 		request["category"] = productType
 
-		response = (<-this.PublicUtaGetV3MarketFills(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicUtaGetV3MarketFills(this.Extend(request, params))).Raw))
 	} else if GetValue(market, "spot") == true {
 		var spotOptions map[string]any = SafeMapTyped(options, "spot")
 		var defaultSpotMethod *string = this.SafeString(spotOptions, "method", "publicSpotGetV2SpotMarketFillsHistory")
@@ -6353,12 +6330,10 @@ func (this *Bitget) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 				request["startTime"] = since
 			}
 
-			response = (<-this.PublicSpotGetV2SpotMarketFillsHistory(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PublicSpotGetV2SpotMarketFillsHistory(this.Extend(request, params))).Raw))
 		} else if spotMethod != nil && *spotMethod == "publicSpotGetV2SpotMarketFills" {
 
-			response = (<-this.PublicSpotGetV2SpotMarketFills(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PublicSpotGetV2SpotMarketFills(this.Extend(request, params))).Raw))
 		}
 	} else {
 		var swapOptions map[string]any = SafeMapTyped(options, "swap")
@@ -6374,12 +6349,10 @@ func (this *Bitget) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 				request["startTime"] = since
 			}
 
-			response = (<-this.PublicMixGetV2MixMarketFillsHistory(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PublicMixGetV2MixMarketFillsHistory(this.Extend(request, params))).Raw))
 		} else if swapMethod != nil && *swapMethod == "publicMixGetV2MixMarketFills" {
 
-			response = (<-this.PublicMixGetV2MixMarketFills(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PublicMixGetV2MixMarketFills(this.Extend(request, params))).Raw))
 		}
 	}
 	//
@@ -6561,7 +6534,7 @@ func (this *Bitget) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var response any = nil
+	var response map[string]any = nil
 	var marginMode any = nil
 	var marketType any = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchTradingFees", params)
@@ -6639,12 +6612,10 @@ func (this *Bitget) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 		params = this.Omit(params, "margin")
 		if (marginMode != nil) || (margin != nil && *margin == true) {
 
-			response = (<-this.PublicMarginGetV2MarginCurrencies(params)).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PublicMarginGetV2MarginCurrencies(params)).Raw))
 		} else {
 
-			response = (<-this.PublicSpotGetV2SpotPublicSymbols(params)).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PublicSpotGetV2SpotPublicSymbols(params)).Raw))
 		}
 	} else if (IsEqual(marketType, "swap")) || (IsEqual(marketType, "future")) {
 		var productType any = nil
@@ -6653,8 +6624,7 @@ func (this *Bitget) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 		params = GetValue(productTypeparamsVariable, 1)
 		AddElementToObject(params, "productType", productType)
 
-		response = (<-this.PublicMixGetV2MixMarketContracts(params)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicMixGetV2MixMarketContracts(params)).Raw))
 	} else {
 		panic(NotSupported(Add(Add(this.Id+" does not support ", marketType), " market")))
 	}
@@ -7078,7 +7048,7 @@ func (this *Bitget) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var marketType *string = nil
 	var marginMode any = nil
-	var response any = nil
+	var response map[string]any = nil
 	var uta any = nil
 	var utaparamsVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchBalance", false))))
 	uta = GetValue(utaparamsVariable, 0)
@@ -7093,13 +7063,11 @@ func (this *Bitget) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		var assets any = nil
 		if marketType != nil && *marketType == "funding" {
 
-			response = (<-this.PrivateUtaGetV3AccountFundingAssets(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateUtaGetV3AccountFundingAssets(this.Extend(request, params))).Raw))
 			assets = this.SafeList(response, "data", []any{})
 		} else {
 
-			response = (<-this.PrivateUtaGetV3AccountAssets(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateUtaGetV3AccountAssets(this.Extend(request, params))).Raw))
 			var results map[string]any = SafeMapTyped(response, "data")
 			assets = this.SafeList(results, "assets", []any{})
 		}
@@ -7113,20 +7081,16 @@ func (this *Bitget) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		params = GetValue(productTypeparamsVariable, 1)
 		request["productType"] = productType
 
-		response = (<-this.PrivateMixGetV2MixAccountAccounts(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateMixGetV2MixAccountAccounts(this.Extend(request, params))).Raw))
 	} else if IsEqual(marginMode, "isolated") {
 
-		response = (<-this.PrivateMarginGetV2MarginIsolatedAccountAssets(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateMarginGetV2MarginIsolatedAccountAssets(this.Extend(request, params))).Raw))
 	} else if IsEqual(marginMode, "cross") {
 
-		response = (<-this.PrivateMarginGetV2MarginCrossedAccountAssets(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateMarginGetV2MarginCrossedAccountAssets(this.Extend(request, params))).Raw))
 	} else if marketType != nil && *marketType == "spot" {
 
-		response = (<-this.PrivateSpotGetV2SpotAccountAssets(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateSpotGetV2SpotAccountAssets(this.Extend(request, params))).Raw))
 	} else {
 		panic(NotSupported(this.Id + " fetchBalance() does not support " + *marketType + " accounts"))
 	}
@@ -7848,7 +7812,7 @@ func (this *Bitget) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	var isStopLossTriggerOrder bool = (stopLossTriggerPrice != nil)
 	var isTakeProfitTriggerOrder bool = (takeProfitTriggerPrice != nil)
 	var isStopLossOrTakeProfitTrigger bool = isStopLossTriggerOrder || isTakeProfitTriggerOrder
-	var response any = nil
+	var response map[string]any = nil
 	var uta any = nil
 	var utaparamsVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "createOrder", false))))
 	uta = GetValue(utaparamsVariable, 0)
@@ -7857,46 +7821,37 @@ func (this *Bitget) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		var request any = this.CreateUtaOrderRequest(symbol, typeVar, side, amount, price, params)
 		if isStopLossOrTakeProfitTrigger {
 
-			response = (<-this.PrivateUtaPostV3TradePlaceStrategyOrder(request)).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateUtaPostV3TradePlaceStrategyOrder(request)).Raw))
 		} else {
 
-			response = (<-this.PrivateUtaPostV3TradePlaceOrder(request)).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateUtaPostV3TradePlaceOrder(request)).Raw))
 		}
 	} else {
 		var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 		if GetValue(market, "spot") == true {
 			if isTriggerOrder {
 
-				response = (<-this.PrivateSpotPostV2SpotTradePlacePlanOrder(request)).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.PrivateSpotPostV2SpotTradePlacePlanOrder(request)).Raw))
 			} else if IsEqual(marginMode, "isolated") {
 
-				response = (<-this.PrivateMarginPostV2MarginIsolatedPlaceOrder(request)).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.PrivateMarginPostV2MarginIsolatedPlaceOrder(request)).Raw))
 			} else if IsEqual(marginMode, "cross") {
 
-				response = (<-this.PrivateMarginPostV2MarginCrossedPlaceOrder(request)).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.PrivateMarginPostV2MarginCrossedPlaceOrder(request)).Raw))
 			} else {
 
-				response = (<-this.PrivateSpotPostV2SpotTradePlaceOrder(request)).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.PrivateSpotPostV2SpotTradePlaceOrder(request)).Raw))
 			}
 		} else {
 			if isTriggerOrder || isTrailingPercentOrder {
 
-				response = (<-this.PrivateMixPostV2MixOrderPlacePlanOrder(request)).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.PrivateMixPostV2MixOrderPlacePlanOrder(request)).Raw))
 			} else if isStopLossOrTakeProfitTrigger {
 
-				response = (<-this.PrivateMixPostV2MixOrderPlaceTpslOrder(request)).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.PrivateMixPostV2MixOrderPlaceTpslOrder(request)).Raw))
 			} else {
 
-				response = (<-this.PrivateMixPostV2MixOrderPlaceOrder(request)).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.PrivateMixPostV2MixOrderPlaceOrder(request)).Raw))
 			}
 		}
 	}
@@ -7954,8 +7909,8 @@ func (this *Bitget) CreateUtaOrderRequest(symbol any, typeVar any, side any, amo
 	}
 	var stopLossTriggerPrice *float64 = this.SafeNumber(params, "stopLossPrice")
 	var takeProfitTriggerPrice *float64 = this.SafeNumber(params, "takeProfitPrice")
-	var stopLoss any = this.SafeDict(params, "stopLoss")
-	var takeProfit any = this.SafeDict(params, "takeProfit")
+	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
+	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
 	var hasStopLoss bool = !IsEqual(stopLoss, nil)
 	var hasTakeProfit bool = !IsEqual(takeProfit, nil)
 	var isStopLossTrigger bool = (stopLossTriggerPrice != nil)
@@ -8105,8 +8060,8 @@ func (this *Bitget) CreateOrderRequest(symbol any, typeVar any, side any, amount
 	var triggerPrice *float64 = this.SafeNumber2(params, "stopPrice", "triggerPrice")
 	var stopLossTriggerPrice *float64 = this.SafeNumber(params, "stopLossPrice")
 	var takeProfitTriggerPrice *float64 = this.SafeNumber(params, "takeProfitPrice")
-	var stopLoss any = this.SafeDict(params, "stopLoss")
-	var takeProfit any = this.SafeDict(params, "takeProfit")
+	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
+	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
 	var isTriggerOrder bool = (triggerPrice != nil)
 	var isStopLossTriggerOrder bool = (stopLossTriggerPrice != nil)
 	var isTakeProfitTriggerOrder bool = (takeProfitTriggerPrice != nil)
@@ -8319,7 +8274,7 @@ func (this *Bitget) CreateOrderRequest(symbol any, typeVar any, side any, amount
 			}
 		} else {
 			planType = "amount"
-			quantity = this.AmountToPrecision(symbol, amount)
+			quantity = DerefScalar(this.AmountToPrecision(symbol, amount))
 		}
 		if clientOrderId != nil {
 			request["clientOid"] = clientOrderId
@@ -8492,7 +8447,7 @@ func (this *Bitget) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		"symbol":    market["id"],
 		"orderList": ordersRequests,
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if (GetValue(market, "swap") == true) || (GetValue(market, "future") == true) {
 		if marginMode == nil {
 			marginMode = "cross"
@@ -8511,20 +8466,16 @@ func (this *Bitget) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		params = GetValue(productTypeparamsVariable, 1)
 		request["productType"] = productType
 
-		response = (<-this.PrivateMixPostV2MixOrderBatchPlaceOrder(request)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateMixPostV2MixOrderBatchPlaceOrder(request)).Raw))
 	} else if IsEqual(marginMode, "isolated") {
 
-		response = (<-this.PrivateMarginPostV2MarginIsolatedBatchPlaceOrder(request)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateMarginPostV2MarginIsolatedBatchPlaceOrder(request)).Raw))
 	} else if IsEqual(marginMode, "cross") {
 
-		response = (<-this.PrivateMarginPostV2MarginCrossedBatchPlaceOrder(request)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateMarginPostV2MarginCrossedBatchPlaceOrder(request)).Raw))
 	} else {
 
-		response = (<-this.PrivateSpotPostV2SpotTradeBatchOrders(request)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateSpotPostV2SpotTradeBatchOrders(request)).Raw))
 	}
 	//
 	//     {
@@ -8627,8 +8578,8 @@ func (this *Bitget) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	var isStopLossOrder bool = (stopLossPrice != nil)
 	var takeProfitPrice *float64 = this.SafeNumber(params, "takeProfitPrice")
 	var isTakeProfitOrder bool = (takeProfitPrice != nil)
-	var stopLoss any = this.SafeDict(params, "stopLoss")
-	var takeProfit any = this.SafeDict(params, "takeProfit")
+	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
+	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
 	var hasStopLoss bool = !IsEqual(stopLoss, nil)
 	var hasTakeProfit bool = !IsEqual(takeProfit, nil)
 	var trailingTriggerPrice *string = this.SafeString(params, "trailingTriggerPrice", this.NumberToString(price))
@@ -8644,7 +8595,7 @@ func (this *Bitget) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 		panic(ExchangeError(this.Id + " editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent"))
 	}
 	params = this.Omit(params, []any{"stopPrice", "triggerType", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit", "clientOrderId", "trailingTriggerPrice", "trailingPercent"})
-	var response any = nil
+	var response map[string]any = nil
 	var productType any = nil
 	var uta any = nil
 	productTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
@@ -8681,15 +8632,13 @@ func (this *Bitget) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 			}
 			params = this.Omit(params, []any{"stopLossPrice", "takeProfitPrice"})
 
-			response = (<-this.PrivateUtaPostV3TradeModifyStrategyOrder(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateUtaPostV3TradeModifyStrategyOrder(this.Extend(request, params))).Raw))
 		} else {
 			if price != nil {
 				request["price"] = this.PriceToPrecision(symbol, price)
 			}
 
-			response = (<-this.PrivateUtaPostV3TradeModifyOrder(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateUtaPostV3TradeModifyOrder(this.Extend(request, params))).Raw))
 		}
 	} else if GetValue(market, "spot") == true {
 		var cost *string = this.SafeString(params, "cost")
@@ -8725,13 +8674,11 @@ func (this *Bitget) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 		}
 		if triggerPrice != nil {
 
-			response = (<-this.PrivateSpotPostV2SpotTradeModifyPlanOrder(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateSpotPostV2SpotTradeModifyPlanOrder(this.Extend(request, params))).Raw))
 		} else {
 			request["symbol"] = market["id"]
 
-			response = (<-this.PrivateSpotPostV2SpotTradeCancelReplaceOrder(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateSpotPostV2SpotTradeCancelReplaceOrder(this.Extend(request, params))).Raw))
 		}
 	} else {
 		if (GetValue(market, "swap") != true) && (GetValue(market, "future") != true) {
@@ -8756,8 +8703,7 @@ func (this *Bitget) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 			}
 			request["newCallbackRatio"] = trailingPercent
 
-			response = (<-this.PrivateMixPostV2MixOrderModifyPlanOrder(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateMixPostV2MixOrderModifyPlanOrder(this.Extend(request, params))).Raw))
 		} else if isTakeProfitOrder || isStopLossOrder {
 			request["marginCoin"] = market["settleId"]
 			request["size"] = this.AmountToPrecision(symbol, amount)
@@ -8770,8 +8716,7 @@ func (this *Bitget) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 				request["triggerPrice"] = this.PriceToPrecision(symbol, takeProfitPrice)
 			}
 
-			response = (<-this.PrivateMixPostV2MixOrderModifyTpslOrder(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateMixPostV2MixOrderModifyTpslOrder(this.Extend(request, params))).Raw))
 		} else if isTriggerOrder {
 			request["newTriggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 			if hasStopLoss {
@@ -8791,8 +8736,7 @@ func (this *Bitget) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 				request["newStopSurplusTriggerType"] = tpType
 			}
 
-			response = (<-this.PrivateMixPostV2MixOrderModifyPlanOrder(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateMixPostV2MixOrderModifyPlanOrder(this.Extend(request, params))).Raw))
 		} else {
 			var defaultNewClientOrderId string = this.Uuid()
 			var newClientOrderId *string = this.SafeString2(params, "newClientOid", "newClientOrderId", defaultNewClientOrderId)
@@ -8807,8 +8751,7 @@ func (this *Bitget) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 				request["newPresetStopSurplusPrice"] = this.PriceToPrecision(symbol, tpTriggerPrice)
 			}
 
-			response = (<-this.PrivateMixPostV2MixOrderModifyOrder(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateMixPostV2MixOrderModifyOrder(this.Extend(request, params))).Raw))
 		}
 	}
 	//
@@ -9157,22 +9100,19 @@ func (this *Bitget) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 	} else {
 		request["orderIdList"] = orderIdList
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if GetValue(market, "spot") == true {
 		if marginMode != nil {
 			if IsEqual(marginMode, "cross") {
 
-				response = (<-this.PrivateMarginPostV2MarginCrossedBatchCancelOrder(this.Extend(request, params))).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.PrivateMarginPostV2MarginCrossedBatchCancelOrder(this.Extend(request, params))).Raw))
 			} else {
 
-				response = (<-this.PrivateMarginPostV2MarginIsolatedBatchCancelOrder(this.Extend(request, params))).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.PrivateMarginPostV2MarginIsolatedBatchCancelOrder(this.Extend(request, params))).Raw))
 			}
 		} else {
 
-			response = (<-this.PrivateSpotPostV2SpotTradeBatchCancelOrder(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateSpotPostV2SpotTradeBatchCancelOrder(this.Extend(request, params))).Raw))
 		}
 	} else {
 		var productType any = nil
@@ -9182,12 +9122,10 @@ func (this *Bitget) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 		request["productType"] = productType
 		if trigger != nil && *trigger == true {
 
-			response = (<-this.PrivateMixPostV2MixOrderCancelPlanOrder(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateMixPostV2MixOrderCancelPlanOrder(this.Extend(request, params))).Raw))
 		} else {
 
-			response = (<-this.PrivateMixPostV2MixOrderBatchCancelOrders(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateMixPostV2MixOrderBatchCancelOrders(this.Extend(request, params))).Raw))
 		}
 	}
 	//
@@ -9262,7 +9200,7 @@ func (this *Bitget) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	params = this.Omit(params, []any{"stop", "trigger"})
-	var response any = nil
+	var response map[string]any = nil
 	var uta any = nil
 	var utaparamsVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "cancelAllOrders", false))))
 	uta = GetValue(utaparamsVariable, 0)
@@ -9275,8 +9213,7 @@ func (this *Bitget) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		}
 		request["category"] = productType
 
-		response = (<-this.PrivateUtaPostV3TradeCancelSymbolOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateUtaPostV3TradeCancelSymbolOrder(this.Extend(request, params))).Raw))
 	} else if GetValue(market, "spot") == true {
 		if marginMode != nil {
 			panic(NotSupported(this.Id + " cancelAllOrders() does not support margin markets, you can use cancelOrders() instead"))
@@ -9286,12 +9223,10 @@ func (this *Bitget) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 					"symbolList": []any{market["id"]},
 				}
 
-				response = (<-this.PrivateSpotPostV2SpotTradeBatchCancelPlanOrder(this.Extend(stopRequest, params))).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.PrivateSpotPostV2SpotTradeBatchCancelPlanOrder(this.Extend(stopRequest, params))).Raw))
 			} else {
 
-				response = (<-this.PrivateSpotPostV2SpotTradeCancelSymbolOrder(this.Extend(request, params))).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.PrivateSpotPostV2SpotTradeCancelSymbolOrder(this.Extend(request, params))).Raw))
 			}
 			//
 			//     {
@@ -9319,17 +9254,15 @@ func (this *Bitget) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["productType"] = productType
 		if trigger != nil && *trigger == true {
 
-			response = (<-this.PrivateMixPostV2MixOrderCancelPlanOrder(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateMixPostV2MixOrderCancelPlanOrder(this.Extend(request, params))).Raw))
 		} else {
 
-			response = (<-this.PrivateMixPostV2MixOrderBatchCancelOrders(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateMixPostV2MixOrderBatchCancelOrders(this.Extend(request, params))).Raw))
 		}
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
 	var resultList any = this.SafeListN(data, []any{"resultList", "successList", "list"})
-	var failureList any = this.SafeList2(data, "failure", "failureList")
+	var failureList []any = SafeList2Typed(data, "failure", "failureList")
 	var responseList any = nil
 	if (!IsEqual(resultList, nil)) && (!IsEqual(failureList, nil)) {
 		responseList = this.ArrayConcat(resultList, failureList)
@@ -9636,7 +9569,7 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes712819)
 		return nil
 	}
-	var response any = nil
+	var response map[string]any = nil
 	var trailing *bool = this.SafeBool(params, "trailing")
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	var planTypeDefined bool = (this.SafeString(params, "planType") != nil)
@@ -9673,12 +9606,10 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["category"] = productType
 		if trigger != nil && *trigger == true {
 
-			response = (<-this.PrivateUtaGetV3TradeUnfilledStrategyOrders(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateUtaGetV3TradeUnfilledStrategyOrders(this.Extend(request, params))).Raw))
 		} else {
 
-			response = (<-this.PrivateUtaGetV3TradeUnfilledOrders(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateUtaGetV3TradeUnfilledOrders(this.Extend(request, params))).Raw))
 		}
 	} else if IsEqual(typeVar, "spot") {
 		if marginMode != nil {
@@ -9688,22 +9619,18 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 			}
 			if IsEqual(marginMode, "isolated") {
 
-				response = (<-this.PrivateMarginGetV2MarginIsolatedOpenOrders(this.Extend(request, params))).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.PrivateMarginGetV2MarginIsolatedOpenOrders(this.Extend(request, params))).Raw))
 			} else if IsEqual(marginMode, "cross") {
 
-				response = (<-this.PrivateMarginGetV2MarginCrossedOpenOrders(this.Extend(request, params))).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.PrivateMarginGetV2MarginCrossedOpenOrders(this.Extend(request, params))).Raw))
 			}
 		} else {
 			if trigger != nil && *trigger == true {
 
-				response = (<-this.PrivateSpotGetV2SpotTradeCurrentPlanOrder(this.Extend(request, params))).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.PrivateSpotGetV2SpotTradeCurrentPlanOrder(this.Extend(request, params))).Raw))
 			} else {
 
-				response = (<-this.PrivateSpotGetV2SpotTradeUnfilledOrders(this.Extend(request, params))).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.PrivateSpotGetV2SpotTradeUnfilledOrders(this.Extend(request, params))).Raw))
 			}
 		}
 	} else {
@@ -9712,18 +9639,15 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 			var planType *string = this.SafeString(params, "planType", "track_plan")
 			request["planType"] = planType
 
-			response = (<-this.PrivateMixGetV2MixOrderOrdersPlanPending(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateMixGetV2MixOrderOrdersPlanPending(this.Extend(request, params))).Raw))
 		} else if isTrigger {
 			var planType *string = this.SafeString(params, "planType", "normal_plan")
 			request["planType"] = planType
 
-			response = (<-this.PrivateMixGetV2MixOrderOrdersPlanPending(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateMixGetV2MixOrderOrdersPlanPending(this.Extend(request, params))).Raw))
 		} else {
 
-			response = (<-this.PrivateMixGetV2MixOrderOrdersPending(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateMixGetV2MixOrderOrdersPending(this.Extend(request, params))).Raw))
 		}
 	}
 	//
@@ -10533,17 +10457,15 @@ func (this *Bitget) fetchUtaCanceledAndClosedOrdersBody(ch chan any, optionalArg
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var response any = nil
+	var response map[string]any = nil
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	params = MapTyped(this.Omit(params, []any{"stop", "trigger"}))
 	if trigger != nil && *trigger == true {
 
-		response = (<-this.PrivateUtaGetV3TradeHistoryStrategyOrders(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateUtaGetV3TradeHistoryStrategyOrders(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivateUtaGetV3TradeHistoryOrders(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateUtaGetV3TradeHistoryOrders(this.Extend(request, params))).Raw))
 	}
 	//
 	// uta
@@ -10742,12 +10664,11 @@ func (this *Bitget) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if uta == true {
 		if marketType != nil && *marketType == "funding" {
 
-			response = (<-this.PrivateUtaGetV3AccountFundingFinancialRecords(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateUtaGetV3AccountFundingFinancialRecords(this.Extend(request, params))).Raw))
 		} else {
 			var marginMode any = nil
 			var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchLedger", params)
@@ -10770,8 +10691,7 @@ func (this *Bitget) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 				request["symbol"] = this.SafeString(market, "id")
 			}
 
-			response = (<-this.PrivateUtaGetV3AccountFinancialRecords(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateUtaGetV3AccountFinancialRecords(this.Extend(request, params))).Raw))
 		}
 		var utaData map[string]any = SafeMapTyped(response, "data")
 		var list []any = SafeListTypedDefault(utaData, "list", []any{})
@@ -10781,8 +10701,7 @@ func (this *Bitget) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	}
 	if marketType != nil && *marketType == "spot" {
 
-		response = (<-this.PrivateSpotGetV2SpotAccountBills(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateSpotGetV2SpotAccountBills(this.Extend(request, params))).Raw))
 	} else {
 		if symbol != nil {
 			request["symbol"] = this.SafeString(market, "id")
@@ -10793,8 +10712,7 @@ func (this *Bitget) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		params = GetValue(productTypeparamsVariable, 1)
 		request["productType"] = productType
 
-		response = (<-this.PrivateMixGetV2MixAccountBill(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateMixGetV2MixAccountBill(this.Extend(request, params))).Raw))
 	}
 	//
 	// spot
@@ -11230,11 +11148,10 @@ func (this *Bitget) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes852619)
 		return nil
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if uta == true {
 
-		response = (<-this.PrivateUtaGetV3TradeFills(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateUtaGetV3TradeFills(this.Extend(request, params))).Raw))
 	} else {
 		request["symbol"] = market["id"]
 		if GetValue(market, "spot") == true {
@@ -11244,17 +11161,14 @@ func (this *Bitget) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 				}
 				if IsEqual(marginMode, "isolated") {
 
-					response = (<-this.PrivateMarginGetV2MarginIsolatedFills(this.Extend(request, params))).Raw
-					PanicOnError(response)
+					response = MapTyped(PanicOnError((<-this.PrivateMarginGetV2MarginIsolatedFills(this.Extend(request, params))).Raw))
 				} else if IsEqual(marginMode, "cross") {
 
-					response = (<-this.PrivateMarginGetV2MarginCrossedFills(this.Extend(request, params))).Raw
-					PanicOnError(response)
+					response = MapTyped(PanicOnError((<-this.PrivateMarginGetV2MarginCrossedFills(this.Extend(request, params))).Raw))
 				}
 			} else {
 
-				response = (<-this.PrivateSpotGetV2SpotTradeFills(this.Extend(request, params))).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.PrivateSpotGetV2SpotTradeFills(this.Extend(request, params))).Raw))
 			}
 		} else {
 			var productType any = nil
@@ -11263,8 +11177,7 @@ func (this *Bitget) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			params = GetValue(productTypeparamsVariable, 1)
 			request["productType"] = productType
 
-			response = (<-this.PrivateMixGetV2MixOrderFills(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateMixGetV2MixOrderFills(this.Extend(request, params))).Raw))
 		}
 	}
 	//
@@ -11453,17 +11366,16 @@ func (this *Bitget) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	var response any = nil
+	var response map[string]any = nil
 	var uta any = nil
-	var result any = nil
+	var result []any = nil
 	var utaparamsVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchPosition", false))))
 	uta = GetValue(utaparamsVariable, 0)
 	params = GetValue(utaparamsVariable, 1)
 	if uta == true {
 		request["category"] = productType
 
-		response = (<-this.PrivateUtaGetV3PositionCurrentPosition(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateUtaGetV3PositionCurrentPosition(this.Extend(request, params))).Raw))
 		//
 		//     {
 		//         "code": "00000",
@@ -11503,13 +11415,12 @@ func (this *Bitget) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
 		//     }
 		//
 		var data map[string]any = SafeMapTyped(response, "data")
-		result = this.SafeList(data, "list", []any{})
+		result = ListTyped(this.SafeList(data, "list", []any{}))
 	} else {
 		request["marginCoin"] = market["settleId"]
 		request["productType"] = productType
 
-		response = (<-this.PrivateMixGetV2MixPositionSinglePosition(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateMixGetV2MixPositionSinglePosition(this.Extend(request, params))).Raw))
 		//
 		//     {
 		//         "code": "00000",
@@ -11540,7 +11451,7 @@ func (this *Bitget) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
 		//         ]
 		//     }
 		//
-		result = this.SafeList(response, "data", []any{})
+		result = ListTyped(this.SafeList(response, "data", []any{}))
 	}
 	var first map[string]any = MapTyped(this.SafeDict(result, 0, map[string]any{}))
 
@@ -11613,7 +11524,7 @@ func (this *Bitget) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	productType = GetValue(productTypeparamsVariable, 0)
 	params = GetValue(productTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{}
-	var response any = nil
+	var response map[string]any = nil
 	var isHistory bool = false
 	var uta any = nil
 	var utaparamsVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchPositions", false))))
@@ -11622,8 +11533,7 @@ func (this *Bitget) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	if uta == true {
 		request["category"] = productType
 
-		response = (<-this.PrivateUtaGetV3PositionCurrentPosition(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateUtaGetV3PositionCurrentPosition(this.Extend(request, params))).Raw))
 	} else if IsEqual(method, "privateMixGetV2MixPositionAllPosition") {
 		var marginCoin any = DerefScalar(this.SafeString(params, "marginCoin", "USDT"))
 		if !IsEqual(market, nil) {
@@ -11644,8 +11554,7 @@ func (this *Bitget) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		request["marginCoin"] = marginCoin
 		request["productType"] = productType
 
-		response = (<-this.PrivateMixGetV2MixPositionAllPosition(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateMixGetV2MixPositionAllPosition(this.Extend(request, params))).Raw))
 	} else {
 		isHistory = true
 		if !IsEqual(market, nil) {
@@ -11653,8 +11562,7 @@ func (this *Bitget) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		}
 		request["productType"] = productType
 
-		response = (<-this.PrivateMixGetV2MixPositionHistoryPosition(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateMixGetV2MixPositionHistoryPosition(this.Extend(request, params))).Raw))
 	}
 	//
 	// privateMixGetV2MixPositionAllPosition
@@ -12042,8 +11950,8 @@ func (this *Bitget) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	}
 	var productType any = nil
 	var uta any = nil
-	var response any = nil
-	var result any = nil
+	var response map[string]any = nil
+	var result []any = nil
 	productTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
 	productType = GetValue(productTypeparamsVariable, 0)
 	params = GetValue(productTypeparamsVariable, 1)
@@ -12056,8 +11964,7 @@ func (this *Bitget) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		}
 		request["category"] = productType
 
-		response = (<-this.PublicUtaGetV3MarketHistoryFundRate(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicUtaGetV3MarketHistoryFundRate(this.Extend(request, params))).Raw))
 		//
 		//     {
 		//         "code": "00000",
@@ -12075,7 +11982,7 @@ func (this *Bitget) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		//     }
 		//
 		var data map[string]any = SafeMapTyped(response, "data")
-		result = this.SafeList(data, "resultList", []any{})
+		result = ListTyped(this.SafeList(data, "resultList", []any{}))
 	} else {
 		var paginate bool = false
 		var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
@@ -12092,8 +11999,7 @@ func (this *Bitget) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		}
 		request["productType"] = productType
 
-		response = (<-this.PublicMixGetV2MixMarketHistoryFundRate(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicMixGetV2MixMarketHistoryFundRate(this.Extend(request, params))).Raw))
 		//
 		//     {
 		//         "code": "00000",
@@ -12108,7 +12014,7 @@ func (this *Bitget) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		//         ]
 		//     }
 		//
-		result = this.SafeList(response, "data", []any{})
+		result = ListTyped(this.SafeList(response, "data", []any{}))
 	}
 	var rates []any = []any{}
 	for i := 0; i < GetArrayLength(result); i++ {
@@ -12169,14 +12075,13 @@ func (this *Bitget) fetchFundingRateBody(ch chan any, symbol any, optionalArgs .
 		"symbol": market["id"],
 	}
 	var uta any = nil
-	var response any = nil
+	var response map[string]any = nil
 	var utaparamsVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchFundingRate", false))))
 	uta = GetValue(utaparamsVariable, 0)
 	params = GetValue(utaparamsVariable, 1)
 	if uta == true {
 
-		response = (<-this.PublicUtaGetV3MarketCurrentFundRate(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicUtaGetV3MarketCurrentFundRate(this.Extend(request, params))).Raw))
 	} else {
 		request["productType"] = productType
 		var method any = nil
@@ -12185,12 +12090,10 @@ func (this *Bitget) fetchFundingRateBody(ch chan any, symbol any, optionalArgs .
 		params = GetValue(methodparamsVariable, 1)
 		if IsEqual(method, "publicMixGetV2MixMarketCurrentFundRate") {
 
-			response = (<-this.PublicMixGetV2MixMarketCurrentFundRate(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PublicMixGetV2MixMarketCurrentFundRate(this.Extend(request, params))).Raw))
 		} else if IsEqual(method, "publicMixGetV2MixMarketFundingTime") {
 
-			response = (<-this.PublicMixGetV2MixMarketFundingTime(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PublicMixGetV2MixMarketFundingTime(this.Extend(request, params))).Raw))
 		}
 	}
 	var data []any = SafeListTyped(response, "data")
@@ -12246,7 +12149,7 @@ func (this *Bitget) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 	var methodparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRates", "method", method)
 	method = GetValue(methodparamsVariable, 0)
 	params = MapTyped(GetValue(methodparamsVariable, 1))
-	var response any = nil
+	var response map[string]any = nil
 	request["productType"] = productType
 	if IsEqual(method, "publicMixGetV2MixMarketTickers") {
 		// {
@@ -12282,8 +12185,7 @@ func (this *Bitget) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 		//     ]
 		// }
 
-		response = (<-this.PublicMixGetV2MixMarketTickers(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicMixGetV2MixMarketTickers(this.Extend(request, params))).Raw))
 	} else if IsEqual(method, "publicMixGetV2MixMarketCurrentFundRate") {
 		//
 		//     {
@@ -12303,8 +12205,7 @@ func (this *Bitget) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 		//     }
 		//
 
-		response = (<-this.PublicMixGetV2MixMarketCurrentFundRate(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicMixGetV2MixMarketCurrentFundRate(this.Extend(request, params))).Raw))
 	}
 	symbols = this.MarketSymbols(symbols)
 	var data []any = SafeListTypedDefault(response, "data", []any{})
@@ -12513,21 +12414,19 @@ func (this *Bitget) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if uta == true {
 		request["coin"] = market["settleId"]
 		request["category"] = productType
 
-		response = (<-this.PrivateUtaGetV3AccountFinancialRecords(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateUtaGetV3AccountFinancialRecords(this.Extend(request, params))).Raw))
 	} else {
 		request["symbol"] = market["id"]
 		request["marginCoin"] = market["settleId"]
 		request["businessType"] = "contract_settle_fee"
 		request["productType"] = productType
 
-		response = (<-this.PrivateMixGetV2MixAccountBill(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateMixGetV2MixAccountBill(this.Extend(request, params))).Raw))
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
 	var bills any = this.SafeList2(data, "bills", "list", []any{})
@@ -13088,20 +12987,18 @@ func (this *Bitget) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs 
 		"symbol": market["id"],
 	}
 	var uta any = nil
-	var response any = nil
+	var response map[string]any = nil
 	var utaparamsVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchOpenInterest", false))))
 	uta = GetValue(utaparamsVariable, 0)
 	params = GetValue(utaparamsVariable, 1)
 	if uta == true {
 		request["category"] = productType
 
-		response = (<-this.PublicUtaGetV3MarketOpenInterest(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicUtaGetV3MarketOpenInterest(this.Extend(request, params))).Raw))
 	} else {
 		request["productType"] = productType
 
-		response = (<-this.PublicMixGetV2MixMarketOpenInterest(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicMixGetV2MixMarketOpenInterest(this.Extend(request, params))).Raw))
 	}
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
@@ -13296,15 +13193,13 @@ func (this *Bitget) transferBody(ch chan any, code any, amount any, fromAccount 
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if uta == true {
 
-		response = (<-this.PrivateUtaPostV3AccountTransfer(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateUtaPostV3AccountTransfer(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivateSpotPostV2SpotWalletTransfer(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateSpotPostV2SpotWalletTransfer(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {
@@ -13840,7 +13735,7 @@ func (this *Bitget) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) an
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var response any = nil
+	var response map[string]any = nil
 	var marginMode any = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchMyLiquidations", params, "cross")
 	marginMode = GetValue(marginModeparamsVariable, 0)
@@ -13851,12 +13746,10 @@ func (this *Bitget) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) an
 		}
 		request["symbol"] = this.SafeString(market, "id")
 
-		response = (<-this.PrivateMarginGetV2MarginIsolatedLiquidationHistory(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateMarginGetV2MarginIsolatedLiquidationHistory(this.Extend(request, params))).Raw))
 	} else if IsEqual(marginMode, "cross") {
 
-		response = (<-this.PrivateMarginGetV2MarginCrossedLiquidationHistory(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateMarginGetV2MarginCrossedLiquidationHistory(this.Extend(request, params))).Raw))
 	}
 	//
 	// isolated
@@ -14130,15 +14023,14 @@ func (this *Bitget) fetchCrossBorrowRateBody(ch chan any, code any, optionalArgs
 		"coin": currency["id"],
 	}
 	var uta any = nil
-	var response any = nil
+	var response map[string]any = nil
 	var result any = map[string]any{}
 	var utaparamsVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchCrossBorrowRate", false))))
 	uta = GetValue(utaparamsVariable, 0)
 	params = GetValue(utaparamsVariable, 1)
 	if uta == true {
 
-		response = (<-this.PublicUtaGetV3MarketMarginLoans(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicUtaGetV3MarketMarginLoans(this.Extend(request, params))).Raw))
 		//
 		//     {
 		//         "code": "00000",
@@ -14154,8 +14046,7 @@ func (this *Bitget) fetchCrossBorrowRateBody(ch chan any, code any, optionalArgs
 		result = this.SafeDict(response, "data", map[string]any{})
 	} else {
 
-		response = (<-this.PrivateMarginGetV2MarginCrossedInterestRateAndLimit(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateMarginGetV2MarginCrossedInterestRateAndLimit(this.Extend(request, params))).Raw))
 		//
 		//     {
 		//         "code": "00000",
@@ -14299,7 +14190,7 @@ func (this *Bitget) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) an
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var response any = nil
+	var response map[string]any = nil
 	var marginMode any = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchBorrowInterest", params, "cross")
 	marginMode = GetValue(marginModeparamsVariable, 0)
@@ -14310,12 +14201,10 @@ func (this *Bitget) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) an
 		}
 		request["symbol"] = this.SafeString(market, "id")
 
-		response = (<-this.PrivateMarginGetV2MarginIsolatedInterestHistory(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateMarginGetV2MarginIsolatedInterestHistory(this.Extend(request, params))).Raw))
 	} else if IsEqual(marginMode, "cross") {
 
-		response = (<-this.PrivateMarginGetV2MarginCrossedInterestHistory(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateMarginGetV2MarginCrossedInterestHistory(this.Extend(request, params))).Raw))
 	}
 	//
 	// isolated
@@ -14461,7 +14350,7 @@ func (this *Bitget) closePositionBody(ch chan any, symbol any, optionalArgs ...a
 	}
 	var productType any = nil
 	var uta any = nil
-	var response any = nil
+	var response map[string]any = nil
 	productTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
 	productType = GetValue(productTypeparamsVariable, 0)
 	params = GetValue(productTypeparamsVariable, 1)
@@ -14474,16 +14363,14 @@ func (this *Bitget) closePositionBody(ch chan any, symbol any, optionalArgs ...a
 		}
 		request["category"] = productType
 
-		response = (<-this.PrivateUtaPostV3TradeClosePositions(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateUtaPostV3TradeClosePositions(this.Extend(request, params))).Raw))
 	} else {
 		if side != nil {
 			request["holdSide"] = side
 		}
 		request["productType"] = productType
 
-		response = (<-this.PrivateMixPostV2MixOrderClosePositions(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateMixPostV2MixOrderClosePositions(this.Extend(request, params))).Raw))
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
 	var order []any = SafeList2Typed(data, "successList", "list")
@@ -14525,7 +14412,7 @@ func (this *Bitget) closeAllPositionsBody(ch chan any, optionalArgs ...any) any 
 	var request map[string]any = map[string]any{}
 	var productType any = nil
 	var uta any = nil
-	var response any = nil
+	var response map[string]any = nil
 	productTypeparamsVariable := this.HandleProductTypeAndParams(nil, params)
 	productType = GetValue(productTypeparamsVariable, 0)
 	params = GetValue(productTypeparamsVariable, 1)
@@ -14535,13 +14422,11 @@ func (this *Bitget) closeAllPositionsBody(ch chan any, optionalArgs ...any) any 
 	if uta == true {
 		request["category"] = productType
 
-		response = (<-this.PrivateUtaPostV3TradeClosePositions(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateUtaPostV3TradeClosePositions(this.Extend(request, params))).Raw))
 	} else {
 		request["productType"] = productType
 
-		response = (<-this.PrivateMixPostV2MixOrderClosePositions(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateMixPostV2MixOrderClosePositions(this.Extend(request, params))).Raw))
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
 	var orderInfo []any = SafeList2Typed(data, "successList", "list", []any{})
@@ -14674,7 +14559,7 @@ func (this *Bitget) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 	var market map[string]any = nil
 	var productType any = nil
 	var uta any = nil
-	var response any = nil
+	var response map[string]any = nil
 	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength > 0 {
@@ -14700,12 +14585,10 @@ func (this *Bitget) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 	if uta == true {
 		request["category"] = productType
 
-		response = (<-this.PrivateUtaGetV3PositionHistoryPosition(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateUtaGetV3PositionHistoryPosition(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivateMixGetV2MixPositionHistoryPosition(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateMixGetV2MixPositionHistoryPosition(this.Extend(request, params))).Raw))
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
 	var responseList []any = SafeListTypedDefault(data, "list", []any{})
@@ -15102,20 +14985,18 @@ func (this *Bitget) fetchFundingIntervalBody(ch chan any, symbol any, optionalAr
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	var response any = nil
+	var response map[string]any = nil
 	var uta any = nil
 	var utaparamsVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchFundingInterval", false))))
 	uta = GetValue(utaparamsVariable, 0)
 	params = GetValue(utaparamsVariable, 1)
 	if uta == true {
 
-		response = (<-this.PublicUtaGetV3MarketCurrentFundRate(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicUtaGetV3MarketCurrentFundRate(this.Extend(request, params))).Raw))
 	} else {
 		request["productType"] = productType
 
-		response = (<-this.PublicMixGetV2MixMarketFundingTime(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicMixGetV2MixMarketFundingTime(this.Extend(request, params))).Raw))
 	}
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var first map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
@@ -15166,15 +15047,13 @@ func (this *Bitget) fetchLongShortRatioHistoryBody(ch chan any, optionalArgs ...
 	if timeframe != nil {
 		request["period"] = timeframe
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if (GetValue(market, "swap") == true) || (GetValue(market, "future") == true) {
 
-		response = (<-this.PublicMixGetV2MixMarketAccountLongShort(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicMixGetV2MixMarketAccountLongShort(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PublicMarginGetV2MarginMarketLongShortRatio(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicMarginGetV2MarginMarketLongShortRatio(this.Extend(request, params))).Raw))
 	}
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 

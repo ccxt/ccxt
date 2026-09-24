@@ -694,7 +694,7 @@ func (this *Bit2c) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < len(keys); i++ {
 		var marketId string = GetValue(keys, i).(string)
 		var symbol *string = this.SafeSymbol(marketId)
-		var fee any = this.SafeDict(fees, marketId)
+		var fee map[string]any = SafeMapTyped(fees, marketId)
 		var makerString *string = this.SafeString(fee, "FeeMaker")
 		var takerString *string = this.SafeString(fee, "FeeTaker")
 		var maker *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringDiv(makerString, "100")))
@@ -747,16 +747,14 @@ func (this *Bit2c) createOrderBody(ch chan any, symbol any, typeVar any, side an
 		"Amount": amount,
 		"Pair":   market["id"],
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if IsEqual(typeVar, "market") {
 		if IsEqual(side, "buy") {
 
-			response = (<-this.PrivatePostOrderAddOrderMarketPriceBuy(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivatePostOrderAddOrderMarketPriceBuy(this.Extend(request, params))).Raw))
 		} else {
 
-			response = (<-this.PrivatePostOrderAddOrderMarketPriceSell(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivatePostOrderAddOrderMarketPriceSell(this.Extend(request, params))).Raw))
 		}
 	} else {
 		request["Price"] = price
@@ -765,8 +763,7 @@ func (this *Bit2c) createOrderBody(ch chan any, symbol any, typeVar any, side an
 		request["Total"] = this.ParseToNumeric(Precise.StringMul(amountString, priceString))
 		request["IsBid"] = (IsEqual(side, "buy"))
 
-		response = (<-this.PrivatePostOrderAddOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostOrderAddOrder(this.Extend(request, params))).Raw))
 	}
 
 	ch <- this.ParseOrder(response, market)

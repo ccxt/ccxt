@@ -528,7 +528,7 @@ final Object finalTokenId = tokenId;
         return BaseExchange.supplyAsync(() -> {
 
             this.requireEventQuery(parameters);
-            Object queries = this.parseSearchQueries(parameters);
+            List<Object> queries = this.parseSearchQueries(parameters);
             String eventId = this.safeString(parameters, "eventId");
             String slug = this.safeString(parameters, "slug");
             if ((!java.util.Objects.equals(eventId, null)) || (!java.util.Objects.equals(slug, null)))
@@ -889,7 +889,7 @@ final Object finalTokenId = tokenId;
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public Object parsePredictionTicker(Map<String, Object> ticker, Map<String, Object> market)
+    public Map<String, Object> parsePredictionTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -921,7 +921,7 @@ final Object finalTokenId = tokenId;
             timestamp = null; // the venue reports timestamp 0 for outcomes that have not traded yet
         }
         final Long finalTimestamp = timestamp;
-        return this.safePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "outcome", Opinion.this.safeString(marketAny, "outcome") );
             put( "outcomeId", Opinion.this.safeString2(marketAny, "outcomeId", "id") );
             put( "label", Opinion.this.safeString(marketAny, "label") );
@@ -943,7 +943,7 @@ final Object finalTokenId = tokenId;
             put( "baseVolume", null );
             put( "quoteVolume", null );
             put( "info", ticker );
-        }}), market);
+        }}), market));
     }
     /**
      * @ignore
@@ -954,7 +954,7 @@ final Object finalTokenId = tokenId;
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public Object parsePredictionTicker(Map<String, Object> ticker, Object... optionalArgs)
+    public Map<String, Object> parsePredictionTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         return this.parsePredictionTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -1003,7 +1003,7 @@ final Object finalTokenId = tokenId;
                     put( "price", priceResponse );
                     put( "book", bookResponse );
                 }};
-                Object ticker = this.parsePredictionTicker((Map<String, Object>) (response), ((Object)outcomeObj));
+                Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (response), ((Object)outcomeObj));
                 String symbolKey = this.safeString(ticker, "outcome");
                 if (!java.util.Objects.equals(symbolKey, null))
                 {
@@ -1043,7 +1043,7 @@ final Object finalTokenId = tokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
+            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome))).join();
             Object tokenId = ((String)((Map<String, Object>)outcomeObj).get("outcomeId"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "token_id", tokenId );
@@ -1108,7 +1108,7 @@ final Object finalTokenId = tokenId;
                 Object supportedKeys = Helpers.objectKeys(this.timeframes);
                 throw new BadRequest(((((this.id + " fetchOHLCV() unsupported timeframe ") + timeframe) + ", supported timeframes are ") + String.join(", ", (List<String>)supportedKeys))) ;
             }
-            Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
+            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome))).join();
             Object tokenId = ((String)((Map<String, Object>)outcomeObj).get("outcomeId"));
             String interval = this.safeString(this.timeframes, timeframe);
             Map<String, Object> response = (this.opinionPublicGetTokenPriceHistory(this.extend(new HashMap<String, Object>() {{
@@ -1665,7 +1665,7 @@ final Object finalTokenId = tokenId;
         return BaseExchange.supplyAsync(() -> {
             String outcome = outcome3;
             (this.loadApiKey()).join();
-            Object outcomeObj = null;
+            Map<String, Object> outcomeObj = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(outcome, null))
             {
@@ -1712,7 +1712,7 @@ final Object finalTokenId = tokenId;
         return BaseExchange.supplyAsync(() -> {
             String outcome = outcome3;
             (this.loadApiKey()).join();
-            Object outcomeObj = null;
+            Map<String, Object> outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
                 outcomeObj = (this.loadOutcome((String) (outcome))).join();
@@ -1842,7 +1842,7 @@ final Object finalTokenId = tokenId;
                 throw new ArgumentsRequired((this.id + " fetchMyTrades() requires a walletAddress")) ;
             }
             (this.loadApiKey()).join();
-            Object outcomeObj = null;
+            Map<String, Object> outcomeObj = null;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "walletAddress", Opinion.this.walletAddress );
             }};
@@ -2524,7 +2524,7 @@ final Object finalTokenId = tokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
+            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome))).join();
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Long marketId = this.safeInteger(info, "marketId");
             Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
@@ -2640,7 +2640,7 @@ final Object finalTokenId = tokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
+            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome))).join();
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Long marketId = this.safeInteger(info, "marketId");
             Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
@@ -2714,7 +2714,7 @@ final Object finalTokenId = tokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
+            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome))).join();
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Long marketId = this.safeInteger(info, "marketId");
             Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
@@ -2814,7 +2814,7 @@ final Object finalTokenId = tokenId;
             {
                 throw new ArgumentsRequired((this.id + " watchOrders() requires an outcome (the order update channel is per-market)")) ;
             }
-            Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
+            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome))).join();
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Long marketId = this.safeInteger(info, "marketId");
             String messageHash = "orders";
@@ -2959,7 +2959,7 @@ final Object finalTokenId = tokenId;
             {
                 throw new ArgumentsRequired((this.id + " watchMyTrades() requires an outcome (the trade record channel is per-market)")) ;
             }
-            Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
+            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome))).join();
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Long marketId = this.safeInteger(info, "marketId");
             String messageHash = "myTrades";

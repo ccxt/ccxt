@@ -1109,7 +1109,7 @@ func (this *Woofipro) ParseCurrency(rawCurrency any) any {
 			return nil
 		}()
 		var networkId *string = this.SafeString(networkEntry, "chain_id")
-		var networkRow any = this.SafeDict(indexedChains, networkId)
+		var networkRow map[string]any = SafeMapTyped(indexedChains, networkId)
 		var networkName *string = this.SafeString(networkRow, "name", networkId)
 		var networkCode *string = this.NetworkIdToCode(networkName, code)
 		if networkCode != nil {
@@ -2337,7 +2337,7 @@ func (this *Woofipro) ParseOrder(order any, optionalArgs ...any) any {
 	var triggerPrice *float64 = this.SafeNumber(order, "triggerPrice")
 	var takeProfitPrice *float64 = nil
 	var stopLossPrice *float64 = nil
-	var childOrders any = this.SafeList(order, "childOrders")
+	var childOrders []any = SafeListTyped(order, "childOrders")
 	if !IsEqual(childOrders, nil) {
 		var first map[string]any = SafeMapTyped(childOrders, 0)
 		var innerChildOrders []any = SafeListTypedDefault(first, "childOrders", []any{})
@@ -2450,8 +2450,8 @@ func (this *Woofipro) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		"side":   orderSide,
 	}
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
-	var stopLoss any = this.SafeDict(params, "stopLoss")
-	var takeProfit any = this.SafeDict(params, "takeProfit")
+	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
+	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
 	var hasStopLoss bool = (!IsEqual(stopLoss, nil))
 	var hasTakeProfit bool = (!IsEqual(takeProfit, nil))
 	var algoType *string = this.SafeString(params, "algoType")
@@ -2592,15 +2592,13 @@ func (this *Woofipro) createOrderBody(ch chan any, symbol any, typeVar any, side
 	var stopLoss any = this.SafeDict(params, "stopLoss")
 	var takeProfit any = this.SafeDict(params, "takeProfit")
 	var isConditional bool = (triggerPrice != nil) || !IsEqual(stopLoss, nil) || !IsEqual(takeProfit, nil) || (!IsEqual(this.SafeList(params, "childOrders"), nil))
-	var response any = nil
+	var response map[string]any = nil
 	if isConditional {
 
-		response = (<-this.V1PrivatePostAlgoOrder(request)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V1PrivatePostAlgoOrder(request)).Raw))
 	} else {
 
-		response = (<-this.V1PrivatePostOrder(request)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V1PrivatePostOrder(request)).Raw))
 	}
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	AddElementToObject(data, "timestamp", this.SafeInteger(response, "timestamp"))
@@ -2746,14 +2744,13 @@ func (this *Woofipro) editOrderBody(ch chan any, id any, symbol any, typeVar any
 		request[orderQtyKey] = this.AmountToPrecision(symbol, amount)
 	}
 	params = MapTyped(this.Omit(params, []any{"stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent"}))
-	var response any = nil
+	var response map[string]any = nil
 	if IsEqual(side, nil) {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires a side argument"))
 	}
 	if isConditional {
 
-		response = (<-this.V1PrivatePutAlgoOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V1PrivatePutAlgoOrder(this.Extend(request, params))).Raw))
 	} else {
 		request["symbol"] = market["id"]
 		request["side"] = ToUpper(side)
@@ -2778,8 +2775,7 @@ func (this *Woofipro) editOrderBody(ch chan any, id any, symbol any, typeVar any
 		// request['side'] = side.toUpperCase ();
 		// request['symbol'] = market['id'];
 
-		response = (<-this.V1PrivatePutOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V1PrivatePutOrder(this.Extend(request, params))).Raw))
 	}
 	//
 	// {
@@ -2843,32 +2839,28 @@ func (this *Woofipro) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	var clientOrderIdUnified *string = this.SafeString2(params, "clOrdID", "clientOrderId")
 	var clientOrderIdExchangeSpecific *string = this.SafeString(params, "client_order_id", clientOrderIdUnified)
 	var isByClientOrder bool = (clientOrderIdExchangeSpecific != nil)
-	var response any = nil
+	var response map[string]any = nil
 	if trigger != nil && *trigger == true {
 		if isByClientOrder {
 			request["client_order_id"] = clientOrderIdExchangeSpecific
 			params = MapTyped(this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id"}))
 
-			response = (<-this.V1PrivateDeleteAlgoClientOrder(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.V1PrivateDeleteAlgoClientOrder(this.Extend(request, params))).Raw))
 		} else {
 			request["order_id"] = id
 
-			response = (<-this.V1PrivateDeleteAlgoOrder(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.V1PrivateDeleteAlgoOrder(this.Extend(request, params))).Raw))
 		}
 	} else {
 		if isByClientOrder {
 			request["client_order_id"] = clientOrderIdExchangeSpecific
 			params = MapTyped(this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id"}))
 
-			response = (<-this.V1PrivateDeleteClientOrder(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.V1PrivateDeleteClientOrder(this.Extend(request, params))).Raw))
 		} else {
 			request["order_id"] = id
 
-			response = (<-this.V1PrivateDeleteOrder(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.V1PrivateDeleteOrder(this.Extend(request, params))).Raw))
 		}
 	}
 	//
@@ -2942,17 +2934,15 @@ func (this *Woofipro) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 	var clientOrderIds any = this.SafeListN(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
 	params = MapTyped(this.Omit(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"}))
 	var request map[string]any = map[string]any{}
-	var response any = nil
+	var response map[string]any = nil
 	if !IsEqual(clientOrderIds, nil) {
 		request["client_order_ids"] = Join(clientOrderIds, ",")
 
-		response = (<-this.V1PrivateDeleteClientBatchOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V1PrivateDeleteClientBatchOrder(this.Extend(request, params))).Raw))
 	} else {
 		request["order_ids"] = Join(ids, ",")
 
-		response = (<-this.V1PrivateDeleteBatchOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V1PrivateDeleteBatchOrder(this.Extend(request, params))).Raw))
 	}
 
 	//
@@ -3075,30 +3065,26 @@ func (this *Woofipro) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	var request map[string]any = map[string]any{}
 	var clientOrderId *string = this.SafeStringN(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
 	params = MapTyped(this.Omit(params, []any{"stop", "trigger", "clOrdID", "clientOrderId", "client_order_id"}))
-	var response any = nil
+	var response map[string]any = nil
 	if trigger != nil && *trigger == true {
 		if (clientOrderId != nil) && (clientOrderId == nil || *clientOrderId != "") {
 			request["client_order_id"] = clientOrderId
 
-			response = (<-this.V1PrivateGetAlgoClientOrderClientOrderId(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.V1PrivateGetAlgoClientOrderClientOrderId(this.Extend(request, params))).Raw))
 		} else {
 			request["oid"] = id
 
-			response = (<-this.V1PrivateGetAlgoOrderOid(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.V1PrivateGetAlgoOrderOid(this.Extend(request, params))).Raw))
 		}
 	} else {
 		if (clientOrderId != nil) && (clientOrderId == nil || *clientOrderId != "") {
 			request["client_order_id"] = clientOrderId
 
-			response = (<-this.V1PrivateGetClientOrderClientOrderId(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.V1PrivateGetClientOrderClientOrderId(this.Extend(request, params))).Raw))
 		} else {
 			request["oid"] = id
 
-			response = (<-this.V1PrivateGetOrderOid(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.V1PrivateGetOrderOid(this.Extend(request, params))).Raw))
 		}
 	}
 	//
@@ -3215,15 +3201,13 @@ func (this *Woofipro) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var requestparamsVariable []any = this.HandleUntilOption("end_t", request, params)
 	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
-	var response any = nil
+	var response map[string]any = nil
 	if isTrigger != nil && *isTrigger == true {
 
-		response = (<-this.V1PrivateGetAlgoOrders(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V1PrivateGetAlgoOrders(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.V1PrivateGetOrders(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V1PrivateGetOrders(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {
@@ -3260,7 +3244,7 @@ func (this *Woofipro) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data any = this.SafeDict(response, "data", response)
-	var orders any = this.SafeList(data, "rows")
+	var orders []any = SafeListTyped(data, "rows")
 
 	ch <- this.ParseOrders(orders, market, since, limit)
 	return nil
@@ -3583,7 +3567,7 @@ func (this *Woofipro) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "data")
+	var data map[string]any = SafeMapTyped(response, "data")
 
 	ch <- this.ParseBalance(data)
 	return nil
@@ -3729,7 +3713,7 @@ func (this *Woofipro) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 
 	var currencyRows []any = ListTyped(PanicOnError((<-this.GetAssetHistoryRowsAsync(code, since, limit, params))))
 	var currency any = this.SafeValue(currencyRows, 0)
-	var rows any = this.SafeList(currencyRows, 1)
+	var rows []any = SafeListTyped(currencyRows, 1)
 
 	ch <- this.ParseLedger(rows, currency, since, limit, params)
 	return nil

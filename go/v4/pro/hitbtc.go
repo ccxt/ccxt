@@ -331,7 +331,7 @@ func (this *Hitbtc) HandleOrderBook(client any, message map[string]any) {
 	//        }
 	//    }
 	//
-	var snapshot any = this.SafeDict(message, "snapshot")
+	var snapshot map[string]any = ccxt.SafeMapTyped(message, "snapshot")
 	var data map[string]any = ccxt.SafeDict2Typed(message, "snapshot", "update")
 	var typeVar string = func() string {
 		if !ccxt.IsEqual(snapshot, nil) && !ccxt.IsEqual(snapshot, nil) {
@@ -1227,7 +1227,7 @@ func (this *Hitbtc) ParseWsOrder(order any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(order, "symbol")
 	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
 	var tradeId *string = this.SafeString(order, "trade_id")
-	var trades any = nil
+	var trades []any = nil
 	if tradeId != nil {
 		var trade any = this.ParseWsOrderTrade(order, market)
 		trades = []any{trade}
@@ -1713,7 +1713,7 @@ func (this *Hitbtc) HandleError(client any, message any) any {
 	//        id: 1700228604325
 	//    }
 	//
-	var error any = this.SafeDict(message, "error")
+	var error map[string]any = ccxt.SafeMapTyped(message, "error")
 	if !ccxt.IsEqual(error, nil) {
 
 		{

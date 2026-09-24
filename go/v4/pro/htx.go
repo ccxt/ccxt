@@ -699,7 +699,7 @@ func (this *Htx) HandleOrderBookSnapshot(client any, message map[string]any, sub
 			}()
 			// try block:
 			var orderbook any = this.SafeValue(this.Orderbooks, symbol)
-			var data any = this.SafeDict(message, "data")
+			var data map[string]any = ccxt.SafeMapTyped(message, "data")
 			var messages any = orderbook.(ccxt.OrderBookInterface).GetCache()
 			var firstMessage map[string]any = ccxt.SafeMapTyped(messages, 0)
 			var snapshot map[string]any = this.ParseOrderBook(data, symbol)
@@ -1459,7 +1459,7 @@ func (this *Htx) HandleOrder(client any, message any) {
 	//     }
 	//
 	var messageHash *string = this.SafeString2(message, "ch", "topic")
-	var data any = this.SafeDict(message, "data")
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var marketId *string = this.SafeString(message, "contract_code")
 	if marketId == nil {
 		marketId = this.SafeString2(data, "contract_code", "symbol")
@@ -1771,7 +1771,7 @@ func (this *Htx) ParseWsOrder(order any, optionalArgs ...any) any {
 		"stopLossPrice":      this.SafeString2(order, "sl_trigger_price", "sl_order_price"),
 	}, market)
 }
-func (this *Htx) ParseOrderTrade(trade any, optionalArgs ...any) any {
+func (this *Htx) ParseOrderTrade(trade map[string]any, optionalArgs ...any) any {
 	// spot private wrapped trade
 	//
 	//     {

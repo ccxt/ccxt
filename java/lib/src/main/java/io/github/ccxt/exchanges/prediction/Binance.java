@@ -492,14 +492,14 @@ public class Binance extends BinanceApi
             {
                 this.requireEventQuery(parameters);
             }
-            Object queries = this.parseSearchQueries(parameters);
+            List<Object> queries = this.parseSearchQueries(parameters);
             // binance has no tag taxonomy — resolve requested tags through the semantic search too
             List<Object> tags = (List<Object>) this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
             Integer tagsLength = ((List<?>)tags).size();
             List<Object> allQueries = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)queries).size(); i++)
             {
-                ((List<Object>)allQueries).add((queries == null || i < 0 || i >= ((List<?>)queries).size() ? null : ((List<?>)queries).get(i)));
+                ((List<Object>)allQueries).add((queries == null || i < 0 || i >= queries.size() ? null : queries.get(i)));
             }
             for (var i = 0; Helpers.isLessThan(i, tagsLength); i++)
             {
@@ -1064,7 +1064,7 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public Object parsePredictionTicker(Map<String, Object> raw, Map<String, Object> market)
+    public Map<String, Object> parsePredictionTicker(Map<String, Object> raw, Map<String, Object> market)
     {
         //
         //     { "marketId": 5567895, "lastTradePrice": "0.52" }
@@ -1097,7 +1097,7 @@ final Object finalMarketSymbol = marketSymbol;
             }
         }
         final Double finalLast = last;
-        return this.safePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "outcome", Binance.this.safeString(outcomeObj, "outcome") );
             put( "outcomeId", Binance.this.safeString2(outcomeObj, "outcomeId", "id") );
             put( "label", Binance.this.safeString(outcomeObj, "label") );
@@ -1121,7 +1121,7 @@ final Object finalMarketSymbol = marketSymbol;
             put( "baseVolume", null );
             put( "quoteVolume", null );
             put( "info", raw );
-        }}), market);
+        }}), market));
     }
     /**
      * @ignore
@@ -1132,7 +1132,7 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public Object parsePredictionTicker(Map<String, Object> raw, Object... optionalArgs)
+    public Map<String, Object> parsePredictionTicker(Map<String, Object> raw, Object... optionalArgs)
     {
         return this.parsePredictionTicker(raw, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -1178,7 +1178,7 @@ final Object finalMarketSymbol = marketSymbol;
                     response = (this.sapiPrivateGetOrderBookLastTradePrice(this.extend(request, parameters))).join();
                     ((Map<String, Object>)responsesByMarketId).put((String)marketId, response);
                 }
-                Object ticker = this.parsePredictionTicker((Map<String, Object>) (response), ((Object)outcomeObj));
+                Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (response), ((Object)outcomeObj));
                 String symbolKey = this.safeString(ticker, "outcome", (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i)));
                 ((Map<String, Object>)result).put((String)symbolKey, ticker);
             }

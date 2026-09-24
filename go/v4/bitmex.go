@@ -873,14 +873,14 @@ func (this *Bitmex) ConvertToRealAmount(code any, amount any) any {
 	var precision *string = this.SafeString(currency, "precision")
 	return Precise.StringMul(amount, precision)
 }
-func (this *Bitmex) AmountToPrecision(symbol any, amount any) any {
+func (this *Bitmex) AmountToPrecision(symbol any, amount any) *string {
 	symbol = DerefScalar(this.SafeSymbol(symbol))
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var oldPrecision *bool = this.SafeBool(this.Options, "oldPrecision")
 	if (GetValue(market, "spot") == true) && (oldPrecision == nil || *oldPrecision != true) {
 		amount = this.ConvertFromRealAmount(market["base"], amount)
 	}
-	return this.Exchange.AmountToPrecision(symbol, amount)
+	return SafeStringPtr(this.Exchange.AmountToPrecision(symbol, amount))
 }
 func (this *Bitmex) ConvertFromRawQuantity(symbol any, rawQuantity any, optionalArgs ...any) any {
 	var currencySide string = GetArgString(optionalArgs, 0, "base")
@@ -2149,7 +2149,7 @@ func (this *Bitmex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	}
 
 	var response []any = ListTyped(PanicOnError((<-this.PublicGetInstrument(this.Extend(request, params))).Raw))
-	var ticker any = this.SafeDict(response, 0)
+	var ticker map[string]any = SafeMapTyped(response, 0)
 	if IsEqual(ticker, nil) {
 		panic(BadSymbol(Add(Add(this.Id+" fetchTicker() symbol ", symbol), " not found")))
 	}
@@ -4082,10 +4082,9 @@ func (this *Bitmex) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var response any = nil
+	var response []any = nil
 
-	response = (<-this.PublicGetStats(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	response = ListTyped(PanicOnError((<-this.PublicGetStats(this.Extend(request, params))).Raw))
 	//
 	//    [
 	//        {

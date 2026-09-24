@@ -1654,15 +1654,13 @@ func (this *Toobit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	var response any = nil
+	var response []any = nil
 	if typeVar != nil && *typeVar == "spot" {
 
-		response = (<-this.CommonGetQuoteV1Ticker24hr(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.CommonGetQuoteV1Ticker24hr(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.CommonGetQuoteV1ContractTicker24hr(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.CommonGetQuoteV1ContractTicker24hr(this.Extend(request, params))).Raw))
 	}
 
 	//
@@ -2277,8 +2275,8 @@ func (this *Toobit) CreateContractOrderRequest(symbol any, typeVar any, side any
 	if !IsEqual(triggerPrice, nil) {
 		request["stopPrice"] = triggerPrice
 	}
-	var stopLoss any = this.SafeDict(params, "stopLoss")
-	var takeProfit any = this.SafeDict(params, "takeProfit")
+	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
+	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
 	var hasStopLoss bool = (!IsEqual(stopLoss, nil))
 	var hasTakeProfit bool = (!IsEqual(takeProfit, nil))
 	var triggerPriceTypes map[string]any = map[string]any{
@@ -3087,15 +3085,13 @@ func (this *Toobit) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchLedger", nil, params)
 	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
-	var response any = nil
+	var response []any = nil
 	if marketType != nil && *marketType == "spot" {
 
-		response = (<-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivateGetApiV1FuturesBalanceFlow(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.PrivateGetApiV1FuturesBalanceFlow(this.Extend(request, params))).Raw))
 	}
 
 	//

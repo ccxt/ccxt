@@ -597,7 +597,7 @@ func (this *Hollaex) ParseCurrency(rawCurrency any) any {
 	var networkIds []string = ObjectKeys(rawNetworks)
 	for j := 0; j < len(networkIds); j++ {
 		var networkId string = GetValue(networkIds, j).(string)
-		var networkEntry any = this.SafeDict(rawNetworks, networkId)
+		var networkEntry map[string]any = SafeMapTyped(rawNetworks, networkId)
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
 			AddElementToObject(networks, networkCode, map[string]any{
@@ -739,7 +739,7 @@ func (this *Hollaex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	//         // ...
 	//     }
 	//
-	var orderbook any = this.SafeDict(response, market["id"])
+	var orderbook map[string]any = SafeMapTyped(response, market["id"])
 	var timestamp *int64 = this.Parse8601(this.SafeString(orderbook, "timestamp"))
 
 	ch <- this.ParseOrderBook(orderbook, market["symbol"], timestamp)
@@ -2417,13 +2417,18 @@ func (this *Hollaex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 			"percentage": false,
 		}
 	}
-	var withdrawalFees any = this.SafeDict(fee, "withdrawal_fees")
+	var withdrawalFees map[string]any = SafeMapTyped(fee, "withdrawal_fees")
 	if !IsEqual(withdrawalFees, nil) {
 		var keys []string = ObjectKeys(withdrawalFees)
 		var keysLength int = len(keys)
 		for i := 0; i < keysLength; i++ {
 			var key *string = SafeStringPtr(GetValue(keys, i))
-			var value map[string]any = MapTyped(GetValue(withdrawalFees, key))
+			var value map[string]any = MapTyped(func() any {
+				if key == nil {
+					return nil
+				}
+				return withdrawalFees[*key]
+			}())
 			var currencyId *string = this.SafeString(value, "symbol")
 			var currencyCode *string = this.SafeCurrencyCode(currencyId)
 			var networkCode *string = this.NetworkIdToCode(key, currencyCode)

@@ -2406,7 +2406,7 @@ func (this *Grvt) transferBody(ch chan any, code any, amount any, fromAccount an
 		"transfer_metadata":   nil,
 	}
 	request = this.CreateSignedRequest(request, "EIP712_TRANSFER_TYPE", currency)
-	var response any = nil
+	var response map[string]any = nil
 
 	{
 		func(this *Grvt) (ret_ any) {
@@ -2429,8 +2429,7 @@ func (this *Grvt) transferBody(ch chan any, code any, amount any, fromAccount an
 			}()
 			// try block:
 
-			response = (<-this.PrivateTradingPostFullV1Transfer(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateTradingPostFullV1Transfer(this.Extend(request, params))).Raw))
 			return nil
 		}(this)
 
@@ -3908,7 +3907,7 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) any {
 	var filledAmounts []any = SafeListTypedDefault(stateObj, "traded_size", []any{})
 	var avgPrices []any = SafeListTypedDefault(stateObj, "avg_fill_price", []any{})
 	var primaryOrderIndex int = 0
-	var firstLeg any = this.SafeDict(legs, primaryOrderIndex)
+	var firstLeg map[string]any = SafeMapTyped(legs, primaryOrderIndex)
 	if !IsEqual(firstLeg, nil) {
 		var marketId *string = this.SafeString(firstLeg, "instrument")
 		market = MapTyped(this.SafeMarket(marketId, market))

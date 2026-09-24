@@ -262,7 +262,7 @@ func (this *Gemini) HandleTrades(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeStringLower(message, "symbol")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-	var trades any = this.SafeList(message, "trades")
+	var trades []any = ccxt.SafeListTyped(message, "trades")
 	if !ccxt.IsEqual(trades, nil) {
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -271,8 +271,13 @@ func (this *Gemini) HandleTrades(client any, message map[string]any) {
 			stored = ccxt.NewArrayCache(tradesLimit)
 			ccxt.AddElementToObject(this.Trades, symbol, stored)
 		}
-		for i := 0; i < ccxt.GetArrayLength(trades); i++ {
-			var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(ccxt.GetValue(trades, i), market))
+		for i := 0; i < len(trades); i++ {
+			var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(func() any {
+				if i >= 0 && i < len(trades) {
+					return ccxt.DerefScalar(trades[i])
+				}
+				return nil
+			}(), market))
 			stored.(ccxt.Appender).Append(trade)
 		}
 		var messageHash string = "trades:" + *symbol
@@ -1053,16 +1058,21 @@ func (this *Gemini) HandleMessage(client any, message any) {
 	if typeVar != nil && *typeVar == "update" {
 		var ts *int64 = this.SafeInteger(message, "timestampms", this.Milliseconds())
 		var eventId *int64 = this.SafeInteger(message, "eventId")
-		var events any = this.SafeList(message, "events")
+		var events []any = ccxt.SafeListTyped(message, "events")
 		if ccxt.IsEqual(events, nil) {
 			return
 		}
 		var orderBookItems []any = []any{}
 		var bidaskItems []any = []any{}
 		var collectedEventsOfTrades []any = []any{}
-		var eventsLength int = ccxt.GetArrayLength(events)
-		for i := 0; i < ccxt.GetArrayLength(events); i++ {
-			var event any = ccxt.GetValue(events, i)
+		var eventsLength int = len(events)
+		for i := 0; i < len(events); i++ {
+			var event any = func() any {
+				if i >= 0 && i < len(events) {
+					return ccxt.DerefScalar(events[i])
+				}
+				return nil
+			}()
 			var eventType *string = this.SafeString(event, "type")
 			var isOrderBook bool = (eventType != nil && *eventType == "change") && (ccxt.InOp(event, "side")) && this.InArray(ccxt.GetValue(event, "side"), []any{"ask", "bid"})
 			var eventReason *string = this.SafeString(event, "reason")
@@ -1072,7 +1082,12 @@ func (this *Gemini) HandleMessage(client any, message any) {
 			} else if isOrderBook {
 				orderBookItems = append(orderBookItems, event)
 			} else if eventType != nil && *eventType == "trade" {
-				collectedEventsOfTrades = append(collectedEventsOfTrades, ccxt.GetValue(events, i))
+				collectedEventsOfTrades = append(collectedEventsOfTrades, func() any {
+					if i >= 0 && i < len(events) {
+						return ccxt.DerefScalar(events[i])
+					}
+					return nil
+				}())
 			}
 		}
 		var lengthBa int = len(bidaskItems)

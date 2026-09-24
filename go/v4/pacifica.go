@@ -1189,7 +1189,7 @@ func (this *Pacifica) fetchLeverageBody(ch chan any, symbol any, optionalArgs ..
 		settings = (<-this.FetchAccountSettingsAsync(this.Extend(request, params)))
 		PanicOnError(settings)
 	}
-	var setting any = this.SafeDict(settings, symbol)
+	var setting map[string]any = SafeMapTyped(settings, symbol)
 	if IsEqual(setting, nil) {
 
 		// NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
@@ -1202,7 +1202,7 @@ func (this *Pacifica) fetchLeverageBody(ch chan any, symbol any, optionalArgs ..
 		return nil
 	}
 }
-func (this *Pacifica) ParseLeverageFromSetting(symbol any, setting any) any {
+func (this *Pacifica) ParseLeverageFromSetting(symbol any, setting map[string]any) any {
 	// {
 	//   "WLFI/USDC:USDC": {
 	//       "symbol": "WLFI",
@@ -1370,7 +1370,7 @@ func (this *Pacifica) fetchMarginModeBody(ch chan any, symbol any, optionalArgs 
 	//       "updated_at": 1758086074002
 	//    },
 	// }
-	var setting any = this.SafeDict(settings, symbol)
+	var setting map[string]any = SafeMapTyped(settings, symbol)
 	if IsEqual(setting, nil) {
 
 		// NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
@@ -1386,7 +1386,7 @@ func (this *Pacifica) fetchMarginModeBody(ch chan any, symbol any, optionalArgs 
 		return nil
 	}
 }
-func (this *Pacifica) ParseMarginModeFromSetting(symbol any, setting any) any {
+func (this *Pacifica) ParseMarginModeFromSetting(symbol any, setting map[string]any) any {
 	// {
 	//       "symbol": "WLFI",
 	//       "isolated": false,
@@ -2003,23 +2003,19 @@ func (this *Pacifica) createOrderBody(ch chan any, symbol any, typeVar any, side
 	request := GetValue(requestoperationTypeVariable, 0)
 	operationType := GetValue(requestoperationTypeVariable, 1)
 	params = MapTyped(this.Omit(params, []any{"reduceOnly", "reduce_only", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow", "slippage", "slippage_percent"}))
-	var response any = nil
+	var response map[string]any = nil
 	if IsEqual(operationType, "create_market_order") {
 
-		response = (<-this.PrivatePostOrdersCreateMarket(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostOrdersCreateMarket(this.Extend(request, params))).Raw))
 	} else if IsEqual(operationType, "create_stop_order") {
 
-		response = (<-this.PrivatePostOrdersStopCreate(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostOrdersStopCreate(this.Extend(request, params))).Raw))
 	} else if IsEqual(operationType, "set_position_tpsl") {
 
-		response = (<-this.PrivatePostPositionsTpsl(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostPositionsTpsl(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivatePostOrdersCreate(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostOrdersCreate(this.Extend(request, params))).Raw))
 	}
 	//
 	// {
@@ -2674,8 +2670,8 @@ func (this *Pacifica) EditOrderRequest(id any, symbol any, typeVar any, side any
 	}
 	var operationType string = "edit_order"
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
-	var priceNormalized any = this.PriceToPrecision(symbol, price)
-	var amountNormalized any = this.AmountToPrecision(symbol, amount)
+	var priceNormalized *string = this.PriceToPrecision(symbol, price)
+	var amountNormalized *string = this.AmountToPrecision(symbol, amount)
 	var sigPayload map[string]any = map[string]any{
 		"symbol": this.SafeString(market, "id"),
 		"price":  priceNormalized,

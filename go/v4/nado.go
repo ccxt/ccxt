@@ -405,15 +405,13 @@ func (this *Nado) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	PanicOnError(request)
 	var placeOrder map[string]any = MapTyped(this.SafeDict(request, "place_order", map[string]any{}))
 	var isTriggerOrder bool = (func() bool { _, ok := placeOrder["trigger"]; return ok }())
-	var response any = nil
+	var response map[string]any = nil
 	if isTriggerOrder {
 
-		response = (<-this.TriggerPrivatePostExecute(request)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.TriggerPrivatePostExecute(request)).Raw))
 	} else {
 
-		response = (<-this.GatewayPrivatePostExecute(request)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.GatewayPrivatePostExecute(request)).Raw))
 	}
 
 	//
@@ -466,8 +464,8 @@ func (this *Nado) createOrderRequestBody(ch chan any, symbol any, typeVar any, s
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument"))
 	}
 	var productId int64 = this.ParseToInt(market["id"])
-	var priceString any = this.PriceToPrecision(symbol, price)
-	var amountString any = this.AmountToPrecision(symbol, amount)
+	var priceString *string = this.PriceToPrecision(symbol, price)
+	var amountString *string = this.AmountToPrecision(symbol, amount)
 	var priceX18 any = this.ConvertToX18(priceString)
 	var amountX18 any = this.ConvertToX18(amountString)
 	if IsEqual(side, "sell") {
@@ -696,8 +694,8 @@ func (this *Nado) editOrderRequestBody(ch chan any, id any, symbol any, typeVar 
 		panic(ArgumentsRequired(this.Id + " editOrder() requires a price argument"))
 	}
 	var productId int64 = this.ParseToInt(market["id"])
-	var priceString any = this.PriceToPrecision(symbol, price)
-	var amountString any = this.AmountToPrecision(symbol, amount)
+	var priceString *string = this.PriceToPrecision(symbol, price)
+	var amountString *string = this.AmountToPrecision(symbol, amount)
 	var priceX18 any = this.ConvertToX18(priceString)
 	var amountX18 any = this.ConvertToX18(amountString)
 	if IsEqual(side, "sell") {
@@ -843,15 +841,13 @@ func (this *Nado) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	request := (<-this.CancelAllOrdersRequestAsync(symbol, params))
 	PanicOnError(request)
-	var response any = nil
+	var response map[string]any = nil
 	if trigger != nil && *trigger == true {
 
-		response = (<-this.TriggerPrivatePostExecute(request)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.TriggerPrivatePostExecute(request)).Raw))
 	} else {
 
-		response = (<-this.GatewayPrivatePostExecute(request)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.GatewayPrivatePostExecute(request)).Raw))
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
 	var cancelledOrders []any = SafeListTyped(data, "cancelled_orders")
@@ -975,15 +971,13 @@ func (this *Nado) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 
 	request := (<-this.CancelOrdersRequestAsync(ids, symbol, params))
 	PanicOnError(request)
-	var response any = nil
+	var response map[string]any = nil
 	if trigger != nil && *trigger == true {
 
-		response = (<-this.TriggerPrivatePostExecute(request)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.TriggerPrivatePostExecute(request)).Raw))
 	} else {
 
-		response = (<-this.GatewayPrivatePostExecute(request)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.GatewayPrivatePostExecute(request)).Raw))
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
 	var cancelledOrders []any = SafeListTyped(data, "cancelled_orders")
@@ -2136,7 +2130,7 @@ func (this *Nado) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		if assetCode == nil {
 			continue
 		}
-		var previous any = this.SafeDict(assetsByCode, assetCode)
+		var previous map[string]any = SafeMapTyped(assetsByCode, assetCode)
 		if IsEqual(previous, nil) {
 			AddElementToObject(assetsByCode, assetCode, rawAsset)
 		} else {
@@ -2313,7 +2307,7 @@ func (this *Nado) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 		if code == nil {
 			continue
 		}
-		var previous any = this.SafeDict(result, code)
+		var previous map[string]any = SafeMapTyped(result, code)
 		var canDeposit *bool = this.SafeBool(currency, "can_deposit", false)
 		var canWithdraw *bool = this.SafeBool(currency, "can_withdraw", false)
 		if IsEqual(previous, nil) {
@@ -2402,7 +2396,7 @@ func (this *Nado) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	symbol = market["symbol"]
 
 	var tickers map[string]any = MapTyped(PanicOnError((<-this.FetchTickersAsync([]any{symbol}, params))))
-	var ticker any = this.SafeDict(tickers, symbol)
+	var ticker map[string]any = SafeMapTyped(tickers, symbol)
 	if IsEqual(ticker, nil) {
 		panic(BadSymbol(Add(this.Id+" fetchTicker() ticker not found for ", symbol)))
 	}
@@ -3606,9 +3600,9 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
 			}()
 			amount = this.ParseX18(Precise.StringAbs(amountString))
 		}
-		var triggerStatus any = this.SafeDict(order, "status")
+		var triggerStatus map[string]any = SafeMapTyped(order, "status")
 		if !IsEqual(triggerStatus, nil) {
-			var triggered any = this.SafeDict(triggerStatus, "triggered")
+			var triggered map[string]any = SafeMapTyped(triggerStatus, "triggered")
 			if !IsEqual(triggered, nil) {
 				status = "closed"
 			} else {

@@ -684,7 +684,7 @@ func (this *Bitmex) HandleBalance(client any, message map[string]any) {
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(message, "data")
+	var data []any = ccxt.SafeListTyped(message, "data")
 	var balance any = this.ParseBalance(data)
 	this.Balance = this.Extend(this.Balance, balance)
 	var messageHash *string = this.SafeString(message, "table")

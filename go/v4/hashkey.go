@@ -1214,10 +1214,10 @@ func (this *Hashkey) ParseMarket(market any) any {
 		amountPrecisionString = Precise.StringDiv(amountPrecisionString, contractSizeString)
 		amountMinLimitString = Precise.StringDiv(amountMinLimitString, contractSizeString)
 		amountMaxLimitString = Precise.StringDiv(amountMaxLimitString, contractSizeString)
-		var riskLimits any = this.SafeList(market, "riskLimits")
+		var riskLimits []any = SafeListTyped(market, "riskLimits")
 		if !IsEqual(riskLimits, nil) {
 			var first map[string]any = SafeMapTyped(riskLimits, 0)
-			var arrayLength int = GetArrayLength(riskLimits)
+			var arrayLength int = len(riskLimits)
 			var last map[string]any = SafeMapTyped(riskLimits, arrayLength-1)
 			var minInitialMargin any = DerefScalar(this.SafeString(first, "initialMargin"))
 			var maxInitialMargin any = DerefScalar(this.SafeString(last, "initialMargin"))
@@ -1314,7 +1314,7 @@ func (this *Hashkey) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetApiV1ExchangeInfo(params)).Raw))
-	var coins any = this.SafeList(response, "coins")
+	var coins []any = SafeListTyped(response, "coins")
 
 	//
 	//     {
@@ -1719,7 +1719,7 @@ func (this *Hashkey) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var feeCost *string = this.SafeString(trade, "commission")
 	var feeCurrncyId *string = this.SafeString(trade, "commissionAsset")
-	var feeInfo any = this.SafeDict(trade, "fee")
+	var feeInfo map[string]any = SafeMapTyped(trade, "fee")
 	var fee map[string]any = nil
 	if !IsEqual(feeInfo, nil) {
 		feeCost = this.SafeString(feeInfo, "fee")
@@ -3347,15 +3347,13 @@ func (this *Hashkey) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 	var request map[string]any = map[string]any{
 		"orders": ordersRequests,
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if GetValue(market, "spot") == true {
 
-		response = (<-this.PrivatePostApiV1SpotBatchOrders(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostApiV1SpotBatchOrders(this.Extend(request, params))).Raw))
 	} else if GetValue(market, "swap") == true {
 
-		response = (<-this.PrivatePostApiV1FuturesBatchOrders(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostApiV1FuturesBatchOrders(this.Extend(request, params))).Raw))
 	} else {
 		panic(NotSupported(Add(Add(this.Id+" "+"createOrderRequest() is not supported for ", market["type"]), " type of markets")))
 	}
@@ -3752,7 +3750,7 @@ func (this *Hashkey) fetchOpenSpotOrdersBody(ch chan any, optionalArgs ...any) a
 	params = GetValue(methodNameparamsVariable, 1)
 	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
-	var response any = nil
+	var response []any = nil
 	var accountId any = nil
 	var accountIdparamsVariable []any = this.HandleOptionAndParams(params, methodName, "accountId")
 	accountId = GetValue(accountIdparamsVariable, 0)
@@ -3760,8 +3758,7 @@ func (this *Hashkey) fetchOpenSpotOrdersBody(ch chan any, optionalArgs ...any) a
 	if accountId != nil {
 		request["subAccountId"] = accountId
 
-		response = (<-this.PrivateGetApiV1SpotSubAccountOpenOrders(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.PrivateGetApiV1SpotSubAccountOpenOrders(this.Extend(request, params))).Raw))
 	} else {
 		if symbol != nil {
 			market = this.Market(symbol)
@@ -3771,8 +3768,7 @@ func (this *Hashkey) fetchOpenSpotOrdersBody(ch chan any, optionalArgs ...any) a
 			request["limit"] = limit
 		}
 
-		response = (<-this.PrivateGetApiV1SpotOpenOrders(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.PrivateGetApiV1SpotOpenOrders(this.Extend(request, params))).Raw))
 	}
 
 	ch <- this.ParseOrders(response, market, since, limit)
@@ -3835,7 +3831,7 @@ func (this *Hashkey) fetchOpenSwapOrdersBody(ch chan any, optionalArgs ...any) a
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var response any = nil
+	var response []any = nil
 	var accountId any = nil
 	var accountIdparamsVariable []any = this.HandleOptionAndParams(params, methodName, "accountId")
 	accountId = GetValue(accountIdparamsVariable, 0)
@@ -3843,12 +3839,10 @@ func (this *Hashkey) fetchOpenSwapOrdersBody(ch chan any, optionalArgs ...any) a
 	if accountId != nil {
 		request["subAccountId"] = accountId
 
-		response = (<-this.PrivateGetApiV1FuturesSubAccountOpenOrders(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.PrivateGetApiV1FuturesSubAccountOpenOrders(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivateGetApiV1FuturesOpenOrders(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.PrivateGetApiV1FuturesOpenOrders(this.Extend(request, params))).Raw))
 	}
 
 	ch <- this.ParseOrders(response, market, since, limit)

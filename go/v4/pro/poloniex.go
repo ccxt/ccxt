@@ -1147,7 +1147,7 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 	}
 	var marketIds []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var order any = this.SafeDict(data, i)
+		var order map[string]any = ccxt.SafeMapTyped(data, i)
 		var marketId *string = this.SafeString(order, "symbol")
 		var eventType *string = this.SafeString(order, "eventType")
 		if marketId != nil {
@@ -1437,8 +1437,8 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 		var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 		var limit *int64 = this.SafeInteger(subscription, "limit")
 		var timestamp *int64 = this.SafeInteger(item, "ts")
-		var asks any = this.SafeList(item, "asks")
-		var bids any = this.SafeList(item, "bids")
+		var asks []any = ccxt.SafeListTyped(item, "asks")
+		var bids []any = ccxt.SafeListTyped(item, "bids")
 		if snapshot || update {
 			if snapshot {
 				ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
@@ -1448,7 +1448,7 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 			}
 			var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 			if !ccxt.IsEqual(bids, nil) {
-				for j := 0; j < ccxt.GetArrayLength(bids); j++ {
+				for j := 0; j < len(bids); j++ {
 					var bid []any = ccxt.SafeListTyped(bids, j)
 					var price *float64 = this.SafeNumber(bid, 0)
 					var amount *float64 = this.SafeNumber(bid, 1)
@@ -1457,7 +1457,7 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 				}
 			}
 			if !ccxt.IsEqual(asks, nil) {
-				for j := 0; j < ccxt.GetArrayLength(asks); j++ {
+				for j := 0; j < len(asks); j++ {
 					var ask []any = ccxt.SafeListTyped(asks, j)
 					var price *float64 = this.SafeNumber(ask, 0)
 					var amount *float64 = this.SafeNumber(ask, 1)

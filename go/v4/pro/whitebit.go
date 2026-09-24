@@ -260,7 +260,7 @@ func (this *Whitebit) HandleOrderBook(client any, message map[string]any) {
 	var marketId *string = this.SafeString(params, 2)
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var data any = this.SafeDict(params, 1)
+	var data map[string]any = ccxt.SafeMapTyped(params, 1)
 	var timestamp *int64 = this.SafeTimestamp(data, "timestamp")
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		var ob ccxt.OrderBookInterface = this.OrderBook()
@@ -742,7 +742,7 @@ func (this *Whitebit) HandleOrder(client any, message map[string]any, optionalAr
 	var subscription map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = subscription
 	var params []any = ccxt.SafeListTypedDefault(message, "params", []any{})
-	var data any = this.SafeDict(params, 1)
+	var data map[string]any = ccxt.SafeMapTyped(params, 1)
 	if ccxt.IsEqual(this.Orders, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)

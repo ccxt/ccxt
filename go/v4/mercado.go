@@ -633,19 +633,16 @@ func (this *Mercado) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		request["from"] = this.ParseToInt(Divide(since, 1000))
 	}
 	var to *int64 = this.SafeInteger(params, "to")
-	var response any = nil
+	var response []any = nil
 	if (since != nil) && (to != nil) {
 
-		response = (<-this.PublicGetCoinTradesFromTo(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.PublicGetCoinTradesFromTo(this.Extend(request, params))).Raw))
 	} else if since != nil {
 
-		response = (<-this.PublicGetCoinTradesFrom(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.PublicGetCoinTradesFrom(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PublicGetCoinTrades(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.PublicGetCoinTrades(this.Extend(request, params))).Raw))
 	}
 
 	ch <- this.ParseTrades(response, market, since, limit)
@@ -734,18 +731,16 @@ func (this *Mercado) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	var request map[string]any = map[string]any{
 		"coin_pair": market["id"],
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if IsEqual(typeVar, "limit") {
 		request["limit_price"] = this.PriceToPrecision(market["symbol"], price)
 		request["quantity"] = this.AmountToPrecision(market["symbol"], amount)
 		if IsEqual(side, "buy") {
 
-			response = (<-this.PrivatePostPlaceBuyOrder(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivatePostPlaceBuyOrder(this.Extend(request, params))).Raw))
 		} else {
 
-			response = (<-this.PrivatePostPlaceSellOrder(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivatePostPlaceSellOrder(this.Extend(request, params))).Raw))
 		}
 	} else {
 		if IsEqual(side, "buy") {
@@ -757,13 +752,11 @@ func (this *Mercado) createOrderBody(ch chan any, symbol any, typeVar any, side 
 			var cost any = this.ParseToNumeric(Precise.StringMul(amountString, priceString))
 			request["cost"] = this.PriceToPrecision(market["symbol"], cost)
 
-			response = (<-this.PrivatePostPlaceMarketBuyOrder(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivatePostPlaceMarketBuyOrder(this.Extend(request, params))).Raw))
 		} else {
 			request["quantity"] = this.AmountToPrecision(market["symbol"], amount)
 
-			response = (<-this.PrivatePostPlaceMarketSellOrder(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivatePostPlaceMarketSellOrder(this.Extend(request, params))).Raw))
 		}
 	}
 

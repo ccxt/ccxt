@@ -314,7 +314,7 @@ func (this *Extended) HandleBalance(client any, message any) {
 	}
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	ccxt.AddElementToObject(this.Balance, "info", data)
-	var balance any = this.SafeDict(data, "balance")
+	var balance map[string]any = ccxt.SafeMapTyped(data, "balance")
 	if !ccxt.IsEqual(balance, nil) {
 		var currencyId *string = this.SafeString(balance, "collateralName")
 		var code *string = this.SafeCurrencyCode(currencyId)
@@ -428,7 +428,7 @@ func (this *Extended) HandleMyTrades(client any, message any) {
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var rawTrades []any = ccxt.SafeListTypedDefault(data, "trades", []any{})
 	var symbols map[string]any = map[string]any{}
-	var first any = this.SafeDict(rawTrades, 0)
+	var first map[string]any = ccxt.SafeMapTyped(rawTrades, 0)
 	if ccxt.IsEqual(first, nil) {
 		return
 	}
@@ -540,7 +540,7 @@ func (this *Extended) HandlePositions(client any, message any) {
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var rawPositions []any = ccxt.SafeListTypedDefault(data, "positions", []any{})
 	var newPositions []any = []any{}
-	var first any = this.SafeDict(rawPositions, 0)
+	var first map[string]any = ccxt.SafeMapTyped(rawPositions, 0)
 	if ccxt.IsEqual(first, nil) {
 		return
 	}
@@ -616,7 +616,7 @@ func (this *Extended) HandleOrders(client any, message any) {
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var rawOrders any = this.SafeList(data, "orders")
 	var symbols map[string]any = map[string]any{}
-	var first any = this.SafeDict(rawOrders, 0)
+	var first map[string]any = ccxt.SafeMapTyped(rawOrders, 0)
 	if ccxt.IsEqual(first, nil) {
 		return
 	}
@@ -873,7 +873,7 @@ func (this *Extended) HandleTrades(client any, message any) {
 	//     }
 	//
 	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
-	var first any = this.SafeDict(data, 0)
+	var first map[string]any = ccxt.SafeMapTyped(data, 0)
 	if ccxt.IsEqual(first, nil) {
 		return
 	}
@@ -1050,7 +1050,7 @@ func (this *Extended) HandleErrorMessage(client any, message any) any {
 	//
 	//     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
 	//
-	var error any = this.SafeDict(message, "error")
+	var error map[string]any = ccxt.SafeMapTyped(message, "error")
 	if ccxt.IsEqual(error, nil) {
 		return false
 	}

@@ -247,7 +247,7 @@ func (this *Lbank) HandleOHLCV(client any, message map[string]any) {
 	var symbol *string = this.SafeSymbol(marketId, nil, "_")
 	var watchOHLCVOptions map[string]any = ccxt.SafeMapTyped(this.Options, "watchOHLCV")
 	var timeframes any = this.SafeDict(watchOHLCVOptions, "timeframes", map[string]any{})
-	var records any = this.SafeList(message, "records")
+	var records []any = ccxt.SafeListTyped(message, "records")
 	if !ccxt.IsEqual(records, nil) {
 		var rawOHLCV []any = ccxt.SafeListTypedDefault(records, 0, []any{})
 		var parsed []any = []any{this.SafeInteger(rawOHLCV, 0), this.SafeNumber(rawOHLCV, 1), this.SafeNumber(rawOHLCV, 2), this.SafeNumber(rawOHLCV, 3), this.SafeNumber(rawOHLCV, 4), this.SafeNumber(rawOHLCV, 5)}

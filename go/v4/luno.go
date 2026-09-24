@@ -886,15 +886,13 @@ func (this *Luno) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if (limit != nil) && (*limit <= 100) {
 
-		response = (<-this.PublicGetOrderbookTop(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicGetOrderbookTop(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PublicGetOrderbook(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicGetOrderbook(this.Extend(request, params))).Raw))
 	}
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 
@@ -1674,7 +1672,7 @@ func (this *Luno) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if IsEqual(side, nil) {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
 	}
@@ -1687,8 +1685,7 @@ func (this *Luno) createOrderBody(ch chan any, symbol any, typeVar any, side any
 			request["base_volume"] = this.AmountToPrecision(market["symbol"], amount)
 		}
 
-		response = (<-this.PrivatePostMarketorder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostMarketorder(this.Extend(request, params))).Raw))
 	} else {
 		request["volume"] = this.AmountToPrecision(market["symbol"], amount)
 		request["price"] = this.PriceToPrecision(market["symbol"], price)
@@ -1699,8 +1696,7 @@ func (this *Luno) createOrderBody(ch chan any, symbol any, typeVar any, side any
 			return "ASK"
 		}()
 
-		response = (<-this.PrivatePostPostorder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostPostorder(this.Extend(request, params))).Raw))
 	}
 	if response == nil {
 		panic(NullResponse(this.Id + " createOrder() returned empty response"))
@@ -1833,11 +1829,11 @@ func (this *Luno) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		}
 		currency = MapTyped(this.Currency(code))
 		var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "currency")
-		var account any = this.SafeDict(accountsByCurrencyCode, code)
+		var account map[string]any = SafeMapTyped(accountsByCurrencyCode, code)
 		if IsEqual(account, nil) {
 			panic(ExchangeError(Add(this.Id+" fetchLedger() could not find account id for ", code)))
 		}
-		id = GetValue(account, "id")
+		id = account["id"]
 	}
 	if IsEqual(min_row, nil) && IsEqual(max_row, nil) {
 		max_row = 0           // Default to most recent transactions

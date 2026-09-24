@@ -2631,14 +2631,19 @@ func (this *Foxbit) HandleErrors(httpCode any, reason any, url any, method any, 
 	if IsEqual(response, nil) {
 		return nil
 	}
-	var error any = this.SafeDict(response, "error")
+	var error map[string]any = SafeMapTyped(response, "error")
 	var code *string = this.SafeString(error, "code")
-	var details any = this.SafeList(error, "details")
+	var details []any = SafeListTyped(error, "details")
 	var message *string = this.SafeString(error, "message")
 	var detailsString any = ""
 	if !IsEqual(details, nil) {
-		for i := 0; i < GetArrayLength(details); i++ {
-			detailsString = Add(Add(detailsString, GetValue(details, i)), " ")
+		for i := 0; i < len(details); i++ {
+			detailsString = Add(Add(detailsString, func() any {
+				if i >= 0 && i < len(details) {
+					return DerefScalar(details[i])
+				}
+				return nil
+			}()), " ")
 		}
 	}
 	if !IsEqual(error, nil) {

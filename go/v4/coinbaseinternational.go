@@ -1079,15 +1079,13 @@ func (this *Coinbaseinternational) createDepositAddressBody(ch chan any, code an
 		params = GetValue(networkIdparamsVariable, 1)
 		request["network_arn_id"] = networkId
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if IsEqual(method, "v1PrivatePostTransfersCreateCounterpartyId") {
 
-		response = (<-this.V1PrivatePostTransfersCreateCounterpartyId(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V1PrivatePostTransfersCreateCounterpartyId(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.V1PrivatePostTransfersAddress(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V1PrivatePostTransfersAddress(this.Extend(request, params))).Raw))
 	}
 	//
 	// v1PrivatePostTransfersAddress
@@ -1151,7 +1149,7 @@ func (this *Coinbaseinternational) loadCurrencyNetworksBody(ch chan any, code an
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var currency map[string]any = this.Currency(code).(map[string]any)
-	var networks any = this.SafeDict(currency, "networks")
+	var networks map[string]any = SafeMapTyped(currency, "networks")
 	if !IsEqual(networks, nil) {
 
 		ch <- false
@@ -3051,15 +3049,13 @@ func (this *Coinbaseinternational) withdrawBody(ch chan any, code any, amount an
 		"network_arn_id": networkId,
 		"nonce":          this.Nonce(),
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if IsEqual(method, "v1PrivatePostTransfersWithdrawCounterparty") {
 
-		response = (<-this.V1PrivatePostTransfersWithdrawCounterparty(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V1PrivatePostTransfersWithdrawCounterparty(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.V1PrivatePostTransfersWithdraw(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V1PrivatePostTransfersWithdraw(this.Extend(request, params))).Raw))
 	}
 
 	//

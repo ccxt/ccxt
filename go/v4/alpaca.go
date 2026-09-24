@@ -1323,7 +1323,7 @@ func (this *Alpaca) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = GetValue(marketIds, i).(string)
 		var market map[string]any = MapTyped(this.SafeMarket(marketId))
-		var entry any = this.SafeDict(snapshots, marketId)
+		var entry map[string]any = SafeMapTyped(snapshots, marketId)
 		var dailyBar map[string]any = SafeMapTyped(entry, "dailyBar")
 		var prevDailyBar map[string]any = SafeMapTyped(entry, "prevDailyBar")
 		var latestQuote map[string]any = SafeMapTyped(entry, "latestQuote")

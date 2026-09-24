@@ -3671,7 +3671,7 @@ func (this *Gate) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) any
 		if (codes != nil) && !this.InArray(code, codes) {
 			continue
 		}
-		var withdrawFixOnChains any = this.SafeDict(entry, "withdraw_fix_on_chains")
+		var withdrawFixOnChains map[string]any = SafeMapTyped(entry, "withdraw_fix_on_chains")
 		if IsEqual(withdrawFixOnChains, nil) {
 			withdrawFees = DerefScalar(this.SafeNumber(entry, "withdraw_fix"))
 		} else {
@@ -3680,7 +3680,7 @@ func (this *Gate) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) any
 				var networkId string = GetValue(networkIds, j).(string)
 				var networkCode *string = this.NetworkIdToCode(networkId, code)
 				if networkCode != nil {
-					AddElementToObject(withdrawFees, networkCode, this.ParseNumber(GetValue(withdrawFixOnChains, networkId)))
+					AddElementToObject(withdrawFees, networkCode, this.ParseNumber(withdrawFixOnChains[networkId]))
 				}
 			}
 		}
@@ -3765,7 +3765,7 @@ func (this *Gate) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	//
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	var withdrawFixOnChains any = this.SafeDict(fee, "withdraw_fix_on_chains")
+	var withdrawFixOnChains map[string]any = SafeMapTyped(fee, "withdraw_fix_on_chains")
 	var result map[string]any = map[string]any{
 		"info": fee,
 		"withdraw": map[string]any{
@@ -3788,7 +3788,7 @@ func (this *Gate) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 			if networkCode != nil {
 				AddElementToObject(result["networks"], networkCode, map[string]any{
 					"withdraw": map[string]any{
-						"fee":        this.ParseNumber(GetValue(withdrawFixOnChains, chainKey)),
+						"fee":        this.ParseNumber(withdrawFixOnChains[chainKey]),
 						"percentage": false,
 					},
 					"deposit": map[string]any{
@@ -6202,7 +6202,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 		if isClose == true {
 			amount = 0
 		} else {
-			var amountToPrecision any = this.AmountToPrecision(symbol, amount)
+			var amountToPrecision *string = this.AmountToPrecision(symbol, amount)
 			var signedAmount any = func() any {
 				if IsEqual(side, "sell") {
 					return Precise.StringNeg(amountToPrecision)
@@ -6340,7 +6340,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 						}
 						return 2
 					}()
-					triggerOrderPrice = this.PriceToPrecision(symbol, stopLossPrice)
+					triggerOrderPrice = DerefScalar(this.PriceToPrecision(symbol, stopLossPrice))
 				} else if isTakeProfitOrder {
 					rule = func() int {
 						if IsEqual(side, "buy") {
@@ -6348,7 +6348,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 						}
 						return 1
 					}()
-					triggerOrderPrice = this.PriceToPrecision(symbol, takeProfitPrice)
+					triggerOrderPrice = DerefScalar(this.PriceToPrecision(symbol, takeProfitPrice))
 				}
 				var priceType *int64 = this.SafeInteger(params, "price_type", 0)
 				if (priceType == nil || *priceType < 0) || (priceType != nil && *priceType > 2) {
@@ -6405,7 +6405,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 						}
 						return "<="
 					}()
-					triggerOrderPrice = this.PriceToPrecision(symbol, stopLossPrice)
+					triggerOrderPrice = DerefScalar(this.PriceToPrecision(symbol, stopLossPrice))
 				} else if isTakeProfitOrder {
 					rule = func() string {
 						if IsEqual(side, "buy") {
@@ -6413,7 +6413,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 						}
 						return ">="
 					}()
-					triggerOrderPrice = this.PriceToPrecision(symbol, takeProfitPrice)
+					triggerOrderPrice = DerefScalar(this.PriceToPrecision(symbol, takeProfitPrice))
 				}
 				AddElementToObject(request, "trigger", map[string]any{
 					"price":      this.PriceToPrecision(symbol, triggerOrderPrice),
@@ -8788,7 +8788,7 @@ func (this *Gate) fetchMarketLeverageTiersBody(ch chan any, symbol any, optional
 	if (typeVar != "future") && (typeVar != "swap") {
 		panic(BadRequest(this.Id + " fetchMarketLeverageTiers only supports swap and future"))
 	}
-	var response any = nil
+	var response []any = nil
 	if typeVar == "swap" {
 		//
 		//     [
@@ -8802,12 +8802,10 @@ func (this *Gate) fetchMarketLeverageTiersBody(ch chan any, symbol any, optional
 		//     ]
 		//
 
-		response = (<-this.PublicFuturesGetSettleRiskLimitTiers(this.Extend(request, requestParams))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.PublicFuturesGetSettleRiskLimitTiers(this.Extend(request, requestParams))).Raw))
 	} else {
 
-		response = (<-this.PublicDeliveryGetSettleRiskLimitTiers(this.Extend(request, requestParams))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.PublicDeliveryGetSettleRiskLimitTiers(this.Extend(request, requestParams))).Raw))
 	}
 
 	ch <- this.ParseMarketLeverageTiers(response, market)
@@ -10804,19 +10802,17 @@ func (this *Gate) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbols = this.MarketSymbols(symbols)
-	var response any = nil
+	var response []any = nil
 	var isUnified *bool = this.SafeBool(params, "unified")
 	params = MapTyped(this.Omit(params, "unified"))
 	var marketIdRequest string = "id"
 	if isUnified != nil && *isUnified == true {
 		marketIdRequest = "currency_pair"
 
-		response = (<-this.PublicMarginGetUniCurrencyPairs(params)).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.PublicMarginGetUniCurrencyPairs(params)).Raw))
 	} else {
 
-		response = (<-this.PublicMarginGetCurrencyPairs(params)).Raw
-		PanicOnError(response) // deprecated
+		response = ListTyped(PanicOnError((<-this.PublicMarginGetCurrencyPairs(params)).Raw)) // deprecated
 	}
 
 	ch <- this.ParseLeverages(this.ToArray(response), symbols, marketIdRequest, "spot")

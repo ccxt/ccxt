@@ -881,15 +881,13 @@ func (this *Bitbns) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	if trailRate != nil {
 		request["trail_rate"] = this.PriceToPrecision(symbol, trailRate)
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if IsEqual(typeVar, "limit") {
 
-		response = (<-this.V2PostOrders(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V2PostOrders(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.V1PostPlaceMarketOrderQntySymbol(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V1PostPlaceMarketOrderQntySymbol(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {
@@ -949,7 +947,7 @@ func (this *Bitbns) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"entry_id": id,
 		"symbol":   market["uppercaseId"],
 	}
-	var response any = nil
+	var response map[string]any = nil
 	var tail string = func() string {
 		if isTrigger != nil && *isTrigger == true {
 			return "StopLossOrder"
@@ -965,8 +963,7 @@ func (this *Bitbns) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	quoteSide = Add(quoteSide, tail)
 	request["side"] = quoteSide
 
-	response = (<-this.V2PostCancel(this.Extend(request, params))).Raw
-	PanicOnError(response)
+	response = MapTyped(PanicOnError((<-this.V2PostCancel(this.Extend(request, params))).Raw))
 	var parsed any = func() any {
 		if response == nil {
 			return map[string]any{}

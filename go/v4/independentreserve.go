@@ -1255,17 +1255,15 @@ func (this *Independentreserve) createOrderBody(ch chan any, symbol any, typeVar
 		"secondaryCurrencyCode": market["quoteId"],
 		"orderType":             orderType,
 	}
-	var response any = nil
+	var response map[string]any = nil
 	request["volume"] = amount
 	if IsEqual(typeVar, "limit") {
 		request["price"] = price
 
-		response = (<-this.PrivatePostPlaceLimitOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostPlaceLimitOrder(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivatePostPlaceMarketOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostPlaceMarketOrder(this.Extend(request, params))).Raw))
 	}
 
 	ch <- this.SafeOrder(map[string]any{

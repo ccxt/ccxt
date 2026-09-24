@@ -169,12 +169,17 @@ func (this *Blofin) HandleTrades(client any, message map[string]any) {
 	//
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var channelName *string = this.SafeString(arg, "channel")
-	var data any = this.SafeList(message, "data")
+	var data []any = ccxt.SafeListTyped(message, "data")
 	if ccxt.IsEqual(data, nil) {
 		return
 	}
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var rawTrade any = ccxt.GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var rawTrade any = func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(rawTrade))
 		var symbol *string = ccxt.SafeStringPtr(trade["symbol"])
 		var stored any = this.SafeValue(this.Trades, symbol)
@@ -286,7 +291,7 @@ func (this *Blofin) HandleOrderBook(client any, message map[string]any) {
 	//
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var channelName *string = this.SafeString(arg, "channel")
-	var data any = this.SafeDict(message, "data")
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var marketId *string = this.SafeString(arg, "instId")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])

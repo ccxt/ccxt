@@ -150,7 +150,7 @@ func (this *Kucoin) negotiateHelperBody(ch chan any, privateChannel any, connect
 	_ = chSent
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var response any = nil
+	var response map[string]any = nil
 
 	{
 		func(this *Kucoin) (ret_ any) {
@@ -171,20 +171,16 @@ func (this *Kucoin) negotiateHelperBody(ch chan any, privateChannel any, connect
 			// try block:
 			if ccxt.IsEqual(connectId, "private") {
 
-				response = (<-this.PrivatePostBulletPrivate(params)).Raw
-				ccxt.PanicOnError(response)
+				response = ccxt.MapTyped(ccxt.PanicOnError((<-this.PrivatePostBulletPrivate(params)).Raw))
 			} else if ccxt.IsEqual(connectId, "public") {
 
-				response = (<-this.PublicPostBulletPublic(params)).Raw
-				ccxt.PanicOnError(response)
+				response = ccxt.MapTyped(ccxt.PanicOnError((<-this.PublicPostBulletPublic(params)).Raw))
 			} else if ccxt.IsEqual(connectId, "privateFutures") {
 
-				response = (<-this.FuturesPrivatePostBulletPrivate(params)).Raw
-				ccxt.PanicOnError(response)
+				response = ccxt.MapTyped(ccxt.PanicOnError((<-this.FuturesPrivatePostBulletPrivate(params)).Raw))
 			} else {
 
-				response = (<-this.FuturesPublicPostBulletPublic(params)).Raw
-				ccxt.PanicOnError(response)
+				response = ccxt.MapTyped(ccxt.PanicOnError((<-this.FuturesPublicPostBulletPublic(params)).Raw))
 			}
 			var data map[string]any = ccxt.SafeMapTyped(response, "data")
 			var instanceServers any = this.SafeList(data, "instanceServers", []any{})
@@ -2161,7 +2157,7 @@ func (this *Kucoin) HandleOrderBook(client any, message map[string]any) {
 	//         "subject": "level2"
 	//     }
 	//
-	var data any = this.SafeDict(message, "data")
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var topic *string = this.SafeString(message, "topic")
 	var topicParts []string = ccxt.Split(topic, ":")
 	var topicSymbol *string = this.SafeString(topicParts, 1)
@@ -2346,13 +2342,18 @@ func (this *Kucoin) HandleBidAsks(bookSide any, bidAsks []any) {
 }
 func (this *Kucoin) HandleOrderBookSubscription(client any, message map[string]any, subscription map[string]any) {
 	var limit *int64 = this.SafeInteger(subscription, "limit")
-	var symbols any = this.SafeList(subscription, "symbols")
+	var symbols []any = ccxt.SafeListTyped(subscription, "symbols")
 	if ccxt.IsEqual(symbols, nil) {
 		var symbol *string = this.SafeString(subscription, "symbol")
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
 	} else {
-		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-			var symbol any = ccxt.GetValue(symbols, i)
+		for i := 0; i < len(symbols); i++ {
+			var symbol any = func() any {
+				if i >= 0 && i < len(symbols) {
+					return ccxt.DerefScalar(symbols[i])
+				}
+				return nil
+			}()
 			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
 		}
 	}
@@ -2788,7 +2789,7 @@ func (this *Kucoin) HandleOrder(client any, message map[string]any) {
 	//        "type": "open"
 	//    }
 	//
-	var data any = this.SafeDict(message, "data")
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var tradeId *string = this.SafeString(data, "tradeId")
 	if tradeId != nil {
 		this.HandleMyTrade(client, message)
@@ -3060,7 +3061,7 @@ func (this *Kucoin) HandleMyTrade(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var data any = this.SafeDict(message, "data")
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(data))
 	var myTrades any = this.MyTrades
 	myTrades.(ccxt.Appender).Append(parsed)

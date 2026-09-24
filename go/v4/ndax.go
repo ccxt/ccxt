@@ -2041,7 +2041,7 @@ func (this *Ndax) createOrderBody(ch chan any, symbol any, typeVar any, side any
 		}
 		return 1
 	}()
-	var amountString any = this.AmountToPrecision(symbol, amount)
+	var amountString *string = this.AmountToPrecision(symbol, amount)
 	var request map[string]any = map[string]any{
 		"InstrumentId": this.ParseToInt(market["id"]),
 		"omsId":        omsId,
@@ -2058,9 +2058,9 @@ func (this *Ndax) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	}
 	// If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
 	if price != nil {
-		var limitPriceString any = this.PriceToPrecision(symbol, price)
+		var limitPriceString *string = this.PriceToPrecision(symbol, price)
 		if limitPriceString == nil {
-			limitPriceString = "0"
+			limitPriceString = SafeStringPtr("0")
 		}
 		request["LimitPrice"] = ParseFloat(limitPriceString)
 	}
@@ -2130,7 +2130,7 @@ func (this *Ndax) editOrderBody(ch chan any, id any, symbol any, typeVar any, si
 		}
 		return 1
 	}()
-	var amountString any = this.AmountToPrecision(symbol, amount)
+	var amountString *string = this.AmountToPrecision(symbol, amount)
 	var request map[string]any = map[string]any{
 		"OrderIdToReplace": ParseInt(id),
 		"InstrumentId":     this.ParseToInt(market["id"]),
@@ -2148,9 +2148,9 @@ func (this *Ndax) editOrderBody(ch chan any, id any, symbol any, typeVar any, si
 	}
 	// If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
 	if price != nil {
-		var limitPriceString any = this.PriceToPrecision(symbol, price)
+		var limitPriceString *string = this.PriceToPrecision(symbol, price)
 		if limitPriceString == nil {
-			limitPriceString = "0"
+			limitPriceString = SafeStringPtr("0")
 		}
 		request["LimitPrice"] = ParseFloat(limitPriceString)
 	}
@@ -3310,7 +3310,7 @@ func (this *Ndax) withdrawBody(ch chan any, code any, amount any, address any, o
 	//     }
 	//
 	var templateTypes []any = SafeListTypedDefault(withdrawTemplateTypesResponse, "TemplateTypes", []any{})
-	var firstTemplateType any = this.SafeDict(templateTypes, 0)
+	var firstTemplateType map[string]any = SafeMapTyped(templateTypes, 0)
 	if IsEqual(firstTemplateType, nil) {
 		panic(ExchangeError(Add(this.Id+" withdraw() could not find a withdraw template type for ", currency["code"])))
 	}
@@ -3320,7 +3320,7 @@ func (this *Ndax) withdrawBody(ch chan any, code any, amount any, address any, o
 		"AccountId":         accountId,
 		"ProductId":         currency["id"],
 		"TemplateType":      templateName,
-		"AccountProviderId": GetValue(firstTemplateType, "AccountProviderId"),
+		"AccountProviderId": firstTemplateType["AccountProviderId"],
 	}
 
 	var withdrawTemplateResponse map[string]any = MapTyped(PanicOnError((<-this.PrivateGetGetWithdrawTemplate(withdrawTemplateRequest)).Raw))
