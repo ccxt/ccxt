@@ -11642,10 +11642,20 @@ if (isMainEntry(import.meta.url)) {
     const baseOnly  = process.argv.includes('--baseClass') || process.argv.includes('--baseOnly');
     const testsOnly = process.argv.includes('--tests') || process.argv.includes('--test');
     const testsMain = process.argv.includes('--testsMain') || process.argv.includes('--testMain');
+    const modFiles  = process.argv.includes('--modFiles');
 
     const t = new RustTranspilerBuilder();
 
-    if (baseOnly) {
+    if (modFiles) {
+        for (const folder of [ EXCHANGES_FOLDER, EXCHANGES_WS_FOLDER, PREDICTION_EXCHANGES_FOLDER ]) {
+            if (!fs.existsSync(folder)) continue;
+            const onDisk = fs.readdirSync(folder)
+                .filter(f => f.endsWith('.rs') && f !== 'mod.rs')
+                .map(f => basename(f, '.rs'))
+                .sort();
+            t.writeModFile(folder, onDisk);
+        }
+    } else if (baseOnly) {
         t.transpileBaseMethods('./ts/src/base/Exchange.ts');
         t.transpileErrorHierarchy();
     } else if (ws) {
