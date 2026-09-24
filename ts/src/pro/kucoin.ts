@@ -243,7 +243,11 @@ export default class kucoin extends kucoinRest {
 
     async getUtaUrl () {
         const utaToken = await this.authenticateUta ();
-        return this.urls['api']['ws']['private'] + '?token=' + utaToken;
+        const wsUrl = this.safeString (this.urls['api']['ws'], 'private');
+        if (wsUrl === undefined) {
+            throw new ExchangeError (this.id + ' getUtaUrl() has no private websocket url');
+        }
+        return wsUrl + '?token=' + utaToken;
     }
 
     async authenticateUta () {
@@ -484,7 +488,7 @@ export default class kucoin extends kucoinRest {
     async subscribePublicMultipleUta (messageHashes: string[], channel: string, symbols: any[], params: Dict = {}, subscription: NullableDict = undefined) {
         const requestId = this.requestId ().toString ();
         const market = this.getMarketFromSymbols (symbols);
-        const isContract = ((market as Dict)['contract'] === true);
+        const isContract = (this.safeBool (market, 'contract') === true);
         const urlType = isContract ? 'futures' : 'spot';
         const tradeType = urlType.toUpperCase ();
         let action = 'subscribe';
@@ -755,7 +759,7 @@ export default class kucoin extends kucoinRest {
         }
         symbols = this.marketSymbols (symbols, undefined, false, true, false);
         const firstMarket = this.getMarketFromSymbols (symbols);
-        const isFuturesMethod = ((firstMarket as Dict)['contract'] === true);
+        const isFuturesMethod = (this.safeBool (firstMarket, 'contract') === true);
         let channelName = '/spotMarket/level1:';
         if (isFuturesMethod) {
             channelName = '/contractMarket/tickerV2:';
@@ -1157,7 +1161,7 @@ export default class kucoin extends kucoinRest {
         }
         symbols = this.marketSymbols (symbols, undefined, false, true);
         const firstMarket = this.getMarketFromSymbols (symbols);
-        const isFuturesMethod = ((firstMarket as Dict)['contract'] === true);
+        const isFuturesMethod = (this.safeBool (firstMarket, 'contract') === true);
         const marketIds = this.marketIds (symbols);
         const url = await this.negotiate (false, isFuturesMethod);
         const messageHashes: string[] = [];
@@ -1199,7 +1203,7 @@ export default class kucoin extends kucoinRest {
         symbols = this.marketSymbols (symbols, undefined, false, true);
         const marketIds = this.marketIds (symbols);
         const firstMarket = this.getMarketFromSymbols (symbols);
-        const isFuturesMethod = ((firstMarket as Dict)['contract'] === true);
+        const isFuturesMethod = (this.safeBool (firstMarket, 'contract') === true);
         const url = await this.negotiate (false, isFuturesMethod);
         const messageHashes: string[] = [];
         const subscriptionHashes: string[] = [];
@@ -1512,7 +1516,7 @@ export default class kucoin extends kucoinRest {
         symbols = this.marketSymbols (symbols);
         const marketIds = this.marketIds (symbols);
         const firstMarket = this.getMarketFromSymbols (symbols);
-        const isFuturesMethod = ((firstMarket as Dict)['contract'] === true);
+        const isFuturesMethod = (this.safeBool (firstMarket, 'contract') === true);
         const url = await this.negotiate (false, isFuturesMethod);
         let method = isFuturesMethod ? '/contractMarket/level2' : '/market/level2';
         const optionName = isFuturesMethod ? 'contractMethod' : 'spotMethod';
@@ -1570,7 +1574,7 @@ export default class kucoin extends kucoinRest {
         symbols = this.marketSymbols (symbols, undefined, false, true);
         const marketIds = this.marketIds (symbols);
         const firstMarket = this.getMarketFromSymbols (symbols);
-        const isFuturesMethod = ((firstMarket as Dict)['contract'] === true);
+        const isFuturesMethod = (this.safeBool (firstMarket, 'contract') === true);
         const url = await this.negotiate (false, isFuturesMethod);
         let method = isFuturesMethod ? '/contractMarket/level2' : '/market/level2';
         const optionName = isFuturesMethod ? 'contractMethod' : 'spotMethod';
@@ -2240,7 +2244,7 @@ export default class kucoin extends kucoinRest {
         const orders = this.safeDict (cachedOrders.hashmap, symbol, {});
         const order = this.safeDict (orders, orderId);
         if (order !== undefined) {
-            if (order['status'] === 'closed') {
+            if (this.safeString (order, 'status') === 'closed') {
                 parsed['status'] = 'closed';
             }
             // carry the accumulated fill state forward, the raw feed only

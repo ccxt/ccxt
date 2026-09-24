@@ -214,7 +214,7 @@ export default class whitebit extends whitebitRest {
         //  }
         //
         const params = this.safeList (message, 'params', []);
-        const isSnapshot = this.safeValue (params, 0);
+        const isSnapshot = this.safeBool (params, 0);
         const marketId = this.safeString (params, 2);
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];

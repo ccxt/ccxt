@@ -896,7 +896,11 @@ export default class bitrue extends bitrueRest {
                     throw new AuthenticationError (this.id + ' authenticate() received an empty listenKey');
                 }
                 this.options['listenKey'] = key;
-                this.options['listenKeyUrl'] = this.urls['api']['ws']['private'] + '/stream?listenKey=' + key;
+                const wsUrl = this.safeString (this.urls['api']['ws'], 'private');
+                if (wsUrl === undefined) {
+                    throw new ExchangeError (this.id + ' authenticate() has no private websocket url');
+                }
+                this.options['listenKeyUrl'] = wsUrl + '/stream?listenKey=' + key;
                 client.resolve (key, messageHash);
             } catch (e) {
                 // reject the flight - all waiters throw and the next caller
