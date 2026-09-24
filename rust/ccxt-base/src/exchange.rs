@@ -2380,7 +2380,7 @@ pub(crate) fn url_pct(s: &str) -> String {
 /// request a static *response* fixture would have sent; and the payload stays set
 /// until the caller replaces or clears it, so one fixture can serve the several
 /// `fetch_typed` calls a single paginating `fetchX` issues.
-#[cfg(all(test, feature = "transpiled-base"))]
+#[cfg(all(test, feature = "engine", feature = "binance"))]
 mod response_mock_tests {
     use super::ExchangeRuntime;
     use crate::{get_value, Value};
@@ -2638,7 +2638,7 @@ mod throttle_tests {
     }
 }
 
-#[cfg(all(test, feature = "transpiled-base"))]
+#[cfg(all(test, feature = "engine", feature = "binance"))]
 mod rate_limit_config_tests {
     use crate::exchange::ExchangeRuntime;
     use crate::exchange_generated::ExchangeBase;
@@ -2697,7 +2697,7 @@ mod rate_limit_config_tests {
     }
 }
 
-#[cfg(all(test, feature = "transpiled-base"))]
+#[cfg(all(test, feature = "engine", feature = "binance"))]
 mod sandbox_mode_tests {
     use crate::Value;
 
@@ -2717,7 +2717,7 @@ mod sandbox_mode_tests {
     }
 }
 
-#[cfg(all(test, feature = "transpiled-base"))]
+#[cfg(all(test, feature = "engine", feature = "binance"))]
 mod dynamic_dispatch_tests {
     use crate::exchange::CallDynamicChecked;
     use crate::exchange_generated::ExchangeBase;
@@ -2805,7 +2805,7 @@ mod dynamic_dispatch_tests {
     }
 }
 
-#[cfg(all(test, feature = "transpiled-base"))]
+#[cfg(all(test, feature = "engine"))]
 mod cow_alias_tests {
     use super::Exchange;
     use crate::Value;
