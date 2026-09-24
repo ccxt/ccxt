@@ -7026,22 +7026,7 @@ function ccxtGoScalarElementReadType (goTranspiler, initializer) {
             return undefined;
         }
     }
-    // `y = x` copies the pointer into a local another rule owns (often `any`), where a raw
-    // `y == "spot"` then compares the box against a string and never matches
-    const varName = declaration.name.escapedText;
-    let copied = false;
-    const visit = (n) => {
-        if (!copied && (n.kind === ts.SyntaxKind.Identifier) && (n.escapedText === varName) && (n !== declaration.name)
-            && (n.parent?.kind === ts.SyntaxKind.BinaryExpression) && (n.parent.right === n)
-            && (n.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) && (n.parent.left.kind === ts.SyntaxKind.Identifier)) {
-            copied = true;
-        }
-        if (!copied) {
-            ts.forEachChild (n, visit);
-        }
-    };
-    visit (declaration.parent.parent.parent);
-    return copied ? undefined : goType;
+    return goType;
 }
 
 function installCcxtGoScalarElementReads (goTranspiler) {
@@ -7078,6 +7063,20 @@ function installCcxtGoScalarElementReads (goTranspiler) {
             return printed;
         }
         return head + CCXT_GO_SCALAR_ELEMENT_READERS[goType] + '(' + printed.substring (head.length) + ')';
+    };
+    // `y = x` into an untyped local stores the value, not the pointer: a boxed *string
+    // never equals a string literal in a later raw `y == "spot"`
+    const shippedBinary = goTranspiler.printBinaryExpression;
+    goTranspiler.printBinaryExpression = function (node, identation) {
+        const right = node?.right;
+        if ((node?.operatorToken?.kind === ts.SyntaxKind.EqualsToken) && ts.isIdentifier (node.left) && ts.isIdentifier (right)) {
+            const decl = this.checkerOrUndefined?.()?.getSymbolAtLocation (right)?.valueDeclaration;
+            if ((decl?.kind === ts.SyntaxKind.VariableDeclaration) && (decl.initializer !== undefined)
+                && (own (this, decl.initializer) !== undefined) && (this.goDeclaredTypeOfIdentifier (node.left) === undefined)) {
+                return this.printNode (node.left, 0) + ' = DerefScalar(' + this.printNode (right, 0) + ')';
+            }
+        }
+        return shippedBinary.call (this, node, identation);
     };
     goTranspiler.__ccxtGoScalarElementReadsInstalled = true;
 }
