@@ -8273,7 +8273,13 @@ public class Okx extends OkxApi
         String addressTo = this.safeString(transaction, "to");
         String address = addressTo;
         String tagTo = this.safeString2(transaction, "tag", "memo");
-        tagTo = (((java.util.Objects.equals(tagTo, null)))) ? this.safeString(transaction, "pmtId") : this.safeString2(transaction, "pmtId", tagTo);
+        if (java.util.Objects.equals(tagTo, null))
+        {
+            tagTo = this.safeString(transaction, "pmtId");
+        } else
+        {
+            tagTo = this.safeString2(transaction, "pmtId", tagTo);
+        }
         if (!java.util.Objects.equals(withdrawalId, null))
         {
             type = "withdrawal";
@@ -8293,10 +8299,7 @@ public class Okx extends OkxApi
             List<Object> chainParts = new ArrayList<Object>(Arrays.asList(((String)chain).split(java.util.regex.Pattern.quote("-"))));
             Object networkParts = this.arraySlice(chainParts, 1);
             String networkId = String.join("-", (List<String>)networkParts);
-            if (!java.util.Objects.equals(networkId, null))
-            {
-                network = this.networkIdToCode(networkId, code);
-            }
+            network = this.networkIdToCode(networkId, code);
         }
         Double amount = this.safeNumber(transaction, "amt");
         String status = this.parseTransactionStatus(this.safeString(transaction, "state"));
@@ -9522,7 +9525,7 @@ public class Okx extends OkxApi
     {
         return this.fetchFundingRate(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
-    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters) // "after": "id", // earlier than the requested bill ID
+    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters) //        "posBal": "0",
     {
         return this.fetchFundingRate(symbol, (Object) (parameters));
     }

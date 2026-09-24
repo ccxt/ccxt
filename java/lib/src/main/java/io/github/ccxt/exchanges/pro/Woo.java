@@ -418,7 +418,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 }
                 io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
                 orderbook.reset(snapshot);
-                Object messages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));
+                List<Object> messages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));
                 for (var i = 0; i < Helpers.getArrayLength(messages); i++)
                 {
                     Object messageItem = Helpers.GetValue(messages, i);
@@ -1643,7 +1643,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         String filled = this.safeString2(order, "totalExecutedQuantity", "executed");
         String rawStatus = this.safeString2(order, "status", "algoStatus");
         String status = this.parseOrderStatus((String) (rawStatus));
-        Object trades = null;
+        List<String> trades = null;
         String clientOrderId = this.safeString(order, "clientOrderId");
         String triggerPrice = this.safeString(order, "triggerPrice");
         final Double finalPrice = price;

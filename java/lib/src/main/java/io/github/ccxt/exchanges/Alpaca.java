@@ -1116,7 +1116,7 @@ public class Alpaca extends AlpacaApi
             paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             Object paginationCalls = 10;
-            List<Object> paginationCallsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginationCalls", 10);
+            List<Object> paginationCallsparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "paginationCalls", 10);
             paginationCalls = ((List<Object>) paginationCallsparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginationCallsparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1343,7 +1343,7 @@ public class Alpaca extends AlpacaApi
             }
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             String loc = this.safeString(parameters, "loc", "us");
-            Object ids = this.marketIds(symbols);
+            List<String> ids = this.marketIds(symbols);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbols", String.join(",", (List<String>)ids) );
                 put( "loc", loc );

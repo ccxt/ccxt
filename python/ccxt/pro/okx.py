@@ -1174,7 +1174,7 @@ class okx(ccxt.async_support.okx):
             await self.load_markets()
         symbols = self.market_symbols(symbols)
         depth = None
-        depth, params = self.handle_option_and_params(params, 'watchOrderBook', 'depth', 'books')
+        depth, params = self.handle_option_string_and_params(params, 'watchOrderBook', 'depth', 'books')
         if limit is not None:
             if limit == 1:
                 depth = 'bbo-tbt'
@@ -1223,7 +1223,7 @@ class okx(ccxt.async_support.okx):
             await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         depth = None
-        depth, params = self.handle_option_and_params(params, 'watchOrderBook', 'depth', 'books')
+        depth, params = self.handle_option_string_and_params(params, 'watchOrderBook', 'depth', 'books')
         limit = self.safe_integer(params, 'limit')
         if limit is not None:
             if limit == 1:

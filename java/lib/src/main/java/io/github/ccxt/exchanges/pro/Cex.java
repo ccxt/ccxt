@@ -1963,7 +1963,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         //    "ok": "ok"
         //    }
         //
-        Object data = this.safeValue(message, "data");
+        List<Object> data = (List<Object>) this.safeList(message, "data");
         String messageHash = this.safeString(message, "oid");
         client.resolve(data, messageHash);
     }

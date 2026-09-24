@@ -1368,7 +1368,7 @@ class cex extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $accountId = null;
-        list($accountId, $params) = $this->handle_option_and_params($params, 'createOrder', 'accountId');
+        list($accountId, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'accountId');
         if ($accountId === null) {
             throw new ArgumentsRequired($this->id . ' createOrder() : API trading is now allowed from main account, set $params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account');
         }
@@ -1884,7 +1884,7 @@ class cex extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
         $accountId = null;
-        list($accountId, $params) = $this->handle_option_and_params($params, 'createOrder', 'accountId');
+        list($accountId, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'accountId');
         if ($accountId === null) {
             throw new ArgumentsRequired($this->id . ' fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set $params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account');
         }

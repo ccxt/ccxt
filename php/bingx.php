@@ -1235,7 +1235,7 @@ class bingx extends Exchange {
             // bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
             // the timeZone request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
             $timeZone = null;
-            list($timeZone, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'timeZone', 0);
+            list($timeZone, $params) = $this->handle_option_integer_and_params($params, 'fetchOHLCV', 'timeZone', 0);
             if ($timeZone !== null) {
                 $request['timeZone'] = $timeZone;
             }
@@ -6901,7 +6901,9 @@ class bingx extends Exchange {
     public function parse_margin_mode(array $marginMode, ?array $market = null): array {
         $marketId = $this->safe_string($marginMode, 'symbol');
         $marginType = $this->safe_string_lower($marginMode, 'marginType');
-        $marginType = ($marginType === 'crossed') ? 'cross' : $marginType;
+        if ($marginType === 'crossed') {
+            $marginType = 'cross';
+        }
         return array(
             'info' => $marginMode,
             'symbol' => $this->safe_symbol($marketId, $market, '-', 'swap'),

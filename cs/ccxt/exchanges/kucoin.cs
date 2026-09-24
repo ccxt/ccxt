@@ -3925,9 +3925,9 @@ public partial class kucoin : Exchange
         {
             request["tradeType"] = "FUTURES";
         }
-        object priceType = null;
-        IList<object> priceTypeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "price", priceType);
-        priceType = priceTypeparametersVariable[0];
+        string? priceType = null;
+        IList<object> priceTypeparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchOHLCV", "price", priceType);
+        priceType = (string)priceTypeparametersVariable[0];
         parameters = priceTypeparametersVariable[1];
         if ((priceType != null))
         {

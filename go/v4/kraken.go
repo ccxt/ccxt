@@ -1846,7 +1846,7 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) any {
 			return "taker"
 		}()
 	}
-	if IsEqual(datetime, nil) {
+	if datetime == nil {
 		datetime = this.Iso8601(timestamp)
 	} else {
 		timestamp = this.Parse8601(datetime)
@@ -2409,7 +2409,7 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) any {
 	var description map[string]any = SafeMapTyped(order, "descr")
 	var orderDescriptionObj map[string]any = SafeMapTyped(order, "descr") // can be null
 	var orderDescription any = nil
-	if !IsEqual(orderDescriptionObj, nil) {
+	if orderDescriptionObj != nil {
 		orderDescription = this.SafeString(orderDescriptionObj, "order")
 	} else {
 		orderDescription = this.SafeString(order, "descr")
@@ -4144,7 +4144,7 @@ func (this *Kraken) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	//
 	var result []any = SafeListTyped(response, "result")
 	var firstResult map[string]any = MapTyped(this.SafeDict(result, 0, map[string]any{}))
-	if IsEqual(firstResult, nil) {
+	if firstResult == nil {
 		panic(InvalidAddress(Add(this.Id+" privatePostDepositAddresses() returned no addresses for ", code)))
 	}
 

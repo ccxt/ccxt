@@ -1711,11 +1711,11 @@ func (this *Myriad) GetOrderResponseFromParams(id any, optionalArgs ...any) any 
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var orderResponse map[string]any = ccxt.SafeMapTyped(params, "orderResponse")
-	if !ccxt.IsEqual(orderResponse, nil) {
+	if orderResponse != nil {
 		return orderResponse
 	}
 	var rawOrder map[string]any = ccxt.SafeMapTyped(params, "rawOrder")
-	if !ccxt.IsEqual(rawOrder, nil) {
+	if rawOrder != nil {
 		return map[string]any{
 			"orderHash": id,
 			"order":     rawOrder,
@@ -1723,14 +1723,14 @@ func (this *Myriad) GetOrderResponseFromParams(id any, optionalArgs ...any) any 
 		}
 	}
 	var orderResponsesById map[string]any = ccxt.SafeMapTyped(params, "orderResponses")
-	if !ccxt.IsEqual(orderResponsesById, nil) {
+	if orderResponsesById != nil {
 		var keyedResponse map[string]any = ccxt.SafeMapTyped(orderResponsesById, id)
-		if !ccxt.IsEqual(keyedResponse, nil) {
+		if keyedResponse != nil {
 			return keyedResponse
 		}
 	}
 	var orderResponses []any = ccxt.SafeListTyped(params, "orderResponses")
-	if !ccxt.IsEqual(orderResponses, nil) {
+	if orderResponses != nil {
 		var responsesLength int = len(orderResponses)
 		for i := 0; i < responsesLength; i++ {
 			var current map[string]any = ccxt.MapTyped(this.SafeDict(orderResponses, i, map[string]any{}))
@@ -2724,7 +2724,7 @@ func (this *Myriad) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 func (this *Myriad) HexToDecimalString(hexValue any) any {
 	// portable hex -> decimal string (avoids convertToBigInt, which is not uniform across languages)
 	var stripped string = this.Remove0xPrefix(hexValue)
-	if (ccxt.IsEqual(stripped, nil)) || (stripped == "") {
+	if stripped == "" {
 		return nil
 	}
 	var chars []string = this.StringToCharsArray(strings.ToLower(stripped))
@@ -3953,7 +3953,7 @@ func (this *Myriad) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var queries []any = this.ParseSearchQueries(params)
 	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"query", "queries", "sort", "searchIn", "eventId", "slug", "status", "tags"}))
-	if ccxt.IsEqual(queries, nil) {
+	if queries == nil {
 		panic(ccxt.ExchangeError(this.Id + " fetchEvents() missing queries"))
 	}
 	var queriesLength int = len(queries)
@@ -4275,14 +4275,14 @@ func (this *Myriad) HandleCentrifugoFrame(client any, msg any) {
 		return
 	}
 	var connectReply map[string]any = ccxt.SafeMapTyped(msg, "connect")
-	if !ccxt.IsEqual(connectReply, nil) {
+	if connectReply != nil {
 		// connect acknowledged — unblock connectCentrifugo so channel subscribes can be sent
 		this.Options.Store("wsConnected", true)
 		client.(ccxt.ClientInterface).Resolve(true, "centrifugoConnected")
 		return
 	}
 	var push map[string]any = ccxt.SafeMapTyped(msg, "push")
-	if ccxt.IsEqual(push, nil) {
+	if push == nil {
 		return
 	}
 	var channel *string = this.SafeString(push, "channel")

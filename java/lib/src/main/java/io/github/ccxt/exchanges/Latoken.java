@@ -1156,7 +1156,7 @@ public class Latoken extends LatokenApi
         //         "makerBuyer":false
         //     }
         //
-        Object type = null;
+        List<String> type = null;
         Long timestamp = this.safeInteger(trade, "timestamp");
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "quantity");

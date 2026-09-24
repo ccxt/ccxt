@@ -16,11 +16,18 @@ func TestOptionTypes() {
 			"fetchX": map[string]any{
 				"wrongBool":   "yes",
 				"wrongString": 5,
+				"wrongInteger": "5",
+				"fractionInteger": 1.5,
+				"integralDouble": 2.0,
 			},
 		},
 	}, map[string]any{}, exchange)
 	assertOptionPanics(func() { exchange.HandleOptionBoolAndParams(map[string]any{}, "fetchX", "wrongBool", false) }, "fetchX() option wrongBool must be a boolean")
 	assertOptionPanics(func() { exchange.HandleOptionStringAndParams(map[string]any{}, "fetchX", "wrongString", "x") }, "fetchX() option wrongString must be a string")
+	assertOptionPanics(func() { exchange.HandleOptionIntegerAndParams(map[string]any{}, "fetchX", "wrongInteger", 1) }, "fetchX() option wrongInteger must be an integer")
+	assertOptionPanics(func() { exchange.HandleOptionIntegerAndParams(map[string]any{}, "fetchX", "fractionInteger", 1) }, "fetchX() option fractionInteger must be an integer")
+	integral := exchange.HandleOptionIntegerAndParams(map[string]any{}, "fetchX", "integralDouble", 1)
+	Assert(*(integral[0].(*int64)) == 2, "an integral double option reads as int64")
 	assertOptionPanics(func() { exchange.HandleMarginModeAndParams("fetchX", map[string]any{"marginMode": false}) }, "fetchX() option marginMode must be a string")
 }
 

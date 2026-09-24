@@ -3808,14 +3808,22 @@ impl KrakenfuturesCore {
             type_var = symbol.clone();
         }
         if (type_var == Value::Null) {
-            type_var = (if (symbol == Value::Null) { Value::Str("flex".into()) } else { symbol.clone() });
+            if (symbol == Value::Null) {
+                type_var = Value::Str("flex".into());
+            }  else {
+                type_var = symbol.clone();
+            }
         }
         let mut accountName: Value = self.parse_account(type_var.clone());
         let mut accounts: Value = self.safe_dict_k(response.clone(), "accounts", &[]);
         let mut account: Value = self.safe_dict(accounts, accountName, &[]);
         if (account == Value::Null) {
-            type_var = (if (type_var == Value::Null) { Value::Str("".into()) } else { type_var.clone() });
-            symbol = (if (symbol == Value::Null) { Value::Str("".into()) } else { symbol });
+            if (type_var == Value::Null) {
+                type_var = Value::Str("".into());
+            }
+            if (symbol == Value::Null) {
+                symbol = Value::Str("".into());
+            }
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchBalance has no account for ".into())).into()), type_var)));
         }
         let mut balance: Value = self.parse_balance(account);

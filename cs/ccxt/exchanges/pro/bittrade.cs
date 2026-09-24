@@ -311,7 +311,7 @@ public partial class bittrade : ccxt.bittrade
             stored = new ArrayCacheByTimestamp(limit);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
         }
-        IDictionary<string, object> tick = ((IDictionary<string, object>)this.safeValue(message, "tick"));
+        IDictionary<string, object> tick = this.safeDict(message, "tick");
         IList<object> parsed = this.parseOHLCV(tick, market);
         stored.append(parsed);
         client.resolve(stored, ch);

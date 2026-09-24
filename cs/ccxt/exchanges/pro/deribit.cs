@@ -424,11 +424,11 @@ public partial class deribit : ccxt.deribit
     {
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        object interval = null;
-        IList<object> intervalparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchTradesForSymbols", "interval", "100ms");
-        interval = intervalparametersVariable[0];
+        string? interval = null;
+        IList<object> intervalparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchTradesForSymbols", "interval", "100ms");
+        interval = (string)intervalparametersVariable[0];
         parameters = intervalparametersVariable[1];
-        if (isEqual(interval, "raw"))
+        if (interval == "raw")
         {
             await this.authenticate();
         }
@@ -615,11 +615,11 @@ public partial class deribit : ccxt.deribit
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object interval = null;
-        IList<object> intervalparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "interval", "100ms");
-        interval = intervalparametersVariable[0];
+        string? interval = null;
+        IList<object> intervalparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "interval", "100ms");
+        interval = (string)intervalparametersVariable[0];
         parameters = intervalparametersVariable[1];
-        if (isEqual(interval, "raw"))
+        if (interval == "raw")
         {
             await this.authenticate();
         }
@@ -630,9 +630,9 @@ public partial class deribit : ccxt.deribit
         parameters = useDepthEndpointparametersVariable[1];
         if ((useDepthEndpoint == true))
         {
-            object depth = null;
-            IList<object> depthparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "depth", "20");
-            depth = depthparametersVariable[0];
+            string? depth = null;
+            IList<object> depthparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "depth", "20");
+            depth = (string)depthparametersVariable[0];
             parameters = depthparametersVariable[1];
             object group = null;
             IList<object> groupparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "group", "none");

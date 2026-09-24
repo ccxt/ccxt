@@ -734,7 +734,7 @@ func (this *Kalshi) HandleErrors(code any, reason any, url any, method any, head
 		return nil
 	}
 	var error map[string]any = ccxt.SafeMapTyped(response, "error")
-	if !ccxt.IsEqual(error, nil) {
+	if error != nil {
 		var errorCode *string = this.SafeString(error, "code")
 		var feedback any = ccxt.Add(this.Id+" ", body)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
@@ -1305,15 +1305,15 @@ func (this *Kalshi) ParsePredictionTicker(raw any, optionalArgs ...any) any {
 	// kalshi occasionally reports a negative size for settling/closed markets; a size
 	// can't be negative, so drop it rather than emit an invalid volume
 	var bidVolume any = nil
-	if (!ccxt.IsEqual(bidSizeString, nil)) && ccxt.Precise.StringGe(bidSizeString, "0") {
+	if ((bidSizeString != nil)) && ccxt.Precise.StringGe(bidSizeString, "0") {
 		bidVolume = this.ParseNumber(bidSizeString)
 	}
 	var askVolume any = nil
-	if (!ccxt.IsEqual(askSizeString, nil)) && ccxt.Precise.StringGe(askSizeString, "0") {
+	if ((askSizeString != nil)) && ccxt.Precise.StringGe(askSizeString, "0") {
 		askVolume = this.ParseNumber(askSizeString)
 	}
 	var average any = nil
-	if (!ccxt.IsEqual(bid, nil)) && (!ccxt.IsEqual(ask, nil)) {
+	if ((bid != nil)) && ((ask != nil)) {
 		average = this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(this.NumberToString(bid), this.NumberToString(ask)), "2"))
 	}
 	return this.SafePredictionTicker(map[string]any{
@@ -1976,7 +1976,7 @@ func (this *Kalshi) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		// the ticker filter narrows to the market; a market has both legs, so the
 		// wanted-leg filter below still drops the opposite-leg fills
 		outcomeObj = this.Outcome(outcome)
-		if ccxt.IsEqual(outcomeObj, nil) {
+		if outcomeObj == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " requires a valid outcome"))
 		}
 		request["ticker"] = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
@@ -2483,7 +2483,7 @@ func (this *Kalshi) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var outcomeObj map[string]any = nil
 	if outcome != nil {
 		outcomeObj = this.Outcome(outcome)
-		if ccxt.IsEqual(outcomeObj, nil) {
+		if outcomeObj == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " requires a valid outcome"))
 		}
 		request["ticker"] = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
@@ -2532,7 +2532,7 @@ func (this *Kalshi) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var outcomeObj map[string]any = nil
 	if outcome != nil {
 		outcomeObj = this.Outcome(outcome)
-		if ccxt.IsEqual(outcomeObj, nil) {
+		if outcomeObj == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " requires a valid outcome"))
 		}
 		request["ticker"] = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
@@ -2804,9 +2804,9 @@ func (this *Kalshi) createOrderBody(ch chan any, outcome any, typeVar any, side 
 	} else if unifiedTif != nil && *unifiedTif == "GTC" {
 		defaultTif = "good_till_canceled"
 	}
-	var timeInForce any = nil
-	var timeInForceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "time_in_force", defaultTif)
-	timeInForce = ccxt.GetValue(timeInForceparamsVariable, 0)
+	var timeInForce *string = nil
+	var timeInForceparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "time_in_force", defaultTif)
+	timeInForce = ccxt.SafeStringPtr(ccxt.GetValue(timeInForceparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(timeInForceparamsVariable, 1))
 	var stp *string = nil
 	var stpparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "self_trade_prevention_type", "taker_at_cross")
@@ -3043,7 +3043,7 @@ func (this *Kalshi) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var queries []any = this.ParseSearchQueries(params)
-	if ccxt.IsEqual(queries, nil) {
+	if queries == nil {
 		panic(ccxt.ExchangeError(this.Id + " fetchEvents() missing queries"))
 	}
 	var queriesLength int = len(queries)

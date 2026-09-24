@@ -2729,11 +2729,11 @@ impl ZebpayCore {
         let mut timestamp: Value = to_string_val(&self.milliseconds());
         let mut signature: Value = Value::Str("".into());
         let mut query: Value = self.omit(params.clone(), self.extract_params(path), &[]);
-        let mut queryLength: Value = Value::Int(object_keys(&query).len() as i64);
+        let mut queryLength: f64 = ((object_keys(&query).len() as i64) as f64);
         let mut access: Option<String> = self.safe_string(api, Value::Int(0), &[Value::Str("public".into())]).as_str().map(str::to_owned);
         if (access.as_deref() == Some("public")) {
             if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
-                if (queryLength != Value::Null) && (queryLength.as_f64() != Some(0.0)) {
+                if (queryLength != 0.0) {
                     url = add(&url, &Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query, &[])).into()));
                 }
             }  else {

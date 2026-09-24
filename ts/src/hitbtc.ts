@@ -3913,7 +3913,7 @@ export default class hitbtc extends Exchange {
             'Content-Type': 'application/json',
         };
         if (method === 'GET') {
-            if ((queryLength !== undefined) && (queryLength !== 0)) {
+            if (queryLength !== 0) {
                 getRequest = '?' + this.urlencode (query);
                 url = url + getRequest;
             }

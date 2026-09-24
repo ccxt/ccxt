@@ -1036,7 +1036,7 @@ func (this *Bitbank) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	//        }
 	//    }
 	//
-	var data any = this.SafeValue(response, "data")
+	var data map[string]any = SafeMapTyped(response, "data")
 
 	ch <- this.ParseOrder(data)
 	return nil
@@ -1434,7 +1434,7 @@ func (this *Bitbank) HandleErrors(httpCode any, reason any, url any, method any,
 	}
 	var success *int64 = this.SafeInteger(response, "success")
 	var data map[string]any = SafeMapTyped(response, "data")
-	if ((success == nil) || (success != nil && *success == 0)) || (IsEqual(data, nil)) {
+	if ((success == nil) || (success != nil && *success == 0)) || ((data == nil)) {
 		var errorMessages map[string]any = map[string]any{
 			"10000": "URL does not exist",
 			"10001": "A system error occurred. Please contact support",

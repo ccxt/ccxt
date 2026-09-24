@@ -378,7 +378,7 @@ class coinone extends \ccxt\async\coinone {
         ), $market);
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         //     {
         //         "response_type": "ERROR",

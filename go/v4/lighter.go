@@ -509,7 +509,7 @@ func (this *Lighter) loadAccountBody(ch chan any, chainId any, privateKey any, a
 		return nil
 	}
 	var libraryPath any = nil
-	var libraryPathparamsVariable []any = this.HandleOptionAndParams(params, "loadAccount", "libraryPath")
+	var libraryPathparamsVariable []any = this.HandleOptionStringAndParams(params, "loadAccount", "libraryPath")
 	libraryPath = GetValue(libraryPathparamsVariable, 0)
 	params = MapTyped(GetValue(libraryPathparamsVariable, 1))
 	var lighterPrivateKeyIsSet bool = (!IsEqual(privateKey, nil)) && (!IsEqual(privateKey, ""))
@@ -693,7 +693,7 @@ func (this *Lighter) handleAccountIndexBody(ch chan any, params any, methodName1
 		var subAccounts any = this.SafeList(res, "sub_accounts")
 		if IsArray(subAccounts) {
 			var account map[string]any = SafeMapTyped(subAccounts, 0)
-			if IsEqual(account, nil) {
+			if account == nil {
 				panic(ArgumentsRequired(Add(Add(Add(Add(Add(Add(this.Id+" ", methodName1), "() requires an "), optionName1), " or "), optionName2), " parameter")))
 			}
 			accountIndex = account["index"]
@@ -1034,7 +1034,7 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	var nonceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "nonce")
 	nonce = GetValue(nonceparamsVariable, 0)
 	params = GetValue(nonceparamsVariable, 1)
-	var orderExpiryparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "orderExpiry", 0)
+	var orderExpiryparamsVariable []any = this.HandleOptionIntegerAndParams(params, "createOrder", "orderExpiry", 0)
 	orderExpiry = GetValue(orderExpiryparamsVariable, 0)
 	params = GetValue(orderExpiryparamsVariable, 1)
 	if !IsEqual(nonce, nil) {
@@ -1047,8 +1047,8 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	var takeProfitPrice any = this.SafeValue(params, "takeProfitPrice")
 	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
 	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
-	var hasStopLoss bool = (!IsEqual(stopLoss, nil))
-	var hasTakeProfit bool = (!IsEqual(takeProfit, nil))
+	var hasStopLoss bool = ((stopLoss != nil))
+	var hasTakeProfit bool = ((takeProfit != nil))
 	var isConditional bool = ((!IsEqual(stopLossPrice, nil)) || (!IsEqual(takeProfitPrice, nil)))
 	var isMarketOrder bool = (orderType == "MARKET")
 	var timeInForce *string = this.SafeStringLower(params, "timeInForce", "gtt")
@@ -1146,7 +1146,7 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		var takeProfitOrderType *string = this.SafeString(takeProfit, "type", "limit")
 		var takeProfitOrderLimitPrice *float64 = this.SafeNumber2(takeProfit, "price", "takeProfitPrice", takeProfitOrderTriggerPrice)
 		// amount should be 0 for child orders
-		if !IsEqual(stopLoss, nil) {
+		if stopLoss != nil {
 			var orderObj any = GetValue(this.CreateOrderRequest(symbol, stopLossOrderType, triggerOrderSide, 0, stopLossOrderLimitPrice, this.Extend(params, map[string]any{
 				"stopLossPrice": stopLossOrderTriggerPrice,
 				"reduceOnly":    true,
@@ -1154,7 +1154,7 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 			AddElementToObject(orderObj, "client_order_index", 0)
 			orders = append(orders, orderObj)
 		}
-		if !IsEqual(takeProfit, nil) {
+		if takeProfit != nil {
 			var orderObj any = GetValue(this.CreateOrderRequest(symbol, takeProfitOrderType, triggerOrderSide, 0, takeProfitOrderLimitPrice, this.Extend(params, map[string]any{
 				"takeProfitPrice": takeProfitOrderTriggerPrice,
 				"reduceOnly":      true,
@@ -1231,7 +1231,7 @@ func (this *Lighter) signAndCreateOrderBody(ch chan any, method any, symbol any,
 	AddElementToObject(params, "accountIndex", accountIndex)
 	var market map[string]any = this.Market(symbol)
 	var groupingType any = nil
-	var groupingTypeparamsVariable []any = this.HandleOptionAndParams(params, method, "groupingType", 3)
+	var groupingTypeparamsVariable []any = this.HandleOptionIntegerAndParams(params, method, "groupingType", 3)
 	groupingType = GetValue(groupingTypeparamsVariable, 0)
 	params = GetValue(groupingTypeparamsVariable, 1) // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
 	var orderRequests any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
@@ -1618,20 +1618,17 @@ func (this *Lighter) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			return nil
 		}()
 		var id *string = this.SafeString(market, "market_id")
-		var typeVar any = DerefScalar(this.SafeString(market, "market_type"))
-		typeVar = func() any {
-			if IsEqual(typeVar, "perp") {
-				return "swap"
-			}
-			return typeVar
-		}()
+		var typeVar *string = this.SafeString(market, "market_type")
+		if typeVar != nil && *typeVar == "perp" {
+			typeVar = SafeStringPtr("swap")
+		}
 		var baseId any = DerefScalar(this.SafeString(market, "symbol"))
 		if !IsEqual(baseId, nil) && (GetIndexOf(baseId, "/") != OpNeg(1)) {
 			baseId = GetValue(Split(baseId, "/"), 0)
 		}
 		var quoteId string = "USDC"
 		var settleId *string = func() *string {
-			if IsEqual(typeVar, "swap") {
+			if typeVar != nil && *typeVar == "swap" {
 				return SafeStringPtr("USDC")
 			}
 			return nil
@@ -1668,21 +1665,21 @@ func (this *Lighter) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			"quoteId":  quoteId,
 			"settleId": settleId,
 			"type":     typeVar,
-			"spot":     IsEqual(typeVar, "spot"),
+			"spot":     (typeVar != nil && *typeVar == "spot"),
 			"margin":   false,
-			"swap":     IsEqual(typeVar, "swap"),
+			"swap":     (typeVar != nil && *typeVar == "swap"),
 			"future":   false,
 			"option":   false,
 			"active":   (this.SafeString(market, "status") != nil && *this.SafeString(market, "status") == "active"),
-			"contract": IsEqual(typeVar, "swap"),
+			"contract": (typeVar != nil && *typeVar == "swap"),
 			"linear": func() any {
-				if IsEqual(typeVar, "swap") {
+				if typeVar != nil && *typeVar == "swap" {
 					return true
 				}
 				return nil
 			}(),
 			"inverse": func() any {
-				if IsEqual(typeVar, "swap") {
+				if typeVar != nil && *typeVar == "swap" {
 					return false
 				}
 				return nil
@@ -3302,8 +3299,8 @@ func (this *Lighter) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
 
-		var retRes257119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchTransfers", code, since, limit, params, "cursor", "cursor", nil, 50))))
-		ch <- BoxAbsent(retRes257119)
+		var retRes257319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchTransfers", code, since, limit, params, "cursor", "cursor", nil, 50))))
+		ch <- BoxAbsent(retRes257319)
 		return nil
 	}
 	var accountIndex any = nil
@@ -3438,8 +3435,8 @@ func (this *Lighter) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
 
-		var retRes267719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchDeposits", code, since, limit, params, "cursor", "cursor", nil, 50))))
-		ch <- BoxAbsent(retRes267719)
+		var retRes267919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchDeposits", code, since, limit, params, "cursor", "cursor", nil, 50))))
+		ch <- BoxAbsent(retRes267919)
 		return nil
 	}
 	var address *string = nil
@@ -3534,8 +3531,8 @@ func (this *Lighter) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
 
-		var retRes274319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", code, since, limit, params, "cursor", "cursor", nil, 50))))
-		ch <- BoxAbsent(retRes274319)
+		var retRes274519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", code, since, limit, params, "cursor", "cursor", nil, 50))))
+		ch <- BoxAbsent(retRes274519)
 		return nil
 	}
 	var accountIndex any = nil
@@ -3774,8 +3771,8 @@ func (this *Lighter) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
 
-		var retRes292819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, params, "next_cursor", "cursor", nil, 50))))
-		ch <- BoxAbsent(retRes292819)
+		var retRes293019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, params, "next_cursor", "cursor", nil, 50))))
+		ch <- BoxAbsent(retRes293019)
 		return nil
 	}
 	var accountIndex any = nil
@@ -3799,7 +3796,7 @@ func (this *Lighter) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = mathMin(limit, 100)
 	}
 	var until any = nil
-	var untilparamsVariable []any = this.HandleOptionAndParams2(params, "fetchMyTrades", "until", "from")
+	var untilparamsVariable []any = this.HandleOptionIntegerAndParams2(params, "fetchMyTrades", "until", "from")
 	until = GetValue(untilparamsVariable, 0)
 	params = GetValue(untilparamsVariable, 1)
 	if !IsEqual(until, nil) {
@@ -3970,8 +3967,8 @@ func (this *Lighter) setLeverageBody(ch chan any, leverage any, optionalArgs ...
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires an marginMode parameter"))
 	}
 
-	var retRes308715 map[string]any = MapTyped(PanicOnError((<-this.ModifyLeverageAndMarginModeAsync(leverage, marginMode, symbol, params))))
-	ch <- BoxAbsent(retRes308715)
+	var retRes308915 map[string]any = MapTyped(PanicOnError((<-this.ModifyLeverageAndMarginModeAsync(leverage, marginMode, symbol, params))))
+	ch <- BoxAbsent(retRes308915)
 	return nil
 }
 
@@ -4010,8 +4007,8 @@ func (this *Lighter) setMarginModeBody(ch chan any, marginMode any, optionalArgs
 		panic(ArgumentsRequired(this.Id + " setMarginMode() requires an leverage parameter"))
 	}
 
-	var retRes311115 map[string]any = MapTyped(PanicOnError((<-this.ModifyLeverageAndMarginModeAsync(leverage, marginMode, symbol, params))))
-	ch <- BoxAbsent(retRes311115)
+	var retRes311315 map[string]any = MapTyped(PanicOnError((<-this.ModifyLeverageAndMarginModeAsync(leverage, marginMode, symbol, params))))
+	ch <- BoxAbsent(retRes311315)
 	return nil
 }
 func (this *Lighter) ModifyLeverageAndMarginModeAsync(leverage any, marginMode any, optionalArgs ...any) <-chan any {
@@ -4343,8 +4340,8 @@ func (this *Lighter) addMarginBody(ch chan any, symbol any, amount any, optional
 		"direction": 1,
 	}
 
-	var retRes330015 map[string]any = MapTyped(PanicOnError((<-this.SetMarginAsync(symbol, amount, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes330015)
+	var retRes330215 map[string]any = MapTyped(PanicOnError((<-this.SetMarginAsync(symbol, amount, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes330215)
 	return nil
 }
 
@@ -4371,8 +4368,8 @@ func (this *Lighter) reduceMarginBody(ch chan any, symbol any, amount any, optio
 		"direction": 0,
 	}
 
-	var retRes331615 map[string]any = MapTyped(PanicOnError((<-this.SetMarginAsync(symbol, amount, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes331615)
+	var retRes331815 map[string]any = MapTyped(PanicOnError((<-this.SetMarginAsync(symbol, amount, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes331815)
 	return nil
 }
 

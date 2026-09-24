@@ -798,7 +798,7 @@ class alpaca(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         paginationCalls = 10
-        paginationCalls, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginationCalls', 10)
+        paginationCalls, params = self.handle_option_integer_and_params(params, 'fetchOHLCV', 'paginationCalls', 10)
         request = {
             'symbols': marketId,
             'loc': loc,

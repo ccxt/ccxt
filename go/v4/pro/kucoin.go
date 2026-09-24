@@ -3441,7 +3441,7 @@ func (this *Kucoin) HandleUtaBalance(client any, message map[string]any) {
 	account["free"] = this.SafeString(data, "a")
 	account["used"] = this.SafeString(data, "h")
 	account["total"] = this.SafeString(data, "b")
-	if (!ccxt.IsEqual(typeVar, nil)) && (code != nil) {
+	if code != nil {
 		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
 	}
 	ccxt.AddElementToObject(this.Balance, typeVar, this.SafeBalance(ccxt.GetValue(this.Balance, typeVar)))

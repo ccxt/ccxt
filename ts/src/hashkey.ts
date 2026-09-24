@@ -1374,7 +1374,7 @@ export default class hashkey extends Exchange {
             request['endTime'] = until;
         }
         let accountId: Str = undefined;
-        [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
+        [ accountId, params ] = this.handleOptionStringAndParams (params, methodName, 'accountId');
         let response: Dict | List | undefined = undefined;
         if (marketType === 'spot') {
             if (market !== undefined) {
@@ -3353,7 +3353,7 @@ export default class hashkey extends Exchange {
         const request: Dict = {};
         let response: NullableDict = undefined;
         let accountId: Str = undefined;
-        [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
+        [ accountId, params ] = this.handleOptionStringAndParams (params, methodName, 'accountId');
         if (accountId !== undefined) {
             request['subAccountId'] = accountId;
             response = await this.privateGetApiV1SpotSubAccountOpenOrders (this.extend (request, params));
@@ -3437,7 +3437,7 @@ export default class hashkey extends Exchange {
         }
         let response: NullableDict = undefined;
         let accountId: Str = undefined;
-        [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
+        [ accountId, params ] = this.handleOptionStringAndParams (params, methodName, 'accountId');
         if (accountId !== undefined) {
             request['subAccountId'] = accountId;
             response = await this.privateGetApiV1FuturesSubAccountOpenOrders (this.extend (request, params));
@@ -3530,7 +3530,7 @@ export default class hashkey extends Exchange {
             request['endTime'] = until;
         }
         let accountId: Str = undefined;
-        [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
+        [ accountId, params ] = this.handleOptionStringAndParams (params, methodName, 'accountId');
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);

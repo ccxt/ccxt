@@ -2614,7 +2614,7 @@ class kucoin(ccxt.async_support.kucoin):
         account['free'] = self.safe_string(data, 'a')
         account['used'] = self.safe_string(data, 'h')
         account['total'] = self.safe_string(data, 'b')
-        if (type is not None) and (code is not None):
+        if code is not None:
             self.balance[type][code] = account
         self.balance[type] = self.safe_balance(self.balance[type])
         messageHash = type + ':balance'

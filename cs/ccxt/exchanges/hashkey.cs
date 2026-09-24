@@ -1506,9 +1506,9 @@ public partial class hashkey : Exchange
         {
             request["endTime"] = until;
         }
-        object accountId = null;
-        IList<object> accountIdparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "accountId");
-        accountId = accountIdparametersVariable[0];
+        string? accountId = null;
+        IList<object> accountIdparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "accountId");
+        accountId = (string)accountIdparametersVariable[0];
         parameters = accountIdparametersVariable[1];
         List<object> response = null;
         if (marketType == "spot")
@@ -3447,9 +3447,9 @@ public partial class hashkey : Exchange
         IDictionary<string, object> market = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         List<object> response = null;
-        object accountId = null;
-        IList<object> accountIdparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "accountId");
-        accountId = accountIdparametersVariable[0];
+        string? accountId = null;
+        IList<object> accountIdparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "accountId");
+        accountId = (string)accountIdparametersVariable[0];
         parameters = accountIdparametersVariable[1];
         if ((accountId != null))
         {
@@ -3519,9 +3519,9 @@ public partial class hashkey : Exchange
             request["limit"] = limit;
         }
         List<object> response = null;
-        object accountId = null;
-        IList<object> accountIdparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "accountId");
-        accountId = accountIdparametersVariable[0];
+        string? accountId = null;
+        IList<object> accountIdparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "accountId");
+        accountId = (string)accountIdparametersVariable[0];
         parameters = accountIdparametersVariable[1];
         if ((accountId != null))
         {
@@ -3581,9 +3581,9 @@ public partial class hashkey : Exchange
         {
             request["endTime"] = until;
         }
-        object accountId = null;
-        IList<object> accountIdparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "accountId");
-        accountId = accountIdparametersVariable[0];
+        string? accountId = null;
+        IList<object> accountIdparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "accountId");
+        accountId = (string)accountIdparametersVariable[0];
         parameters = accountIdparametersVariable[1];
         IDictionary<string, object> market = null;
         if ((symbol != null))

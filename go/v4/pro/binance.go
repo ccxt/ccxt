@@ -1909,7 +1909,7 @@ func (this *Binance) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"fee":          fee,
 	})
 }
-func (this *Binance) HandleTrade(client any, message any) {
+func (this *Binance) HandleTrade(client any, message map[string]any) {
 	// the trade streams push raw trade information in real-time
 	// each trade has a unique buyer and seller
 	var marketId *string = this.SafeString(message, "s")
@@ -6887,9 +6887,6 @@ func (this *Binance) HandleOptionsAccountUpdate(client any, message any) {
 		ccxt.AddElementToObject(this.Balance, accountType, map[string]any{})
 	}
 	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), "info", message)
-	if ccxt.IsEqual(accountType, nil) {
-		return
-	}
 	var B []any = ccxt.SafeListTyped(message, "B")
 	for i := 0; i < len(B); i++ {
 		var entry map[string]any = ccxt.SafeMapTyped(B, i)

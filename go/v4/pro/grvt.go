@@ -212,7 +212,7 @@ func (this *Grvt) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	channel = ccxt.SafeStringPtr(ccxt.GetValue(channelparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(channelparamsVariable, 1))
 	var interval any = 500
-	var intervalparamsVariable []any = this.HandleOptionAndParams(params, "watchTickers", "interval", interval)
+	var intervalparamsVariable []any = this.HandleOptionIntegerAndParams(params, "watchTickers", "interval", interval)
 	interval = ccxt.GetValue(intervalparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(intervalparamsVariable, 1))
 	if this.Markets == nil {
@@ -689,12 +689,12 @@ func (this *Grvt) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrderBookForSymbols() requires a non-empty array of symbols"))
 	}
 	if limit == nil {
-		var limitparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "limit", 100)
+		var limitparamsVariable []any = this.HandleOptionIntegerAndParams(params, "watchOrderBook", "limit", 100)
 		limit = ccxt.GetValue(limitparamsVariable, 0)
 		params = ccxt.MapTyped(ccxt.GetValue(limitparamsVariable, 1))
 	}
 	var interval any = 500
-	var intervalparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "interval", interval)
+	var intervalparamsVariable []any = this.HandleOptionIntegerAndParams(params, "watchOrderBook", "interval", interval)
 	interval = ccxt.GetValue(intervalparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(intervalparamsVariable, 1))
 	symbols = this.MarketSymbols(symbols)

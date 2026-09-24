@@ -1092,7 +1092,7 @@ public class Indodax extends IndodaxApi
             filled = this.safeString(order, ("receive_" + baseId));
         }
         Long timestamp = this.safeInteger(order, "submit_time");
-        Object fee = null;
+        List<String> fee = null;
         String id = this.safeString(order, "order_id");
         final Object finalSymbol = symbol;
         final String finalSide = side;

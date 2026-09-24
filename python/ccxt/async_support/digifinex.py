@@ -1332,7 +1332,8 @@ class digifinex(Exchange, ImplicitAPI):
             tradeRole = self.safe_string(trade, 'match_role')
             direction = self.safe_string(trade, 'direction')
             if orderType is not None:
-                type = 'limit' if (orderType == '0') else None
+                if orderType == '0':
+                    type = 'limit'
             if tradeRole == '1':
                 takerOrMaker = 'taker'
             elif tradeRole == '2':

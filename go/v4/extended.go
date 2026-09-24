@@ -2686,7 +2686,7 @@ func (this *Extended) GetExtendedCurrencyCodeById(assetId any, optionalArgs ...a
 	}
 	var currenciesByNumericId map[string]any = SafeMapTyped(this.Options, "currenciesByNumericId")
 	var currencyByNumericId map[string]any = SafeMapTyped(currenciesByNumericId, assetId)
-	if !IsEqual(currencyByNumericId, nil) {
+	if currencyByNumericId != nil {
 		return this.SafeString(currencyByNumericId, "code")
 	}
 	if currency != nil {
@@ -3467,7 +3467,7 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 		var builderFeeRateparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "builderFeeRate", "0.0001")
 		builderFeeRate = GetValue(builderFeeRateparamsVariable, 0)
 		params = MapTyped(GetValue(builderFeeRateparamsVariable, 1))
-		var builderIdparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "builderId")
+		var builderIdparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "builderId")
 		builderId = GetValue(builderIdparamsVariable, 0)
 		params = MapTyped(GetValue(builderIdparamsVariable, 1))
 	}
@@ -3539,15 +3539,15 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 		"starkKey":           starkKey,
 		"collateralPosition": collateralPosition,
 	}
-	var triggerPriceStr any = DerefScalar(this.SafeString2(params, "triggerPrice", "stopPrice"))
+	var triggerPriceStr *string = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLossTriggerPrice *string = this.SafeString(params, "stopLossPrice")
 	var takeProfitTriggerPrice *string = this.SafeString(params, "takeProfitPrice")
 	var isStopLossOrder bool = (stopLossTriggerPrice != nil)
 	var isTakeProfitOrder bool = (takeProfitTriggerPrice != nil)
 	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
 	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
-	var hasStopLoss bool = (!IsEqual(stopLoss, nil))
-	var hasTakeProfit bool = (!IsEqual(takeProfit, nil))
+	var hasStopLoss bool = ((stopLoss != nil))
+	var hasTakeProfit bool = ((takeProfit != nil))
 	if hasStopLoss || hasTakeProfit {
 		request["tpSlType"] = "ORDER"
 		if hasStopLoss {
@@ -3603,7 +3603,7 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 			request["takeProfit"] = requestTakeProfit
 		}
 	} else {
-		if !IsEqual(triggerPriceStr, nil) {
+		if triggerPriceStr != nil {
 			var triggerDirection *string = this.SafeStringUpper(params, "triggerDirection")
 			if triggerDirection == nil {
 				panic(ArgumentsRequired(this.Id + " createOrder() requires triggerDirection for trigger order"))
@@ -3615,12 +3615,11 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 			request["type"] = "CONDITIONAL"
 			request["trigger"] = trigger
 		} else if isStopLossOrder || isTakeProfitOrder {
-			triggerPriceStr = func() any {
-				if isStopLossOrder {
-					return stopLossTriggerPrice
-				}
-				return takeProfitTriggerPrice
-			}()
+			if isStopLossOrder {
+				triggerPriceStr = stopLossTriggerPrice
+			} else {
+				triggerPriceStr = takeProfitTriggerPrice
+			}
 			var trigger map[string]any = map[string]any{
 				"triggerPrice": this.PriceToPrecision(symbol, triggerPriceStr),
 			}
@@ -4215,8 +4214,8 @@ func (this *Extended) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes321719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOrders", symbol, since, limit, params, "cursor", "cursor", nil, 100))))
-		ch <- BoxAbsent(retRes321719)
+		var retRes322119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOrders", symbol, since, limit, params, "cursor", "cursor", nil, 100))))
+		ch <- BoxAbsent(retRes322119)
 		return nil
 	}
 	var market map[string]any = nil

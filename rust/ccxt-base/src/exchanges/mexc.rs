@@ -3178,7 +3178,7 @@ impl MexcCore {
             //         }
             //     }
             //
-            let mut data: Value = self.safe_value_k(response, "data", &[]);
+            let mut data: Value = self.safe_dict_k(response, "data", &[]);
             candles = self.convert_trading_view_to_ohlcv(data, &[Value::Str("time".into()), Value::Str("open".into()), Value::Str("high".into()), Value::Str("low".into()), Value::Str("close".into()), Value::Str("vol".into())]);
         }
         return self.parse_ohlc_vs(candles, &[market, timeframe, since, limit]);

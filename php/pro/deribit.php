@@ -430,7 +430,7 @@ class deribit extends \ccxt\async\deribit {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
         $interval = null;
-        list($interval, $params) = $this->handle_option_and_params($params, 'watchTradesForSymbols', 'interval', '100ms');
+        list($interval, $params) = $this->handle_option_string_and_params($params, 'watchTradesForSymbols', 'interval', '100ms');
         if ($interval === 'raw') {
             Async\await($this->authenticate());
         }
@@ -615,7 +615,7 @@ class deribit extends \ccxt\async\deribit {
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         $interval = null;
-        list($interval, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'interval', '100ms');
+        list($interval, $params) = $this->handle_option_string_and_params($params, 'watchOrderBookForSymbols', 'interval', '100ms');
         if ($interval === 'raw') {
             Async\await($this->authenticate());
         }
@@ -624,7 +624,7 @@ class deribit extends \ccxt\async\deribit {
         list($useDepthEndpoint, $params) = $this->handle_option_bool_and_params($params, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
         if ($useDepthEndpoint) {
             $depth = null;
-            list($depth, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'depth', '20');
+            list($depth, $params) = $this->handle_option_string_and_params($params, 'watchOrderBookForSymbols', 'depth', '20');
             $group = null;
             list($group, $params) = $this->handle_option_string_and_params($params, 'watchOrderBookForSymbols', 'group', 'none');
             $descriptor = $group . '.' . $depth . '.' . $interval;

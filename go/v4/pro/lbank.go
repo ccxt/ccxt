@@ -573,7 +573,7 @@ func (this *Lbank) HandleTrades(client any, message map[string]any) {
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
-	var rawTrade any = this.SafeValue(message, "trade")
+	var rawTrade map[string]any = ccxt.SafeMapTyped(message, "trade")
 	var rawTrades []any = ccxt.SafeListTypedDefault(message, "trades", []any{rawTrade})
 	for i := 0; i < len(rawTrades); i++ {
 		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(func() any {

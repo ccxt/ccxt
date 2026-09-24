@@ -4111,11 +4111,6 @@ public partial class polymarket : PredictionExchange
         {
             return null;
         }
-        Int64? n = this.parseToInt(raw);
-        if ((n == null))
-        {
-            return null;
-        }
-        return n;
+        return this.parseToInt(raw);
     }
 }

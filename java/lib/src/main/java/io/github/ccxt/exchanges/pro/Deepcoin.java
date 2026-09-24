@@ -1126,7 +1126,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         Long timestamp = this.safeInteger(message, "mt", 0);
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderedEntries, symbol, timestamp);
         orderbook.reset(snapshot);
-        Object cachedMessages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));
+        List<Object> cachedMessages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));
         for (var j = 0; j < ((List<?>)cachedMessages).size(); j++)
         {
             Object cachedMessage = (cachedMessages == null || j < 0 || j >= ((List<?>)cachedMessages).size() ? null : ((List<?>)cachedMessages).get(j));

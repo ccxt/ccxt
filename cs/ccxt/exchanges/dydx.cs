@@ -1132,10 +1132,10 @@ public partial class dydx : Exchange
     public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object userAddress = null;
+        string? userAddress = null;
         string? subAccountNumber = null;
         IList<object> userAddressparametersVariable = (IList<object>)this.handlePublicAddress("fetchOrders", parameters);
-        userAddress = userAddressparametersVariable[0];
+        userAddress = (string)userAddressparametersVariable[0];
         parameters = userAddressparametersVariable[1];
         IList<object> subAccountNumberparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchOrders", "subAccountNumber", "0");
         subAccountNumber = (string)subAccountNumberparametersVariable[0];
@@ -1324,10 +1324,10 @@ public partial class dydx : Exchange
     public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object userAddress = null;
+        string? userAddress = null;
         string? subAccountNumber = null;
         IList<object> userAddressparametersVariable = (IList<object>)this.handlePublicAddress("fetchPositions", parameters);
-        userAddress = userAddressparametersVariable[0];
+        userAddress = (string)userAddressparametersVariable[0];
         parameters = userAddressparametersVariable[1];
         IList<object> subAccountNumberparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchPositions", "subAccountNumber", "0");
         subAccountNumber = (string)subAccountNumberparametersVariable[0];
@@ -1520,7 +1520,7 @@ public partial class dydx : Exchange
         }
         string orderSide = ((string)side).ToUpper();
         object subaccountId = 0;
-        IList<object> subaccountIdparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "subAccountId", subaccountId);
+        IList<object> subaccountIdparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "createOrder", "subAccountId", subaccountId);
         subaccountId = subaccountIdparametersVariable[0];
         parameters = subaccountIdparametersVariable[1];
         string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
@@ -1602,7 +1602,7 @@ public partial class dydx : Exchange
         object goodTillBlock = this.safeInteger(parameters, "goodTillBlock");
         object goodTillBlockTime = null;
         object goodTillBlockTimeInSeconds = 2592000;
-        IList<object> goodTillBlockTimeInSecondsparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
+        IList<object> goodTillBlockTimeInSecondsparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "createOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
         goodTillBlockTimeInSeconds = goodTillBlockTimeInSecondsparametersVariable[0];
         parameters = goodTillBlockTimeInSecondsparametersVariable[1]; // default is 30 days
         if ((orderFlag == 0))
@@ -1722,7 +1722,7 @@ public partial class dydx : Exchange
      * @param {bool} [params.postOnly] true or false whether the order is post-only
      * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
      * @param {float} [params.goodTillBlock] expired block number for the order, required for market order and non limit GTT order, default value is latestBlockHeight + 20
-     * @param {float} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
+     * @param {int} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
@@ -1778,7 +1778,7 @@ public partial class dydx : Exchange
      * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @param {float} [params.orderFlags] default is 64, orderFlags for the order, market order and non limit GTT order is 0, limit GTT order is 64 and conditional order is 32
      * @param {float} [params.goodTillBlock] expired block number for the order, required for market order and non limit GTT order (orderFlags = 0), default value is latestBlockHeight + 20
-     * @param {float} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days
+     * @param {int} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days
      * @param {int} [params.subAccountId] sub account id, default is 0
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1808,14 +1808,14 @@ public partial class dydx : Exchange
         }
         Int64? goodTillBlock = this.safeInteger(parameters, "goodTillBlock");
         object goodTillBlockTimeInSeconds = 2592000;
-        IList<object> goodTillBlockTimeInSecondsparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
+        IList<object> goodTillBlockTimeInSecondsparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "cancelOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
         goodTillBlockTimeInSeconds = goodTillBlockTimeInSecondsparametersVariable[0];
         parameters = goodTillBlockTimeInSecondsparametersVariable[1]; // default is 30 days
         object goodTillBlockTime = null;
         int defaultOrderFlags = ((isTrigger == true)) ? 32 : 64;
         Int64? orderFlags = this.safeInteger(parameters, "orderFlags", defaultOrderFlags);
         object subAccountId = 0;
-        IList<object> subAccountIdparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelOrder", "subAccountId", subAccountId);
+        IList<object> subAccountIdparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "cancelOrder", "subAccountId", subAccountId);
         subAccountId = subAccountIdparametersVariable[0];
         parameters = subAccountIdparametersVariable[1];
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "orderFlags", "goodTillBlock", "goodTillBlockTime", "goodTillBlockTimeInSeconds", "subaccountId", "clientId"});
@@ -1910,7 +1910,7 @@ public partial class dydx : Exchange
             throw new NotSupported ((this.id + " cancelOrders only support clientOrderIds.")) ;
         }
         object subAccountId = 0;
-        IList<object> subAccountIdparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelOrders", "subAccountId", subAccountId);
+        IList<object> subAccountIdparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "cancelOrders", "subAccountId", subAccountId);
         subAccountId = subAccountIdparametersVariable[0];
         parameters = subAccountIdparametersVariable[1];
         Int64? goodTillBlock = this.safeInteger(parameters, "goodTillBlock");
@@ -2567,10 +2567,10 @@ public partial class dydx : Exchange
         parameters ??= new Dictionary<string, object>();
         string? methodName = this.safeString(parameters, "methodName");
         parameters = this.omit(parameters, "methodName");
-        object userAddress = null;
+        string? userAddress = null;
         string? subAccountNumber = null;
         IList<object> userAddressparametersVariable = (IList<object>)this.handlePublicAddress(methodName, parameters);
-        userAddress = userAddressparametersVariable[0];
+        userAddress = (string)userAddressparametersVariable[0];
         parameters = userAddressparametersVariable[1];
         IList<object> subAccountNumberparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "subAccountNumber", "0");
         subAccountNumber = (string)subAccountNumberparametersVariable[0];
@@ -2618,9 +2618,9 @@ public partial class dydx : Exchange
     public async override Task<List<ccxt.Account>> FetchAccounts(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object userAddress = null;
+        string? userAddress = null;
         IList<object> userAddressparametersVariable = (IList<object>)this.handlePublicAddress("fetchAccounts", parameters);
-        userAddress = userAddressparametersVariable[0];
+        userAddress = (string)userAddressparametersVariable[0];
         parameters = userAddressparametersVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "address", userAddress },
@@ -2702,13 +2702,13 @@ public partial class dydx : Exchange
         {
             await this.loadMarkets();
         }
-        object userAddress = null;
+        string? userAddress = null;
         IList<object> userAddressparametersVariable = (IList<object>)this.handlePublicAddress("fetchBalance", parameters);
-        userAddress = userAddressparametersVariable[0];
+        userAddress = (string)userAddressparametersVariable[0];
         parameters = userAddressparametersVariable[1];
-        object subaccountNumber = null;
-        IList<object> subaccountNumberparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchBalance", "subaccountNumber", 0);
-        subaccountNumber = subaccountNumberparametersVariable[0];
+        Int64? subaccountNumber = null;
+        IList<object> subaccountNumberparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchBalance", "subaccountNumber", 0);
+        subaccountNumber = (Int64?)subaccountNumberparametersVariable[0];
         parameters = subaccountNumberparametersVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "address", userAddress },

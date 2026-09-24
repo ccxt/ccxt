@@ -931,10 +931,10 @@ public partial class btse : Exchange
             request["start"] = this.parseToInt((since / 1000));
         }
         object until = null;
-        IList<object> untilparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
+        IList<object> untilparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "until");
         until = untilparametersVariable[0];
         parameters = untilparametersVariable[1];
-        if ((until != null))
+        if (!isEqual(until, null))
         {
             if ((since != null))
             {
@@ -1062,9 +1062,9 @@ public partial class btse : Exchange
         {
             throw new BadRequest ((this.id + " fetchFundingRateHistory() supports contract markets only")) ;
         }
-        object period = null;
-        IList<object> periodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "period");
-        period = periodparametersVariable[0];
+        string? period = null;
+        IList<object> periodparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchFundingRateHistory", "period");
+        period = (string)periodparametersVariable[0];
         parameters = periodparametersVariable[1];
         if ((period == null))
         {
@@ -1087,7 +1087,7 @@ public partial class btse : Exchange
             { "period", period },
         };
         object until = null;
-        IList<object> untilparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "until");
+        IList<object> untilparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchFundingRateHistory", "until");
         until = untilparametersVariable[0];
         parameters = untilparametersVariable[1];
         Dictionary<string, object> response = await this.publicGetPublicApiMarketV1RecentFundingHistory(this.extend(request, parameters));
@@ -1107,7 +1107,7 @@ public partial class btse : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         object rates = this.parseFundingRateHistories(data, market, since, limit);
-        if ((until == null))
+        if (isEqual(until, null))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(rates);
         }
@@ -1746,7 +1746,7 @@ public partial class btse : Exchange
         }
         // the unified trades endpoint has no server-side time filtering, since and until are applied client-side below
         object until = null;
-        IList<object> untilparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTrades", "until");
+        IList<object> untilparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchTrades", "until");
         until = untilparametersVariable[0];
         parameters = untilparametersVariable[1];
         Dictionary<string, object> response = await this.publicGetPublicApiMarketV1Trades(this.extend(request, parameters));
@@ -1770,7 +1770,7 @@ public partial class btse : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         IList<object> trades = this.parseTrades(data, market, since, limit);
-        if ((until == null))
+        if (isEqual(until, null))
         {
             return ccxt.BaseExchange.ToTradeList(trades);
         }
@@ -3205,10 +3205,10 @@ public partial class btse : Exchange
             request["pageSize"] = limit;
         }
         object until = null;
-        IList<object> untilparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "until");
+        IList<object> untilparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, methodName, "until");
         until = untilparametersVariable[0];
         parameters = untilparametersVariable[1];
-        if ((until != null))
+        if (!isEqual(until, null))
         {
             request["endTime"] = until;
         }
@@ -3448,10 +3448,10 @@ public partial class btse : Exchange
             request["pageSize"] = limit;
         }
         object until = null;
-        IList<object> untilparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchLedger", "until");
+        IList<object> untilparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchLedger", "until");
         until = untilparametersVariable[0];
         parameters = untilparametersVariable[1];
-        if ((until != null))
+        if (!isEqual(until, null))
         {
             request["endTime"] = until;
         }

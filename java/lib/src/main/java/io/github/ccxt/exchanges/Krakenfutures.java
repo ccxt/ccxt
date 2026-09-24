@@ -3714,7 +3714,7 @@ public class Krakenfutures extends KrakenfuturesApi
             {
                 (this.loadMarkets()).join();
             }
-            Object type = this.safeString2(parameters, "type", "account");
+            String type = this.safeString2(parameters, "type", "account");
             String symbol = this.safeString(parameters, "symbol");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("type", "account", "symbol")));
             Map<String, Object> response = (this.privateGetAccounts(parameters)).join();
@@ -3816,15 +3816,27 @@ public class Krakenfutures extends KrakenfuturesApi
             }
             if (java.util.Objects.equals(type, null))
             {
-                type = (((java.util.Objects.equals(symbol, null)))) ? "flex" : symbol;
+                if (java.util.Objects.equals(symbol, null))
+                {
+                    type = "flex";
+                } else
+                {
+                    type = symbol;
+                }
             }
             Object accountName = this.parseAccount(type);
             Map<String, Object> accounts = (Map<String, Object>) this.safeDict(response, "accounts");
             Map<String, Object> account = (Map<String, Object>) this.safeDict(accounts, accountName);
             if (java.util.Objects.equals(account, null))
             {
-                type = (((java.util.Objects.equals(type, null)))) ? "" : type;
-                symbol = (((java.util.Objects.equals(symbol, null)))) ? "" : symbol;
+                if (java.util.Objects.equals(type, null))
+                {
+                    type = "";
+                }
+                if (java.util.Objects.equals(symbol, null))
+                {
+                    symbol = "";
+                }
                 throw new BadRequest(((this.id + " fetchBalance has no account for ") + type)) ;
             }
             Map<String, Object> balance = (Map<String, Object>) this.parseBalance(account);
@@ -3980,7 +3992,7 @@ public class Krakenfutures extends KrakenfuturesApi
             {
                 (this.loadMarkets()).join();
             }
-            List<Object> marketIds = this.marketIds(symbols);
+            List<String> marketIds = this.marketIds(symbols);
             Map<String, Object> response = (this.publicGetTickers(parameters)).join();
             List<Object> tickers = (List<Object>) this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
             List<Object> fundingRates = new ArrayList<Object>(Arrays.asList());

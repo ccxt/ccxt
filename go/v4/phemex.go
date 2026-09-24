@@ -1426,7 +1426,7 @@ func (this *Phemex) ParseCurrency(rawCurrency any) any {
 	var minAmount any = nil
 	var maxAmount any = nil
 	var precision any = nil
-	if !IsEqual(valueScale, nil) {
+	if valueScaleString != nil {
 		var precisionString any = this.ParsePrecision(valueScaleString)
 		precision = this.ParseNumber(precisionString)
 		minAmount = this.ParseNumber(Precise.StringMul(minValueEv, precisionString))
@@ -2305,7 +2305,7 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	} else {
 		timestamp = this.SafeIntegerProduct(trade, "transactTimeNs", 0.000001)
-		if IsEqual(timestamp, nil) {
+		if timestamp == nil {
 			timestamp = this.SafeInteger(trade, "createdAt")
 		}
 		id = this.SafeString2(trade, "execId", "execID")
@@ -2361,7 +2361,7 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) any {
 					feeCurrencyCode = DerefScalar(this.SafeCurrencyCode(this.SafeString(trade, "feeCurrency")))
 				} else {
 					var info map[string]any = SafeMapTyped(market, "info")
-					if !IsEqual(info, nil) {
+					if info != nil {
 						var settlementCurrencyId *string = this.SafeString(info, "settlementCurrency")
 						feeCurrencyCode = DerefScalar(this.SafeCurrencyCode(settlementCurrencyId))
 					}
@@ -3119,8 +3119,8 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	var clientOrderId *string = this.SafeString2(params, "clOrdID", "clientOrderId")
 	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
 	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
-	var hasStopLoss bool = (!IsEqual(stopLoss, nil))
-	var hasTakeProfit bool = (!IsEqual(takeProfit, nil))
+	var hasStopLoss bool = ((stopLoss != nil))
+	var hasTakeProfit bool = ((takeProfit != nil))
 	var isStableSettled bool = (IsEqual(GetValue(market, "settle"), "USDT")) || (IsEqual(GetValue(market, "settle"), "USDC"))
 	if clientOrderId == nil {
 		var brokerId *string = this.SafeString(this.Options, "brokerId", "CCXT123456")
@@ -4036,7 +4036,7 @@ func (this *Phemex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		if limit == nil {
 			request["limit"] = 200
 		}
-	} else if (symbol != nil) && !IsEqual(market, nil) {
+	} else if (symbol != nil) && (market != nil) {
 		request["symbol"] = GetValue(market, "id")
 	}
 	if since != nil {
@@ -6488,11 +6488,11 @@ func (this *Phemex) ParseConversion(conversion any, optionalArgs ...any) any {
 	var fromValueScale *int64 = this.SafeInteger(fromCurrency, "valueScale")
 	var toValueScale *int64 = this.SafeInteger(toCurrency, "valueScale")
 	var fromAmount any = this.FromEn(this.SafeString(conversion, "fromAmountEv"), fromValueScale)
-	if (fromAmount == nil) && !IsEqual(quoteArgs, nil) {
+	if (fromAmount == nil) && (quoteArgs != nil) {
 		fromAmount = this.FromEn(this.SafeString(quoteArgs, "origin"), fromValueScale)
 	}
 	var toAmount any = this.FromEn(this.SafeString(conversion, "toAmountEv"), toValueScale)
-	if (toAmount == nil) && !IsEqual(quoteArgs, nil) {
+	if (toAmount == nil) && (quoteArgs != nil) {
 		toAmount = this.FromEn(this.SafeString(quoteArgs, "proceeds"), toValueScale)
 	}
 	return map[string]any{

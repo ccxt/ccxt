@@ -1130,7 +1130,7 @@ public class Bitbank extends BitbankApi
             //        }
             //    }
             //
-            Object data = this.safeValue(response, "data");
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
             return this.parseOrder(data);
         }).thenApply(Order::new);
 

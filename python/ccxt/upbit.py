@@ -2294,7 +2294,7 @@ class upbit(Exchange, ImplicitAPI):
             if (method != 'GET') and (method != 'DELETE'):
                 body = self.json(params)
                 headers['Content-Type'] = 'application/json'
-            if (hasQuery is not None) and (hasQuery != 0):
+            if hasQuery != 0:
                 auth = self.rawencode(query)
             if auth is not None:
                 hash = self.hash(self.encode(auth), 'sha512')

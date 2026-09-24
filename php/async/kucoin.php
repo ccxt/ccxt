@@ -3489,7 +3489,7 @@ class kucoin extends Exchange {
             $request['tradeType'] = 'FUTURES';
         }
         $priceType = null;
-        list($priceType, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'price', $priceType);
+        list($priceType, $params) = $this->handle_option_string_and_params($params, 'fetchOHLCV', 'price', $priceType);
         if ($priceType !== null) {
             $priceTypes = array(
                 'mark' => 'mark-price',

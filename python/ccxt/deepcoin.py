@@ -1170,7 +1170,8 @@ class deepcoin(Exchange, ImplicitAPI):
         network = self.safe_string(params, 'network')
         defaultNetworks = self.safe_dict(self.options, 'defaultNetworks', {})
         defaultNetwork = self.safe_string(defaultNetworks, code)
-        network = network if (network is not None and network != '') else defaultNetwork
+        if (network is None) or (network == ''):
+            network = defaultNetwork
         if network is not None:
             params = self.omit(params, 'network')
         addressess = self.fetch_deposit_addresses([code], params)
@@ -1341,7 +1342,7 @@ class deepcoin(Exchange, ImplicitAPI):
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         userId = None
-        userId, params = self.handle_option_and_params(params, 'transfer', 'userId')
+        userId, params = self.handle_option_string_and_params(params, 'transfer', 'userId')
         userId = userId if (userId is not None and userId != '') else self.safe_string(params, 'uid')
         if userId is None:
             raise ArgumentsRequired(self.id + ' transfer() requires a userId parameter')

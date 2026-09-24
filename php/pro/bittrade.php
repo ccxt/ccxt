@@ -288,7 +288,7 @@ class bittrade extends \ccxt\async\bittrade {
             $stored = new ArrayCacheByTimestamp($limit);
             $this->ohlcvs[$symbol][$timeframe] = $stored;
         }
-        $tick = $this->safe_value($message, 'tick');
+        $tick = $this->safe_dict($message, 'tick');
         $parsed = $this->parse_ohlcv($tick, $market);
         $stored->append($parsed);
         $client->resolve($stored, $ch);

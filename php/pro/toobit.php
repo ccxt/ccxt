@@ -754,9 +754,6 @@ class toobit extends \ccxt\async\toobit {
         if ($isSpot) {
             $subscriptionHash = $spotSubHash;
         }
-        if ($subscriptionHash === null) {
-            throw new ArgumentsRequired($this->id . ' watchBalance() requires a subscription hash');
-        }
         $url = $this->get_user_stream_url();
         $client = $this->client($url);
         $this->set_balance_cache($client, $marketType, $subscriptionHash, $params);
@@ -834,7 +831,7 @@ class toobit extends \ccxt\async\toobit {
             $account['info'] = $balance;
             $account['used'] = $this->safe_string($balance, 'l');
             $account['free'] = $this->safe_string($balance, 'f');
-            if (($type !== null) && ($code !== null)) {
+            if ($code !== null) {
                 $this->balance[$type][$code] = $account;
             }
         }

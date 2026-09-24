@@ -3799,7 +3799,7 @@ class coinbase(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = min(limit, 1000)
         until = None
-        until, params = self.handle_option_and_params(params, 'fetchTrades', 'until')
+        until, params = self.handle_option_integer_and_params(params, 'fetchTrades', 'until')
         if until is not None:
             request['end'] = self.number_to_string(self.parse_to_int(until / 1000))
         elif since is not None:

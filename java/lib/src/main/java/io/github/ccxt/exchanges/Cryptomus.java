@@ -717,7 +717,7 @@ public class Cryptomus extends CryptomusApi
                 put( "currencyPair", ((Map<String, Object>)market).get("id") );
             }};
             Object level = 0;
-            List<Object> levelparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrderBook", "level", level);
+            List<Object> levelparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOrderBook", "level", level);
             level = ((List<Object>) levelparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) levelparametersVariable).get(1);
             ((Map<String, Object>)request).put("level", level);

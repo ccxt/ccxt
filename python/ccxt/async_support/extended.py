@@ -2524,7 +2524,7 @@ class extended(Exchange, ImplicitAPI):
             params = self.omit(params, ['builderFeeRate', 'defaultBuilderFeeRate', 'builderId', 'defaultBuilderId'])
         else:
             builderFeeRate, params = self.handle_option_string_and_params(params, 'createOrder', 'builderFeeRate', '0.0001')
-            builderId, params = self.handle_option_and_params(params, 'createOrder', 'builderId')
+            builderId, params = self.handle_option_string_and_params(params, 'createOrder', 'builderId')
         totalFee = fee
         if builderFeeRate is not None:
             totalFee = Precise.string_add(fee, builderFeeRate)
@@ -2647,7 +2647,10 @@ class extended(Exchange, ImplicitAPI):
                 request['type'] = 'CONDITIONAL'
                 request['trigger'] = trigger
             elif isStopLossOrder or isTakeProfitOrder:
-                triggerPriceStr = stopLossTriggerPrice if isStopLossOrder else takeProfitTriggerPrice
+                if isStopLossOrder:
+                    triggerPriceStr = stopLossTriggerPrice
+                else:
+                    triggerPriceStr = takeProfitTriggerPrice
                 trigger = {
                     'triggerPrice': self.price_to_precision(symbol, triggerPriceStr),
                 }

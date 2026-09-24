@@ -733,7 +733,7 @@ func (this *Coinbaseinternational) fetchFundingRateHistoryBody(ch chan any, opti
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	var maxEntriesPerRequest any = 100
-	var maxEntriesPerRequestparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "maxEntriesPerRequest", maxEntriesPerRequest)
+	var maxEntriesPerRequestparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchFundingRateHistory", "maxEntriesPerRequest", maxEntriesPerRequest)
 	maxEntriesPerRequest = GetValue(maxEntriesPerRequestparamsVariable, 0)
 	params = MapTyped(GetValue(maxEntriesPerRequestparamsVariable, 1))
 	var pageKey string = "ccxtPageKey"
@@ -1150,7 +1150,7 @@ func (this *Coinbaseinternational) loadCurrencyNetworksBody(ch chan any, code an
 	_ = params
 	var currency map[string]any = this.Currency(code).(map[string]any)
 	var networks map[string]any = SafeMapTyped(currency, "networks")
-	if !IsEqual(networks, nil) {
+	if networks != nil {
 
 		ch <- false
 		return nil
@@ -1318,7 +1318,7 @@ func (this *Coinbaseinternational) fetchDepositsWithdrawalsBody(ch chan any, opt
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	var maxEntriesPerRequest any = 100
-	var maxEntriesPerRequestparamsVariable []any = this.HandleOptionAndParams(params, "fetchDepositsWithdrawals", "maxEntriesPerRequest", maxEntriesPerRequest)
+	var maxEntriesPerRequestparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchDepositsWithdrawals", "maxEntriesPerRequest", maxEntriesPerRequest)
 	maxEntriesPerRequest = GetValue(maxEntriesPerRequestparamsVariable, 0)
 	params = MapTyped(GetValue(maxEntriesPerRequestparamsVariable, 1))
 	var pageKey string = "ccxtPageKey"
@@ -1348,7 +1348,7 @@ func (this *Coinbaseinternational) fetchDepositsWithdrawalsBody(ch chan any, opt
 		request["portfolios"] = portfolios
 	}
 	var until any = nil
-	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchDepositsWithdrawals", "until")
+	var untilparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchDepositsWithdrawals", "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = MapTyped(GetValue(untilparamsVariable, 1))
 	if !IsEqual(until, nil) {
@@ -2372,20 +2372,17 @@ func (this *Coinbaseinternational) createOrderBody(ch chan any, symbol any, type
 		request["portfolio"] = portfolio
 	}
 	var postOnly *bool = this.SafeBool2(params, "postOnly", "post_only")
-	var tif any = DerefScalar(this.SafeString2(params, "tif", "timeInForce"))
+	var tif *string = this.SafeString2(params, "tif", "timeInForce")
 	// market orders must be IOC
 	if typeId == "MARKET" {
-		if !IsEqual(tif, nil) && !IsEqual(tif, "IOC") {
+		if (tif != nil) && (tif == nil || *tif != "IOC") {
 			panic(InvalidOrder(this.Id + " createOrder() market orders must have tif set to \"IOC\""))
 		}
-		tif = "IOC"
+		tif = SafeStringPtr("IOC")
 	} else {
-		tif = func() any {
-			if IsEqual(tif, nil) {
-				return "GTC"
-			}
-			return tif
-		}()
+		if tif == nil {
+			tif = SafeStringPtr("GTC")
+		}
 	}
 	if postOnly != nil {
 		request["post_only"] = postOnly
@@ -2799,14 +2796,14 @@ func (this *Coinbaseinternational) fetchOpenOrdersBody(ch chan any, optionalArgs
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = GetValue(paginateparamsVariable, 1)
 	var maxEntriesPerRequest any = 100
-	var maxEntriesPerRequestparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "maxEntriesPerRequest", maxEntriesPerRequest)
+	var maxEntriesPerRequestparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOpenOrders", "maxEntriesPerRequest", maxEntriesPerRequest)
 	maxEntriesPerRequest = GetValue(maxEntriesPerRequestparamsVariable, 0)
 	params = GetValue(maxEntriesPerRequestparamsVariable, 1)
 	var pageKey string = "ccxtPageKey"
 	if paginate {
 
-		var retRes218919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchOpenOrders", symbol, since, limit, params, pageKey, maxEntriesPerRequest))))
-		ch <- BoxAbsent(retRes218919)
+		var retRes219119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchOpenOrders", symbol, since, limit, params, pageKey, maxEntriesPerRequest))))
+		ch <- BoxAbsent(retRes219119)
 		return nil
 	}
 	var page any = Subtract(this.SafeInteger(params, pageKey, 1), 1)
@@ -2910,13 +2907,13 @@ func (this *Coinbaseinternational) fetchMyTradesBody(ch chan any, optionalArgs .
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	var pageKey string = "ccxtPageKey"
 	var maxEntriesPerRequest any = 100
-	var maxEntriesPerRequestparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "maxEntriesPerRequest", maxEntriesPerRequest)
+	var maxEntriesPerRequestparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchMyTrades", "maxEntriesPerRequest", maxEntriesPerRequest)
 	maxEntriesPerRequest = GetValue(maxEntriesPerRequestparamsVariable, 0)
 	params = MapTyped(GetValue(maxEntriesPerRequestparamsVariable, 1))
 	if paginate {
 
-		var retRes227319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, pageKey, maxEntriesPerRequest))))
-		ch <- BoxAbsent(retRes227319)
+		var retRes227519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, pageKey, maxEntriesPerRequest))))
+		ch <- BoxAbsent(retRes227519)
 		return nil
 	}
 	var market map[string]any = nil

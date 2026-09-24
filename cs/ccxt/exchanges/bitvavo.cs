@@ -2026,9 +2026,9 @@ public partial class bitvavo : Exchange
         {
             await this.loadMarkets();
         }
-        object codGroupId = null;
-        IList<object> codGroupIdparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelAllOrdersAfter", "codGroupId", 1);
-        codGroupId = codGroupIdparametersVariable[0];
+        Int64? codGroupId = null;
+        IList<object> codGroupIdparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "cancelAllOrdersAfter", "codGroupId", 1);
+        codGroupId = (Int64?)codGroupIdparametersVariable[0];
         parameters = codGroupIdparametersVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "codGroupId", codGroupId },

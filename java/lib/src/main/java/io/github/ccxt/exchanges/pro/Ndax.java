@@ -418,7 +418,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                         low = Helpers.mathMin((parsed == null || 2 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(2)), Helpers.GetValue(previous, 2));
                     }
                     Helpers.addElementToObject(stored, Helpers.subtract(length, 1), new ArrayList<Object>(Arrays.asList((parsed == null || 0 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(0)), Helpers.GetValue(previous, 1), high, low, (parsed == null || 4 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(4)), this.sum((parsed == null || 5 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(5)), Helpers.GetValue(previous, 5)))));
-                    if ((!java.util.Objects.equals(marketId, null)) && (!java.util.Objects.equals(timeframe, null)))
+                    if (!java.util.Objects.equals(marketId, null))
                     {
                         Helpers.addElementToObject(Helpers.GetValue(updates, marketId), timeframe, true);
                     }
@@ -435,7 +435,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                         {
                             ((List<Object>)stored).get(0);
                         }
-                        if ((!java.util.Objects.equals(marketId, null)) && (!java.util.Objects.equals(timeframe, null)))
+                        if (!java.util.Objects.equals(marketId, null))
                         {
                             Helpers.addElementToObject(Helpers.GetValue(updates, marketId), timeframe, true);
                         }

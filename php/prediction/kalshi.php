@@ -2109,7 +2109,7 @@ class kalshi extends Exchange {
             $defaultTif = 'good_till_canceled';
         }
         $timeInForce = null;
-        list($timeInForce, $params) = $this->handle_option_and_params($params, 'createOrder', 'time_in_force', $defaultTif);
+        list($timeInForce, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'time_in_force', $defaultTif);
         $stp = null;
         list($stp, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'self_trade_prevention_type', 'taker_at_cross');
         $request = array(

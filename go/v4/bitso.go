@@ -982,7 +982,7 @@ func (this *Bitso) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTicker(this.Extend(request, params))).Raw))
-	var ticker any = this.SafeValue(response, "payload")
+	var ticker map[string]any = SafeMapTyped(response, "payload")
 
 	//
 	//     {
@@ -2261,7 +2261,7 @@ func (this *Bitso) ParseDepositWithdrawFees(response any, optionalArgs ...any) a
 		if (code != nil) && ((codes == nil) || (InOp(codes, code))) {
 			var withdrawFee *float64 = Float64PtrTyped(this.ParseNumber(GetValue(withdrawalResponse, currencyId)))
 			var resultValue map[string]any = SafeMapTyped(result, code)
-			if IsEqual(resultValue, nil) {
+			if resultValue == nil {
 				AddElementToObject(result, code, this.DepositWithdrawFee(map[string]any{}))
 			}
 			AddElementToObject(GetValue(GetValue(result, code), "withdraw"), "fee", withdrawFee)
@@ -2517,7 +2517,7 @@ func (this *Bitso) HandleErrors(httpCode any, reason any, url any, method any, h
 		if !IsEqual(success, true) {
 			var feedback any = Add(this.Id+" ", this.Json(response))
 			var error map[string]any = SafeMapTyped(response, "error")
-			if IsEqual(error, nil) {
+			if error == nil {
 				panic(ExchangeError(feedback))
 			}
 			var code *string = this.SafeString(error, "code")

@@ -750,7 +750,7 @@ export default class bitso extends Exchange {
         return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
-    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    override parseTicker (ticker: NullableDict, market: Market = undefined): Ticker {
         //
         //     {
         //         "high":"37446.85",
@@ -813,7 +813,7 @@ export default class bitso extends Exchange {
             'book': market['id'],
         };
         const response = await this.publicGetTicker (this.extend (request, params));
-        const ticker = this.safeValue (response, 'payload');
+        const ticker = this.safeDict (response, 'payload');
         //
         //     {
         //         "success":true,

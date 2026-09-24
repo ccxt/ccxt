@@ -257,7 +257,7 @@ class bittrade(ccxt.async_support.bittrade):
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             stored = ArrayCacheByTimestamp(limit)
             self.ohlcvs[symbol][timeframe] = stored
-        tick = self.safe_value(message, 'tick')
+        tick = self.safe_dict(message, 'tick')
         parsed = self.parse_ohlcv(tick, market)
         stored.append(parsed)
         client.resolve(stored, ch)

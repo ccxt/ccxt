@@ -102,14 +102,14 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             }
             Map<String, Object> market = null;
             Object messageHash = name;
-            List<Object> productIds = new ArrayList<Object>(Arrays.asList());
+            List<String> productIds = new ArrayList<String>(Arrays.asList());
             if ((symbol instanceof List))
             {
                 Object symbols = this.marketSymbols(symbol);
-                List<Object> marketIds = this.marketIds(symbols);
+                List<String> marketIds = this.marketIds(symbols);
                 if (java.util.Objects.equals(marketIds, null))
                 {
-                    productIds = new ArrayList<Object>(Arrays.asList());
+                    productIds = new ArrayList<String>(Arrays.asList());
                 } else
                 {
                     productIds = marketIds;
@@ -119,10 +119,10 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             {
                 market = (Map<String, Object>) this.market(symbol);
                 messageHash = ((name + "::") + symbol);
-                productIds = new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id")));
+                productIds = new ArrayList<String>(Arrays.asList(this.safeString(market, "id")));
             }
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            final List<Object> finalProductIds = productIds;
+            final List<String> finalProductIds = productIds;
             final Object finalName = name;
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "type", "subscribe" );
@@ -183,14 +183,14 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             Map<String, Object> market = null;
             Object watchMessageHash = name;
             String unWatchMessageHash = ("unsubscribe:" + name);
-            List<Object> productIds = new ArrayList<Object>(Arrays.asList());
+            List<String> productIds = new ArrayList<String>(Arrays.asList());
             if ((symbol instanceof List))
             {
                 Object symbols = this.marketSymbols(symbol);
-                List<Object> marketIds = this.marketIds(symbols);
+                List<String> marketIds = this.marketIds(symbols);
                 if (java.util.Objects.equals(marketIds, null))
                 {
-                    productIds = new ArrayList<Object>(Arrays.asList());
+                    productIds = new ArrayList<String>(Arrays.asList());
                 } else
                 {
                     productIds = marketIds;
@@ -202,11 +202,11 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 market = (Map<String, Object>) this.market(symbol);
                 watchMessageHash = ((name + "::") + symbol);
                 unWatchMessageHash = ((unWatchMessageHash + "::") + symbol);
-                productIds = new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id")));
+                productIds = new ArrayList<String>(Arrays.asList(this.safeString(market, "id")));
             }
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             // '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'
-            final List<Object> finalProductIds = productIds;
+            final List<String> finalProductIds = productIds;
             final Object finalName = name;
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "type", "unsubscribe" );
@@ -745,7 +745,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         //     }
         //
         String marketId = this.safeString(ticker, "product_id");
-        Object timestamp = null;
+        List<String> timestamp = null;
         Double last = this.safeNumber(ticker, "price");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "info", ticker );

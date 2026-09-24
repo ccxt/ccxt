@@ -1147,7 +1147,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         }
         String rawStatus = this.safeString(order, "status");
         String status = this.parseOrderStatus((String) (rawStatus));
-        Object trades = null;
+        List<String> trades = null;
         String clientOrderId = this.safeString(order, "clientOrderId");
         Double triggerPrice = this.safeNumber(order, "triggerPrice");
         final Double finalPrice = price;

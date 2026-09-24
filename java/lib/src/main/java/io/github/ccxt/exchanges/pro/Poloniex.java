@@ -205,10 +205,10 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 put( "event", "subscribe" );
                 put( "channel", new ArrayList<Object>(Arrays.asList(finalName)) );
             }};
-            List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
+            List<String> marketIds = new ArrayList<String>(Arrays.asList());
             if (this.isEmpty(symbols))
             {
-                ((List<Object>)marketIds).add("all");
+                marketIds.add("all");
             } else
             {
                 if (java.util.Objects.equals(symbols, null))
@@ -216,8 +216,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                     throw new ArgumentsRequired((this.id + " subscribe() symbols is required")) ;
                 }
                 messageHash = ((messageHash + "::") + String.join(",", (List<String>)symbols));
-                List<Object> ids = this.marketIds(symbols);
-                marketIds = (((java.util.Objects.equals(ids, null)))) ? new ArrayList<Object>(Arrays.asList()) : ids;
+                List<String> ids = this.marketIds(symbols);
+                marketIds = (((java.util.Objects.equals(ids, null)))) ? new ArrayList<String>(Arrays.asList()) : ids;
             }
             if (!java.util.Objects.equals(name, "balances"))
             {
@@ -750,7 +750,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             symbols = this.marketSymbols(symbols, null, false, true, true);
             String name = "trades";
             String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
-            List<Object> marketIds = this.marketIds(symbols);
+            List<String> marketIds = this.marketIds(symbols);
             final String finalName = name;
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );

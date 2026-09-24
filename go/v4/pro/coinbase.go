@@ -107,7 +107,7 @@ func (this *Coinbase) subscribeBody(ch chan any, name any, isPrivate any, option
 	} else if symbol != nil {
 		market = this.Market(symbol)
 		messageHash = ccxt.Add(ccxt.Add(name, "::"), symbol)
-		productIds = []any{ccxt.GetValue(market, "id")}
+		productIds = []any{this.SafeString(market, "id")}
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var subscribe map[string]any = map[string]any{
@@ -170,7 +170,7 @@ func (this *Coinbase) unSubscribeBody(ch chan any, topic any, name any, isPrivat
 		market = this.Market(symbol)
 		watchMessageHash = ccxt.Add(ccxt.Add(name, "::"), symbol)
 		unWatchMessageHash = ccxt.Add(ccxt.Add(unWatchMessageHash, "::"), symbol)
-		productIds = []any{ccxt.GetValue(market, "id")}
+		productIds = []any{this.SafeString(market, "id")}
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	// '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'

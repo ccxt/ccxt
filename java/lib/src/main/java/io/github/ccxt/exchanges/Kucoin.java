@@ -4312,9 +4312,9 @@ public class Kucoin extends KucoinApi
             {
                 ((Map<String, Object>)request).put("tradeType", "FUTURES");
             }
-            Object priceType = null;
-            List<Object> priceTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "price", priceType);
-            priceType = ((List<Object>) priceTypeparametersVariable).get(0);
+            String priceType = null;
+            List<Object> priceTypeparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchOHLCV", "price", priceType);
+            priceType = (String) ((List<Object>) priceTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) priceTypeparametersVariable).get(1);
             if (!java.util.Objects.equals(priceType, null))
             {
@@ -15727,7 +15727,7 @@ final Map<String, Object> finalMarket = market;
             {
                 throw new BadRequest((this.id + " fetchLeverageTiers() supports cross margin only")) ;
             }
-            Object marketIds = this.marketIds(symbols);
+            List<String> marketIds = this.marketIds(symbols);
             final String finalMarginMode = marginMode;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "tradeType", "FUTURES" );
@@ -15823,7 +15823,7 @@ final Map<String, Object> finalMarket = market;
                 {
                     // the endpoint does not accept more than 10 symbols at a time
                     // if user provided more than 10 symbols, we will fetch all symbols
-                    Object marketIds = this.marketIds(symbols);
+                    List<String> marketIds = this.marketIds(symbols);
                     ((Map<String, Object>)request).put("symbol", String.join(",", (List<String>)marketIds));
                 }
             }

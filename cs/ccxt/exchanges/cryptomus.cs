@@ -631,7 +631,7 @@ public partial class cryptomus : Exchange
             { "currencyPair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         object level = 0;
-        IList<object> levelparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrderBook", "level", level);
+        IList<object> levelparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOrderBook", "level", level);
         level = levelparametersVariable[0];
         parameters = levelparametersVariable[1];
         request["level"] = level;

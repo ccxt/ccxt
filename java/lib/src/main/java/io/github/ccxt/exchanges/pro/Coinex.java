@@ -840,7 +840,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             {
                 (this.loadMarkets()).join();
             }
-            List<Object> marketIds = this.marketIds(symbols);
+            List<String> marketIds = this.marketIds(symbols);
             Map<String, Object> market = null;
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             Boolean symbolsDefined = (!java.util.Objects.equals(symbols, null));
@@ -854,7 +854,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 }
             } else
             {
-                marketIds = new ArrayList<Object>(Arrays.asList());
+                marketIds = new ArrayList<String>(Arrays.asList());
                 messageHashes.add("tickers");
             }
             String type = null;
@@ -863,7 +863,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), type);
             List<String> subscriptionHashes = new ArrayList<String>(Arrays.asList("all@ticker"));
-            final List<Object> finalMarketIds = marketIds;
+            final List<String> finalMarketIds = marketIds;
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", "state.subscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -1658,7 +1658,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             {
                 (this.loadMarkets()).join();
             }
-            List<Object> marketIds = this.marketIds(symbols);
+            List<String> marketIds = this.marketIds(symbols);
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             Map<String, Object> market = null;
             Boolean symbolsDefined = (!java.util.Objects.equals(symbols, null));

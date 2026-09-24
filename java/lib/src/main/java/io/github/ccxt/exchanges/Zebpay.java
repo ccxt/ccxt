@@ -2809,13 +2809,13 @@ public class Zebpay extends ZebpayApi
         String timestamp = String.valueOf(this.milliseconds());
         Object signature = "";
         Object query = this.omit(parameters, this.extractParams(path));
-        Object queryLength = ((List<?>)Helpers.objectKeys(query)).size();
+        Integer queryLength = ((List<?>)Helpers.objectKeys(query)).size();
         String access = this.safeString(api, 0, "public");
         if (java.util.Objects.equals(access, "public"))
         {
             if (java.util.Objects.equals(method, "GET") || java.util.Objects.equals(method, "DELETE"))
             {
-                if ((!java.util.Objects.equals(queryLength, null)) && (!java.util.Objects.equals(queryLength, 0)))
+                if (!java.util.Objects.equals(queryLength, 0))
                 {
                     url = Helpers.add(url, ("?" + this.urlencode(query)));
                 }

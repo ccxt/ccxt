@@ -702,8 +702,8 @@ public class Mudrex extends MudrexApi
                 {
                     items = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
                     // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
-                    Object itemsLength = ((List<?>)items).size();
-                    if ((java.util.Objects.equals(itemsLength, null)) || (java.util.Objects.equals(itemsLength, 0)))
+                    Integer itemsLength = ((List<?>)items).size();
+                    if (java.util.Objects.equals(itemsLength, 0))
                     {
                         items = (List<Object>) this.safeList(data, "results", new ArrayList<Object>(Arrays.asList()));
                         itemsLength = ((List<?>)items).size();
@@ -716,8 +716,8 @@ public class Mudrex extends MudrexApi
                 {
                     items = this.toArray(data);
                 }
-                Object numItems = ((List<?>)items).size();
-                if ((java.util.Objects.equals(numItems, null)) || (java.util.Objects.equals(numItems, 0)))
+                Integer numItems = ((List<?>)items).size();
+                if (java.util.Objects.equals(numItems, 0))
                 {
                     paging = false;
                     break;
@@ -2028,9 +2028,9 @@ public class Mudrex extends MudrexApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object maxCalls = null;
-            List<Object> maxCallsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginationCalls", 10);
-            maxCalls = ((List<Object>) maxCallsparametersVariable).get(0);
+            Long maxCalls = null;
+            List<Object> maxCallsparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchMyTrades", "paginationCalls", 10);
+            maxCalls = (Long) ((List<Object>) maxCallsparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) maxCallsparametersVariable).get(1);
             Object pageSize = 0;
             if (!java.util.Objects.equals(limit, null))

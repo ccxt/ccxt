@@ -2304,7 +2304,7 @@ public partial class myriad : PredictionExchange
     {
         // portable hex -> decimal string (avoids convertToBigInt, which is not uniform across languages)
         string stripped = this.remove0xPrefix(hexValue);
-        if (((stripped == null)) || (stripped == ""))
+        if (stripped == "")
         {
             return null;
         }
