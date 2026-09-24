@@ -3150,7 +3150,7 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseAccounts (data);
     }
 
@@ -9152,7 +9152,7 @@ export default class htx extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'Data', []);
-        const loan = this.safeValue (data, 0);
+        const loan = this.safeDict (data, 0);
         const transaction: MarginLoan = this.parseMarginLoan (loan, currency);
         return this.extend (transaction, {
             'amount': amount,
@@ -9194,14 +9194,14 @@ export default class htx extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'Data', []);
-        const loan = this.safeValue (data, 0);
+        const loan = this.safeDict (data, 0);
         const transaction: MarginLoan = this.parseMarginLoan (loan, currency);
         return this.extend (transaction, {
             'amount': amount,
         });
     }
 
-    parseMarginLoan (info: Dict, currency: Currency = undefined): MarginLoan {
+    parseMarginLoan (info: NullableDict, currency: Currency = undefined): MarginLoan {
         //
         // borrowMargin cross
         //

@@ -434,7 +434,7 @@ export default class htx extends htxRest {
                 this.ohlcvs[symbol][timeframe] = stored;
             }
         }
-        const tick = this.safeValue (message, 'tick');
+        const tick = this.safeDict (message, 'tick');
         const parsed = this.parseOHLCV (tick, market);
         stored.append (parsed);
         client.resolve (stored, ch);

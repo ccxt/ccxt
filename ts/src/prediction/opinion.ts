@@ -1802,7 +1802,7 @@ export default class opinion extends Exchange {
         this.orderbooks[sym as string] = orderbook;
     }
 
-    handleOrderBook (client: any, message: any) {
+    handleOrderBook (client: any, message: Dict) {
         //
         //     {
         //         "marketId": 2764,
@@ -1853,7 +1853,7 @@ export default class opinion extends Exchange {
         return await this.subscribeOpinionChannel (messageHash, 'market.last.price', marketId);
     }
 
-    handleTicker (client: any, message: any) {
+    handleTicker (client: any, message: Dict) {
         //
         //     {
         //         "tokenId": "19120407572139442221452465677574895365338028945317996490376653704877573103648",
@@ -1906,7 +1906,7 @@ export default class opinion extends Exchange {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true) as PredictionTrade[];
     }
 
-    handleTrades (client: any, message: any) {
+    handleTrades (client: any, message: Dict) {
         //
         //     {
         //         "tokenId": "19120407572139442221452465677574895365338028945317996490376653704877573103648",
@@ -2007,7 +2007,7 @@ export default class opinion extends Exchange {
         return undefined;
     }
 
-    handleOrder (client: any, message: any) {
+    handleOrder (client: any, message: Dict) {
         //
         //     {
         //         "orderUpdateType": "orderConfirm",
@@ -2100,7 +2100,7 @@ export default class opinion extends Exchange {
         return this.filterByValueSinceLimit (trades, 'outcome', sym, since, limit, 'timestamp', true) as PredictionTrade[];
     }
 
-    handleMyTrade (client: any, message: any) {
+    handleMyTrade (client: any, message: Dict) {
         //
         //     {
         //         "orderId": "3c7af25f-e21f-11f0-9714-0a58a9feac02",
