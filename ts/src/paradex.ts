@@ -3494,7 +3494,10 @@ export default class paradex extends Exchange {
                     'public_key': query['public_key'],
                 });
             } else {
-                const token = this.options['authToken'];
+                const token = this.safeString (this.options, 'authToken');
+                if (token === undefined) {
+                    throw new AuthenticationError (this.id + ' sign() requires an authToken, call authenticateRest() first');
+                }
                 headers['Authorization'] = 'Bearer ' + token;
                 if ((method === 'POST') || (method === 'PUT') || ((method === 'DELETE') && (path === 'orders/batch'))) {
                     headers['Content-Type'] = 'application/json';
