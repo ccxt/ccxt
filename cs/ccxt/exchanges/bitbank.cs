@@ -1219,7 +1219,7 @@ public partial class bitbank : Exchange
             bool isTimeWindow = (authMethod == "timeWindow");
             string requestTime = this.milliseconds().ToString();
             string? timeWindow = this.safeString(this.options, "timeWindow", "5000");
-            string nonce = this.nonce().ToString();
+            string nonce = ((object)this.incrementingNonce()).ToString();
             object auth = null;
             if (isTimeWindow)
             {

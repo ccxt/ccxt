@@ -1322,6 +1322,12 @@ public partial class independentreserve : Exchange
         };
     }
 
+    public override Int64 nonce()
+    {
+        // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return this.milliseconds();
+    }
+
     public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
@@ -1337,7 +1343,8 @@ public partial class independentreserve : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            Int64 nonce = this.nonce();
+            // independentreserve requires an increasing nonce
+            object nonce = this.incrementingNonce();
             List<object> auth = new List<object>() {url, ("apiKey=" + this.apiKey), ("nonce=" + nonce.ToString())};
             List<object> keys = new List<object>(((IDictionary<string,object>)parameters).Keys);
             for (int i = 0; i < keys.Count; i++)

@@ -1442,7 +1442,9 @@ public partial class p2b : Exchange
         if (isEqual(api, "private"))
         {
             ((IDictionary<string,object>)parameters)["request"] = ("/api/v2/" + (path));
-            ((IDictionary<string,object>)parameters)["nonce"] = this.nonce().ToString();
+            // p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless
+            // the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
+            ((IDictionary<string,object>)parameters)["nonce"] = ((object)this.incrementingNonce()).ToString();
             string payload = this.stringToBase64(this.json(parameters)); // Body json encoded in base64
             headers = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },

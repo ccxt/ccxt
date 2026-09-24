@@ -312,7 +312,7 @@ public partial class whitebit : ccxt.whitebit
         symbols = this.marketSymbols(symbols, null, false);
         string method = "market_subscribe";
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
-        Int64 id = this.nonce();
+        object id = this.incrementingNonce();
         List<object> messageHashes = new List<object>() {};
         List<object> args = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
@@ -985,7 +985,7 @@ public partial class whitebit : ccxt.whitebit
         reqParams ??= new List<object>();
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
-        Int64 id = this.nonce();
+        object id = this.incrementingNonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", id },
             { "method", method },
@@ -1004,7 +1004,7 @@ public partial class whitebit : ccxt.whitebit
             await this.loadMarkets();
         }
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
-        Int64 id = this.nonce();
+        object id = this.incrementingNonce();
         WebSocketClient client = ((WebSocketClient)this.safeValue(this.clients, url));
         Dictionary<string, object> request = null;
         List<object> marketIds = new List<object>() {};
@@ -1078,7 +1078,7 @@ public partial class whitebit : ccxt.whitebit
         this.checkRequiredCredentials();
         await this.authenticate();
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
-        Int64 id = this.nonce();
+        object id = this.incrementingNonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", id },
             { "method", method },
@@ -1139,7 +1139,7 @@ public partial class whitebit : ccxt.whitebit
             {
                 throw new AuthenticationError ((this.id + " authenticate() received an empty websocket_token")) ;
             }
-            Int64 id = this.nonce();
+            object id = this.incrementingNonce();
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "id", id },
                 { "method", "authorize" },

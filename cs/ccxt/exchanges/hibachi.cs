@@ -1058,7 +1058,7 @@ public partial class hibachi : Exchange
         {
             await this.loadMarkets();
         }
-        Int64 nonce = this.nonce();
+        object nonce = this.incrementingNonce();
         Dictionary<string, object> request = this.createOrderRequest(nonce, symbol, type, side, amount, price, parameters);
         request["accountId"] = this.getAccountId();
         Dictionary<string, object> response = await this.privatePostTradeOrder(request);
@@ -1086,7 +1086,7 @@ public partial class hibachi : Exchange
         {
             await this.loadMarkets();
         }
-        Int64 nonce = this.nonce();
+        object nonce = this.incrementingNonce();
         List<object> requestOrders = new List<object>() {};
         for (int i = 0; i < getArrayLength(orders); i++)
         {
@@ -1097,7 +1097,7 @@ public partial class hibachi : Exchange
             double? amount = this.safeNumber(rawOrder, "amount");
             double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            Dictionary<string, object> orderRequest = this.createOrderRequest((nonce + i), symbol, type, side, amount, price, orderParams);
+            Dictionary<string, object> orderRequest = this.createOrderRequest(add(nonce, i), symbol, type, side, amount, price, orderParams);
             orderRequest["action"] = "place";
             requestOrders.Add(orderRequest);
         }
@@ -1174,7 +1174,7 @@ public partial class hibachi : Exchange
         {
             await this.loadMarkets();
         }
-        Int64 nonce = this.nonce();
+        object nonce = this.incrementingNonce();
         Dictionary<string, object> request = this.editOrderRequest(nonce, id, symbol, type, side, amount, price, parameters);
         request["accountId"] = this.getAccountId();
         await this.privatePutTradeOrder(request);
@@ -1201,7 +1201,7 @@ public partial class hibachi : Exchange
         {
             await this.loadMarkets();
         }
-        Int64 nonce = this.nonce();
+        object nonce = this.incrementingNonce();
         List<object> requestOrders = new List<object>() {};
         for (int i = 0; i < getArrayLength(orders); i++)
         {
@@ -1213,7 +1213,7 @@ public partial class hibachi : Exchange
             double? amount = this.safeNumber(rawOrder, "amount");
             double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            Dictionary<string, object> orderRequest = this.editOrderRequest((nonce + i), id, symbol, type, side, amount, price, orderParams);
+            Dictionary<string, object> orderRequest = this.editOrderRequest(add(nonce, i), id, symbol, type, side, amount, price, orderParams);
             orderRequest["action"] = "modify";
             requestOrders.Add(orderRequest);
         }
@@ -1333,7 +1333,7 @@ public partial class hibachi : Exchange
         {
             await this.loadMarkets();
         }
-        Int64 nonce = this.nonce();
+        object nonce = this.incrementingNonce();
         string nonce16 = this.intToBase16(nonce);
         string noncePadded = (nonce16 as String).PadLeft(Convert.ToInt32(16), Convert.ToChar("0"));
         byte[] message = this.base16ToBinary(noncePadded);

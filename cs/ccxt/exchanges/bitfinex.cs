@@ -3545,7 +3545,8 @@ public partial class bitfinex : Exchange
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();
-            string nonce = this.nonce().ToString();
+            // bitfinex rejects a nonce that is not greater than the previous one for the key (error 10114)
+            string nonce = ((object)this.incrementingNonce()).ToString();
             body = this.json(query);
             string auth = ((("/api/" + (request)) + nonce) + (body));
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha384);

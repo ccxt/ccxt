@@ -610,7 +610,7 @@ public partial class cryptocom : ccxt.cryptocom
             messageHashes.Add(("ticker." + marketId));
         }
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
-        Int64 id = this.nonce();
+        object id = this.incrementingNonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -777,7 +777,7 @@ public partial class cryptocom : ccxt.cryptocom
             topics.Add(("ticker." + marketId));
         }
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
-        Int64 id = this.nonce();
+        object id = this.incrementingNonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -1043,7 +1043,7 @@ public partial class cryptocom : ccxt.cryptocom
         }
         await this.authenticate();
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"));
-        Int64 id = this.nonce();
+        object id = this.incrementingNonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -1291,7 +1291,7 @@ public partial class cryptocom : ccxt.cryptocom
             { "method", "private/create-order" },
             { "params", parameters },
         };
-        Int64 messageHash = this.nonce();
+        object messageHash = this.incrementingNonce();
         return ccxt.BaseExchange.ToOrder(await this.watchPrivateRequest(messageHash, request));
     }
 
@@ -1322,7 +1322,7 @@ public partial class cryptocom : ccxt.cryptocom
             { "method", "private/amend-order" },
             { "params", parameters },
         };
-        Int64 messageHash = this.nonce();
+        object messageHash = this.incrementingNonce();
         return ccxt.BaseExchange.ToOrder(await this.watchPrivateRequest(messageHash, request));
     }
 
@@ -1369,7 +1369,7 @@ public partial class cryptocom : ccxt.cryptocom
             { "method", "private/cancel-order" },
             { "params", parameters },
         };
-        Int64 messageHash = this.nonce();
+        object messageHash = this.incrementingNonce();
         return ccxt.BaseExchange.ToOrder(await this.watchPrivateRequest(messageHash, request));
     }
 
@@ -1399,7 +1399,7 @@ public partial class cryptocom : ccxt.cryptocom
             market = this.market(symbol);
             ((IDictionary<string,object>)request["params"])["instrument_name"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        Int64 messageHash = this.nonce();
+        object messageHash = this.incrementingNonce();
         return ccxt.BaseExchange.ToOrderList(await this.watchPrivateRequest(messageHash, request));
     }
 
@@ -1420,7 +1420,7 @@ public partial class cryptocom : ccxt.cryptocom
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
-        Int64 id = this.nonce();
+        object id = this.incrementingNonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -1436,7 +1436,7 @@ public partial class cryptocom : ccxt.cryptocom
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
-        Int64 id = this.nonce();
+        object id = this.incrementingNonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -1453,7 +1453,7 @@ public partial class cryptocom : ccxt.cryptocom
         parameters ??= new Dictionary<string, object>();
         subExtend ??= new Dictionary<string, object>();
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
-        Int64 id = this.nonce();
+        object id = this.incrementingNonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
             { "params", new Dictionary<string, object>() {
@@ -1491,7 +1491,7 @@ public partial class cryptocom : ccxt.cryptocom
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"));
-        Int64 id = this.nonce();
+        object id = this.incrementingNonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -1650,7 +1650,7 @@ public partial class cryptocom : ccxt.cryptocom
         if ((authenticated == null))
         {
             string method = "public/auth";
-            string nonce = this.nonce().ToString();
+            string nonce = ((object)this.incrementingNonce()).ToString();
             string auth = (((method + nonce) + this.apiKey) + nonce);
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             Dictionary<string, object> request = new Dictionary<string, object>() {

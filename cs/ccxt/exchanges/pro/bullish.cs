@@ -740,7 +740,7 @@ public partial class bullish : ccxt.bullish
         if (messageType == "snapshot")
         {
             List<object> data = this.safeList(message, "data", new List<object>() {});
-            object parsed = this.parseBalance(data);
+            Dictionary<string, object> parsed = this.parseBalance(data);
             List<object> parsedKeys = new List<object>(((IDictionary<string,object>)parsed).Keys);
             for (int i = 0; i < parsedKeys.Count; i++)
             {

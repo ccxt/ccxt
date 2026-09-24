@@ -1485,7 +1485,8 @@ public partial class coinmate : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            string nonce = this.nonce().ToString();
+            // coinmate requires each nonce to be greater than the previous one for the key
+            string nonce = ((object)this.incrementingNonce()).ToString();
             string auth = ((nonce + this.uid) + this.apiKey);
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             body = this.urlencode(this.extend(new Dictionary<string, object>() {

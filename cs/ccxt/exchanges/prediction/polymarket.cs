@@ -2390,7 +2390,7 @@ public partial class polymarket : PredictionExchange
      * @param {string} [params.funder] the wallet that holds the USDC collateral; defaults to options.funder or the signing address
      * @param {string} [params.tickSize] the market tick size ('0.1'/'0.01'/'0.001'/'0.0001'); read from the outcome when omitted
      * @param {bool} [params.negRisk] whether the market is a neg-risk market; read from the outcome when omitted
-     * @param {string} [params.salt] order salt; defaults to the current time in ms (pin it for idempotent retries)
+     * @param {string} [params.salt] order salt; defaults to a strictly-increasing millisecond value (pin it for idempotent retries)
      * @param {string} [params.timestamp] order timestamp; defaults to the current time in ms
      * @param {string} [params.expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
      * @param {string} [params.builderCode] builder wallet address or full bytes32 builder code attached to the order for attribution (zero fee — tracking only); defaults to options.builder
@@ -2439,16 +2439,16 @@ public partial class polymarket : PredictionExchange
         List<object> bodies = new List<object>() {};
         List<object> outcomes = new List<object>() {};
         List<object> requests = new List<object>() {};
-        Int64 batchSalt = this.milliseconds();
         for (int i = 0; i < getArrayLength(orders); i++)
         {
             object o = getValue(orders, i);
             IDictionary<string, object> orderParams = this.safeDict(o, "params", new Dictionary<string, object>() {});
             if ((this.safeString(orderParams, "salt") == null))
             {
-                // a distinct salt per order so two identical orders in one batch don't collide
+                // a distinct salt per order so two identical orders don't collide, within a batch or across calls
+                object orderSalt = this.incrementingNonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
                 orderParams = this.extend(orderParams, new Dictionary<string, object>() {
-                    { "salt", this.numberToString(this.sum(batchSalt, i)) },
+                    { "salt", this.numberToString(orderSalt) },
                 });
             }
             Dictionary<string, object> built = this.buildClobOrderBody(this.safeString(o, "outcome"), this.safeString(o, "type"), this.safeString(o, "side"), this.safeNumber(o, "amount"), this.safeNumber(o, "price"), orderParams);
@@ -2543,8 +2543,9 @@ public partial class polymarket : PredictionExchange
         // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
         string eoa = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));
         string funder = this.ethChecksumAddress(this.safeString2(parameters, "funder", "maker", this.safeString(this.options, "funder", this.walletAddress)));
-        // salt and timestamp default to the current time but can be pinned via params for idempotency
-        string? salt = this.safeString(parameters, "salt", this.numberToString(this.milliseconds()));
+        // the salt defaults to a strictly-increasing millisecond value and the timestamp to the current time; both can be pinned via params for idempotency
+        object defaultSalt = this.incrementingNonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
+        string? salt = this.safeString(parameters, "salt", this.numberToString(defaultSalt));
         string? timestamp = this.safeString(parameters, "timestamp", this.numberToString(this.milliseconds()));
         // GTD (good-til-date) orders need a unix-seconds expiration; 0 means no expiry
         string? expiration = this.safeString(parameters, "expiration", "0");
@@ -3260,6 +3261,13 @@ public partial class polymarket : PredictionExchange
             this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorMessage, feedback);
         }
         return null;
+    }
+
+    public override Int64 nonce()
+    {
+        // the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
+        // unique when two identical orders are signed within the same millisecond
+        return this.milliseconds();
     }
 
     /**
