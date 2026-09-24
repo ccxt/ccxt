@@ -5957,6 +5957,9 @@ const CCXT_GO_TUPLE_STRING_SAFE_ARGS = {
     'this.SafeInteger': 2, 'this.SafeStringLower': 2,
     // okx/deepcoin: `this.safeString (types, type, type)`, key and default both deref'd
     'this.ConvertToInstrumentType': 1,
+    // IsEqual/InOp/GetValue/GetArg/InArray deref the value; an unmatched code is returned as the
+    // same *string a Safe*-declared caller local already passes (base + htx override)
+    'this.NetworkCodeToId': 1, 'this.InArray': 1, 'this.GetSupportedMapping': 1, 'this.CheckRequiredArgument': 2,
 };
 
 const CCXT_GO_TUPLE_STRING_CACHE = new WeakMap ();
@@ -5975,10 +5978,16 @@ function ccxtGoTupleStringIsProducerElement (goTranspiler, node) {
 
 // a plain write that stores a *string (or a literal the write wraps into one)
 function ccxtGoTupleStringWriteIsProven (goTranspiler, right) {
+    return ccxtGoTupleStringWriteNeedsLift (goTranspiler, right)
+        || (goTranspiler.goTypeOfInitializer (right, goTranspiler.printNode (right, 0)) === '*string');
+}
+
+// a write whose printed value is a plain Go string (literal, string ternary): stored as SafeStringPtr(v)
+function ccxtGoTupleStringWriteNeedsLift (goTranspiler, right) {
     if ((right?.kind === ts.SyntaxKind.StringLiteral) || (right?.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral)) {
         return true;
     }
-    return goTranspiler.goTypeOfInitializer (right, goTranspiler.printNode (right, 0)) === '*string';
+    return goTranspiler.goTypeOfInitializer (right, goTranspiler.printNode (right, 0)) === 'string';
 }
 
 function ccxtGoTupleStringReadIsSafe (goTranspiler, node) {
@@ -6028,6 +6037,7 @@ function ccxtGoTupleStringJoinTypeUncached (goTranspiler, declaration) {
         return undefined;
     }
     let producers = 0;
+    let writes = 0;
     let ok = true;
     const visit = (n) => {
         if (!ok) {
@@ -6050,6 +6060,7 @@ function ccxtGoTupleStringJoinTypeUncached (goTranspiler, declaration) {
             } else if ((parent?.kind === ts.SyntaxKind.BinaryExpression) && (parent.left === n)
                 && (parent.operatorToken.kind === ts.SyntaxKind.EqualsToken)) {
                 ok = ccxtGoTupleStringWriteIsProven (goTranspiler, parent.right);
+                writes += 1;
             } else if (isDestructuringTarget (n) || !ccxtGoTupleStringReadIsSafe (goTranspiler, n)) {
                 ok = false;
             }
@@ -6058,7 +6069,14 @@ function ccxtGoTupleStringJoinTypeUncached (goTranspiler, declaration) {
     };
     ts.forEachChild (scope, visit);
     const bound = (declaration.kind === ts.SyntaxKind.BindingElement) ? 1 : 0;
-    return (ok && (producers + bound > 0)) ? '*string' : undefined;
+    if (!ok || (producers + bound + writes === 0)) {
+        return undefined;
+    }
+    // write-only locals the definitely-assigned `string` join already types stay with it
+    if ((producers + bound === 0) && new GoNilDeclaredAssignmentScan (goTranspiler, declaration, name).run ()) {
+        return undefined;
+    }
+    return '*string';
 }
 
 // element `a` of `const [ a, .. ] = <producer> (..)`: index 0 of a tuple producer, any index of Split
@@ -6187,7 +6205,7 @@ function installCcxtGoTupleStringJoin (goTranspiler) {
     goTranspiler.printBinaryExpression = function (node, identation) {
         const right = node?.right;
         if ((node?.operatorToken?.kind === ts.SyntaxKind.EqualsToken) && ts.isIdentifier (node.left)
-            && ((right?.kind === ts.SyntaxKind.StringLiteral) || (right?.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral))
+            && ccxtGoTupleStringWriteNeedsLift (this, right)
             && (ccxtGoTupleStringDeclarationOf (this, node.left) !== undefined)) {
             return this.printNode (node.left, 0) + ' = SafeStringPtr(' + this.printNode (right, 0) + ')';
         }
