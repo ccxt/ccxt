@@ -768,7 +768,7 @@ export default class xt extends xtRest {
         }
     }
 
-    handlePosition (client: any, message: Dict) {
+    handlePosition (client: Client, message: Dict) {
         //
         //    {
         //      topic: 'position',
