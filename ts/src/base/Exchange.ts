@@ -5305,7 +5305,7 @@ export class BaseExchange {
         return '0x' + this.binaryToBase16 (this.base64ToBinary (this.stringToBase64 (str)));
     }
 
-    reduceFeesByCurrency (fees: any): any[] {
+    reduceFeesByCurrency (fees: any): Dict[] {
         //
         // this function takes a list of fee structures having the following format
         //

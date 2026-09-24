@@ -3350,7 +3350,7 @@ export default class delta extends Exchange {
         };
     }
 
-    parseSettlements (settlements: any[], market: any): Dict[] {
+    parseSettlements (settlements: any[], market: Market): Dict[] {
         const result: Dict[] = [];
         for (let i = 0; i < settlements.length; i++) {
             result.push (this.parseSettlement (settlements[i], market));

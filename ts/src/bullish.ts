@@ -2838,7 +2838,7 @@ export default class bullish extends Exchange {
         return this.parseBorrowRateHistory (response, code, since, limit);
     }
 
-    override parseBorrowRate (info: any, currency: Currency = undefined): Dict {
+    override parseBorrowRate (info: Dict, currency: Currency = undefined): Dict {
         //
         //     {
         //         "assetId": "1",
