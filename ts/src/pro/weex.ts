@@ -102,13 +102,19 @@ export default class weex extends weexRest {
             'params': channels,
         };
         subscription = this.extend (subscription, { 'id': id });
-        const type = isContract ? 'contract' : 'spot';
+        let type: Str = 'spot';
+        if (isContract) {
+            type = 'contract';
+        }
         const url = this.urls['api']['ws'][type] + '/public';
         return await this.watchMultiple (url, messageHashes, this.deepExtend (message, params), messageHashes, subscription);
     }
 
     async subscribePrivate (messageHash: string, subscribeHash: string, channel: Str, isContract: boolean = false, params: Dict = {}, subscription: Dict = {}) {
-        const type = isContract ? 'contract' : 'spot';
+        let type: Str = 'spot';
+        if (isContract) {
+            type = 'contract';
+        }
         const url = this.urls['api']['ws'][type] + '/private';
         this.authenticate (url);
         let method = 'SUBSCRIBE';
@@ -337,7 +343,12 @@ export default class weex extends weexRest {
         //
         const timestamp = this.safeInteger (ticker, 'C');
         const close = this.safeString (ticker, 'c');
-        const symbol = (market === undefined) ? undefined : market['symbol'];
+        let symbol: Str = undefined;
+        if (market === undefined) {
+            symbol = undefined;
+        } else {
+            symbol = market['symbol'];
+        }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -531,7 +542,12 @@ export default class weex extends weexRest {
         //     }
         //
         const timestamp = this.safeInteger (trade, 'T');
-        const symbol = (market === undefined) ? undefined : market['symbol'];
+        let symbol: Str = undefined;
+        if (market === undefined) {
+            symbol = undefined;
+        } else {
+            symbol = market['symbol'];
+        }
         const isBuyerMaker = this.safeBool (trade, 'm'); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
         let side: Str = undefined;
         let takerOrMaker: Str = undefined;
@@ -1060,7 +1076,12 @@ export default class weex extends weexRest {
 
     parseWsBidAsk (message: Dict, market: Market = undefined): Ticker {
         const timestamp = this.safeInteger (message, 'E');
-        const symbol = (market === undefined) ? undefined : market['symbol'];
+        let symbol: Str = undefined;
+        if (market === undefined) {
+            symbol = undefined;
+        } else {
+            symbol = market['symbol'];
+        }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1098,7 +1119,10 @@ export default class weex extends weexRest {
         }
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
         const isContract = (marketType !== 'spot');
-        let messageHash = isContract ? 'myContractTrades' : 'myTrades';
+        let messageHash: Str = 'myTrades';
+        if (isContract) {
+            messageHash = 'myContractTrades';
+        }
         const subscriptionHash = messageHash;
         if (symbol !== undefined) {
             messageHash += '::' + symbol;
@@ -1129,7 +1153,10 @@ export default class weex extends weexRest {
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('unWatchMyTrades', undefined, params);
         const isContract = (marketType !== 'spot');
-        const subHash = isContract ? 'myContractTrades' : 'myTrades';
+        let subHash: Str = 'myTrades';
+        if (isContract) {
+            subHash = 'myContractTrades';
+        }
         const unSubHash = 'unsubscribe::' + subHash;
         const channel = 'fill';
         const subscription = {
@@ -1306,7 +1333,10 @@ export default class weex extends weexRest {
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         const isContract = (marketType !== 'spot');
-        let messageHash = isContract ? 'contractOrders' : 'orders';
+        let messageHash: Str = 'orders';
+        if (isContract) {
+            messageHash = 'contractOrders';
+        }
         const subscriptionHash = messageHash;
         if (symbol !== undefined) {
             messageHash += '::' + symbol;
@@ -1336,7 +1366,10 @@ export default class weex extends weexRest {
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('unWatchOrders', undefined, params);
         const isContract = (marketType !== 'spot');
-        const subHash = isContract ? 'contractOrders' : 'orders';
+        let subHash: Str = 'orders';
+        if (isContract) {
+            subHash = 'contractOrders';
+        }
         const unSubHash = 'unsubscribe::' + subHash;
         const channel = 'orders';
         const subscription = {
@@ -1596,7 +1629,10 @@ export default class weex extends weexRest {
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const isContract = (type !== 'spot');
-        const urlType = isContract ? 'contract' : 'spot';
+        let urlType: Str = 'spot';
+        if (isContract) {
+            urlType = 'contract';
+        }
         const url = this.urls['api']['ws'][urlType] + '/private';
         this.authenticate (url);
         const client = this.client (url);

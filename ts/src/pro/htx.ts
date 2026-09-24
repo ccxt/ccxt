@@ -934,13 +934,19 @@ export default class htx extends htxRest {
         if ((market !== undefined) && (market['lowercaseId'] !== undefined)) {
             marketCode = market['lowercaseId'].toLowerCase ();
         }
-        const baseId = (market !== undefined) ? market['baseId'] : undefined;
+        let baseId: Str = undefined;
+        if (market !== undefined) {
+            baseId = market['baseId'];
+        }
         const prefix = orderType;
         messageHash = prefix;
         if (subType === 'linear') {
             // USDT Margined Contracts Example: LTC/USDT:USDT
             const marginMode = this.safeString (params, 'margin', 'cross');
-            const marginPrefix = (marginMode === 'cross') ? prefix + '_cross' : prefix;
+            let marginPrefix: Str = prefix;
+            if (marginMode === 'cross') {
+                marginPrefix = prefix + '_cross';
+            }
             messageHash = marginPrefix;
             if (marketCode !== undefined) {
                 messageHash += '.' + marketCode;
@@ -969,7 +975,12 @@ export default class htx extends htxRest {
     }
 
     getV5LinearChannelAndMessageHash (topic: Str, market: Market = undefined, params: Dict = {}) {
-        const contractCode = (market !== undefined) ? market['id'] : this.safeString (params, 'contract_code', '*');
+        let contractCode: Str = undefined;
+        if (market !== undefined) {
+            contractCode = market['id'];
+        } else {
+            contractCode = this.safeString (params, 'contract_code', '*');
+        }
         const channel = topic;
         let messageHash = topic;
         if ((contractCode !== undefined) && (contractCode !== '*')) {
@@ -1625,7 +1636,10 @@ export default class htx extends htxRest {
         const isLinear = (subType === 'linear');
         const url = this.getUrlByMarketType (type, isLinear, true, false, isV5Linear);
         messageHash = marginMode + ':positions' + messageHash;
-        let channel: Str = (marginMode === 'cross') ? 'positions_cross.*' : 'positions.*';
+        let channel: Str = 'positions.*';
+        if (marginMode === 'cross') {
+            channel = 'positions_cross.*';
+        }
         if (isV5Linear) {
             let v5Market: Market = undefined;
             if ((symbols !== undefined) && (symbols.length === 1)) {
@@ -1728,7 +1742,10 @@ export default class htx extends htxRest {
         //
         const url = client.url;
         const topic = this.safeString (message, 'topic', '');
-        const defaultMarginMode = (topic === 'positions_cross') ? 'cross' : 'isolated';
+        let defaultMarginMode: Str = 'isolated';
+        if (topic === 'positions_cross') {
+            defaultMarginMode = 'cross';
+        }
         if (this.positions === undefined) {
             this.positions = {};
         }
@@ -2041,7 +2058,7 @@ export default class htx extends htxRest {
                 const details = this.safeList (accountData, 'details', []);
                 const detailsLength = details.length;
                 for (let i = 0; i < detailsLength; i++) {
-                    const detail = details[i];
+                    const detail = this.safeDict (details, i);
                     const currencyId = this.safeString (detail, 'currency');
                     const code = this.safeCurrencyCode (currencyId);
                     if (code === undefined) {
@@ -2120,7 +2137,7 @@ export default class htx extends htxRest {
                 } else {
                     // isolated margin
                     for (let i = 0; i < data.length; i++) {
-                        const isolatedBalance = data[i];
+                        const isolatedBalance = this.safeDict (data, i);
                         const account = this.account ();
                         account['free'] = this.safeString (isolatedBalance, 'margin_balance', 'margin_available');
                         account['used'] = this.safeString (isolatedBalance, 'margin_frozen');
@@ -2135,7 +2152,7 @@ export default class htx extends htxRest {
             } else {
                 // inverse branch
                 for (let i = 0; i < data.length; i++) {
-                    const balance = data[i];
+                    const balance = this.safeDict (data, i);
                     const currencyId = this.safeString (balance, 'symbol');
                     const code = this.safeCurrencyCode (currencyId);
                     const account = this.account ();
@@ -2682,7 +2699,10 @@ export default class htx extends htxRest {
             const data = this.safeValue (message, 'data');
             if (data !== undefined) {
                 const contractCode = this.safeString (message, 'contract_code');
-                const market = (contractCode !== undefined) ? this.safeMarket (contractCode) : undefined;
+                let market: Market = undefined;
+                if (contractCode !== undefined) {
+                    market = this.safeMarket (contractCode);
+                }
                 if (Array.isArray (data)) {
                     for (let i = 0; i < data.length; i++) {
                         const parsed = this.parseWsTrade (data[i], market);

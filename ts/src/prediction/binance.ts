@@ -642,7 +642,7 @@ export default class binance extends Exchange {
         let resolvedOutcomeRaw = undefined;
         const rawOutcomesLength = rawOutcomes.length;
         for (let oi = 0; oi < rawOutcomesLength; oi++) {
-            const rawOutcome = rawOutcomes[oi];
+            const rawOutcome = this.safeDict (rawOutcomes, oi);
             const label = this.safeStringUpper (rawOutcome, 'name');
             const tokenId = this.safeString (rawOutcome, 'tokenId');
             const outcomeHandle = marketSymbol + ':' + label;
@@ -931,7 +931,7 @@ export default class binance extends Exchange {
         };
         const balances = this.safeList (response, 'items', []);
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict (balances, i);
             const accountType = this.safeString (balance, 'accountType');
             if (accountType === type) {
                 const free = this.safeString (balance, 'availableBalanceDisplay');
@@ -1059,7 +1059,7 @@ export default class binance extends Exchange {
      */
     override async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOpenOrders', 'paginate', false);
         let maxEntriesPerRequest = undefined;
         [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'maxEntriesPerRequest', 100);
         const pageKey = 'ccxtPageKey';
@@ -1142,7 +1142,7 @@ export default class binance extends Exchange {
      */
     override async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOrders', 'paginate', false);
         let maxEntriesPerRequest = undefined;
         [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'maxEntriesPerRequest', 100);
         const pageKey = 'ccxtPageKey';
@@ -1407,7 +1407,7 @@ export default class binance extends Exchange {
      */
     override async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         let maxEntriesPerRequest = undefined;
         [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'maxEntriesPerRequest', 100);
         const pageKey = 'ccxtPageKey';
@@ -1874,7 +1874,7 @@ export default class binance extends Exchange {
         if (failedOrdersLength > 0) {
             let failedDetails = '';
             for (let i = 0; i < failedOrdersLength; i++) {
-                const failedOrder = failedOrders[i];
+                const failedOrder = this.safeDict (failedOrders, i);
                 const failedOrderId = this.safeString (failedOrder, 'orderId');
                 const failedReason = this.safeString (failedOrder, 'reason');
                 if (i > 0) {

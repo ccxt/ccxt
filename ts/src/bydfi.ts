@@ -852,7 +852,7 @@ export default class bydfi extends Exchange {
         }
         const maxLimit = 500; // docs says max 1500, but in practice only 500 works
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit);
         }
@@ -1388,7 +1388,7 @@ export default class bydfi extends Exchange {
         }
         const ordersRequests: List = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const symbol = this.safeString (rawOrder, 'symbol');
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
@@ -1458,7 +1458,7 @@ export default class bydfi extends Exchange {
         }
         const ordersRequests: List = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const id = this.safeString (rawOrder, 'id');
             const symbol = this.safeString (rawOrder, 'symbol');
             const side = this.safeString (rawOrder, 'side');
@@ -2445,7 +2445,10 @@ export default class bydfi extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const positionType = hedged ? 'HEDGE' : 'ONEWAY';
+        let positionType: Str = 'ONEWAY';
+        if (hedged) {
+            positionType = 'HEDGE';
+        }
         let wallet = 'W001';
         [ wallet, params ] = this.handleOptionStringAndParams (params, 'setPositionMode', 'wallet', wallet);
         let contractType = 'FUTURE';
@@ -2545,7 +2548,7 @@ export default class bydfi extends Exchange {
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let wallet: Str = undefined;
-        [ wallet, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'wallet');
+        [ wallet, params ] = this.handleOptionStringAndParams (params, 'fetchBalance', 'wallet');
         const request: Dict = {};
         let response: Dict;
         if (wallet === undefined) {
@@ -2612,7 +2615,7 @@ export default class bydfi extends Exchange {
             'datetime': undefined,
         };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict (response, i);
             const symbol = this.safeString (balance, 'asset');
             const code = this.safeCurrencyCode (symbol);
             const account = this.account ();
@@ -2821,7 +2824,10 @@ export default class bydfi extends Exchange {
     }
 
     async fetchTransactionsHelper (type: any, code: any, since: any, limit: any, params: any): Promise<Transaction[]> {
-        const methodName = (type === 'deposit') ? 'fetchDeposits' : 'fetchWithdrawals';
+        let methodName: Str = 'fetchWithdrawals';
+        if (type === 'deposit') {
+            methodName = 'fetchDeposits';
+        }
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a code argument');
         }

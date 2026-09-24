@@ -1263,7 +1263,7 @@ export default class toobit extends Exchange {
         }
         let response: Dict | List = [];
         let endpoint: Str = undefined;
-        [ endpoint, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'price');
+        [ endpoint, params ] = this.handleOptionStringAndParams (params, 'fetchOHLCV', 'price');
         if (endpoint === 'index') {
             response = await this.commonGetQuoteV1IndexKlines (this.extend (request, params));
             //
@@ -1633,7 +1633,7 @@ export default class toobit extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params) as FundingRateHistory[];
         }
@@ -1731,7 +1731,7 @@ export default class toobit extends Exchange {
         };
         const balances = this.safeList (response, 'balances', response);
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict (balances, i);
             const code = this.safeCurrencyCode (this.safeString (balance, 'asset'));
             const account = this.account ();
             account['free'] = this.safeString2 (balance, 'free', 'availableBalance');

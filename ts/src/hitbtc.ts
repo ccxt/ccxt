@@ -1112,7 +1112,7 @@ export default class hitbtc extends Exchange {
     override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
+            const entry = this.safeDict (response, i);
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -1871,7 +1871,7 @@ export default class hitbtc extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000) as OHLCV[];
         }
@@ -2961,7 +2961,7 @@ export default class hitbtc extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, 1000) as FundingRateHistory[];
         }
@@ -3216,7 +3216,7 @@ export default class hitbtc extends Exchange {
         let entryPrice: Num = undefined;
         let contracts: Num = undefined;
         for (let i = 0; i < positions.length; i++) {
-            const entry = positions[i];
+            const entry = this.safeDict (positions, i);
             liquidationPrice = this.safeNumber (entry, 'price_liquidation');
             entryPrice = this.safeNumber (entry, 'price_entry');
             contracts = this.safeNumber (entry, 'quantity');
@@ -3224,7 +3224,7 @@ export default class hitbtc extends Exchange {
         const currencies = this.safeList (position, 'currencies', []);
         let collateral: Num = undefined;
         for (let i = 0; i < currencies.length; i++) {
-            const entry = currencies[i];
+            const entry = this.safeDict (currencies, i);
             collateral = this.safeNumber (entry, 'margin_balance');
         }
         const marketId = this.safeString (position, 'symbol');

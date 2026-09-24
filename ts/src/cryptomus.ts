@@ -706,7 +706,7 @@ export default class cryptomus extends Exchange {
             'info': balance,
         };
         for (let i = 0; i < balance.length; i++) {
-            const balanceEntry = balance[i];
+            const balanceEntry = this.safeDict (balance, i);
             const currencyId = this.safeString (balanceEntry, 'ticker');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -1160,7 +1160,7 @@ export default class cryptomus extends Exchange {
         const takerFees: List = [];
         const makerFees: List = [];
         for (let i = 0; i < feeTiers.length; i++) {
-            const tier = feeTiers[i];
+            const tier = this.safeDict (feeTiers, i);
             const turnover = this.safeNumber (tier, 'from_turnover');
             let taker = this.safeString (tier, 'taker_percent');
             let maker = this.safeString (tier, 'maker_percent');

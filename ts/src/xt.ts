@@ -1343,7 +1343,7 @@ export default class xt extends Exchange {
         let maxPrice: Num = undefined;
         let amountPrecision: Num = undefined;
         for (let i = 0; i < filters.length; i++) {
-            const entry = filters[i];
+            const entry = this.safeDict (filters, i);
             const filter = this.safeString (entry, 'filter');
             if (filter === 'QUANTITY') {
                 minAmount = this.safeNumber (entry, 'min');
@@ -1599,7 +1599,10 @@ export default class xt extends Exchange {
         //     }
         //
         const isInverse = this.safeBool (market, 'inverse');
-        const volumeIndex = (isInverse === true) ? 'v' : 'a';
+        let volumeIndex: Str = 'a';
+        if (isInverse === true) {
+            volumeIndex = 'v';
+        }
         return [
             this.safeInteger (ohlcv, 't'),
             this.safeNumber (ohlcv, 'o'),
@@ -1955,7 +1958,10 @@ export default class xt extends Exchange {
             // the spot and contract payloads share the same field names, so
             // the market type cannot be inferred from the entry itself
             const marketId = this.safeString (rawTicker, 's');
-            const marketType = isContract ? 'contract' : 'spot';
+            let marketType: Str = 'spot';
+            if (isContract) {
+                marketType = 'contract';
+            }
             const marketInner = this.safeMarket (marketId, market, '_', marketType);
             const ticker = this.parseTicker (rawTicker, marketInner);
             const symbol = ticker['symbol'];
@@ -2167,7 +2173,10 @@ export default class xt extends Exchange {
         } else {
             let marginMode: Str = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
-            const marginOrSpotRequest = (marginMode !== undefined) ? 'LEVER' : 'SPOT';
+            let marginOrSpotRequest: Str = 'SPOT';
+            if (marginMode !== undefined) {
+                marginOrSpotRequest = 'LEVER';
+            }
             request['bizType'] = marginOrSpotRequest;
             if (limit !== undefined) {
                 request['limit'] = limit;
@@ -2519,7 +2528,7 @@ export default class xt extends Exchange {
         //
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict (response, i);
             const currencyId = this.safeString2 (balance, 'currency', 'coin');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -2621,7 +2630,10 @@ export default class xt extends Exchange {
         let timeInForce: Str = undefined;
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
-        const marginOrSpotRequest = (marginMode !== undefined) ? 'LEVER' : 'SPOT';
+        let marginOrSpotRequest: Str = 'SPOT';
+        if (marginMode !== undefined) {
+            marginOrSpotRequest = 'LEVER';
+        }
         request['bizType'] = marginOrSpotRequest;
         if (type === 'market') {
             timeInForce = this.safeStringUpper (params, 'timeInForce', 'FOK');
@@ -2698,10 +2710,16 @@ export default class xt extends Exchange {
         }
         const reduceOnly = this.safeBool (params, 'reduceOnly', false);
         if (side === 'buy') {
-            const requestType = (reduceOnly === true) ? 'SHORT' : 'LONG';
+            let requestType: Str = 'LONG';
+            if (reduceOnly === true) {
+                requestType = 'SHORT';
+            }
             request['positionSide'] = requestType;
         } else {
-            const requestType = (reduceOnly === true) ? 'LONG' : 'SHORT';
+            let requestType: Str = 'SHORT';
+            if (reduceOnly === true) {
+                requestType = 'LONG';
+            }
             request['positionSide'] = requestType;
         }
         let response: Dict = {};
@@ -2754,7 +2772,10 @@ export default class xt extends Exchange {
             request['triggerPriceType'] = this.safeString (params, 'triggerPriceType', 'LATEST_PRICE');
             request['orderSide'] = side.toUpperCase ();
             request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
-            const entrustType = (type === 'market') ? 'STOP_MARKET' : 'STOP';
+            let entrustType: Str = 'STOP';
+            if (type === 'market') {
+                entrustType = 'STOP_MARKET';
+            }
             request['entrustType'] = entrustType;
             params = this.omit (params, 'triggerPrice');
             if (market['linear'] === true) {
@@ -3058,7 +3079,10 @@ export default class xt extends Exchange {
         } else {
             let marginMode: Str = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrders', params);
-            const marginOrSpotRequest = (marginMode !== undefined) ? 'LEVER' : 'SPOT';
+            let marginOrSpotRequest: Str = 'SPOT';
+            if (marginMode !== undefined) {
+                marginOrSpotRequest = 'LEVER';
+            }
             request['bizType'] = marginOrSpotRequest;
             response = await this.privateSpotGetHistoryOrder (this.extend (request, params));
         }
@@ -3277,7 +3301,10 @@ export default class xt extends Exchange {
         } else {
             let marginMode: Str = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrdersByStatus', params);
-            const marginOrSpotRequest = (marginMode !== undefined) ? 'LEVER' : 'SPOT';
+            let marginOrSpotRequest: Str = 'SPOT';
+            if (marginMode !== undefined) {
+                marginOrSpotRequest = 'LEVER';
+            }
             request['bizType'] = marginOrSpotRequest;
             if (status !== 'open') {
                 if (since !== undefined) {
@@ -3725,7 +3752,10 @@ export default class xt extends Exchange {
         } else {
             let marginMode: Str = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
-            const marginOrSpotRequest = (marginMode !== undefined) ? 'LEVER' : 'SPOT';
+            let marginOrSpotRequest: Str = 'SPOT';
+            if (marginMode !== undefined) {
+                marginOrSpotRequest = 'LEVER';
+            }
             request['bizType'] = marginOrSpotRequest;
             response = await this.privateSpotDeleteOpenOrder (this.extend (request, params));
         }
@@ -4088,7 +4118,10 @@ export default class xt extends Exchange {
         //     }
         //
         const side = this.safeString (item, 'side');
-        const direction = (side === 'ADD') ? 'in' : 'out';
+        let direction: Str = 'out';
+        if (side === 'ADD') {
+            direction = 'in';
+        }
         const currencyId = this.safeString (item, 'coin');
         currency = this.safeCurrency (currencyId, currency);
         const timestamp = this.safeInteger (item, 'createdTime');
@@ -4522,7 +4555,10 @@ export default class xt extends Exchange {
 
     async modifyMarginHelper (symbol: string, amount: any, addOrReduce: any, params: Dict = {}): Promise<MarginModification> {
         const positionSide = this.safeString (params, 'positionSide');
-        const methodName = (addOrReduce === 'ADD') ? 'addMargin' : 'reduceMargin';
+        let methodName: Str = 'reduceMargin';
+        if (addOrReduce === 'ADD') {
+            methodName = 'addMargin';
+        }
         this.checkRequiredArgument (methodName, positionSide, 'positionSide', [ 'LONG', 'SHORT' ]);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -4763,7 +4799,7 @@ export default class xt extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchFundingRateHistory', symbol, since, limit, params, 'id', 'id', 1, 200) as FundingRateHistory[];
         }
@@ -5525,7 +5561,10 @@ export default class xt extends Exchange {
         // "ISOLATED"/"CROSSED" on position/list, 1 = cross / 2 = isolated on position/list-history
         const positionType = this.safeString (position, 'positionType');
         const isCross = (positionType === 'CROSSED') || (positionType === '1');
-        const marginMode = (isCross) ? 'cross' : 'isolated';
+        let marginMode: Str = 'isolated';
+        if (isCross) {
+            marginMode = 'cross';
+        }
         const collateral = this.safeNumber (position, 'isolatedMargin');
         // history entries carry the liquidation price in forceMarkPrice when force is true
         const liquidationPriceString = this.omitZero (this.safeString2 (position, 'breakPrice', 'forceMarkPrice'));

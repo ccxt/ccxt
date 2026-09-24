@@ -161,7 +161,7 @@ export default class bitrue extends bitrueRest {
         //
         this.balance['info'] = balances;
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict (balances, i);
             const currencyId = this.safeString (balance, 'a');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -286,7 +286,10 @@ export default class bitrue extends bitrueRest {
         const sideId = this.safeInteger (order, 'S');
         // 1: buy
         // 2: sell
-        const side = (sideId === 1) ? 'buy' : 'sell';
+        let side: Str = 'sell';
+        if (sideId === 1) {
+            side = 'buy';
+        }
         const statusId = this.safeString (order, 'X');
         const feeCurrencyId = this.safeString (order, 'N');
         return this.safeOrder ({
@@ -440,7 +443,7 @@ export default class bitrue extends bitrueRest {
     parseContractBidsAsks (bidsAsks: any[], symbol: string): List {
         const result: List = [];
         for (let i = 0; i < bidsAsks.length; i++) {
-            const level = bidsAsks[i];
+            const level = this.safeList (bidsAsks, i);
             const price = this.safeNumber (level, 0);
             const rawAmount = this.safeNumber (level, 1);
             const amount = this.convertFromRawQuantity (symbol, rawAmount);
@@ -869,7 +872,7 @@ export default class bitrue extends bitrueRest {
                 // a flight is already in progress - wake when the leader
                 // settles it: the listenKey url is then in the options
                 await client.future (messageHash);
-                return this.options['listenKeyUrl'];
+                return this.safeString (this.options, 'listenKeyUrl');
             }
             // register before the first await, so a concurrent caller entering
             // authenticate () while this one is inside the fetch sees the flight
@@ -914,7 +917,7 @@ export default class bitrue extends bitrueRest {
             const refreshTimeout = this.safeInteger (this.options, 'listenKeyRefreshRate', 1800000);
             this.delay (refreshTimeout, this.keepAliveListenKey);
         }
-        return this.options['listenKeyUrl'];
+        return this.safeString (this.options, 'listenKeyUrl');
     }
 
     async keepAliveListenKey (params: Dict = {}) {

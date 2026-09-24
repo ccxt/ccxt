@@ -495,7 +495,7 @@ export default class bithumb extends bithumbRest {
         const asks = orderbook['asks'];
         const units = this.safeList (message, 'orderbook_units', []);
         for (let i = 0; i < units.length; i++) {
-            const entry = units[i];
+            const entry = this.safeDict (units, i);
             const bidPrice = this.safeNumber (entry, 'bid_price');
             const bidSize = this.safeNumber (entry, 'bid_size');
             const askPrice = this.safeNumber (entry, 'ask_price');
@@ -532,7 +532,10 @@ export default class bithumb extends bithumbRest {
         //    }
         //
         const sideId = this.safeString (delta, 'orderType');
-        const side = (sideId === 'bid') ? 'bids' : 'asks';
+        let side: Str = 'asks';
+        if (sideId === 'bid') {
+            side = 'bids';
+        }
         const bidAsk = this.parseOrderBookBidAsk (delta, 'price', 'quantity');
         const orderbookSide = orderbook[side];
         orderbookSide.storeArray (bidAsk);
@@ -815,7 +818,7 @@ export default class bithumb extends bithumbRest {
             this.balance = {};
         }
         for (let i = 0; i < assets.length; i++) {
-            const asset = assets[i];
+            const asset = this.safeDict (assets, i);
             const currencyId = this.safeString (asset, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();

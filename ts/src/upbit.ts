@@ -595,7 +595,7 @@ export default class upbit extends Exchange {
             'datetime': undefined,
         };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict (response, i);
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -1949,7 +1949,7 @@ export default class upbit extends Exchange {
             }
             cost = '0';
             for (let i = 0; i < numTrades; i++) {
-                const trade = trades[i];
+                const trade = this.safeDict (trades, i);
                 cost = Precise.stringAdd (cost, this.safeString (trade, 'cost'));
                 if (getFeesFromTrades) {
                     const tradeFee = this.safeDict (trades[i], 'fee', {});

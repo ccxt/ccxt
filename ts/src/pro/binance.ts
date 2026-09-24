@@ -318,7 +318,10 @@ export default class binance extends binanceRest {
         if (stockSymbol === undefined) {
             return undefined;
         }
-        const safeQuote = (quote === undefined) ? 'USDC' : quote;
+        let safeQuote: Str = quote;
+        if (quote === undefined) {
+            safeQuote = 'USDC';
+        }
         const parsed = this.safeSymbol (stockSymbol, undefined, '/', 'spot');
         if ((parsed !== undefined) && (parsed.indexOf ('/') >= 0)) {
             return parsed;
@@ -1076,7 +1079,10 @@ export default class binance extends binanceRest {
         // symbol and stalls the orderbook future (delivery/option ids are
         // unique, so the swap hint resolves those correctly too)
         const isSpot = this.isSpotUrl (client);
-        const marketType = isSpot ? 'spot' : 'swap';
+        let marketType: Str = 'swap';
+        if (isSpot) {
+            marketType = 'spot';
+        }
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         const messageHash = 'orderbook::' + symbol;
@@ -1551,8 +1557,14 @@ export default class binance extends binanceRest {
             }
         }
         const marketId = this.safeString (trade, 's');
-        const fallbackType = ('ps' in trade) ? 'contract' : 'spot';
-        const marketType = (market !== undefined) ? market['type'] : fallbackType;
+        let fallbackType: Str = 'spot';
+        if ('ps' in trade) {
+            fallbackType = 'contract';
+        }
+        let marketType: Str = fallbackType;
+        if (market !== undefined) {
+            marketType = market['type'];
+        }
         const symbol = this.safeSymbol (marketId, market, undefined, marketType);
         let side = this.safeStringLower (trade, 'S');
         let takerOrMaker: Str = undefined;
@@ -1598,7 +1610,10 @@ export default class binance extends binanceRest {
         // resolve the market from the transport url — an ambiguous id like
         // BTCUSDT maps to both the spot and the linear swap market
         const isSpot = this.isSpotUrl (client);
-        const marketType = isSpot ? 'spot' : 'contract';
+        let marketType: Str = 'contract';
+        if (isSpot) {
+            marketType = 'spot';
+        }
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         const messageHash = 'trade::' + symbol;
@@ -1732,7 +1747,10 @@ export default class binance extends binanceRest {
             }
             const shouldUseUTC8 = (isUtc8 && isSpot);
             const suffix = '@+08:00';
-            const utcSuffix = shouldUseUTC8 ? suffix : '';
+            let utcSuffix: Str = '';
+            if (shouldUseUTC8) {
+                utcSuffix = suffix;
+            }
             rawHashes.push (marketId + '@' + klineType + '_' + interval + utcSuffix);
             messageHashes.push ('ohlcv::' + market['symbol'] + '::' + timeframeString);
         }
@@ -1809,7 +1827,10 @@ export default class binance extends binanceRest {
             }
             const shouldUseUTC8 = (isUtc8 && isSpot);
             const suffix = '@+08:00';
-            const utcSuffix = shouldUseUTC8 ? suffix : '';
+            let utcSuffix: Str = '';
+            if (shouldUseUTC8) {
+                utcSuffix = suffix;
+            }
             rawHashes.push (marketId + '@' + klineType + '_' + interval + utcSuffix);
             subMessageHashes.push ('ohlcv::' + market['symbol'] + '::' + timeframeString);
             messageHashes.push ('unsubscribe::ohlcv::' + market['symbol'] + '::' + timeframeString);
@@ -1910,7 +1931,10 @@ export default class binance extends binanceRest {
         // resolve the market from the transport url — an ambiguous id like
         // BTCUSDT maps to both the spot and the linear swap market
         const isSpot = this.isSpotUrl (client);
-        const marketType = isSpot ? 'spot' : 'contract';
+        let marketType: Str = 'contract';
+        if (isSpot) {
+            marketType = 'spot';
+        }
         const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
         const messageHash = 'ohlcv::' + symbol + '::' + unifiedTimeframe;
         this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
@@ -2322,7 +2346,10 @@ export default class binance extends binanceRest {
             firstMarket = this.market (symbols[0]);
         }
         const userDefaultType = this.safeString (this.options, 'defaultType');
-        const defaultMarket = (isMarkPrice && userDefaultType !== 'option') ? 'swap' : undefined;
+        let defaultMarket: Str = undefined;
+        if (isMarkPrice && userDefaultType !== 'option') {
+            defaultMarket = 'swap';
+        }
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, firstMarket, params, defaultMarket);
         let subType: Str = undefined;
         [ subType, params ] = this.handleSubTypeAndParams (methodName, firstMarket, params);
@@ -2745,7 +2772,10 @@ export default class binance extends binanceRest {
             // option id, may override it, see https://github.com/ccxt/ccxt/issues/29728
             const tickerMarketById = (numTickerMarkets === 1) ? this.safeDict (tickerMarketsByIdList, 0) : undefined;
             const isSpot = this.isSpotUrl (client);
-            const tickerFallbackType = isSpot ? 'spot' : 'contract';
+            let tickerFallbackType: Str = 'contract';
+            if (isSpot) {
+                tickerFallbackType = 'spot';
+            }
             const tickerMarketType = (tickerMarketById !== undefined) ? tickerMarketById['type'] : tickerFallbackType;
             const parsedTicker = this.parseWsTicker (ticker, tickerMarketType);
             const symbol = parsedTicker['symbol'];
@@ -3023,7 +3053,10 @@ export default class binance extends binanceRest {
         const isStock = (type === 'stock');
         const options = this.safeDict (this.options, type, {});
         const lastAuthenticatedTime = this.safeInteger (options, 'lastAuthenticatedTime', 0);
-        const refreshRateKey = isStock ? 'stockListenKeyRefreshRate' : 'listenKeyRefreshRate';
+        let refreshRateKey: Str = 'listenKeyRefreshRate';
+        if (isStock) {
+            refreshRateKey = 'stockListenKeyRefreshRate';
+        }
         const listenKeyRefreshRate = this.safeInteger (this.options, refreshRateKey, 1200000);
         const delay = this.sum (listenKeyRefreshRate, 10000);
         if (time - lastAuthenticatedTime > delay) {
@@ -3190,7 +3223,10 @@ export default class binance extends binanceRest {
         });
         // whether or not to schedule another listenKey keepAlive request
         const clients = Object.values (this.clients);
-        const refreshRateKey = isStock ? 'stockListenKeyRefreshRate' : 'listenKeyRefreshRate';
+        let refreshRateKey: Str = 'listenKeyRefreshRate';
+        if (isStock) {
+            refreshRateKey = 'stockListenKeyRefreshRate';
+        }
         const listenKeyRefreshRate = this.safeInteger (this.options, refreshRateKey, 1200000);
         let delayParams = params;
         if (isStock) {
@@ -3198,7 +3234,7 @@ export default class binance extends binanceRest {
             delayParams = this.extend (params, { 'type': 'stock' });
         }
         for (let i = 0; i < clients.length; i++) {
-            const client = clients[i];
+            const client = this.safeDict (clients, i);
             const clientSubscriptions = this.safeDict (client, 'subscriptions', {});
             const subscriptionKeys = Object.keys (clientSubscriptions);
             for (let j = 0; j < subscriptionKeys.length; j++) {
@@ -4584,7 +4620,10 @@ export default class binance extends binanceRest {
         const executionType = this.safeString (order, 'x');
         const marketId = this.safeString (order, 's');
         // futures user-data events carry the position side field, spot ones do not
-        const marketType = ('ps' in order) ? 'contract' : 'spot';
+        let marketType: Str = 'spot';
+        if ('ps' in order) {
+            marketType = 'contract';
+        }
         const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
         let timestamp = this.safeInteger (order, 'O');
         const T = this.safeInteger (order, 'T');
@@ -4884,7 +4923,7 @@ export default class binance extends binanceRest {
         //
         const orders = this.safeList (message, 'o', []);
         for (let i = 0; i < orders.length; i++) {
-            const order = orders[i];
+            const order = this.safeDict (orders, i);
             const fills = this.safeList (order, 'fi', []);
             const rawQty = this.safeString (order, 'q', '0');
             let side = 'BUY';
@@ -4916,7 +4955,7 @@ export default class binance extends binanceRest {
             };
             this.handleOrder (client, normalizedOrder);
             for (let j = 0; j < fills.length; j++) {
-                const fill = fills[j];
+                const fill = this.safeDict (fills, j);
                 const isMaker = (this.safeString (fill, 'm') === 'MAKER');
                 // normalize fill fields to the flat format parseWsTrade/handleMyTrade expect
                 const normalizedTrade: Dict = {
@@ -5599,7 +5638,7 @@ export default class binance extends binanceRest {
         }
         const B = this.safeList (message, 'B', []);
         for (let i = 0; i < B.length; i++) {
-            const entry = B[i];
+            const entry = this.safeDict (B, i);
             const currencyId = this.safeString (entry, 'a');
             const code = this.safeCurrencyCode (currencyId);
             if (code !== undefined) {

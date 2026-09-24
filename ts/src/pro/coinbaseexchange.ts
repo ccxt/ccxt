@@ -533,7 +533,10 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
                 'sell': 'buy',
             }, currentSide, currentSide);
         }
-        const idKey = isMaker ? 'maker_order_id' : 'taker_order_id';
+        let idKey: Str = 'taker_order_id';
+        if (isMaker) {
+            idKey = 'maker_order_id';
+        }
         parsed['order'] = this.safeString (trade, idKey);
         market = this.market (parsed['symbol']);
         const feeCurrency = market['quote'];
@@ -683,7 +686,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
                         let totalAmount = '0';
                         const trades = previousOrder['trades'];
                         for (let i = 0; i < trades.length; i++) {
-                            const tradeEntry = trades[i];
+                            const tradeEntry = this.safeDict (trades, i);
                             totalCost = this.safeString (tradeEntry, 'cost', '0');
                             totalAmount = this.safeString (tradeEntry, 'amount', '0');
                         }
@@ -939,7 +942,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
                 'buy': 'bids',
             };
             for (let i = 0; i < changes.length; i++) {
-                const change = changes[i];
+                const change = this.safeList (changes, i);
                 const key = this.safeString (change, 0);
                 const side = this.safeString (sides, key);
                 const price = this.safeNumber (change, 1);

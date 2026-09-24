@@ -735,7 +735,7 @@ export default class deepcoin extends deepcoinRest {
         // tick was rejected accepted the next coarser level
         const symbol = this.safeString (market, 'symbol');
         let aggregation: Str = undefined;
-        [ aggregation, params ] = this.handleOptionAndParams (params, methodName, 'aggregation');
+        [ aggregation, params ] = this.handleOptionStringAndParams (params, methodName, 'aggregation');
         if (aggregation === undefined) {
             const precision = this.safeDict (market, 'precision', {});
             const tickSize = this.safeNumber (precision, 'price');
@@ -803,7 +803,7 @@ export default class deepcoin extends deepcoinRest {
             'asks': [],
         };
         for (let i = 0; i < entries.length; i++) {
-            const entry = entries[i];
+            const entry = this.safeDict (entries, i);
             const entryData = this.safeDict (entry, 'd', {});
             const side = this.safeString (entryData, 'D');
             const price = this.safeNumber (entryData, 'P');

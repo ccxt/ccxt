@@ -1774,7 +1774,7 @@ export default class zebpay extends Exchange {
         };
         const currencyList = this.safeList (response, 'data', []);
         for (let i = 0; i < currencyList.length; i++) {
-            const entry = currencyList[i];
+            const entry = this.safeDict (currencyList, i);
             const account = this.account ();
             account['total'] = this.safeString (entry, 'total');
             account['free'] = this.safeString (entry, 'free');
@@ -1937,7 +1937,10 @@ export default class zebpay extends Exchange {
     override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         params = this.omit (params, 'defaultType');
         const isV1 = path.indexOf ('v1/') > -1;
-        const marketType = isV1 ? 'swap' : 'spot';
+        let marketType: Str = 'spot';
+        if (isV1) {
+            marketType = 'swap';
+        }
         let url = this.urls['api'][marketType];
         const tail = '/api/' + this.implodeParams (path, params);
         url += tail;

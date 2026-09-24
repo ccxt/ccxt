@@ -1633,7 +1633,7 @@ export default class okx extends Exchange {
             'info': response,
         };
         for (let i = 0; i < data.length; i++) {
-            const event = data[i];
+            const event = this.safeDict (data, i);
             const state = this.safeString (event, 'state');
             update['eta'] = this.safeInteger (event, 'end');
             update['url'] = this.safeString (event, 'href');
@@ -2180,7 +2180,7 @@ export default class okx extends Exchange {
             'instId': market['id'],
         };
         let rpi = false;
-        [ rpi, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'rpi');
+        [ rpi, params ] = this.handleOptionBoolAndParams (params, 'fetchOrderBook', 'rpi', false);
         let method: Str = undefined;
         [ method, params ] = this.handleOptionStringAndParams (params, 'fetchOrderBook', 'method', 'publicGetMarketBooks');
         if (method === 'publicGetMarketBooksFull' && limit === undefined) {
@@ -2600,7 +2600,7 @@ export default class okx extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchTrades', symbol, since, limit, params, 'tradeId', 'after', undefined, 100) as Trade[];
         }
@@ -2716,7 +2716,7 @@ export default class okx extends Exchange {
         }
         const market = this.market (symbol);
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 200) as OHLCV[];
         }
@@ -2826,7 +2826,7 @@ export default class okx extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, 100) as FundingRateHistory[];
         }
@@ -2895,7 +2895,7 @@ export default class okx extends Exchange {
         const timestamp = this.safeInteger (first, 'uTime');
         const details = this.safeList (first, 'details', []) as List;
         for (let i = 0; i < details.length; i++) {
-            const balance = details[i];
+            const balance = this.safeDict (details, i);
             const currencyId = this.safeString (balance, 'ccy');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -2922,7 +2922,7 @@ export default class okx extends Exchange {
         const result: Dict = { 'info': response };
         const data = this.safeList (response, 'data', []) as List;
         for (let i = 0; i < data.length; i++) {
-            const balance = data[i];
+            const balance = this.safeDict (data, i);
             const currencyId = this.safeString (balance, 'ccy');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -3276,12 +3276,12 @@ export default class okx extends Exchange {
         } else if (contract === true) {
             if ((market['swap'] === true) || (market['future'] === true)) {
                 let positionSide: Str = undefined;
-                [ positionSide, params ] = this.handleOptionAndParams (params, 'createOrder', 'positionSide');
+                [ positionSide, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'positionSide');
                 if (positionSide !== undefined) {
                     request['posSide'] = positionSide;
                 } else {
                     let hedged: Bool = undefined;
-                    [ hedged, params ] = this.handleOptionAndParams (params, 'createOrder', 'hedged');
+                    [ hedged, params ] = this.handleOptionBoolAndParams (params, 'createOrder', 'hedged');
                     if (hedged === true) {
                         const isBuy = (side === 'buy');
                         const isProtective = (takeProfitPrice !== undefined) || (stopLossPrice !== undefined) || isReduceOnly;
@@ -3585,7 +3585,7 @@ export default class okx extends Exchange {
         }
         const ordersRequests: List = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const marketId = this.safeString (rawOrder, 'symbol');
             if (marketId === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrders() requires a symbol for each order');
@@ -3992,7 +3992,7 @@ export default class okx extends Exchange {
             method = 'privatePostTradeCancelAlgos';
         }
         for (let i = 0; i < orders.length; i++) {
-            const order = orders[i];
+            const order = this.safeDict (orders, i);
             const id = this.safeString (order, 'id');
             const clientOrderId = this.safeString2 (order, 'clOrdId', 'clientOrderId');
             const symbol = this.safeString (order, 'symbol');
@@ -4568,7 +4568,7 @@ export default class okx extends Exchange {
         }
         const maxLimit = 100;
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOpenOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchOpenOrders', symbol, since, limit, params, maxLimit) as Order[];
         }
@@ -4926,7 +4926,7 @@ export default class okx extends Exchange {
         }
         const maxLimit = 100;
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchClosedOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchClosedOrders', symbol, since, limit, params, maxLimit) as Order[];
         }
@@ -5107,7 +5107,7 @@ export default class okx extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
         }
@@ -5208,7 +5208,7 @@ export default class okx extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchLedger', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params) as LedgerEntry[];
         }
@@ -5664,7 +5664,7 @@ export default class okx extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchDeposits', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchDeposits', code, since, limit, params);
         }
@@ -5776,7 +5776,7 @@ export default class okx extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchWithdrawals', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchWithdrawals', code, since, limit, params);
         }
@@ -6090,7 +6090,7 @@ export default class okx extends Exchange {
         let longLeverage: Int = undefined;
         let shortLeverage: Int = undefined;
         for (let i = 0; i < (leverage as List).length; i++) {
-            const entry = leverage[i];
+            const entry = this.safeDict (leverage, i);
             marginMode = this.safeStringLower (entry, 'mgnMode');
             marketId = this.safeString (entry, 'instId');
             const positionSide = this.safeStringLower (entry, 'posSide');
@@ -8464,7 +8464,7 @@ export default class okx extends Exchange {
         //
         const result: List = [];
         for (let i = 0; i < settlements.length; i++) {
-            const entry = settlements[i];
+            const entry = this.safeDict (settlements, i);
             const timestamp = this.safeInteger (entry, 'ts');
             const details = this.safeList (entry, 'details', []) as List;
             for (let j = 0; j < details.length; j++) {
@@ -9306,7 +9306,7 @@ export default class okx extends Exchange {
             const feedback = this.id + ' ' + body;
             const data = this.safeList (response, 'data', []) as List;
             for (let i = 0; i < data.length; i++) {
-                const error = data[i];
+                const error = this.safeDict (data, i);
                 const errorCode = this.safeString (error, 'sCode');
                 const message = this.safeString (error, 'sMsg');
                 this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
@@ -9559,7 +9559,7 @@ export default class okx extends Exchange {
         const data = this.safeList (response, 'data', []) as List;
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
+            const entry = this.safeList (data, i);
             result.push ({
                 'timestamp': this.safeString (entry, 0),
                 'longShortRatio': this.safeString (entry, 1),

@@ -1915,7 +1915,12 @@ export default class htx extends Exchange {
             const contractType = this.safeString (info, 'contract_type');
             const contractSuffix = this.safeString (futuresCharsMaps, contractType);
             // see comment on formats a bit above
-            const constructedId = (market['linear'] === true) ? market['base'] + '-' + market['quote'] + '-' + contractSuffix : market['base'] + '_' + contractSuffix;
+            let constructedId: Str = undefined;
+            if (market['linear'] === true) {
+                constructedId = market['base'] + '-' + market['quote'] + '-' + contractSuffix;
+            } else {
+                constructedId = market['base'] + '_' + contractSuffix;
+            }
             if (constructedId === symbolOrMarketId) {
                 const symbol = market['symbol'];
                 this.options['futureMarketIdsForSymbols'][symbolOrMarketId] = symbol;
@@ -2688,7 +2693,7 @@ export default class htx extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
         }
@@ -2996,7 +3001,7 @@ export default class htx extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000) as OHLCV[];
         }
@@ -3198,7 +3203,7 @@ export default class htx extends Exchange {
             marketId = this.marketId (symbol);
         }
         for (let i = 0; i < accounts.length; i++) {
-            const account = accounts[i];
+            const account = this.safeDict (accounts, i);
             const info = this.safeDict (account, 'info');
             const subtype = this.safeString (info, 'subtype');
             const typeFromAccount = this.safeString (account, 'type');
@@ -3276,7 +3281,10 @@ export default class htx extends Exchange {
         const currencyId = this.safeString (rawCurrency, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         const assetType = this.safeString (rawCurrency, 'assetType');
-        const type = (assetType === '1') ? 'crypto' : 'fiat';
+        let type: Str = 'fiat';
+        if (assetType === '1') {
+            type = 'crypto';
+        }
         if (code !== undefined) {
             this.options['networkChainIdsByNames'][code] = {};
         }
@@ -3591,7 +3599,7 @@ export default class htx extends Exchange {
         if (isMultiAssetMode || (linear && (swap || future))) {
             const details = this.safeList (data, 'details', []);
             for (let i = 0; i < details.length; i++) {
-                const balance = details[i];
+                const balance = this.safeDict (details, i);
                 const currencyId = this.safeString (balance, 'currency');
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
@@ -3605,7 +3613,7 @@ export default class htx extends Exchange {
         } else if (spot || margin) {
             if (isolated) {
                 for (let i = 0; i < data.length; i++) {
-                    const entry = data[i];
+                    const entry = this.safeDict (data, i);
                     const balances = this.safeValue (entry, 'list');
                     const subResult: Dict = {};
                     for (let j = 0; j < balances.length; j++) {
@@ -3637,7 +3645,7 @@ export default class htx extends Exchange {
             }
         } else if (inverse) {
             for (let i = 0; i < data.length; i++) {
-                const balance = data[i];
+                const balance = this.safeDict (data, i);
                 const currencyId = this.safeString (balance, 'symbol');
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
@@ -4226,7 +4234,7 @@ export default class htx extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchCanceledOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchCanceledOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchCanceledOrders', symbol, since, limit, params, 100) as Order[];
         }
@@ -4285,7 +4293,7 @@ export default class htx extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchClosedOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchClosedOrders', symbol, since, limit, params, 100) as Order[];
         }
@@ -5118,7 +5126,10 @@ export default class htx extends Exchange {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice for a trigger order');
             }
         } else {
-            const defaultOperator = (side === 'sell') ? 'lte' : 'gte';
+            let defaultOperator: Str = 'gte';
+            if (side === 'sell') {
+                defaultOperator = 'lte';
+            }
             const stopOperator = this.safeString (params, 'operator', defaultOperator);
             request['stop-price'] = this.priceToPrecision (symbol, triggerPrice);
             request['operator'] = stopOperator;
@@ -5619,7 +5630,7 @@ export default class htx extends Exchange {
         let market: Market = undefined;
         let marginMode: Str = undefined;
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const marketId = this.safeString (rawOrder, 'symbol');
             if (symbol === undefined) {
                 symbol = marketId;
@@ -7149,7 +7160,7 @@ export default class htx extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchFundingRateHistory', symbol, since, limit, params, 'current_page', 'page_index', 1, 50) as FundingRateHistory[];
         }
@@ -7559,7 +7570,10 @@ export default class htx extends Exchange {
         //   }
         //
         const marketId = this.safeString (info, 'symbol');
-        const marginMode = (marketId === undefined) ? 'cross' : 'isolated';
+        let marginMode: Str = 'isolated';
+        if (marketId === undefined) {
+            marginMode = 'cross';
+        }
         market = this.safeMarket (marketId);
         const symbol = this.safeString (market, 'symbol');
         const timestamp = this.safeInteger (info, 'accrued-at');
@@ -8053,7 +8067,10 @@ export default class htx extends Exchange {
         const entryPrice = this.safeNumber2 (position, 'cost_open', 'open_avg_price');
         const initialMargin = this.safeString2 (position, 'position_margin', 'initial_margin');
         const rawSide = this.safeString (position, 'direction');
-        const directionSide = (rawSide === 'buy') ? 'long' : 'short';
+        let directionSide: Str = 'short';
+        if (rawSide === 'buy') {
+            directionSide = 'long';
+        }
         const rawPositionSide = this.safeString (position, 'position_side');
         // in one-way mode, "position_side" is "both" and the actual long/short signal is only present in "direction"
         let side = directionSide;
@@ -8523,7 +8540,7 @@ export default class htx extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchLedger', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params, 500) as LedgerEntry[];
         }
@@ -8639,7 +8656,7 @@ export default class htx extends Exchange {
         const tiers: List = [];
         const brackets = this.safeList (info, 'list', []);
         for (let i = 0; i < brackets.length; i++) {
-            const item = brackets[i];
+            const item = this.safeDict (brackets, i);
             const leverage = this.safeString (item, 'lever_rate');
             const ladders = this.safeList (item, 'ladders', []);
             for (let k = 0; k < ladders.length; k++) {
@@ -9436,7 +9453,7 @@ export default class htx extends Exchange {
         const code = this.safeString (currency, 'code');
         let result = this.depositWithdrawFee (fee);
         for (let j = 0; j < chains.length; j++) {
-            const chainEntry = chains[j];
+            const chainEntry = this.safeDict (chains, j);
             const networkId = this.safeString (chainEntry, 'chain');
             const withdrawFeeType = this.safeString (chainEntry, 'withdrawFeeType');
             const networkCode = this.networkIdToCode (networkId, code);
@@ -9822,7 +9839,10 @@ export default class htx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const posMode = hedged ? 'dual_side' : 'single_side';
+        let posMode: Str = 'single_side';
+        if (hedged) {
+            posMode = 'dual_side';
+        }
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);

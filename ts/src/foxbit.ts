@@ -388,7 +388,7 @@ export default class foxbit extends Exchange {
         const type = this.safeStringLower (rawCurrency, 'type');
         const parsedNetworks: Dict = {};
         for (let j = 0; j < networks.length; j++) {
-            const network = networks[j];
+            const network = this.safeDict (networks, j);
             const networkId = this.safeString (network, 'code');
             const networkCode = this.networkIdToCode (networkId, code);
             const networkWithdrawInfo = this.safeDict (network, 'withdraw_info');
@@ -852,7 +852,7 @@ export default class foxbit extends Exchange {
             'info': response,
         };
         for (let i = 0; i < accounts.length; i++) {
-            const account = accounts[i];
+            const account = this.safeDict (accounts, i);
             const currencyId = this.safeString (account, 'currency_symbol');
             const currencyCode = this.safeCurrencyCode (currencyId);
             const total = this.safeString (account, 'balance');
