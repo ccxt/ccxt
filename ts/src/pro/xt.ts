@@ -72,7 +72,7 @@ export default class xt extends xtRest {
      * @see https://doc.xt.com/docs/futures/UserWebsocket/General_WSS_information
      * @returns {string} listen key / access token
      */
-    async getListenKey (isContract: boolean) {
+    async getListenKey (isContract: boolean): Promise<Str> {
         this.checkRequiredCredentials ();
         const tradeType = isContract ? 'contract' : 'spot';
         let url = this.urls['api']['ws'][tradeType];

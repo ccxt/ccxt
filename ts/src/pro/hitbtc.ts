@@ -799,7 +799,7 @@ export default class hitbtc extends hitbtcRest {
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
             this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
+            let stored = this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
@@ -1285,7 +1285,7 @@ export default class hitbtc extends hitbtcRest {
         //    }
         //
         const messageHash = this.safeString (message, 'method');
-        const params = this.safeValue (message, 'params');
+        const params = this.safeList (message, 'params');
         const balance = this.parseBalance (params);
         this.balance = this.deepExtend (this.balance, balance);
         client.resolve (this.balance, messageHash);

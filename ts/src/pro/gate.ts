@@ -1098,7 +1098,7 @@ export default class gate extends gateRest {
             const symbol = this.safeSymbol (marketId, undefined, '_', marketType);
             const parsed = this.parseOHLCV (ohlcv);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
+            let stored = this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);

@@ -1015,7 +1015,7 @@ export default class onetrading extends onetradingRest {
         // update balance
         const balanceKeys = [ 'locked', 'unlocked', 'spent', 'spent_on_fees', 'credited', 'deducted' ];
         for (let i = 0; i < balanceKeys.length; i++) {
-            const newBalance = this.safeValue (update, balanceKeys[i]);
+            const newBalance = this.safeDict (update, balanceKeys[i]);
             if (newBalance !== undefined) {
                 this.updateBalance (newBalance);
             }

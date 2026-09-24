@@ -1170,7 +1170,7 @@ export default class deepcoin extends deepcoinRest {
         }
     }
 
-    parseWsPosition (position: any, market: Market = undefined): Position {
+    parseWsPosition (position: Dict, market: Market = undefined): Position {
         //
         //     {
         //         "A": "9256245",

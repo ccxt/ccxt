@@ -618,7 +618,7 @@ export default class hyperliquid extends hyperliquidRest {
         return true;
     }
 
-    parseWsTicker (rawTicker: any, market: Market = undefined): Ticker {
+    parseWsTicker (rawTicker: Dict, market: Market = undefined): Ticker {
         return this.parseTicker (rawTicker, market);
     }
 

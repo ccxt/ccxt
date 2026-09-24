@@ -626,7 +626,7 @@ export default class derive extends deriveRest {
                     if (fee !== undefined) {
                         parsed['fee'] = fee;
                     }
-                    const fees = this.safeValue (order, 'fees');
+                    const fees = this.safeList (order, 'fees');
                     if (fees !== undefined) {
                         (parsed as Dict)['fees'] = fees;
                     }

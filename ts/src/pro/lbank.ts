@@ -972,7 +972,7 @@ export default class lbank extends lbankRest {
         }
     }
 
-    async authenticate (params: Dict = {}) {
+    async authenticate (params: Dict = {}): Promise<Str> {
         // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
         // concurrent watchOrders/watchBalance callers would each POST subscribe/get_key or
         // subscribe/refresh_key and burn rate limit on a subscribeKey that is immediately

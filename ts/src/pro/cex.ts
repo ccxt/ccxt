@@ -800,7 +800,7 @@ export default class cex extends cexRest {
         client.resolve (storedOrders, messageHash);
     }
 
-    parseWsOrderUpdate (order: any, market: Market = undefined) {
+    parseWsOrderUpdate (order: Dict, market: Market = undefined) {
         //
         //      {
         //          "id": "150714937",

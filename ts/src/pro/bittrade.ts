@@ -279,7 +279,7 @@ export default class bittrade extends bittradeRest {
             stored = new ArrayCacheByTimestamp (limit);
             this.ohlcvs[symbol][(timeframe as string)] = stored;
         }
-        const tick = this.safeValue (message, 'tick');
+        const tick = this.safeDict (message, 'tick');
         const parsed = this.parseOHLCV (tick, market);
         stored.append (parsed);
         client.resolve (stored, ch);
@@ -372,7 +372,7 @@ export default class bittrade extends bittradeRest {
         try {
             const symbol = this.safeString (subscription, 'symbol');
             const limit = this.safeInteger (subscription, 'limit');
-            const params = this.safeValue (subscription, 'params');
+            const params = this.safeDict (subscription, 'params');
             const api = this.safeString (this.options, 'api', 'api');
             const hostname: Dict = { 'hostname': this.hostname };
             const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);

@@ -278,7 +278,7 @@ export default class woo extends wooRest {
         try {
             const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
             const limit = this.safeInteger (subscription, 'limit', defaultLimit);
-            const params = this.safeValue (subscription, 'params');
+            const params = this.safeDict (subscription, 'params');
             const snapshot = await this.fetchRestOrderBookSafe (symbol, limit, params);
             if (this.safeDict (this.orderbooks, symbol) === undefined) {
                 // if the orderbook is dropped before the snapshot is received
@@ -432,7 +432,7 @@ export default class woo extends wooRest {
         //     }
         //
         const data = this.safeValue (message, 'data');
-        const topic = this.safeValue (message, 'topic');
+        const topic = this.safeString (message, 'topic');
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
         const timestamp = this.safeInteger (message, 'ts');
@@ -717,7 +717,7 @@ export default class woo extends wooRest {
         //     }
         //
         const data = this.safeDict (message, 'data');
-        const topic = this.safeValue (message, 'topic');
+        const topic = this.safeString (message, 'topic');
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -1226,7 +1226,7 @@ export default class woo extends wooRest {
                 if (fee !== undefined) {
                     parsed['fee'] = fee;
                 }
-                const fees = this.safeValue (order, 'fees');
+                const fees = this.safeList (order, 'fees');
                 if (fees !== undefined) {
                     (parsed as Dict)['fees'] = fees;
                 }
@@ -1466,7 +1466,7 @@ export default class woo extends wooRest {
         //
         //    }
         //
-        const data = this.safeValue (message, 'data');
+        const data = this.safeDict (message, 'data');
         const balances = this.safeValue (data, 'balances');
         const keys = Object.keys (balances);
         const ts = this.safeInteger (message, 'ts');
