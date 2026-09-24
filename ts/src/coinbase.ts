@@ -1597,16 +1597,16 @@ export default class coinbase extends Exchange {
         const feeTier = this.safeDict (fees, 'fee_tier', {});
         const expiringFeeTier = this.safeDict (expiringFees, 'fee_tier', {}); // fee tier null?
         const perpetualFeeTier = this.safeDict (perpetualFees, 'fee_tier', {}); // fee tier null?
-        const data = this.safeList (spot, 'products', []);
+        const data: Dict[] = this.safeList (spot, 'products', []);
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
             result.push (this.parseSpotMarket (data[i], feeTier));
         }
-        const futureData = this.safeList (expiringFutures, 'products', []);
+        const futureData: Dict[] = this.safeList (expiringFutures, 'products', []);
         for (let i = 0; i < futureData.length; i++) {
             result.push (this.parseContractMarket (futureData[i], expiringFeeTier));
         }
-        const perpetualData = this.safeList (perpetualFutures, 'products', []);
+        const perpetualData: Dict[] = this.safeList (perpetualFutures, 'products', []);
         for (let i = 0; i < perpetualData.length; i++) {
             result.push (this.parseContractMarket (perpetualData[i], perpetualFeeTier));
         }
@@ -2203,7 +2203,7 @@ export default class coinbase extends Exchange {
         //         "num_products": 549
         //     }
         //
-        const data = this.safeList (response, 'products', []);
+        const data: Dict[] = this.safeList (response, 'products', []);
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];

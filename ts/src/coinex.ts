@@ -1603,7 +1603,7 @@ export default class coinex extends Exchange {
             //     }
             //
         }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -2931,7 +2931,7 @@ export default class coinex extends Exchange {
                 //
             }
         }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const results: List = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -3456,7 +3456,7 @@ export default class coinex extends Exchange {
         }
         let data: NullableDict = undefined;
         if (clientOrderId !== undefined) {
-            const rows = this.safeList (response, 'data', []);
+            const rows: Dict[] = this.safeList (response, 'data', []);
             data = this.safeDict (rows[0], 'data', {});
         } else {
             data = this.safeDict (response, 'data', {});
@@ -4247,7 +4247,7 @@ export default class coinex extends Exchange {
         //         }
         //     }
         //
-        const position = this.safeList (response, 'data', []);
+        const position: Dict[] = this.safeList (response, 'data', []);
         const result: List = [];
         for (let i = 0; i < position.length; i++) {
             result.push (this.parsePosition (position[i], market));
@@ -5871,7 +5871,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const item = data[i];

@@ -2190,7 +2190,7 @@ export default class alpaca extends Exchange {
         //     ]
         //
         const account = this.safeDict (response, 'account', {});
-        const positions = this.safeList (response, 'positions', []);
+        const positions: Dict[] = this.safeList (response, 'positions', []);
         const result: Dict = { 'info': response };
         const currencyId = this.safeString (account, 'currency');
         const code = this.safeCurrencyCode (currencyId);
