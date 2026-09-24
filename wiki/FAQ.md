@@ -78,6 +78,9 @@
   - https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support
   - https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#transpiled-generated-files
 
+  ## What are Exchange Rate FX markets on Binance and how do I use them?
+
+  Binance offers Exchange Rate Foreign Exchange (FX) markets that are supported through existing spot and perpetual swap method implementations. The spot market `BUSD/BRL` allows you to trade between the US Dollar and the Brazilian Real. The swap market `USDBRL/USDT:USDT` is a perpetual swap market that uses the exchange rate between USD and BRL as the underlying asset. This can be traded the same as other swap markets, except the underlying asset is an exchange rate between the two currencies, instead of a stock or cryptocurrency. This should NOT be confused with the similarly named FX Currency Swap found in traditional finance.
 
 
   ## How to create an order with takeProfit+stopLoss?
