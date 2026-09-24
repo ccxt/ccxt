@@ -1412,6 +1412,9 @@ export default class coinbase extends Exchange {
         for (let i = 0; i < baseIds.length; i++) {
             const baseId = baseIds[i];
             const base = this.safeCurrencyCode (baseId);
+            if (base === undefined) {
+                continue;
+            }
             let type: Str = 'crypto';
             if (baseId in dataById) {
                 type = 'fiat';
@@ -1422,6 +1425,9 @@ export default class coinbase extends Exchange {
                     const quoteCurrency = data[j];
                     const quoteId = this.safeString (quoteCurrency, 'id');
                     const quote = this.safeCurrencyCode (quoteId);
+                    if (quote === undefined) {
+                        continue;
+                    }
                     result.push (this.safeMarketStructure ({
                         'id': baseId + '-' + quoteId,
                         'symbol': base + '/' + quote,
@@ -1666,6 +1672,9 @@ export default class coinbase extends Exchange {
         const quoteId = this.safeString (market, 'quote_currency_id');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const marketType = this.safeStringLower (market, 'product_type');
         const tradingDisabled = this.safeBool (market, 'trading_disabled');
         const stablePairs = this.safeList (this.options, 'stablePairs', []);
@@ -1856,6 +1865,9 @@ export default class coinbase extends Exchange {
         const quoteId = this.safeString (market, 'quote_currency_id');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const tradingDisabled = this.safeBool (market, 'is_disabled');
         let symbol = base + '/' + quote;
         let type: Str = undefined;

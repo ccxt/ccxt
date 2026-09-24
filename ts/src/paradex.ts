@@ -635,6 +635,9 @@ export default class paradex extends Exchange {
         const baseId = this.safeString (market, 'base_currency');
         const quote = this.safeCurrencyCode (quoteId);
         const base = this.safeCurrencyCode (baseId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settleId = this.safeString (market, 'settlement_currency');
         const settle = this.safeCurrencyCode (settleId);
         let symbol = base + '/' + quote + ':' + settle;
