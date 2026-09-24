@@ -239,7 +239,7 @@ class okx extends \ccxt\async\okx {
         }
         $symbols = $this->market_symbols($symbols);
         $channel = null;
-        list($channel, $params) = $this->handle_option_and_params($params, 'watchTrades', 'channel', 'trades');
+        list($channel, $params) = $this->handle_option_string_and_params($params, 'watchTrades', 'channel', 'trades');
         $topics = array();
         $messageHashes = array();
         for ($i = 0; $i < count($symbols); $i++) {
@@ -288,7 +288,7 @@ class okx extends \ccxt\async\okx {
         }
         $symbols = $this->market_symbols($symbols, null, false);
         $channel = null;
-        list($channel, $params) = $this->handle_option_and_params($params, 'watchTrades', 'channel', 'trades');
+        list($channel, $params) = $this->handle_option_string_and_params($params, 'watchTrades', 'channel', 'trades');
         $topics = array();
         $messageHashes = array();
         for ($i = 0; $i < count($symbols); $i++) {
@@ -494,7 +494,7 @@ class okx extends \ccxt\async\okx {
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
         $channel = null;
-        list($channel, $params) = $this->handle_option_and_params($params, 'watchTicker', 'channel', 'tickers');
+        list($channel, $params) = $this->handle_option_string_and_params($params, 'watchTicker', 'channel', 'tickers');
         $params['channel'] = $channel;
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
@@ -536,7 +536,7 @@ class okx extends \ccxt\async\okx {
         }
         $symbols = $this->market_symbols($symbols, null, false);
         $channel = null;
-        list($channel, $params) = $this->handle_option_and_params($params, 'watchTickers', 'channel', 'tickers');
+        list($channel, $params) = $this->handle_option_string_and_params($params, 'watchTickers', 'channel', 'tickers');
         $newTickers = Async\await($this->subscribe_multiple('public', $channel, $symbols, $params));
         if ($this->newUpdates) {
             return $newTickers;
@@ -560,7 +560,7 @@ class okx extends \ccxt\async\okx {
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
         $channel = null;
-        list($channel, $params) = $this->handle_option_and_params($params, 'watchMarkPrice', 'channel', 'mark-price');
+        list($channel, $params) = $this->handle_option_string_and_params($params, 'watchMarkPrice', 'channel', 'mark-price');
         $params['channel'] = $channel;
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
@@ -588,7 +588,7 @@ class okx extends \ccxt\async\okx {
         }
         $symbols = $this->market_symbols($symbols, null, false);
         $channel = null;
-        list($channel, $params) = $this->handle_option_and_params($params, 'watchMarkPrices', 'channel', 'mark-price');
+        list($channel, $params) = $this->handle_option_string_and_params($params, 'watchMarkPrices', 'channel', 'mark-price');
         $newTickers = Async\await($this->subscribe_multiple('public', $channel, $symbols, $params));
         if ($this->newUpdates) {
             return $newTickers;
@@ -616,7 +616,7 @@ class okx extends \ccxt\async\okx {
         }
         $symbols = $this->market_symbols($symbols, null, false);
         $channel = null;
-        list($channel, $params) = $this->handle_option_and_params($params, 'watchTickers', 'channel', 'tickers');
+        list($channel, $params) = $this->handle_option_string_and_params($params, 'watchTickers', 'channel', 'tickers');
         $topics = array();
         $messageHashes = array();
         for ($i = 0; $i < count($symbols); $i++) {
@@ -705,7 +705,7 @@ class okx extends \ccxt\async\okx {
         }
         $symbols = $this->market_symbols($symbols, null, false);
         $channel = null;
-        list($channel, $params) = $this->handle_option_and_params($params, 'watchBidsAsks', 'channel', 'bbo-tbt');
+        list($channel, $params) = $this->handle_option_string_and_params($params, 'watchBidsAsks', 'channel', 'bbo-tbt');
         $url = $this->get_url($channel, 'public');
         $messageHashes = array();
         $args = array();
@@ -1889,7 +1889,7 @@ class okx extends \ccxt\async\okx {
          */
         // By default, receive order updates from any instrument type
         $type = null;
-        list($type, $params) = $this->handle_option_and_params($params, 'watchMyTrades', 'type', 'ANY');
+        list($type, $params) = $this->handle_option_string_and_params($params, 'watchMyTrades', 'type', 'ANY');
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $params = $this->omit($params, array( 'trigger', 'stop' ));
         if ($this->markets === null) {
@@ -2096,7 +2096,7 @@ class okx extends \ccxt\async\okx {
          */
         $type = null;
         // By default, receive order updates from any instrument type
-        list($type, $params) = $this->handle_option_and_params($params, 'watchOrders', 'type', 'ANY');
+        list($type, $params) = $this->handle_option_string_and_params($params, 'watchOrders', 'type', 'ANY');
         $isTrigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         if ($this->markets === null) {
@@ -2348,7 +2348,7 @@ class okx extends \ccxt\async\okx {
         $url = $this->get_url('private', 'private');
         $messageHash = $this->request_id();
         $op = null;
-        list($op, $params) = $this->handle_option_and_params($params, 'createOrderWs', 'op', 'batch-orders');
+        list($op, $params) = $this->handle_option_string_and_params($params, 'createOrderWs', 'op', 'batch-orders');
         $args = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $market = $this->market($symbol);
         $instIdCode = $this->safe_integer($market, 'instIdCode');
@@ -2432,7 +2432,7 @@ class okx extends \ccxt\async\okx {
         $url = $this->get_url('private', 'private');
         $messageHash = $this->request_id();
         $op = null;
-        list($op, $params) = $this->handle_option_and_params($params, 'editOrderWs', 'op', 'amend-order');
+        list($op, $params) = $this->handle_option_string_and_params($params, 'editOrderWs', 'op', 'amend-order');
         $args = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
         $market = $this->market($symbol);
         $instIdCode = $this->safe_integer($market, 'instIdCode');

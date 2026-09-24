@@ -254,7 +254,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             Async\await($this->load_markets());
         }
         $channel = null;
-        list($channel, $params) = $this->handle_option_and_params($params, 'watchTicker', 'channel', 'LEVEL1');
+        list($channel, $params) = $this->handle_option_string_and_params($params, 'watchTicker', 'channel', 'LEVEL1');
         return Async\await($this->subscribe($channel, array( $symbol ), $params));
     }
 
@@ -290,7 +290,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             Async\await($this->load_markets());
         }
         $channel = null;
-        list($channel, $params) = $this->handle_option_and_params($params, 'watchTickers', 'channel', 'LEVEL1');
+        list($channel, $params) = $this->handle_option_string_and_params($params, 'watchTickers', 'channel', 'LEVEL1');
         $ticker = Async\await($this->subscribe($channel, $symbols, $params));
         if ($this->newUpdates) {
             $result = array();

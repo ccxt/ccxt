@@ -3577,9 +3577,9 @@ public partial class bitget : Exchange
             string? settle = ((string)(market != null && market.ContainsKey("settle") ? market["settle"] : null));
             if (isEqual((market != null && market.ContainsKey("spot") ? market["spot"] : null), true))
             {
-                object marginMode = null;
+                string? marginMode = null;
                 IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("handleProductTypeAndParams", parameters);
-                marginMode = marginModeparametersVariable[0];
+                marginMode = (string)marginModeparametersVariable[0];
                 parameters = marginModeparametersVariable[1];
                 if ((marginMode != null))
                 {
@@ -4418,11 +4418,11 @@ public partial class bitget : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = null;
-        object marginMode = null;
+        string? marginMode = null;
         string? productType = null;
         bool? uta = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchMarketLeverageTiers", parameters, "isolated");
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         IList<object> productTypeparametersVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
         productType = (string)productTypeparametersVariable[0];
@@ -4447,11 +4447,11 @@ public partial class bitget : Exchange
             request["productType"] = productType;
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             response = await this.publicMixGetV2MixMarketQueryPositionLever(this.extend(request, parameters));
-        } else if (isEqual(marginMode, "isolated"))
+        } else if (marginMode == "isolated")
         {
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             response = await this.privateMarginGetV2MarginIsolatedTierData(this.extend(request, parameters));
-        } else if (isEqual(marginMode, "cross"))
+        } else if (marginMode == "cross")
         {
             string? code = this.safeString(parameters, "code");
             if ((code == null))
@@ -6066,9 +6066,9 @@ public partial class bitget : Exchange
         {
             if (productType == "SPOT")
             {
-                object marginMode = null;
+                string? marginMode = null;
                 IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchTrades", parameters);
-                marginMode = marginModeparametersVariable[0];
+                marginMode = (string)marginModeparametersVariable[0];
                 parameters = marginModeparametersVariable[1];
                 if ((marginMode != null))
                 {
@@ -6226,9 +6226,9 @@ public partial class bitget : Exchange
             IDictionary<string, object> utaData = this.safeDict(utaResponse, "data", new Dictionary<string, object>() {});
             return ccxt.BaseExchange.ToTradingFeeInterface(this.parseTradingFee(utaData, market));
         }
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchTradingFee", parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
@@ -6281,10 +6281,10 @@ public partial class bitget : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> response = null;
-        object marginMode = null;
+        string? marginMode = null;
         string? marketType = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchTradingFees", parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTradingFees", null, parameters);
         marketType = (string)marketTypeparametersVariable[0];
@@ -6763,7 +6763,7 @@ public partial class bitget : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         string? marketType = null;
-        object marginMode = null;
+        string? marginMode = null;
         Dictionary<string, object> response = null;
         bool? uta = null;
         var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchBalance", false);
@@ -6773,7 +6773,7 @@ public partial class bitget : Exchange
         marketType = (string)marketTypeparametersVariable[0];
         parameters = marketTypeparametersVariable[1];
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchBalance", parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         if ((uta == true))
         {
@@ -6797,10 +6797,10 @@ public partial class bitget : Exchange
             parameters = productTypeparametersVariable[1];
             request["productType"] = productType;
             response = await this.privateMixGetV2MixAccountAccounts(this.extend(request, parameters));
-        } else if (isEqual(marginMode, "isolated"))
+        } else if (marginMode == "isolated")
         {
             response = await this.privateMarginGetV2MarginIsolatedAccountAssets(this.extend(request, parameters));
-        } else if (isEqual(marginMode, "cross"))
+        } else if (marginMode == "cross")
         {
             response = await this.privateMarginGetV2MarginCrossedAccountAssets(this.extend(request, parameters));
         } else if (marketType == "spot")
@@ -7598,9 +7598,9 @@ public partial class bitget : Exchange
         parameters = productTypeparametersVariable[1];
         if (productType == "SPOT")
         {
-            object marginMode = null;
+            string? marginMode = null;
             IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", parameters);
-            marginMode = marginModeparametersVariable[0];
+            marginMode = (string)marginModeparametersVariable[0];
             parameters = marginModeparametersVariable[1];
             if ((marginMode != null))
             {
@@ -7761,12 +7761,12 @@ public partial class bitget : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string? marketType = null;
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("createOrder", market, parameters);
         marketType = (string)marketTypeparametersVariable[0];
         parameters = marketTypeparametersVariable[1];
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -7967,7 +7967,7 @@ public partial class bitget : Exchange
                 {
                     marginMode = "cross";
                 }
-                string marginModeRequest = (isEqual(marginMode, "cross")) ? "crossed" : "isolated";
+                string marginModeRequest = (marginMode == "cross") ? "crossed" : "isolated";
                 request["marginMode"] = marginModeRequest;
                 object requestSide = side;
                 if ((reduceOnly == true))
@@ -8000,8 +8000,8 @@ public partial class bitget : Exchange
             string? quantity = null;
             string? planType = null;
             bool? createMarketBuyOrderRequiresPrice = true;
-            IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-            createMarketBuyOrderRequiresPrice = isTrue(createMarketBuyOrderRequiresPriceparametersVariable[0]);
+            IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparametersVariable[0];
             parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
             if (isMarketOrder && (isEqual(side, "buy")))
             {
@@ -8579,10 +8579,10 @@ public partial class bitget : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object marginMode = null;
+        string? marginMode = null;
         Dictionary<string, object> response = new Dictionary<string, object>() {};
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("cancelOrder", parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         bool? trailing = this.safeBool(parameters, "trailing");
@@ -8657,10 +8657,10 @@ public partial class bitget : Exchange
         {
             if ((marginMode != null))
             {
-                if (isEqual(marginMode, "isolated"))
+                if (marginMode == "isolated")
                 {
                     response = await this.privateMarginPostV2MarginIsolatedCancelOrder(this.extend(request, parameters));
-                } else if (isEqual(marginMode, "cross"))
+                } else if (marginMode == "cross")
                 {
                     response = await this.privateMarginPostV2MarginCrossedCancelOrder(this.extend(request, parameters));
                 }
@@ -8830,9 +8830,9 @@ public partial class bitget : Exchange
         {
             return await this.CancelUtaOrders(ids, symbol, parameters);
         }
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("cancelOrders", parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
@@ -8860,7 +8860,7 @@ public partial class bitget : Exchange
         {
             if ((marginMode != null))
             {
-                if (isEqual(marginMode, "cross"))
+                if (marginMode == "cross")
                 {
                     response = await this.privateMarginPostV2MarginCrossedBatchCancelOrder(this.extend(request, parameters));
                 } else
@@ -8935,9 +8935,9 @@ public partial class bitget : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("cancelAllOrders", parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         string? productType = null;
         IList<object> productTypeparametersVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
@@ -9249,9 +9249,9 @@ public partial class bitget : Exchange
         IDictionary<string, object> market = null;
         string? type = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchOpenOrders", parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         bool? uta = null;
         var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchOpenOrders", false);
@@ -9354,10 +9354,10 @@ public partial class bitget : Exchange
                     sinceVar = (this.milliseconds() - 7776000000);
                     request["startTime"] = sinceVar;
                 }
-                if (isEqual(marginMode, "isolated"))
+                if (marginMode == "isolated")
                 {
                     response = await this.privateMarginGetV2MarginIsolatedOpenOrders(this.extend(request, parameters));
-                } else if (isEqual(marginMode, "cross"))
+                } else if (marginMode == "cross")
                 {
                     response = await this.privateMarginGetV2MarginCrossedOpenOrders(this.extend(request, parameters));
                 }
@@ -9788,9 +9788,9 @@ public partial class bitget : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, parameters);
         marketType = (string)marketTypeparametersVariable[0];
         parameters = marketTypeparametersVariable[1];
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchCanceledAndClosedOrders", parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate");
@@ -9845,10 +9845,10 @@ public partial class bitget : Exchange
                     sinceVar = (now - 7776000000);
                     request["startTime"] = sinceVar;
                 }
-                if (isEqual(marginMode, "isolated"))
+                if (marginMode == "isolated")
                 {
                     response = await this.privateMarginGetV2MarginIsolatedHistoryOrders(this.extend(request, parameters));
-                } else if (isEqual(marginMode, "cross"))
+                } else if (marginMode == "cross")
                 {
                     response = await this.privateMarginGetV2MarginCrossedHistoryOrders(this.extend(request, parameters));
                 }
@@ -10112,9 +10112,9 @@ public partial class bitget : Exchange
         parameters = productTypeparametersVariable[1];
         if (productType == "SPOT")
         {
-            object marginMode = null;
+            string? marginMode = null;
             IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchCanceledAndClosedOrders", parameters);
-            marginMode = marginModeparametersVariable[0];
+            marginMode = (string)marginModeparametersVariable[0];
             parameters = marginModeparametersVariable[1];
             if ((marginMode != null))
             {
@@ -10346,9 +10346,9 @@ public partial class bitget : Exchange
                 response = await this.privateUtaGetV3AccountFundingFinancialRecords(this.extend(request, parameters));
             } else
             {
-                object marginMode = null;
+                string? marginMode = null;
                 IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchLedger", parameters);
-                marginMode = marginModeparametersVariable[0];
+                marginMode = (string)marginModeparametersVariable[0];
                 parameters = marginModeparametersVariable[1];
                 if (marketType == "spot")
                 {
@@ -10787,12 +10787,12 @@ public partial class bitget : Exchange
             request["limit"] = limit;
         }
         bool? paginate = false;
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
         paginate = isTrue(paginateparametersVariable[0]);
         parameters = paginateparametersVariable[1];
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchMyTrades", parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         if ((paginate == true))
         {
@@ -10831,10 +10831,10 @@ public partial class bitget : Exchange
                     {
                         request["startTime"] = (this.milliseconds() - 7776000000);
                     }
-                    if (isEqual(marginMode, "isolated"))
+                    if (marginMode == "isolated")
                     {
                         response = await this.privateMarginGetV2MarginIsolatedFills(this.extend(request, parameters));
-                    } else if (isEqual(marginMode, "cross"))
+                    } else if (marginMode == "cross")
                     {
                         response = await this.privateMarginGetV2MarginCrossedFills(this.extend(request, parameters));
                     }
@@ -11149,15 +11149,15 @@ public partial class bitget : Exchange
         {
             return ccxt.BaseExchange.ToPositionList(await this.fetchPaginatedCallCursor("fetchPositions", null, null, null, parameters, "endId", "idLessThan"));
         }
-        object method = null;
+        string? method = null;
         bool? useHistoryEndpoint = this.safeBool(parameters, "useHistoryEndpoint", false);
         if ((useHistoryEndpoint == true))
         {
             method = "privateMixGetV2MixPositionHistoryPosition";
         } else
         {
-            IList<object> methodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchPositions", "method", "privateMixGetV2MixPositionAllPosition");
-            method = methodparametersVariable[0];
+            IList<object> methodparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchPositions", "method", "privateMixGetV2MixPositionAllPosition");
+            method = (string)methodparametersVariable[0];
             parameters = methodparametersVariable[1];
         }
         IDictionary<string, object> market = null;
@@ -11185,7 +11185,7 @@ public partial class bitget : Exchange
         {
             request["category"] = productType;
             response = await this.privateUtaGetV3PositionCurrentPosition(this.extend(request, parameters));
-        } else if (isEqual(method, "privateMixGetV2MixPositionAllPosition"))
+        } else if (method == "privateMixGetV2MixPositionAllPosition")
         {
             string? marginCoin = this.safeString(parameters, "marginCoin", "USDT");
             if ((market != null))
@@ -11736,14 +11736,14 @@ public partial class bitget : Exchange
         } else
         {
             request["productType"] = productType;
-            object method = null;
-            IList<object> methodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRate", "method", "publicMixGetV2MixMarketCurrentFundRate");
-            method = methodparametersVariable[0];
+            string? method = null;
+            IList<object> methodparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchFundingRate", "method", "publicMixGetV2MixMarketCurrentFundRate");
+            method = (string)methodparametersVariable[0];
             parameters = methodparametersVariable[1];
-            if (isEqual(method, "publicMixGetV2MixMarketCurrentFundRate"))
+            if (method == "publicMixGetV2MixMarketCurrentFundRate")
             {
                 response = await this.publicMixGetV2MixMarketCurrentFundRate(this.extend(request, parameters));
-            } else if (isEqual(method, "publicMixGetV2MixMarketFundingTime"))
+            } else if (method == "publicMixGetV2MixMarketFundingTime")
             {
                 response = await this.publicMixGetV2MixMarketFundingTime(this.extend(request, parameters));
             }
@@ -11782,13 +11782,13 @@ public partial class bitget : Exchange
         IList<object> productTypeparametersVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
         productType = (string)productTypeparametersVariable[0];
         parameters = productTypeparametersVariable[1];
-        object method = "publicMixGetV2MixMarketTickers";
-        IList<object> methodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRates", "method", method);
-        method = methodparametersVariable[0];
+        string? method = "publicMixGetV2MixMarketTickers";
+        IList<object> methodparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchFundingRates", "method", method);
+        method = (string)methodparametersVariable[0];
         parameters = methodparametersVariable[1];
         Dictionary<string, object> response = null;
         request["productType"] = productType;
-        if (isEqual(method, "publicMixGetV2MixMarketTickers"))
+        if (method == "publicMixGetV2MixMarketTickers")
         {
             // {
             //     "code": "00000",
@@ -11823,7 +11823,7 @@ public partial class bitget : Exchange
             //     ]
             // }
             response = await this.publicMixGetV2MixMarketTickers(this.extend(request, parameters));
-        } else if (isEqual(method, "publicMixGetV2MixMarketCurrentFundRate"))
+        } else if (method == "publicMixGetV2MixMarketCurrentFundRate")
         {
             //
             //     {
@@ -12336,9 +12336,9 @@ public partial class bitget : Exchange
         {
             if (productType == "SPOT")
             {
-                object marginMode = null;
+                string? marginMode = null;
                 IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("setLeverage", parameters);
-                marginMode = marginModeparametersVariable[0];
+                marginMode = (string)marginModeparametersVariable[0];
                 parameters = marginModeparametersVariable[1];
                 if ((marginMode != null))
                 {
@@ -13149,11 +13149,11 @@ public partial class bitget : Exchange
             request["limit"] = limit;
         }
         Dictionary<string, object> response = null;
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchMyLiquidations", parameters, "cross");
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
-        if (isEqual(marginMode, "isolated"))
+        if (marginMode == "isolated")
         {
             if ((symbol == null))
             {
@@ -13161,7 +13161,7 @@ public partial class bitget : Exchange
             }
             request["symbol"] = this.safeString(market, "id");
             response = await this.privateMarginGetV2MarginIsolatedLiquidationHistory(this.extend(request, parameters));
-        } else if (isEqual(marginMode, "cross"))
+        } else if (marginMode == "cross")
         {
             response = await this.privateMarginGetV2MarginCrossedLiquidationHistory(this.extend(request, parameters));
         }
@@ -13572,11 +13572,11 @@ public partial class bitget : Exchange
             request["limit"] = limit;
         }
         Dictionary<string, object> response = null;
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchBorrowInterest", parameters, "cross");
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
-        if (isEqual(marginMode, "isolated"))
+        if (marginMode == "isolated")
         {
             if ((symbol == null))
             {
@@ -13584,7 +13584,7 @@ public partial class bitget : Exchange
             }
             request["symbol"] = this.safeString(market, "id");
             response = await this.privateMarginGetV2MarginIsolatedInterestHistory(this.extend(request, parameters));
-        } else if (isEqual(marginMode, "cross"))
+        } else if (marginMode == "cross")
         {
             response = await this.privateMarginGetV2MarginCrossedInterestHistory(this.extend(request, parameters));
         }

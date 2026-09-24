@@ -1990,8 +1990,8 @@ public class Xt extends XtApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -2880,9 +2880,9 @@ public class Xt extends XtApi
                 }
             } else
             {
-                Object marginMode = null;
+                String marginMode = null;
                 List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchMyTrades", parameters);
-                marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+                marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
                 String marginOrSpotRequest = (((!java.util.Objects.equals(marginMode, null)))) ? "LEVER" : "SPOT";
                 ((Map<String, Object>)request).put("bizType", marginOrSpotRequest);
@@ -3489,9 +3489,9 @@ public class Xt extends XtApi
                 put( "type", ((String)finalType).toUpperCase() );
             }};
             String timeInForce = null;
-            Object marginMode = null;
+            String marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
-            marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+            marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             String marginOrSpotRequest = (((!java.util.Objects.equals(marginMode, null)))) ? "LEVER" : "SPOT";
             ((Map<String, Object>)request).put("bizType", marginOrSpotRequest);
@@ -3642,9 +3642,9 @@ public class Xt extends XtApi
             {
                 ((Map<String, Object>)request).put("orderSide", ((String)side).toUpperCase());
                 ((Map<String, Object>)request).put("triggerPriceType", this.safeString(parameters, "triggerPriceType", "LATEST_PRICE"));
-                Object marginMode = null;
+                String marginMode = null;
                 List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters, "cross");
-                marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+                marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
                 ((Map<String, Object>)request).put("positionType", (((java.util.Objects.equals(marginMode, "isolated")))) ? "ISOLATED" : "CROSSED");
                 if (!java.util.Objects.equals(trailingPercent, null))
@@ -4074,9 +4074,9 @@ public class Xt extends XtApi
                 response = (this.privateLinearGetFutureTradeV1OrderListHistory(this.extend(request, parameters))).join();
             } else
             {
-                Object marginMode = null;
+                String marginMode = null;
                 List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrders", parameters);
-                marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+                marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
                 String marginOrSpotRequest = (((!java.util.Objects.equals(marginMode, null)))) ? "LEVER" : "SPOT";
                 ((Map<String, Object>)request).put("bizType", marginOrSpotRequest);
@@ -4369,9 +4369,9 @@ public class Xt extends XtApi
                 }
             } else
             {
-                Object marginMode = null;
+                String marginMode = null;
                 List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrdersByStatus", parameters);
-                marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+                marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
                 String marginOrSpotRequest = (((!java.util.Objects.equals(marginMode, null)))) ? "LEVER" : "SPOT";
                 ((Map<String, Object>)request).put("bizType", marginOrSpotRequest);
@@ -4995,9 +4995,9 @@ public class Xt extends XtApi
                 response = (this.privateLinearPostFutureTradeV1OrderCancelAll(this.extend(request, parameters))).join();
             } else
             {
-                Object marginMode = null;
+                String marginMode = null;
                 List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("cancelAllOrders", parameters);
-                marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+                marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
                 String marginOrSpotRequest = (((!java.util.Objects.equals(marginMode, null)))) ? "LEVER" : "SPOT";
                 ((Map<String, Object>)request).put("bizType", marginOrSpotRequest);
@@ -8041,8 +8041,6 @@ final Map<String, Object> finalMarket = market;
     {
         return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new ArrayList<Object>(Arrays.asList()), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null);
     }
-    //     }
-    //
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         return this.sign(path, api, method, parameters, headers, (Object) (body));

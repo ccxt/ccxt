@@ -2053,9 +2053,9 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             }
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
-            Object marginMode = null;
+            String marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("watchPositions", parameters, "cross");
-            marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+            marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             Boolean linear = (java.util.Objects.equals(subType, "linear"));
             Boolean swap = (java.util.Objects.equals(type, "swap"));
@@ -2076,7 +2076,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 channel = this.safeString(channelAndMessageHashAndParams, 0);
                 parameters = (Map<String, Object>) this.safeDict(channelAndMessageHashAndParams, 2, new HashMap<String, Object>() {{}});
             }
-            final Object finalMarginMode = marginMode;
+            final String finalMarginMode = marginMode;
             Map<String, Object> subscriptionParams = new HashMap<String, Object>() {{
                 put( "isV5", isV5Linear );
                 put( "margin", finalMarginMode );

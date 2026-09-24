@@ -1830,7 +1830,7 @@ class digifinex(Exchange, ImplicitAPI):
             # limit orders require the amount in the base currency, market orders require the amount in the quote currency
             quantity = None
             createMarketBuyOrderRequiresPrice = True
-            createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrderRequest', 'createMarketBuyOrderRequiresPrice', True)
+            createMarketBuyOrderRequiresPrice, params = self.handle_option_bool_and_params(params, 'createOrderRequest', 'createMarketBuyOrderRequiresPrice', True)
             if isMarketOrder and (side == 'buy'):
                 cost = self.safe_number(params, 'cost')
                 params = self.omit(params, 'cost')
@@ -3902,7 +3902,7 @@ class digifinex(Exchange, ImplicitAPI):
             })
         return tiers
 
-    def handle_margin_mode_and_params(self, methodName: str, params: dict = {}, defaultValue: object = None) -> list:
+    def handle_margin_mode_and_params(self, methodName: str, params: dict = {}, defaultValue: Str = None) -> list:
         """
  @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'

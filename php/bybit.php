@@ -4230,7 +4230,7 @@ class bybit extends Exchange {
             $defaultMethod = 'privatePostV5OrderCreate';
         }
         $method = null;
-        list($method, $params) = $this->handle_option_and_params($params, 'createOrder', 'method', $defaultMethod);
+        list($method, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'method', $defaultMethod);
         if ($method === 'privatePostV5PositionTradingStop') {
             $response = $this->privatePostV5PositionTradingStop($orderRequest);
         } else {
@@ -4313,7 +4313,7 @@ class bybit extends Exchange {
             $defaultMethod = 'privatePostV5OrderCreate';
         }
         $method = null;
-        list($method, $params) = $this->handle_option_and_params($params, 'createOrder', 'method', $defaultMethod);
+        list($method, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'method', $defaultMethod);
         $endpointIsTradingStop = $method === 'privatePostV5PositionTradingStop';
         if (($price === null) && ($lowerCaseType === 'limit') && !$endpointIsTradingStop) {
             throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument for limit orders');
@@ -8131,7 +8131,7 @@ class bybit extends Exchange {
             $this->load_markets();
         }
         $type = null;
-        list($type, $params) = $this->handle_option_and_params($params, 'fetchTradingFees', 'type', 'future');
+        list($type, $params) = $this->handle_option_string_and_params($params, 'fetchTradingFees', 'type', 'future');
         if ($type === 'spot') {
             throw new NotSupported($this->id . ' fetchTradingFees() is not supported for spot market');
         }
@@ -9378,7 +9378,7 @@ class bybit extends Exchange {
         list($enableUnifiedMargin, $enableUnifiedAccount) = $this->is_unified_enabled();
         $isUnifiedAccount = ($enableUnifiedMargin === true) || ($enableUnifiedAccount === true);
         $accountTypeDefault = $isUnifiedAccount ? 'eb_convert_uta' : 'eb_convert_spot';
-        list($accountType, $params) = $this->handle_option_and_params($params, 'fetchConvertCurrencies', 'accountType', $accountTypeDefault);
+        list($accountType, $params) = $this->handle_option_string_and_params($params, 'fetchConvertCurrencies', 'accountType', $accountTypeDefault);
         $request = array(
             'accountType' => $accountType,
         );
@@ -9480,7 +9480,7 @@ class bybit extends Exchange {
         list($enableUnifiedMargin, $enableUnifiedAccount) = $this->is_unified_enabled();
         $isUnifiedAccount = ($enableUnifiedMargin === true) || ($enableUnifiedAccount === true);
         $accountTypeDefault = $isUnifiedAccount ? 'eb_convert_uta' : 'eb_convert_spot';
-        list($accountType, $params) = $this->handle_option_and_params($params, 'fetchConvertQuote', 'accountType', $accountTypeDefault);
+        list($accountType, $params) = $this->handle_option_string_and_params($params, 'fetchConvertQuote', 'accountType', $accountTypeDefault);
         $request = array(
             'fromCoin' => $fromCode,
             'toCoin' => $toCode,
@@ -9572,7 +9572,7 @@ class bybit extends Exchange {
         list($enableUnifiedMargin, $enableUnifiedAccount) = $this->is_unified_enabled();
         $isUnifiedAccount = ($enableUnifiedMargin === true) || ($enableUnifiedAccount === true);
         $accountTypeDefault = $isUnifiedAccount ? 'eb_convert_uta' : 'eb_convert_spot';
-        list($accountType, $params) = $this->handle_option_and_params($params, 'fetchConvertTrade', 'accountType', $accountTypeDefault);
+        list($accountType, $params) = $this->handle_option_string_and_params($params, 'fetchConvertTrade', 'accountType', $accountTypeDefault);
         $request = array(
             'quoteTxId' => $id,
             'accountType' => $accountType,

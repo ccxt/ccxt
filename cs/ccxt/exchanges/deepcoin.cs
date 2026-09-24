@@ -827,8 +827,8 @@ public partial class deepcoin : Exchange
         }
         int maxLimit = 300;
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -1217,8 +1217,8 @@ public partial class deepcoin : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchDeposits", "paginate", false);
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -1275,8 +1275,8 @@ public partial class deepcoin : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate", false);
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -1932,14 +1932,14 @@ public partial class deepcoin : Exchange
         } else
         {
             request["sz"] = this.amountToPrecision(symbol, amount);
-            object marginMode = "cross";
+            string? marginMode = "cross";
             IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", parameters, marginMode);
-            marginMode = marginModeparametersVariable[0];
+            marginMode = (string)marginModeparametersVariable[0];
             parameters = marginModeparametersVariable[1];
             request["tdMode"] = marginMode;
-            object mrgPosition = "merge";
-            IList<object> mrgPositionparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "mrgPosition", mrgPosition);
-            mrgPosition = mrgPositionparametersVariable[0];
+            string? mrgPosition = "merge";
+            IList<object> mrgPositionparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "mrgPosition", mrgPosition);
+            mrgPosition = (string)mrgPositionparametersVariable[0];
             parameters = mrgPositionparametersVariable[1];
             request["mrgPosition"] = mrgPosition;
             string? posSide = null;
@@ -2021,12 +2021,12 @@ public partial class deepcoin : Exchange
         {
             throw new ArgumentsRequired ((this.id + " createOrder() requires a price argument for limit trigger orders")) ;
         }
-        object marginMode = "cross";
+        string? marginMode = "cross";
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", parameters, marginMode);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         int isCrossMargin = 1;
-        if (isEqual(marginMode, "isolated"))
+        if (marginMode == "isolated")
         {
             isCrossMargin = 0;
         }
@@ -2056,9 +2056,9 @@ public partial class deepcoin : Exchange
                 }
             }
         }
-        object mrgPosition = "merge";
-        IList<object> mrgPositionparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "mrgPosition", mrgPosition);
-        mrgPosition = mrgPositionparametersVariable[0];
+        string? mrgPosition = "merge";
+        IList<object> mrgPositionparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "mrgPosition", mrgPosition);
+        mrgPosition = (string)mrgPositionparametersVariable[0];
         parameters = mrgPositionparametersVariable[1];
         request["mrgPosition"] = mrgPosition;
         return this.extend(request, parameters);
@@ -2658,11 +2658,11 @@ public partial class deepcoin : Exchange
                 encodedMarginMode = 0;
             }
         }
-        object merged = true;
-        IList<object> mergedparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelAllOrders", "merged", merged);
-        merged = mergedparametersVariable[0];
+        bool? merged = true;
+        IList<object> mergedparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "cancelAllOrders", "merged", merged);
+        merged = (bool?)mergedparametersVariable[0];
         parameters = mergedparametersVariable[1];
-        int isMergedMode = isTrue(merged) ? 1 : 0;
+        int isMergedMode = merged == true ? 1 : 0;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "InstrumentID", (market.ContainsKey("id") ? market["id"] : null) },
             { "ProductGroup", productGroup },
@@ -3122,19 +3122,19 @@ public partial class deepcoin : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object marginMode = "cross";
+        string? marginMode = "cross";
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("setLeverage", parameters, marginMode);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
-        if ((!isEqual(marginMode, "cross")) && (!isEqual(marginMode, "isolated")))
+        if ((marginMode != "cross") && (marginMode != "isolated"))
         {
             throw new BadRequest ((this.id + " setLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
         }
-        object mrgPosition = "merge";
-        IList<object> mrgPositionparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "setLeverage", "mrgPosition", mrgPosition);
-        mrgPosition = mrgPositionparametersVariable[0];
+        string? mrgPosition = "merge";
+        IList<object> mrgPositionparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "setLeverage", "mrgPosition", mrgPosition);
+        mrgPosition = (string)mrgPositionparametersVariable[0];
         parameters = mrgPositionparametersVariable[1];
-        if (!isEqual(mrgPosition, "merge") && !isEqual(mrgPosition, "split"))
+        if (mrgPosition != "merge" && mrgPosition != "split")
         {
             throw new BadRequest ((this.id + " setLeverage() mrgPosition parameter must be either merge or split")) ;
         }

@@ -2087,7 +2087,7 @@ class bitrue extends Exchange {
             }
             $request['contractName'] = $market['id'];
             $createMarketBuyOrderRequiresPrice = true;
-            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_bool_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
             if ($isMarket && ($side === 'buy') && $createMarketBuyOrderRequiresPrice) {
                 $cost = $this->safe_string($params, 'cost');
                 $params = $this->omit($params, 'cost');

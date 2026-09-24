@@ -5097,7 +5097,7 @@ func (this *Aster) fetchAccountPositionsBody(ch chan any, optionalArgs ...any) a
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.FapiPrivateGetV4Account(params)).Raw))
 	var filterClosed any = nil
-	var filterClosedparamsVariable []any = this.HandleOptionAndParams(params, "fetchAccountPositions", "filterClosed", false)
+	var filterClosedparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchAccountPositions", "filterClosed", false)
 	filterClosed = GetValue(filterClosedparamsVariable, 0)
 	params = MapTyped(GetValue(filterClosedparamsVariable, 1))
 	var result any = this.ParseAccountPositions(response, filterClosed)

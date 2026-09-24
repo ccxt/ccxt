@@ -1255,7 +1255,7 @@ class cex(Exchange, ImplicitAPI):
             'amountCcy1': self.amount_to_precision(symbol, amount),
         }
         timeInForce = None
-        timeInForce, params = self.handle_option_and_params(params, 'createOrder', 'timeInForce', 'GTC')
+        timeInForce, params = self.handle_option_string_and_params(params, 'createOrder', 'timeInForce', 'GTC')
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
             request['timeInForce'] = timeInForce

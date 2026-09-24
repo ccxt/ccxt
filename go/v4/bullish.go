@@ -1941,7 +1941,7 @@ func (this *Bullish) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["_pageSize"] = this.GetClosestLimit(limit)
 	}
 	var method any = "privateGetV2HistoryOrders"
-	var methodparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "method", method)
+	var methodparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchOrders", "method", method)
 	method = GetValue(methodparamsVariable, 0)
 	params = GetValue(methodparamsVariable, 1)
 	var response any = []any{}
@@ -2327,7 +2327,7 @@ func (this *Bullish) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		typeVar = "POST_ONLY"
 	}
 	var timeInForce any = "GTC" // is mandatory
-	var timeInForceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "timeInForce", timeInForce)
+	var timeInForceparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "timeInForce", timeInForce)
 	timeInForce = GetValue(timeInForceparamsVariable, 0)
 	params = MapTyped(GetValue(timeInForceparamsVariable, 1))
 	AddElementToObject(params, "timeInForce", ToUpper(timeInForce))

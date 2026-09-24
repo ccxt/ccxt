@@ -1524,7 +1524,7 @@ export default class bullish extends Exchange {
             request['_pageSize'] = this.getClosestLimit (limit);
         }
         let method = 'privateGetV2HistoryOrders';
-        [ method, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'method', method);
+        [ method, params ] = this.handleOptionStringAndParams (params, 'fetchOrders', 'method', method);
         let response: Dict | List = [];
         if (method === 'privateGetV2Orders') {
             //
@@ -1784,7 +1784,7 @@ export default class bullish extends Exchange {
             type = 'POST_ONLY';
         }
         let timeInForce = 'GTC'; // is mandatory
-        [ timeInForce, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce', timeInForce);
+        [ timeInForce, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'timeInForce', timeInForce);
         params['timeInForce'] = timeInForce.toUpperCase ();
         if (!isMarketOrder) {
             request['price'] = this.priceToPrecision (symbol, price);

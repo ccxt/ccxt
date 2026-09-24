@@ -857,7 +857,7 @@ class dydx extends Exchange {
         $userAux = null;
         list($userAux, $params) = $this->handle_option_and_params($params, $methodName, 'user');
         $user = $userAux;
-        list($user, $params) = $this->handle_option_and_params($params, $methodName, 'address', $userAux);
+        list($user, $params) = $this->handle_option_string_and_params($params, $methodName, 'address', $userAux);
         if (($user !== null) && ($user !== '')) {
             return array( $user, $params );
         }
@@ -992,7 +992,7 @@ class dydx extends Exchange {
         $userAddress = null;
         $subAccountNumber = null;
         list($userAddress, $params) = $this->handle_public_address('fetchOrders', $params);
-        list($subAccountNumber, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'subAccountNumber', '0');
+        list($subAccountNumber, $params) = $this->handle_option_string_and_params($params, 'fetchOrders', 'subAccountNumber', '0');
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -1167,7 +1167,7 @@ class dydx extends Exchange {
         $userAddress = null;
         $subAccountNumber = null;
         list($userAddress, $params) = $this->handle_public_address('fetchPositions', $params);
-        list($subAccountNumber, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'subAccountNumber', '0');
+        list($subAccountNumber, $params) = $this->handle_option_string_and_params($params, 'fetchPositions', 'subAccountNumber', '0');
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -2275,7 +2275,7 @@ class dydx extends Exchange {
         $userAddress = null;
         $subAccountNumber = null;
         list($userAddress, $params) = $this->handle_public_address($methodName, $params);
-        list($subAccountNumber, $params) = $this->handle_option_and_params($params, $methodName, 'subAccountNumber', '0');
+        list($subAccountNumber, $params) = $this->handle_option_string_and_params($params, $methodName, 'subAccountNumber', '0');
         $request = array(
             'address' => $userAddress,
             'subaccountNumber' => $subAccountNumber,

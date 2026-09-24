@@ -1059,9 +1059,9 @@ func (this *Coinbaseinternational) createDepositAddressBody(ch chan any, code an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var method any = nil
-	var methodparamsVariable []any = this.HandleOptionAndParams(params, "createDepositAddress", "method", "v1PrivatePostTransfersAddress")
-	method = GetValue(methodparamsVariable, 0)
+	var method *string = nil
+	var methodparamsVariable []any = this.HandleOptionStringAndParams(params, "createDepositAddress", "method", "v1PrivatePostTransfersAddress")
+	method = SafeStringPtr(GetValue(methodparamsVariable, 0))
 	params = GetValue(methodparamsVariable, 1)
 	var portfolio any = nil
 	var portfolioparamsVariable []any = ListTyped(PanicOnError((<-this.HandlePortfolioAndParamsAsync("createDepositAddress", params))))
@@ -1070,7 +1070,7 @@ func (this *Coinbaseinternational) createDepositAddressBody(ch chan any, code an
 	var request map[string]any = map[string]any{
 		"portfolio": portfolio,
 	}
-	if IsEqual(method, "v1PrivatePostTransfersAddress") {
+	if method != nil && *method == "v1PrivatePostTransfersAddress" {
 		var currency map[string]any = MapTyped(this.Currency(code))
 		request["asset"] = currency["id"]
 		var networkId any = nil
@@ -1080,7 +1080,7 @@ func (this *Coinbaseinternational) createDepositAddressBody(ch chan any, code an
 		request["network_arn_id"] = networkId
 	}
 	var response map[string]any = nil
-	if IsEqual(method, "v1PrivatePostTransfersCreateCounterpartyId") {
+	if method != nil && *method == "v1PrivatePostTransfersCreateCounterpartyId" {
 
 		response = MapTyped(PanicOnError((<-this.V1PrivatePostTransfersCreateCounterpartyId(this.Extend(request, params))).Raw))
 	} else {
@@ -3031,9 +3031,9 @@ func (this *Coinbaseinternational) withdrawBody(ch chan any, code any, amount an
 	var portfolioparamsVariable []any = ListTyped(PanicOnError((<-this.HandlePortfolioAndParamsAsync("withdraw", params))))
 	portfolio = GetValue(portfolioparamsVariable, 0)
 	params = GetValue(portfolioparamsVariable, 1)
-	var method any = nil
-	var methodparamsVariable []any = this.HandleOptionAndParams(params, "withdraw", "method", "v1PrivatePostTransfersWithdraw")
-	method = GetValue(methodparamsVariable, 0)
+	var method *string = nil
+	var methodparamsVariable []any = this.HandleOptionStringAndParams(params, "withdraw", "method", "v1PrivatePostTransfersWithdraw")
+	method = SafeStringPtr(GetValue(methodparamsVariable, 0))
 	params = GetValue(methodparamsVariable, 1)
 	var networkId any = nil
 	var networkIdparamsVariable []any = ListTyped(PanicOnError((<-this.HandleNetworkIdAndParamsAsync(code, "withdraw", params))))
@@ -3050,7 +3050,7 @@ func (this *Coinbaseinternational) withdrawBody(ch chan any, code any, amount an
 		"nonce":          this.Nonce(),
 	}
 	var response map[string]any = nil
-	if IsEqual(method, "v1PrivatePostTransfersWithdrawCounterparty") {
+	if method != nil && *method == "v1PrivatePostTransfersWithdrawCounterparty" {
 
 		response = MapTyped(PanicOnError((<-this.V1PrivatePostTransfersWithdrawCounterparty(this.Extend(request, params))).Raw))
 	} else {

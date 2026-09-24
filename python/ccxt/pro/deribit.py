@@ -547,12 +547,12 @@ class deribit(ccxt.async_support.deribit):
             await self.authenticate()
         descriptor = ''
         useDepthEndpoint = None  # for more info, see comment in .options
-        useDepthEndpoint, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'useDepthEndpoint', False)
+        useDepthEndpoint, params = self.handle_option_bool_and_params(params, 'watchOrderBookForSymbols', 'useDepthEndpoint', False)
         if useDepthEndpoint:
             depth = None
             depth, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'depth', '20')
             group = None
-            group, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'group', 'none')
+            group, params = self.handle_option_string_and_params(params, 'watchOrderBookForSymbols', 'group', 'none')
             descriptor = group + '.' + depth + '.' + interval
         else:
             descriptor = interval

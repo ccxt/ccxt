@@ -1763,8 +1763,8 @@ public class Bingx extends BingxApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Integer maxLimit = (((java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true)))) ? 1000 : 1440;
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -3455,8 +3455,8 @@ public class Bingx extends BingxApi
             }
             Map<String, Object> response = null;
             Boolean standard = null;
-            List<Object> standardparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchBalance", "standard", false);
-            standard = Helpers.isTrue(((List<Object>) standardparametersVariable).get(0));
+            List<Object> standardparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchBalance", "standard", false);
+            standard = (Boolean) ((List<Object>) standardparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) standardparametersVariable).get(1);
             String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchBalance", null, parameters);
@@ -3465,7 +3465,7 @@ public class Bingx extends BingxApi
             List<Object> marketTypemarketTypeQueryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             String marketType = (String) ((List<Object>) marketTypemarketTypeQueryVariable).get(0);
             Map<String, Object> marketTypeQuery = (Map<String, Object>) ((List<Object>) marketTypemarketTypeQueryVariable).get(1);
-            if (Helpers.isTrue(standard))
+            if (Boolean.TRUE.equals(standard))
             {
                 response = (this.contractV1PrivateGetBalance(marketTypeQuery)).join();
             } else if ((java.util.Objects.equals(marketType, "funding")) || (java.util.Objects.equals(marketType, "fund")))
@@ -3758,11 +3758,11 @@ public class Bingx extends BingxApi
             }
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Boolean standard = null;
-            List<Object> standardparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositions", "standard", false);
-            standard = Helpers.isTrue(((List<Object>) standardparametersVariable).get(0));
+            List<Object> standardparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchPositions", "standard", false);
+            standard = (Boolean) ((List<Object>) standardparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) standardparametersVariable).get(1);
             Map<String, Object> response = null;
-            if (Helpers.isTrue(standard))
+            if (Boolean.TRUE.equals(standard))
             {
                 response = (this.contractV1PrivateGetAllPosition(parameters)).join();
             } else
@@ -6272,10 +6272,10 @@ public class Bingx extends BingxApi
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchCanceledAndClosedOrders", market, parameters);
             subType = (String) ((List<Object>) subTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
-            List<Object> standardparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "standard", false);
-            standard = Helpers.isTrue(((List<Object>) standardparametersVariable).get(0));
+            List<Object> standardparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchCanceledAndClosedOrders", "standard", false);
+            standard = (Boolean) ((List<Object>) standardparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) standardparametersVariable).get(1);
-            if (Helpers.isTrue(standard))
+            if (Boolean.TRUE.equals(standard))
             {
                 response = (this.contractV1PrivateGetAllOrders(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(type, "spot"))
@@ -6493,8 +6493,8 @@ public class Bingx extends BingxApi
             }
             Integer maxLimit = 100;
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "paginate", false);
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {

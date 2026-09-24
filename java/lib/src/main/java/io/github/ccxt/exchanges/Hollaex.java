@@ -1216,10 +1216,10 @@ public class Hollaex extends HollaexApi
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "resolution", Hollaex.this.safeString(Hollaex.this.timeframes, timeframe, timeframe) );
             }};
-            Object paginate = false;
+            Boolean paginate = false;
             Integer maxLimit = 500;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", paginate);
-            paginate = ((List<Object>) paginateparametersVariable).get(0);
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", paginate);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {

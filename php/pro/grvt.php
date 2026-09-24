@@ -181,7 +181,7 @@ class grvt extends \ccxt\async\grvt {
             throw new ArgumentsRequired($this->id . ' watchTickers requires a $symbols argument');
         }
         $channel = null;
-        list($channel, $params) = $this->handle_option_and_params($params, 'watchTickers', 'channel', 'v1.ticker.s');
+        list($channel, $params) = $this->handle_option_string_and_params($params, 'watchTickers', 'channel', 'v1.ticker.s');
         $interval = 500;
         list($interval, $params) = $this->handle_option_and_params($params, 'watchTickers', 'interval', $interval);
         if ($this->markets === null) {
@@ -566,7 +566,7 @@ class grvt extends \ccxt\async\grvt {
             Async\await($this->load_markets());
         }
         $channel = null;
-        list($channel, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'channel', 'v1.book.d');
+        list($channel, $params) = $this->handle_option_string_and_params($params, 'watchOrderBook', 'channel', 'v1.book.d');
         $isSnapshot = $channel === 'v1.book.s';
         $symbolsLength = count($symbols);
         if ($symbolsLength === 0) {

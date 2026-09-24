@@ -1273,9 +1273,9 @@ func (this *Btse) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		//
 		response = this.SafeList(walletResponse, "data", []any{})
 	} else {
-		var wallet any = nil
-		var walletparamsVariable []any = this.HandleOptionAndParams(params, "fetchBalance", "wallet", "CROSS@")
-		wallet = GetValue(walletparamsVariable, 0)
+		var wallet *string = nil
+		var walletparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchBalance", "wallet", "CROSS@")
+		wallet = SafeStringPtr(GetValue(walletparamsVariable, 0))
 		params = MapTyped(GetValue(walletparamsVariable, 1))
 		var request map[string]any = map[string]any{
 			"wallet": wallet,
@@ -2430,7 +2430,7 @@ func (this *Btse) createSpotOrderBody(ch chan any, symbol any, typeVar any, side
 	if needsQuoteSize {
 		var quoteAmount any = nil
 		var createMarketBuyOrderRequiresPrice bool = true
-		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
+		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		createMarketBuyOrderRequiresPrice = GetValueBool(createMarketBuyOrderRequiresPriceparamsVariable, 0, false)
 		params = MapTyped(GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1))
 		var cost *string = this.SafeString(params, "cost")
@@ -2624,11 +2624,11 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol any, typeVar any, 
 	// if positionMode is provided, we will get it from params and send it as is
 	if positionMode == nil {
 		var hedged any = false
-		var hedgedparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "hedged", hedged)
+		var hedgedparamsVariable []any = this.HandleOptionBoolAndParams(params, "createOrder", "hedged", hedged)
 		hedged = GetValue(hedgedparamsVariable, 0)
 		params = MapTyped(GetValue(hedgedparamsVariable, 1))
 		var marginMode any = "cross"
-		var marginModeparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "marginMode", marginMode)
+		var marginModeparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "marginMode", marginMode)
 		marginMode = GetValue(marginModeparamsVariable, 0)
 		params = MapTyped(GetValue(marginModeparamsVariable, 1))
 		if IsEqual(marginMode, "isolated") {
@@ -4394,7 +4394,7 @@ func (this *Btse) closePositionBody(ch chan any, symbol any, optionalArgs ...any
 		"symbol": this.FuturesRequestId(market),
 	}
 	var typeVar any = "market"
-	var typeVarparamsVariable []any = this.HandleOptionAndParams(params, "closePosition", "type", typeVar)
+	var typeVarparamsVariable []any = this.HandleOptionStringAndParams(params, "closePosition", "type", typeVar)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	typeVar = ToUpper(typeVar)
@@ -4538,7 +4538,7 @@ func (this *Btse) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("setLeverage", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
-	if !IsEqual(marginMode, nil) {
+	if marginMode != nil {
 		request["marginMode"] = ToUpper(marginMode)
 	}
 

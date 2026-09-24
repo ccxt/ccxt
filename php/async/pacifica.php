@@ -1297,7 +1297,7 @@ class pacifica extends Exchange {
         }
         $market = $this->market($symbol);
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $defaultMaxLimit));
         }
@@ -1447,7 +1447,7 @@ class pacifica extends Exchange {
             $market = $this->market($symbol);
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         $userAddress = null;
         list($userAddress, $params) = $this->handle_origin_and_single_address('fetchMyTrades', $params);
         $defaultLimit = 100;  // Default max limit
@@ -2200,7 +2200,7 @@ class pacifica extends Exchange {
         }
         $market = $this->market($symbol);
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         $defaultLimit = 100;  // Default max limit
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchFundingRateHistory', $symbol, $since, $limit, $params, 'next_cursor', 'cursor', null, $defaultLimit));
@@ -2490,7 +2490,7 @@ class pacifica extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOrders', 'paginate', false);
         $defaultLimit = 100; // max default 100
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchOrders', $symbol, $since, $limit, $params, 'next_cursor', 'cursor', null, $defaultLimit));
@@ -3242,7 +3242,7 @@ class pacifica extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchLedger', 'paginate', false);
         $userAddress = null;
         list($userAddress, $params) = $this->handle_origin_and_single_address('fetchLedger', $params);
         $defaultLimit = 100; // Default max limit
@@ -3356,7 +3356,7 @@ class pacifica extends Exchange {
             $market = $this->market($symbol);
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingHistory', 'paginate', false);
         $userAddress = null;
         list($userAddress, $params) = $this->handle_origin_and_single_address('fetchFundingHistory', $params);
         $request = array(

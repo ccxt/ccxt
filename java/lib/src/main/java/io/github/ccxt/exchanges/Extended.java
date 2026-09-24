@@ -3759,7 +3759,7 @@ public class Extended extends ExtendedApi
                 timeInForce = (((java.util.Objects.equals(uppercaseType, "MARKET")))) ? "IOC" : "GTT";
             }
             String fee = this.safeString(parameters, "fee", "0.0005");
-            Object builderFeeRate = null;
+            String builderFeeRate = null;
             Object builderId = null;
             if (this.isSandboxModeEnabled)
             {
@@ -3768,8 +3768,8 @@ public class Extended extends ExtendedApi
                 parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("builderFeeRate", "defaultBuilderFeeRate", "builderId", "defaultBuilderId")));
             } else
             {
-                List<Object> builderFeeRateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "builderFeeRate", "0.0001");
-                builderFeeRate = ((List<Object>) builderFeeRateparametersVariable).get(0);
+                List<Object> builderFeeRateparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "builderFeeRate", "0.0001");
+                builderFeeRate = (String) ((List<Object>) builderFeeRateparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) builderFeeRateparametersVariable).get(1);
                 List<Object> builderIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "builderId");
                 builderId = ((List<Object>) builderIdparametersVariable).get(0);

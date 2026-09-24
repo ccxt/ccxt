@@ -810,7 +810,7 @@ export default class alpaca extends Exchange {
         const loc: Str = this.safeString (params, 'loc', 'us');
         const method: Str = this.safeString (params, 'method', 'marketPublicGetV1beta3CryptoLocBars');
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         let paginationCalls = 10;
         [ paginationCalls, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginationCalls', 10);
         const request: Dict = {
@@ -1481,7 +1481,7 @@ export default class alpaca extends Exchange {
             request['limit_price'] = this.priceToPrecision (symbol, price);
         }
         let timeInForce: Str = undefined;
-        [ timeInForce, params ] = this.handleOptionAndParams (params, 'editOrder', 'timeInForce', 'gtc');
+        [ timeInForce, params ] = this.handleOptionStringAndParams (params, 'editOrder', 'timeInForce', 'gtc');
         if (timeInForce !== undefined) {
             // the venue only accepts lowercase values, normalize the unified uppercase spellings
             request['time_in_force'] = timeInForce.toLowerCase ();

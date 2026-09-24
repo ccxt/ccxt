@@ -481,7 +481,7 @@ export default class bydfi extends bydfiRest {
         let depth = '100';
         [ depth, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'depth', depth);
         let frequency = '100ms';
-        [ frequency, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'frequency', frequency);
+        [ frequency, params ] = this.handleOptionStringAndParams (params, 'watchOrderBookForSymbols', 'frequency', frequency);
         let channelSuffix = '';
         if (frequency === '100ms') {
             channelSuffix = '@100ms';
@@ -516,7 +516,7 @@ export default class bydfi extends bydfiRest {
         let depth = '100';
         [ depth, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'depth', depth);
         let frequency = '100ms';
-        [ frequency, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'frequency', frequency);
+        [ frequency, params ] = this.handleOptionStringAndParams (params, 'watchOrderBookForSymbols', 'frequency', frequency);
         let channelSuffix = '';
         if (frequency === '100ms') {
             channelSuffix = '@100ms';

@@ -2003,13 +2003,13 @@ public class Woo extends WooApi
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "side", finalOrderSide );
             }};
-            Object marginMode = null;
+            String marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
-            marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+            marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if (!java.util.Objects.equals(marginMode, null))
             {
-                ((Map<String, Object>)request).put("marginMode", this.encodeMarginMode((String) (marginMode)));
+                ((Map<String, Object>)request).put("marginMode", this.encodeMarginMode(marginMode));
             }
             String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
             Object stopLoss = this.safeValue(parameters, "stopLoss");
@@ -5450,11 +5450,11 @@ public class Woo extends WooApi
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "symbol", ((Map<String, Object>)market).get("id") );
                 }};
-                Object marginMode = null;
+                String marginMode = null;
                 List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchLeverage", parameters, "cross");
-                marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+                marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
-                ((Map<String, Object>)request).put("marginMode", this.encodeMarginMode((String) (marginMode)));
+                ((Map<String, Object>)request).put("marginMode", this.encodeMarginMode(marginMode));
                 response = (this.v3PrivateGetFuturesLeverage(this.extend(request, parameters))).join();
             } else
             {
@@ -5566,11 +5566,11 @@ public class Woo extends WooApi
             } else if (java.util.Objects.equals(this.safeBool(market, "swap"), true))
             {
                 ((Map<String, Object>)request).put("symbol", this.safeString(market, "id"));
-                Object marginMode = null;
+                String marginMode = null;
                 List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters, "cross");
-                marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+                marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
-                ((Map<String, Object>)request).put("marginMode", this.encodeMarginMode((String) (marginMode)));
+                ((Map<String, Object>)request).put("marginMode", this.encodeMarginMode(marginMode));
                 return (this.v3PrivatePutFuturesLeverage(this.extend(request, parameters))).join();
             } else
             {

@@ -472,7 +472,7 @@ func (this *Nado) createOrderRequestBody(ch chan any, symbol any, typeVar any, s
 		amountX18 = Precise.StringMul(amountX18, "-1")
 	}
 	var subaccount any = nil
-	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "subaccount", "default")
+	var subaccountparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
 	params = MapTyped(GetValue(subaccountparamsVariable, 1))
 	var expiration any = nil
@@ -703,12 +703,12 @@ func (this *Nado) editOrderRequestBody(ch chan any, id any, symbol any, typeVar 
 	}
 	var editOrderOptions map[string]any = SafeMapTyped(this.Options, "editOrder")
 	var subaccount any = nil
-	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "editOrder", "subaccount", "default")
+	var subaccountparamsVariable []any = this.HandleOptionStringAndParams(params, "editOrder", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
 	params = MapTyped(GetValue(subaccountparamsVariable, 1))
-	var expiration any = nil
-	var expirationparamsVariable []any = this.HandleOptionAndParams(params, "editOrder", "expiration", "4294967295")
-	expiration = GetValue(expirationparamsVariable, 0)
+	var expiration *string = nil
+	var expirationparamsVariable []any = this.HandleOptionStringAndParams(params, "editOrder", "expiration", "4294967295")
+	expiration = SafeStringPtr(GetValue(expirationparamsVariable, 0))
 	params = MapTyped(GetValue(expirationparamsVariable, 1))
 	var recvWindow any = nil
 	var recvWindowparamsVariable []any = this.HandleOptionAndParams(params, "editOrder", "recvWindow", 5000)
@@ -894,7 +894,7 @@ func (this *Nado) cancelAllOrdersRequestBody(ch chan any, optionalArgs ...any) a
 		productIds = append(productIds, this.ParseToInt(market["id"]))
 	}
 	var subaccount any = nil
-	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrders", "subaccount", "default")
+	var subaccountparamsVariable []any = this.HandleOptionStringAndParams(params, "cancelAllOrders", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
 	params = MapTyped(GetValue(subaccountparamsVariable, 1))
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
@@ -1022,7 +1022,7 @@ func (this *Nado) cancelOrdersRequestBody(ch chan any, ids any, optionalArgs ...
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var productId int64 = this.ParseToInt(market["id"])
 	var subaccount any = nil
-	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "cancelOrders", "subaccount", "default")
+	var subaccountparamsVariable []any = this.HandleOptionStringAndParams(params, "cancelOrders", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
 	params = MapTyped(GetValue(subaccountparamsVariable, 1))
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
@@ -1171,7 +1171,7 @@ func (this *Nado) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		productIds = append(productIds, this.ParseToInt(GetValue(market, "id")))
 	}
 	var subaccount any = nil
-	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "subaccount", "default")
+	var subaccountparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchOrders", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
 	params = MapTyped(GetValue(subaccountparamsVariable, 1))
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
@@ -1276,7 +1276,7 @@ func (this *Nado) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var subaccount any = nil
-	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "subaccount", "default")
+	var subaccountparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchOpenOrders", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
 	params = MapTyped(GetValue(subaccountparamsVariable, 1))
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
@@ -1377,7 +1377,7 @@ func (this *Nado) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var subaccount any = nil
-	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "fetchClosedOrders", "subaccount", "default")
+	var subaccountparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchClosedOrders", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
 	params = MapTyped(GetValue(subaccountparamsVariable, 1))
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
@@ -1557,7 +1557,7 @@ func (this *Nado) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var subaccount any = nil
-	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "subaccount", "default")
+	var subaccountparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchMyTrades", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
 	params = MapTyped(GetValue(subaccountparamsVariable, 1))
 	var matchesRequest map[string]any = map[string]any{
@@ -1650,7 +1650,7 @@ func (this *Nado) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var subaccount any = nil
-	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "fetchBalance", "subaccount", "default")
+	var subaccountparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchBalance", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
 	params = MapTyped(GetValue(subaccountparamsVariable, 1))
 	var request map[string]any = map[string]any{
@@ -1779,7 +1779,7 @@ func (this *Nado) queryTransactionsByEventTypeBody(ch chan any, eventType any, t
 		currency = MapTyped(this.Currency(code))
 	}
 	var subaccount any = nil
-	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, methodName, "subaccount", "default")
+	var subaccountparamsVariable []any = this.HandleOptionStringAndParams(params, methodName, "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
 	params = MapTyped(GetValue(subaccountparamsVariable, 1))
 	var eventsRequest map[string]any = map[string]any{
@@ -1901,7 +1901,7 @@ func (this *Nado) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError((<-this.LoadMarketsAsync()))
 	symbols = this.MarketSymbols(symbols)
 	var subaccount any = nil
-	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositions", "subaccount", "default")
+	var subaccountparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchPositions", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
 	params = MapTyped(GetValue(subaccountparamsVariable, 1))
 	var request map[string]any = map[string]any{
@@ -2504,7 +2504,7 @@ func (this *Nado) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 		panic(BadSymbol(this.Id + " fetchFundingHistory() supports swap contracts only"))
 	}
 	var subaccount any = nil
-	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingHistory", "subaccount", "default")
+	var subaccountparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchFundingHistory", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
 	params = MapTyped(GetValue(subaccountparamsVariable, 1))
 	var request map[string]any = map[string]any{

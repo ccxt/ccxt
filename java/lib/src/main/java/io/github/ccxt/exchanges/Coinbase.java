@@ -1968,8 +1968,8 @@ public class Coinbase extends CoinbaseApi
         return BaseExchange.supplyAsync(() -> {
             Map<String, Object> parameters = parameters3;
             Boolean usePrivate = false;
-            List<Object> usePrivateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMarkets", "usePrivate", false);
-            usePrivate = Boolean.TRUE.equals(((List<Object>) usePrivateparametersVariable).get(0));
+            List<Object> usePrivateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMarkets", "usePrivate", false);
+            usePrivate = (Boolean) ((List<Object>) usePrivateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) usePrivateparametersVariable).get(1);
             List<Object> spotUnresolvedPromises = new ArrayList<Object>(Arrays.asList());
             if (Boolean.TRUE.equals(usePrivate))
@@ -2766,8 +2766,8 @@ public class Coinbase extends CoinbaseApi
             }
             Map<String, Object> response = null;
             Boolean usePrivate = false;
-            List<Object> usePrivateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTickers", "usePrivate", false);
-            usePrivate = Boolean.TRUE.equals(((List<Object>) usePrivateparametersVariable).get(0));
+            List<Object> usePrivateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTickers", "usePrivate", false);
+            usePrivate = (Boolean) ((List<Object>) usePrivateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) usePrivateparametersVariable).get(1);
             if (Boolean.TRUE.equals(usePrivate))
             {
@@ -2932,8 +2932,8 @@ public class Coinbase extends CoinbaseApi
                 put( "limit", 1 );
             }};
             Boolean usePrivate = false;
-            List<Object> usePrivateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTicker", "usePrivate", false);
-            usePrivate = Boolean.TRUE.equals(((List<Object>) usePrivateparametersVariable).get(0));
+            List<Object> usePrivateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTicker", "usePrivate", false);
+            usePrivate = (Boolean) ((List<Object>) usePrivateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) usePrivateparametersVariable).get(1);
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(usePrivate))
@@ -4091,8 +4091,8 @@ public class Coinbase extends CoinbaseApi
                 {
                     String total = null;
                     Boolean createMarketBuyOrderRequiresPrice = true;
-                    List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                    createMarketBuyOrderRequiresPrice = Boolean.TRUE.equals(((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0));
+                    List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                    createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                     parameters = (Map<String, Object>) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                     Double cost = this.safeNumber(parameters, "cost");
                     parameters = (Map<String, Object>) this.omit(parameters, "cost");
@@ -5120,8 +5120,8 @@ public class Coinbase extends CoinbaseApi
             Object maxLimit = 300;
             limit = (((java.util.Objects.equals(limit, null)))) ? maxLimit : Helpers.mathMin(limit, maxLimit);
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -5156,8 +5156,8 @@ public class Coinbase extends CoinbaseApi
             }
             Map<String, Object> response = null;
             Boolean usePrivate = false;
-            List<Object> usePrivateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "usePrivate", false);
-            usePrivate = Boolean.TRUE.equals(((List<Object>) usePrivateparametersVariable).get(0));
+            List<Object> usePrivateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "usePrivate", false);
+            usePrivate = (Boolean) ((List<Object>) usePrivateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) usePrivateparametersVariable).get(1);
             if (Boolean.TRUE.equals(usePrivate))
             {
@@ -5278,8 +5278,8 @@ public class Coinbase extends CoinbaseApi
             }
             Map<String, Object> response = null;
             Boolean usePrivate = false;
-            List<Object> usePrivateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "usePrivate", false);
-            usePrivate = Boolean.TRUE.equals(((List<Object>) usePrivateparametersVariable).get(0));
+            List<Object> usePrivateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTrades", "usePrivate", false);
+            usePrivate = (Boolean) ((List<Object>) usePrivateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) usePrivateparametersVariable).get(1);
             if (Boolean.TRUE.equals(usePrivate))
             {
@@ -5474,8 +5474,8 @@ public class Coinbase extends CoinbaseApi
             }
             Map<String, Object> response = null;
             Boolean usePrivate = false;
-            List<Object> usePrivateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrderBook", "usePrivate", false);
-            usePrivate = Boolean.TRUE.equals(((List<Object>) usePrivateparametersVariable).get(0));
+            List<Object> usePrivateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrderBook", "usePrivate", false);
+            usePrivate = (Boolean) ((List<Object>) usePrivateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) usePrivateparametersVariable).get(1);
             if (Boolean.TRUE.equals(usePrivate))
             {

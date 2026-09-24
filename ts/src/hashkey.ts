@@ -3628,7 +3628,7 @@ export default class hashkey extends Exchange {
 
     handleTriggerOptionAndParams (params: object, methodName: string, defaultValue: Bool = undefined): [Bool, object] {
         let isTrigger = defaultValue;
-        [ isTrigger, params ] = this.handleOptionAndParams2 (params, methodName, 'stop', 'trigger', isTrigger);
+        [ isTrigger, params ] = this.handleOptionBoolAndParams2 (params, methodName, 'stop', 'trigger', isTrigger);
         return [ isTrigger, params ];
     }
 

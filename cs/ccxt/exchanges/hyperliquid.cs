@@ -1168,9 +1168,9 @@ public partial class hyperliquid : Exchange
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBalance", null, parameters);
         type = (string)typeparametersVariable[0];
         parameters = typeparametersVariable[1];
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchBalance", parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         object isUnifiedEnabled = null;
         var isUnifiedEnabledparametersVariable = await this.isUnifiedEnabled("fetchBalance", userAddress, shouldRefresh, parameters);
@@ -1245,7 +1245,7 @@ public partial class hyperliquid : Exchange
         Dictionary<string, object> usdcBalance = new Dictionary<string, object>() {
             { "total", this.safeNumber(data, "accountValue") },
         };
-        if (((marginMode != null)) && (isEqual(marginMode, "isolated")))
+        if (((marginMode != null)) && (marginMode == "isolated"))
         {
             usdcBalance["free"] = this.safeNumber(response, "withdrawable");
         } else
@@ -1340,9 +1340,9 @@ public partial class hyperliquid : Exchange
         object response = new List<object>() {};
         string? type = this.safeString(parameters, "type");
         parameters = this.omit(parameters, "type");
-        bool hip3 = false;
-        IList<object> hip3parametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTickers", "hip3", false);
-        hip3 = isTrue(hip3parametersVariable[0]);
+        bool? hip3 = false;
+        IList<object> hip3parametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTickers", "hip3", false);
+        hip3 = (bool?)hip3parametersVariable[0];
         parameters = hip3parametersVariable[1];
         if ((symbols != null))
         {
@@ -1357,7 +1357,7 @@ public partial class hyperliquid : Exchange
                 }
             }
         }
-        if (hip3)
+        if ((hip3 == true))
         {
             parameters = this.omit(parameters, "hip3");
             response = ccxt.BaseExchange.FromMarketInterfaceList(await this.FetchHip3Markets(parameters));
@@ -3463,9 +3463,9 @@ public partial class hyperliquid : Exchange
         IList<object> userAddressparametersVariable = (IList<object>)this.handlePublicAddress("fetchOpenOrders", parameters);
         userAddress = userAddressparametersVariable[0];
         parameters = userAddressparametersVariable[1];
-        object method = null;
-        IList<object> methodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOpenOrders", "method", "frontendOpenOrders");
-        method = methodparametersVariable[0];
+        string? method = null;
+        IList<object> methodparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchOpenOrders", "method", "frontendOpenOrders");
+        method = (string)methodparametersVariable[0];
         parameters = methodparametersVariable[1];
         if ((this.markets == null))
         {
@@ -5546,7 +5546,7 @@ public partial class hyperliquid : Exchange
         userAux = userAuxparametersVariable[0];
         parameters = userAuxparametersVariable[1];
         object user = userAux;
-        IList<object> userparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "address", userAux);
+        IList<object> userparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "address", userAux);
         user = userparametersVariable[0];
         parameters = userparametersVariable[1];
         if (((user != null)) && (!isEqual(user, "")))

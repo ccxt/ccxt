@@ -1412,7 +1412,7 @@ class coinbase(Exchange, ImplicitAPI):
 
     async def fetch_markets_v3(self, params: dict = {}) -> list[Market]:
         usePrivate = False
-        usePrivate, params = self.handle_option_and_params(params, 'fetchMarkets', 'usePrivate', False)
+        usePrivate, params = self.handle_option_bool_and_params(params, 'fetchMarkets', 'usePrivate', False)
         spotUnresolvedPromises = []
         if usePrivate:
             spotUnresolvedPromises.append(self.v3PrivateGetBrokerageProducts(params))
@@ -2064,7 +2064,7 @@ class coinbase(Exchange, ImplicitAPI):
             request['product_type'] = 'FUTURE' if (marketType == 'swap') else 'SPOT'
         response = None
         usePrivate = False
-        usePrivate, params = self.handle_option_and_params(params, 'fetchTickers', 'usePrivate', False)
+        usePrivate, params = self.handle_option_bool_and_params(params, 'fetchTickers', 'usePrivate', False)
         if usePrivate:
             response = await self.v3PrivateGetBrokerageProducts(self.extend(request, params))
         else:
@@ -2172,7 +2172,7 @@ class coinbase(Exchange, ImplicitAPI):
             'limit': 1,
         }
         usePrivate = False
-        usePrivate, params = self.handle_option_and_params(params, 'fetchTicker', 'usePrivate', False)
+        usePrivate, params = self.handle_option_bool_and_params(params, 'fetchTicker', 'usePrivate', False)
         response = None
         if usePrivate:
             response = await self.v3PrivateGetBrokerageProductsProductIdTicker(self.extend(request, params))
@@ -3047,7 +3047,7 @@ class coinbase(Exchange, ImplicitAPI):
             if (market['spot'] is True) and (side == 'buy'):
                 total = None
                 createMarketBuyOrderRequiresPrice = True
-                createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+                createMarketBuyOrderRequiresPrice, params = self.handle_option_bool_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
                 cost = self.safe_number(params, 'cost')
                 params = self.omit(params, 'cost')
                 if cost is not None:
@@ -3696,7 +3696,7 @@ class coinbase(Exchange, ImplicitAPI):
         maxLimit = 300
         limit = maxLimit if (limit is None) else min(limit, maxLimit)
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit - 1)
         market = self.market(symbol)
@@ -3722,7 +3722,7 @@ class coinbase(Exchange, ImplicitAPI):
             request['end'] = Precise.string_add(sinceString, str(requestedDuration))
         response = None
         usePrivate = False
-        usePrivate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'usePrivate', False)
+        usePrivate, params = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'usePrivate', False)
         if usePrivate:
             response = await self.v3PrivateGetBrokerageProductsProductIdCandles(self.extend(request, params))
         else:
@@ -3798,7 +3798,7 @@ class coinbase(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchTrades() requires a `until` parameter when you use `since` argument')
         response = None
         usePrivate = False
-        usePrivate, params = self.handle_option_and_params(params, 'fetchTrades', 'usePrivate', False)
+        usePrivate, params = self.handle_option_bool_and_params(params, 'fetchTrades', 'usePrivate', False)
         if usePrivate:
             response = await self.v3PrivateGetBrokerageProductsProductIdTicker(self.extend(request, params))
         else:
@@ -3911,7 +3911,7 @@ class coinbase(Exchange, ImplicitAPI):
             request['limit'] = limit
         response = None
         usePrivate = False
-        usePrivate, params = self.handle_option_and_params(params, 'fetchOrderBook', 'usePrivate', False)
+        usePrivate, params = self.handle_option_bool_and_params(params, 'fetchOrderBook', 'usePrivate', False)
         if usePrivate:
             response = await self.v3PrivateGetBrokerageProductBook(self.extend(request, params))
         else:

@@ -2741,7 +2741,7 @@ func (this *Whitebit) createOrderBody(ch chan any, symbol any, typeVar any, side
 		panic(NotSupported(this.Id + " createOrder() timeInForce IOC is only supported for limit orders"))
 	}
 	var marginModequeryVariable []any = this.HandleMarginModeAndParams("createOrder", params)
-	marginMode := GetValue(marginModequeryVariable, 0)
+	var marginMode *string = SafeStringPtr(GetValue(marginModequeryVariable, 0))
 	query := GetValue(marginModequeryVariable, 1)
 	if postOnly {
 		request["postOnly"] = true
@@ -2749,11 +2749,11 @@ func (this *Whitebit) createOrderBody(ch chan any, symbol any, typeVar any, side
 	if ioc {
 		request["ioc"] = true
 	}
-	if !IsEqual(marginMode, nil) && !IsEqual(marginMode, "cross") {
+	if (marginMode != nil) && (marginMode == nil || *marginMode != "cross") {
 		panic(NotSupported(this.Id + " createOrder() is only available for cross margin"))
 	}
 	params = this.Omit(query, []any{"postOnly", "triggerPrice", "stopPrice", "timeInForce"})
-	var useCollateralEndpoint bool = !IsEqual(marginMode, nil) || (marketType != nil && *marketType == "swap")
+	var useCollateralEndpoint bool = (marginMode != nil) || (marketType != nil && *marketType == "swap")
 	var response map[string]any = nil
 	if isStopOrder {
 		request["activation_price"] = this.PriceToPrecision(symbol, triggerPrice)
@@ -2987,7 +2987,7 @@ func (this *Whitebit) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	var requestType []any = []any{}
 	if typeVar != nil && *typeVar == "spot" {
 		var isMargin any = nil
-		var isMarginparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrders", "isMargin", false)
+		var isMarginparamsVariable []any = this.HandleOptionBoolAndParams(params, "cancelAllOrders", "isMargin", false)
 		isMargin = GetValue(isMarginparamsVariable, 0)
 		params = MapTyped(GetValue(isMarginparamsVariable, 1))
 		if isMargin == true {
@@ -5522,7 +5522,7 @@ func (this *Whitebit) Sign(path any, optionalArgs ...any) any {
 		var nonce string = ToString(this.IncrementingNonce())
 		var secret string = this.Encode(this.Secret)
 		var request any = Add(Add("/"+"api"+"/", version), pathWithParams)
-		var nonceWindowrequestParamsVariable []any = this.HandleOptionAndParams(params, "sign", "nonceWindow", false)
+		var nonceWindowrequestParamsVariable []any = this.HandleOptionBoolAndParams(params, "sign", "nonceWindow", false)
 		nonceWindow := GetValue(nonceWindowrequestParamsVariable, 0)
 		requestParams := GetValue(nonceWindowrequestParamsVariable, 1)
 		body = this.Json(this.Extend(map[string]any{

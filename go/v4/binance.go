@@ -5708,7 +5708,7 @@ func (this *Binance) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	var isPortfolioMargin any = nil
-	var isPortfolioMarginparamsVariable []any = this.HandleOptionAndParams2(params, "fetchBalance", "papi", "portfolioMargin", false)
+	var isPortfolioMarginparamsVariable []any = this.HandleOptionBoolAndParams2(params, "fetchBalance", "papi", "portfolioMargin", false)
 	isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
 	params = MapTyped(GetValue(isPortfolioMarginparamsVariable, 1))
 	var marginMode any = nil
@@ -5732,7 +5732,7 @@ func (this *Binance) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	} else if this.IsLinear(typeVar, subType) {
 		typeVar = SafeStringPtr("linear")
 		var useV2 any = nil
-		var useV2paramsVariable []any = this.HandleOptionAndParams(params, "fetchBalance", "useV2", false)
+		var useV2paramsVariable []any = this.HandleOptionBoolAndParams(params, "fetchBalance", "useV2", false)
 		useV2 = GetValue(useV2paramsVariable, 0)
 		params = MapTyped(GetValue(useV2paramsVariable, 1))
 		params = this.Extend(request, query)
@@ -6935,7 +6935,7 @@ func (this *Binance) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -7918,7 +7918,7 @@ func (this *Binance) editContractOrderBody(ch chan any, id any, symbol any, type
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var isPortfolioMargin any = nil
-	var isPortfolioMarginparamsVariable []any = this.HandleOptionAndParams2(params, "editContractOrder", "papi", "portfolioMargin", false)
+	var isPortfolioMarginparamsVariable []any = this.HandleOptionBoolAndParams2(params, "editContractOrder", "papi", "portfolioMargin", false)
 	isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
 	params = MapTyped(GetValue(isPortfolioMarginparamsVariable, 1))
 	var request any = this.EditContractOrderRequest(id, symbol, typeVar, side, amount, price, params)
@@ -8067,7 +8067,7 @@ func (this *Binance) editOrdersBody(ch chan any, orders any, optionalArgs ...any
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var isPortfolioMargin any = nil
-		var isPortfolioMarginorderParamsVariable []any = this.HandleOptionAndParams2(orderParams, "editOrders", "papi", "portfolioMargin", false)
+		var isPortfolioMarginorderParamsVariable []any = this.HandleOptionBoolAndParams2(orderParams, "editOrders", "papi", "portfolioMargin", false)
 		isPortfolioMargin = GetValue(isPortfolioMarginorderParamsVariable, 0)
 		orderParams = GetValue(isPortfolioMarginorderParamsVariable, 1)
 		if isPortfolioMargin == true {
@@ -9171,12 +9171,12 @@ func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		"side":   upperCaseSide,
 	}
 	var isPortfolioMargin any = nil
-	var isPortfolioMarginparamsVariable []any = this.HandleOptionAndParams2(params, "createOrder", "papi", "portfolioMargin", false)
+	var isPortfolioMarginparamsVariable []any = this.HandleOptionBoolAndParams2(params, "createOrder", "papi", "portfolioMargin", false)
 	isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
 	params = MapTyped(GetValue(isPortfolioMarginparamsVariable, 1))
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("createOrder", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	var reduceOnly *bool = this.SafeBool(params, "reduceOnly", false)
 	if reduceOnly != nil && *reduceOnly == true {
@@ -9335,7 +9335,7 @@ func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 			if postOnly == true {
 				uppercaseType = "LIMIT_MAKER"
 			}
-			if IsEqual(marginMode, "isolated") {
+			if marginMode != nil && *marginMode == "isolated" {
 				request["isIsolated"] = true
 			}
 		}
@@ -9725,7 +9725,7 @@ func (this *Binance) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var request map[string]any = map[string]any{}
 	var market any = nil
 	var stock any = nil
-	var stockparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrder", "stock", false)
+	var stockparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOrder", "stock", false)
 	stock = GetValue(stockparamsVariable, 0)
 	params = MapTyped(GetValue(stockparamsVariable, 1))
 	if symbol != nil {
@@ -9745,12 +9745,12 @@ func (this *Binance) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchOrder", market, params)
 	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchOrder", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	var isPortfolioMargin any = nil
-	var isPortfolioMarginparamsVariable []any = this.HandleOptionAndParams2(params, "fetchOrder", "papi", "portfolioMargin", false)
+	var isPortfolioMarginparamsVariable []any = this.HandleOptionBoolAndParams2(params, "fetchOrder", "papi", "portfolioMargin", false)
 	isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
 	params = MapTyped(GetValue(isPortfolioMarginparamsVariable, 1))
 	var isConditional *bool = this.SafeBoolN(params, []any{"stop", "trigger", "conditional"})
@@ -9810,7 +9810,7 @@ func (this *Binance) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 			response = (<-this.PapiGetMarginOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
-			if IsEqual(marginMode, "isolated") {
+			if marginMode != nil && *marginMode == "isolated" {
 				request["isIsolated"] = true
 			}
 
@@ -9894,7 +9894,7 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	var stock any = nil
-	var stockparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "stock", false)
+	var stockparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOrders", "stock", false)
 	stock = GetValue(stockparamsVariable, 0)
 	params = MapTyped(GetValue(stockparamsVariable, 1))
 	if symbol != nil {
@@ -9912,12 +9912,12 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchOrders", market, params)
 	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchOrders", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	var isPortfolioMargin any = nil
-	var isPortfolioMarginparamsVariable []any = this.HandleOptionAndParams2(params, "fetchOrders", "papi", "portfolioMargin", false)
+	var isPortfolioMarginparamsVariable []any = this.HandleOptionBoolAndParams2(params, "fetchOrders", "papi", "portfolioMargin", false)
 	isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
 	params = MapTyped(GetValue(isPortfolioMarginparamsVariable, 1))
 	var isConditional *bool = this.SafeBoolN(params, []any{"stop", "trigger", "conditional"})
@@ -9999,7 +9999,7 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 			response = (<-this.PapiGetMarginAllOrders(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else if (typeVar != nil && *typeVar == "margin") || (marginMode != nil) {
-			if IsEqual(marginMode, "isolated") {
+			if marginMode != nil && *marginMode == "isolated" {
 				request["isIsolated"] = true
 			}
 
@@ -10281,17 +10281,17 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	var typeVar *string = nil
 	var request map[string]any = map[string]any{}
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchOpenOrders", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	var isPortfolioMargin any = nil
-	var isPortfolioMarginparamsVariable []any = this.HandleOptionAndParams2(params, "fetchOpenOrders", "papi", "portfolioMargin", false)
+	var isPortfolioMarginparamsVariable []any = this.HandleOptionBoolAndParams2(params, "fetchOpenOrders", "papi", "portfolioMargin", false)
 	isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
 	params = MapTyped(GetValue(isPortfolioMarginparamsVariable, 1))
 	var isConditional *bool = this.SafeBoolN(params, []any{"stop", "trigger", "conditional"})
 	var stock any = nil
-	var stockparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "stock", false)
+	var stockparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOpenOrders", "stock", false)
 	stock = GetValue(stockparamsVariable, 0)
 	params = MapTyped(GetValue(stockparamsVariable, 1))
 	if symbol != nil {
@@ -10376,7 +10376,7 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 			response = (<-this.PapiGetMarginOpenOrders(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
-			if IsEqual(marginMode, "isolated") {
+			if marginMode != nil && *marginMode == "isolated" {
 				request["isIsolated"] = true
 				if symbol == nil {
 					panic(ArgumentsRequired(this.Id + " fetchOpenOrders() requires a symbol argument for isolated markets"))
@@ -10441,7 +10441,7 @@ func (this *Binance) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any
 		"symbol": market["id"],
 	}
 	var isPortfolioMargin any = nil
-	var isPortfolioMarginparamsVariable []any = this.HandleOptionAndParams2(params, "fetchOpenOrder", "papi", "portfolioMargin", false)
+	var isPortfolioMarginparamsVariable []any = this.HandleOptionBoolAndParams2(params, "fetchOpenOrder", "papi", "portfolioMargin", false)
 	isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
 	params = MapTyped(GetValue(isPortfolioMarginparamsVariable, 1))
 	var isConditional *bool = this.SafeBoolN(params, []any{"stop", "trigger", "conditional"})
@@ -10692,7 +10692,7 @@ func (this *Binance) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	var market map[string]any = nil
 	var stock any = nil
-	var stockparamsVariable []any = this.HandleOptionAndParams(params, "fetchClosedOrders", "stock", false)
+	var stockparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchClosedOrders", "stock", false)
 	stock = GetValue(stockparamsVariable, 0)
 	params = MapTyped(GetValue(stockparamsVariable, 1))
 	if symbol != nil {
@@ -10755,7 +10755,7 @@ func (this *Binance) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) a
 	_ = params
 	var market map[string]any = nil
 	var stock any = nil
-	var stockparamsVariable []any = this.HandleOptionAndParams(params, "fetchCanceledOrders", "stock", false)
+	var stockparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchCanceledOrders", "stock", false)
 	stock = GetValue(stockparamsVariable, 0)
 	params = MapTyped(GetValue(stockparamsVariable, 1))
 	if symbol != nil {
@@ -10818,7 +10818,7 @@ func (this *Binance) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs 
 	_ = params
 	var market map[string]any = nil
 	var stock any = nil
-	var stockparamsVariable []any = this.HandleOptionAndParams(params, "fetchCanceledAndClosedOrders", "stock", false)
+	var stockparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchCanceledAndClosedOrders", "stock", false)
 	stock = GetValue(stockparamsVariable, 0)
 	params = MapTyped(GetValue(stockparamsVariable, 1))
 	if symbol != nil {
@@ -10885,7 +10885,7 @@ func (this *Binance) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	var request map[string]any = map[string]any{}
 	var market any = nil
 	var stock any = nil
-	var stockparamsVariable []any = this.HandleOptionAndParams(params, "cancelOrder", "stock", false)
+	var stockparamsVariable []any = this.HandleOptionBoolAndParams(params, "cancelOrder", "stock", false)
 	stock = GetValue(stockparamsVariable, 0)
 	params = MapTyped(GetValue(stockparamsVariable, 1))
 	if symbol != nil {
@@ -10905,12 +10905,12 @@ func (this *Binance) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("cancelOrder", market, params)
 	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("cancelOrder", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	var isPortfolioMargin any = nil
-	var isPortfolioMarginparamsVariable []any = this.HandleOptionAndParams2(params, "cancelOrder", "papi", "portfolioMargin", false)
+	var isPortfolioMarginparamsVariable []any = this.HandleOptionBoolAndParams2(params, "cancelOrder", "papi", "portfolioMargin", false)
 	isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
 	params = MapTyped(GetValue(isPortfolioMarginparamsVariable, 1))
 	var isConditional *bool = this.SafeBoolN(params, []any{"stop", "trigger", "conditional"})
@@ -10996,7 +10996,7 @@ func (this *Binance) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 			response = (<-this.PapiDeleteMarginOrder(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
-			if IsEqual(marginMode, "isolated") {
+			if marginMode != nil && *marginMode == "isolated" {
 				request["isIsolated"] = true
 			}
 
@@ -11063,7 +11063,7 @@ func (this *Binance) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	var stock any = nil
-	var stockparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrders", "stock", false)
+	var stockparamsVariable []any = this.HandleOptionBoolAndParams(params, "cancelAllOrders", "stock", false)
 	stock = GetValue(stockparamsVariable, 0)
 	params = MapTyped(GetValue(stockparamsVariable, 1))
 	if symbol != nil {
@@ -11076,7 +11076,7 @@ func (this *Binance) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		panic(ArgumentsRequired(this.Id + " cancelAllOrders() requires a symbol argument"))
 	}
 	var isPortfolioMargin any = nil
-	var isPortfolioMarginparamsVariable []any = this.HandleOptionAndParams2(params, "cancelAllOrders", "papi", "portfolioMargin", false)
+	var isPortfolioMarginparamsVariable []any = this.HandleOptionBoolAndParams2(params, "cancelAllOrders", "papi", "portfolioMargin", false)
 	isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
 	params = MapTyped(GetValue(isPortfolioMarginparamsVariable, 1))
 	var isConditional *bool = this.SafeBoolN(params, []any{"stop", "trigger", "conditional"})
@@ -11092,9 +11092,9 @@ func (this *Binance) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var isLinearType bool = this.IsLinear(typeVar, subType)
 	var isInverseType bool = this.IsInverse(typeVar, subType)
 	params = MapTyped(this.Omit(params, []any{"stop", "trigger", "conditional"}))
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("cancelAllOrders", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	var response any = nil
 	if isOptionType {
@@ -11145,7 +11145,7 @@ func (this *Binance) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 			response = (<-this.PapiDeleteMarginAllOpenOrders(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else {
-			if IsEqual(marginMode, "isolated") {
+			if marginMode != nil && *marginMode == "isolated" {
 				request["isIsolated"] = true
 			}
 
@@ -11382,9 +11382,9 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	var typeVar *string = nil
-	var marginMode any = nil
+	var marginMode *string = nil
 	var stock any = nil
-	var stockparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "stock", false)
+	var stockparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "stock", false)
 	stock = GetValue(stockparamsVariable, 0)
 	params = MapTyped(GetValue(stockparamsVariable, 1))
 	if symbol != nil {
@@ -11442,10 +11442,10 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(response)
 	} else {
 		var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchMyTrades", params)
-		marginMode = GetValue(marginModeparamsVariable, 0)
+		marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 		params = MapTyped(GetValue(marginModeparamsVariable, 1))
 		var isPortfolioMargin any = nil
-		var isPortfolioMarginparamsVariable []any = this.HandleOptionAndParams2(params, "fetchMyTrades", "papi", "portfolioMargin", false)
+		var isPortfolioMarginparamsVariable []any = this.HandleOptionBoolAndParams2(params, "fetchMyTrades", "papi", "portfolioMargin", false)
 		isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
 		params = MapTyped(GetValue(isPortfolioMarginparamsVariable, 1))
 		if IsEqual(stock, true) {
@@ -11466,7 +11466,7 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 				response = (<-this.PapiGetMarginMyTrades(this.Extend(request, params))).Raw
 				PanicOnError(response)
 			} else if (typeVar != nil && *typeVar == "margin") || (marginMode != nil) {
-				if IsEqual(marginMode, "isolated") {
+				if marginMode != nil && *marginMode == "isolated" {
 					request["isIsolated"] = true
 				}
 
@@ -13132,7 +13132,7 @@ func (this *Binance) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs .
 	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	var isPortfolioMargin any = nil
-	var isPortfolioMarginparamsVariable []any = this.HandleOptionAndParams2(params, "fetchTradingFee", "papi", "portfolioMargin", false)
+	var isPortfolioMarginparamsVariable []any = this.HandleOptionBoolAndParams2(params, "fetchTradingFee", "papi", "portfolioMargin", false)
 	isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
 	params = MapTyped(GetValue(isPortfolioMarginparamsVariable, 1))
 	var isLinear bool = this.IsLinear(typeVar, subType)
@@ -14369,7 +14369,7 @@ func (this *Binance) loadLeverageBracketsBody(ch chan any, optionalArgs ...any) 
 		subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 		params = MapTyped(GetValue(subTypeparamsVariable, 1))
 		var isPortfolioMargin any = nil
-		var isPortfolioMarginparamsVariable []any = this.HandleOptionAndParams2(params, "loadLeverageBrackets", "papi", "portfolioMargin", false)
+		var isPortfolioMarginparamsVariable []any = this.HandleOptionBoolAndParams2(params, "loadLeverageBrackets", "papi", "portfolioMargin", false)
 		isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
 		params = MapTyped(GetValue(isPortfolioMarginparamsVariable, 1))
 		var response any = nil
@@ -14470,7 +14470,7 @@ func (this *Binance) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) an
 	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	var isPortfolioMargin any = nil
-	var isPortfolioMarginparamsVariable []any = this.HandleOptionAndParams2(params, "fetchLeverageTiers", "papi", "portfolioMargin", false)
+	var isPortfolioMarginparamsVariable []any = this.HandleOptionBoolAndParams2(params, "fetchLeverageTiers", "papi", "portfolioMargin", false)
 	isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
 	params = MapTyped(GetValue(isPortfolioMarginparamsVariable, 1))
 	var response any = nil
@@ -14902,7 +14902,7 @@ func (this *Binance) fetchAccountPositionsBody(ch chan any, optionalArgs ...any)
 	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	var isPortfolioMargin any = nil
-	var isPortfolioMarginparamsVariable []any = this.HandleOptionAndParams2(params, "fetchAccountPositions", "papi", "portfolioMargin", false)
+	var isPortfolioMarginparamsVariable []any = this.HandleOptionBoolAndParams2(params, "fetchAccountPositions", "papi", "portfolioMargin", false)
 	isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
 	params = MapTyped(GetValue(isPortfolioMarginparamsVariable, 1))
 	var response any = nil
@@ -14913,7 +14913,7 @@ func (this *Binance) fetchAccountPositionsBody(ch chan any, optionalArgs ...any)
 			PanicOnError(response)
 		} else {
 			var useV2 any = nil
-			var useV2paramsVariable []any = this.HandleOptionAndParams(params, "fetchAccountPositions", "useV2", false)
+			var useV2paramsVariable []any = this.HandleOptionBoolAndParams(params, "fetchAccountPositions", "useV2", false)
 			useV2 = GetValue(useV2paramsVariable, 0)
 			params = MapTyped(GetValue(useV2paramsVariable, 1))
 			if !(useV2 == true) {
@@ -14940,7 +14940,7 @@ func (this *Binance) fetchAccountPositionsBody(ch chan any, optionalArgs ...any)
 		panic(NotSupported(this.Id + " fetchPositions() supports linear and inverse contracts only"))
 	}
 	var filterClosed any = nil
-	var filterClosedparamsVariable []any = this.HandleOptionAndParams(params, "fetchAccountPositions", "filterClosed", false)
+	var filterClosedparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchAccountPositions", "filterClosed", false)
 	filterClosed = GetValue(filterClosedparamsVariable, 0)
 	params = MapTyped(GetValue(filterClosedparamsVariable, 1))
 	var result any = this.ParseAccountPositions(response, filterClosed)
@@ -14999,7 +14999,7 @@ func (this *Binance) fetchPositionsRiskBody(ch chan any, optionalArgs ...any) an
 	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	var isPortfolioMargin any = nil
-	var isPortfolioMarginparamsVariable []any = this.HandleOptionAndParams2(params, "fetchPositionsRisk", "papi", "portfolioMargin", false)
+	var isPortfolioMarginparamsVariable []any = this.HandleOptionBoolAndParams2(params, "fetchPositionsRisk", "papi", "portfolioMargin", false)
 	isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
 	params = MapTyped(GetValue(isPortfolioMarginparamsVariable, 1))
 	params = MapTyped(this.Omit(params, "type"))
@@ -15011,7 +15011,7 @@ func (this *Binance) fetchPositionsRiskBody(ch chan any, optionalArgs ...any) an
 			PanicOnError(response)
 		} else {
 			var useV2 any = nil
-			var useV2paramsVariable []any = this.HandleOptionAndParams(params, "fetchPositionsRisk", "useV2", false)
+			var useV2paramsVariable []any = this.HandleOptionBoolAndParams(params, "fetchPositionsRisk", "useV2", false)
 			useV2 = GetValue(useV2paramsVariable, 0)
 			params = MapTyped(GetValue(useV2paramsVariable, 1))
 			params = this.Extend(request, params)
@@ -15195,7 +15195,7 @@ func (this *Binance) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) a
 	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	var isPortfolioMargin any = nil
-	var isPortfolioMarginparamsVariable []any = this.HandleOptionAndParams2(params, "fetchFundingHistory", "papi", "portfolioMargin", false)
+	var isPortfolioMarginparamsVariable []any = this.HandleOptionBoolAndParams2(params, "fetchFundingHistory", "papi", "portfolioMargin", false)
 	isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
 	params = MapTyped(GetValue(isPortfolioMarginparamsVariable, 1))
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
@@ -15283,7 +15283,7 @@ func (this *Binance) setLeverageBody(ch chan any, leverage any, optionalArgs ...
 		"leverage": leverage,
 	}
 	var isPortfolioMargin any = nil
-	var isPortfolioMarginparamsVariable []any = this.HandleOptionAndParams2(params, "setLeverage", "papi", "portfolioMargin", false)
+	var isPortfolioMarginparamsVariable []any = this.HandleOptionBoolAndParams2(params, "setLeverage", "papi", "portfolioMargin", false)
 	isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
 	params = MapTyped(GetValue(isPortfolioMarginparamsVariable, 1))
 	var response any = nil
@@ -15464,7 +15464,7 @@ func (this *Binance) setPositionModeBody(ch chan any, hedged any, optionalArgs .
 	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	var isPortfolioMargin any = nil
-	var isPortfolioMarginparamsVariable []any = this.HandleOptionAndParams2(params, "setPositionMode", "papi", "portfolioMargin", false)
+	var isPortfolioMarginparamsVariable []any = this.HandleOptionBoolAndParams2(params, "setPositionMode", "papi", "portfolioMargin", false)
 	isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
 	params = MapTyped(GetValue(isPortfolioMarginparamsVariable, 1))
 	var dualSidePosition string
@@ -15555,7 +15555,7 @@ func (this *Binance) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	var isPortfolioMargin any = nil
-	var isPortfolioMarginparamsVariable []any = this.HandleOptionAndParams2(params, "fetchLeverages", "papi", "portfolioMargin", false)
+	var isPortfolioMarginparamsVariable []any = this.HandleOptionBoolAndParams2(params, "fetchLeverages", "papi", "portfolioMargin", false)
 	isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
 	params = MapTyped(GetValue(isPortfolioMarginparamsVariable, 1))
 	var response any = nil
@@ -16008,7 +16008,7 @@ func (this *Binance) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		request["endTime"] = until
 	}
 	var isPortfolioMargin any = nil
-	var isPortfolioMarginparamsVariable []any = this.HandleOptionAndParams2(params, "fetchLedger", "papi", "portfolioMargin", false)
+	var isPortfolioMarginparamsVariable []any = this.HandleOptionBoolAndParams2(params, "fetchLedger", "papi", "portfolioMargin", false)
 	isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
 	params = MapTyped(GetValue(isPortfolioMarginparamsVariable, 1))
 	var response any = nil
@@ -17151,7 +17151,7 @@ func (this *Binance) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var isPortfolioMargin any = nil
-	var isPortfolioMarginparamsVariable []any = this.HandleOptionAndParams2(params, "fetchBorrowInterest", "papi", "portfolioMargin", false)
+	var isPortfolioMarginparamsVariable []any = this.HandleOptionBoolAndParams2(params, "fetchBorrowInterest", "papi", "portfolioMargin", false)
 	isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
 	params = MapTyped(GetValue(isPortfolioMarginparamsVariable, 1))
 	var request map[string]any = map[string]any{}
@@ -17285,7 +17285,7 @@ func (this *Binance) repayCrossMarginBody(ch chan any, code any, amount any, opt
 	}
 	var response any = nil
 	var isPortfolioMargin any = nil
-	var isPortfolioMarginparamsVariable []any = this.HandleOptionAndParams2(params, "repayCrossMargin", "papi", "portfolioMargin", false)
+	var isPortfolioMarginparamsVariable []any = this.HandleOptionBoolAndParams2(params, "repayCrossMargin", "papi", "portfolioMargin", false)
 	isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
 	params = MapTyped(GetValue(isPortfolioMarginparamsVariable, 1))
 	if isPortfolioMargin == true {
@@ -17395,7 +17395,7 @@ func (this *Binance) borrowCrossMarginBody(ch chan any, code any, amount any, op
 	}
 	var response any = nil
 	var isPortfolioMargin any = nil
-	var isPortfolioMarginparamsVariable []any = this.HandleOptionAndParams2(params, "borrowCrossMargin", "papi", "portfolioMargin", false)
+	var isPortfolioMarginparamsVariable []any = this.HandleOptionBoolAndParams2(params, "borrowCrossMargin", "papi", "portfolioMargin", false)
 	isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
 	params = MapTyped(GetValue(isPortfolioMarginparamsVariable, 1))
 	if isPortfolioMargin == true {
@@ -17538,7 +17538,7 @@ func (this *Binance) fetchOpenInterestHistoryBody(ch chan any, symbol any, optio
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenInterestHistory", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOpenInterestHistory", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -17789,7 +17789,7 @@ func (this *Binance) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) a
 	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	var isPortfolioMargin any = nil
-	var isPortfolioMarginparamsVariable []any = this.HandleOptionAndParams2(params, "fetchMyLiquidations", "papi", "portfolioMargin", false)
+	var isPortfolioMarginparamsVariable []any = this.HandleOptionBoolAndParams2(params, "fetchMyLiquidations", "papi", "portfolioMargin", false)
 	isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
 	params = MapTyped(GetValue(isPortfolioMarginparamsVariable, 1))
 	var request map[string]any = map[string]any{}
@@ -19317,7 +19317,7 @@ func (this *Binance) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any)
 	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	var isPortfolioMargin any = nil
-	var isPortfolioMarginparamsVariable []any = this.HandleOptionAndParams2(params, "fetchPositionsADLRank", "papi", "portfolioMargin", false)
+	var isPortfolioMarginparamsVariable []any = this.HandleOptionBoolAndParams2(params, "fetchPositionsADLRank", "papi", "portfolioMargin", false)
 	isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
 	params = MapTyped(GetValue(isPortfolioMarginparamsVariable, 1))
 	var response any = nil

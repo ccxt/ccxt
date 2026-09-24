@@ -138,7 +138,7 @@ export default class woo extends wooRest {
             await this.loadMarkets ();
         }
         let method: Str = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'method', 'orderbook');
+        [ method, params ] = this.handleOptionStringAndParams (params, 'watchOrderBook', 'method', 'orderbook');
         const market = this.market (symbol);
         const topic = market['id'] + '@' + method;
         const urlUid = (this.uid !== '') ? '/' + this.uid : '';
@@ -178,7 +178,7 @@ export default class woo extends wooRest {
             await this.loadMarkets ();
         }
         let method: Str = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'method', 'orderbook');
+        [ method, params ] = this.handleOptionStringAndParams (params, 'watchOrderBook', 'method', 'orderbook');
         const market = this.market (symbol);
         const subHash = market['id'] + '@' + method;
         const topic = 'orderbook';
@@ -370,7 +370,7 @@ export default class woo extends wooRest {
             await this.loadMarkets ();
         }
         let method: Str = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'watchTicker', 'method', 'ticker');
+        [ method, params ] = this.handleOptionStringAndParams (params, 'watchTicker', 'method', 'ticker');
         const market = this.market (symbol);
         const subHash = market['id'] + '@' + method;
         const topic = 'ticker';

@@ -1749,12 +1749,12 @@ public partial class bullish : Exchange
         {
             request["_pageSize"] = this.getClosestLimit(limit);
         }
-        object method = "privateGetV2HistoryOrders";
-        IList<object> methodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrders", "method", method);
-        method = methodparametersVariable[0];
+        string? method = "privateGetV2HistoryOrders";
+        IList<object> methodparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchOrders", "method", method);
+        method = (string)methodparametersVariable[0];
         parameters = methodparametersVariable[1];
         List<object> response = new List<object>() {};
-        if (isEqual(method, "privateGetV2Orders"))
+        if (method == "privateGetV2Orders")
         {
             //
             //     [
@@ -1786,7 +1786,7 @@ public partial class bullish : Exchange
             //     ]
             //
             response = await this.privateGetV2Orders(this.extend(request, parameters));
-        } else if (isEqual(method, "privateGetV2HistoryOrders"))
+        } else if (method == "privateGetV2HistoryOrders")
         {
             response = await this.privateGetV2HistoryOrders(this.extend(request, parameters));
         } else
@@ -2051,11 +2051,11 @@ public partial class bullish : Exchange
         {
             typeVar = "POST_ONLY";
         }
-        object timeInForce = "GTC"; // is mandatory
-        IList<object> timeInForceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "timeInForce", timeInForce);
-        timeInForce = timeInForceparametersVariable[0];
+        string? timeInForce = "GTC"; // is mandatory
+        IList<object> timeInForceparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce", timeInForce);
+        timeInForce = (string)timeInForceparametersVariable[0];
         parameters = timeInForceparametersVariable[1];
-        ((IDictionary<string,object>)parameters)["timeInForce"] = ((string)timeInForce).ToUpper();
+        ((IDictionary<string,object>)parameters)["timeInForce"] = timeInForce.ToUpper();
         if (!isMarketOrder)
         {
             request["price"] = this.priceToPrecision(symbol, price);

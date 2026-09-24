@@ -4478,7 +4478,7 @@ class gate(Exchange, ImplicitAPI):
                 if isMarketOrder and (side == 'buy'):
                     quoteAmount = None
                     createMarketBuyOrderRequiresPrice = True
-                    createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+                    createMarketBuyOrderRequiresPrice, params = self.handle_option_bool_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
                     cost = self.safe_number(params, 'cost')
                     params = self.omit(params, 'cost')
                     if cost is not None:
@@ -5198,7 +5198,7 @@ class gate(Exchange, ImplicitAPI):
         res = self.handle_market_type_and_params('fetchClosedOrders', market, params)
         type = self.safe_string(res, 0)
         useHistorical = False
-        useHistorical, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'historical', False)
+        useHistorical, params = self.handle_option_bool_and_params(params, 'fetchClosedOrders', 'historical', False)
         if not useHistorical and ((since is None and until is None) or (type != 'swap')):
             return self.fetch_orders_by_status('finished', symbol, since, limit, params)
         params = self.omit(params, 'type')
@@ -6905,7 +6905,7 @@ class gate(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOpenInterestHistory', 'paginate', False)
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOpenInterestHistory', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOpenInterestHistory', symbol, since, limit, timeframe, params, 100)
         market = self.market(symbol)

@@ -158,7 +158,7 @@ class woo extends \ccxt\async\woo {
             Async\await($this->load_markets());
         }
         $method = null;
-        list($method, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'method', 'orderbook');
+        list($method, $params) = $this->handle_option_string_and_params($params, 'watchOrderBook', 'method', 'orderbook');
         $market = $this->market($symbol);
         $topic = $market['id'] . '@' . $method;
         $urlUid = ($this->uid !== '') ? '/' . $this->uid : '';
@@ -202,7 +202,7 @@ class woo extends \ccxt\async\woo {
             Async\await($this->load_markets());
         }
         $method = null;
-        list($method, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'method', 'orderbook');
+        list($method, $params) = $this->handle_option_string_and_params($params, 'watchOrderBook', 'method', 'orderbook');
         $market = $this->market($symbol);
         $subHash = $market['id'] . '@' . $method;
         $topic = 'orderbook';
@@ -402,7 +402,7 @@ class woo extends \ccxt\async\woo {
             Async\await($this->load_markets());
         }
         $method = null;
-        list($method, $params) = $this->handle_option_and_params($params, 'watchTicker', 'method', 'ticker');
+        list($method, $params) = $this->handle_option_string_and_params($params, 'watchTicker', 'method', 'ticker');
         $market = $this->market($symbol);
         $subHash = $market['id'] . '@' . $method;
         $topic = 'ticker';

@@ -419,7 +419,7 @@ class nado(Exchange, ImplicitAPI):
         if side == 'sell':
             amountX18 = Precise.string_mul(amountX18, '-1')
         subaccount = None
-        subaccount, params = self.handle_option_and_params(params, 'createOrder', 'subaccount', 'default')
+        subaccount, params = self.handle_option_string_and_params(params, 'createOrder', 'subaccount', 'default')
         expiration = None
         expiration, params = self.handle_option_and_params(params, 'createOrder', 'expiration', '4294967295')
         recvWindow = None
@@ -570,9 +570,9 @@ class nado(Exchange, ImplicitAPI):
             amountX18 = Precise.string_mul(amountX18, '-1')
         editOrderOptions = self.safe_dict(self.options, 'editOrder', {})
         subaccount = None
-        subaccount, params = self.handle_option_and_params(params, 'editOrder', 'subaccount', 'default')
+        subaccount, params = self.handle_option_string_and_params(params, 'editOrder', 'subaccount', 'default')
         expiration = None
-        expiration, params = self.handle_option_and_params(params, 'editOrder', 'expiration', '4294967295')
+        expiration, params = self.handle_option_string_and_params(params, 'editOrder', 'expiration', '4294967295')
         recvWindow = None
         recvWindow, params = self.handle_option_and_params(params, 'editOrder', 'recvWindow', 5000)
         cancelNonce = self.create_order_nonce(recvWindow)
@@ -721,7 +721,7 @@ class nado(Exchange, ImplicitAPI):
             market = self.market(symbol)
             productIds.append(self.parse_to_int(market['id']))
         subaccount = None
-        subaccount, params = self.handle_option_and_params(params, 'cancelAllOrders', 'subaccount', 'default')
+        subaccount, params = self.handle_option_string_and_params(params, 'cancelAllOrders', 'subaccount', 'default')
         sender = self.create_subaccount(self.walletAddress, subaccount)
         recvWindow = None
         recvWindow, params = self.handle_option_and_params(params, 'cancelAllOrders', 'recvWindow', 5000)
@@ -829,7 +829,7 @@ class nado(Exchange, ImplicitAPI):
         market = self.market(symbol)
         productId = self.parse_to_int(market['id'])
         subaccount = None
-        subaccount, params = self.handle_option_and_params(params, 'cancelOrders', 'subaccount', 'default')
+        subaccount, params = self.handle_option_string_and_params(params, 'cancelOrders', 'subaccount', 'default')
         sender = self.create_subaccount(self.walletAddress, subaccount)
         productIds = []
         for i in range(0, len(ids)):
@@ -932,7 +932,7 @@ class nado(Exchange, ImplicitAPI):
             market = self.market(symbol)
             productIds.append(self.parse_to_int(market['id']))
         subaccount = None
-        subaccount, params = self.handle_option_and_params(params, 'fetchOrders', 'subaccount', 'default')
+        subaccount, params = self.handle_option_string_and_params(params, 'fetchOrders', 'subaccount', 'default')
         sender = self.create_subaccount(self.walletAddress, subaccount)
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
@@ -1009,7 +1009,7 @@ class nado(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires walletAddress')
         self.load_markets()
         subaccount = None
-        subaccount, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'subaccount', 'default')
+        subaccount, params = self.handle_option_string_and_params(params, 'fetchOpenOrders', 'subaccount', 'default')
         sender = self.create_subaccount(self.walletAddress, subaccount)
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
         if trigger is True:
@@ -1081,7 +1081,7 @@ class nado(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         subaccount = None
-        subaccount, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'subaccount', 'default')
+        subaccount, params = self.handle_option_string_and_params(params, 'fetchClosedOrders', 'subaccount', 'default')
         sender = self.create_subaccount(self.walletAddress, subaccount)
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
         if trigger is True:
@@ -1190,7 +1190,7 @@ class nado(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         subaccount = None
-        subaccount, params = self.handle_option_and_params(params, 'fetchMyTrades', 'subaccount', 'default')
+        subaccount, params = self.handle_option_string_and_params(params, 'fetchMyTrades', 'subaccount', 'default')
         matchesRequest = {
             'subaccounts': [
                 self.create_subaccount(self.walletAddress, subaccount),
@@ -1258,7 +1258,7 @@ class nado(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchBalance() requires walletAddress')
         self.load_markets()
         subaccount = None
-        subaccount, params = self.handle_option_and_params(params, 'fetchBalance', 'subaccount', 'default')
+        subaccount, params = self.handle_option_string_and_params(params, 'fetchBalance', 'subaccount', 'default')
         request = {
             'type': 'subaccount_info',
             'subaccount': self.create_subaccount(self.walletAddress, subaccount),
@@ -1326,7 +1326,7 @@ class nado(Exchange, ImplicitAPI):
         if code is not None:
             currency = self.currency(code)
         subaccount = None
-        subaccount, params = self.handle_option_and_params(params, methodName, 'subaccount', 'default')
+        subaccount, params = self.handle_option_string_and_params(params, methodName, 'subaccount', 'default')
         eventsRequest = {
             'subaccounts': [
                 self.create_subaccount(self.walletAddress, subaccount),
@@ -1414,7 +1414,7 @@ class nado(Exchange, ImplicitAPI):
         self.load_markets()
         symbols = self.market_symbols(symbols)
         subaccount = None
-        subaccount, params = self.handle_option_and_params(params, 'fetchPositions', 'subaccount', 'default')
+        subaccount, params = self.handle_option_string_and_params(params, 'fetchPositions', 'subaccount', 'default')
         request = {
             'type': 'subaccount_info',
             'subaccount': self.create_subaccount(self.walletAddress, subaccount),
@@ -1802,7 +1802,7 @@ class nado(Exchange, ImplicitAPI):
         if market['swap'] is not True:
             raise BadSymbol(self.id + ' fetchFundingHistory() supports swap contracts only')
         subaccount = None
-        subaccount, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'subaccount', 'default')
+        subaccount, params = self.handle_option_string_and_params(params, 'fetchFundingHistory', 'subaccount', 'default')
         request = {
             'interest_and_funding': {
                 'subaccount': self.create_subaccount(self.walletAddress, subaccount),

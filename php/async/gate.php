@@ -4843,7 +4843,7 @@ class gate extends Exchange {
                 if ($isMarketOrder && ($side === 'buy')) {
                     $quoteAmount = null;
                     $createMarketBuyOrderRequiresPrice = true;
-                    list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                    list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_bool_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                     $cost = $this->safe_number($params, 'cost');
                     $params = $this->omit($params, 'cost');
                     if ($cost !== null) {
@@ -5656,7 +5656,7 @@ class gate extends Exchange {
         $res = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
         $type = $this->safe_string($res, 0);
         $useHistorical = false;
-        list($useHistorical, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'historical', false);
+        list($useHistorical, $params) = $this->handle_option_bool_and_params($params, 'fetchClosedOrders', 'historical', false);
         if (!$useHistorical && (($since === null && $until === null) || ($type !== 'swap'))) {
             return Async\await($this->fetch_orders_by_status('finished', $symbol, $since, $limit, $params));
         }
@@ -7572,7 +7572,7 @@ class gate extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenInterestHistory', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOpenInterestHistory', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_deterministic('fetchOpenInterestHistory', $symbol, $since, $limit, $timeframe, $params, 100));
         }

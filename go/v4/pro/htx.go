@@ -1897,9 +1897,9 @@ func (this *Htx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		params = ccxt.GetValue(subTypeparamsVariable, 1)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("watchPositions", params, "cross")
-	marginMode = ccxt.GetValue(marginModeparamsVariable, 0)
+	marginMode = ccxt.SafeStringPtr(ccxt.GetValue(marginModeparamsVariable, 0))
 	params = ccxt.GetValue(marginModeparamsVariable, 1)
 	var linear bool = (ccxt.IsEqual(subType, "linear"))
 	var swap bool = (ccxt.IsEqual(typeVar, "swap"))
@@ -1909,7 +1909,7 @@ func (this *Htx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var url any = this.GetUrlByMarketType(typeVar, isLinear, true, false, isV5Linear)
 	messageHash = ccxt.Add(ccxt.Add(marginMode, ":positions"), messageHash)
 	var channel any = func() string {
-		if ccxt.IsEqual(marginMode, "cross") {
+		if marginMode != nil && *marginMode == "cross" {
 			return "positions_cross.*"
 		}
 		return "positions.*"

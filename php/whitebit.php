@@ -2264,7 +2264,7 @@ class whitebit extends Exchange {
         $requestType = array();
         if ($type === 'spot') {
             $isMargin = null;
-            list($isMargin, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'isMargin', false);
+            list($isMargin, $params) = $this->handle_option_bool_and_params($params, 'cancelAllOrders', 'isMargin', false);
             if ($isMargin) {
                 $requestType[] = 'margin';
             } else {
@@ -4275,7 +4275,7 @@ class whitebit extends Exchange {
             $nonce = (string) $this->incrementing_nonce();
             $secret = $this->encode($this->secret);
             $request = '/' . 'api' . '/' . $version . $pathWithParams;
-            list($nonceWindow, $requestParams) = $this->handle_option_and_params($params, 'sign', 'nonceWindow', false);
+            list($nonceWindow, $requestParams) = $this->handle_option_bool_and_params($params, 'sign', 'nonceWindow', false);
             $body = $this->json($this->extend(array( 'request' => $request, 'nonce' => $nonce, 'nonceWindow' => $nonceWindow ), $requestParams));
             $payload = base64_encode($body);
             $signature = $this->hmac($this->encode($payload), $secret, 'sha512');

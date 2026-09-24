@@ -1337,7 +1337,7 @@ export default class bybit extends bybitRest {
         };
         let topic: Str = this.safeString (topicByMarket, this.getPrivateType (url));
         let executionFast = false;
-        [ executionFast, params ] = this.handleOptionAndParams (params, 'watchMyTrades', 'executionFast', false);
+        [ executionFast, params ] = this.handleOptionBoolAndParams (params, 'watchMyTrades', 'executionFast', false);
         if (executionFast) {
             topic = 'execution.fast';
         }
@@ -1379,7 +1379,7 @@ export default class bybit extends bybitRest {
         };
         let topic: Str = this.safeString (topicByMarket, this.getPrivateType (url));
         let executionFast = false;
-        [ executionFast, params ] = this.handleOptionAndParams (params, 'watchMyTrades', 'executionFast', false);
+        [ executionFast, params ] = this.handleOptionBoolAndParams (params, 'watchMyTrades', 'executionFast', false);
         if (executionFast) {
             topic = 'execution.fast';
         }
@@ -1741,7 +1741,7 @@ export default class bybit extends bybitRest {
         const url = await this.getUrlByMarketType (symbol, false, 'watchLiquidations', params);
         params = this.cleanParams (params);
         let method: Str = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'watchLiquidations', 'method', 'allLiquidation');
+        [ method, params ] = this.handleOptionStringAndParams (params, 'watchLiquidations', 'method', 'allLiquidation');
         const messageHash = 'liquidations::' + symbol;
         const topic = method + '.' + market['id'];
         const newLiquidation = await this.watchTopics (url, [ messageHash ], [ topic ], params);

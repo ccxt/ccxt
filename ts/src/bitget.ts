@@ -6013,7 +6013,7 @@ export default class bitget extends Exchange {
             let quantity: Str = undefined;
             let planType: Str = undefined;
             let createMarketBuyOrderRequiresPrice = true;
-            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionBoolAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
             if (isMarketOrder && (side === 'buy')) {
                 planType = 'total';
                 const cost = this.safeNumber (params, 'cost');
@@ -8835,7 +8835,7 @@ export default class bitget extends Exchange {
         if (useHistoryEndpoint === true) {
             method = 'privateMixGetV2MixPositionHistoryPosition';
         } else {
-            [ method, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'method', 'privateMixGetV2MixPositionAllPosition');
+            [ method, params ] = this.handleOptionStringAndParams (params, 'fetchPositions', 'method', 'privateMixGetV2MixPositionAllPosition');
         }
         let market: Market = undefined;
         if (symbols !== undefined) {
@@ -9374,7 +9374,7 @@ export default class bitget extends Exchange {
         } else {
             request['productType'] = productType;
             let method: Str = undefined;
-            [ method, params ] = this.handleOptionAndParams (params, 'fetchFundingRate', 'method', 'publicMixGetV2MixMarketCurrentFundRate');
+            [ method, params ] = this.handleOptionStringAndParams (params, 'fetchFundingRate', 'method', 'publicMixGetV2MixMarketCurrentFundRate');
             if (method === 'publicMixGetV2MixMarketCurrentFundRate') {
                 response = await this.publicMixGetV2MixMarketCurrentFundRate (this.extend (request, params));
                 //
@@ -9441,7 +9441,7 @@ export default class bitget extends Exchange {
         let productType: Str = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         let method = 'publicMixGetV2MixMarketTickers';
-        [ method, params ] = this.handleOptionAndParams (params, 'fetchFundingRates', 'method', method);
+        [ method, params ] = this.handleOptionStringAndParams (params, 'fetchFundingRates', 'method', method);
         let response = undefined;
         request['productType'] = productType;
         if (method === 'publicMixGetV2MixMarketTickers') {

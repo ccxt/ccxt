@@ -231,9 +231,9 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             {
                 throw new ArgumentsRequired((this.id + " watchTickers requires a symbols argument")) ;
             }
-            Object channel = null;
-            List<Object> channelparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "channel", "v1.ticker.s");
-            channel = ((List<Object>) channelparametersVariable).get(0);
+            String channel = null;
+            List<Object> channelparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchTickers", "channel", "v1.ticker.s");
+            channel = (String) ((List<Object>) channelparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) channelparametersVariable).get(1);
             Object interval = 500;
             List<Object> intervalparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "interval", interval);
@@ -254,7 +254,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 ((List<Object>)rawHashes).add(Helpers.add((marketId + "@"), String.valueOf(interval)));
                 ((List<Object>)messageHashes).add(("ticker::" + ((Map<String, Object>)market).get("symbol")));
             }
-            final Object finalChannel = channel;
+            final String finalChannel = channel;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "stream", finalChannel );
                 put( "selectors", rawHashes );
@@ -768,9 +768,9 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             {
                 (this.loadMarkets()).join();
             }
-            Object channel = null;
-            List<Object> channelparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "channel", "v1.book.d");
-            channel = ((List<Object>) channelparametersVariable).get(0);
+            String channel = null;
+            List<Object> channelparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBook", "channel", "v1.book.d");
+            channel = (String) ((List<Object>) channelparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) channelparametersVariable).get(1);
             Boolean isSnapshot = java.util.Objects.equals(channel, "v1.book.s");
             Integer symbolsLength = ((List<?>)symbols).size();
@@ -800,7 +800,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 ((List<Object>)rawHashes).add(((marketId + "@") + extraPart));
                 ((List<Object>)messageHashes).add(("orderbook::" + ((Map<String, Object>)market).get("symbol")));
             }
-            final Object finalChannel = channel;
+            final String finalChannel = channel;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "stream", finalChannel );
                 put( "selectors", rawHashes );

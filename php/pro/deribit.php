@@ -621,12 +621,12 @@ class deribit extends \ccxt\async\deribit {
         }
         $descriptor = '';
         $useDepthEndpoint = null; // for more info, see comment in .options
-        list($useDepthEndpoint, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
+        list($useDepthEndpoint, $params) = $this->handle_option_bool_and_params($params, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
         if ($useDepthEndpoint) {
             $depth = null;
             list($depth, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'depth', '20');
             $group = null;
-            list($group, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'group', 'none');
+            list($group, $params) = $this->handle_option_string_and_params($params, 'watchOrderBookForSymbols', 'group', 'none');
             $descriptor = $group . '.' . $depth . '.' . $interval;
         } else {
             $descriptor = $interval;

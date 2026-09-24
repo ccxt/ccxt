@@ -958,9 +958,9 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Object orderbook = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                Object frequency = null;
-                List<Object> frequencyparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "frequency", "100ms");
-                frequency = ((List<Object>) frequencyparametersVariable).get(0);
+                String frequency = null;
+                List<Object> frequencyparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBook", "frequency", "100ms");
+                frequency = (String) ((List<Object>) frequencyparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) frequencyparametersVariable).get(1);
                 Object channel = ((("spot@public.aggre.depth.v3.api.pb@" + frequency) + "@") + ((Map<String, Object>)market).get("id"));
                 orderbook = (this.watchSpotPublic(channel, messageHash, parameters)).join();
@@ -2444,9 +2444,9 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "spot");
-                Object frequency = null;
-                List<Object> frequencyparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "frequency", "100ms");
-                frequency = ((List<Object>) frequencyparametersVariable).get(0);
+                String frequency = null;
+                List<Object> frequencyparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBook", "frequency", "100ms");
+                frequency = (String) ((List<Object>) frequencyparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) frequencyparametersVariable).get(1);
                 Object channel = ((("spot@public.aggre.depth.v3.api.pb@" + frequency) + "@") + ((Map<String, Object>)market).get("id"));
                 ((Map<String, Object>)parameters).put("unsubscribed", true);

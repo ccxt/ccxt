@@ -3121,11 +3121,11 @@ public partial class okx : Exchange
         IList<object> rpiparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrderBook", "rpi");
         rpi = isTrue(rpiparametersVariable[0]);
         parameters = rpiparametersVariable[1];
-        object method = null;
-        IList<object> methodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrderBook", "method", "publicGetMarketBooks");
-        method = methodparametersVariable[0];
+        string? method = null;
+        IList<object> methodparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchOrderBook", "method", "publicGetMarketBooks");
+        method = (string)methodparametersVariable[0];
         parameters = methodparametersVariable[1];
-        if (isEqual(method, "publicGetMarketBooksFull") && (limitVar == null))
+        if (method == "publicGetMarketBooksFull" && (limitVar == null))
         {
             limitVar = 5000;
         }
@@ -3144,7 +3144,7 @@ public partial class okx : Exchange
         if (rpi)
         {
             response = await this.publicGetMarketBooksRpi(this.extend(request, parameters));
-        } else if ((isEqual(method, "publicGetMarketBooksFull")) || (isGreaterThan(limitVar, 400)))
+        } else if ((method == "publicGetMarketBooksFull") || (isGreaterThan(limitVar, 400)))
         {
             response = await this.publicGetMarketBooksFull(this.extend(request, parameters));
         } else
@@ -3600,14 +3600,14 @@ public partial class okx : Exchange
             {
                 request["limit"] = limit; // default 100
             }
-            object method = null;
-            IList<object> methodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTrades", "method", "publicGetMarketTrades");
-            method = methodparametersVariable[0];
+            string? method = null;
+            IList<object> methodparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchTrades", "method", "publicGetMarketTrades");
+            method = (string)methodparametersVariable[0];
             parameters = methodparametersVariable[1];
-            if (isEqual(method, "publicGetMarketTrades"))
+            if (method == "publicGetMarketTrades")
             {
                 response = await this.publicGetMarketTrades(this.extend(request, parameters));
-            } else if (isEqual(method, "publicGetMarketHistoryTrades"))
+            } else if (method == "publicGetMarketHistoryTrades")
             {
                 response = await this.publicGetMarketHistoryTrades(this.extend(request, parameters));
             }
@@ -4376,8 +4376,8 @@ public partial class okx : Exchange
                 {
                     // quote_ccy: sz refers to units of quote currency
                     bool? createMarketBuyOrderRequiresPrice = true;
-                    IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                    createMarketBuyOrderRequiresPrice = isTrue(createMarketBuyOrderRequiresPriceparametersVariable[0]);
+                    IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                    createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparametersVariable[0];
                     parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
                     object notional = this.safeNumber2(parameters, "cost", "sz");
                     parameters = this.omit(parameters, new List<object>() {"cost", "sz"});
@@ -6459,9 +6459,9 @@ public partial class okx : Exchange
         method = this.safeString(parameters, "method", method);
         parameters = this.omit(parameters, "method");
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchLedger", parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         if ((marginMode == null))
         {
@@ -7355,15 +7355,15 @@ public partial class okx : Exchange
         {
             await this.loadMarkets();
         }
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchLeverage", parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         if ((marginMode == null))
         {
             marginMode = this.safeString(parameters, "mgnMode", "cross"); // cross as default marginMode
         }
-        if ((!isEqual(marginMode, "cross")) && (!isEqual(marginMode, "isolated")))
+        if ((marginMode != "cross") && (marginMode != "isolated"))
         {
             throw new BadRequest ((this.id + " fetchLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
         }
@@ -8505,15 +8505,15 @@ public partial class okx : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("setLeverage", parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         if ((marginMode == null))
         {
             marginMode = this.safeString(parameters, "mgnMode", "cross"); // cross as default marginMode
         }
-        if ((!isEqual(marginMode, "cross")) && (!isEqual(marginMode, "isolated")))
+        if ((marginMode != "cross") && (marginMode != "isolated"))
         {
             throw new BadRequest ((this.id + " setLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
         }
@@ -8523,7 +8523,7 @@ public partial class okx : Exchange
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },
         };
         string? posSide = this.safeString(parameters, "posSide", "net");
-        if (isEqual(marginMode, "isolated"))
+        if (marginMode == "isolated")
         {
             if (posSide != "long" && posSide != "short" && posSide != "net")
             {
@@ -9102,9 +9102,9 @@ public partial class okx : Exchange
                 throw new BadRequest (((this.id + " fetchMarketLeverageTiers() cannot fetch leverage tiers for ") + symbol)) ;
             }
         }
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchMarketLeverageTiers", parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         if ((marginMode == null))
         {
@@ -9211,9 +9211,9 @@ public partial class okx : Exchange
         {
             await this.loadMarkets();
         }
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchBorrowInterest", parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         if ((marginMode == null))
         {
@@ -10238,9 +10238,9 @@ public partial class okx : Exchange
         Dictionary<string, object> market = this.market(symbol);
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
         string? code = this.safeString(parameters, "code");
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("closePosition", parameters, "cross");
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },

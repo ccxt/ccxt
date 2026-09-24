@@ -142,9 +142,9 @@ public partial class woo : ccxt.woo
         {
             await this.loadMarkets();
         }
-        object method = null;
-        IList<object> methodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "method", "orderbook");
-        method = methodparametersVariable[0];
+        string? method = null;
+        IList<object> methodparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBook", "method", "orderbook");
+        method = (string)methodparametersVariable[0];
         parameters = methodparametersVariable[1];
         Dictionary<string, object> market = this.market(symbol);
         string? topic = ((string)add(add((market.ContainsKey("id") ? market["id"] : null), "@"), method));
@@ -163,7 +163,7 @@ public partial class woo : ccxt.woo
             { "limit", limit },
             { "params", parameters },
         };
-        if (isEqual(method, "orderbookupdate"))
+        if (method == "orderbookupdate")
         {
             subscription["method"] = this.handleOrderBookSubscription;
         }
@@ -188,9 +188,9 @@ public partial class woo : ccxt.woo
         {
             await this.loadMarkets();
         }
-        object method = null;
-        IList<object> methodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "method", "orderbook");
-        method = methodparametersVariable[0];
+        string? method = null;
+        IList<object> methodparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBook", "method", "orderbook");
+        method = (string)methodparametersVariable[0];
         parameters = methodparametersVariable[1];
         Dictionary<string, object> market = this.market(symbol);
         string? subHash = ((string)add(add((market.ContainsKey("id") ? market["id"] : null), "@"), method));
@@ -419,9 +419,9 @@ public partial class woo : ccxt.woo
         {
             await this.loadMarkets();
         }
-        object method = null;
-        IList<object> methodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchTicker", "method", "ticker");
-        method = methodparametersVariable[0];
+        string? method = null;
+        IList<object> methodparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchTicker", "method", "ticker");
+        method = (string)methodparametersVariable[0];
         parameters = methodparametersVariable[1];
         Dictionary<string, object> market = this.market(symbol);
         string? subHash = ((string)add(add((market.ContainsKey("id") ? market["id"] : null), "@"), method));

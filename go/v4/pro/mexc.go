@@ -909,11 +909,11 @@ func (this *Mexc) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 	var orderbook any = nil
 	if ccxt.GetValue(market, "spot") == true {
-		var frequency any = nil
-		var frequencyparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "frequency", "100ms")
-		frequency = ccxt.GetValue(frequencyparamsVariable, 0)
+		var frequency *string = nil
+		var frequencyparamsVariable []any = this.HandleOptionStringAndParams(params, "watchOrderBook", "frequency", "100ms")
+		frequency = ccxt.SafeStringPtr(ccxt.GetValue(frequencyparamsVariable, 0))
 		params = ccxt.MapTyped(ccxt.GetValue(frequencyparamsVariable, 1))
-		var channel any = ccxt.Add(ccxt.Add(ccxt.Add("spot@public.aggre.depth.v3.api.pb@", frequency), "@"), market["id"])
+		var channel any = ccxt.Add("spot@public.aggre.depth.v3.api.pb@"+*frequency+"@", market["id"])
 
 		orderbook = (<-this.WatchSpotPublicAsync(channel, messageHash, params))
 		ccxt.PanicOnError(orderbook)
@@ -2230,11 +2230,11 @@ func (this *Mexc) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var url any = nil
 	if ccxt.GetValue(market, "spot") == true {
 		url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot")
-		var frequency any = nil
-		var frequencyparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "frequency", "100ms")
-		frequency = ccxt.GetValue(frequencyparamsVariable, 0)
+		var frequency *string = nil
+		var frequencyparamsVariable []any = this.HandleOptionStringAndParams(params, "watchOrderBook", "frequency", "100ms")
+		frequency = ccxt.SafeStringPtr(ccxt.GetValue(frequencyparamsVariable, 0))
 		params = ccxt.MapTyped(ccxt.GetValue(frequencyparamsVariable, 1))
-		var channel any = ccxt.Add(ccxt.Add(ccxt.Add("spot@public.aggre.depth.v3.api.pb@", frequency), "@"), market["id"])
+		var channel any = ccxt.Add("spot@public.aggre.depth.v3.api.pb@"+*frequency+"@", market["id"])
 		ccxt.AddElementToObject(params, "unsubscribed", true)
 		this.Spawn(this.WatchSpotPublicAsync, channel, messageHash, params)
 	} else {

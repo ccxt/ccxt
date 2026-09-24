@@ -162,7 +162,7 @@ export default class grvt extends grvtRest {
             throw new ArgumentsRequired (this.id + ' watchTickers requires a symbols argument');
         }
         let channel: Str = undefined;
-        [ channel, params ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'v1.ticker.s');
+        [ channel, params ] = this.handleOptionStringAndParams (params, 'watchTickers', 'channel', 'v1.ticker.s');
         let interval = 500;
         [ interval, params ] = this.handleOptionAndParams (params, 'watchTickers', 'interval', interval);
         if (this.markets === undefined) {
@@ -527,7 +527,7 @@ export default class grvt extends grvtRest {
             await this.loadMarkets ();
         }
         let channel: Str = undefined;
-        [ channel, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'channel', 'v1.book.d');
+        [ channel, params ] = this.handleOptionStringAndParams (params, 'watchOrderBook', 'channel', 'v1.book.d');
         const isSnapshot = channel === 'v1.book.s';
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
