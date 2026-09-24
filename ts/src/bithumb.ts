@@ -2591,7 +2591,7 @@ export default class bithumb extends Exchange {
                 throw new ArgumentsRequired (this.id + ' cancelOrder() requires a `side` parameter (sell or buy)');
             }
             let side: Str = undefined;
-            if (params['side'] === 'buy') {
+            if (this.safeString (params, 'side') === 'buy') {
                 side = 'bid';
             } else {
                 side = 'ask';

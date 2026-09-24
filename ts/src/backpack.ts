@@ -626,7 +626,7 @@ export default class backpack extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        if (this.options['adjustForTimeDifference'] === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference') === true) {
             await this.loadTimeDifference ();
         }
         const response = await this.publicGetApiV1Markets (params);
