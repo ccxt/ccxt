@@ -195,7 +195,7 @@ export default class bybit extends bybitRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
             isUsdcSettled = market['settle'] === 'USDC';
-            type = market['type'];
+            type = this.safeString (market, 'type');
         } else {
             [ type, params ] = this.handleMarketTypeAndParams (method, undefined, params);
             let defaultSettle = this.safeString (this.options, 'defaultSettle');
@@ -609,13 +609,13 @@ export default class bybit extends bybitRest {
         let parsed: Ticker | undefined = undefined;
         if ((updateType === 'snapshot')) {
             parsed = this.parseTicker (data);
-            symbol = parsed['symbol'];
+            symbol = this.safeString (parsed, 'symbol');
         } else if (updateType === 'delta') {
             const topicParts = topic.split ('.');
             const topicLength = topicParts.length;
             const marketId = this.safeString (topicParts, topicLength - 1);
             const market = this.safeMarket (marketId, undefined, undefined, type);
-            symbol = market['symbol'];
+            symbol = this.safeString (market, 'symbol');
             // update the info in place
             const ticker = this.safeDict (this.tickers, symbol, {});
             const rawTicker = this.safeDict (ticker, 'info', {});

@@ -875,7 +875,7 @@ export default class htx extends htxRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
-            type = market['type'];
+            type = this.safeString (market, 'type');
             subType = (market['linear'] === true) ? 'linear' : 'inverse';
             marketId = market['lowercaseId'];
         } else {
@@ -1005,7 +1005,7 @@ export default class htx extends htxRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
-            type = market['type'];
+            type = this.safeString (market, 'type');
             suffix = market['lowercaseId'];
             subType = (market['linear'] === true) ? 'linear' : 'inverse';
         } else {
@@ -1606,7 +1606,7 @@ export default class htx extends htxRest {
         let type: Str = undefined;
         let subType: SubType = undefined;
         if (market !== undefined) {
-            type = market['type'];
+            type = this.safeString (market, 'type');
             subType = (market['linear'] === true) ? 'linear' : 'inverse';
         } else {
             [ type, params ] = this.handleMarketTypeAndParams ('watchPositions', market, params);

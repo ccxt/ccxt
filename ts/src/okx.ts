@@ -8129,10 +8129,10 @@ export default class okx extends Exchange {
         let market: Market = undefined;
         if (((this.markets !== undefined) && (symbol in this.markets)) || ((this.markets_by_id !== undefined) && (symbol in this.markets_by_id))) {
             market = this.market (symbol);
-            currencyId = market['baseId'];
+            currencyId = this.safeString (market, 'baseId');
         } else {
             const currency = this.currency (symbol);
-            currencyId = currency['id'];
+            currencyId = this.safeString (currency, 'id');
         }
         const request: Dict = {
             'ccy': currencyId,

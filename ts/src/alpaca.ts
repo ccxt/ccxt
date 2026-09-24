@@ -1770,7 +1770,7 @@ export default class alpaca extends Exchange {
         //
         let parsedCurrency: Str = undefined;
         if (currency !== undefined) {
-            parsedCurrency = currency['id'];
+            parsedCurrency = this.safeString (currency, 'id');
         }
         return {
             'info': depositAddress,

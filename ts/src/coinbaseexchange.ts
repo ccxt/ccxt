@@ -1927,7 +1927,7 @@ export default class coinbaseexchange extends Exchange {
                 if (account === undefined) {
                     throw new ExchangeError (this.id + ' fetchDepositsWithdrawals() could not find account id for ' + code);
                 }
-                id = account['id'];
+                id = this.safeString (account, 'id');
             }
         }
         const request: Dict = {};

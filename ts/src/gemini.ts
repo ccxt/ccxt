@@ -1484,7 +1484,7 @@ export default class gemini extends Exchange {
         } else if (type === 'market buy' || type === 'market sell') {
             type = 'market';
         } else {
-            type = order['type'];
+            type = this.safeString (order, 'type');
         }
         const fee = undefined;
         const marketId = this.safeString (order, 'symbol');

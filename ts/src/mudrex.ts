@@ -1353,7 +1353,7 @@ export default class mudrex extends Exchange {
             let rebate: Str = undefined;
             for (let j = 0; j < rebateKeys.length; j++) {
                 if (rebateKeys[j] === transactionKeys[i]) {
-                    rebate = rebateAmounts[j];
+                    rebate = this.safeString (rebateAmounts, j);
                     // blank the consumed key so the next equal fill matches the next rebate, never the same one twice
                     rebateKeys[j] = undefined;
                     break;

@@ -1262,7 +1262,7 @@ export default class kraken extends krakenRest {
         //
         let symbol = this.safeString (trade, 'symbol');
         if (market !== undefined) {
-            symbol = market['symbol'];
+            symbol = this.safeString (market, 'symbol');
         }
         let fee: Fee = undefined;
         if ('fees' in trade) {

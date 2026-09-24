@@ -1411,8 +1411,8 @@ export default class deribit extends Exchange {
                     throw new BadRequest (this.id + ' fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency');
                 }
                 if (code === undefined) {
-                    code = market['base'];
-                    type = market['type'];
+                    code = this.safeString (market, 'base');
+                    type = this.safeString (market, 'type');
                 }
             }
         }

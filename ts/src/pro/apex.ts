@@ -451,13 +451,13 @@ export default class apex extends apexRest {
         let parsed = this.parseTicker (data);
         if ((updateType === 'snapshot')) {
             parsed = this.parseTicker (data);
-            symbol = parsed['symbol'];
+            symbol = this.safeString (parsed, 'symbol');
         } else if (updateType === 'delta') {
             const topicParts = topic.split ('.');
             const topicLength = topicParts.length;
             const marketId = this.safeString (topicParts, topicLength - 1);
             const market = this.safeMarket (marketId, undefined, undefined);
-            symbol = market['symbol'];
+            symbol = this.safeString (market, 'symbol');
             const ticker = this.safeDict (this.tickers, symbol, {});
             const rawTicker = this.safeDict (ticker, 'info', {});
             const merged = this.extend (rawTicker, data);

@@ -1811,7 +1811,7 @@ export default class okx extends okxRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
-            type = market['type'];
+            type = this.safeString (market, 'type');
             messageHash = messageHash + '::' + symbol;
         }
         if (type === 'future') {
@@ -2008,7 +2008,7 @@ export default class okx extends okxRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
-            type = market['type'];
+            type = this.safeString (market, 'type');
         }
         if (type === 'future') {
             type = 'futures';

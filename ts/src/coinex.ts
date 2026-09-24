@@ -1390,7 +1390,7 @@ export default class coinex extends Exchange {
         const timestamp = this.safeInteger (trade, 'created_at');
         let defaultType = this.safeString (this.options, 'defaultType');
         if (market !== undefined) {
-            defaultType = market['type'];
+            defaultType = this.safeString (market, 'type');
         }
         const marketId = this.safeString (trade, 'market');
         market = this.safeMarket (marketId, market, undefined, defaultType);
@@ -2136,7 +2136,7 @@ export default class coinex extends Exchange {
         const feeCurrencyId = this.safeString (order, 'fee_ccy');
         let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
         if (feeCurrency === undefined) {
-            feeCurrency = market['quote'];
+            feeCurrency = this.safeString (market, 'quote');
         }
         let side = this.safeString (order, 'side');
         if (side === 'long') {

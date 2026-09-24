@@ -1891,11 +1891,11 @@ export default class dydx extends Exchange {
         let gasPrice: Str = undefined;
         let denom: Str = undefined;
         if (defaultFeeDenom === 'uusdc') {
-            gasPrice = feeDenom['USDC_GAS_PRICE'];
-            denom = feeDenom['USDC_DENOM'];
+            gasPrice = this.safeString (feeDenom, 'USDC_GAS_PRICE');
+            denom = this.safeString (feeDenom, 'USDC_DENOM');
         } else {
-            gasPrice = feeDenom['CHAINTOKEN_GAS_PRICE'];
-            denom = feeDenom['CHAINTOKEN_DENOM'];
+            gasPrice = this.safeString (feeDenom, 'CHAINTOKEN_GAS_PRICE');
+            denom = this.safeString (feeDenom, 'CHAINTOKEN_DENOM');
         }
         const gasLimit = Math.ceil (this.parseToNumeric (Precise.stringMul (gasUsed, defaultFeeMultiplier)));
         let feeAmount = Precise.stringMul (this.numberToString (gasLimit), gasPrice);

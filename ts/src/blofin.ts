@@ -931,11 +931,11 @@ export default class blofin extends Exchange {
         let feeCurrency = this.safeString (trade, 'feeCurrency');
         const isSpot = feeCurrency !== undefined;
         if (feeCurrency === undefined) {
-            feeCurrency = market['settle'];
+            feeCurrency = this.safeString (market, 'settle');
         } else if (feeCurrency === 'base_currency') {
-            feeCurrency = market['base'];
+            feeCurrency = this.safeString (market, 'base');
         } else if (feeCurrency === 'quote_currency') {
-            feeCurrency = market['quote'];
+            feeCurrency = this.safeString (market, 'quote');
         }
         if (feeCost !== undefined) {
             fee = {
