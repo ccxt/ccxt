@@ -41,6 +41,10 @@ impl MercadoCore {
 }
 
 impl crate::exchange::DerivedExchange for MercadoCore {
+    fn nonce(&self, ) -> crate::Value {
+        // Forward to the inherent method on MercadoCore.
+        MercadoCore::nonce(self, )
+    }
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on MercadoCore.
         MercadoCore::parse_ticker(self, ticker, &[market])
@@ -67,7 +71,9 @@ impl crate::exchange::DerivedExchange for MercadoCore {
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on MercadoCore.
-        MercadoCore::sign(self, path, &[api, method, params, headers, body])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const MercadoCore as *mut MercadoCore) };
+        MercadoCore::sign(me, path, &[api, method, params, headers, body])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on MercadoCore.
@@ -94,6 +100,7 @@ impl crate::exchange_generated::ExchangeBase for MercadoCore {
                 "fetch_ticker" => self.fetch_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_trades" => self.fetch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+                "nonce" => self.nonce(),
                 "orders_to_trades" => self.orders_to_trades(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -1520,7 +1527,13 @@ impl MercadoCore {
     Value::Null
 }
 
-    pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
+    pub fn nonce(&self) -> Value {
+        return self.milliseconds();
+
+    Value::Null
+}
+
+    pub fn sign(&mut self, mut path: Value, optional_args: &[Value]) -> Value {
         let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -1539,7 +1552,8 @@ impl MercadoCore {
         }  else {
             self.check_required_credentials(&[]);
             url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", self.version.clone(), Value::Str("/".into())).into())).into());
-            let mut nonce: Value = self.nonce();
+            // mercado requires each tonce to be greater than the previous one
+            let mut nonce: Value = self.incrementing_nonce();
             let __ws_arg_16 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tapi_method".to_string(), path);

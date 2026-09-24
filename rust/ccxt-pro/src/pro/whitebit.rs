@@ -602,7 +602,7 @@ impl WhitebitCore {
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
         let mut method: Value = Value::Str("market_subscribe".into());
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut id: Value = self.nonce();
+        let mut id: Value = self.incrementing_nonce();
         let mut messageHashes: Value = Value::from(vec![]);
         let mut args: Value = Value::from(vec![]);
         {
@@ -1308,7 +1308,7 @@ impl WhitebitCore {
     m
 }));
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut id: Value = self.nonce();
+        let mut id: Value = self.incrementing_nonce();
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id);
@@ -1332,7 +1332,7 @@ impl WhitebitCore {
             self.load_markets(&[]).await;
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut id: Value = self.nonce();
+        let mut id: Value = self.incrementing_nonce();
         let mut client: Value = self.safe_value(self.clients.clone(), url.clone(), &[]);
         let mut request: Value = Value::Null;
         let mut marketIds: Value = Value::from(vec![]);
@@ -1409,7 +1409,7 @@ impl WhitebitCore {
         self.check_required_credentials(&[]);
         self.authenticate(&[]).await;
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut id: Value = self.nonce();
+        let mut id: Value = self.incrementing_nonce();
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id);
@@ -1471,7 +1471,7 @@ impl WhitebitCore {
             if (token == Value::Null) {
                 panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty websocket_token".into()))));
             }
-            let mut id: Value = self.nonce();
+            let mut id: Value = self.incrementing_nonce();
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());

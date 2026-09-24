@@ -1335,7 +1335,7 @@ impl GeminiCore {
         let mut payload: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("request".to_string(), request);
-                m.insert("nonce".to_string(), self.nonce());
+                m.insert("nonce".to_string(), self.incrementing_nonce());
             m
         });
         let mut b64: Value = self.string_to_base64(json_stringify(&payload), &[]);

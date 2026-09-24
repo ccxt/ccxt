@@ -83,7 +83,9 @@ impl crate::exchange::DerivedExchange for GeminiCore {
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on GeminiCore.
-        GeminiCore::sign(self, path, &[api, method, params, headers, body])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const GeminiCore as *mut GeminiCore) };
+        GeminiCore::sign(me, path, &[api, method, params, headers, body])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on GeminiCore.
@@ -2931,7 +2933,7 @@ impl GeminiCore {
     Value::Null
 }
 
-    pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
+    pub fn sign(&mut self, mut path: Value, optional_args: &[Value]) -> Value {
         let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -2948,7 +2950,8 @@ impl GeminiCore {
             if Value::Int(apiKey.as_str().and_then(|__s| __s.find("account")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) < ((0i64) as f64) {
                 panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" sign() requires an account-key, master-keys are not-supported".into()))));
             }
-            let mut nonce: Value = to_string_val(&self.nonce());
+            // gemini rejects a nonce that is not greater than the previously used one (InvalidNonce)
+            let mut nonce: Value = to_string_val(&self.incrementing_nonce());
             let mut finalUrl: Value = url.clone();
             let mut request: Value = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();

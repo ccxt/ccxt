@@ -448,7 +448,7 @@ impl HitbtcCore {
         let mut subscribe: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
-                m.insert("id".to_string(), self.nonce());
+                m.insert("id".to_string(), self.incrementing_nonce());
                 m.insert("ch".to_string(), name);
             m
         });
@@ -485,7 +485,7 @@ impl HitbtcCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), name);
                 m.insert("params".to_string(), params);
-                m.insert("id".to_string(), self.nonce());
+                m.insert("id".to_string(), self.incrementing_nonce());
             m
         });
         return self.watch(url, messageHash.clone(), &[subscribe, messageHash.clone()]).await;
@@ -509,7 +509,7 @@ impl HitbtcCore {
         }
         self.authenticate().await;
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private");
-        let mut messageHash: Value = to_string_val(&self.nonce());
+        let mut messageHash: Value = to_string_val(&self.incrementing_nonce());
         let mut subscribe: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), name);
