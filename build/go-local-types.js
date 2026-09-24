@@ -6449,7 +6449,25 @@ function ccxtGoTupleDictUseTestsAbsence (n) {
         || (parent?.kind === ts.SyntaxKind.WhileStatement)) && ((parent.expression === current) || (parent.condition === current));
 }
 
+// memoised per binding element; a re-entrant query during its own proof answers undefined (fail closed)
+function ccxtGoTupleElementMemo (goTranspiler, family, element, compute) {
+    goTranspiler.ccxtGoTupleElementTypes ??= { params: new WeakMap (), number: new WeakMap () };
+    const cache = goTranspiler.ccxtGoTupleElementTypes[family];
+    if ((element === undefined) || (element === null) || (typeof element !== 'object')) {
+        return compute ();
+    }
+    if (!cache.has (element)) {
+        cache.set (element, undefined);
+        cache.set (element, compute ());
+    }
+    return cache.get (element);
+}
+
 function ccxtGoTupleParamsElementType (goTranspiler, element) {
+    return ccxtGoTupleElementMemo (goTranspiler, 'params', element, () => ccxtGoTupleParamsElementTypeUncached (goTranspiler, element));
+}
+
+function ccxtGoTupleParamsElementTypeUncached (goTranspiler, element) {
     const pattern = element?.parent;
     const holder = pattern?.parent;
     if ((element?.kind !== ts.SyntaxKind.BindingElement) || !ts.isIdentifier (element.name)
@@ -6521,6 +6539,10 @@ function ccxtGoTupleNumberReadIsSafe (goTranspiler, n) {
 }
 
 function ccxtGoTupleNumberElementType (goTranspiler, element) {
+    return ccxtGoTupleElementMemo (goTranspiler, 'number', element, () => ccxtGoTupleNumberElementTypeUncached (goTranspiler, element));
+}
+
+function ccxtGoTupleNumberElementTypeUncached (goTranspiler, element) {
     const pattern = element?.parent;
     const holder = pattern?.parent;
     if ((element?.kind !== ts.SyntaxKind.BindingElement) || !ts.isIdentifier (element.name)
