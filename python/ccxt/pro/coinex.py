@@ -329,7 +329,7 @@ class coinex(ccxt.async_support.coinex):
             self.balance = {}
         data = self.safe_dict(message, 'data', {})
         balances = self.safe_list(data, 'balance_list', [])
-        firstEntry = balances[0]
+        firstEntry = self.safe_dict(balances, 0)
         updated = self.safe_integer(firstEntry, 'updated_at')
         unrealizedPnl = self.safe_string(firstEntry, 'unrealized_pnl')
         isSpot = (updated is not None)
@@ -464,7 +464,9 @@ class coinex(ccxt.async_support.coinex):
         data = self.safe_dict(message, 'data', {})
         marketId = self.safe_string(data, 'market')
         isSpot = client.url.find('spot') > -1
-        defaultType = 'spot' if isSpot else 'swap'
+        defaultType = 'swap'
+        if isSpot:
+            defaultType = 'spot'
         market = self.safe_market(marketId, None, None, defaultType)
         symbol = market['symbol']
         messageHash = 'myTrades:' + symbol
@@ -524,7 +526,9 @@ class coinex(ccxt.async_support.coinex):
         trades = self.safe_list(data, 'deal_list', [])
         marketId = self.safe_string(data, 'market')
         isSpot = client.url.find('spot') > -1
-        defaultType = 'spot' if isSpot else 'swap'
+        defaultType = 'swap'
+        if isSpot:
+            defaultType = 'spot'
         market = self.safe_market(marketId, None, None, defaultType)
         symbol = market['symbol']
         messageHash = 'trades:' + symbol
@@ -580,7 +584,9 @@ class coinex(ccxt.async_support.coinex):
         #
         timestamp = self.safe_integer(trade, 'created_at')
         isSpot = ('margin_market' in trade)
-        defaultType = 'spot' if isSpot else 'swap'
+        defaultType = 'swap'
+        if isSpot:
+            defaultType = 'spot'
         marketId = self.safe_string(trade, 'market')
         market = self.safe_market(marketId, market, None, defaultType)
         fee = {}
@@ -828,7 +834,9 @@ class coinex(ccxt.async_support.coinex):
         #     }
         #
         isSpot = client.url.find('spot') > -1
-        defaultType = 'spot' if isSpot else 'swap'
+        defaultType = 'swap'
+        if isSpot:
+            defaultType = 'spot'
         data = self.safe_dict(message, 'data', {})
         depth = self.safe_dict(data, 'depth', {})
         marketId = self.safe_string(data, 'market')
@@ -1137,7 +1145,9 @@ class coinex(ccxt.async_support.coinex):
         marketId = self.safe_string(order, 'market')
         status = self.safe_string(order, 'status')
         isSpot = ('margin_market' in order)
-        defaultType = 'spot' if isSpot else 'swap'
+        defaultType = 'swap'
+        if isSpot:
+            defaultType = 'spot'
         market = self.safe_market(marketId, market, None, defaultType)
         fee = None
         feeCost = self.omit_zero(self.safe_string_2(order, 'fee', 'quote_ccy_fee'))

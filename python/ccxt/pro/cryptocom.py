@@ -749,7 +749,7 @@ class cryptocom(ccxt.async_support.cryptocom):
                 self.ohlcvs[symbol][timeframe] = stored
         data = self.safe_value(message, 'data')
         for i in range(0, len(data)):
-            tick = data[i]
+            tick = self.safe_dict(data, i)
             parsed = self.parse_ohlcv(tick, market)
             stored.append(parsed)
         client.resolve(stored, messageHash)
@@ -1007,7 +1007,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         positionBalances = self.safe_list(data[0], 'position_balances', [])
         self.balance['info'] = data
         for i in range(0, len(positionBalances)):
-            balance = positionBalances[i]
+            balance = self.safe_dict(positionBalances, i)
             currencyId = self.safe_string(balance, 'instrument_name')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -1216,7 +1216,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_error_message(self, client: Client, message: object) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> Bool:
         #
         #    {
         #        "id": 0,

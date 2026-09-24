@@ -747,7 +747,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         if tokenAddress is None:
             raise BadRequest(self.id + ' approve() could not resolve the base token address from /metadata/obv3')
         spender = None
-        spender, params = self.handle_option_and_params_2(params, 'approve', 'spender', 'transferToProxySpender', executorAddress)
+        spender, params = self.handle_option_string_and_params_2(params, 'approve', 'spender', 'transferToProxySpender', executorAddress)
         if spender is None:
             raise BadRequest(self.id + ' approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender')
         chains = self.safe_dict(self.options, 'chains', {})
@@ -857,9 +857,11 @@ class sxbet(PredictionExchange, ImplicitAPI):
         saltHex = '0x' + saltHexPadded
         defaultExpirySeconds = self.safe_integer(self.options, 'defaultOrderExpirySeconds', 86400)
         expiry = self.safe_integer(params, 'expiry', self.sum(self.seconds(), defaultExpirySeconds))
-        defaultTif = 'GTC' if (type == 'limit') else 'IOC'
+        defaultTif = 'IOC'
+        if type == 'limit':
+            defaultTif = 'GTC'
         timeInForce = None
-        timeInForce, params = self.handle_option_and_params(params, 'createOrder', 'timeInForce', defaultTif)
+        timeInForce, params = self.handle_option_string_and_params(params, 'createOrder', 'timeInForce', defaultTif)
         # an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
         # that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
         # contradicting the immediate-fill semantics the type promises
@@ -1137,7 +1139,11 @@ class sxbet(PredictionExchange, ImplicitAPI):
         orderId = self.safe_string_2(order, 'id', 'orderId')
         marketHash = self.safe_string(order, 'marketHash', '')
         isBettingOutcomeOne = self.safe_bool(order, 'isBettingOutcomeOne', True)
-        outcomeId = marketHash if (isBettingOutcomeOne) else (marketHash + '-2')
+        outcomeId = None
+        if isBettingOutcomeOne:
+            outcomeId = marketHash
+        else:
+            outcomeId = (marketHash + '-2')
         outcomeObj = self.safe_outcome(outcomeId, market)
         oneDenom = '100000000000000000000'
         usdcDecimals = '1000000'
@@ -1354,7 +1360,11 @@ class sxbet(PredictionExchange, ImplicitAPI):
         #
         marketHash = self.safe_string(fill, 'marketHash', '')
         isBettingOutcomeOne = self.safe_bool(fill, 'isBettingOutcomeOne', True)
-        outcomeId = marketHash if (isBettingOutcomeOne) else (marketHash + '-2')
+        outcomeId = None
+        if isBettingOutcomeOne:
+            outcomeId = marketHash
+        else:
+            outcomeId = (marketHash + '-2')
         outcomeObj = self.safe_outcome(outcomeId, market)
         oneDenom = '100000000000000000000'
         usdcDecimals = '1000000'
@@ -1413,7 +1423,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         usdcDecimals = '1000000'
         balancesLength = len(balances)
         for i in range(0, balancesLength):
-            row = balances[i]
+            row = self.safe_dict(balances, i)
             tokenAddress = self.safe_string_lower(row, 'tokenAddress', '')
             # every sxbet market is denominated in the active base token, surfaced under 'USDC';
             # rows of any other token keep their contract address for the code
@@ -1487,12 +1497,20 @@ class sxbet(PredictionExchange, ImplicitAPI):
         #
         marketHash = self.safe_string(raw, 'marketHash', '')
         isOutcomeOneMaxWin = self.safe_bool(raw, 'isOutcomeOneMaxWin', True)
-        outcomeId = marketHash if (isOutcomeOneMaxWin) else (marketHash + '-2')
+        outcomeId = None
+        if isOutcomeOneMaxWin:
+            outcomeId = marketHash
+        else:
+            outcomeId = (marketHash + '-2')
         outcomeObj = self.safe_outcome(outcomeId)
         oneDenom = '100000000000000000000'
         usdcDecimals = '1000000'
         odds = self.safe_dict(raw, 'odds', {})
-        ownOdds = self.safe_string(odds, 'outcomeOne') if (isOutcomeOneMaxWin) else self.safe_string(odds, 'outcomeTwo')
+        ownOdds = None
+        if isOutcomeOneMaxWin:
+            ownOdds = self.safe_string(odds, 'outcomeOne')
+        else:
+            ownOdds = self.safe_string(odds, 'outcomeTwo')
         entryPrice = self.parse_number(Precise.string_div(ownOdds, oneDenom)) if (ownOdds is not None) else None
         totalStake = self.safe_string(raw, 'totalStake', '0')
         pnl = self.safe_string(raw, 'pnl')
@@ -1573,7 +1591,11 @@ class sxbet(PredictionExchange, ImplicitAPI):
         #
         marketHash = self.safe_string(trade, 'marketHash', '')
         isBettingOutcomeOne = self.safe_bool(trade, 'isBettingOutcomeOne', True)
-        outcomeId = marketHash if (isBettingOutcomeOne) else (marketHash + '-2')
+        outcomeId = None
+        if isBettingOutcomeOne:
+            outcomeId = marketHash
+        else:
+            outcomeId = (marketHash + '-2')
         outcomeObj = self.safe_outcome(outcomeId, market)
         settlement = self.safe_dict(trade, 'settlement', {})
         winner = self.safe_integer(settlement, 'outcome')
@@ -1592,7 +1614,9 @@ class sxbet(PredictionExchange, ImplicitAPI):
             resultLabel = 'VOID'
         elif winner is not None:
             info = self.safe_dict(outcomeObj, 'info', {})
-            labelKey = 'outcomeOneName' if (winner == 1) else 'outcomeTwoName'
+            labelKey = 'outcomeTwoName'
+            if winner == 1:
+                labelKey = 'outcomeOneName'
             resultLabel = self.safe_string(info, labelKey, self.number_to_string(winner))
         timestamp = self.parse8601(self.safe_string(settlement, 'settleDate'))
         settlePrice = None
@@ -1780,8 +1804,12 @@ class sxbet(PredictionExchange, ImplicitAPI):
         isOutcomeOne = (outcomeId == marketHash)
         outcomeOneOdds = self.safe_dict(raw, 'outcomeOne', {})
         outcomeTwoOdds = self.safe_dict(raw, 'outcomeTwo', {})
-        ownOdds = outcomeOneOdds if (isOutcomeOne) else outcomeTwoOdds
-        oppositeOdds = outcomeTwoOdds if (isOutcomeOne) else outcomeOneOdds
+        ownOdds = outcomeTwoOdds
+        if isOutcomeOne:
+            ownOdds = outcomeOneOdds
+        oppositeOdds = outcomeOneOdds
+        if isOutcomeOne:
+            oppositeOdds = outcomeTwoOdds
         # percentageOdds is the maker's own implied probability * 1e20 (sx.bet protocol format);
         # the opposite side's best resting maker mirrors into this outcome's ask via 1 - p
         oneDenom = '100000000000000000000'
@@ -1877,7 +1905,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         bids = []
         ownLevelsLength = len(ownLevels)
         for i in range(0, ownLevelsLength):
-            level = ownLevels[i]
+            level = self.safe_dict(ownLevels, i)
             percentageOdds = self.safe_string(level, 'percentageOdds')
             size = self.safe_string(level, 'size', '0')
             price = self.parse_number(Precise.string_div(percentageOdds, oneDenom))
@@ -1886,7 +1914,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         asks = []
         oppositeLevelsLength = len(oppositeLevels)
         for i in range(0, oppositeLevelsLength):
-            level = oppositeLevels[i]
+            level = self.safe_dict(oppositeLevels, i)
             percentageOdds = self.safe_string(level, 'percentageOdds')
             size = self.safe_string(level, 'size', '0')
             # the opposite side's resting stake mirrors into this outcome's ask - the price is the
@@ -2216,7 +2244,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         watchedSyms = list(watchedTickers.keys())
         rowsLength = len(rows)
         for i in range(0, rowsLength):
-            entry = rows[i]
+            entry = self.safe_dict(rows, i)
             marketHash = self.safe_string(entry, 'marketHash')
             if marketHash is None:
                 continue
@@ -2267,7 +2295,11 @@ class sxbet(PredictionExchange, ImplicitAPI):
         """
         marketHash = self.safe_string(trade, 'marketHash', '')
         isBettingOutcomeOne = self.safe_bool(trade, 'isBettingOutcomeOne', True)
-        outcomeId = marketHash if (isBettingOutcomeOne) else (marketHash + '-2')
+        outcomeId = None
+        if isBettingOutcomeOne:
+            outcomeId = marketHash
+        else:
+            outcomeId = (marketHash + '-2')
         outcomeObj = self.safe_outcome(outcomeId)
         oneDenom = '100000000000000000000'
         usdcDecimals = '1000000'

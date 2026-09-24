@@ -1120,12 +1120,12 @@ public class Dydx extends DydxApi
 
     public Object handlePublicAddress(String methodName, Map<String, Object> parameters)
     {
-        Object userAux = null;
-        List<Object> userAuxparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "user");
-        userAux = ((List<Object>) userAuxparametersVariable).get(0);
+        String userAux = null;
+        List<Object> userAuxparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, (String) (methodName), "user");
+        userAux = (String) ((List<Object>) userAuxparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) userAuxparametersVariable).get(1);
         Object user = userAux;
-        List<Object> userparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, (String) (methodName), "address", (String) (userAux));
+        List<Object> userparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, (String) (methodName), "address", userAux);
         user = ((List<Object>) userparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) userparametersVariable).get(1);
         if ((!java.util.Objects.equals(user, null)) && (!java.util.Objects.equals(user, "")))
@@ -1802,7 +1802,7 @@ public class Dydx extends DydxApi
         }
         String orderSide = ((String)side).toUpperCase();
         Object subaccountId = 0;
-        List<Object> subaccountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "subAccountId", subaccountId);
+        List<Object> subaccountIdparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "createOrder", "subAccountId", subaccountId);
         subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
         parameters = ((List<Object>) subaccountIdparametersVariable).get(1);
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
@@ -1884,7 +1884,7 @@ public class Dydx extends DydxApi
         Object goodTillBlock = this.safeInteger(parameters, "goodTillBlock");
         Object goodTillBlockTime = null;
         Object goodTillBlockTimeInSeconds = 2592000;
-        List<Object> goodTillBlockTimeInSecondsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
+        List<Object> goodTillBlockTimeInSecondsparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "createOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
         goodTillBlockTimeInSeconds = ((List<Object>) goodTillBlockTimeInSecondsparametersVariable).get(0);
         parameters = ((List<Object>) goodTillBlockTimeInSecondsparametersVariable).get(1); // default is 30 days
         if (Helpers.isEqual(orderFlag, 0))
@@ -1917,7 +1917,7 @@ public class Dydx extends DydxApi
         final Object finalTimeInForceNumber = timeInForceNumber;
         final Integer finalClientMetadata = clientMetadata;
         final Integer finalConditionalType = conditionalType;
-        final Object finalConditionalOrderTriggerSubticks = conditionalOrderTriggerSubticks;
+        final String finalConditionalOrderTriggerSubticks = conditionalOrderTriggerSubticks;
         Map<String, Object> orderPayload = new HashMap<String, Object>() {{
             put( "order", new HashMap<String, Object>() {{
                 put( "orderId", new HashMap<String, Object>() {{
@@ -2025,7 +2025,7 @@ public class Dydx extends DydxApi
      * @param {bool} [params.postOnly] true or false whether the order is post-only
      * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
      * @param {float} [params.goodTillBlock] expired block number for the order, required for market order and non limit GTT order, default value is latestBlockHeight + 20
-     * @param {float} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
+     * @param {int} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
@@ -2095,7 +2095,7 @@ public class Dydx extends DydxApi
      * @param {bool} [params.postOnly] true or false whether the order is post-only
      * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
      * @param {float} [params.goodTillBlock] expired block number for the order, required for market order and non limit GTT order, default value is latestBlockHeight + 20
-     * @param {float} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
+     * @param {int} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
@@ -2115,7 +2115,7 @@ public class Dydx extends DydxApi
      * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @param {float} [params.orderFlags] default is 64, orderFlags for the order, market order and non limit GTT order is 0, limit GTT order is 64 and conditional order is 32
      * @param {float} [params.goodTillBlock] expired block number for the order, required for market order and non limit GTT order (orderFlags = 0), default value is latestBlockHeight + 20
-     * @param {float} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days
+     * @param {int} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days
      * @param {int} [params.subAccountId] sub account id, default is 0
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2151,14 +2151,14 @@ public class Dydx extends DydxApi
             }
             Object goodTillBlock = this.safeInteger(parameters, "goodTillBlock");
             Object goodTillBlockTimeInSeconds = 2592000;
-            List<Object> goodTillBlockTimeInSecondsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
+            List<Object> goodTillBlockTimeInSecondsparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "cancelOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
             goodTillBlockTimeInSeconds = ((List<Object>) goodTillBlockTimeInSecondsparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) goodTillBlockTimeInSecondsparametersVariable).get(1); // default is 30 days
             Object goodTillBlockTime = null;
             Integer defaultOrderFlags = (((java.util.Objects.equals(isTrigger, true)))) ? 32 : 64;
             Long orderFlags = this.safeInteger(parameters, "orderFlags", defaultOrderFlags);
             Object subAccountId = 0;
-            List<Object> subAccountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelOrder", "subAccountId", subAccountId);
+            List<Object> subAccountIdparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "cancelOrder", "subAccountId", subAccountId);
             subAccountId = ((List<Object>) subAccountIdparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subAccountIdparametersVariable).get(1);
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "orderFlags", "goodTillBlock", "goodTillBlockTime", "goodTillBlockTimeInSeconds", "subaccountId", "clientId")));
@@ -2248,7 +2248,7 @@ public class Dydx extends DydxApi
      * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @param {float} [params.orderFlags] default is 64, orderFlags for the order, market order and non limit GTT order is 0, limit GTT order is 64 and conditional order is 32
      * @param {float} [params.goodTillBlock] expired block number for the order, required for market order and non limit GTT order (orderFlags = 0), default value is latestBlockHeight + 20
-     * @param {float} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days
+     * @param {int} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days
      * @param {int} [params.subAccountId] sub account id, default is 0
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2284,7 +2284,7 @@ public class Dydx extends DydxApi
                 throw new NotSupported((this.id + " cancelOrders only support clientOrderIds.")) ;
             }
             Object subAccountId = 0;
-            List<Object> subAccountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelOrders", "subAccountId", subAccountId);
+            List<Object> subAccountIdparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "cancelOrders", "subAccountId", subAccountId);
             subAccountId = ((List<Object>) subAccountIdparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subAccountIdparametersVariable).get(1);
             Object goodTillBlock = this.safeInteger(parameters, "goodTillBlock");
@@ -2458,7 +2458,7 @@ public class Dydx extends DydxApi
         Map<String, Object> sender = (Map<String, Object>) this.safeDict(item, "sender");
         Map<String, Object> recipient = (Map<String, Object>) this.safeDict(item, "recipient");
         final String finalDirection = direction;
-        final Object finalType = type;
+        final String finalType = type;
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "info", item );
             put( "id", Dydx.this.safeString(item, "id") );
@@ -3033,7 +3033,7 @@ public class Dydx extends DydxApi
             Object response = (this.fetchTransactionsHelper(code, since, limit, this.extend(parameters, new HashMap<String, Object>() {{
                 put( "methodName", "fetchWithdrawals" );
             }}))).join();
-            Object rows = this.filterBy(response, "type", "WITHDRAWAL");
+            List<Object> rows = this.filterBy(response, "type", "WITHDRAWAL");
             return this.parseTransactions(rows, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -3086,7 +3086,7 @@ public class Dydx extends DydxApi
             Object response = (this.fetchTransactionsHelper(code, since, limit, this.extend(parameters, new HashMap<String, Object>() {{
                 put( "methodName", "fetchDeposits" );
             }}))).join();
-            Object rows = this.filterBy(response, "type", "DEPOSIT");
+            List<Object> rows = this.filterBy(response, "type", "DEPOSIT");
             return this.parseTransactions(rows, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -3338,12 +3338,12 @@ public class Dydx extends DydxApi
             List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("fetchBalance", (Map<String, Object>) (parameters));
             userAddress = (String) ((List<Object>) userAddressparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
-            Object subaccountNumber = null;
-            List<Object> subaccountNumberparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchBalance", "subaccountNumber", 0);
-            subaccountNumber = ((List<Object>) subaccountNumberparametersVariable).get(0);
+            Long subaccountNumber = null;
+            List<Object> subaccountNumberparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchBalance", "subaccountNumber", 0);
+            subaccountNumber = (Long) ((List<Object>) subaccountNumberparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subaccountNumberparametersVariable).get(1);
             final String finalUserAddress = userAddress;
-            final Object finalSubaccountNumber = subaccountNumber;
+            final Long finalSubaccountNumber = subaccountNumber;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "address", finalUserAddress );
                 put( "subaccountNumber", finalSubaccountNumber );

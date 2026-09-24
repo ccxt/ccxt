@@ -161,7 +161,10 @@ class poloniex extends \ccxt\async\poloniex {
          * @param {array} [$params] extra parameters specific to the poloniex api
          * @return {array} data from the websocket stream
          */
-        $publicOrPrivate = $isPrivate ? 'private' : 'public';
+        $publicOrPrivate = 'public';
+        if ($isPrivate) {
+            $publicOrPrivate = 'private';
+        }
         $url = $this->urls['api']['ws'][$publicOrPrivate];
         $subscribe = array(
             'event' => 'subscribe',
@@ -728,7 +731,7 @@ class poloniex extends \ccxt\async\poloniex {
         //
         $data = $this->safe_list($message, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
-            $item = $data[$i];
+            $item = $this->safe_dict($data, $i);
             $marketId = $this->safe_string($item, 'symbol');
             if ($marketId !== null) {
                 $trade = $this->parse_ws_trade($item);
@@ -1189,7 +1192,7 @@ class poloniex extends \ccxt\async\poloniex {
         $snapshot = $type === 'snapshot';
         $update = $type === 'update';
         for ($i = 0; $i < count($data); $i++) {
-            $item = $data[$i];
+            $item = $this->safe_dict($data, $i);
             $marketId = $this->safe_string($item, 'symbol');
             $market = $this->safe_market($marketId);
             $symbol = $market['symbol'];

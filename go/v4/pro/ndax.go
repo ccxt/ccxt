@@ -332,12 +332,7 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 	//
 	var updates map[string]any = map[string]any{}
 	for i := 0; i < len(payload); i++ {
-		var ohlcv any = func() any {
-			if i >= 0 && i < len(payload) {
-				return ccxt.DerefScalar(payload[i])
-			}
-			return nil
-		}()
+		var ohlcv []any = ccxt.SafeListTyped(payload, i)
 		var marketId *string = this.SafeString(ohlcv, 8)
 		var market any = this.SafeMarket(marketId)
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
@@ -422,7 +417,7 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 					}
 					return nil
 				}(), ccxt.GetValue(previous, 5))})
-				if (marketId != nil) && (!ccxt.IsEqual(timeframe, nil)) {
+				if marketId != nil {
 					ccxt.AddElementToObject(ccxt.GetValue(updates, marketId), timeframe, true)
 				}
 			} else {
@@ -439,7 +434,7 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 					if ccxt.IsGreaterThanOrEqual(length, limit) {
 						ccxt.Shift(stored)
 					}
-					if (marketId != nil) && (!ccxt.IsEqual(timeframe, nil)) {
+					if marketId != nil {
 						ccxt.AddElementToObject(ccxt.GetValue(updates, marketId), timeframe, true)
 					}
 				}
@@ -539,7 +534,7 @@ func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
 	//         "o": [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
 	//     }
 	//
-	var payload []any = ccxt.SafeListTypedDefault(message, "o", []any{})
+	var payload []any = ccxt.SafeListTyped(message, "o")
 	//
 	//     [
 	//         0,   // 0 MDUpdateId
@@ -554,7 +549,7 @@ func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
 	//         0,   // 9 Side
 	//     ],
 	//
-	var firstBidAsk []any = ccxt.SafeListTypedDefault(payload, 0, []any{})
+	var firstBidAsk []any = ccxt.SafeListTyped(payload, 0)
 	var marketId *string = this.SafeString(firstBidAsk, 7)
 	if marketId == nil {
 		return
@@ -568,12 +563,7 @@ func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
 	var timestamp any = nil
 	var nonce any = nil
 	for i := 0; i < len(payload); i++ {
-		var bidask any = func() any {
-			if i >= 0 && i < len(payload) {
-				return ccxt.DerefScalar(payload[i])
-			}
-			return nil
-		}()
+		var bidask []any = ccxt.SafeListTyped(payload, i)
 		if ccxt.IsEqual(timestamp, nil) {
 			timestamp = ccxt.DerefScalar(this.SafeInteger(bidask, 2))
 		} else {

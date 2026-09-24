@@ -636,7 +636,7 @@ class btcmarkets extends Exchange {
     public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
-            $balance = $response[$i];
+            $balance = $this->safe_dict($response, $i);
             $currencyId = $this->safe_string($balance, 'assetName');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -919,7 +919,12 @@ class btcmarkets extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($trade, 'timestamp'));
         $marketId = $this->safe_string($trade, 'marketId');
         $market = $this->safe_market($marketId, $market, '-');
-        $feeCurrencyCode = ($market['quote'] === 'AUD') ? $market['quote'] : $market['base'];
+        $feeCurrencyCode = null;
+        if ($market['quote'] === 'AUD') {
+            $feeCurrencyCode = $market['quote'];
+        } else {
+            $feeCurrencyCode = $market['base'];
+        }
         $side = $this->safe_string($trade, 'side');
         if ($side === 'Bid') {
             $side = 'buy';

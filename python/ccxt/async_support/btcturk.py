@@ -327,7 +327,7 @@ class btcturk(Exchange, ImplicitAPI):
         maxAmount = None
         minCost = None
         for j in range(0, len(filters)):
-            filter = filters[j]
+            filter = self.safe_dict(filters, j)
             filterType = self.safe_string(filter, 'filterType')
             if filterType == 'PRICE_FILTER':
                 minPrice = self.safe_number(filter, 'minPrice')
@@ -394,7 +394,7 @@ class btcturk(Exchange, ImplicitAPI):
             'datetime': None,
         }
         for i in range(0, len(data)):
-            entry = data[i]
+            entry = self.safe_dict(data, i)
             currencyId = self.safe_string(entry, 'asset')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -1050,7 +1050,9 @@ class btcturk(Exchange, ImplicitAPI):
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         errorCode = self.safe_string(response, 'code', '0')
         message = self.safe_string(response, 'message')
-        output = body if (message is None) else message
+        output = message
+        if message is None:
+            output = body
         self.throw_exactly_matched_exception(self.exceptions['exact'], message, self.id + ' ' + output)
         if (errorCode != '0') and (errorCode != 'SUCCESS'):
             raise ExchangeError(self.id + ' ' + output)

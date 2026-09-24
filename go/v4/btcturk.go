@@ -380,12 +380,7 @@ func (this *Btcturk) ParseMarket(entry any) any {
 	var maxAmount *float64 = nil
 	var minCost *float64 = nil
 	for j := 0; j < len(filters); j++ {
-		var filter map[string]any = MapTyped(func() any {
-			if j >= 0 && j < len(filters) {
-				return DerefScalar(filters[j])
-			}
-			return nil
-		}())
+		var filter map[string]any = SafeMapTyped(filters, j)
 		var filterType *string = this.SafeString(filter, "filterType")
 		if filterType != nil && *filterType == "PRICE_FILTER" {
 			minPrice = this.SafeNumber(filter, "minPrice")
@@ -454,12 +449,7 @@ func (this *Btcturk) ParseBalance(response any) any {
 		"datetime":  nil,
 	}
 	for i := 0; i < len(data); i++ {
-		var entry map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(data) {
-				return DerefScalar(data[i])
-			}
-			return nil
-		}())
+		var entry map[string]any = SafeMapTyped(data, i)
 		var currencyId *string = this.SafeString(entry, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -940,12 +930,12 @@ func (this *Btcturk) ParseOHLCVs(ohlcvs any, optionalArgs ...any) any {
 	var tail bool = GetArgBool(optionalArgs, 4, false)
 	_ = tail
 	var results []any = []any{}
-	var timestamp []any = SafeListTypedDefault(ohlcvs, "t", []any{})
-	var high []any = SafeListTypedDefault(ohlcvs, "h", []any{})
-	var open []any = SafeListTypedDefault(ohlcvs, "o", []any{})
-	var low []any = SafeListTypedDefault(ohlcvs, "l", []any{})
-	var close []any = SafeListTypedDefault(ohlcvs, "c", []any{})
-	var volume []any = SafeListTypedDefault(ohlcvs, "v", []any{})
+	var timestamp []any = SafeListTyped(ohlcvs, "t")
+	var high []any = SafeListTyped(ohlcvs, "h")
+	var open []any = SafeListTyped(ohlcvs, "o")
+	var low []any = SafeListTyped(ohlcvs, "l")
+	var close []any = SafeListTyped(ohlcvs, "c")
+	var volume []any = SafeListTyped(ohlcvs, "v")
 	for i := 0; i < len(timestamp); i++ {
 		var ohlcv map[string]any = map[string]any{
 			"timestamp": this.SafeInteger(timestamp, i),
@@ -1363,12 +1353,10 @@ func (this *Btcturk) Sign(path any, optionalArgs ...any) any {
 func (this *Btcturk) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	var errorCode *string = this.SafeString(response, "code", "0")
 	var message *string = this.SafeString(response, "message")
-	var output any = func() any {
-		if message == nil {
-			return body
-		}
-		return message
-	}()
+	var output any = message
+	if message == nil {
+		output = body
+	}
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, Add(this.Id+" ", output))
 	if (errorCode == nil || *errorCode != "0") && (errorCode == nil || *errorCode != "SUCCESS") {
 		panic(ExchangeError(Add(this.Id+" ", output)))

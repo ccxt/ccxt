@@ -498,7 +498,7 @@ public partial class derive : ccxt.derive
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
             Dictionary<string, object> trade = this.parseTrade(getValue(data, i));
-            callDynamically(tradesArray, "append", new object[] {trade});
+            tradesArray.append(trade);
         }
         ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
         client.resolve(tradesArray, topic);
@@ -684,7 +684,7 @@ public partial class derive : ccxt.derive
                     parsed["timestamp"] = this.safeInteger(order, "timestamp");
                     parsed["datetime"] = this.safeString(order, "datetime");
                 }
-                callDynamically(cachedOrders, "append", new object[] {parsed});
+                cachedOrders.append(parsed);
                 string? messageHashSymbol = ((string)add(add(topic, ":"), symbol));
                 client.resolve(this.orders, messageHashSymbol);
             }
@@ -760,7 +760,7 @@ public partial class derive : ccxt.derive
         for (int i = 0; i < rawTrades.Count; i++)
         {
             Dictionary<string, object> trade = this.parseTrade(message);
-            callDynamically(myTrades, "append", new object[] {trade});
+            myTrades.append(trade);
             client.resolve(myTrades, topic);
             string? messageHash = ((string)add(topic, this.safeString(trade, "symbol", "")));
             client.resolve(myTrades, messageHash);

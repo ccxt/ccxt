@@ -190,7 +190,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Long timestamp = this.safeInteger(data, "timestamp");
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
-        Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+        orderbook.reset(snapshot);
         client.resolve(orderbook, topic);
     }
 
@@ -625,7 +625,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Map<String, Object> trade = (Map<String, Object>) this.parseTrade(Helpers.GetValue(data, i));
-            Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
+            tradesArray.append(trade);
         }
         Helpers.addElementToObject(this.trades, symbol, tradesArray);
         client.resolve(tradesArray, topic);

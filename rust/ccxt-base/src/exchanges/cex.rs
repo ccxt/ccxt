@@ -695,7 +695,10 @@ impl CexCore {
         let mut id: Value = self.safe_string_k(rawCurrency.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(id.clone(), &[]);
         let mut isFiat: bool = self.safe_bool_k(rawCurrency.clone(), "fiat", &[]).as_bool() == Some(true);
-        let mut type_var: Value = (if isFiat { Value::Str("fiat".into()) } else { Value::Str("crypto".into()) });
+        let mut type_var: Value = Value::Str("crypto".into());
+        if isFiat {
+            type_var = Value::Str("fiat".into());
+        }
         let mut currencyPrecision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(rawCurrency.clone(), "precision", &[])]), &[]);
         let mut networks: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -711,7 +714,7 @@ impl CexCore {
             let mut __for_first_504: bool = true;
             while { if !__for_first_504 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_504 = false; j.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut networkId: Value = keys.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut rawNetwork: Value = rawNetworks.as_map().and_then(|__m| networkId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            let mut rawNetwork: Value = self.safe_dict(rawNetworks.clone(), networkId.clone(), &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             let mut deposit: Value = Value::Bool(self.safe_string_k(rawNetwork.clone(), "deposit", &[]).as_str() == Some("enabled"));
             let mut withdraw: Value = Value::Bool(self.safe_string_k(rawNetwork.clone(), "withdrawal", &[]).as_str() == Some("enabled"));
@@ -1229,7 +1232,7 @@ impl CexCore {
     m
 }));
         let mut dataType: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOHLCV".into()), Value::Str("dataType".into()), &[]); dataType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("fetchOHLCV".into()), Value::Str("dataType".into()), &[]); dataType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (dataType == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\"".into()))));
         }
@@ -1888,7 +1891,7 @@ impl CexCore {
     m
 }));
         let mut accountId: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("accountId".into()), &[]); accountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("accountId".into()), &[]); accountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (accountId == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account".into()))));
         }
@@ -2261,7 +2264,10 @@ impl CexCore {
         let mut currency = get_arg(optional_args, 0, Value::Null);
         let mut currencyId: Value = self.safe_string_k(transaction.clone(), "currency", &[]);
         let mut direction: Option<String> = self.safe_string_k(transaction.clone(), "direction", &[]).as_str().map(str::to_owned);
-        let mut type_var: Value = (if (direction.as_deref() == Some("withdraw")) { Value::Str("withdrawal".into()) } else { Value::Str("deposit".into()) });
+        let mut type_var: Value = Value::Str("deposit".into());
+        if (direction.as_deref() == Some("withdraw")) {
+            type_var = Value::Str("withdrawal".into());
+        }
         let mut code: Value = self.safe_currency_code(currencyId, &[currency]);
         let mut updatedAt: Value = self.safe_string_k(transaction.clone(), "updatedAt", &[]);
         let mut timestamp: Value = self.parse8601(updatedAt);
@@ -2354,7 +2360,10 @@ impl CexCore {
         }
         let mut currency: Value = self.currency(code.clone());
         let mut fromMain: bool = fromAccount.as_str() == Some("");
-        let mut targetAccount: Value = (if fromMain { toAccount } else { fromAccount });
+        let mut targetAccount: Value = fromAccount;
+        if fromMain {
+            targetAccount = toAccount;
+        }
         let mut guid: Value = self.safe_string_k(params.clone(), "guid", &[self.uuid(&[])]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2489,7 +2498,7 @@ impl CexCore {
     m
 }));
         let mut accountId: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("accountId".into()), &[]); accountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("accountId".into()), &[]); accountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (accountId == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account".into()))));
         }

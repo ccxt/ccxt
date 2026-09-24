@@ -683,7 +683,7 @@ public Object describe()
             put( "trillion", "T" );
             put( "percent", "pct" );
         }};
-        List<Object> stopWords = new ArrayList<Object>(Arrays.asList("will", "the", "a", "an", "after", "before", "in", "at", "by", "of", "there", "be", "to", "or", "and", "for", "on", "its", "that", "this", "from", "with", "as", "is", "are", "was", "were", "?", "how", "many", "who", "what", "when", "where", "which", "much"));
+        List<String> stopWords = new ArrayList<String>(Arrays.asList("will", "the", "a", "an", "after", "before", "in", "at", "by", "of", "there", "be", "to", "or", "and", "for", "on", "its", "that", "this", "from", "with", "as", "is", "are", "was", "were", "?", "how", "many", "who", "what", "when", "where", "which", "much"));
         String lower = (((java.util.Objects.equals(slug, null)))) ? "" : ((String)slug).toLowerCase();
         String allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
         Object chars = this.stringToCharsArray(lower);
@@ -2623,7 +2623,7 @@ public Object describe()
 
     public Object filterByOutcomesSinceLimit(Object array, Object outcomes, Long since, Long limit, Object tail)
     {
-        Object result = this.filterByArray(array, "outcome", outcomes, false);
+        List<Object> result = (List<Object>) this.filterByArray(array, "outcome", outcomes, false);
         return this.filterBySinceLimit(result, since, limit, "timestamp", tail);
     }
     public Object filterByOutcomesSinceLimit(Object array, Object... optionalArgs)

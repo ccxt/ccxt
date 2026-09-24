@@ -1951,7 +1951,7 @@ export default class zebpay extends Exchange {
         const access = this.safeString (api, 0, 'public');
         if (access === 'public') {
             if (method === 'GET' || method === 'DELETE') {
-                if ((queryLength !== undefined) && (queryLength !== 0)) {
+                if (queryLength !== 0) {
                     url += '?' + this.urlencode (query);
                 }
             } else {

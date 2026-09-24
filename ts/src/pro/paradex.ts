@@ -117,7 +117,7 @@ export default class paradex extends paradexRest {
                 'channel': messageHash,
             },
         };
-        const trades = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -351,7 +351,7 @@ export default class paradex extends paradexRest {
                 'channel': channel,
             },
         };
-        const orders = await this.watch (url, messageHash, this.deepExtend (request, params), channel);
+        const orders: ArrayCache = await this.watch (url, messageHash, this.deepExtend (request, params), channel);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -605,7 +605,7 @@ export default class paradex extends paradexRest {
             if (errorCode !== undefined) {
                 const feedback = this.id + ' ' + this.json (error);
                 this.throwExactlyMatchedException (this.exceptions['exact'], '-32600', feedback);
-                const messageString = this.safeValue (error, 'message');
+                const messageString = this.safeString (error, 'message');
                 if (messageString !== undefined) {
                     this.throwBroadlyMatchedException (this.exceptions['broad'], messageString, feedback);
                 }

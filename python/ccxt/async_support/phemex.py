@@ -1173,7 +1173,7 @@ class phemex(Exchange, ImplicitAPI):
         minAmount = None
         maxAmount = None
         precision = None
-        if valueScale is not None:
+        if valueScaleString is not None:
             precisionString = self.parse_precision(valueScaleString)
             precision = self.parse_number(precisionString)
             minAmount = self.parse_number(Precise.string_mul(minValueEv, precisionString))
@@ -1349,7 +1349,7 @@ class phemex(Exchange, ImplicitAPI):
         #         48759063370, // quote volume
         #     ]
         #
-        baseVolume: Num
+        baseVolume = None
         if (market is not None) and (market['spot'] is True):
             baseVolume = self.parse_number(self.from_ev(self.safe_string(ohlcv, 7), market))
         else:
@@ -1995,7 +1995,7 @@ class phemex(Exchange, ImplicitAPI):
         result = {'info': response}
         data = self.safe_list(response, 'data', [])
         for i in range(0, len(data)):
-            balance = data[i]
+            balance = self.safe_dict(data, i)
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             currency = self.safe_dict(self.currencies, code, {})
@@ -3376,10 +3376,10 @@ class phemex(Exchange, ImplicitAPI):
         #
         data: List
         if isUSDTSettled:
-            data = self.safe_value(response, 'data', [])
+            data = self.safe_list(response, 'data', [])
         else:
             data = self.safe_value(response, 'data', {})
-            data = self.safe_value(data, 'rows', [])
+            data = self.safe_list(data, 'rows', [])
         return self.parse_trades(data, market, since, limit)
 
     async def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
@@ -4446,7 +4446,7 @@ class phemex(Exchange, ImplicitAPI):
         tiers = []
         minNotional = 0
         for i in range(0, len(riskLimits)):
-            tier = riskLimits[i]
+            tier = self.safe_dict(riskLimits, i)
             maxNotional = self.safe_integer(tier, 'limit')
             minNotionalResponse = minNotional  # java req
             tiers.append({
@@ -4756,7 +4756,7 @@ class phemex(Exchange, ImplicitAPI):
         if market['swap'] is not True:
             raise BadRequest(self.id + ' fetchFundingRateHistory() supports swap contracts only')
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 100)
         customSymbol = None

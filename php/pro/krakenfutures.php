@@ -568,7 +568,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         $name = 'balances';
         $messageHash = $name;
         $account = null;
-        list($account, $params) = $this->handle_option_and_params($params, 'watchBalance', 'account');
+        list($account, $params) = $this->handle_option_string_and_params($params, 'watchBalance', 'account');
         if ($account !== null) {
             if ($account !== 'futures' && $account !== 'flex_futures') {
                 throw new ArgumentsRequired($this->id . ' watchBalance $account must be either \'futures\' or \'flex_futures\'');
@@ -1284,14 +1284,14 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             return;
         }
         for ($i = 0; $i < count($bids); $i++) {
-            $bid = $bids[$i];
+            $bid = $this->safe_dict($bids, $i);
             $price = $this->safe_number($bid, 'price');
             $qty = $this->safe_number($bid, 'qty');
             $bidsSide = $orderbook['bids'];
             $bidsSide->store($price, $qty);
         }
         for ($i = 0; $i < count($asks); $i++) {
-            $ask = $asks[$i];
+            $ask = $this->safe_dict($asks, $i);
             $price = $this->safe_number($ask, 'price');
             $qty = $this->safe_number($ask, 'qty');
             $asksSide = $orderbook['asks'];

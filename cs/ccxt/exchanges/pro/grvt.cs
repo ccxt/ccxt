@@ -122,7 +122,11 @@ public partial class grvt : ccxt.grvt
             { "params", request },
             { "id", this.requestId() },
         };
-        string apiPart = isTrue(publicOrPrivate) ? "publicMarket" : "privateTrading";
+        string apiPart = "privateTrading";
+        if (isTrue(publicOrPrivate))
+        {
+            apiPart = "publicMarket";
+        }
         return await this.watchMultiple(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), apiPart), messageHashes, payload, rawHashes);
     }
 
@@ -178,7 +182,7 @@ public partial class grvt : ccxt.grvt
         channel = (string)channelparametersVariable[0];
         parameters = channelparametersVariable[1];
         object interval = 500;
-        IList<object> intervalparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchTickers", "interval", interval);
+        IList<object> intervalparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "watchTickers", "interval", interval);
         interval = intervalparametersVariable[0];
         parameters = intervalparametersVariable[1];
         if ((this.markets == null))
@@ -405,7 +409,7 @@ public partial class grvt : ccxt.grvt
         }
         Dictionary<string, object> parsed = this.parseWsTrade(data);
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         client.resolve(stored, ("trade::" + symbol));
     }
 
@@ -465,7 +469,7 @@ public partial class grvt : ccxt.grvt
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbolsAndTimeframes); i++)
         {
-            object data = getValue(symbolsAndTimeframes, i);
+            List<object> data = this.safeList(symbolsAndTimeframes, i);
             string? symbolString = this.safeString(data, 0);
             Dictionary<string, object> market = this.market(symbolString);
             object marketId = (market.ContainsKey("id") ? market["id"] : null);
@@ -530,7 +534,7 @@ public partial class grvt : ccxt.grvt
         }
         ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue(getValue(this.ohlcvs, symbol), timeframe));
         List<object> parsed = this.parseWsOHLCV(data, market);
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         List<object> resolveData = new List<object>() {symbol, timeframe, stored};
         client.resolve(resolveData, messageHash);
     }
@@ -595,12 +599,12 @@ public partial class grvt : ccxt.grvt
         }
         if ((limitVar == null))
         {
-            IList<object> limitparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "limit", 100);
+            IList<object> limitparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "limit", 100);
             limitVar = limitparametersVariable[0];
             parameters = limitparametersVariable[1];
         }
         object interval = 500;
-        IList<object> intervalparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "interval", interval);
+        IList<object> intervalparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "interval", interval);
         interval = intervalparametersVariable[0];
         parameters = intervalparametersVariable[1];
         symbols = this.marketSymbols(symbols);
@@ -814,7 +818,7 @@ public partial class grvt : ccxt.grvt
             this.myTrades = new ArrayCacheBySymbolById(limit);
         }
         Dictionary<string, object> trade = this.parseWsMyTrade(data);
-        callDynamically(this.myTrades, "append", new object[] {trade});
+        this.myTrades.append(trade);
         client.resolve(this.myTrades, ("myTrades::" + ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null))));
         client.resolve(this.myTrades, "myTrades");
     }
@@ -1041,7 +1045,7 @@ public partial class grvt : ccxt.grvt
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         Dictionary<string, object> order = this.parseWsOrder(data);
-        callDynamically(this.orders, "append", new object[] {order});
+        this.orders.append(order);
         client.resolve(this.orders, "orders");
         client.resolve(this.orders, ("order::" + ((order != null && ((IDictionary<string, object>)order).ContainsKey("symbol") ? ((IDictionary<string, object>)order)["symbol"] : null))));
     }

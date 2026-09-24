@@ -606,7 +606,7 @@ public class Bitvavo extends BitvavoApi
         Object fees = this.fees;
         for (var i = 0; i < Helpers.getArrayLength(markets); i++)
         {
-            Object market = Helpers.GetValue(markets, i);
+            Map<String, Object> market = (Map<String, Object>) this.safeDict(markets, i);
             String id = this.safeString(market, "market");
             String baseId = this.safeString(market, "base");
             String quoteId = this.safeString(market, "quote");
@@ -1034,8 +1034,8 @@ final String finalBase = base;
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -1483,8 +1483,8 @@ final String finalBase = base;
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -1531,7 +1531,7 @@ final String finalBase = base;
         }};
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
-            Object balance = Helpers.GetValue(response, i);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i);
             String currencyId = this.safeString(balance, "symbol");
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
@@ -2106,9 +2106,9 @@ final String finalBase = base;
         {
             throw new ArgumentsRequired((this.id + " createOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
         }
-        Object selfTradePrevention = null;
-        List<Object> selfTradePreventionparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "selfTradePrevention");
-        selfTradePrevention = ((List<Object>) selfTradePreventionparametersVariable).get(0);
+        String selfTradePrevention = null;
+        List<Object> selfTradePreventionparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "selfTradePrevention");
+        selfTradePrevention = (String) ((List<Object>) selfTradePreventionparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) selfTradePreventionparametersVariable).get(1);
         if (!java.util.Objects.equals(selfTradePrevention, null))
         {
@@ -2507,11 +2507,11 @@ final String finalBase = base;
             {
                 (this.loadMarkets()).join();
             }
-            Object codGroupId = null;
-            List<Object> codGroupIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrdersAfter", "codGroupId", 1);
-            codGroupId = ((List<Object>) codGroupIdparametersVariable).get(0);
+            Long codGroupId = null;
+            List<Object> codGroupIdparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "cancelAllOrdersAfter", "codGroupId", 1);
+            codGroupId = (Long) ((List<Object>) codGroupIdparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) codGroupIdparametersVariable).get(1);
-            final Object finalCodGroupId = codGroupId;
+            final Long finalCodGroupId = codGroupId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "codGroupId", finalCodGroupId );
                 put( "expiryAfterSeconds", (((Helpers.isGreaterThan(timeout, 0)))) ? ((Object) Bitvavo.this.parseToInt(Helpers.divide(timeout, 1000))) : 0 );
@@ -2681,8 +2681,8 @@ final String finalBase = base;
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -2933,7 +2933,7 @@ final String finalBase = base;
         }
         List<Object> rawTrades = (List<Object>) this.safeList(order, "fills", new ArrayList<Object>(Arrays.asList()));
         String timeInForce = this.safeString(order, "timeInForce");
-        Object postOnly = this.safeValue(order, "postOnly");
+        Boolean postOnly = (Boolean) this.safeBool(order, "postOnly");
         // https://github.com/ccxt/ccxt/issues/8489
         final String finalCost = cost;
         final Map<String, Object> finalFee = fee;
@@ -3019,8 +3019,8 @@ final String finalBase = base;
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -3528,7 +3528,7 @@ final String finalBase = base;
         //         "txId":"0x5167b473fd37811f9ef22364c3d54726a859ef9d98934b3a1e11d7baa8d2c2e2"
         //     }
         //
-        Object id = null;
+        List<String> id = null;
         Long timestamp = this.safeInteger(transaction, "timestamp");
         String currencyId = this.safeString(transaction, "symbol");
         String code = this.safeCurrencyCode(currencyId, currency);

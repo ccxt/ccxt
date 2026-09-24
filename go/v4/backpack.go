@@ -1210,7 +1210,7 @@ func (this *Backpack) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		"interval": interval,
 	}
 	var until any = nil
-	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "until")
+	var untilparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOHLCV", "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = MapTyped(GetValue(untilparamsVariable, 1))
 	if !IsEqual(until, nil) {
@@ -1796,7 +1796,7 @@ func (this *Backpack) ParseBalance(response any) any {
 	for i := 0; i < len(balanceKeys); i++ {
 		var id string = GetValue(balanceKeys, i).(string)
 		var code *string = this.SafeCurrencyCode(id)
-		var balance map[string]any = MapTyped(GetValue(response, id))
+		var balance map[string]any = SafeMapTyped(response, id)
 		var account map[string]any = this.Account()
 		var locked *string = this.SafeString(balance, "locked")
 		var staked *string = this.SafeString(balance, "staked")
@@ -1854,7 +1854,7 @@ func (this *Backpack) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit // default 100, max 1000
 	}
 	var until any = nil
-	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchDeposits", "until")
+	var untilparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchDeposits", "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = MapTyped(GetValue(untilparamsVariable, 1))
 	if !IsEqual(until, nil) {
@@ -1911,7 +1911,7 @@ func (this *Backpack) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 		request["limit"] = limit
 	}
 	var until any = nil
-	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchWithdrawals", "until")
+	var untilparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchWithdrawals", "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = MapTyped(GetValue(untilparamsVariable, 1))
 	if !IsEqual(until, nil) {
@@ -2250,7 +2250,7 @@ func (this *Backpack) createOrdersBody(ch chan any, orders any, optionalArgs ...
 	}
 	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
+		var rawOrder map[string]any = SafeMapTyped(orders, i)
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
@@ -2286,12 +2286,10 @@ func (this *Backpack) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	}
 	var triggerPrice *string = this.SafeString(params, "triggerPrice")
 	var isTriggerOrder bool = (triggerPrice != nil)
-	var quantityKey string = func() string {
-		if isTriggerOrder {
-			return "triggerQuantity"
-		}
-		return "quantity"
-	}()
+	var quantityKey string = "quantity"
+	if isTriggerOrder {
+		quantityKey = "triggerQuantity"
+	}
 	// handle basic limit/market order types
 	if IsEqual(typeVar, "limit") {
 		request["price"] = this.PriceToPrecision(symbol, price)
@@ -2323,7 +2321,7 @@ func (this *Backpack) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		AddElementToObject(params, "postOnly", true)
 	}
 	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
-	if !IsEqual(takeProfit, nil) {
+	if takeProfit != nil {
 		var takeProfitTriggerPrice *string = this.SafeString(takeProfit, "triggerPrice")
 		if takeProfitTriggerPrice != nil {
 			request["takeProfitTriggerPrice"] = this.PriceToPrecision(symbol, takeProfitTriggerPrice)
@@ -2335,7 +2333,7 @@ func (this *Backpack) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		params = MapTyped(this.Omit(params, "takeProfit"))
 	}
 	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
-	if !IsEqual(stopLoss, nil) {
+	if stopLoss != nil {
 		var stopLossTriggerPrice *string = this.SafeString(stopLoss, "triggerPrice")
 		if stopLossTriggerPrice != nil {
 			request["stopLossTriggerPrice"] = this.PriceToPrecision(symbol, stopLossTriggerPrice)
@@ -2346,16 +2344,16 @@ func (this *Backpack) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		}
 		params = MapTyped(this.Omit(params, "stopLoss"))
 	}
-	var selfTradePrevention any = nil
-	var selfTradePreventionparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "selfTradePrevention")
-	selfTradePrevention = GetValue(selfTradePreventionparamsVariable, 0)
+	var selfTradePrevention *string = nil
+	var selfTradePreventionparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "selfTradePrevention")
+	selfTradePrevention = SafeStringPtr(GetValue(selfTradePreventionparamsVariable, 0))
 	params = MapTyped(GetValue(selfTradePreventionparamsVariable, 1))
 	if selfTradePrevention != nil {
-		if IsEqual(selfTradePrevention, "EXPIRE_MAKER") {
+		if selfTradePrevention != nil && *selfTradePrevention == "EXPIRE_MAKER" {
 			request["selfTradePrevention"] = "RejectMaker"
-		} else if IsEqual(selfTradePrevention, "EXPIRE_TAKER") {
+		} else if selfTradePrevention != nil && *selfTradePrevention == "EXPIRE_TAKER" {
 			request["selfTradePrevention"] = "RejectTaker"
-		} else if IsEqual(selfTradePrevention, "EXPIRE_BOTH") {
+		} else if selfTradePrevention != nil && *selfTradePrevention == "EXPIRE_BOTH" {
 			request["selfTradePrevention"] = "RejectBoth"
 		}
 	}

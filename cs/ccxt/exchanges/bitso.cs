@@ -609,7 +609,7 @@ public partial class bitso : Exchange
             List<object> makerFees = new List<object>() {};
             for (int j = 0; j < feeTiers.Count; j++)
             {
-                object tier = feeTiers[j];
+                IDictionary<string, object> tier = this.safeDict(feeTiers, j);
                 double? volume = this.safeNumber(tier, "volume");
                 double? takerFee = this.safeNumber(tier, "taker");
                 double? makerFee = this.safeNumber(tier, "maker");
@@ -767,7 +767,7 @@ public partial class bitso : Exchange
         };
         for (int i = 0; i < balances.Count; i++)
         {
-            object balance = balances[i];
+            IDictionary<string, object> balance = this.safeDict(balances, i);
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -920,7 +920,7 @@ public partial class bitso : Exchange
             { "book", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetTicker(this.extend(request, parameters));
-        object ticker = this.safeValue(response, "payload");
+        IDictionary<string, object> ticker = this.safeDict(response, "payload");
         //
         //     {
         //         "success":true,

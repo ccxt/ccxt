@@ -133,7 +133,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
         Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data));
-        Helpers.callDynamically(stored, "append", new Object[]{trade});
+        stored.append(trade);
         Helpers.addElementToObject(this.trades, symbol, stored);
         client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
     }
@@ -208,7 +208,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
                 put( "receivedSnapshot", false );
             }};
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, null, messageHash, subscription)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -277,7 +277,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         if (java.util.Objects.equals(eventVar, "OrderBookSnapshot"))
         {
             Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderBook, symbol, timestamp, "Bids", "Offers", "Price", "Volume");
-            Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+            orderbook.reset(snapshot);
             // write through the parent index: php copies arrays by value, so
             // mutating the local bind would not persist the flag
             ((Map)client.subscriptions).put((String)messageHash, this.extend(subscription, new HashMap<String, Object>() {{

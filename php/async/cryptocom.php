@@ -996,7 +996,7 @@ class cryptocom extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOrders', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_dynamic('fetchOrders', $symbol, $since, $limit, $params));
         }
@@ -1084,7 +1084,7 @@ class cryptocom extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchTrades', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_dynamic('fetchTrades', $symbol, $since, $limit, $params));
         }
@@ -1265,7 +1265,7 @@ class cryptocom extends Exchange {
         $positionBalances = $this->safe_list($data[0], 'position_balances', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($positionBalances); $i++) {
-            $balance = $positionBalances[$i];
+            $balance = $this->safe_dict($positionBalances, $i);
             $currencyId = $this->safe_string($balance, 'instrument_name');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -1572,7 +1572,7 @@ class cryptocom extends Exchange {
         }
         $ordersRequests = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $marketId = $this->safe_string($rawOrder, 'symbol');
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
@@ -1936,7 +1936,7 @@ class cryptocom extends Exchange {
         }
         $orderRequests = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $order = $orders[$i];
+            $order = $this->safe_dict($orders, $i);
             $id = $this->safe_string($order, 'id');
             $symbol = $this->safe_string($order, 'symbol');
             $market = $this->market($symbol);
@@ -2045,7 +2045,7 @@ class cryptocom extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params, 100));
         }
@@ -2830,7 +2830,7 @@ class cryptocom extends Exchange {
         );
         if ($networkList !== null) {
             for ($i = 0; $i < $networkListLength; $i++) {
-                $networkInfo = $networkList[$i];
+                $networkInfo = $this->safe_dict($networkList, $i);
                 $networkId = $this->safe_string($networkInfo, 'network_id');
                 $currencyCode = $this->safe_string($currency, 'code');
                 $networkCode = $this->network_id_to_code($networkId, $currencyCode);
@@ -3318,7 +3318,7 @@ class cryptocom extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params));
         }
@@ -3725,8 +3725,14 @@ class cryptocom extends Exchange {
             $symbol = $this->symbols[$i];
             $market = $this->market($symbol);
             $isSwap = $market['swap'];
-            $takerFeeKey = ($isSwap === true) ? 'effective_deriv_taker_rate_bps' : 'effective_spot_taker_rate_bps';
-            $makerFeeKey = ($isSwap === true) ? 'effective_deriv_maker_rate_bps' : 'effective_spot_maker_rate_bps';
+            $takerFeeKey = 'effective_spot_taker_rate_bps';
+            if ($isSwap === true) {
+                $takerFeeKey = 'effective_deriv_taker_rate_bps';
+            }
+            $makerFeeKey = 'effective_spot_maker_rate_bps';
+            if ($isSwap === true) {
+                $makerFeeKey = 'effective_deriv_maker_rate_bps';
+            }
             $tradingFee = array(
                 'info' => $response,
                 'symbol' => $symbol,

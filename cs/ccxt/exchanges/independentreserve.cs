@@ -505,7 +505,7 @@ public partial class independentreserve : Exchange
         };
         for (int i = 0; i < getArrayLength(response); i++)
         {
-            object balance = getValue(response, i);
+            IDictionary<string, object> balance = this.safeDict(response, i);
             string? currencyId = this.safeString(balance, "CurrencyCode");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();

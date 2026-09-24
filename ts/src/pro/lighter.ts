@@ -712,10 +712,7 @@ export default class lighter extends lighterRest {
             } else {
                 feeRateRaw = this.safeString (trade, 'taker_fee');
             }
-            let feeRate: Str = '0';
-            if (feeRateRaw !== undefined) {
-                feeRate = Precise.stringDiv (feeRateRaw, '1000000');
-            }
+            const feeRate = (feeRateRaw !== undefined) ? Precise.stringDiv (feeRateRaw, '1000000') : '0';
             const feeAmount = Precise.stringMul (costString, feeRate);
             fee = {
                 'cost': feeAmount,
@@ -740,7 +737,7 @@ export default class lighter extends lighterRest {
         }, market);
     }
 
-    handleMyTrades (client: Client, message: any): boolean {
+    handleMyTrades (client: Client, message: Dict): boolean {
         //
         //     {
         //         "channel": "account_all_trades:723310",
@@ -1037,7 +1034,7 @@ export default class lighter extends lighterRest {
         }
     }
 
-    handleBalance (client: Client, message: any): boolean {
+    handleBalance (client: Client, message: Dict): boolean {
         //
         //    spot balance
         //    {
@@ -1315,7 +1312,7 @@ export default class lighter extends lighterRest {
         client.resolve (message, 'jsonapi/sendtx:' + id);
     }
 
-    handleOrders (client: Client, message: any): boolean {
+    handleOrders (client: Client, message: Dict): boolean {
         //
         //    {
         //        "account": {ACCOUNT_INDEX},
@@ -1365,7 +1362,7 @@ export default class lighter extends lighterRest {
         return true;
     }
 
-    handleErrorMessage (client: Client, message: any): boolean {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         //     {
         //         "error": {
@@ -1600,7 +1597,7 @@ export default class lighter extends lighterRest {
         this.cleanCache (ordersStructure);
     }
 
-    handlePing (client: Client, message: any) {
+    handlePing (client: Client, message: Dict) {
         //
         //     { "type": "ping" }
         //

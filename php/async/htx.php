@@ -1952,7 +1952,12 @@ class htx extends Exchange {
             $contractType = $this->safe_string($info, 'contract_type');
             $contractSuffix = $this->safe_string($futuresCharsMaps, $contractType);
             // see comment on formats a bit above
-            $constructedId = ($market['linear'] === true) ? $market['base'] . '-' . $market['quote'] . '-' . $contractSuffix : $market['base'] . '_' . $contractSuffix;
+            $constructedId = null;
+            if ($market['linear'] === true) {
+                $constructedId = $market['base'] . '-' . $market['quote'] . '-' . $contractSuffix;
+            } else {
+                $constructedId = $market['base'] . '_' . $contractSuffix;
+            }
             if ($constructedId === $symbolOrMarketId) {
                 $symbol = $market['symbol'];
                 $this->options['futureMarketIdsForSymbols'][$symbolOrMarketId] = $symbol;
@@ -2380,7 +2385,7 @@ class htx extends Exchange {
         return $this->parse_last_prices($data, $symbols);
     }
 
-    public function parse_last_price(mixed $entry, ?array $market = null): array {
+    public function parse_last_price(array $entry, ?array $market = null): array {
         // example responses are documented in fetchLastPrices
         $marketId = $this->safe_string_2($entry, 'symbol', 'contract_code');
         $market = $this->safe_market($marketId, $market);
@@ -2753,7 +2758,7 @@ class htx extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params));
         }
@@ -2928,7 +2933,7 @@ class htx extends Exchange {
         //
         $trades = $this->safe_value($response, 'data');
         if ((gettype($trades) !== 'array' || array_keys($trades) !== array_keys(array_keys($trades)))) {
-            $trades = $this->safe_value($trades, 'trades');
+            $trades = $this->safe_list($trades, 'trades');
         }
         return $this->parse_trades($trades, $market, $since, $limit);
     }
@@ -3069,7 +3074,7 @@ class htx extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 1000));
         }
@@ -3222,7 +3227,7 @@ class htx extends Exchange {
         //         ]
         //     }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_list($response, 'data');
         return $this->parse_accounts($data);
     }
 
@@ -3279,7 +3284,7 @@ class htx extends Exchange {
             $marketId = $this->market_id($symbol);
         }
         for ($i = 0; $i < count($accounts); $i++) {
-            $account = $accounts[$i];
+            $account = $this->safe_dict($accounts, $i);
             $info = $this->safe_dict($account, 'info');
             $subtype = $this->safe_string($info, 'subtype');
             $typeFromAccount = $this->safe_string($account, 'type');
@@ -3361,7 +3366,10 @@ class htx extends Exchange {
         $currencyId = $this->safe_string($rawCurrency, 'currency');
         $code = $this->safe_currency_code($currencyId);
         $assetType = $this->safe_string($rawCurrency, 'assetType');
-        $type = ($assetType === '1') ? 'crypto' : 'fiat';
+        $type = 'fiat';
+        if ($assetType === '1') {
+            $type = 'crypto';
+        }
         if ($code !== null) {
             $this->options['networkChainIdsByNames'][$code] = array();
         }
@@ -3494,7 +3502,7 @@ class htx extends Exchange {
         list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $subType = null;
         $isMultiAssetMode = null;
-        list($subType, $params) = $this->handle_option_and_params_2($params, 'fetchBalance', 'defaultSubType', 'subType');
+        list($subType, $params) = $this->handle_option_string_and_params_2($params, 'fetchBalance', 'defaultSubType', 'subType');
         if ($subType === null) {
             $subType = 'linear';
         }
@@ -3680,7 +3688,7 @@ class htx extends Exchange {
         if ($isMultiAssetMode || ($linear && ($swap || $future))) {
             $details = $this->safe_list($data, 'details', array());
             for ($i = 0; $i < count($details); $i++) {
-                $balance = $details[$i];
+                $balance = $this->safe_dict($details, $i);
                 $currencyId = $this->safe_string($balance, 'currency');
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
@@ -3694,7 +3702,7 @@ class htx extends Exchange {
         } elseif ($spot || $margin) {
             if ($isolated) {
                 for ($i = 0; $i < count($data); $i++) {
-                    $entry = $data[$i];
+                    $entry = $this->safe_dict($data, $i);
                     $balances = $this->safe_value($entry, 'list');
                     $subResult = array();
                     for ($j = 0; $j < count($balances); $j++) {
@@ -3726,7 +3734,7 @@ class htx extends Exchange {
             }
         } elseif ($inverse) {
             for ($i = 0; $i < count($data); $i++) {
-                $balance = $data[$i];
+                $balance = $this->safe_dict($data, $i);
                 $currencyId = $this->safe_string($balance, 'symbol');
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
@@ -3960,7 +3968,7 @@ class htx extends Exchange {
         //
         $order = $this->safe_value($response, 'data');
         if ((gettype($order) === 'array' && array_keys($order) === array_keys(array_keys($order)))) {
-            $order = $this->safe_value($order, 0);
+            $order = $this->safe_dict($order, 0);
         }
         return $this->parse_order($order, $market);
     }
@@ -4347,7 +4355,7 @@ class htx extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchCanceledOrders', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchCanceledOrders', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_dynamic('fetchCanceledOrders', $symbol, $since, $limit, $params, 100));
         }
@@ -4410,7 +4418,7 @@ class htx extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchClosedOrders', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_dynamic('fetchClosedOrders', $symbol, $since, $limit, $params, 100));
         }
@@ -5255,7 +5263,10 @@ class htx extends Exchange {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice for a trigger order');
             }
         } else {
-            $defaultOperator = ($side === 'sell') ? 'lte' : 'gte';
+            $defaultOperator = 'gte';
+            if ($side === 'sell') {
+                $defaultOperator = 'lte';
+            }
             $stopOperator = $this->safe_string($params, 'operator', $defaultOperator);
             $request['stop-price'] = $this->price_to_precision($symbol, $triggerPrice);
             $request['operator'] = $stopOperator;
@@ -5762,7 +5773,7 @@ class htx extends Exchange {
         $market = null;
         $marginMode = null;
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $marketId = $this->safe_string($rawOrder, 'symbol');
             if ($symbol === null) {
                 $symbol = $marketId;
@@ -6533,7 +6544,7 @@ class htx extends Exchange {
         return $response;
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null) {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null) {
         //
         //     {
         //         "currency": "usdt",
@@ -7348,7 +7359,7 @@ class htx extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchFundingRateHistory', $symbol, $since, $limit, $params, 'current_page', 'page_index', 1, 50));
         }
@@ -7614,7 +7625,7 @@ class htx extends Exchange {
         $symbols = $this->market_symbols($symbols);
         $defaultSubType = 'linear';
         $subType = null;
-        list($subType, $params) = $this->handle_option_and_params($params, 'fetchFundingRates', 'subType', $defaultSubType);
+        list($subType, $params) = $this->handle_option_string_and_params($params, 'fetchFundingRates', 'subType', $defaultSubType);
         if ($symbols !== null) {
             $firstSymbol = $this->safe_string($symbols, 0);
             $market = $this->market($firstSymbol);
@@ -7722,7 +7733,7 @@ class htx extends Exchange {
         //        ]
         //    }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_list($response, 'data');
         $interest = $this->parse_borrow_interests($data, $market);
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }
@@ -7770,7 +7781,10 @@ class htx extends Exchange {
         //   }
         //
         $marketId = $this->safe_string($info, 'symbol');
-        $marginMode = ($marketId === null) ? 'cross' : 'isolated';
+        $marginMode = 'isolated';
+        if ($marketId === null) {
+            $marginMode = 'cross';
+        }
         $market = $this->safe_market($marketId);
         $symbol = $this->safe_string($market, 'symbol');
         $timestamp = $this->safe_integer($info, 'accrued-at');
@@ -8164,7 +8178,7 @@ class htx extends Exchange {
         return $response;
     }
 
-    public function parse_income(mixed $income, ?array $market = null): array {
+    public function parse_income(array $income, ?array $market = null): array {
         //
         //     {
         //       "id": "1667161118",
@@ -8272,7 +8286,10 @@ class htx extends Exchange {
         $entryPrice = $this->safe_number_2($position, 'cost_open', 'open_avg_price');
         $initialMargin = $this->safe_string_2($position, 'position_margin', 'initial_margin');
         $rawSide = $this->safe_string($position, 'direction');
-        $directionSide = ($rawSide === 'buy') ? 'long' : 'short';
+        $directionSide = 'short';
+        if ($rawSide === 'buy') {
+            $directionSide = 'long';
+        }
         $rawPositionSide = $this->safe_string($position, 'position_side');
         // in one-way mode, "position_side" is "both" and the actual long/short signal is only present in "direction"
         $side = $directionSide;
@@ -8672,7 +8689,7 @@ class htx extends Exchange {
         return $parsed;
     }
 
-    public function parse_ledger_entry_type(mixed $type) {
+    public function parse_ledger_entry_type(?string $type) {
         $types = array(
             'trade' => 'trade',
             'etf' => 'trade',
@@ -8754,7 +8771,7 @@ class htx extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchLedger', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_dynamic('fetchLedger', $code, $since, $limit, $params, 500));
         }
@@ -8872,7 +8889,7 @@ class htx extends Exchange {
         $tiers = array();
         $brackets = $this->safe_list($info, 'list', array());
         for ($i = 0; $i < count($brackets); $i++) {
-            $item = $brackets[$i];
+            $item = $this->safe_dict($brackets, $i);
             $leverage = $this->safe_string($item, 'lever_rate');
             $ladders = $this->safe_list($item, 'ladders', array());
             for ($k = 0; $k < count($ladders); $k++) {
@@ -9392,7 +9409,7 @@ class htx extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'Data', array());
-        $loan = $this->safe_value($data, 0);
+        $loan = $this->safe_dict($data, 0);
         $transaction = $this->parse_margin_loan($loan, $currency);
         return $this->extend($transaction, array(
             'amount' => $amount,
@@ -9438,14 +9455,14 @@ class htx extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'Data', array());
-        $loan = $this->safe_value($data, 0);
+        $loan = $this->safe_dict($data, 0);
         $transaction = $this->parse_margin_loan($loan, $currency);
         return $this->extend($transaction, array(
             'amount' => $amount,
         ));
     }
 
-    public function parse_margin_loan(array $info, ?array $currency = null): array {
+    public function parse_margin_loan(?array $info, ?array $currency = null): array {
         //
         // borrowMargin cross
         //
@@ -9606,7 +9623,7 @@ class htx extends Exchange {
             return $this->sort_by($settlementsLinear, 'timestamp');
         }
         $data = $this->safe_dict($response, 'data');
-        $settlementRecord = $this->safe_value($data, 'settlement_record');
+        $settlementRecord = $this->safe_list($data, 'settlement_record');
         $settlements = $this->parse_settlements($settlementRecord, $market);
         return $this->sort_by($settlements, 'timestamp');
     }
@@ -9705,7 +9722,7 @@ class htx extends Exchange {
         $code = $this->safe_string($currency, 'code');
         $result = $this->deposit_withdraw_fee($fee);
         for ($j = 0; $j < count($chains); $j++) {
-            $chainEntry = $chains[$j];
+            $chainEntry = $this->safe_dict($chains, $j);
             $networkId = $this->safe_string($chainEntry, 'chain');
             $withdrawFeeType = $this->safe_string($chainEntry, 'withdrawFeeType');
             $networkCode = $this->network_id_to_code($networkId, $code);
@@ -9738,7 +9755,7 @@ class htx extends Exchange {
         return $result;
     }
 
-    public function parse_settlements(mixed $settlements, mixed $market) {
+    public function parse_settlements(mixed $settlements, array $market) {
         //
         // coin-m swap, fetchSettlementHistory
         //
@@ -9789,7 +9806,7 @@ class htx extends Exchange {
         //
         $result = array();
         for ($i = 0; $i < count($settlements); $i++) {
-            $settlement = $settlements[$i];
+            $settlement = $this->safe_dict($settlements, $i);
             $list = $this->safe_list($settlement, 'list');
             if ($market['linear'] === true) {
                 $parsedSettlement = $this->parse_settlement($settlement, $market);
@@ -9801,7 +9818,7 @@ class htx extends Exchange {
                     'datetime' => $this->iso8601($timestamp),
                 );
                 for ($j = 0; $j < count($list); $j++) {
-                    $item = $list[$j];
+                    $item = $this->safe_dict($list, $j);
                     $parsedSettlement = $this->parse_settlement($item, $market);
                     $result[] = $this->extend($parsedSettlement, $timestampDetails);
                 }
@@ -9812,7 +9829,7 @@ class htx extends Exchange {
         return $result;
     }
 
-    public function parse_settlement(mixed $settlement, mixed $market) {
+    public function parse_settlement(?array $settlement, array $market) {
         //
         // coin-m swap, fetchSettlementHistory
         //
@@ -10103,7 +10120,10 @@ class htx extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $posMode = $hedged ? 'dual_side' : 'single_side';
+        $posMode = 'single_side';
+        if ($hedged) {
+            $posMode = 'dual_side';
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);

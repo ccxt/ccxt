@@ -1729,7 +1729,14 @@ public partial class bitstamp : Exchange
         }
         string? feeCostString = this.safeString(trade, "fee");
         string? feeCurrency = this.safeString(market, "quote");
-        string? priceId = ((rawMarketId != null)) ? rawMarketId : this.safeString(market, "id");
+        string? priceId = null;
+        if ((rawMarketId != null))
+        {
+            priceId = rawMarketId;
+        } else
+        {
+            priceId = this.safeString(market, "id");
+        }
         priceString = this.safeString(trade, priceId, priceString);
         amountString = this.safeString(trade, this.safeString(market, "baseId"), amountString);
         costString = this.safeString(trade, this.safeString(market, "quoteId"), costString);
@@ -1992,7 +1999,7 @@ public partial class bitstamp : Exchange
         }
         for (int i = 0; i < getArrayLength(response); i++)
         {
-            object currencyBalance = getValue(response, i);
+            IDictionary<string, object> currencyBalance = this.safeDict(response, i);
             string? currencyId = this.safeString(currencyBalance, "currency");
             string? currencyCode = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -2239,7 +2246,7 @@ public partial class bitstamp : Exchange
         string? code = this.safeString(currency, "code");
         for (int j = 0; j < getArrayLength(fee); j++)
         {
-            object networkEntry = getValue(fee, j);
+            IDictionary<string, object> networkEntry = this.safeDict(fee, j);
             string? networkId = this.safeString(networkEntry, "network");
             string? networkCode = this.networkIdToCode(networkId, code);
             double? withdrawFee = this.safeNumber(networkEntry, "fee");
@@ -2609,8 +2616,8 @@ public partial class bitstamp : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -3535,7 +3542,11 @@ public partial class bitstamp : Exchange
                     ((IDictionary<string,object>)headers)["Content-Type"] = contentType;
                 }
             }
-            object authBody = ((body != null) && !isEqual(body, "")) ? body : "";
+            object authBody = "";
+            if ((body != null) && !isEqual(body, ""))
+            {
+                authBody = body;
+            }
             object auth = add(add(add(add(add(add(add(xAuth, method), ((string)url).Replace("https://", (string)"")), contentType), xAuthNonce), xAuthTimestamp), xAuthVersion), authBody);
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             ((IDictionary<string,object>)headers)["X-Auth-Signature"] = signature;

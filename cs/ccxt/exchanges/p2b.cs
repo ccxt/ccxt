@@ -916,7 +916,7 @@ public partial class p2b : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? currencyId = ((string)keys[i]);
-            object balance = getValue(response, currencyId);
+            IDictionary<string, object> balance = this.safeDict(response, currencyId);
             string? code = this.safeCurrencyCode(currencyId);
             string? used = this.safeString(balance, "freeze");
             string? available = this.safeString(balance, "available");

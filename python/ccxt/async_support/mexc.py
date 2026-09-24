@@ -1907,7 +1907,7 @@ class mexc(Exchange, ImplicitAPI):
             #         }
             #     }
             #
-            data = self.safe_value(response, 'data')
+            data = self.safe_dict(response, 'data')
             candles = self.convert_trading_view_to_ohlcv(data, 'time', 'open', 'high', 'low', 'close', 'vol')
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
@@ -2553,7 +2553,7 @@ class mexc(Exchange, ImplicitAPI):
         ordersRequests = []
         symbol = None
         for i in range(0, len(orders)):
-            rawOrder = orders[i]
+            rawOrder = self.safe_dict(orders, i)
             marketId = self.safe_string(rawOrder, 'symbol')
             market = self.market(marketId)
             if market['spot'] is not True:
@@ -3776,7 +3776,7 @@ class mexc(Exchange, ImplicitAPI):
         result = {'info': response}
         if marketType == 'margin':
             for i in range(0, len(wallet)):
-                entry = wallet[i]
+                entry = self.safe_dict(wallet, i)
                 base = self.safe_dict(entry, 'baseAsset', {})
                 quote = self.safe_dict(entry, 'quoteAsset', {})
                 baseCode = self.safe_currency_code(self.safe_string(base, 'asset'))
@@ -3788,7 +3788,7 @@ class mexc(Exchange, ImplicitAPI):
             return self.safe_balance(result)
         elif marketType == 'swap':
             for i in range(0, len(wallet)):
-                entry = wallet[i]
+                entry = self.safe_dict(wallet, i)
                 currencyId = self.safe_string(entry, 'currency')
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
@@ -3799,7 +3799,7 @@ class mexc(Exchange, ImplicitAPI):
             return self.safe_balance(result)
         else:
             for i in range(0, len(wallet)):
-                entry = wallet[i]
+                entry = self.safe_dict(wallet, i)
                 currencyId = self.safe_string(entry, 'asset')
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
@@ -4578,7 +4578,7 @@ class mexc(Exchange, ImplicitAPI):
             floor = cap
         return tiers
 
-    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         #
         #    {
         #        coin: "USDT",
@@ -5216,7 +5216,7 @@ class mexc(Exchange, ImplicitAPI):
         if code is not None:
             currency = self.currency(code)
         fromAccountType = None
-        fromAccountType, params = self.handle_option_and_params(params, 'fetchTransfers', 'fromAccountType')
+        fromAccountType, params = self.handle_option_string_and_params(params, 'fetchTransfers', 'fromAccountType')
         accountTypes = {
             'spot': 'SPOT',
             'swap': 'FUTURES',
@@ -5229,7 +5229,7 @@ class mexc(Exchange, ImplicitAPI):
         else:
             raise ArgumentsRequired(self.id + ' fetchTransfers() requires a fromAccountType parameter, one of "SPOT", "FUTURES"')
         toAccountType = None
-        toAccountType, params = self.handle_option_and_params(params, 'fetchTransfers', 'toAccountType')
+        toAccountType, params = self.handle_option_string_and_params(params, 'fetchTransfers', 'toAccountType')
         if toAccountType is not None:
             request['toAccountType'] = self.safe_string(accountTypes, toAccountType, toAccountType)
         else:
@@ -5637,7 +5637,7 @@ class mexc(Exchange, ImplicitAPI):
         networkList = self.safe_list(transaction, 'networkList', [])
         result = {}
         for j in range(0, len(networkList)):
-            networkEntry = networkList[j]
+            networkEntry = self.safe_dict(networkList, j)
             networkId = self.safe_string(networkEntry, 'network')
             networkCode = self.safe_string(self.options['networks'], networkId, networkId)
             fee = self.safe_number(networkEntry, 'withdrawFee')
@@ -5718,7 +5718,7 @@ class mexc(Exchange, ImplicitAPI):
         networkList = self.safe_list(fee, 'networkList', [])
         result = self.deposit_withdraw_fee(fee)
         for j in range(0, len(networkList)):
-            networkEntry = networkList[j]
+            networkEntry = self.safe_dict(networkList, j)
             networkId = self.safe_string(networkEntry, 'network')
             networkCode = self.network_id_to_code(networkId, self.safe_string(currency, 'code'))
             if networkCode is not None:
@@ -5789,7 +5789,7 @@ class mexc(Exchange, ImplicitAPI):
         longLeverage = None
         shortLeverage = None
         for i in range(0, len(leverage)):
-            entry = leverage[i]
+            entry = self.safe_dict(leverage, i)
             openType = self.safe_integer(entry, 'openType')
             positionType = self.safe_integer(entry, 'positionType')
             if positionType == 1:

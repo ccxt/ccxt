@@ -1017,9 +1017,9 @@ func (this *Sxbet) approveBody(ch chan any, optionalArgs ...any) any {
 	if tokenAddress == nil {
 		panic(ccxt.BadRequest(this.Id + " approve() could not resolve the base token address from /metadata/obv3"))
 	}
-	var spender any = nil
-	var spenderparamsVariable []any = this.HandleOptionAndParams2(params, "approve", "spender", "transferToProxySpender", executorAddress)
-	spender = ccxt.GetValue(spenderparamsVariable, 0)
+	var spender *string = nil
+	var spenderparamsVariable []any = this.HandleOptionStringAndParams2(params, "approve", "spender", "transferToProxySpender", executorAddress)
+	spender = ccxt.SafeStringPtr(ccxt.GetValue(spenderparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(spenderparamsVariable, 1))
 	if spender == nil {
 		panic(ccxt.BadRequest(this.Id + " approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender"))
@@ -1197,20 +1197,18 @@ func (this *Sxbet) createOrderBody(ch chan any, outcome any, typeVar any, side a
 	var saltHex string = "0x" + saltHexPadded
 	var defaultExpirySeconds *int64 = this.SafeInteger(this.Options, "defaultOrderExpirySeconds", 86400)
 	var expiry *int64 = this.SafeInteger(params, "expiry", this.Sum(this.Seconds(), defaultExpirySeconds))
-	var defaultTif string = func() string {
-		if ccxt.IsEqual(typeVar, "limit") {
-			return "GTC"
-		}
-		return "IOC"
-	}()
-	var timeInForce any = nil
-	var timeInForceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "timeInForce", defaultTif)
-	timeInForce = ccxt.GetValue(timeInForceparamsVariable, 0)
+	var defaultTif string = "IOC"
+	if ccxt.IsEqual(typeVar, "limit") {
+		defaultTif = "GTC"
+	}
+	var timeInForce *string = nil
+	var timeInForceparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "timeInForce", defaultTif)
+	timeInForce = ccxt.SafeStringPtr(ccxt.GetValue(timeInForceparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(timeInForceparamsVariable, 1))
 	// an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
 	// that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
 	// contradicting the immediate-fill semantics the type promises
-	if (ccxt.IsEqual(typeVar, "market")) && (ccxt.IsEqual(timeInForce, "GTC")) {
+	if (ccxt.IsEqual(typeVar, "market")) && (timeInForce != nil && *timeInForce == "GTC") {
 		panic(ccxt.InvalidOrder(this.Id + " createOrder() market orders cannot be GTC - use type 'limit' for a resting order"))
 	}
 	var maker any = this.WalletAddress
@@ -1290,7 +1288,7 @@ func (this *Sxbet) createOrderBody(ch chan any, outcome any, typeVar any, side a
 	response := (<-this.SxbetPrivatePostOrdersV3(this.Extend(request, rest))).Raw
 	ccxt.PanicOnError(response)
 	var data map[string]any = ccxt.SafeMapTyped(response, "data")
-	var results any = this.SafeList(data, "orders", []any{})
+	var results []any = ccxt.SafeListTyped(data, "orders")
 	var first map[string]any = ccxt.SafeMapTyped(results, 0)
 	var status *string = this.SafeStringUpper(first, "status")
 	if status != nil && *status == "FAILED" {
@@ -1612,12 +1610,12 @@ func (this *Sxbet) ParsePredictionOrder(order any, optionalArgs ...any) any {
 	var orderId *string = this.SafeString2(order, "id", "orderId")
 	var marketHash *string = this.SafeString(order, "marketHash", "")
 	var isBettingOutcomeOne *bool = this.SafeBool(order, "isBettingOutcomeOne", true)
-	var outcomeId any = func() any {
-		if isBettingOutcomeOne != nil && *isBettingOutcomeOne {
-			return marketHash
-		}
-		return (*marketHash + "-2")
-	}()
+	var outcomeId any = nil
+	if isBettingOutcomeOne != nil && *isBettingOutcomeOne {
+		outcomeId = marketHash
+	} else {
+		outcomeId = (*marketHash + "-2")
+	}
 	var outcomeObj map[string]any = this.SafeOutcome(outcomeId, market)
 	var oneDenom string = "100000000000000000000"
 	var usdcDecimals string = "1000000"
@@ -1773,8 +1771,8 @@ func (this *Sxbet) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes134615 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchOpenOrdersAsync(outcome, since, limit, params))))
-	ch <- ccxt.BoxAbsent(retRes134615)
+	var retRes135415 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchOpenOrdersAsync(outcome, since, limit, params))))
+	ch <- ccxt.BoxAbsent(retRes135415)
 	return nil
 }
 
@@ -1940,7 +1938,7 @@ func (this *Sxbet) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	trades = this.SortBy(trades, "timestamp")
 	var sym *string = func() *string {
-		if !ccxt.IsEqual(outcomeObj, nil) {
+		if outcomeObj != nil {
 			return this.SafeString(outcomeObj, "outcome")
 		}
 		return nil
@@ -1978,12 +1976,12 @@ func (this *Sxbet) ParseSxbetV3Fill(fill any, optionalArgs ...any) any {
 	_ = market
 	var marketHash *string = this.SafeString(fill, "marketHash", "")
 	var isBettingOutcomeOne *bool = this.SafeBool(fill, "isBettingOutcomeOne", true)
-	var outcomeId any = func() any {
-		if isBettingOutcomeOne != nil && *isBettingOutcomeOne {
-			return marketHash
-		}
-		return (*marketHash + "-2")
-	}()
+	var outcomeId any = nil
+	if isBettingOutcomeOne != nil && *isBettingOutcomeOne {
+		outcomeId = marketHash
+	} else {
+		outcomeId = (*marketHash + "-2")
+	}
 	var outcomeObj map[string]any = this.SafeOutcome(outcomeId, market)
 	var oneDenom string = "100000000000000000000"
 	var usdcDecimals string = "1000000"
@@ -2069,12 +2067,7 @@ func (this *Sxbet) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var usdcDecimals string = "1000000"
 	var balancesLength int = len(balances)
 	for i := 0; i < balancesLength; i++ {
-		var row map[string]any = ccxt.MapTyped(func() any {
-			if i >= 0 && i < len(balances) {
-				return ccxt.DerefScalar(balances[i])
-			}
-			return nil
-		}())
+		var row map[string]any = ccxt.SafeMapTyped(balances, i)
 		var tokenAddress *string = this.SafeStringLower(row, "tokenAddress", "")
 		// every sxbet market is denominated in the active base token, surfaced under 'USDC'
 		// rows of any other token keep their contract address for the code
@@ -2188,22 +2181,22 @@ func (this *Sxbet) ParseSxbetV3Position(raw any) any {
 	//
 	var marketHash *string = this.SafeString(raw, "marketHash", "")
 	var isOutcomeOneMaxWin *bool = this.SafeBool(raw, "isOutcomeOneMaxWin", true)
-	var outcomeId any = func() any {
-		if isOutcomeOneMaxWin != nil && *isOutcomeOneMaxWin {
-			return marketHash
-		}
-		return (*marketHash + "-2")
-	}()
+	var outcomeId any = nil
+	if isOutcomeOneMaxWin != nil && *isOutcomeOneMaxWin {
+		outcomeId = marketHash
+	} else {
+		outcomeId = (*marketHash + "-2")
+	}
 	var outcomeObj map[string]any = this.SafeOutcome(outcomeId)
 	var oneDenom string = "100000000000000000000"
 	var usdcDecimals string = "1000000"
 	var odds map[string]any = ccxt.SafeMapTyped(raw, "odds")
-	var ownOdds any = func() any {
-		if isOutcomeOneMaxWin != nil && *isOutcomeOneMaxWin {
-			return this.SafeString(odds, "outcomeOne")
-		}
-		return this.SafeString(odds, "outcomeTwo")
-	}()
+	var ownOdds *string = nil
+	if isOutcomeOneMaxWin != nil && *isOutcomeOneMaxWin {
+		ownOdds = this.SafeString(odds, "outcomeOne")
+	} else {
+		ownOdds = this.SafeString(odds, "outcomeTwo")
+	}
 	var entryPrice *float64 = func() *float64 {
 		if ownOdds != nil {
 			return ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(ownOdds, oneDenom)))
@@ -2331,12 +2324,12 @@ func (this *Sxbet) ParseSettlement(trade any, optionalArgs ...any) any {
 	_ = market
 	var marketHash *string = this.SafeString(trade, "marketHash", "")
 	var isBettingOutcomeOne *bool = this.SafeBool(trade, "isBettingOutcomeOne", true)
-	var outcomeId any = func() any {
-		if isBettingOutcomeOne != nil && *isBettingOutcomeOne {
-			return marketHash
-		}
-		return (*marketHash + "-2")
-	}()
+	var outcomeId any = nil
+	if isBettingOutcomeOne != nil && *isBettingOutcomeOne {
+		outcomeId = marketHash
+	} else {
+		outcomeId = (*marketHash + "-2")
+	}
 	var outcomeObj map[string]any = this.SafeOutcome(outcomeId, market)
 	var settlement map[string]any = ccxt.SafeMapTyped(trade, "settlement")
 	var winner *int64 = this.SafeInteger(settlement, "outcome")
@@ -2361,12 +2354,10 @@ func (this *Sxbet) ParseSettlement(trade any, optionalArgs ...any) any {
 		resultLabel = "VOID"
 	} else if winner != nil {
 		var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
-		var labelKey string = func() string {
-			if winner != nil && *winner == 1 {
-				return "outcomeOneName"
-			}
-			return "outcomeTwoName"
-		}()
+		var labelKey string = "outcomeTwoName"
+		if winner != nil && *winner == 1 {
+			labelKey = "outcomeOneName"
+		}
 		resultLabel = ccxt.DerefScalar(this.SafeString(info, labelKey, this.NumberToString(winner)))
 	}
 	var timestamp *int64 = this.Parse8601(this.SafeString(settlement, "settleDate"))
@@ -2500,8 +2491,8 @@ func (this *Sxbet) fetchSxbetBestOddsBody(ch chan any, marketHashes any, optiona
  */
 func (this *Sxbet) ParseSxbetSnapshotBestOdds(snapshot any) map[string]any {
 	// levels arrive sorted best-first; the best level's odds mirror the v2 best-odds fields
-	var oneLevels []any = ccxt.SafeListTypedDefault(snapshot, "outcomeOne", []any{})
-	var twoLevels []any = ccxt.SafeListTypedDefault(snapshot, "outcomeTwo", []any{})
+	var oneLevels []any = ccxt.SafeListTyped(snapshot, "outcomeOne")
+	var twoLevels []any = ccxt.SafeListTyped(snapshot, "outcomeTwo")
 	var bestOne map[string]any = ccxt.SafeMapTyped(oneLevels, 0)
 	var bestTwo map[string]any = ccxt.SafeMapTyped(twoLevels, 0)
 	return map[string]any{
@@ -2618,7 +2609,7 @@ func (this *Sxbet) ParseSxbetTickersByHash(outcomesList any, rowsByHash map[stri
 		var outcomeObj map[string]any = this.Outcome(ccxt.GetValue(outcomesList, i))
 		var marketHash *string = this.SafeString(outcomeObj["info"], "marketHash", "")
 		var raw map[string]any = ccxt.SafeMapTyped(rowsByHash, marketHash)
-		if ccxt.IsEqual(raw, nil) {
+		if raw == nil {
 			continue
 		}
 		var ticker any = this.ParsePredictionTicker(raw, outcomeObj)
@@ -2657,18 +2648,14 @@ func (this *Sxbet) ParsePredictionTicker(raw any, optionalArgs ...any) any {
 	var isOutcomeOne bool = (outcomeId == marketHash || (outcomeId != nil && marketHash != nil && *outcomeId == *marketHash))
 	var outcomeOneOdds any = this.SafeDict(raw, "outcomeOne", map[string]any{})
 	var outcomeTwoOdds any = this.SafeDict(raw, "outcomeTwo", map[string]any{})
-	var ownOdds any = func() any {
-		if isOutcomeOne {
-			return outcomeOneOdds
-		}
-		return outcomeTwoOdds
-	}()
-	var oppositeOdds any = func() any {
-		if isOutcomeOne {
-			return outcomeTwoOdds
-		}
-		return outcomeOneOdds
-	}()
+	var ownOdds any = outcomeTwoOdds
+	if isOutcomeOne {
+		ownOdds = outcomeOneOdds
+	}
+	var oppositeOdds any = outcomeOneOdds
+	if isOutcomeOne {
+		oppositeOdds = outcomeTwoOdds
+	}
 	// percentageOdds is the maker's own implied probability * 1e20 (sx.bet protocol format)
 	// the opposite side's best resting maker mirrors into this outcome's ask via 1 - p
 	var oneDenom string = "100000000000000000000"
@@ -2695,7 +2682,7 @@ func (this *Sxbet) ParsePredictionTicker(raw any, optionalArgs ...any) any {
 		return ccxt.Int64PtrTyped(now)
 	}()
 	var average any = nil
-	if (!ccxt.IsEqual(bid, nil)) && (!ccxt.IsEqual(ask, nil)) {
+	if ((bid != nil)) && ((ask != nil)) {
 		average = this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(this.NumberToString(bid), this.NumberToString(ask)), "2"))
 	}
 	return this.SafePredictionTicker(map[string]any{
@@ -2814,7 +2801,7 @@ func (this *Sxbet) ParseSxbetV3BookSides(snapshot any, isOutcomeOne any) map[str
 	var bids []any = []any{}
 	var ownLevelsLength int = ccxt.GetArrayLength(ownLevels)
 	for i := 0; i < ownLevelsLength; i++ {
-		var level any = ccxt.GetValue(ownLevels, i)
+		var level map[string]any = ccxt.SafeMapTyped(ownLevels, i)
 		var percentageOdds *string = this.SafeString(level, "percentageOdds")
 		var size *string = this.SafeString(level, "size", "0")
 		var price *float64 = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(percentageOdds, oneDenom)))
@@ -2824,7 +2811,7 @@ func (this *Sxbet) ParseSxbetV3BookSides(snapshot any, isOutcomeOne any) map[str
 	var asks []any = []any{}
 	var oppositeLevelsLength int = ccxt.GetArrayLength(oppositeLevels)
 	for i := 0; i < oppositeLevelsLength; i++ {
-		var level any = ccxt.GetValue(oppositeLevels, i)
+		var level map[string]any = ccxt.SafeMapTyped(oppositeLevels, i)
 		var percentageOdds *string = this.SafeString(level, "percentageOdds")
 		var size *string = this.SafeString(level, "size", "0")
 		// the opposite side's resting stake mirrors into this outcome's ask - the price is the
@@ -3009,7 +2996,7 @@ func (this *Sxbet) HandleCentrifugoFrame(client any, msg any) {
 	var pendingRequests any = this.SafeDict(this.Options, "wsPendingRequests", map[string]any{})
 	var pendingEntry any = this.SafeDict(pendingRequests, requestIdString)
 	var errorReply map[string]any = ccxt.SafeMapTyped(msg, "error")
-	if !ccxt.IsEqual(errorReply, nil) {
+	if errorReply != nil {
 		// a rejected connect (bad or expired realtime token) or subscribe (unauthorized or
 		// unknown channel) - fail the awaiting future and clear the subscription hash that
 		// watch() registered at send time, so the next call re-sends the command instead
@@ -3037,14 +3024,14 @@ func (this *Sxbet) HandleCentrifugoFrame(client any, msg any) {
 		this.Options.Store("wsPendingRequests", this.Omit(pendingRequests, requestIdString))
 	}
 	var connectReply map[string]any = ccxt.SafeMapTyped(msg, "connect")
-	if !ccxt.IsEqual(connectReply, nil) {
+	if connectReply != nil {
 		// connect acknowledged - unblock connectSxbetCentrifugo so channel subscribes can be sent
 		this.Options.Store("wsConnected", true)
 		client.(ccxt.ClientInterface).Resolve(true, "centrifugoConnected")
 		return
 	}
 	var push map[string]any = ccxt.SafeMapTyped(msg, "push")
-	if ccxt.IsEqual(push, nil) {
+	if push == nil {
 		return
 	}
 	var channel *string = this.SafeString(push, "channel")
@@ -3316,7 +3303,7 @@ func (this *Sxbet) HandleTicker(client any, rows any) {
 	var watchedSyms []string = ccxt.ObjectKeys(watchedTickers)
 	var rowsLength int = ccxt.GetArrayLength(rows)
 	for i := 0; i < rowsLength; i++ {
-		var entry map[string]any = ccxt.MapTyped(ccxt.GetValue(rows, i))
+		var entry map[string]any = ccxt.SafeMapTyped(rows, i)
 		var marketHash *string = this.SafeString(entry, "marketHash")
 		if marketHash == nil {
 			continue
@@ -3396,12 +3383,12 @@ func (this *Sxbet) watchTradesBody(ch chan any, outcome any, optionalArgs ...any
 func (this *Sxbet) ParseSxbetV3PublicTrade(trade any) any {
 	var marketHash *string = this.SafeString(trade, "marketHash", "")
 	var isBettingOutcomeOne *bool = this.SafeBool(trade, "isBettingOutcomeOne", true)
-	var outcomeId any = func() any {
-		if isBettingOutcomeOne != nil && *isBettingOutcomeOne {
-			return marketHash
-		}
-		return (*marketHash + "-2")
-	}()
+	var outcomeId any = nil
+	if isBettingOutcomeOne != nil && *isBettingOutcomeOne {
+		outcomeId = marketHash
+	} else {
+		outcomeId = (*marketHash + "-2")
+	}
 	var outcomeObj map[string]any = this.SafeOutcome(outcomeId)
 	var oneDenom string = "100000000000000000000"
 	var usdcDecimals string = "1000000"

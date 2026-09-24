@@ -468,7 +468,9 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
                 'buy': 'sell',
                 'sell': 'buy',
             }, currentSide, currentSide)
-        idKey = 'maker_order_id' if isMaker else 'taker_order_id'
+        idKey = 'taker_order_id'
+        if isMaker:
+            idKey = 'maker_order_id'
         parsed['order'] = self.safe_string(trade, idKey)
         market = self.market(parsed['symbol'])
         feeCurrency = market['quote']
@@ -610,7 +612,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
                         totalAmount = '0'
                         trades = previousOrder['trades']
                         for i in range(0, len(trades)):
-                            tradeEntry = trades[i]
+                            tradeEntry = self.safe_dict(trades, i)
                             totalCost = self.safe_string(tradeEntry, 'cost', '0')
                             totalAmount = self.safe_string(tradeEntry, 'amount', '0')
                         if not Precise.string_eq(totalAmount, '0'):
@@ -841,7 +843,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
                 'buy': 'bids',
             }
             for i in range(0, len(changes)):
-                change = changes[i]
+                change = self.safe_list(changes, i)
                 key = self.safe_string(change, 0)
                 side = self.safe_string(sides, key)
                 price = self.safe_number(change, 1)

@@ -827,7 +827,7 @@ impl LbankCore {
             stored = ArrayCache::new(limit);
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
         }
-        let mut rawTrade: Value = (match message.get("trade") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
+        let mut rawTrade: Value = (match message.get("trade") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
         let mut rawTrades: Value = (match message.get("trades") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![rawTrade]) });
         {
                         let mut i: Value = Value::Int(0);
@@ -860,7 +860,12 @@ impl LbankCore {
         //    }
         //
         let mut timestamp: Value = self.safe_integer(trade.clone(), Value::Int(0), &[]);
-        let mut datetime: Value = (if (timestamp != Value::Null) { (self.iso8601(timestamp.clone())) } else { (self.safe_string_k(trade.clone(), "TS", &[])) });
+        let mut datetime: Value = Value::Null;
+        if (timestamp != Value::Null) {
+            datetime = (self.iso8601(timestamp.clone()));
+        }  else {
+            datetime = (self.safe_string_k(trade.clone(), "TS", &[]));
+        }
         if (timestamp == Value::Null) {
             timestamp = self.parse8601(datetime.clone());
         }
@@ -1339,13 +1344,15 @@ impl LbankCore {
 }
 
     pub async fn handle_ping(&mut self, mut client: Value, mut message: Value) -> Value {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //  { ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping' }
         //
         // lbank closes the socket if this app-level ping is unanswered within a minute, but does not
         // reliably answer RFC 6455 ping frames; treat the inbound ping as a pong so keepAlive doesn't tear down a healthy socket
         crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
-        let mut pingId: Value = self.safe_string_k(message, "ping", &[]);
+        let mut pingId: Value = (match message.get("ping") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             client.send(&[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1409,7 +1416,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // a flight is already in progress - wake when the leader settles
             // it: the subscribeKey is then in the bucket
             crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;
-            return crate::value::get_value_k(&get_value(&client, &Value::Str("subscriptions".into())).as_map().and_then(|__m| __m.get("authenticated")).cloned().unwrap_or(Value::Null), "key");
+            let __ws_arg_0 = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), Value::Str("authenticated".into()), &[]);
+            return self.safe_string_k(__ws_arg_0, "key", &[]);
         }
         let mut future: Value = client.reusable_future(messageHash.clone());
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
@@ -1437,8 +1445,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                             m.insert("subscribeKey".to_string(), authenticated.as_map().and_then(|__m| __m.get("key")).cloned().unwrap_or(Value::Null));
                         m
                     });
-                    let __ws_arg_0 = self.extend(request, &[params]);
-                    let mut response: Value = self.parent.spot_private_post_subscribe_refresh_key(&[__ws_arg_0]).await;
+                    let __ws_arg_1 = self.extend(request, &[params]);
+                    let mut response: Value = self.parent.spot_private_post_subscribe_refresh_key(&[__ws_arg_1]).await;
                     //
                     //    {"result": "true"}
                     //
@@ -1461,7 +1469,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // rethrows a rejected flight to the leader and attaches the handler
         // that keeps an alone leader from crashing on an unhandled rejection
         crate::exchange_stubs::ws_await_flight(&future).await;
-        return crate::value::get_value_k(&get_value(&client, &Value::Str("subscriptions".into())).as_map().and_then(|__m| __m.get("authenticated")).cloned().unwrap_or(Value::Null), "key");
+        let __ws_arg_2 = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), Value::Str("authenticated".into()), &[]);
+        return self.safe_string_k(__ws_arg_2, "key", &[]);
 
     Value::Null
 }

@@ -524,12 +524,15 @@ class whitebit extends Exchange {
         $id = $this->safe_string($market, 'name');
         $baseId = $this->safe_string($market, 'stock');
         $quoteId = $this->safe_string($market, 'money');
-        $quoteId = ($quoteId === 'PERP') ? 'USDT' : $quoteId;
+        if ($quoteId === 'PERP') {
+            $quoteId = 'USDT';
+        }
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $active = $this->safe_bool($market, 'tradesEnabled');
         $isCollateral = $this->safe_bool($market, 'isCollateral');
         $typeId = $this->safe_string($market, 'type');
+        $type = null;
         $settle = null;
         $settleId = null;
         $symbol = $base . '/' . $quote;
@@ -1598,7 +1601,7 @@ class whitebit extends Exchange {
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', null, $params);
         $method = null;
-        list($method, $params) = $this->handle_option_and_params($params, 'fetchTickers', 'method', $method);
+        list($method, $params) = $this->handle_option_string_and_params($params, 'fetchTickers', 'method', $method);
         if ($method === null) {
             // if the user did not specify a method, choose it based on market type and symbols
             if ($onlyContractSymbols || ($marketType === 'swap')) {
@@ -3104,7 +3107,7 @@ class whitebit extends Exchange {
         return $this->parse_deposit_address($data, $currency);
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "address": "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN",
@@ -3842,7 +3845,7 @@ class whitebit extends Exchange {
         return $this->parse_funding_histories($data, $market, $since, $limit);
     }
 
-    public function parse_funding_history(mixed $contract, ?array $market = null) {
+    public function parse_funding_history(?array $contract, ?array $market = null) {
         //
         //     {
         //         "market": "BTC_PERP",
@@ -3870,7 +3873,7 @@ class whitebit extends Exchange {
     public function parse_funding_histories(mixed $contracts, ?array $market = null, ?int $since = null, ?int $limit = null): array {
         $result = array();
         for ($i = 0; $i < count($contracts); $i++) {
-            $contract = $contracts[$i];
+            $contract = $this->safe_dict($contracts, $i);
             $result[] = $this->parse_funding_history($contract, $market);
         }
         $sorted = $this->sort_by($result, 'timestamp');
@@ -4417,7 +4420,7 @@ class whitebit extends Exchange {
         }
         $maxLimit = 100;
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params, $maxLimit));
         }

@@ -576,7 +576,11 @@ public partial class lighter : ccxt.lighter
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "size");
         bool? isMakerAsk = this.safeBool(trade, "is_maker_ask");
-        string side = ((isMakerAsk == true)) ? "buy" : "sell";
+        string side = "sell";
+        if ((isMakerAsk == true))
+        {
+            side = "buy";
+        }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", tradeId },
@@ -656,7 +660,7 @@ public partial class lighter : ccxt.lighter
         {
             object iReversed = subtract((dataLength - 1), i);
             Dictionary<string, object> trade = this.parseWsTrade(getValue(data, iReversed), market);
-            callDynamically(stored, "append", new object[] {trade});
+            stored.append(trade);
         }
         string? messageHash = this.getMessageHash("trade", symbol);
         client.resolve(stored, messageHash);
@@ -779,7 +783,14 @@ public partial class lighter : ccxt.lighter
         Dictionary<string, object> fee = null;
         if ((takerOrMaker != null))
         {
-            string? feeRateRaw = (takerOrMaker == "maker") ? this.safeString(trade, "maker_fee") : this.safeString(trade, "taker_fee");
+            string? feeRateRaw = null;
+            if (takerOrMaker == "maker")
+            {
+                feeRateRaw = this.safeString(trade, "maker_fee");
+            } else
+            {
+                feeRateRaw = this.safeString(trade, "taker_fee");
+            }
             string? feeRate = ((feeRateRaw != null)) ? Precise.stringDiv(feeRateRaw, "1000000") : "0";
             string? feeAmount = Precise.stringMul(costString, feeRate);
             fee = new Dictionary<string, object>() {
@@ -870,7 +881,7 @@ public partial class lighter : ccxt.lighter
                 object tradeRaw = getValue(trades, jReversed);
                 ((IDictionary<string,object>)tradeRaw)["accountIndex"] = accountIndex;
                 Dictionary<string, object> trade = this.parseWsOrderTrade(tradeRaw, market);
-                callDynamically(stored, "append", new object[] {trade});
+                stored.append(trade);
                 string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
                 if ((symbol != null))
                 {
@@ -986,7 +997,11 @@ public partial class lighter : ccxt.lighter
         //
         Int64? timestamp = this.safeInteger(liquidation, "timestamp");
         bool? isMakerAsk = this.safeBool(liquidation, "is_maker_ask");
-        string side = ((isMakerAsk == true)) ? "buy" : "sell";
+        string side = "sell";
+        if ((isMakerAsk == true))
+        {
+            side = "buy";
+        }
         string? contracts = this.safeString(liquidation, "size");
         string? contractSize = this.safeString(market, "contractSize");
         string? price = this.safeString(liquidation, "price");
@@ -1206,7 +1221,7 @@ public partial class lighter : ccxt.lighter
             for (int i = 0; i < assetIds.Count; i++)
             {
                 string? assetId = ((string)assetIds[i]);
-                object asset = getValue(assets, assetId);
+                IDictionary<string, object> asset = this.safeDict(assets, assetId);
                 string? codeId = this.safeString(asset, "symbol");
                 string? code = this.safeCurrencyCode(codeId);
                 Dictionary<string, object> account = this.account();
@@ -1496,7 +1511,7 @@ public partial class lighter : ccxt.lighter
             for (int j = 0; j < orders.Count; j++)
             {
                 Dictionary<string, object> order = this.parseOrder(orders[j], market);
-                callDynamically(stored, "append", new object[] {order});
+                stored.append(order);
                 string? symbol = ((string)(order != null && ((IDictionary<string, object>)order).ContainsKey("symbol") ? ((IDictionary<string, object>)order)["symbol"] : null));
                 if ((symbol != null))
                 {

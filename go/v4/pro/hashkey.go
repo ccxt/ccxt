@@ -187,7 +187,7 @@ func (this *Hashkey) HandleOHLCV(client any, message any) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, ccxt.NewArrayCacheByTimestamp(limit))
 	}
-	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var data []any = ccxt.SafeListTyped(message, "data")
 	var stored any = ccxt.GetValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 	for i := 0; i < len(data); i++ {
 		var candle map[string]any = ccxt.MapTyped(this.SafeDict(data, i, map[string]any{}))
@@ -276,7 +276,7 @@ func (this *Hashkey) HandleTicker(client any, message any) {
 	//         "shared": false
 	//     }
 	//
-	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var data []any = ccxt.SafeListTyped(message, "data")
 	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(this.SafeDict(data, 0, map[string]any{})))
 	var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 	var messageHash any = ccxt.Add("ticker:", symbol)
@@ -446,7 +446,7 @@ func (this *Hashkey) HandleOrderBook(client any, message any) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}))
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
-	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var data []any = ccxt.SafeListTyped(message, "data")
 	var dataEntry map[string]any = ccxt.SafeMapTyped(data, 0)
 	var timestamp *int64 = this.SafeInteger(dataEntry, "t")
 	var snapshot map[string]any = this.ParseOrderBook(dataEntry, symbol, timestamp, "b", "a")
@@ -990,15 +990,13 @@ func (this *Hashkey) HandleBalance(client any, message any) {
 	//     }
 	//
 	var event *string = this.SafeString(message, "e")
-	var data []any = ccxt.SafeListTypedDefault(message, "B", []any{})
+	var data []any = ccxt.SafeListTyped(message, "B")
 	var balanceUpdate map[string]any = ccxt.SafeMapTyped(data, 0)
 	var isSpot bool = (event != nil && *event == "outboundAccountInfo")
-	var typeVar string = func() string {
-		if isSpot {
-			return "spot"
-		}
-		return "swap"
-	}()
+	var typeVar string = "swap"
+	if isSpot {
+		typeVar = "spot"
+	}
 	if !(ccxt.InOp(this.Balance, typeVar)) {
 		ccxt.AddElementToObject(this.Balance, typeVar, map[string]any{})
 	}
@@ -1008,7 +1006,7 @@ func (this *Hashkey) HandleBalance(client any, message any) {
 	var account map[string]any = this.Account()
 	account["free"] = this.SafeString(balanceUpdate, "f")
 	account["used"] = this.SafeString(balanceUpdate, "l")
-	if (!ccxt.IsEqual(typeVar, nil)) && (code != nil) {
+	if code != nil {
 		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
 	}
 	ccxt.AddElementToObject(this.Balance, typeVar, this.SafeBalance(ccxt.GetValue(this.Balance, typeVar)))

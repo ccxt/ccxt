@@ -268,7 +268,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 parsed = self.parse_binary_market_to_outcomes(raw)
                 eventTicker = self.safe_string(raw, 'event_ticker')
                 eventTitle = self.safe_string(raw, 'title', eventTicker)
-                eventKey = self.shorten_slug(eventTitle) if (eventTitle is not None and eventTitle != '') else None
+                eventKey = None
+                if eventTitle is not None and eventTitle != '':
+                    eventKey = self.shorten_slug(eventTitle)
                 for j in range(0, len(parsed)):
                     m = parsed[j]
                     flatMarkets.append(m)
@@ -323,7 +325,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
             symbolLength = self.parse_to_int(len(outcomeSymbol))
             suffix = outcomeSymbol[symbolLength - 3:]
             isNo = (suffix == '-NO')
-            baseTicker = outcomeSymbol[0:symbolLength - 3] if isNo else outcomeSymbol
+            baseTicker = outcomeSymbol
+            if isNo:
+                baseTicker = outcomeSymbol[0:symbolLength - 3]
             response = None
             try:
                 response = await self.kalshiPublicGetMarketsTicker({'ticker': baseTicker})
@@ -388,7 +392,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
             # parseToInt-wrapped .length — see the fetchOutcome comment (php count()/python slice traps)
             symbolLength = self.parse_to_int(len(outcomeSymbol))
             suffix = outcomeSymbol[symbolLength - 3:]
-            baseTicker = outcomeSymbol[0:symbolLength - 3] if (suffix == '-NO') else outcomeSymbol
+            baseTicker = outcomeSymbol
+            if suffix == '-NO':
+                baseTicker = outcomeSymbol[0:symbolLength - 3]
             if not (baseTicker in seen):
                 seen[baseTicker] = True
                 tickers.append(baseTicker)
@@ -533,7 +539,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
             seriesParts = self.array_slice(eventParts, 0, eventPartsLength - 1)
             seriesTicker = '-'.join(seriesParts)
         # market symbol (no outcome suffix)
-        subtitleOrTicker = subtitle if (subtitle is not None) else ticker
+        subtitleOrTicker = ticker
+        if subtitle is not None:
+            subtitleOrTicker = subtitle
         marketSymbol = self.slug_to_market_symbol(eventTicker, subtitleOrTicker)
         # kalshi exposes the per-market price tick via price_ranges[].step (a dollar value,
         # e.g. "0.0010" for deci-cent markets, "0.0100" for cent markets); older responses
@@ -865,8 +873,16 @@ class kalshi(PredictionExchange, ImplicitAPI):
             ask = yesAsk
             close = last
         # the book is quoted in the yes token, the no side mirrors with sizes swapped
-        bidSizeString = self.safe_string(raw, 'yes_ask_size_fp') if (isNo) else self.safe_string(raw, 'yes_bid_size_fp')
-        askSizeString = self.safe_string(raw, 'yes_bid_size_fp') if (isNo) else self.safe_string(raw, 'yes_ask_size_fp')
+        bidSizeString = None
+        if isNo:
+            bidSizeString = self.safe_string(raw, 'yes_ask_size_fp')
+        else:
+            bidSizeString = self.safe_string(raw, 'yes_bid_size_fp')
+        askSizeString = None
+        if isNo:
+            askSizeString = self.safe_string(raw, 'yes_bid_size_fp')
+        else:
+            askSizeString = self.safe_string(raw, 'yes_ask_size_fp')
         # kalshi occasionally reports a negative size for settling/closed markets; a size
         # can't be negative, so drop it rather than emit an invalid volume
         bidVolume = None
@@ -1342,7 +1358,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
         ts = self.parse8601(self.safe_string(fill, 'created_time'))
         # action is the order side (buy/sell) of the held leg
         action = self.safe_string_lower(fill, 'action')
-        side = 'sell' if (action == 'sell') else 'buy'
+        side = 'buy'
+        if action == 'sell':
+            side = 'sell'
         # price is the price of the leg held; kalshi reports dollars in V2, cents otherwise
         price = None
         if sideLeg == 'no':
@@ -1362,7 +1380,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
         if (price is not None) and (amount is not None):
             cost = price * amount
         isTaker = self.safe_bool(fill, 'is_taker', True)
-        takerOrMaker = 'taker' if (isTaker is True) else 'maker'
+        takerOrMaker = 'maker'
+        if isTaker is True:
+            takerOrMaker = 'taker'
         feeCost = self.safe_number(fill, 'fee_cost')
         fee = None
         if feeCost is not None:
@@ -1505,10 +1525,16 @@ class kalshi(PredictionExchange, ImplicitAPI):
         yesCount = self.safe_number_2(settlement, 'yes_count_fp', 'yes_count', 0)
         noCount = self.safe_number_2(settlement, 'no_count_fp', 'no_count', 0)
         heldYes = (yesCount >= noCount)
-        heldLabel = 'YES' if (heldYes) else 'NO'
+        heldLabel = 'NO'
+        if heldYes:
+            heldLabel = 'YES'
         tickerMissing = (ticker is None)
         useHeldYesTicker = (heldYes or tickerMissing)
-        heldTicker = ticker if (useHeldYesTicker) else (ticker + '-NO')
+        heldTicker = None
+        if useHeldYesTicker:
+            heldTicker = ticker
+        else:
+            heldTicker = (ticker + '-NO')
         mkt = self.safe_outcome(heldTicker, market)
         # which leg won; market_result is yes or no
         marketResult = self.safe_string_upper(settlement, 'market_result')
@@ -1519,8 +1545,12 @@ class kalshi(PredictionExchange, ImplicitAPI):
             revenueCents = self.safe_number(settlement, 'revenue')
             if revenueCents is not None:
                 payout = revenueCents / 100
-        costKey = 'yes_total_cost' if (heldYes) else 'no_total_cost'
-        costDollarsKey = 'yes_total_cost_dollars' if (heldYes) else 'no_total_cost_dollars'
+        costKey = 'no_total_cost'
+        if heldYes:
+            costKey = 'yes_total_cost'
+        costDollarsKey = 'no_total_cost_dollars'
+        if heldYes:
+            costDollarsKey = 'yes_total_cost_dollars'
         cost = self.safe_number(settlement, costDollarsKey)
         if cost is None:
             costCents = self.safe_number(settlement, costKey)
@@ -1716,8 +1746,12 @@ class kalshi(PredictionExchange, ImplicitAPI):
         # price in the outcome's own leg: V2 returns *_price_dollars (already dollars),
         # legacy returned yes_price/no_price in cents
         labelIsNo = (self.safe_string_upper(mkt, 'label') == 'NO')
-        dollarsKey = 'no_price_dollars' if (labelIsNo) else 'yes_price_dollars'
-        centsKey = 'no_price' if (labelIsNo) else 'yes_price'
+        dollarsKey = 'yes_price_dollars'
+        if labelIsNo:
+            dollarsKey = 'no_price_dollars'
+        centsKey = 'yes_price'
+        if labelIsNo:
+            centsKey = 'no_price'
         price = self.safe_number(order, dollarsKey)
         if price is None:
             priceCents = self.safe_number(order, centsKey)
@@ -1798,7 +1832,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
         # kalshi V2 (/portfolio/events/orders) quotes the YES leg only: side 'bid' = buy YES,
         # 'ask' = sell YES, price in dollars. a NO order maps to the complementary YES order
         # buy NO @ q == sell YES @ 1-q - flip the book side and the price
-        bookSide = 'bid' if (isBuy) else 'ask'
+        bookSide = 'ask'
+        if isBuy:
+            bookSide = 'bid'
         yesPrice = price
         if isNo:
             bookSide = 'ask' if (isBuy) else 'bid'
@@ -1809,7 +1845,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
         # `time_in_force` param (handled below) still overrides
         unifiedTif = self.safe_string_upper(params, 'timeInForce')
         params = self.omit(params, 'timeInForce')
-        defaultTif = 'immediate_or_cancel' if (isMarket) else 'good_till_canceled'
+        defaultTif = 'good_till_canceled'
+        if isMarket:
+            defaultTif = 'immediate_or_cancel'
         # kalshi has BOTH immediate_or_cancel (partial ok) and fill_or_kill (all-or-nothing);
         # map the unified tokens to the matching primitive rather than collapsing FOK into IOC
         if unifiedTif == 'IOC':
@@ -1819,9 +1857,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
         elif unifiedTif == 'GTC':
             defaultTif = 'good_till_canceled'
         timeInForce = None
-        timeInForce, params = self.handle_option_and_params(params, 'createOrder', 'time_in_force', defaultTif)
+        timeInForce, params = self.handle_option_string_and_params(params, 'createOrder', 'time_in_force', defaultTif)
         stp = None
-        stp, params = self.handle_option_and_params(params, 'createOrder', 'self_trade_prevention_type', 'taker_at_cross')
+        stp, params = self.handle_option_string_and_params(params, 'createOrder', 'self_trade_prevention_type', 'taker_at_cross')
         request = {
             'ticker': ticker,
             'side': bookSide,
@@ -2307,7 +2345,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
         ticker = self.safe_string(rawEvent, 'event_ticker')
         title = self.safe_string(rawEvent, 'title')
         hasTitle = (title is not None) and (title != '')
-        eventSlug = self.shorten_slug(title) if hasTitle else None
+        eventSlug = None
+        if hasTitle:
+            eventSlug = self.shorten_slug(title)
         created = self.parse8601(self.safe_string(rawEvent, 'created_date_iso'))
         if created is None:
             created = earliestCreated

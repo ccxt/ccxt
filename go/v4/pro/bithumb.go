@@ -104,7 +104,7 @@ func (this *Bithumb) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var generation any = nil
-	var generationparamsVariable []any = this.HandleOptionAndParams(params, "watchTicker", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionIntegerAndParams(params, "watchTicker", "generation", 2)
 	generation = ccxt.GetValue(generationparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(generationparamsVariable, 1))
 	var isGenerationTwo bool = (ccxt.IsEqual(generation, 2))
@@ -169,7 +169,7 @@ func (this *Bithumb) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var generation any = nil
-	var generationparamsVariable []any = this.HandleOptionAndParams(params, "watchTickers", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionIntegerAndParams(params, "watchTickers", "generation", 2)
 	generation = ccxt.GetValue(generationparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(generationparamsVariable, 1))
 	var isGenerationTwo bool = (ccxt.IsEqual(generation, 2))
@@ -492,7 +492,7 @@ func (this *Bithumb) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var generation any = nil
-	var generationparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionIntegerAndParams(params, "watchOrderBook", "generation", 2)
 	generation = ccxt.GetValue(generationparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(generationparamsVariable, 1))
 	var isGenerationTwo bool = (ccxt.IsEqual(generation, 2))
@@ -623,12 +623,7 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 	var asks any = ccxt.GetValue(orderbook, "asks")
 	var units []any = ccxt.SafeListTyped(message, "orderbook_units")
 	for i := 0; i < len(units); i++ {
-		var entry map[string]any = ccxt.MapTyped(func() any {
-			if i >= 0 && i < len(units) {
-				return ccxt.DerefScalar(units[i])
-			}
-			return nil
-		}())
+		var entry map[string]any = ccxt.SafeMapTyped(units, i)
 		var bidPrice *float64 = this.SafeNumber(entry, "bid_price")
 		var bidSize *float64 = this.SafeNumber(entry, "bid_size")
 		var askPrice *float64 = this.SafeNumber(entry, "ask_price")
@@ -670,12 +665,10 @@ func (this *Bithumb) HandleDelta(orderbook any, delta any) {
 	//    }
 	//
 	var sideId *string = this.SafeString(delta, "orderType")
-	var side string = func() string {
-		if sideId != nil && *sideId == "bid" {
-			return "bids"
-		}
-		return "asks"
-	}()
+	var side string = "asks"
+	if sideId != nil && *sideId == "bid" {
+		side = "bids"
+	}
 	var bidAsk any = this.ParseOrderBookBidAsk(delta, "price", "quantity")
 	var orderbookSide any = ccxt.GetValue(orderbook, side)
 	orderbookSide.(ccxt.IOrderBookSide).StoreArray(bidAsk)
@@ -718,7 +711,7 @@ func (this *Bithumb) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var generation any = nil
-	var generationparamsVariable []any = this.HandleOptionAndParams(params, "watchTrades", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionIntegerAndParams(params, "watchTrades", "generation", 2)
 	generation = ccxt.GetValue(generationparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(generationparamsVariable, 1))
 	var isGenerationTwo bool = (ccxt.IsEqual(generation, 2))
@@ -979,7 +972,7 @@ func (this *Bithumb) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var generation any = nil
-	var generationparamsVariable []any = this.HandleOptionAndParams(params, "watchBalance", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionIntegerAndParams(params, "watchBalance", "generation", 2)
 	generation = ccxt.GetValue(generationparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(generationparamsVariable, 1))
 	if !ccxt.IsEqual(generation, 2) {
@@ -1021,12 +1014,7 @@ func (this *Bithumb) HandleBalance(client any, message map[string]any) {
 		this.Balance = map[string]any{}
 	}
 	for i := 0; i < len(assets); i++ {
-		var asset map[string]any = ccxt.MapTyped(func() any {
-			if i >= 0 && i < len(assets) {
-				return ccxt.DerefScalar(assets[i])
-			}
-			return nil
-		}())
+		var asset map[string]any = ccxt.SafeMapTyped(assets, i)
 		var currencyId *string = this.SafeString(asset, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -1140,7 +1128,7 @@ func (this *Bithumb) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var generation any = nil
-	var generationparamsVariable []any = this.HandleOptionAndParams(params, "watchOrders", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionIntegerAndParams(params, "watchOrders", "generation", 2)
 	generation = ccxt.GetValue(generationparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(generationparamsVariable, 1))
 	if !ccxt.IsEqual(generation, 2) {

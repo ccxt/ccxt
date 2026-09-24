@@ -434,7 +434,7 @@ export default class htx extends htxRest {
                 this.ohlcvs[symbol][timeframe] = stored;
             }
         }
-        const tick = this.safeValue (message, 'tick');
+        const tick = this.safeDict (message, 'tick');
         const parsed = this.parseOHLCV (tick, market);
         stored.append (parsed);
         client.resolve (stored, ch);
@@ -1615,7 +1615,7 @@ export default class htx extends htxRest {
             messageHash = '::' + symbols.join (',');
         }
         let type: Str = undefined;
-        let subType: SubType = undefined;
+        let subType: Str = undefined;
         if (market !== undefined) {
             type = this.safeString (market, 'type');
             subType = (market['linear'] === true) ? 'linear' : 'inverse';
@@ -1624,7 +1624,7 @@ export default class htx extends htxRest {
             if (type === 'spot') {
                 type = 'future';
             }
-            [ subType, params ] = this.handleOptionAndParams (params, 'watchPositions', 'subType', subType);
+            [ subType, params ] = this.handleOptionStringAndParams (params, 'watchPositions', 'subType', subType);
         }
         symbols = this.marketSymbols (symbols);
         let marginMode: Str = undefined;
@@ -2699,10 +2699,7 @@ export default class htx extends htxRest {
             const data = this.safeValue (message, 'data');
             if (data !== undefined) {
                 const contractCode = this.safeString (message, 'contract_code');
-                let market: Market = undefined;
-                if (contractCode !== undefined) {
-                    market = this.safeMarket (contractCode);
-                }
+                const market = (contractCode !== undefined) ? this.safeMarket (contractCode) : undefined;
                 if (Array.isArray (data)) {
                     for (let i = 0; i < data.length; i++) {
                         const parsed = this.parseWsTrade (data[i], market);

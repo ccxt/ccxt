@@ -1191,7 +1191,10 @@ impl HashkeyCore {
         let mut data: Value = (match __pro_message.get("B").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
         let mut balanceUpdate: Value = self.safe_dict(data, Value::Int(0), &[]);
         let mut isSpot: bool = event.as_deref() == Some("outboundAccountInfo");
-        let mut type_var: Value = (if isSpot { Value::Str("spot".into()) } else { Value::Str("swap".into()) });
+        let mut type_var: Value = Value::Str("swap".into());
+        if isSpot {
+            type_var = Value::Str("spot".into());
+        }
         if !(in_op(&self.balance, &type_var)) {
             if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1204,7 +1207,7 @@ impl HashkeyCore {
         let mut account: Value = self.account();
         if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(balanceUpdate.clone(), "f", &[])); }
         if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(balanceUpdate, "l", &[])); }
-        if (type_var != Value::Null) && (code != Value::Null) {
+        if (code != Value::Null) {
             add_element_to_object(get_value_mut(&mut self.balance, &type_var), &code, account);
         }
         { let __be_tmp = self.safe_balance(get_value(&self.balance, &type_var)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }

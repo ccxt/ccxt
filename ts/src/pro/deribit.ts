@@ -400,7 +400,7 @@ export default class deribit extends deribitRest {
      */
     override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         let interval: Str = undefined;
-        [ interval, params ] = this.handleOptionAndParams (params, 'watchTradesForSymbols', 'interval', '100ms');
+        [ interval, params ] = this.handleOptionStringAndParams (params, 'watchTradesForSymbols', 'interval', '100ms');
         if (interval === 'raw') {
             await this.authenticate ();
         }
@@ -573,7 +573,7 @@ export default class deribit extends deribitRest {
      */
     override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         let interval: Str = undefined;
-        [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'interval', '100ms');
+        [ interval, params ] = this.handleOptionStringAndParams (params, 'watchOrderBookForSymbols', 'interval', '100ms');
         if (interval === 'raw') {
             await this.authenticate ();
         }
@@ -582,7 +582,7 @@ export default class deribit extends deribitRest {
         [ useDepthEndpoint, params ] = this.handleOptionBoolAndParams (params, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
         if (useDepthEndpoint) {
             let depth: Str = undefined;
-            [ depth, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'depth', '20');
+            [ depth, params ] = this.handleOptionStringAndParams (params, 'watchOrderBookForSymbols', 'depth', '20');
             let group: Str = undefined;
             [ group, params ] = this.handleOptionStringAndParams (params, 'watchOrderBookForSymbols', 'group', 'none');
             descriptor = group + '.' + depth + '.' + interval;
@@ -741,7 +741,7 @@ export default class deribit extends deribitRest {
             'id': this.requestId (),
         };
         const request = this.deepExtend (message, params);
-        const orders = await this.watch (url, channel, request, channel, request);
+        const orders: ArrayCache = await this.watch (url, channel, request, channel, request);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }

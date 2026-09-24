@@ -691,8 +691,14 @@ class poloniex extends Exchange {
             'symbol' => $market['id'],
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
-        $keyStart = ($market['spot'] === true) ? 'startTime' : 'sTime';
-        $keyEnd = ($market['spot'] === true) ? 'endTime' : 'eTime';
+        $keyStart = 'sTime';
+        if ($market['spot'] === true) {
+            $keyStart = 'startTime';
+        }
+        $keyEnd = 'eTime';
+        if ($market['spot'] === true) {
+            $keyEnd = 'endTime';
+        }
         if ($since !== null) {
             $request[$keyStart] = $since;
         }
@@ -970,7 +976,10 @@ class poloniex extends Exchange {
         if ($alias !== null) {
             $type = 'future';
         }
-        $marketType = ($type === 'future') ? 'future' : 'swap';
+        $marketType = 'swap';
+        if ($type === 'future') {
+            $marketType = 'future';
+        }
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
@@ -1256,7 +1265,7 @@ class poloniex extends Exchange {
         $chains = $this->safe_list($entry, 'networkList', array());
         $chainsLength = count($chains);
         for ($j = 0; $j < $chainsLength; $j++) {
-            $chain = $chains[$j];
+            $chain = $this->safe_dict($chains, $j);
             $chainId = $this->safe_string($chain, 'blockchain');
             $networkCode = $this->network_id_to_code($chainId, $code);
             if ($networkCode !== null) {
@@ -1554,7 +1563,7 @@ class poloniex extends Exchange {
          */
         $this->load_markets();
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params);
         }
@@ -1569,8 +1578,14 @@ class poloniex extends Exchange {
             // 'from': 12345678, // A 'trade Id'. The query begins at ‘from'.
             // 'direction': 'PRE', // PRE, NEXT The direction before or after ‘from'.
         );
-        $startKey = $isContract ? 'sTime' : 'startTime';
-        $endKey = $isContract ? 'eTime' : 'endTime';
+        $startKey = 'startTime';
+        if ($isContract) {
+            $startKey = 'sTime';
+        }
+        $endKey = 'endTime';
+        if ($isContract) {
+            $endKey = 'eTime';
+        }
         if ($since !== null) {
             $request[$startKey] = $since;
         }
@@ -2142,22 +2157,37 @@ class poloniex extends Exchange {
                 } else {
                     $quoteAmount = $this->cost_to_precision($symbol, $amount);
                 }
-                $amountKey = ($market['spot'] === true) ? 'amount' : 'sz';
+                $amountKey = 'sz';
+                if ($market['spot'] === true) {
+                    $amountKey = 'amount';
+                }
                 $request[$amountKey] = $quoteAmount;
             } else {
-                $amountKey = ($market['spot'] === true) ? 'quantity' : 'sz';
+                $amountKey = 'sz';
+                if ($market['spot'] === true) {
+                    $amountKey = 'quantity';
+                }
                 $request[$amountKey] = $this->amount_to_precision($symbol, $amount);
             }
         } else {
-            $amountKey = ($market['spot'] === true) ? 'quantity' : 'sz';
+            $amountKey = 'sz';
+            if ($market['spot'] === true) {
+                $amountKey = 'quantity';
+            }
             $request[$amountKey] = $this->amount_to_precision($symbol, $amount);
-            $priceKey = ($market['spot'] === true) ? 'price' : 'px';
+            $priceKey = 'px';
+            if ($market['spot'] === true) {
+                $priceKey = 'price';
+            }
             $request[$priceKey] = $this->price_to_precision($symbol, $price);
         }
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clOrdId');
         if ($clientOrderId !== null) {
             // the futures v3 api silently ignores the spot key and generates its own id
-            $clientOrderIdKey = ($market['spot'] === true) ? 'clientOrderId' : 'clOrdId';
+            $clientOrderIdKey = 'clOrdId';
+            if ($market['spot'] === true) {
+                $clientOrderIdKey = 'clientOrderId';
+            }
             $request[$clientOrderIdKey] = $clientOrderId;
             $params = $this->omit($params, array( 'clientOrderId', 'clOrdId' ));
         }
@@ -2472,7 +2502,7 @@ class poloniex extends Exchange {
             $result['datetime'] = $this->iso8601($ts);
             $details = $this->safe_list($response, 'details', array());
             for ($i = 0; $i < count($details); $i++) {
-                $balance = $details[$i];
+                $balance = $this->safe_dict($details, $i);
                 $currencyId = $this->safe_string($balance, 'ccy');
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
@@ -3238,7 +3268,10 @@ class poloniex extends Exchange {
         $status = $this->safe_string($transaction, 'status', 'pending');
         $status = $this->parse_transaction_status($status);
         $txid = $this->safe_string($transaction, 'txid');
-        $type = (is_array($transaction) && array_key_exists('withdrawalRequestsId' ?? '', $transaction)) ? 'withdrawal' : 'deposit';
+        $type = 'deposit';
+        if (is_array($transaction) && array_key_exists('withdrawalRequestsId' ?? '', $transaction)) {
+            $type = 'withdrawal';
+        }
         $id = $this->safe_string_2($transaction, 'withdrawalRequestsId', 'depositNumber');
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'paymentID');
@@ -3382,7 +3415,7 @@ class poloniex extends Exchange {
         $marginMode = null;
         $data = $this->safe_list($leverage, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
-            $entry = $data[$i];
+            $entry = $this->safe_dict($data, $i);
             $marketId = $this->safe_string($entry, 'symbol');
             // mgnMode arrives upper case; parseOrder and parsePosition read the
             // same field with safeStringLower
@@ -3447,7 +3480,10 @@ class poloniex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} $response from the exchange
          */
-        $mode = $hedged ? 'HEDGE' : 'ONE_WAY';
+        $mode = 'ONE_WAY';
+        if ($hedged) {
+            $mode = 'HEDGE';
+        }
         $request = array(
             'posMode' => $mode,
         );

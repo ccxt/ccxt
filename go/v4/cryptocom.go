@@ -1353,7 +1353,7 @@ func (this *Cryptocom) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOrders", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -1459,7 +1459,7 @@ func (this *Cryptocom) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchTrades", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -1665,7 +1665,7 @@ func (this *Cryptocom) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var data []any = SafeListTypedDefault(result, "data", []any{})
+	var data []any = SafeListTyped(result, "data")
 	var orderBook map[string]any = SafeMapTyped(data, 0)
 	var timestamp *int64 = this.SafeInteger(orderBook, "t")
 
@@ -1685,12 +1685,7 @@ func (this *Cryptocom) ParseBalance(response any) any {
 		"info": response,
 	}
 	for i := 0; i < len(positionBalances); i++ {
-		var balance map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(positionBalances) {
-				return DerefScalar(positionBalances[i])
-			}
-			return nil
-		}())
+		var balance map[string]any = SafeMapTyped(positionBalances, i)
 		var currencyId *string = this.SafeString(balance, "instrument_name")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -2044,7 +2039,7 @@ func (this *Cryptocom) createOrdersBody(ch chan any, orders any, optionalArgs ..
 	}
 	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
+		var rawOrder map[string]any = SafeMapTyped(orders, i)
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
@@ -2482,7 +2477,7 @@ func (this *Cryptocom) cancelOrdersForSymbolsBody(ch chan any, orders any, optio
 	}
 	var orderRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var order map[string]any = MapTyped(GetValue(orders, i))
+		var order map[string]any = SafeMapTyped(orders, i)
 		var id *string = this.SafeString(order, "id")
 		var symbol *string = this.SafeString(order, "symbol")
 		var market map[string]any = MapTyped(this.Market(symbol))
@@ -2623,7 +2618,7 @@ func (this *Cryptocom) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -2825,7 +2820,7 @@ func (this *Cryptocom) fetchDepositAddressesByNetworkBody(ch chan any, code any,
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "result")
-	var addresses []any = SafeListTypedDefault(data, "deposit_address_list", []any{})
+	var addresses []any = SafeListTyped(data, "deposit_address_list")
 	var addressesLength int = len(addresses)
 	if addressesLength == 0 {
 		panic(ExchangeError(this.Id + " fetchDepositAddressesByNetwork() generating address..."))
@@ -3282,7 +3277,7 @@ func (this *Cryptocom) ParseOrder(order any, optionalArgs ...any) any {
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var execInst []any = SafeListTyped(order, "exec_inst")
 	var postOnly any = nil
-	if !IsEqual(execInst, nil) {
+	if execInst != nil {
 		postOnly = false
 		for i := 0; i < len(execInst); i++ {
 			var inst any = func() any {
@@ -3500,14 +3495,9 @@ func (this *Cryptocom) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any
 		},
 		"networks": map[string]any{},
 	}
-	if !IsEqual(networkList, nil) {
+	if networkList != nil {
 		for i := 0; i < networkListLength; i++ {
-			var networkInfo map[string]any = MapTyped(func() any {
-				if i >= 0 && i < len(networkList) {
-					return DerefScalar(networkList[i])
-				}
-				return nil
-			}())
+			var networkInfo map[string]any = SafeMapTyped(networkList, i)
 			var networkId *string = this.SafeString(networkInfo, "network_id")
 			var currencyCode *string = this.SafeString(currency, "code")
 			var networkCode *string = this.NetworkIdToCode(networkId, currencyCode)
@@ -4006,7 +3996,7 @@ func (this *Cryptocom) fetchFundingRateBody(ch chan any, symbol any, optionalArg
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var data []any = SafeListTypedDefault(result, "data", []any{})
+	var data []any = SafeListTyped(result, "data")
 	var entry map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 
 	ch <- this.ParseFundingRate(entry, market)
@@ -4085,7 +4075,7 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -4210,7 +4200,7 @@ func (this *Cryptocom) fetchPositionBody(ch chan any, symbol any, optionalArgs .
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var data []any = SafeListTypedDefault(result, "data", []any{})
+	var data []any = SafeListTyped(result, "data")
 
 	ch <- this.ParsePosition(this.SafeDict(data, 0), market)
 	return nil
@@ -4565,18 +4555,14 @@ func (this *Cryptocom) ParseTradingFees(response map[string]any) any {
 		var symbol *string = SafeStringPtr(GetValue(this.Symbols, i))
 		var market map[string]any = MapTyped(this.Market(symbol))
 		var isSwap *bool = SafeBoolPtr(market["swap"])
-		var takerFeeKey string = func() string {
-			if isSwap != nil && *isSwap == true {
-				return "effective_deriv_taker_rate_bps"
-			}
-			return "effective_spot_taker_rate_bps"
-		}()
-		var makerFeeKey string = func() string {
-			if isSwap != nil && *isSwap == true {
-				return "effective_deriv_maker_rate_bps"
-			}
-			return "effective_spot_maker_rate_bps"
-		}()
+		var takerFeeKey string = "effective_spot_taker_rate_bps"
+		if isSwap != nil && *isSwap == true {
+			takerFeeKey = "effective_deriv_taker_rate_bps"
+		}
+		var makerFeeKey string = "effective_spot_maker_rate_bps"
+		if isSwap != nil && *isSwap == true {
+			makerFeeKey = "effective_deriv_maker_rate_bps"
+		}
 		var tradingFee map[string]any = map[string]any{
 			"info":       response,
 			"symbol":     symbol,

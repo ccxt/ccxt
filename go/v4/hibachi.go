@@ -1161,7 +1161,7 @@ func (this *Hibachi) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 	var nonce any = this.IncrementingNonce()
 	var requestOrders []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
+		var rawOrder map[string]any = SafeMapTyped(orders, i)
 		var symbol *string = this.SafeString(rawOrder, "symbol")
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
@@ -1317,7 +1317,7 @@ func (this *Hibachi) editOrdersBody(ch chan any, orders any, optionalArgs ...any
 	var nonce any = this.IncrementingNonce()
 	var requestOrders []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
+		var rawOrder map[string]any = SafeMapTyped(orders, i)
 		var id *string = this.SafeString(rawOrder, "id")
 		var symbol *string = this.SafeString(rawOrder, "symbol")
 		var typeVar *string = this.SafeString(rawOrder, "type")
@@ -1938,7 +1938,7 @@ func (this *Hibachi) fetchOrdersByStatusBody(ch chan any, status any, optionalAr
 		request["startTime"] = since
 	}
 	var until any = nil
-	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrdersByStatus", "until")
+	var untilparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOrdersByStatus", "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = MapTyped(GetValue(untilparamsVariable, 1))
 	if !IsEqual(until, nil) {
@@ -2096,7 +2096,7 @@ func (this *Hibachi) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		request["fromMs"] = since
 	}
 	var until any = nil
-	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "until")
+	var untilparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOHLCV", "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = MapTyped(GetValue(untilparamsVariable, 1))
 	if !IsEqual(until, nil) {
@@ -2431,7 +2431,7 @@ func (this *Hibachi) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var rawPromises []any = []any{EndpointRaw(this.PrivateGetCapitalHistory(this.Extend(request, params))), EndpointRaw(this.PrivateGetTradeAccountTradingHistory(this.Extend(request, params)))}
 
 	var promises []any = ListTyped(PanicOnError((<-promiseAll(rawPromises))))
-	var responseCapitalHistory map[string]any = MapTyped(GetValue(promises, 0))
+	var responseCapitalHistory map[string]any = SafeMapTyped(promises, 0)
 	//
 	// {
 	//     "transactions": [
@@ -2486,7 +2486,7 @@ func (this *Hibachi) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	// }
 	//
 	var rowsCapitalHistory []any = SafeListTypedDefault(responseCapitalHistory, "transactions", []any{})
-	var responseTradingHistory map[string]any = MapTyped(GetValue(promises, 1))
+	var responseTradingHistory map[string]any = SafeMapTyped(promises, 1)
 	//
 	// {
 	//     "tradingHistory": [
@@ -2817,7 +2817,7 @@ func (this *Hibachi) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...a
 		request["limit"] = limit
 	}
 	var until any = nil
-	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchMySettlementHistory", "until")
+	var untilparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchMySettlementHistory", "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = MapTyped(GetValue(untilparamsVariable, 1))
 	if !IsEqual(until, nil) {

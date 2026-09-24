@@ -171,7 +171,7 @@ class bitrue extends \ccxt\async\bitrue {
         //
         $this->balance['info'] = $balances;
         for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+            $balance = $this->safe_dict($balances, $i);
             $currencyId = $this->safe_string($balance, 'a');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -300,7 +300,10 @@ class bitrue extends \ccxt\async\bitrue {
         $sideId = $this->safe_integer($order, 'S');
         // 1: buy
         // 2: sell
-        $side = ($sideId === 1) ? 'buy' : 'sell';
+        $side = 'sell';
+        if ($sideId === 1) {
+            $side = 'buy';
+        }
         $statusId = $this->safe_string($order, 'X');
         $feeCurrencyId = $this->safe_string($order, 'N');
         return $this->safe_order(array(
@@ -458,7 +461,7 @@ class bitrue extends \ccxt\async\bitrue {
     public function parse_contract_bids_asks(array $bidsAsks, string $symbol): array {
         $result = array();
         for ($i = 0; $i < count($bidsAsks); $i++) {
-            $level = $bidsAsks[$i];
+            $level = $this->safe_list($bidsAsks, $i);
             $price = $this->safe_number($level, 0);
             $rawAmount = $this->safe_number($level, 1);
             $amount = $this->convert_from_raw_quantity($symbol, $rawAmount);
@@ -907,7 +910,7 @@ class bitrue extends \ccxt\async\bitrue {
                 // a flight is already in progress - wake when the leader
                 // settles it: the listenKey url is then in the options
                 Async\await($client->future($messageHash));
-                return $this->options['listenKeyUrl'];
+                return $this->safe_string($this->options, 'listenKeyUrl');
             }
             // register before the first await, so a concurrent caller entering
             // authenticate () while this one is inside the fetch sees the flight
@@ -952,7 +955,7 @@ class bitrue extends \ccxt\async\bitrue {
             $refreshTimeout = $this->safe_integer($this->options, 'listenKeyRefreshRate', 1800000);
             $this->delay($refreshTimeout, array($this, 'keep_alive_listen_key'));
         }
-        return $this->options['listenKeyUrl'];
+        return $this->safe_string($this->options, 'listenKeyUrl');
     }
 
     public function keep_alive_listen_key($params = array()) {

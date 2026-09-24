@@ -149,7 +149,7 @@ export default class mudrex extends mudrexRest {
             'params': [ stream ],
         };
         const request = this.extend (subscribe, params);
-        const ohlcv = await this.watch (url, messageHash, request, messageHash);
+        const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, request, messageHash);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }

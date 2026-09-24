@@ -111,7 +111,10 @@ class weex extends \ccxt\async\weex {
             'params' => $channels,
         );
         $subscription = $this->extend($subscription, array( 'id' => $id ));
-        $type = $isContract ? 'contract' : 'spot';
+        $type = 'spot';
+        if ($isContract) {
+            $type = 'contract';
+        }
         $url = $this->urls['api']['ws'][$type] . '/public';
         return Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($message, $params), $messageHashes, $subscription));
     }
@@ -121,7 +124,10 @@ class weex extends \ccxt\async\weex {
     }
 
     private function do_subscribe_private(string $messageHash, string $subscribeHash, ?string $channel, bool $isContract = false, $params = array(), array $subscription = array()) {
-        $type = $isContract ? 'contract' : 'spot';
+        $type = 'spot';
+        if ($isContract) {
+            $type = 'contract';
+        }
         $url = $this->urls['api']['ws'][$type] . '/private';
         $this->authenticate($url);
         $method = 'SUBSCRIBE';
@@ -147,7 +153,7 @@ class weex extends \ccxt\async\weex {
         $timestamp = $this->nonce();
         $payload = (string) $timestamp . '/v3/ws/private';
         $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
-        $originalHeaders = $this->options['ws']['options']['headers'];
+        $originalHeaders = $this->safe_dict($this->options['ws']['options'], 'headers');
         $userAgent = $this->safe_string($originalHeaders, 'User-Agent', 'ccxt');
         $extendedOptions = array(
             'ws' => array(
@@ -362,7 +368,12 @@ class weex extends \ccxt\async\weex {
         //
         $timestamp = $this->safe_integer($ticker, 'C');
         $close = $this->safe_string($ticker, 'c');
-        $symbol = ($market === null) ? null : $market['symbol'];
+        $symbol = null;
+        if ($market === null) {
+            $symbol = null;
+        } else {
+            $symbol = $market['symbol'];
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -564,7 +575,12 @@ class weex extends \ccxt\async\weex {
         //     }
         //
         $timestamp = $this->safe_integer($trade, 'T');
-        $symbol = ($market === null) ? null : $market['symbol'];
+        $symbol = null;
+        if ($market === null) {
+            $symbol = null;
+        } else {
+            $symbol = $market['symbol'];
+        }
         $isBuyerMaker = $this->safe_bool($trade, 'm'); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
         $side = null;
         $takerOrMaker = null;
@@ -1133,7 +1149,12 @@ class weex extends \ccxt\async\weex {
 
     public function parse_ws_bid_ask(array $message, ?array $market = null): array {
         $timestamp = $this->safe_integer($message, 'E');
-        $symbol = ($market === null) ? null : $market['symbol'];
+        $symbol = null;
+        if ($market === null) {
+            $symbol = null;
+        } else {
+            $symbol = $market['symbol'];
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -1175,7 +1196,10 @@ class weex extends \ccxt\async\weex {
         }
         list($marketType, $params) = $this->handle_market_type_and_params('watchMyTrades', $market, $params);
         $isContract = ($marketType !== 'spot');
-        $messageHash = $isContract ? 'myContractTrades' : 'myTrades';
+        $messageHash = 'myTrades';
+        if ($isContract) {
+            $messageHash = 'myContractTrades';
+        }
         $subscriptionHash = $messageHash;
         if ($symbol !== null) {
             $messageHash .= '::' . $symbol;
@@ -1210,7 +1234,10 @@ class weex extends \ccxt\async\weex {
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('unWatchMyTrades', null, $params);
         $isContract = ($marketType !== 'spot');
-        $subHash = $isContract ? 'myContractTrades' : 'myTrades';
+        $subHash = 'myTrades';
+        if ($isContract) {
+            $subHash = 'myContractTrades';
+        }
         $unSubHash = 'unsubscribe::' . $subHash;
         $channel = 'fill';
         $subscription = array(
@@ -1391,7 +1418,10 @@ class weex extends \ccxt\async\weex {
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
         $isContract = ($marketType !== 'spot');
-        $messageHash = $isContract ? 'contractOrders' : 'orders';
+        $messageHash = 'orders';
+        if ($isContract) {
+            $messageHash = 'contractOrders';
+        }
         $subscriptionHash = $messageHash;
         if ($symbol !== null) {
             $messageHash .= '::' . $symbol;
@@ -1425,7 +1455,10 @@ class weex extends \ccxt\async\weex {
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('unWatchOrders', null, $params);
         $isContract = ($marketType !== 'spot');
-        $subHash = $isContract ? 'contractOrders' : 'orders';
+        $subHash = 'orders';
+        if ($isContract) {
+            $subHash = 'contractOrders';
+        }
         $unSubHash = 'unsubscribe::' . $subHash;
         $channel = 'orders';
         $subscription = array(
@@ -1689,7 +1722,10 @@ class weex extends \ccxt\async\weex {
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params);
         $isContract = ($type !== 'spot');
-        $urlType = $isContract ? 'contract' : 'spot';
+        $urlType = 'spot';
+        if ($isContract) {
+            $urlType = 'contract';
+        }
         $url = $this->urls['api']['ws'][$urlType] . '/private';
         $this->authenticate($url);
         $client = $this->client($url);
@@ -1816,7 +1852,7 @@ class weex extends \ccxt\async\weex {
             $account['free'] = $this->safe_string_2($entry, 'available', 'amount');
             $account['used'] = $this->safe_string($entry, 'frozen');
             $account['total'] = $this->safe_string_2($entry, 'equity', 'legacyAmount');
-            if (($accountType !== null) && ($code !== null)) {
+            if ($code !== null) {
                 $this->balance[$accountType][$code] = $account;
             }
         }

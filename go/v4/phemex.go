@@ -1426,7 +1426,7 @@ func (this *Phemex) ParseCurrency(rawCurrency any) any {
 	var minAmount any = nil
 	var maxAmount any = nil
 	var precision any = nil
-	if !IsEqual(valueScale, nil) {
+	if valueScaleString != nil {
 		var precisionString any = this.ParsePrecision(valueScaleString)
 		precision = this.ParseNumber(precisionString)
 		minAmount = this.ParseNumber(Precise.StringMul(minValueEv, precisionString))
@@ -2305,7 +2305,7 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	} else {
 		timestamp = this.SafeIntegerProduct(trade, "transactTimeNs", 0.000001)
-		if IsEqual(timestamp, nil) {
+		if timestamp == nil {
 			timestamp = this.SafeInteger(trade, "createdAt")
 		}
 		id = this.SafeString2(trade, "execId", "execID")
@@ -2361,7 +2361,7 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) any {
 					feeCurrencyCode = DerefScalar(this.SafeCurrencyCode(this.SafeString(trade, "feeCurrency")))
 				} else {
 					var info map[string]any = SafeMapTyped(market, "info")
-					if !IsEqual(info, nil) {
+					if info != nil {
 						var settlementCurrencyId *string = this.SafeString(info, "settlementCurrency")
 						feeCurrencyCode = DerefScalar(this.SafeCurrencyCode(settlementCurrencyId))
 					}
@@ -2426,12 +2426,7 @@ func (this *Phemex) ParseSpotBalance(response any) any {
 	}
 	var data []any = SafeListTyped(response, "data")
 	for i := 0; i < len(data); i++ {
-		var balance map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(data) {
-				return DerefScalar(data[i])
-			}
-			return nil
-		}())
+		var balance map[string]any = SafeMapTyped(data, i)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var currency map[string]any = SafeMapTyped(this.Currencies, code)
@@ -3124,8 +3119,8 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	var clientOrderId *string = this.SafeString2(params, "clOrdID", "clientOrderId")
 	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
 	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
-	var hasStopLoss bool = (!IsEqual(stopLoss, nil))
-	var hasTakeProfit bool = (!IsEqual(takeProfit, nil))
+	var hasStopLoss bool = ((stopLoss != nil))
+	var hasTakeProfit bool = ((takeProfit != nil))
 	var isStableSettled bool = (IsEqual(GetValue(market, "settle"), "USDT")) || (IsEqual(GetValue(market, "settle"), "USDC"))
 	if clientOrderId == nil {
 		var brokerId *string = this.SafeString(this.Options, "brokerId", "CCXT123456")
@@ -3700,7 +3695,7 @@ func (this *Phemex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		}
 		order = this.SafeDict(data, 0, map[string]any{})
 	} else if GetValue(market, "spot") == true {
-		var rows []any = SafeListTypedDefault(data, "rows", []any{})
+		var rows []any = SafeListTyped(data, "rows")
 		var numRows int = len(rows)
 		if numRows < 1 {
 			if clientOrderId != nil {
@@ -4041,7 +4036,7 @@ func (this *Phemex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		if limit == nil {
 			request["limit"] = 200
 		}
-	} else if (symbol != nil) && !IsEqual(market, nil) {
+	} else if (symbol != nil) && (market != nil) {
 		request["symbol"] = GetValue(market, "id")
 	}
 	if since != nil {
@@ -4165,10 +4160,10 @@ func (this *Phemex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//
 	var data any = nil
 	if isUSDTSettled {
-		data = this.SafeValue(response, "data", []any{})
+		data = this.SafeList(response, "data", []any{})
 	} else {
 		data = this.SafeValue(response, "data", map[string]any{})
-		data = this.SafeValue(data, "rows", []any{})
+		data = this.SafeList(data, "rows", []any{})
 	}
 
 	ch <- this.ParseTrades(data, market, since, limit)
@@ -5539,7 +5534,7 @@ func (this *Phemex) ParseMarketLeverageTiers(info any, optionalArgs ...any) any 
 	var tiers []any = []any{}
 	var minNotional any = 0
 	for i := 0; i < GetArrayLength(riskLimits); i++ {
-		var tier any = GetValue(riskLimits, i)
+		var tier map[string]any = SafeMapTyped(riskLimits, i)
 		var maxNotional *int64 = this.SafeInteger(tier, "limit")
 		var minNotionalResponse any = minNotional // java req
 		tiers = append(tiers, map[string]any{
@@ -5975,7 +5970,7 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		panic(BadRequest(this.Id + " fetchFundingRateHistory() supports swap contracts only"))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -6493,11 +6488,11 @@ func (this *Phemex) ParseConversion(conversion any, optionalArgs ...any) any {
 	var fromValueScale *int64 = this.SafeInteger(fromCurrency, "valueScale")
 	var toValueScale *int64 = this.SafeInteger(toCurrency, "valueScale")
 	var fromAmount any = this.FromEn(this.SafeString(conversion, "fromAmountEv"), fromValueScale)
-	if (fromAmount == nil) && !IsEqual(quoteArgs, nil) {
+	if (fromAmount == nil) && (quoteArgs != nil) {
 		fromAmount = this.FromEn(this.SafeString(quoteArgs, "origin"), fromValueScale)
 	}
 	var toAmount any = this.FromEn(this.SafeString(conversion, "toAmountEv"), toValueScale)
-	if (toAmount == nil) && !IsEqual(quoteArgs, nil) {
+	if (toAmount == nil) && (quoteArgs != nil) {
 		toAmount = this.FromEn(this.SafeString(quoteArgs, "proceeds"), toValueScale)
 	}
 	return map[string]any{

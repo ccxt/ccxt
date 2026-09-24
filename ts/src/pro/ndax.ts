@@ -147,7 +147,7 @@ export default class ndax extends ndaxRest {
             'o': this.json (payload), // JSON-formatted string containing the data being sent with the message
         };
         const message = this.extend (request, params);
-        const trades = await this.watch (url, messageHash, message, messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, message, messageHash);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -323,7 +323,7 @@ export default class ndax extends ndaxRest {
                         parsed[4],
                         this.sum (parsed[5], previous[5]),
                     ];
-                    if ((marketId !== undefined) && (timeframe !== undefined)) {
+                    if (marketId !== undefined) {
                         updates[marketId][timeframe] = true;
                     }
                 } else {
@@ -335,7 +335,7 @@ export default class ndax extends ndaxRest {
                         if (length >= limit) {
                             stored.shift ();
                         }
-                        if ((marketId !== undefined) && (timeframe !== undefined)) {
+                        if (marketId !== undefined) {
                             updates[marketId][timeframe] = true;
                         }
                     }

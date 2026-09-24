@@ -462,7 +462,7 @@ class mudrex extends Exchange {
                 $items = $this->safe_list($data, 'items', array());
                 // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                 $itemsLength = count($items);
-                if (($itemsLength === null) || ($itemsLength === 0)) {
+                if ($itemsLength === 0) {
                     $items = $this->safe_list($data, 'results', array());
                     $itemsLength = count($items);
                 }
@@ -473,7 +473,7 @@ class mudrex extends Exchange {
                 $items = $this->to_array($data);
             }
             $numItems = count($items);
-            if (($numItems === null) || ($numItems === 0)) {
+            if ($numItems === 0) {
                 $paging = false;
                 break;
             }
@@ -1286,7 +1286,7 @@ class mudrex extends Exchange {
             $market = $this->market($symbol);
         }
         $maxCalls = null;
-        list($maxCalls, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginationCalls', 10);
+        list($maxCalls, $params) = $this->handle_option_integer_and_params($params, 'fetchMyTrades', 'paginationCalls', 10);
         $pageSize = 0;
         if ($limit !== null) {
             // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied

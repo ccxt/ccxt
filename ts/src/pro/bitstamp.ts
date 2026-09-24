@@ -4,7 +4,7 @@
 import bitstampRest from '../bitstamp.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Dict, Market, Bool, FundingRate } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Dict, NullableDict, Market, Bool, FundingRate } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
 
@@ -255,7 +255,7 @@ export default class bitstamp extends bitstampRest {
             },
         };
         const message = this.extend (request, params);
-        const trades = await this.watch (url, messageHash, message, messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, message, messageHash);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -282,7 +282,7 @@ export default class bitstamp extends bitstampRest {
         return await this.unWatchChannel (channel, subHash, 'trades', [ symbol ], params);
     }
 
-    override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseWsTrade (trade: NullableDict, market: Market = undefined): Trade {
         //
         //     {
         //         "buy_order_id": 1211625836466176,
@@ -358,7 +358,7 @@ export default class bitstamp extends bitstampRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const messageHash = 'trades:' + symbol;
-        const data = this.safeValue (message, 'data');
+        const data = this.safeDict (message, 'data');
         const trade = this.parseWsTrade (data, market);
         let tradesArray = this.safeValue (this.trades, symbol);
         if (tradesArray === undefined) {
@@ -922,7 +922,7 @@ export default class bitstamp extends bitstampRest {
         }
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         // {
         //     "event": "bts:error",
         //     "channel": '',

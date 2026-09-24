@@ -1229,7 +1229,9 @@ export default class deepcoin extends Exchange {
         let network = this.safeString (params, 'network');
         const defaultNetworks = this.safeDict (this.options, 'defaultNetworks', {});
         const defaultNetwork = this.safeString (defaultNetworks, code);
-        network = (network !== undefined && network !== '') ? network : defaultNetwork;
+        if ((network === undefined) || (network === '')) {
+            network = defaultNetwork;
+        }
         if (network !== undefined) {
             params = this.omit (params, 'network');
         }
@@ -1415,7 +1417,7 @@ export default class deepcoin extends Exchange {
      */
     override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params: Dict = {}): Promise<TransferEntry> {
         let userId: Str = undefined;
-        [ userId, params ] = this.handleOptionAndParams (params, 'transfer', 'userId');
+        [ userId, params ] = this.handleOptionStringAndParams (params, 'transfer', 'userId');
         userId = (userId !== undefined && userId !== '') ? userId : this.safeString (params, 'uid');
         if (userId === undefined) {
             throw new ArgumentsRequired (this.id + ' transfer() requires a userId parameter');

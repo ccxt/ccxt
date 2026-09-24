@@ -834,7 +834,7 @@ class alpaca extends Exchange {
         $paginate = false;
         list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         $paginationCalls = 10;
-        list($paginationCalls, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginationCalls', 10);
+        list($paginationCalls, $params) = $this->handle_option_integer_and_params($params, 'fetchOHLCV', 'paginationCalls', 10);
         $request = array(
             'symbols' => $marketId,
             'loc' => $loc,
@@ -1221,6 +1221,7 @@ class alpaca extends Exchange {
         );
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stop_price');
         if ($triggerPrice !== null) {
+            $newType = null;
             if (mb_strpos($type, 'limit') !== false) {
                 $newType = 'stop_limit';
             } else {
@@ -1240,7 +1241,7 @@ class alpaca extends Exchange {
             $request['qty'] = $this->amount_to_precision($symbol, $amount);
         }
         $defaultTIF = null;
-        list($defaultTIF, $params) = $this->handle_option_and_params($params, 'createOrder', 'timeInForce');
+        list($defaultTIF, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'timeInForce');
         if ($defaultTIF !== null) {
             // the venue only accepts lowercase values, normalize the unified uppercase spellings
             $defaultTIF = strtolower($defaultTIF);
@@ -1841,7 +1842,7 @@ class alpaca extends Exchange {
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
@@ -1961,7 +1962,10 @@ class alpaca extends Exchange {
                 $activityType = $this->safe_string($entry, 'activity_type');
                 $amount = $this->safe_string($entry, 'net_amount');
                 $isIncoming = ($activityType === 'CSD') || (($activityType === 'TRANS') && !Precise::string_lt($amount, '0'));
-                $entryDirection = $isIncoming ? 'INCOMING' : 'OUTGOING';
+                $entryDirection = 'OUTGOING';
+                if ($isIncoming) {
+                    $entryDirection = 'INCOMING';
+                }
                 if (($type === 'BOTH') || ($entryDirection === $type)) {
                     $filtered[] = $entry;
                 }
@@ -2308,7 +2312,7 @@ class alpaca extends Exchange {
             $result[$code] = $cashAccount;
         }
         for ($i = 0; $i < count($positions); $i++) {
-            $position = $positions[$i];
+            $position = $this->safe_dict($positions, $i);
             $positionSymbol = $this->safe_string($position, 'symbol');
             if ($positionSymbol === null) {
                 continue;

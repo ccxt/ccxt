@@ -496,7 +496,7 @@ public partial class deepcoin : ccxt.deepcoin
         if ((data != null))
         {
             Dictionary<string, object> trade = this.parseWsTrade(data, market);
-            callDynamically(strored, "append", new object[] {trade});
+            strored.append(trade);
         }
         string messageHash = (("trades" + "::") + symbol);
         client.resolve(strored, messageHash);
@@ -699,7 +699,7 @@ public partial class deepcoin : ccxt.deepcoin
         if ((data != null))
         {
             List<object> ohlcv = this.parseWsOHLCV(data, market);
-            callDynamically(stored, "append", new object[] {ohlcv});
+            stored.append(ohlcv);
         }
         string messageHash = (((("ohlcv" + "::") + symbol) + "::") + timeframe);
         client.resolve(stored, messageHash);
@@ -795,9 +795,9 @@ public partial class deepcoin : ccxt.deepcoin
         // tick was rejected accepted the next coarser level
         parameters ??= new Dictionary<string, object>();
         string? symbol = this.safeString(market, "symbol");
-        object aggregation = null;
-        IList<object> aggregationparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "aggregation");
-        aggregation = aggregationparametersVariable[0];
+        string? aggregation = null;
+        IList<object> aggregationparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "aggregation");
+        aggregation = (string)aggregationparametersVariable[0];
         parameters = aggregationparametersVariable[1];
         if ((aggregation == null))
         {
@@ -809,7 +809,7 @@ public partial class deepcoin : ccxt.deepcoin
             }
             aggregation = this.numberToString(tickSize);
         }
-        return new List<object>() {("_" + (aggregation)), parameters};
+        return new List<object>() {("_" + aggregation), parameters};
     }
 
     public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
@@ -876,7 +876,7 @@ public partial class deepcoin : ccxt.deepcoin
         };
         for (int i = 0; i < entries.Count; i++)
         {
-            object entry = entries[i];
+            IDictionary<string, object> entry = this.safeDict(entries, i);
             IDictionary<string, object> entryData = this.safeDict(entry, "d", new Dictionary<string, object>() {});
             string? side = this.safeString(entryData, "D");
             double? price = this.safeNumber(entryData, "P");
@@ -1034,7 +1034,7 @@ public partial class deepcoin : ccxt.deepcoin
             }
             ccxt.pro.ArrayCache stored = this.myTrades;
             Dictionary<string, object> parsed = this.parseWsTrade(data, market);
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
             client.resolve(stored, messageHash);
             client.resolve(stored, symbolMessageHash);
         }
@@ -1122,7 +1122,7 @@ public partial class deepcoin : ccxt.deepcoin
                 this.orders = new ArrayCacheBySymbolById(limit);
             }
             Dictionary<string, object> parsed = this.parseWsOrder(data, market);
-            callDynamically(this.orders, "append", new object[] {parsed});
+            this.orders.append(parsed);
             client.resolve(this.orders, messageHash);
             client.resolve(this.orders, symbolMessageHash);
         }
@@ -1363,9 +1363,12 @@ public partial class deepcoin : ccxt.deepcoin
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (isEqual(message, "pong"))
+        if ((message is string))
         {
-            this.handlePong(client, message);
+            if (isEqual(message, "pong"))
+            {
+                this.handlePong(client, message);
+            }
         } else
         {
             string? m = this.safeString(message, "m");

@@ -997,7 +997,7 @@ func (this *P2b) ParseBalance(response any) any {
 	var keys []string = ObjectKeys(response)
 	for i := 0; i < len(keys); i++ {
 		var currencyId string = GetValue(keys, i).(string)
-		var balance map[string]any = MapTyped(GetValue(response, currencyId))
+		var balance map[string]any = SafeMapTyped(response, currencyId)
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var used *string = this.SafeString(balance, "freeze")
 		var available *string = this.SafeString(balance, "available")
@@ -1453,7 +1453,7 @@ func (this *P2b) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		"startTime": sinceSec,
 		"endTime":   untilSec,
 	}
-	if !IsEqual(market, nil) {
+	if market != nil {
 		request["market"] = GetValue(market, "id")
 	}
 	if limit != nil {

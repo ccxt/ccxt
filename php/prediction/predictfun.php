@@ -696,7 +696,7 @@ class predictfun extends Exchange {
             $categories = $this->safe_list($data, 'categories', array());
             $categoriesLength = count($categories);
             for ($ci = 0; $ci < $categoriesLength; $ci++) {
-                $category = $categories[$ci];
+                $category = $this->safe_dict($categories, $ci);
                 $categorySlug = $this->safe_string($category, 'slug');
                 if ($categorySlug === null) {
                     // nothing to key a duplicate on, keep the row rather than drop it
@@ -1139,7 +1139,10 @@ class predictfun extends Exchange {
         $topicSlug = $this->safe_string($rawMarket, 'categorySlug');
         // the same handle parseEvent () derives for the enclosing event - stamping it here is what
         // lets every outcome-addressed structure (order, ticker, trade, position) report an event
-        $eventHandle = ($topicSlug !== null) ? $this->shorten_slug($topicSlug) : null;
+        $eventHandle = null;
+        if ($topicSlug !== null) {
+            $eventHandle = $this->shorten_slug($topicSlug);
+        }
         $title = $this->safe_string($rawMarket, 'title', $marketId);
         $topicMarkets = $this->safe_list($rawTopic, 'markets', array());
         $marketCount = count($topicMarkets);
@@ -1205,7 +1208,10 @@ class predictfun extends Exchange {
         }
         $resolvedOutcome = $resolvedOutcomeRaw;
         $collateral = 'USDT';
-        $marketType = ($rawOutcomesLength > 2) ? 'categorical' : 'binary';
+        $marketType = 'binary';
+        if ($rawOutcomesLength > 2) {
+            $marketType = 'categorical';
+        }
         $createdDatetime = $this->safe_string($rawMarket, 'createdAt');
         return array(
             'id' => $marketId,
@@ -1310,14 +1316,14 @@ class predictfun extends Exchange {
             $noBids = array();
             $noAsks = array();
             for ($i = 0; $i < count($bids); $i++) {
-                $bid = $bids[$i];
+                $bid = $this->safe_list($bids, $i);
                 $bidPrice = $this->safe_string($bid, 0);
                 $bidSize = $this->parse_number($this->safe_string($bid, 1));
                 $complementPrice = $this->parse_number(Precise::string_sub('1', $bidPrice));
                 $noAsks[] = array( $complementPrice, $bidSize );
             }
             for ($i = 0; $i < count($asks); $i++) {
-                $ask = $asks[$i];
+                $ask = $this->safe_list($asks, $i);
                 $askPrice = $this->safe_string($ask, 0);
                 $askSize = $this->parse_number($this->safe_string($ask, 1));
                 $complementPrice = $this->parse_number(Precise::string_sub('1', $askPrice));
@@ -1618,7 +1624,7 @@ class predictfun extends Exchange {
         $flattenTrades = array();
         $dataLength = count($data);
         for ($i = 0; $i < $dataLength; $i++) {
-            $entry = $data[$i];
+            $entry = $this->safe_dict($data, $i);
             $taker = $this->safe_dict($entry, 'taker', array());
             $takerOutcome = $this->safe_dict($taker, 'outcome', array());
             $takerIndexSet = $this->safe_integer($takerOutcome, 'indexSet');
@@ -1931,7 +1937,10 @@ class predictfun extends Exchange {
         if ($tokenId === null) {
             throw new ArgumentsRequired($this->id . ' createOrder() could not resolve the on chain token id of ' . $outcome);
         }
-        $strategy = ($type === 'market') ? 'MARKET' : 'LIMIT';
+        $strategy = 'LIMIT';
+        if ($type === 'market') {
+            $strategy = 'MARKET';
+        }
         $isMarket = ($strategy === 'MARKET');
         if ((!$isMarket) && ($price === null)) {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a "price" argument for a limit order');
@@ -1950,7 +1959,7 @@ class predictfun extends Exchange {
         // reconfiguring the exchange - and so the key is taken out of params instead of riding
         // along into the request body
         $warnOnMarketOrderWithoutPrice = true;
-        list($warnOnMarketOrderWithoutPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'warnOnMarketOrderWithoutPrice', true);
+        list($warnOnMarketOrderWithoutPrice, $params) = $this->handle_option_bool_and_params($params, 'createOrder', 'warnOnMarketOrderWithoutPrice', true);
         if ($price === null) {
             // a priceless limit order already threw above, so this is a market order
             if ($warnOnMarketOrderWithoutPrice) {
@@ -3496,7 +3505,7 @@ class predictfun extends Exchange {
         $noAsks = array();
         $bidsLength = count($rawBids);
         for ($i = 0; $i < $bidsLength; $i++) {
-            $bid = $rawBids[$i];
+            $bid = $this->safe_list($rawBids, $i);
             $bidPrice = $this->safe_string($bid, 0);
             $bidSize = $this->parse_number($this->safe_string($bid, 1));
             $yesBids[] = array( $this->parse_number($bidPrice), $bidSize );
@@ -3505,7 +3514,7 @@ class predictfun extends Exchange {
         }
         $asksLength = count($rawAsks);
         for ($i = 0; $i < $asksLength; $i++) {
-            $ask = $rawAsks[$i];
+            $ask = $this->safe_list($rawAsks, $i);
             $askPrice = $this->safe_string($ask, 0);
             $askSize = $this->parse_number($this->safe_string($ask, 1));
             $yesAsks[] = array( $this->parse_number($askPrice), $askSize );
@@ -3514,7 +3523,7 @@ class predictfun extends Exchange {
         $outcomes = $this->outcomes_by_market_id($marketId);
         $outcomesLength = count($outcomes);
         for ($i = 0; $i < $outcomesLength; $i++) {
-            $outcomeObj = $outcomes[$i];
+            $outcomeObj = $this->safe_dict($outcomes, $i);
             $outcomeInfo = $this->safe_dict($outcomeObj, 'info', array());
             $isYesOutcome = $this->safe_integer($outcomeInfo, 'indexSet') === 1;
             $outcomeHandle = $this->safe_string($outcomeObj, 'outcome');
@@ -3672,7 +3681,10 @@ class predictfun extends Exchange {
         // undefined rather than guessed - a handle that does not match the one the rest of the api
         // reports is worse than none at all
         $topicSlug = $this->safe_string($details, 'categorySlug');
-        $eventHandle = ($topicSlug !== null) ? $this->shorten_slug($topicSlug) : null;
+        $eventHandle = null;
+        if ($topicSlug !== null) {
+            $eventHandle = $this->shorten_slug($topicSlug);
+        }
         $label = $this->strip_price_formatting($this->safe_string_upper($details, 'outcomeName'));
         return array(
             'outcome' => null,

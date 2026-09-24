@@ -1394,6 +1394,23 @@ public class BaseExchange {
         throw new BadRequest(this.id + " " + (methodName == null ? "exchange-wide" : methodName + "()") + " option " + optionName + " must be a boolean");
     }
 
+    // any JS number box (Integer, Long, Double) with an integral value reads as Long; fractions, strings and others throw
+    public Long checkOptionInteger(Object methodName, Object optionName, Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Long l) {
+            return l;
+        }
+        if (value instanceof Integer i) {
+            return i.longValue();
+        }
+        if (value instanceof Double d && Math.floor(d) == d && !Double.isInfinite(d)) {
+            return d.longValue();
+        }
+        throw new BadRequest(this.id + " " + (methodName == null ? "exchange-wide" : methodName + "()") + " option " + optionName + " must be an integer");
+    }
+
     public boolean valueIsDefined(Object value) {
         return value != null;
     }
@@ -4572,32 +4589,32 @@ public Object describe()
 
     public Object checkProxyUrlSettings(String url, String method, Object headers, Object body)
     {
-        Object usedProxies = new ArrayList<Object>(Arrays.asList());
+        List<String> usedProxies = new ArrayList<String>(Arrays.asList());
         Object proxyUrl = null;
         if (!java.util.Objects.equals(this.proxyUrl, null))
         {
-            ((List<Object>)usedProxies).add("proxyUrl");
+            usedProxies.add("proxyUrl");
             proxyUrl = this.proxyUrl;
         }
         if (!java.util.Objects.equals(this.proxy_url, null))
         {
-            ((List<Object>)usedProxies).add("proxy_url");
+            usedProxies.add("proxy_url");
             proxyUrl = this.proxy_url;
         }
         if (!java.util.Objects.equals(this.proxyUrlCallback, null))
         {
-            ((List<Object>)usedProxies).add("proxyUrlCallback");
+            usedProxies.add("proxyUrlCallback");
             proxyUrl = Helpers.callDynamically(this, "proxyUrlCallback", new Object[] { url, method, headers, body });
         }
         if (!java.util.Objects.equals(this.proxy_url_callback, null))
         {
-            ((List<Object>)usedProxies).add("proxy_url_callback");
+            usedProxies.add("proxy_url_callback");
             proxyUrl = Helpers.callDynamically(this, "proxy_url_callback", new Object[] { url, method, headers, body });
         }
         // backwards-compatibility
         if (!java.util.Objects.equals(this.proxy, null))
         {
-            ((List<Object>)usedProxies).add("proxy");
+            usedProxies.add("proxy");
             if ((this.proxy instanceof java.util.concurrent.Callable))
             {
                 proxyUrl = Helpers.callDynamically(this, "proxy", new Object[] { url, method, headers, body });
@@ -4629,7 +4646,7 @@ public Object describe()
 
     public Object checkProxySettings(String url, String method, Object headers, Object body)
     {
-        Object usedProxies = new ArrayList<Object>(Arrays.asList());
+        List<String> usedProxies = new ArrayList<String>(Arrays.asList());
         Object httpProxy = null;
         Object httpsProxy = null;
         Object socksProxy = null;
@@ -4638,14 +4655,14 @@ public Object describe()
         Object isHttp_proxy_defined = this.valueIsDefined(this.http_proxy);
         if (Boolean.TRUE.equals(isHttpProxyDefined) || Boolean.TRUE.equals(isHttp_proxy_defined))
         {
-            ((List<Object>)usedProxies).add("httpProxy");
+            usedProxies.add("httpProxy");
             httpProxy = ((Boolean.TRUE.equals(isHttpProxyDefined))) ? this.httpProxy : this.http_proxy;
         }
         Object ishttpProxyCallbackDefined = this.valueIsDefined(this.httpProxyCallback);
         Object ishttp_proxy_callback_defined = this.valueIsDefined(this.http_proxy_callback);
         if (Boolean.TRUE.equals(ishttpProxyCallbackDefined) || Boolean.TRUE.equals(ishttp_proxy_callback_defined))
         {
-            ((List<Object>)usedProxies).add("httpProxyCallback");
+            usedProxies.add("httpProxyCallback");
             httpProxy = ((Boolean.TRUE.equals(ishttpProxyCallbackDefined))) ? Helpers.callDynamically(this, "httpProxyCallback", new Object[] { url, method, headers, body }) : Helpers.callDynamically(this, "http_proxy_callback", new Object[] { url, method, headers, body });
         }
         // httpsProxy
@@ -4653,14 +4670,14 @@ public Object describe()
         Object isHttps_proxy_defined = this.valueIsDefined(this.https_proxy);
         if (Boolean.TRUE.equals(isHttpsProxyDefined) || Boolean.TRUE.equals(isHttps_proxy_defined))
         {
-            ((List<Object>)usedProxies).add("httpsProxy");
+            usedProxies.add("httpsProxy");
             httpsProxy = ((Boolean.TRUE.equals(isHttpsProxyDefined))) ? this.httpsProxy : this.https_proxy;
         }
         Object ishttpsProxyCallbackDefined = this.valueIsDefined(this.httpsProxyCallback);
         Object ishttps_proxy_callback_defined = this.valueIsDefined(this.https_proxy_callback);
         if (Boolean.TRUE.equals(ishttpsProxyCallbackDefined) || Boolean.TRUE.equals(ishttps_proxy_callback_defined))
         {
-            ((List<Object>)usedProxies).add("httpsProxyCallback");
+            usedProxies.add("httpsProxyCallback");
             httpsProxy = ((Boolean.TRUE.equals(ishttpsProxyCallbackDefined))) ? Helpers.callDynamically(this, "httpsProxyCallback", new Object[] { url, method, headers, body }) : Helpers.callDynamically(this, "https_proxy_callback", new Object[] { url, method, headers, body });
         }
         // socksProxy
@@ -4668,14 +4685,14 @@ public Object describe()
         Object isSocks_proxy_defined = this.valueIsDefined(this.socks_proxy);
         if (Boolean.TRUE.equals(isSocksProxyDefined) || Boolean.TRUE.equals(isSocks_proxy_defined))
         {
-            ((List<Object>)usedProxies).add("socksProxy");
+            usedProxies.add("socksProxy");
             socksProxy = ((Boolean.TRUE.equals(isSocksProxyDefined))) ? this.socksProxy : this.socks_proxy;
         }
         Object issocksProxyCallbackDefined = this.valueIsDefined(this.socksProxyCallback);
         Object issocks_proxy_callback_defined = this.valueIsDefined(this.socks_proxy_callback);
         if (Boolean.TRUE.equals(issocksProxyCallbackDefined) || Boolean.TRUE.equals(issocks_proxy_callback_defined))
         {
-            ((List<Object>)usedProxies).add("socksProxyCallback");
+            usedProxies.add("socksProxyCallback");
             socksProxy = ((Boolean.TRUE.equals(issocksProxyCallbackDefined))) ? Helpers.callDynamically(this, "socksProxyCallback", new Object[] { url, method, headers, body }) : Helpers.callDynamically(this, "socks_proxy_callback", new Object[] { url, method, headers, body });
         }
         // check
@@ -4694,7 +4711,7 @@ public Object describe()
 
     public Object checkWsProxySettings()
     {
-        Object usedProxies = new ArrayList<Object>(Arrays.asList());
+        List<String> usedProxies = new ArrayList<String>(Arrays.asList());
         Object wsProxy = null;
         Object wssProxy = null;
         Object wsSocksProxy = null;
@@ -4703,7 +4720,7 @@ public Object describe()
         Object is_ws_proxy_defined = this.valueIsDefined(this.ws_proxy);
         if (Boolean.TRUE.equals(isWsProxyDefined) || Boolean.TRUE.equals(is_ws_proxy_defined))
         {
-            ((List<Object>)usedProxies).add("wsProxy");
+            usedProxies.add("wsProxy");
             wsProxy = ((Boolean.TRUE.equals(isWsProxyDefined))) ? this.wsProxy : this.ws_proxy;
         }
         // wss proxy
@@ -4711,7 +4728,7 @@ public Object describe()
         Object is_wss_proxy_defined = this.valueIsDefined(this.wss_proxy);
         if (Boolean.TRUE.equals(isWssProxyDefined) || Boolean.TRUE.equals(is_wss_proxy_defined))
         {
-            ((List<Object>)usedProxies).add("wssProxy");
+            usedProxies.add("wssProxy");
             wssProxy = ((Boolean.TRUE.equals(isWssProxyDefined))) ? this.wssProxy : this.wss_proxy;
         }
         // ws socks proxy
@@ -4719,7 +4736,7 @@ public Object describe()
         Object is_ws_socks_proxy_defined = this.valueIsDefined(this.ws_socks_proxy);
         if (Boolean.TRUE.equals(isWsSocksProxyDefined) || Boolean.TRUE.equals(is_ws_socks_proxy_defined))
         {
-            ((List<Object>)usedProxies).add("wsSocksProxy");
+            usedProxies.add("wsSocksProxy");
             wsSocksProxy = ((Boolean.TRUE.equals(isWsSocksProxyDefined))) ? this.wsSocksProxy : this.ws_socks_proxy;
         }
         // check
@@ -5338,11 +5355,11 @@ public Object describe()
         return this.parseTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public Object parseDepositAddress(Object depositAddress, Map<String, Object> currency)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         throw new NotSupported((this.id + " parseDepositAddress() is not supported yet")) ;
     }
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Object... optionalArgs)
     {
         return this.parseDepositAddress(depositAddress, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -6016,8 +6033,8 @@ public Object describe()
         // reconstruct
         Object initialFeatures = this.features;
         this.features = new HashMap<String, Object>() {{}};
-        List<Object> unifiedMarketTypes = new ArrayList<Object>(Arrays.asList("spot", "swap", "future", "option"));
-        List<Object> subTypes = new ArrayList<Object>(Arrays.asList("linear", "inverse"));
+        List<String> unifiedMarketTypes = new ArrayList<String>(Arrays.asList("spot", "swap", "future", "option"));
+        List<String> subTypes = new ArrayList<String>(Arrays.asList("linear", "inverse"));
         // atm only support basic methods, eg: 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
         for (var i = 0; i < ((List<?>)unifiedMarketTypes).size(); i++)
         {
@@ -8043,7 +8060,7 @@ public Object describe()
         return this.fetchWebEndpoint(method, endpointMethod, returnAsJson, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgString(optionalArgs, 1, null));
     }
 
-    public List<Object> marketIds(Object symbols)
+    public List<String> marketIds(Object symbols)
     {
         /**
          * @param {string[]|undefined} symbols list of unified symbols
@@ -8052,20 +8069,20 @@ public Object describe()
          */
         if (java.util.Objects.equals(symbols, null))
         {
-            return (List<Object>) symbols;
+            return (List<String>) symbols;
         }
-        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        List<String> result = new ArrayList<String>(Arrays.asList());
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             String id = this.marketId((String) ((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
             if (!java.util.Objects.equals(id, null))
             {
-                ((List<Object>)result).add(id);
+                result.add(id);
             }
         }
         return result;
     }
-    public List<Object> marketIds(Object... optionalArgs)
+    public List<String> marketIds(Object... optionalArgs)
     {
         return this.marketIds(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
     }
@@ -8111,7 +8128,7 @@ public Object describe()
     }
 
     // allowEmpty: false always returns string[] (throws on empty/undefined at runtime)
-    public Object marketSymbols(Object symbols, Object type, Object allowEmpty, Object sameTypeOnly, Object sameSubTypeOnly)
+    public List<Object> marketSymbols(Object symbols, Object type, Object allowEmpty, Object sameTypeOnly, Object sameSubTypeOnly)
     {
         /**
          * @param {string[]|undefined} symbols list of unified symbols
@@ -8128,7 +8145,7 @@ public Object describe()
             {
                 throw new ArgumentsRequired((this.id + " empty list of symbols is not supported")) ;
             }
-            return symbols;
+            return (List<Object>) symbols;
         }
         Integer symbolsLength = ((List<?>)symbols).size();
         if (java.util.Objects.equals(symbolsLength, 0))
@@ -8137,7 +8154,7 @@ public Object describe()
             {
                 throw new ArgumentsRequired((this.id + " empty list of symbols is not supported")) ;
             }
-            return symbols;
+            return (List<Object>) symbols;
         }
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         Object marketType = null;
@@ -8174,16 +8191,16 @@ public Object describe()
         return result;
     }
     // allowEmpty: false always returns string[] (throws on empty/undefined at runtime)
-    public Object marketSymbols(Object... optionalArgs)
+    public List<Object> marketSymbols(Object... optionalArgs)
     {
         return this.marketSymbols(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : true, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : false, optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : false);
     }
 
-    public Object marketCodes(Object codes)
+    public List<Object> marketCodes(Object codes)
     {
         if (java.util.Objects.equals(codes, null))
         {
-            return codes;
+            return (List<Object>) codes;
         }
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)codes).size(); i++)
@@ -8192,7 +8209,7 @@ public Object describe()
         }
         return result;
     }
-    public Object marketCodes(Object... optionalArgs)
+    public List<Object> marketCodes(Object... optionalArgs)
     {
         return this.marketCodes(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
     }
@@ -8752,7 +8769,7 @@ public Object describe()
         return this.parseADLRanks(ranks, Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseAccounts(Object accounts, Map<String, Object> parameters)
+    public List<Object> parseAccounts(Object accounts, Map<String, Object> parameters)
     {
         List<Object> accountsArray = this.toArray(accounts);
         List<Object> result = new ArrayList<Object>(Arrays.asList());
@@ -8763,7 +8780,7 @@ public Object describe()
         }
         return result;
     }
-    public Object parseAccounts(Object accounts, Object... optionalArgs)
+    public List<Object> parseAccounts(Object accounts, Object... optionalArgs)
     {
         return this.parseAccounts(accounts, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
@@ -9074,7 +9091,7 @@ public Object describe()
         return new ArrayList<Object>(Arrays.asList(this.implodeParams(path, parameters), this.omit(parameters, this.extractParams(path))));
     }
 
-    public Object getListFromObjectValues(Object objects, Object key)
+    public List<Object> getListFromObjectValues(Object objects, Object key)
     {
         Object newArray = objects;
         if (!(objects instanceof List))
@@ -9199,11 +9216,11 @@ public Object describe()
                 (this.throttle(cost)).join();
             }
             Object retries = 0;
-            List<Object> retriesparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, path, "maxRetriesOnFailure", retries);
+            List<Object> retriesparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (path), "maxRetriesOnFailure", retries);
             retries = ((List<Object>) retriesparametersVariable).get(0);
             parameters = ((List<Object>) retriesparametersVariable).get(1);
             Object retryDelay = 0;
-            List<Object> retryDelayparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, path, "maxRetriesOnFailureDelay", retryDelay);
+            List<Object> retryDelayparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (path), "maxRetriesOnFailureDelay", retryDelay);
             retryDelay = ((List<Object>) retryDelayparametersVariable).get(0);
             parameters = ((List<Object>) retryDelayparametersVariable).get(1);
             Boolean fetchDataCacheEnabled = Helpers.isGreaterThan(this.fetchHistoryCacheSize, 0);
@@ -9977,7 +9994,7 @@ public Object describe()
         // handleOptionAndParams read as a string; the statically typed ports throw on another type
         List<Object> valuenewParamsVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, optionName, defaultValue);
         var value = ((List<Object>) valuenewParamsVariable).get(0);
-        Map<String, Object> newParams = (Map<String, Object>) ((List<Object>) valuenewParamsVariable).get(1);
+        var newParams = ((List<Object>) valuenewParamsVariable).get(1);
         return new ArrayList<Object>(Arrays.asList(this.checkOptionString((String) (methodName), optionName, value), newParams));
     }
     /* eslint-disable no-unused-vars */
@@ -9993,7 +10010,7 @@ public Object describe()
     {
         List<Object> valuenewParamsVariable = (List<Object>) this.handleOptionAndParams2(parameters, methodName, optionName1, optionName2, defaultValue);
         var value = ((List<Object>) valuenewParamsVariable).get(0);
-        Map<String, Object> newParams = (Map<String, Object>) ((List<Object>) valuenewParamsVariable).get(1);
+        var newParams = ((List<Object>) valuenewParamsVariable).get(1);
         return new ArrayList<Object>(Arrays.asList(this.checkOptionString((String) (methodName), optionName1, value), newParams));
     }
     /* eslint-disable no-unused-vars */
@@ -10010,7 +10027,7 @@ public Object describe()
         // handleOptionAndParams read as a boolean; the statically typed ports throw on another type
         List<Object> valuenewParamsVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, optionName, defaultValue);
         var value = ((List<Object>) valuenewParamsVariable).get(0);
-        Map<String, Object> newParams = (Map<String, Object>) ((List<Object>) valuenewParamsVariable).get(1);
+        var newParams = ((List<Object>) valuenewParamsVariable).get(1);
         return new ArrayList<Object>(Arrays.asList(this.checkOptionBool((String) (methodName), optionName, value), newParams));
     }
     /* eslint-disable no-unused-vars */
@@ -10026,7 +10043,7 @@ public Object describe()
     {
         List<Object> valuenewParamsVariable = (List<Object>) this.handleOptionAndParams2(parameters, methodName, optionName1, optionName2, defaultValue);
         var value = ((List<Object>) valuenewParamsVariable).get(0);
-        Map<String, Object> newParams = (Map<String, Object>) ((List<Object>) valuenewParamsVariable).get(1);
+        var newParams = ((List<Object>) valuenewParamsVariable).get(1);
         return new ArrayList<Object>(Arrays.asList(this.checkOptionBool((String) (methodName), optionName1, value), newParams));
     }
     /* eslint-disable no-unused-vars */
@@ -10034,6 +10051,39 @@ public Object describe()
     public Object handleOptionBoolAndParams2(Object parameters, Object methodName, Object optionName1, Object optionName2, Object... optionalArgs)
     {
         return this.handleOptionBoolAndParams2(parameters, methodName, optionName1, optionName2, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
+    }
+
+    /* eslint-disable no-unused-vars */
+    /* eslint-enable no-unused-vars */
+    public Object handleOptionIntegerAndParams(Object parameters, String methodName, Object optionName, Long defaultValue)
+    {
+        // handleOptionAndParams read as an integer; the statically typed ports throw on another type
+        List<Object> valuenewParamsVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, optionName, defaultValue);
+        var value = ((List<Object>) valuenewParamsVariable).get(0);
+        var newParams = ((List<Object>) valuenewParamsVariable).get(1);
+        return new ArrayList<Object>(Arrays.asList(this.checkOptionInteger((String) (methodName), optionName, value), newParams));
+    }
+    /* eslint-disable no-unused-vars */
+    /* eslint-enable no-unused-vars */
+    public Object handleOptionIntegerAndParams(Object parameters, String methodName, Object optionName, Object... optionalArgs)
+    {
+        return this.handleOptionIntegerAndParams(parameters, methodName, optionName, Helpers.getArgLong(optionalArgs, 0, null));
+    }
+
+    /* eslint-disable no-unused-vars */
+    /* eslint-enable no-unused-vars */
+    public Object handleOptionIntegerAndParams2(Object parameters, Object methodName, Object optionName1, Object optionName2, Long defaultValue)
+    {
+        List<Object> valuenewParamsVariable = (List<Object>) this.handleOptionAndParams2(parameters, methodName, optionName1, optionName2, defaultValue);
+        var value = ((List<Object>) valuenewParamsVariable).get(0);
+        var newParams = ((List<Object>) valuenewParamsVariable).get(1);
+        return new ArrayList<Object>(Arrays.asList(this.checkOptionInteger((String) (methodName), optionName1, value), newParams));
+    }
+    /* eslint-disable no-unused-vars */
+    /* eslint-enable no-unused-vars */
+    public Object handleOptionIntegerAndParams2(Object parameters, Object methodName, Object optionName1, Object optionName2, Object... optionalArgs)
+    {
+        return this.handleOptionIntegerAndParams2(parameters, methodName, optionName1, optionName2, Helpers.getArgLong(optionalArgs, 0, null));
     }
 
     public Object handleOption(Object methodName, Object optionName, Object defaultValue)
@@ -10785,11 +10835,11 @@ public Object describe()
         return this.fetchFundingHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseLastPrice(Object price, Map<String, Object> market)
+    public Object parseLastPrice(Map<String, Object> price, Map<String, Object> market)
     {
         throw new NotSupported((this.id + " parseLastPrice() is not supported yet")) ;
     }
-    public Object parseLastPrice(Object price, Object... optionalArgs)
+    public Object parseLastPrice(Map<String, Object> price, Object... optionalArgs)
     {
         return this.parseLastPrice(price, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -10875,7 +10925,7 @@ public Object describe()
             ((Map<String, Object>)result).put((String)code, account);
             return result;
         }
-        List<Object> fields = new ArrayList<Object>(Arrays.asList("free", "used", "total", "debt"));
+        List<String> fields = new ArrayList<String>(Arrays.asList("free", "used", "total", "debt"));
         for (var i = 0; i < ((List<?>)fields).size(); i++)
         {
             String field = (String) Helpers.GetValue(fields, i);
@@ -10970,7 +11020,7 @@ public Object describe()
 
     public Object isLeveragedCurrency(Object currencyCode, Object checkBaseCoin, Object existingCurrencies)
     {
-        List<Object> leverageSuffixes = new ArrayList<Object>(Arrays.asList("2L", "2S", "3L", "3S", "4L", "4S", "5L", "5S", "UP", "DOWN", "BULL", "BEAR"));
+        List<String> leverageSuffixes = new ArrayList<String>(Arrays.asList("2L", "2S", "3L", "3S", "4L", "4S", "5L", "5S", "UP", "DOWN", "BULL", "BEAR"));
         for (var i = 0; i < ((List<?>)leverageSuffixes).size(); i++)
         {
             String leverageSuffix = (String) Helpers.GetValue(leverageSuffixes, i);
@@ -11303,12 +11353,12 @@ public Object describe()
         return this.filterByCurrencySinceLimit(array, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : false);
     }
 
-    public Object filterBySymbolsSinceLimit(Object array, List<String> symbols, Long since, Long limit, Object tail)
+    public List<Object> filterBySymbolsSinceLimit(Object array, List<String> symbols, Long since, Long limit, Object tail)
     {
-        Object result = this.filterByArray(array, "symbol", symbols, false);
+        List<Object> result = (List<Object>) this.filterByArray(array, "symbol", symbols, false);
         return this.filterBySinceLimit(result, since, limit, "timestamp", tail);
     }
-    public Object filterBySymbolsSinceLimit(Object array, Object... optionalArgs)
+    public List<Object> filterBySymbolsSinceLimit(Object array, Object... optionalArgs)
     {
         return this.filterBySymbolsSinceLimit(array, Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : false);
     }
@@ -11339,7 +11389,7 @@ public Object describe()
         {
             for (var i = 0; i < ((List<?>)pricesData).size(); i++)
             {
-                Map<String, Object> priceData = this.extend(this.parseLastPrice((pricesData == null || i < 0 || i >= ((List<?>)pricesData).size() ? null : ((List<?>)pricesData).get(i))), parameters);
+                Map<String, Object> priceData = this.extend(this.parseLastPrice((Map<String, Object>) ((pricesData == null || i < 0 || i >= ((List<?>)pricesData).size() ? null : ((List<?>)pricesData).get(i)))), parameters);
                 ((List<Object>)results).add(priceData);
             }
         } else
@@ -11349,7 +11399,7 @@ public Object describe()
             {
                 Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-                Map<String, Object> priceData = this.extend(this.parseLastPrice(Helpers.GetValue(pricesData, marketId), market), parameters);
+                Map<String, Object> priceData = this.extend(this.parseLastPrice((Map<String, Object>) (Helpers.GetValue(pricesData, marketId)), market), parameters);
                 ((List<Object>)results).add(priceData);
             }
         }
@@ -11419,7 +11469,7 @@ public Object describe()
         Object result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < Helpers.getArrayLength(addresses); i++)
         {
-            Map<String, Object> address = this.extend(this.parseDepositAddress(Helpers.GetValue(addresses, i)), parameters);
+            Map<String, Object> address = this.extend(this.parseDepositAddress((Map<String, Object>) (Helpers.GetValue(addresses, i))), parameters);
             ((List<Object>)result).add(address);
         }
         if (!java.util.Objects.equals(codes, null))
@@ -11437,7 +11487,7 @@ public Object describe()
         return this.parseDepositAddresses(addresses, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : true, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseBorrowInterests(Object response, Map<String, Object> market)
+    public List<Object> parseBorrowInterests(Object response, Map<String, Object> market)
     {
         List<Object> interests = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
@@ -11447,7 +11497,7 @@ public Object describe()
         }
         return interests;
     }
-    public Object parseBorrowInterests(Object response, Object... optionalArgs)
+    public List<Object> parseBorrowInterests(Object response, Object... optionalArgs)
     {
         return this.parseBorrowInterests(response, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -11487,7 +11537,7 @@ public Object describe()
         return result;
     }
 
-    public Object parseFundingRateHistories(Object response, Map<String, Object> market, Long since, Long limit)
+    public List<Object> parseFundingRateHistories(Object response, Map<String, Object> market, Long since, Long limit)
     {
         List<Object> rates = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
@@ -11499,7 +11549,7 @@ public Object describe()
         Object symbol = (((java.util.Objects.equals(market, null)))) ? null : ((Map<String, Object>)market).get("symbol");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
-    public Object parseFundingRateHistories(Object response, Object... optionalArgs)
+    public List<Object> parseFundingRateHistories(Object response, Object... optionalArgs)
     {
         return this.parseFundingRateHistories(response, Helpers.getArgMap(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null));
     }
@@ -11551,7 +11601,7 @@ public Object describe()
         return this.parseLongShortRatio(info, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public Object parseLongShortRatioHistory(Object response, Map<String, Object> market, Long since, Long limit)
+    public List<Object> parseLongShortRatioHistory(Object response, Map<String, Object> market, Long since, Long limit)
     {
         List<Object> rates = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
@@ -11563,7 +11613,7 @@ public Object describe()
         Object symbol = (((java.util.Objects.equals(market, null)))) ? null : ((Map<String, Object>)market).get("symbol");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
-    public Object parseLongShortRatioHistory(Object response, Object... optionalArgs)
+    public List<Object> parseLongShortRatioHistory(Object response, Object... optionalArgs)
     {
         return this.parseLongShortRatioHistory(response, Helpers.getArgMap(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null));
     }
@@ -11838,7 +11888,7 @@ public Object describe()
         return this.parseOpenInterests(response, Helpers.getArgStringList(optionalArgs, 0, null));
     }
 
-    public Object parseOpenInterestsHistory(Object response, Map<String, Object> market, Long since, Long limit)
+    public List<Object> parseOpenInterestsHistory(Object response, Map<String, Object> market, Long since, Long limit)
     {
         List<Object> interests = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
@@ -11851,7 +11901,7 @@ public Object describe()
         String symbol = this.safeString(market, "symbol");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
-    public Object parseOpenInterestsHistory(Object response, Object... optionalArgs)
+    public List<Object> parseOpenInterestsHistory(Object response, Object... optionalArgs)
     {
         return this.parseOpenInterestsHistory(response, Helpers.getArgMap(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null));
     }
@@ -12226,16 +12276,16 @@ public Object describe()
         return this.assignDefaultDepositWithdrawFees(fee, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public Object parseIncome(Object info, Map<String, Object> market)
+    public Object parseIncome(Map<String, Object> info, Map<String, Object> market)
     {
         throw new NotSupported((this.id + " parseIncome () is not supported yet")) ;
     }
-    public Object parseIncome(Object info, Object... optionalArgs)
+    public Object parseIncome(Map<String, Object> info, Object... optionalArgs)
     {
         return this.parseIncome(info, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public Object parseIncomes(Object incomes, Map<String, Object> market, Long since, Long limit)
+    public List<Object> parseIncomes(Object incomes, Map<String, Object> market, Long since, Long limit)
     {
         /**
          * @ignore
@@ -12251,14 +12301,14 @@ public Object describe()
         for (var i = 0; i < Helpers.getArrayLength(incomes); i++)
         {
             Object entry = Helpers.GetValue(incomes, i);
-            Object parsed = this.parseIncome(entry, market);
+            Object parsed = this.parseIncome((Map<String, Object>) (entry), market);
             ((List<Object>)result).add(parsed);
         }
         List<Object> sorted = this.sortBy(result, "timestamp");
         String symbol = this.safeString(market, "symbol");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
-    public Object parseIncomes(Object incomes, Object... optionalArgs)
+    public List<Object> parseIncomes(Object incomes, Object... optionalArgs)
     {
         return this.parseIncomes(incomes, Helpers.getArgMap(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null));
     }
@@ -12386,9 +12436,9 @@ public Object describe()
 
     public Object handleMaxEntriesPerRequestAndParams(Object method, Long maxEntriesPerRequest, Map<String, Object> parameters)
     {
-        Object newMaxEntriesPerRequest = null;
-        List<Object> newMaxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "maxEntriesPerRequest");
-        newMaxEntriesPerRequest = ((List<Object>) newMaxEntriesPerRequestparametersVariable).get(0);
+        Long newMaxEntriesPerRequest = null;
+        List<Object> newMaxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "maxEntriesPerRequest");
+        newMaxEntriesPerRequest = (Long) ((List<Object>) newMaxEntriesPerRequestparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) newMaxEntriesPerRequestparametersVariable).get(1);
         if ((!java.util.Objects.equals(newMaxEntriesPerRequest, null)) && (!Helpers.isEqual(newMaxEntriesPerRequest, maxEntriesPerRequest)))
         {
@@ -12417,11 +12467,11 @@ public Object describe()
             Object parameters = parameters3;
             Object maxEntriesPerRequest = maxEntriesPerRequest3;
             Object maxCalls = 10;
-            List<Object> maxCallsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "paginationCalls", maxCalls);
+            List<Object> maxCallsparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "paginationCalls", maxCalls);
             maxCalls = ((List<Object>) maxCallsparametersVariable).get(0);
             parameters = ((List<Object>) maxCallsparametersVariable).get(1);
             Object maxRetries = 3;
-            List<Object> maxRetriesparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "maxRetries", maxRetries);
+            List<Object> maxRetriesparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "maxRetries", maxRetries);
             maxRetries = ((List<Object>) maxRetriesparametersVariable).get(0);
             parameters = ((List<Object>) maxRetriesparametersVariable).get(1);
             Object paginationDirection = null;
@@ -12556,7 +12606,7 @@ public Object describe()
             Object timeframe = timeframe3;
             Object parameters = parameters3;
             Object maxRetries = 3;
-            List<Object> maxRetriesparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "maxRetries", maxRetries);
+            List<Object> maxRetriesparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "maxRetries", maxRetries);
             maxRetries = ((List<Object>) maxRetriesparametersVariable).get(0);
             parameters = ((List<Object>) maxRetriesparametersVariable).get(1);
             Object errors = 0;
@@ -12605,7 +12655,7 @@ public Object describe()
             Object parameters = parameters3;
             Object maxEntriesPerRequest = maxEntriesPerRequest3;
             Object maxCalls = 10;
-            List<Object> maxCallsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "paginationCalls", maxCalls);
+            List<Object> maxCallsparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "paginationCalls", maxCalls);
             maxCalls = ((List<Object>) maxCallsparametersVariable).get(0);
             parameters = ((List<Object>) maxCallsparametersVariable).get(1);
             List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
@@ -12699,11 +12749,11 @@ public Object describe()
             Object cursorIncrement = cursorIncrement3;
             Object maxEntriesPerRequest = maxEntriesPerRequest3;
             Object maxCalls = 10;
-            List<Object> maxCallsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "paginationCalls", maxCalls);
+            List<Object> maxCallsparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "paginationCalls", maxCalls);
             maxCalls = ((List<Object>) maxCallsparametersVariable).get(0);
             parameters = ((List<Object>) maxCallsparametersVariable).get(1);
             Object maxRetries = 3;
-            List<Object> maxRetriesparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "maxRetries", maxRetries);
+            List<Object> maxRetriesparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "maxRetries", maxRetries);
             maxRetries = ((List<Object>) maxRetriesparametersVariable).get(0);
             parameters = ((List<Object>) maxRetriesparametersVariable).get(1);
             List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
@@ -12831,11 +12881,11 @@ public Object describe()
             Object parameters = parameters3;
             Object maxEntriesPerRequest = maxEntriesPerRequest3;
             Object maxCalls = 10;
-            List<Object> maxCallsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "paginationCalls", maxCalls);
+            List<Object> maxCallsparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "paginationCalls", maxCalls);
             maxCalls = ((List<Object>) maxCallsparametersVariable).get(0);
             parameters = ((List<Object>) maxCallsparametersVariable).get(1);
             Object maxRetries = 3;
-            List<Object> maxRetriesparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "maxRetries", maxRetries);
+            List<Object> maxRetriesparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "maxRetries", maxRetries);
             maxRetries = ((List<Object>) maxRetriesparametersVariable).get(0);
             parameters = ((List<Object>) maxRetriesparametersVariable).get(1);
             List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
@@ -13019,7 +13069,7 @@ public Object describe()
         return this.parseLiquidation(liquidation, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public Object parseLiquidations(Object liquidations, Map<String, Object> market, Long since, Long limit)
+    public List<Object> parseLiquidations(Object liquidations, Map<String, Object> market, Long since, Long limit)
     {
         /**
          * @ignore
@@ -13042,7 +13092,7 @@ public Object describe()
         String symbol = this.safeString(market, "symbol");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
-    public Object parseLiquidations(Object liquidations, Object... optionalArgs)
+    public List<Object> parseLiquidations(Object liquidations, Object... optionalArgs)
     {
         return this.parseLiquidations(liquidations, Helpers.getArgMap(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null));
     }
@@ -13184,7 +13234,7 @@ public Object describe()
         return this.parseLeverage(leverage, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public Object parseConversions(Object conversions, String code, String fromCurrencyKey, String toCurrencyKey, Long since, Long limit, Map<String, Object> parameters)
+    public List<Object> parseConversions(Object conversions, String code, String fromCurrencyKey, String toCurrencyKey, Long since, Long limit, Map<String, Object> parameters)
     {
         List<Object> conversionsArray = this.toArray(conversions);
         List<Object> result = new ArrayList<Object>(Arrays.asList());
@@ -13226,7 +13276,7 @@ public Object describe()
         List<Object> both = (List<Object>) this.arrayConcat(fromConversion, toConversion);
         return this.filterBySinceLimit(both, since, limit);
     }
-    public Object parseConversions(Object conversions, Object... optionalArgs)
+    public List<Object> parseConversions(Object conversions, Object... optionalArgs)
     {
         return this.parseConversions(conversions, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgString(optionalArgs, 1, null), Helpers.getArgString(optionalArgs, 2, null), Helpers.getArgLong(optionalArgs, 3, null), Helpers.getArgLong(optionalArgs, 4, null), Helpers.getArgMap(optionalArgs, 5, new HashMap<String, Object>() {{}}));
     }
@@ -13370,7 +13420,7 @@ public Object describe()
         return this.parseMarginModification(data, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public Object parseMarginModifications(Object response, List<String> symbols, String symbolKey, Object marketType)
+    public List<Object> parseMarginModifications(Object response, List<String> symbols, String symbolKey, Object marketType)
     {
         List<Object> marginModifications = new ArrayList<Object>(Arrays.asList());
         if (java.util.Objects.equals(response, null))
@@ -13389,7 +13439,7 @@ public Object describe()
         }
         return marginModifications;
     }
-    public Object parseMarginModifications(Object response, Object... optionalArgs)
+    public List<Object> parseMarginModifications(Object response, Object... optionalArgs)
     {
         return this.parseMarginModifications(response, Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgString(optionalArgs, 1, null), optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null);
     }

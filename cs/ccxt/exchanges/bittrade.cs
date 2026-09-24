@@ -1830,7 +1830,14 @@ public partial class bittrade : Exchange
         Dictionary<string, object> fee = null;
         if ((feeCost != null))
         {
-            object feeCurrency = (isEqual(side, "sell")) ? getValue(market, "quote") : getValue(market, "base");
+            object feeCurrency = null;
+            if (isEqual(side, "sell"))
+            {
+                feeCurrency = getValue(market, "quote");
+            } else
+            {
+                feeCurrency = getValue(market, "base");
+            }
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
                 { "currency", feeCurrency },

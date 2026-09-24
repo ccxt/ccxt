@@ -2710,8 +2710,16 @@ public class Gate extends GateApi
                     Long expiry = this.safeTimestamp(market, "expiration_time");
                     String strike = this.safeString(market, "strike_price");
                     Boolean isCall = (Boolean) this.safeBool(market, "is_call");
-                    String optionLetter = (((java.util.Objects.equals(isCall, true)))) ? "C" : "P";
-                    String optionType = (((java.util.Objects.equals(isCall, true)))) ? "call" : "put";
+                    String optionLetter = "P";
+                    if (java.util.Objects.equals(isCall, true))
+                    {
+                        optionLetter = "C";
+                    }
+                    String optionType = "put";
+                    if (java.util.Objects.equals(isCall, true))
+                    {
+                        optionType = "call";
+                    }
                     symbol = ((((((((symbol + ":") + quote) + "-") + this.yymmdd(expiry)) + "-") + strike) + "-") + optionLetter);
                     String priceDeviate = this.safeString(market, "order_price_deviate");
                     String markPrice = this.safeString(market, "mark_price");
@@ -2726,6 +2734,7 @@ public class Gate extends GateApi
                     }
     final String finalSymbol = symbol;
                     final String finalBase = base;
+                    final String finalOptionType = optionType;
                     final Long finalCreatedTs = createdTs;
                                     ((List<Object>)result).add(new HashMap<String, Object>() {{
                         put( "id", id );
@@ -2752,7 +2761,7 @@ public class Gate extends GateApi
                         put( "expiry", expiry );
                         put( "expiryDatetime", Gate.this.iso8601(expiry) );
                         put( "strike", Gate.this.parseNumber(strike) );
-                        put( "optionType", optionType );
+                        put( "optionType", finalOptionType );
                         put( "precision", new HashMap<String, Object>() {{
                             put( "amount", Gate.this.parseNumber("1") );
                             put( "price", Gate.this.safeNumber(market, "order_price_round") );
@@ -2852,7 +2861,11 @@ public class Gate extends GateApi
             Boolean future = java.util.Objects.equals(type, "future");
             if (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future))
             {
-                String defaultSettle = ((Boolean.TRUE.equals(swap))) ? "usdt" : "btc";
+                String defaultSettle = "btc";
+                if (Boolean.TRUE.equals(swap))
+                {
+                    defaultSettle = "usdt";
+                }
                 String settle = this.safeStringLower(parameters, "settle", defaultSettle);
                 parameters = (Map<String, Object>) (this.omit(parameters, "settle"));
                 ((Map<String, Object>)request).put("settle", settle);
@@ -2970,8 +2983,8 @@ public class Gate extends GateApi
             }
         }
         Boolean isUnifiedAccount = false;
-        List<Object> isUnifiedAccountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "getMarginMode", "unifiedAccount");
-        isUnifiedAccount = Boolean.TRUE.equals(((List<Object>) isUnifiedAccountparametersVariable).get(0));
+        List<Object> isUnifiedAccountparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "getMarginMode", "unifiedAccount", false);
+        isUnifiedAccount = (Boolean) ((List<Object>) isUnifiedAccountparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) isUnifiedAccountparametersVariable).get(1);
         if (Boolean.TRUE.equals(isUnifiedAccount))
         {
@@ -2984,7 +2997,7 @@ public class Gate extends GateApi
     {
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, type, new HashMap<String, Object>() {{}}); // [ 'BTC', 'USDT' ] unified codes
         Map<String, Object> fetchMarketsContractOptions = (Map<String, Object>) this.safeDict(options, method, new HashMap<String, Object>() {{}});
-        List<Object> defaultSettle = (((java.util.Objects.equals(type, "swap")))) ? new ArrayList<Object>(Arrays.asList("usdt")) : new ArrayList<Object>(Arrays.asList("btc"));
+        List<String> defaultSettle = (((java.util.Objects.equals(type, "swap")))) ? new ArrayList<String>(Arrays.asList("usdt")) : new ArrayList<String>(Arrays.asList("btc"));
         return this.safeList(fetchMarketsContractOptions, "settlementCurrencies", defaultSettle);
     }
 
@@ -3068,7 +3081,11 @@ public class Gate extends GateApi
         String currencyId = this.safeString(rawCurrency, "currency");
         String code = this.safeCurrencyCode(currencyId);
         // check leveraged tokens (e.g. BTC3S, ETH5L)
-        String type = ((Boolean.TRUE.equals(this.isLeveragedCurrency(currencyId)))) ? "leveraged" : "crypto";
+        String type = "crypto";
+        if (Boolean.TRUE.equals(this.isLeveragedCurrency(currencyId)))
+        {
+            type = "leveraged";
+        }
         List<Object> chains = (List<Object>) this.safeList(rawCurrency, "chains", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)chains).size(); j++)
@@ -3101,11 +3118,12 @@ public class Gate extends GateApi
 }});
             }
         }
+        final String finalType = type;
         return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", currencyId );
             put( "code", code );
             put( "name", Gate.this.safeString(rawCurrency, "name") );
-            put( "type", type );
+            put( "type", finalType );
             put( "active", !java.util.Objects.equals(Gate.this.safeBool(rawCurrency, "delisted"), true) );
             put( "deposit", !java.util.Objects.equals(Gate.this.safeBool(rawCurrency, "deposit_disabled"), true) );
             put( "withdraw", !java.util.Objects.equals(Gate.this.safeBool(rawCurrency, "withdraw_disabled"), true) );
@@ -3538,7 +3556,7 @@ public class Gate extends GateApi
         return this.fetchDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseDepositAddress(Object depositAddress, Map<String, Object> currency)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         //
         //     {
@@ -3560,7 +3578,7 @@ public class Gate extends GateApi
             put( "network", Gate.this.networkIdToCode(Gate.this.safeString(depositAddress, "chain"), code) );
         }};
     }
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Object... optionalArgs)
     {
         return this.parseDepositAddress(depositAddress, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -3699,16 +3717,34 @@ public class Gate extends GateApi
         //    }
         //
         Boolean gtDiscount = (Boolean) this.safeBool(info, "gt_discount");
-        String taker = (((java.util.Objects.equals(gtDiscount, true)))) ? "gt_taker_fee" : "taker_fee";
-        String maker = (((java.util.Objects.equals(gtDiscount, true)))) ? "gt_maker_fee" : "maker_fee";
+        String taker = "taker_fee";
+        if (java.util.Objects.equals(gtDiscount, true))
+        {
+            taker = "gt_taker_fee";
+        }
+        String maker = "maker_fee";
+        if (java.util.Objects.equals(gtDiscount, true))
+        {
+            maker = "gt_maker_fee";
+        }
         Boolean contract = (Boolean) this.safeBool(market, "contract");
-        String takerKey = (((java.util.Objects.equals(contract, true)))) ? "futures_taker_fee" : taker;
-        String makerKey = (((java.util.Objects.equals(contract, true)))) ? "futures_maker_fee" : maker;
+        String takerKey = taker;
+        if (java.util.Objects.equals(contract, true))
+        {
+            takerKey = "futures_taker_fee";
+        }
+        String makerKey = maker;
+        if (java.util.Objects.equals(contract, true))
+        {
+            makerKey = "futures_maker_fee";
+        }
+        final String finalMakerKey = makerKey;
+        final String finalTakerKey = takerKey;
         return new HashMap<String, Object>() {{
             put( "info", info );
             put( "symbol", Gate.this.safeString(market, "symbol") );
-            put( "maker", Gate.this.safeNumber(info, makerKey) );
-            put( "taker", Gate.this.safeNumber(info, takerKey) );
+            put( "maker", Gate.this.safeNumber(info, finalMakerKey) );
+            put( "taker", Gate.this.safeNumber(info, finalTakerKey) );
             put( "percentage", null );
             put( "tierBased", null );
         }};
@@ -4029,7 +4065,7 @@ public class Gate extends GateApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
-            Object entry = Helpers.GetValue(response, i);
+            Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, i);
             Object funding = this.parseFundingHistory(entry);
             ((List<Object>)result).add(funding);
         }
@@ -4389,7 +4425,11 @@ public class Gate extends GateApi
         //     }
         //
         String marketId = this.safeStringN(ticker, new ArrayList<Object>(Arrays.asList("currency_pair", "contract", "name")));
-        String marketType = (((((Map<?, ?>)ticker).containsKey("mark_price")))) ? "contract" : "spot";
+        String marketType = "spot";
+        if (((Map<?, ?>)ticker).containsKey("mark_price"))
+        {
+            marketType = "contract";
+        }
         String symbol = this.safeSymbol(marketId, market, "_", marketType);
         String last = this.safeString2(ticker, "last", "last_price");
         String ask = this.safeStringN(ticker, new ArrayList<Object>(Arrays.asList("lowest_ask", "a", "ask1_price")));
@@ -4563,8 +4603,8 @@ public class Gate extends GateApi
             String symbol = this.safeString(parameters, "symbol");
             parameters = (Map<String, Object>) this.omit(parameters, "symbol");
             Boolean isUnifiedAccount = false;
-            List<Object> isUnifiedAccountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchBalance", "unifiedAccount");
-            isUnifiedAccount = Boolean.TRUE.equals(((List<Object>) isUnifiedAccountparametersVariable).get(0));
+            List<Object> isUnifiedAccountparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchBalance", "unifiedAccount", false);
+            isUnifiedAccount = (Boolean) ((List<Object>) isUnifiedAccountparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) isUnifiedAccountparametersVariable).get(1);
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             String type = (String) ((List<Object>) typequeryVariable).get(0);
@@ -4911,8 +4951,8 @@ public class Gate extends GateApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -5066,8 +5106,8 @@ public class Gate extends GateApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -5210,8 +5250,8 @@ public class Gate extends GateApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -5454,8 +5494,8 @@ public class Gate extends GateApi
             }
             (this.loadUnifiedStatus()).join();
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -5734,11 +5774,19 @@ public class Gate extends GateApi
             timestamp = this.safeTimestamp2(trade, "time", "create_time");
         }
         String marketId = this.safeString2(trade, "currency_pair", "contract");
-        String marketType = (((((Map<?, ?>)trade).containsKey("contract")))) ? "contract" : "spot";
+        String marketType = "spot";
+        if (((Map<?, ?>)trade).containsKey("contract"))
+        {
+            marketType = "contract";
+        }
         market = (Map<String, Object>) (this.safeMarket(marketId, market, "_", marketType));
         String amountString = this.safeString2(trade, "amount", "size");
         String priceString = this.safeString(trade, "price");
-        String contractSide = ((Precise.stringLt(amountString, "0"))) ? "sell" : "buy";
+        String contractSide = "buy";
+        if (Precise.stringLt(amountString, "0"))
+        {
+            contractSide = "sell";
+        }
         amountString = Precise.stringAbs(amountString);
         String side = this.safeString2(trade, "side", "type", contractSide);
         String orderId = this.safeString(trade, "order_id");
@@ -5832,8 +5880,8 @@ final String finalPointFee = pointFee;
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -5911,8 +5959,8 @@ final String finalPointFee = pointFee;
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -6241,7 +6289,7 @@ final String finalPointFee = pointFee;
             Object trigger = this.safeValue(parameters, "trigger");
             Object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
             Object stopLossPrice = this.safeValue(parameters, "stopLossPrice", triggerPrice);
-            Object takeProfitPrice = this.safeValue(parameters, "takeProfitPrice");
+            String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
             Boolean isStopLossOrder = !java.util.Objects.equals(stopLossPrice, null);
             Boolean isTakeProfitOrder = !java.util.Objects.equals(takeProfitPrice, null);
             Boolean isTpsl = Boolean.TRUE.equals(isStopLossOrder) || Boolean.TRUE.equals(isTakeProfitOrder);
@@ -6403,7 +6451,7 @@ final String finalPointFee = pointFee;
         }
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
-            Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+            Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i);
             String marketId = this.safeString(rawOrder, "symbol");
             ((List<Object>)orderSymbols).add(marketId);
             String type = this.safeString(rawOrder, "type");
@@ -6421,7 +6469,7 @@ final String finalPointFee = pointFee;
             Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
             ((List<Object>)ordersRequests).add(orderRequest);
         }
-        Object symbols = this.marketSymbols(orderSymbols, null, false, true, true);
+        List<Object> symbols = this.marketSymbols(orderSymbols, null, false, true, true);
         Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
         if ((java.util.Objects.equals(((Map<String, Object>)market).get("future"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("option"), true)))
         {
@@ -6549,14 +6597,18 @@ final String finalPointFee = pointFee;
         }
         if (java.util.Objects.equals(contract, true))
         {
-            Object isClose = this.safeValue(parameters, "close");
+            Boolean isClose = (Boolean) this.safeBool(parameters, "close");
             if (java.util.Objects.equals(isClose, true))
             {
                 amount = 0;
             } else
             {
                 String amountToPrecision = this.amountToPrecision(symbol, amount);
-                String signedAmount = (((java.util.Objects.equals(side, "sell")))) ? Precise.stringNeg(amountToPrecision) : amountToPrecision;
+                String signedAmount = amountToPrecision;
+                if (java.util.Objects.equals(side, "sell"))
+                {
+                    signedAmount = Precise.stringNeg(amountToPrecision);
+                }
                 amount = Helpers.parseInt(signedAmount);
             }
         }
@@ -6865,8 +6917,8 @@ final String finalPointFee = pointFee;
         parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
         Object account = this.convertTypeToAccount(marketType);
         Boolean isUnifiedAccount = false;
-        List<Object> isUnifiedAccountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "editOrder", "unifiedAccount");
-        isUnifiedAccount = Boolean.TRUE.equals(((List<Object>) isUnifiedAccountparametersVariable).get(0));
+        List<Object> isUnifiedAccountparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "editOrder", "unifiedAccount", false);
+        isUnifiedAccount = (Boolean) ((List<Object>) isUnifiedAccountparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) isUnifiedAccountparametersVariable).get(1);
         if (Boolean.TRUE.equals(isUnifiedAccount))
         {
@@ -7645,8 +7697,8 @@ final Object finalRebate = rebate;
             }
             (this.loadUnifiedStatus()).join();
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchClosedOrders", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchClosedOrders", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -8233,7 +8285,14 @@ final Object finalRebate = rebate;
                 market = (Map<String, Object>) this.market(symbol);
             }
             String type = null;
-            Object defaultSettle = (((java.util.Objects.equals(market, null)))) ? "usdt" : ((Map<String, Object>)market).get("settle");
+            Object defaultSettle = null;
+            if (java.util.Objects.equals(market, null))
+            {
+                defaultSettle = "usdt";
+            } else
+            {
+                defaultSettle = ((Map<String, Object>)market).get("settle");
+            }
             String settle = this.safeStringLower(parameters, "settle", defaultSettle);
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrders", market, parameters);
             type = (String) ((List<Object>) typeparametersVariable).get(0);
@@ -8312,7 +8371,7 @@ final Object finalRebate = rebate;
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object order = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+                Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, i);
                 String symbol = this.safeString(order, "symbol");
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
@@ -9433,7 +9492,7 @@ final String finalFloor = floor;
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)info).size(); i++)
         {
-            Object item = (info == null || i < 0 || i >= ((List<?>)info).size() ? null : ((List<?>)info).get(i));
+            Map<String, Object> item = (Map<String, Object>) this.safeDict(info, i);
             Double maxNotional = this.safeNumber(item, "risk_limit");
 final Object finalI = i;
             final Object finalMinNotional = minNotional;
@@ -9541,8 +9600,8 @@ final Object finalI = i;
                 put( "amount", Gate.this.currencyToPrecision((String) (code), amount) );
             }};
             Boolean isUnifiedAccount = false;
-            List<Object> isUnifiedAccountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "repayCrossMargin", "unifiedAccount");
-            isUnifiedAccount = Boolean.TRUE.equals(((List<Object>) isUnifiedAccountparametersVariable).get(0));
+            List<Object> isUnifiedAccountparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "repayCrossMargin", "unifiedAccount", false);
+            isUnifiedAccount = (Boolean) ((List<Object>) isUnifiedAccountparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) isUnifiedAccountparametersVariable).get(1);
             Object response = null;
             if (Boolean.TRUE.equals(isUnifiedAccount))
@@ -9675,8 +9734,8 @@ final Object finalI = i;
                 put( "amount", Gate.this.currencyToPrecision((String) (code), amount) );
             }};
             Boolean isUnifiedAccount = false;
-            List<Object> isUnifiedAccountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "borrowCrossMargin", "unifiedAccount");
-            isUnifiedAccount = Boolean.TRUE.equals(((List<Object>) isUnifiedAccountparametersVariable).get(0));
+            List<Object> isUnifiedAccountparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "borrowCrossMargin", "unifiedAccount", false);
+            isUnifiedAccount = (Boolean) ((List<Object>) isUnifiedAccountparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) isUnifiedAccountparametersVariable).get(1);
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isUnifiedAccount))
@@ -9805,8 +9864,8 @@ final Object finalI = i;
             }
             (this.loadUnifiedStatus()).join();
             Boolean isUnifiedAccount = false;
-            List<Object> isUnifiedAccountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchBorrowInterest", "unifiedAccount");
-            isUnifiedAccount = Boolean.TRUE.equals(((List<Object>) isUnifiedAccountparametersVariable).get(0));
+            List<Object> isUnifiedAccountparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchBorrowInterest", "unifiedAccount", false);
+            isUnifiedAccount = (Boolean) ((List<Object>) isUnifiedAccountparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) isUnifiedAccountparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("to", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
@@ -9851,7 +9910,7 @@ final Object finalI = i;
                 // deprecated and not present in the exchange's docs but still works
                 response = (this.privateMarginGetCrossInterestRecords(this.extend(request, parameters))).join();
             }
-            Object interest = this.parseBorrowInterests(response, market);
+            List<Object> interest = this.parseBorrowInterests(response, market);
             return this.filterByCurrencySinceLimit(interest, code, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(BorrowInterest::new).collect(Collectors.toList()));
 
@@ -9879,9 +9938,14 @@ final Object finalI = i;
     {
         String marketId = this.safeString(info, "currency_pair");
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
-        String marginMode = (((!java.util.Objects.equals(marketId, null)))) ? "isolated" : "cross";
+        String marginMode = "cross";
+        if (!java.util.Objects.equals(marketId, null))
+        {
+            marginMode = "isolated";
+        }
         Long timestamp = this.safeInteger(info, "create_time");
         final Map<String, Object> finalMarket = market;
+        final String finalMarginMode = marginMode;
         return new HashMap<String, Object>() {{
             put( "info", info );
             put( "symbol", Gate.this.safeString(finalMarket, "symbol") );
@@ -9889,7 +9953,7 @@ final Object finalI = i;
             put( "interest", Gate.this.safeNumber(info, "interest") );
             put( "interestRate", Gate.this.safeNumber(info, "actual_rate") );
             put( "amountBorrowed", null );
-            put( "marginMode", marginMode );
+            put( "marginMode", finalMarginMode );
             put( "timestamp", timestamp );
             put( "datetime", Gate.this.iso8601(timestamp) );
         }};
@@ -9936,7 +10000,14 @@ final Object finalI = i;
         {
             path = this.implodeParams(path, parameters);
         }
-        String endPart = (((java.util.Objects.equals(path, "")))) ? "" : (Helpers.add("/", path));
+        String endPart = null;
+        if (java.util.Objects.equals(path, ""))
+        {
+            endPart = "";
+        } else
+        {
+            endPart = (Helpers.add("/", path));
+        }
         String entirePath = (Helpers.add("/", type) + endPart);
         if ((java.util.Objects.equals(type, "subAccounts")) || (java.util.Objects.equals(type, "withdrawals")))
         {
@@ -10668,8 +10739,8 @@ final Object finalI = i;
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -10692,7 +10763,11 @@ final Object finalI = i;
             }
             if ((java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future")))
             {
-                String defaultSettle = (((java.util.Objects.equals(type, "swap")))) ? "usdt" : "btc";
+                String defaultSettle = "btc";
+                if (java.util.Objects.equals(type, "swap"))
+                {
+                    defaultSettle = "usdt";
+                }
                 String settle = this.safeStringLower(parameters, "settle", defaultSettle);
                 parameters = (Map<String, Object>) this.omit(parameters, "settle");
                 ((Map<String, Object>)request).put("settle", settle);

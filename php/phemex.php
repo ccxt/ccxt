@@ -1166,7 +1166,7 @@ class phemex extends Exchange {
         $minAmount = null;
         $maxAmount = null;
         $precision = null;
-        if ($valueScale !== null) {
+        if ($valueScaleString !== null) {
             $precisionString = $this->parse_precision($valueScaleString);
             $precision = $this->parse_number($precisionString);
             $minAmount = $this->parse_number(Precise::string_mul($minValueEv, $precisionString));
@@ -1367,6 +1367,7 @@ class phemex extends Exchange {
         //         48759063370, // quote volume
         //     ]
         //
+        $baseVolume = null;
         if (($market !== null) && ($market['spot'] === true)) {
             $baseVolume = $this->parse_number($this->from_ev($this->safe_string($ohlcv, 7), $market));
         } else {
@@ -2045,7 +2046,7 @@ class phemex extends Exchange {
         $result = array( 'info' => $response );
         $data = $this->safe_list($response, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
-            $balance = $data[$i];
+            $balance = $this->safe_dict($data, $i);
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $currency = $this->safe_dict($this->currencies, $code, array());
@@ -3545,10 +3546,10 @@ class phemex extends Exchange {
         // }
         //
         if ($isUSDTSettled) {
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
         } else {
             $data = $this->safe_value($response, 'data', array());
-            $data = $this->safe_value($data, 'rows', array());
+            $data = $this->safe_list($data, 'rows', array());
         }
         return $this->parse_trades($data, $market, $since, $limit);
     }
@@ -4680,7 +4681,7 @@ class phemex extends Exchange {
         $tiers = array();
         $minNotional = 0;
         for ($i = 0; $i < count($riskLimits); $i++) {
-            $tier = $riskLimits[$i];
+            $tier = $this->safe_dict($riskLimits, $i);
             $maxNotional = $this->safe_integer($tier, 'limit');
             $minNotionalResponse = $minNotional; // java req
             $tiers[] = array(
@@ -5024,7 +5025,7 @@ class phemex extends Exchange {
             throw new BadRequest($this->id . ' fetchFundingRateHistory() supports swap contracts only');
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params, 100);
         }

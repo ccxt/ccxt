@@ -134,12 +134,10 @@ func (this *Grvt) subscribeMultipleBody(ch chan any, messageHashes any, request 
 		"params":  request,
 		"id":      this.RequestId(),
 	}
-	var apiPart string = func() string {
-		if publicOrPrivate == true {
-			return "publicMarket"
-		}
-		return "privateTrading"
-	}()
+	var apiPart string = "privateTrading"
+	if publicOrPrivate == true {
+		apiPart = "publicMarket"
+	}
 
 	ch <- ccxt.PanicOnError((<-this.WatchMultiple(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), apiPart), messageHashes, payload, rawHashes)))
 	return nil
@@ -214,7 +212,7 @@ func (this *Grvt) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	channel = ccxt.SafeStringPtr(ccxt.GetValue(channelparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(channelparamsVariable, 1))
 	var interval any = 500
-	var intervalparamsVariable []any = this.HandleOptionAndParams(params, "watchTickers", "interval", interval)
+	var intervalparamsVariable []any = this.HandleOptionIntegerAndParams(params, "watchTickers", "interval", interval)
 	interval = ccxt.GetValue(intervalparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(intervalparamsVariable, 1))
 	if this.Markets == nil {
@@ -547,7 +545,7 @@ func (this *Grvt) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 	var rawHashes []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
-		var data any = ccxt.GetValue(symbolsAndTimeframes, i)
+		var data []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
 		var symbolString *string = this.SafeString(data, 0)
 		var market map[string]any = ccxt.MapTyped(this.Market(symbolString))
 		var marketId *string = ccxt.SafeStringPtr(market["id"])
@@ -691,12 +689,12 @@ func (this *Grvt) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrderBookForSymbols() requires a non-empty array of symbols"))
 	}
 	if limit == nil {
-		var limitparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "limit", 100)
+		var limitparamsVariable []any = this.HandleOptionIntegerAndParams(params, "watchOrderBook", "limit", 100)
 		limit = ccxt.GetValue(limitparamsVariable, 0)
 		params = ccxt.MapTyped(ccxt.GetValue(limitparamsVariable, 1))
 	}
 	var interval any = 500
-	var intervalparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "interval", interval)
+	var intervalparamsVariable []any = this.HandleOptionIntegerAndParams(params, "watchOrderBook", "interval", interval)
 	interval = ccxt.GetValue(intervalparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(intervalparamsVariable, 1))
 	symbols = this.MarketSymbols(symbols)

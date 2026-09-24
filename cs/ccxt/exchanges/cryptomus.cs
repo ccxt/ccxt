@@ -495,7 +495,7 @@ public partial class cryptomus : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int i = 0; i < getArrayLength(rawCurrency); i++)
         {
-            object networkEntry = getValue(rawCurrency, i);
+            IDictionary<string, object> networkEntry = this.safeDict(rawCurrency, i);
             // set ID on first loop
             if ((id == null))
             {
@@ -631,7 +631,7 @@ public partial class cryptomus : Exchange
             { "currencyPair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         object level = 0;
-        IList<object> levelparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrderBook", "level", level);
+        IList<object> levelparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOrderBook", "level", level);
         level = levelparametersVariable[0];
         parameters = levelparametersVariable[1];
         request["level"] = level;
@@ -785,7 +785,7 @@ public partial class cryptomus : Exchange
         };
         for (int i = 0; i < getArrayLength(balance); i++)
         {
-            object balanceEntry = getValue(balance, i);
+            IDictionary<string, object> balanceEntry = this.safeDict(balance, i);
             string? currencyId = this.safeString(balanceEntry, "ticker");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -1281,7 +1281,7 @@ public partial class cryptomus : Exchange
         List<object> makerFees = new List<object>() {};
         for (int i = 0; i < getArrayLength(feeTiers); i++)
         {
-            object tier = getValue(feeTiers, i);
+            IDictionary<string, object> tier = this.safeDict(feeTiers, i);
             double? turnover = this.safeNumber(tier, "from_turnover");
             string? taker = this.safeString(tier, "taker_percent");
             string? maker = this.safeString(tier, "maker_percent");

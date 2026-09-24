@@ -222,7 +222,7 @@ func (this *Hyperliquid) editOrderWsBody(ch chan any, id any, symbol any, typeVa
 	// response is the same as in this.editOrder
 	var responseObject map[string]any = ccxt.SafeMapTyped(response, "response")
 	var dataObject map[string]any = ccxt.SafeMapTyped(responseObject, "data")
-	var statuses any = this.SafeList(dataObject, "statuses", []any{})
+	var statuses []any = ccxt.SafeListTyped(dataObject, "statuses")
 	var first any = this.SafeDict(statuses, 0, map[string]any{})
 	var parsedOrder map[string]any = ccxt.MapTyped(this.ParseOrder(first, market))
 
@@ -447,7 +447,7 @@ func (this *Hyperliquid) HandleOrderBook(client any, message map[string]any) {
 	var marketId any = this.CoinToMarketId(coin)
 	var market map[string]any = ccxt.MapTyped(this.Market(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var rawData []any = ccxt.SafeListTypedDefault(entry, "levels", []any{})
+	var rawData []any = ccxt.SafeListTyped(entry, "levels")
 	var data map[string]any = map[string]any{
 		"bids": this.SafeList(rawData, 0, []any{}),
 		"asks": this.SafeList(rawData, 1, []any{}),
@@ -1031,7 +1031,7 @@ func (this *Hyperliquid) HandleTrades(client any, message map[string]any) {
 	//         ]
 	//     }
 	//
-	var entry []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var entry []any = ccxt.SafeListTyped(message, "data")
 	var entryLength int = len(entry)
 	if entryLength == 0 {
 		return
@@ -1330,12 +1330,10 @@ func (this *Hyperliquid) watchBalanceBody(ch chan any, optionalArgs ...any) any 
 	params = this.SafeDict(unifiedResult, 1, params)
 	var dex *string = this.SafeString(params, "dex")
 	var isSpot bool = ((typeVar != nil && *typeVar == "spot") || (ccxt.IsEqual(isUnifiedEnabled, true))) && (dex == nil)
-	var topic string = func() string {
-		if isSpot == true {
-			return "spotState"
-		}
-		return "clearinghouseState"
-	}()
+	var topic string = "clearinghouseState"
+	if isSpot == true {
+		topic = "spotState"
+	}
 	var messageHash string = topic + "::balance"
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
 	var subscription map[string]any = map[string]any{
@@ -1399,12 +1397,10 @@ func (this *Hyperliquid) unWatchBalanceBody(ch chan any, optionalArgs ...any) an
 	params = this.SafeDict(unifiedResult, 1, params)
 	var dex *string = this.SafeString(params, "dex")
 	var isSpot bool = ((typeVar != nil && *typeVar == "spot") || (ccxt.IsEqual(isUnifiedEnabled, true))) && (dex == nil)
-	var topic string = func() string {
-		if isSpot == true {
-			return "spotState"
-		}
-		return "clearinghouseState"
-	}()
+	var topic string = "clearinghouseState"
+	if isSpot == true {
+		topic = "spotState"
+	}
 	var messageHash string = "unsubscribe" + ":" + topic
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",

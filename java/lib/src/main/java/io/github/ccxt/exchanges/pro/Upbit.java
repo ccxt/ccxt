@@ -79,7 +79,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             {
                 symbols = new ArrayList<Object>(Arrays.asList());
             }
-            List<Object> marketIds = this.marketIds(symbols);
+            List<String> marketIds = this.marketIds(symbols);
             String url = (String) this.implodeParams(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), new HashMap<String, Object>() {{
                 put( "hostname", Upbit.this.hostname );
             }});
@@ -93,7 +93,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+                String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 String messageHash = Helpers.add((channel + ":"), symbol);
                 ((List<Object>)messageHashes).add(messageHash);
@@ -444,7 +444,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         List<Object> data = (List<Object>) this.safeList(message, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+            Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i);
             Double ask_price = this.safeFloat(entry, "ask_price");
             Double ask_size = this.safeFloat(entry, "ask_size");
             Double bid_price = this.safeFloat(entry, "bid_price");
@@ -489,7 +489,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        Helpers.callDynamically(stored, "append", new Object[]{trade});
+        stored.append(trade);
         String messageHash = ("trade:" + symbol);
         client.resolve(stored, messageHash);
     }
@@ -571,7 +571,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 symbol = (String) (((Map<String, Object>)market).get("symbol"));
                 List<Object> symbols = new ArrayList<Object>(Arrays.asList(symbol));
-                List<Object> marketIds = this.marketIds(symbols);
+                List<String> marketIds = this.marketIds(symbols);
                 ((Map<String, Object>)request).put("codes", marketIds);
                 messageHash = ((messageHash + ":") + symbol);
             }
@@ -987,7 +987,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object balance = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(data, i);
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode((String) (currencyId));
             String available = this.safeString(balance, "balance");

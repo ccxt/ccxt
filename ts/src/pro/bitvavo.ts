@@ -329,7 +329,7 @@ export default class bitvavo extends bitvavoRest {
             ],
         };
         const message = this.extend (request, params);
-        const trades = await this.watchMultiple (url, messageHashes, message, messageHashes);
+        const trades: ArrayCache = await this.watchMultiple (url, messageHashes, message, messageHashes);
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -418,7 +418,7 @@ export default class bitvavo extends bitvavoRest {
             ],
         };
         const message = this.extend (request, params);
-        const ohlcv = await this.watch (url, messageHash, message, messageHash);
+        const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, message, messageHash);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
@@ -1004,7 +1004,7 @@ export default class bitvavo extends bitvavoRest {
                 },
             ],
         };
-        const orders = await this.watch (url, messageHash, request, messageHash);
+        const orders: ArrayCache = await this.watch (url, messageHash, request, messageHash);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -1044,7 +1044,7 @@ export default class bitvavo extends bitvavoRest {
                 },
             ],
         };
-        const trades = await this.watch (url, messageHash, request, messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, request, messageHash);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }

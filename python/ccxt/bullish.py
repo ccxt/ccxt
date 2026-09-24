@@ -976,7 +976,7 @@ class bullish(Exchange, ImplicitAPI):
             self.load_markets()
         maxLimit = 100
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchTrades', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchTrades', 'paginate', False)
         if paginate:
             params = self.handle_pagination_params('fetchTrades', since, params)
             return self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, params, maxLimit)
@@ -1036,7 +1036,7 @@ class bullish(Exchange, ImplicitAPI):
             response = self.privateGetV1TradesClientOrderIdClientOrderId(self.extend(request, params))
         else:
             paginate = False
-            paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+            paginate, params = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
             if paginate:
                 params = self.handle_pagination_params('fetchMyTrades', since, params)
                 return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params, 100)
@@ -1298,7 +1298,7 @@ class bullish(Exchange, ImplicitAPI):
 
     def safe_deterministic_call(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, timeframe: Str = None, params: dict = {}):
         maxRetries = None
-        maxRetries, params = self.handle_option_and_params(params, method, 'maxRetries', 3)
+        maxRetries, params = self.handle_option_integer_and_params(params, method, 'maxRetries', 3)
         if (method != 'fetchOHLCV') and (method != 'fetchFundingRateHistory') and (method != 'fetchTrades'):
             raise NotSupported(self.id + ' safeDeterministicCall() does not support the ' + method + ' method')
         errors = 0
@@ -1341,7 +1341,7 @@ class bullish(Exchange, ImplicitAPI):
         market = self.market(symbol)
         maxLimit = 100
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit)
         request = {
@@ -1410,7 +1410,7 @@ class bullish(Exchange, ImplicitAPI):
             self.load_markets()
         maxLimit = 100
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
             params = self.handle_pagination_params('fetchFundingRateHistory', since, params)
             return self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, params, maxLimit)
@@ -2159,7 +2159,7 @@ class bullish(Exchange, ImplicitAPI):
             'info': transaction,
         }
 
-    def parse_transaction_type(self, type: object):
+    def parse_transaction_type(self, type: Str):
         types = {
             'DEPOSIT': 'deposit',
             'WITHDRAW': 'withdrawal',
@@ -2177,12 +2177,12 @@ class bullish(Exchange, ImplicitAPI):
 
     def load_account(self, params: dict = {}) -> str:
         tradingAccountId = None
-        tradingAccountId, params = self.handle_option_and_params(params, 'loadAccount', 'tradingAccountId')
+        tradingAccountId, params = self.handle_option_string_and_params(params, 'loadAccount', 'tradingAccountId')
         if tradingAccountId is None:
             response = self.privateGetV1AccountsTradingAccounts(params)
             accounts = self.to_array(response)
             for i in range(0, len(accounts)):
-                account = accounts[i]
+                account = self.safe_dict(accounts, i)
                 name = self.safe_string(account, 'tradingAccountName')
                 if name == 'Primary Account':
                     tradingAccountId = self.safe_string(account, 'tradingAccountId')
@@ -2342,7 +2342,7 @@ class bullish(Exchange, ImplicitAPI):
                     data = {}  # return an empty structure if the user-defined network was not found
         return self.parse_deposit_address(data, currency)
 
-    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         id = self.safe_string(depositAddress, 'symbol')
         network = self.safe_string(depositAddress, 'network')
         code = self.safe_currency_code(id, currency)
@@ -2410,7 +2410,7 @@ class bullish(Exchange, ImplicitAPI):
             'info': response,
         }
         for i in range(0, len(response)):
-            balance = response[i]
+            balance = self.safe_dict(response, i)
             symbol = self.safe_string(balance, 'assetSymbol')
             code = self.safe_currency_code(symbol)
             account = self.account()
@@ -2542,7 +2542,7 @@ class bullish(Exchange, ImplicitAPI):
         tradingAccountId = self.load_account(params)
         maxLimit = 100
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchTransfers', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchTransfers', 'paginate', False)
         if paginate:
             params = self.handle_pagination_params('fetchTransfers', since, params)
             return self.fetch_paginated_call_dynamic('fetchTransfers', code, since, limit, params, maxLimit)

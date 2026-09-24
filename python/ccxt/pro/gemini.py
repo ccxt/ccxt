@@ -469,7 +469,7 @@ class gemini(ccxt.async_support.gemini):
         messageHash = 'bidsasks:' + symbol
         # last update always overwrites the previous state and is the latest state
         for i in range(0, len(rawBidAskChanges)):
-            entry = rawBidAskChanges[i]
+            entry = self.safe_dict(rawBidAskChanges, i)
             rawSide = self.safe_string(entry, 'side')
             price = self.safe_number(entry, 'price')
             sizeString = self.safe_string(entry, 'remaining')
@@ -544,7 +544,7 @@ class gemini(ccxt.async_support.gemini):
         bids = orderbook['bids']
         asks = orderbook['asks']
         for i in range(0, len(rawOrderBookChanges)):
-            entry = rawOrderBookChanges[i]
+            entry = self.safe_dict(rawOrderBookChanges, i)
             price = self.safe_number(entry, 'price')
             size = self.safe_number(entry, 'remaining')
             rawSide = self.safe_string(entry, 'side')

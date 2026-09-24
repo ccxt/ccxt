@@ -1378,7 +1378,7 @@ impl DydxCore {
 
     pub fn handle_public_address(&self, mut methodName: Value, mut params: Value) -> Value {
         let mut userAux: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), methodName.clone(), Value::Str("user".into()), &[]); userAux = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), methodName.clone(), Value::Str("user".into()), &[]); userAux = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut user: Value = userAux.clone();
         { let __destr_tmp = self.handle_option_string_and_params(params.clone(), methodName.clone(), Value::Str("address".into()), &[userAux]); user = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (user != Value::Null) && (user.as_str() != Some("")) {
@@ -1956,7 +1956,7 @@ impl DydxCore {
         }
         let mut orderSide: Value = to_upper(&side);
         let mut subaccountId: Value = Value::Int(0);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("subAccountId".into()), &[subaccountId.clone()]); subaccountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_integer_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("subAccountId".into()), &[subaccountId.clone()]); subaccountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
         let mut stopLossPrice: Value = self.safe_value_k(params.clone(), "stopLossPrice", &[triggerPrice.clone()]);
         let mut takeProfitPrice: Value = self.safe_value_k(params.clone(), "takeProfitPrice", &[]);
@@ -2026,7 +2026,7 @@ impl DydxCore {
         let mut goodTillBlock: Value = self.safe_integer_k(params.clone(), "goodTillBlock", &[]);
         let mut goodTillBlockTime: Value = Value::Null;
         let mut goodTillBlockTimeInSeconds: Value = Value::Int(2592000);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("goodTillBlockTimeInSeconds".into()), &[goodTillBlockTimeInSeconds.clone()]); goodTillBlockTimeInSeconds = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }; // default is 30 days
+        { let __destr_tmp = self.handle_option_integer_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("goodTillBlockTimeInSeconds".into()), &[goodTillBlockTimeInSeconds.clone()]); goodTillBlockTimeInSeconds = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }; // default is 30 days
         if (orderFlag.as_f64() == Some(0.0)) {
             if (goodTillBlock == Value::Null) {
                 // short term order
@@ -2153,7 +2153,7 @@ impl DydxCore {
  * @param {bool} [params.postOnly] true or false whether the order is post-only
  * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
  * @param {float} [params.goodTillBlock] expired block number for the order, required for market order and non limit GTT order, default value is latestBlockHeight + 20
- * @param {float} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
+ * @param {int} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
@@ -2223,7 +2223,7 @@ impl DydxCore {
  * @param {boolean} [params.trigger] whether the order is a trigger/algo order
  * @param {float} [params.orderFlags] default is 64, orderFlags for the order, market order and non limit GTT order is 0, limit GTT order is 64 and conditional order is 32
  * @param {float} [params.goodTillBlock] expired block number for the order, required for market order and non limit GTT order (orderFlags = 0), default value is latestBlockHeight + 20
- * @param {float} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days
+ * @param {int} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days
  * @param {int} [params.subAccountId] sub account id, default is 0
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -2252,12 +2252,12 @@ impl DydxCore {
         }
         let mut goodTillBlock: Value = self.safe_integer_k(params.clone(), "goodTillBlock", &[]);
         let mut goodTillBlockTimeInSeconds: Value = Value::Int(2592000);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("cancelOrder".into()), Value::Str("goodTillBlockTimeInSeconds".into()), &[goodTillBlockTimeInSeconds.clone()]); goodTillBlockTimeInSeconds = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }; // default is 30 days
+        { let __destr_tmp = self.handle_option_integer_and_params(params.clone(), Value::Str("cancelOrder".into()), Value::Str("goodTillBlockTimeInSeconds".into()), &[goodTillBlockTimeInSeconds.clone()]); goodTillBlockTimeInSeconds = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }; // default is 30 days
         let mut goodTillBlockTime: Value = Value::Null;
         let mut defaultOrderFlags: Value = (if (isTrigger.as_bool() == Some(true)) { Value::Int(32) } else { Value::Int(64) });
         let mut orderFlags: Value = self.safe_integer_k(params.clone(), "orderFlags", &[defaultOrderFlags]);
         let mut subAccountId: Value = Value::Int(0);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("cancelOrder".into()), Value::Str("subAccountId".into()), &[subAccountId.clone()]); subAccountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_integer_and_params(params.clone(), Value::Str("cancelOrder".into()), Value::Str("subAccountId".into()), &[subAccountId.clone()]); subAccountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         params = self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("orderFlags".into()), Value::Str("goodTillBlock".into()), Value::Str("goodTillBlockTime".into()), Value::Str("goodTillBlockTimeInSeconds".into()), Value::Str("subaccountId".into()), Value::Str("clientId".into())]), &[]);
         if (orderFlags.as_f64() != Some(0.0)) && (orderFlags.as_f64() != Some(64.0)) && (orderFlags.as_f64() != Some(32.0)) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" invalid orderFlags, allowed values are (0, 64, 32).".into()))));
@@ -2361,7 +2361,7 @@ impl DydxCore {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders only support clientOrderIds.".into()))));
         }
         let mut subAccountId: Value = Value::Int(0);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("cancelOrders".into()), Value::Str("subAccountId".into()), &[subAccountId.clone()]); subAccountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_integer_and_params(params.clone(), Value::Str("cancelOrders".into()), Value::Str("subAccountId".into()), &[subAccountId.clone()]); subAccountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut goodTillBlock: Value = self.safe_integer_k(params.clone(), "goodTillBlock", &[]);
         if (goodTillBlock == Value::Null) {
             let mut latestBlockHeight: Value = self.fetch_latest_block_height(&[]).await;
@@ -3232,7 +3232,7 @@ impl DydxCore {
         let mut userAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_public_address(Value::Str("fetchBalance".into()), params.clone()); userAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut subaccountNumber: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchBalance".into()), Value::Str("subaccountNumber".into()), &[Value::Int(0)]); subaccountNumber = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_integer_and_params(params.clone(), Value::Str("fetchBalance".into()), Value::Str("subaccountNumber".into()), &[Value::Int(0)]); subaccountNumber = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("address".to_string(), userAddress);

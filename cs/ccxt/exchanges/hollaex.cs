@@ -414,7 +414,7 @@ public partial class hollaex : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            object market = getValue(pairs, key);
+            IDictionary<string, object> market = this.safeDict(pairs, key);
             string? baseId = this.safeString(market, "pair_base");
             string? quoteId = this.safeString(market, "pair_2");
             object bs = this.commonCurrencyCode(baseId.ToUpper());
@@ -561,7 +561,11 @@ public partial class hollaex : Exchange
         string? code = this.safeCurrencyCode(id);
         List<object> withdrawalLimits = this.safeList(rawCurrency, "withdrawal_limits", new List<object>() {});
         string? rawType = this.safeString(rawCurrency, "type");
-        string type = (rawType == "blockchain") ? "crypto" : "other";
+        string type = "other";
+        if (rawType == "blockchain")
+        {
+            type = "crypto";
+        }
         IDictionary<string, object> rawNetworks = this.safeDict(rawCurrency, "withdrawal_fees", new Dictionary<string, object>() {});
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         List<object> networkIds = new List<object>(((IDictionary<string,object>)rawNetworks).Keys);
@@ -1741,7 +1745,14 @@ public partial class hollaex : Exchange
         //     }
         //
         List<object> wallet = this.safeList(response, "wallet", new List<object>() {});
-        List<object> addresses = ((network == null)) ? wallet : this.filterBy(wallet, "network", network);
+        List<object> addresses = null;
+        if ((network == null))
+        {
+            addresses = wallet;
+        } else
+        {
+            addresses = this.filterBy(wallet, "network", network);
+        }
         return ccxt.BaseExchange.ToDepositAddressList(this.parseDepositAddresses(addresses, codes, false));
     }
 
@@ -2144,7 +2155,7 @@ public partial class hollaex : Exchange
             for (int i = 0; i < keysLength; i++)
             {
                 string? key = ((string)getValue(keys, i));
-                object value = getValue(withdrawalFees, key);
+                IDictionary<string, object> value = this.safeDict(withdrawalFees, key);
                 string? currencyId = this.safeString(value, "symbol");
                 string? currencyCode = this.safeCurrencyCode(currencyId);
                 string? networkCode = this.networkIdToCode(key, currencyCode);

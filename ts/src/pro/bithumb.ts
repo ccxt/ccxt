@@ -77,7 +77,7 @@ export default class bithumb extends bithumbRest {
             await this.loadMarkets ();
         }
         let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'watchTicker', 'generation', 2);
+        [ generation, params ] = this.handleOptionIntegerAndParams (params, 'watchTicker', 'generation', 2);
         const isGenerationTwo = (generation === 2);
         const url = isGenerationTwo ? this.urls['api']['ws']['publicGen2'] : this.urls['api']['ws']['public'];
         const market = this.market (symbol);
@@ -120,7 +120,7 @@ export default class bithumb extends bithumbRest {
             await this.loadMarkets ();
         }
         let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'watchTickers', 'generation', 2);
+        [ generation, params ] = this.handleOptionIntegerAndParams (params, 'watchTickers', 'generation', 2);
         const isGenerationTwo = (generation === 2);
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const symbolsLength = (symbols === undefined) ? 0 : symbols.length;
@@ -378,7 +378,7 @@ export default class bithumb extends bithumbRest {
             await this.loadMarkets ();
         }
         let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'generation', 2);
+        [ generation, params ] = this.handleOptionIntegerAndParams (params, 'watchOrderBook', 'generation', 2);
         const isGenerationTwo = (generation === 2);
         const url = isGenerationTwo ? this.urls['api']['ws']['publicGen2'] : this.urls['api']['ws']['public'];
         const market = this.market (symbol);
@@ -565,7 +565,7 @@ export default class bithumb extends bithumbRest {
             await this.loadMarkets ();
         }
         let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'watchTrades', 'generation', 2);
+        [ generation, params ] = this.handleOptionIntegerAndParams (params, 'watchTrades', 'generation', 2);
         const isGenerationTwo = (generation === 2);
         const url = isGenerationTwo ? this.urls['api']['ws']['publicGen2'] : this.urls['api']['ws']['public'];
         const market = this.market (symbol);
@@ -587,7 +587,7 @@ export default class bithumb extends bithumbRest {
         } else {
             request = this.extend (request, params);
         }
-        const trades = await this.watch (url, messageHash, request, messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, request, messageHash);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -784,7 +784,7 @@ export default class bithumb extends bithumbRest {
             await this.loadMarkets ();
         }
         let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'watchBalance', 'generation', 2);
+        [ generation, params ] = this.handleOptionIntegerAndParams (params, 'watchBalance', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' watchBalance() is only supported for the generation 2 API');
         }
@@ -906,7 +906,7 @@ export default class bithumb extends bithumbRest {
             await this.loadMarkets ();
         }
         let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'watchOrders', 'generation', 2);
+        [ generation, params ] = this.handleOptionIntegerAndParams (params, 'watchOrders', 'generation', 2);
         if (generation !== 2) {
             throw new BadRequest (this.id + ' watchOrders() is only supported for the generation 2 API');
         }
@@ -920,7 +920,7 @@ export default class bithumb extends bithumbRest {
             symbol = market['symbol'];
             messageHash = messageHash + ':' + symbol;
         }
-        const orders = await this.watch (url, messageHash, request, messageHash);
+        const orders: ArrayCache = await this.watch (url, messageHash, request, messageHash);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }

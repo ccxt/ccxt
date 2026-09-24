@@ -356,15 +356,15 @@ public class P2b extends io.github.ccxt.exchanges.P2b
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false, true, true);
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             if (!java.util.Objects.equals(symbols, null))
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    ((List<Object>)messageHashes).add(("deals::" + (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
+                    messageHashes.add(("deals::" + (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
                 }
             }
-            List<Object> marketIds = this.marketIds(symbols);
+            List<String> marketIds = this.marketIds(symbols);
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", "deals.subscribe" );
@@ -495,7 +495,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
                 Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), stored);
             }
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
             client.resolve(stored, messageHash);
         }
         return message;
@@ -538,7 +538,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         {
             Object item = Helpers.GetValue((List<Object>)(trades), i);
             Map<String, Object> trade = (Map<String, Object>) this.parseTrade(item, market);
-            Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
+            tradesArray.append(trade);
         }
         String messageHash = ("deals::" + symbol);
         client.resolve(tradesArray, messageHash);

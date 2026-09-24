@@ -196,7 +196,10 @@ class bybit extends \ccxt\async\bybit {
     }
 
     private function do_get_url_by_market_type(?string $symbol = null, ?bool $isPrivate = false, ?string $method = null, $params = array()) {
-        $accessibility = $isPrivate ? 'private' : 'public';
+        $accessibility = 'public';
+        if ($isPrivate) {
+            $accessibility = 'private';
+        }
         if ($method === null) {
             $method = '';
         }
@@ -641,7 +644,10 @@ class bybit extends \ccxt\async\bybit {
         $updateType = $this->safe_string($message, 'type', '');
         $data = $this->safe_dict($message, 'data', array());
         $isSpot = $this->safe_string($data, 'usdIndexPrice') !== null;
-        $type = $isSpot ? 'spot' : 'contract';
+        $type = 'contract';
+        if ($isSpot) {
+            $type = 'spot';
+        }
         $symbol = null;
         $parsed = null;
         if (($updateType === 'snapshot')) {
@@ -885,7 +891,10 @@ class bybit extends \ccxt\async\bybit {
         }
         $marketId = $this->safe_string($topicParts, $topicLength - 1);
         $isSpot = mb_strpos($client->url, 'spot') > -1;
-        $marketType = $isSpot ? 'spot' : 'contract';
+        $marketType = 'contract';
+        if ($isSpot) {
+            $marketType = 'spot';
+        }
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $ohlcvsByTimeframe = $this->safe_dict($this->ohlcvs, $symbol);
@@ -923,7 +932,10 @@ class bybit extends \ccxt\async\bybit {
         //     }
         //
         $isInverse = ($this->safe_bool($market, 'inverse') === true);
-        $volumeIndex = $isInverse ? 'turnover' : 'volume';
+        $volumeIndex = 'volume';
+        if ($isInverse) {
+            $volumeIndex = 'turnover';
+        }
         return array(
             $this->safe_integer($ohlcv, 'start'),
             $this->safe_number($ohlcv, 'open'),
@@ -1103,7 +1115,10 @@ class bybit extends \ccxt\async\bybit {
         $isSnapshot = ($type === 'snapshot');
         $data = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($data, 's');
-        $marketType = $isSpot ? 'spot' : 'contract';
+        $marketType = 'contract';
+        if ($isSpot) {
+            $marketType = 'spot';
+        }
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($message, 'ts');
@@ -1278,7 +1293,10 @@ class bybit extends \ccxt\async\bybit {
         $trades = $data;
         $parts = explode('.', $topic);
         $isSpot = mb_strpos($client->url, 'spot') !== false;
-        $marketType = ($isSpot) ? 'spot' : 'contract';
+        $marketType = 'contract';
+        if ($isSpot) {
+            $marketType = 'spot';
+        }
         $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
@@ -1330,7 +1348,10 @@ class bybit extends \ccxt\async\bybit {
         //
         $id = $this->safe_string_n($trade, array( 'i', 'T', 'v' ));
         $isContract = (is_array($trade) && array_key_exists('BT' ?? '', $trade));
-        $marketType = $isContract ? 'contract' : 'spot';
+        $marketType = 'spot';
+        if ($isContract) {
+            $marketType = 'contract';
+        }
         if ($market !== null) {
             $marketType = $market['type'];
         }
@@ -1881,7 +1902,7 @@ class bybit extends \ccxt\async\bybit {
         if ((gettype($message['data']) === 'array' && array_keys($message['data']) === array_keys(array_keys($message['data'])))) {
             $rawLiquidations = $this->safe_list($message, 'data', array());
             for ($i = 0; $i < count($rawLiquidations); $i++) {
-                $rawLiquidation = $rawLiquidations[$i];
+                $rawLiquidation = $this->safe_dict($rawLiquidations, $i);
                 $marketId = $this->safe_string($rawLiquidation, 's');
                 $market = $this->safe_market($marketId, null, '', 'contract');
                 $symbol = $market['symbol'];

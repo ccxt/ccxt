@@ -1216,7 +1216,7 @@ class blockchaincom extends Exchange {
         }
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($balances); $i++) {
-            $entry = $balances[$i];
+            $entry = $this->safe_dict($balances, $i);
             $currencyId = $this->safe_string($entry, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();

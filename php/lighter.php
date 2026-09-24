@@ -396,7 +396,7 @@ class lighter extends Exchange {
             return $signer;
         }
         $libraryPath = null;
-        list($libraryPath, $params) = $this->handle_option_and_params($params, 'loadAccount', 'libraryPath');
+        list($libraryPath, $params) = $this->handle_option_string_and_params($params, 'loadAccount', 'libraryPath');
         $lighterPrivateKeyIsSet = ($privateKey !== null) && ($privateKey !== '');
         if ($lighterPrivateKeyIsSet && ($libraryPath !== null) && ($apiKeyIndex !== null) && ($accountIndex !== null)) {
             // load lighter library, and create lighter client
@@ -761,7 +761,7 @@ class lighter extends Exchange {
         list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'createOrder', 'apiKeyIndex', 'api_key_index');
         list($accountIndex, $params) = $this->handle_option_and_params_2($params, 'createOrder', 'accountIndex', 'account_index');
         list($nonce, $params) = $this->handle_option_and_params($params, 'createOrder', 'nonce');
-        list($orderExpiry, $params) = $this->handle_option_and_params($params, 'createOrder', 'orderExpiry', 0);
+        list($orderExpiry, $params) = $this->handle_option_integer_and_params($params, 'createOrder', 'orderExpiry', 0);
         if ($nonce !== null) {
             $request['nonce'] = $nonce;
         }
@@ -916,7 +916,7 @@ class lighter extends Exchange {
         $params['accountIndex'] = $accountIndex;
         $market = $this->market($symbol);
         $groupingType = null;
-        list($groupingType, $params) = $this->handle_option_and_params($params, $method, 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
+        list($groupingType, $params) = $this->handle_option_integer_and_params($params, $method, 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         $orderRequests = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $totalOrderRequests = count($orderRequests);
         $apiKeyIndex = null;
@@ -1198,7 +1198,9 @@ class lighter extends Exchange {
             $market = $markets[$i];
             $id = $this->safe_string($market, 'market_id');
             $type = $this->safe_string($market, 'market_type');
-            $type = ($type === 'perp') ? 'swap' : $type;
+            if ($type === 'perp') {
+                $type = 'swap';
+            }
             $baseId = $this->safe_string($market, 'symbol');
             if ($baseId !== null && mb_strpos($baseId, '/') !== -1) {
                 $baseId = explode('/', $baseId)[0];
@@ -1840,11 +1842,11 @@ class lighter extends Exchange {
         $result = array( 'info' => $response );
         $accounts = $this->safe_list($response, 'accounts', array());
         for ($i = 0; $i < count($accounts); $i++) {
-            $account = $accounts[$i];
+            $account = $this->safe_dict($accounts, $i);
             if ($type === 'spot') {
                 $assets = $this->safe_list($account, 'assets', array());
                 for ($j = 0; $j < count($assets); $j++) {
-                    $asset = $assets[$j];
+                    $asset = $this->safe_dict($assets, $j);
                     $codeId = $this->safe_string($asset, 'symbol');
                     $code = $this->safe_currency_code($codeId);
                     $balance = $this->safe_dict($result, $code, $this->account());
@@ -1958,7 +1960,7 @@ class lighter extends Exchange {
         $allPositions = array();
         $accounts = $this->safe_list($response, 'accounts', array());
         for ($i = 0; $i < count($accounts); $i++) {
-            $account = $accounts[$i];
+            $account = $this->safe_dict($accounts, $i);
             $positions = $this->safe_list($account, 'positions', array());
             for ($j = 0; $j < count($positions); $j++) {
                 $allPositions[] = $positions[$j];
@@ -2420,7 +2422,7 @@ class lighter extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type(mixed $type) {
+    public function parse_order_type(?string $type) {
         $types = array(
             'limit' => 'limit',
             'market' => 'market',
@@ -2550,7 +2552,7 @@ class lighter extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchTransfers', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchTransfers', $code, $since, $limit, $params, 'cursor', 'cursor', null, 50);
         }
@@ -2656,12 +2658,12 @@ class lighter extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchDeposits', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchDeposits', $code, $since, $limit, $params, 'cursor', 'cursor', null, 50);
         }
         $address = null;
-        list($address, $params) = $this->handle_option_and_params_2($params, 'fetchDeposits', 'address', 'l1_address');
+        list($address, $params) = $this->handle_option_string_and_params_2($params, 'fetchDeposits', 'address', 'l1_address');
         if ($address === null) {
             throw new ArgumentsRequired($this->id . ' fetchDeposits() requires an $address parameter');
         }
@@ -2722,7 +2724,7 @@ class lighter extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchWithdrawals', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchWithdrawals', $code, $since, $limit, $params, 'cursor', 'cursor', null, 50);
         }
@@ -2905,7 +2907,7 @@ class lighter extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchMyTrades', $symbol, $since, $limit, $params, 'next_cursor', 'cursor', null, 50);
         }
@@ -2925,7 +2927,7 @@ class lighter extends Exchange {
             $request['limit'] = min($limit, 100);
         }
         $until = null;
-        list($until, $params) = $this->handle_option_and_params_2($params, 'fetchMyTrades', 'until', 'from');
+        list($until, $params) = $this->handle_option_integer_and_params_2($params, 'fetchMyTrades', 'until', 'from');
         if ($until !== null) {
             $request['from'] = $until;
         }
@@ -3060,7 +3062,7 @@ class lighter extends Exchange {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }
         $marginMode = null;
-        list($marginMode, $params) = $this->handle_option_and_params_2($params, 'setLeverage', 'marginMode', 'margin_mode');
+        list($marginMode, $params) = $this->handle_option_string_and_params_2($params, 'setLeverage', 'marginMode', 'margin_mode');
         if ($marginMode === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires an $marginMode parameter');
         }

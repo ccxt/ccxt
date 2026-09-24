@@ -148,8 +148,12 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             var operationType = ((List<Object>) requestoperationTypeVariable).get(1);
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow", "agentAddress", "originAddress")));
             Boolean isTestnet = this.isSandboxModeEnabled;
-            String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
-            Object url = Helpers.GetValue(((Map<String, Object>)Helpers.GetValue(this.urls, urlKey)).get("ws"), "public");
+            String urlKey = "api";
+            if (Boolean.TRUE.equals(isTestnet))
+            {
+                urlKey = "test";
+            }
+            Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
             Object wsRequest = this.wrapAsPostAction((String) (operationType), (Map<String, Object>) (request));
             String requestId = this.safeString(wsRequest, "id");
             if (java.util.Objects.equals(operationType, "create_stop_order"))
@@ -275,8 +279,12 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             Map<String, Object> request = this.editOrderRequest(id, (String) (symbol), type, (String) (side), amount, price, (Map<String, Object>) (market), parameters);
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("originAddress", "agentAddress", "expiryWindow", "clientOrderId")));
             Boolean isTestnet = this.isSandboxModeEnabled;
-            String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
-            Object url = Helpers.GetValue(((Map<String, Object>)Helpers.GetValue(this.urls, urlKey)).get("ws"), "public");
+            String urlKey = "api";
+            if (Boolean.TRUE.equals(isTestnet))
+            {
+                urlKey = "test";
+            }
+            Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
             Object wsRequest = this.wrapAsPostAction(batchOperationType, (Map<String, Object>) (request));
             String requestId = this.safeString(wsRequest, "id");
             Object response = (this.watch(url, requestId, wsRequest, requestId, null)).join();
@@ -376,8 +384,12 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             Object request = this.cancelOrdersRequest(ids, symbol, parameters);
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("originAddress", "agentAddress", "expiryWindow", "clientOrderIds")));
             Boolean isTestnet = this.isSandboxModeEnabled;
-            String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
-            Object url = Helpers.GetValue(((Map<String, Object>)Helpers.GetValue(this.urls, urlKey)).get("ws"), "public");
+            String urlKey = "api";
+            if (Boolean.TRUE.equals(isTestnet))
+            {
+                urlKey = "test";
+            }
+            Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
             Object wsRequest = this.wrapAsPostAction(batchOperationType, (Map<String, Object>) (request));
             String requestId = this.safeString(wsRequest, "id");
             Object response = (this.watch(url, requestId, wsRequest, requestId, null)).join();
@@ -409,7 +421,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             List<Object> ordersToReturn = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)results).size(); i++)
             {
-                Object order = (results == null || i < 0 || i >= results.size() ? null : results.get(i));
+                Map<String, Object> order = (Map<String, Object>) this.safeDict(results, i);
                 String error = this.safeString(order, "error");
                 Boolean success = (Boolean) this.safeBool(order, "success", false);
                 String marketId = this.safeString(order, "symbol");
@@ -491,8 +503,12 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             Object request = this.cancelOrderRequest(id, symbol, parameters);
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("originAddress", "agentAddress", "expiryWindow", "trigger", "stop", "clientOrderId")));
             Boolean isTestnet = this.isSandboxModeEnabled;
-            String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
-            Object url = Helpers.GetValue(((Map<String, Object>)Helpers.GetValue(this.urls, urlKey)).get("ws"), "public");
+            String urlKey = "api";
+            if (Boolean.TRUE.equals(isTestnet))
+            {
+                urlKey = "test";
+            }
+            Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
             Object wsRequest = this.wrapAsPostAction(operationType, (Map<String, Object>) (request));
             String requestId = this.safeString(wsRequest, "id");
             Object response = (this.watch(url, requestId, wsRequest, requestId, null)).join();
@@ -584,8 +600,12 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             Object request = this.cancelAllOrdersRequest((String) (symbol), parameters);
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("excludeReduceOnly", "agentAddress", "originAddress", "expiryWindow")));
             Boolean isTestnet = this.isSandboxModeEnabled;
-            String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
-            Object url = Helpers.GetValue(((Map<String, Object>)Helpers.GetValue(this.urls, urlKey)).get("ws"), "public");
+            String urlKey = "api";
+            if (Boolean.TRUE.equals(isTestnet))
+            {
+                urlKey = "test";
+            }
+            Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
             Object wsRequest = this.wrapAsPostAction(operationType, (Map<String, Object>) (request));
             String requestId = this.safeString(wsRequest, "id");
             Object response = (this.watch(url, requestId, wsRequest, requestId, null)).join();
@@ -645,15 +665,19 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object aggLevel = null;
-            List<Object> aggLevelparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "aggLevel", 1);
-            aggLevel = ((List<Object>) aggLevelparametersVariable).get(0);
+            Long aggLevel = null;
+            List<Object> aggLevelparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "aggLevel", 1);
+            aggLevel = (Long) ((List<Object>) aggLevelparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) aggLevelparametersVariable).get(1);
             String messageHash = ("orderbook:" + symbol);
             Boolean isTestnet = this.isSandboxModeEnabled;
-            String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
-            Object url = Helpers.GetValue(((Map<String, Object>)Helpers.GetValue(this.urls, urlKey)).get("ws"), "public");
-            final Object finalAggLevel = aggLevel;
+            String urlKey = "api";
+            if (Boolean.TRUE.equals(isTestnet))
+            {
+                urlKey = "test";
+            }
+            Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
+            final Long finalAggLevel = aggLevel;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -664,7 +688,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             }};
             Map<String, Object> message = this.extend(request, parameters);
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, message, messageHash, null)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -704,16 +728,20 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object aggLevel = null;
-            List<Object> aggLevelparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "aggLevel", 1);
-            aggLevel = ((List<Object>) aggLevelparametersVariable).get(0);
+            Long aggLevel = null;
+            List<Object> aggLevelparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "aggLevel", 1);
+            aggLevel = (Long) ((List<Object>) aggLevelparametersVariable).get(0);
             parameters = ((List<Object>) aggLevelparametersVariable).get(1);
             String subMessageHash = ("orderbook:" + symbol);
             String messageHash = ("unsubscribe:" + subMessageHash);
             Boolean isTestnet = this.isSandboxModeEnabled;
-            String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
-            Object url = Helpers.GetValue(((Map<String, Object>)Helpers.GetValue(this.urls, urlKey)).get("ws"), "public");
-            final Object finalAggLevel = aggLevel;
+            String urlKey = "api";
+            if (Boolean.TRUE.equals(isTestnet))
+            {
+                urlKey = "test";
+            }
+            Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
+            final Long finalAggLevel = aggLevel;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -803,7 +831,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             Helpers.addElementToObject(this.orderbooks, symbol, ob);
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-        Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+        orderbook.reset(snapshot);
         String messageHash = ("orderbook:" + symbol);
         client.resolve(orderbook, messageHash);
     }
@@ -863,8 +891,12 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true));
             String messageHash = "tickers";
             Boolean isTestnet = this.isSandboxModeEnabled;
-            String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
-            Object url = Helpers.GetValue(((Map<String, Object>)Helpers.GetValue(this.urls, urlKey)).get("ws"), "public");
+            String urlKey = "api";
+            if (Boolean.TRUE.equals(isTestnet))
+            {
+                urlKey = "test";
+            }
+            Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -916,8 +948,12 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             String subMessageHash = "tickers";
             String messageHash = ("unsubscribe:" + subMessageHash);
             Boolean isTestnet = this.isSandboxModeEnabled;
-            String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
-            Object url = Helpers.GetValue(((Map<String, Object>)Helpers.GetValue(this.urls, urlKey)).get("ws"), "public");
+            String urlKey = "api";
+            if (Boolean.TRUE.equals(isTestnet))
+            {
+                urlKey = "test";
+            }
+            Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -982,8 +1018,12 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                 messageHash = (messageHash + (":" + symbol));
             }
             Boolean isTestnet = this.isSandboxModeEnabled;
-            String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
-            Object url = Helpers.GetValue(((Map<String, Object>)Helpers.GetValue(this.urls, urlKey)).get("ws"), "public");
+            String urlKey = "api";
+            if (Boolean.TRUE.equals(isTestnet))
+            {
+                urlKey = "test";
+            }
+            Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
             final String finalUserAddress = userAddress;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
@@ -1050,8 +1090,12 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             parameters = ((List<Object>) userAddressparametersVariable).get(1);
             String messageHash = "unsubscribe:myTrades";
             Boolean isTestnet = this.isSandboxModeEnabled;
-            String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
-            Object url = Helpers.GetValue(((Map<String, Object>)Helpers.GetValue(this.urls, urlKey)).get("ws"), "public");
+            String urlKey = "api";
+            if (Boolean.TRUE.equals(isTestnet))
+            {
+                urlKey = "test";
+            }
+            Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
             final String finalUserAddress = userAddress;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
@@ -1219,8 +1263,12 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("trade:" + symbol);
             Boolean isTestnet = this.isSandboxModeEnabled;
-            String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
-            Object url = Helpers.GetValue(((Map<String, Object>)Helpers.GetValue(this.urls, urlKey)).get("ws"), "public");
+            String urlKey = "api";
+            if (Boolean.TRUE.equals(isTestnet))
+            {
+                urlKey = "test";
+            }
+            Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -1277,8 +1325,12 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             String subMessageHash = ("trade:" + symbol);
             String messageHash = ("unsubscribe:" + subMessageHash);
             Boolean isTestnet = this.isSandboxModeEnabled;
-            String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
-            Object url = Helpers.GetValue(((Map<String, Object>)Helpers.GetValue(this.urls, urlKey)).get("ws"), "public");
+            String urlKey = "api";
+            if (Boolean.TRUE.equals(isTestnet))
+            {
+                urlKey = "test";
+            }
+            Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -1344,7 +1396,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         {
             Map<String, Object> data = (Map<String, Object>) this.safeDict(entry, i, new HashMap<String, Object>() {{}});
             Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data));
-            Helpers.callDynamically(trades, "append", new Object[]{trade});
+            trades.append(trade);
         }
         String messageHash = ("trade:" + symbol);
         client.resolve(trades, messageHash);
@@ -1473,8 +1525,12 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             symbol = (String) ((Map<String, Object>)market).get("symbol");
             Boolean isTestnet = this.isSandboxModeEnabled;
             String parsedTf = this.safeString(this.timeframes, timeframe, timeframe);
-            String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
-            Object url = Helpers.GetValue(((Map<String, Object>)Helpers.GetValue(this.urls, urlKey)).get("ws"), "public");
+            String urlKey = "api";
+            if (Boolean.TRUE.equals(isTestnet))
+            {
+                urlKey = "test";
+            }
+            Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -1533,8 +1589,12 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = (String) ((Map<String, Object>)market).get("symbol");
             Boolean isTestnet = this.isSandboxModeEnabled;
-            String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
-            Object url = Helpers.GetValue(((Map<String, Object>)Helpers.GetValue(this.urls, urlKey)).get("ws"), "public");
+            String urlKey = "api";
+            if (Boolean.TRUE.equals(isTestnet))
+            {
+                urlKey = "test";
+            }
+            Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -1653,8 +1713,12 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                 messageHash = ((messageHash + ":") + symbol);
             }
             Boolean isTestnet = this.isSandboxModeEnabled;
-            String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
-            Object url = Helpers.GetValue(((Map<String, Object>)Helpers.GetValue(this.urls, urlKey)).get("ws"), "public");
+            String urlKey = "api";
+            if (Boolean.TRUE.equals(isTestnet))
+            {
+                urlKey = "test";
+            }
+            Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
             final String finalUserAddress = userAddress;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
@@ -1717,8 +1781,12 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             }
             String messageHash = "unsubscribe:order";
             Boolean isTestnet = this.isSandboxModeEnabled;
-            String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
-            Object url = Helpers.GetValue(((Map<String, Object>)Helpers.GetValue(this.urls, urlKey)).get("ws"), "public");
+            String urlKey = "api";
+            if (Boolean.TRUE.equals(isTestnet))
+            {
+                urlKey = "test";
+            }
+            Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
             String userAddress = null;
             List<Object> userAddressparametersVariable = (List<Object>) this.handleOriginAndSingleAddress("unWatchOrders", (Map<String, Object>) (parameters));
             userAddress = (String) ((List<Object>) userAddressparametersVariable).get(0);

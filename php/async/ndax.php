@@ -538,7 +538,10 @@ class ndax extends Exchange {
         $id = $this->safe_string($rawCurrency, 'ProductId');
         $code = $this->safe_currency_code($this->safe_string($rawCurrency, 'Product'));
         $ProductType = $this->safe_string($rawCurrency, 'ProductType');
-        $type = ($ProductType === 'NationalCurrency') ? 'fiat' : 'crypto';
+        $type = 'crypto';
+        if ($ProductType === 'NationalCurrency') {
+            $type = 'fiat';
+        }
         if ($ProductType === 'Unknown') {
             // such currency is just a blanket entry
             $type = 'other';
@@ -1305,7 +1308,7 @@ class ndax extends Exchange {
             'datetime' => null,
         );
         for ($i = 0; $i < count($response); $i++) {
-            $balance = $response[$i];
+            $balance = $this->safe_dict($response, $i);
             $currencyId = $this->safe_string($balance, 'ProductId');
             if (($currencyId !== null) && ($this->currencies_by_id !== null) && (is_array($this->currencies_by_id) && array_key_exists($currencyId ?? '', $this->currencies_by_id))) {
                 $code = $this->safe_currency_code($currencyId);
@@ -1383,7 +1386,7 @@ class ndax extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_ledger_entry_type(mixed $type) {
+    public function parse_ledger_entry_type(?string $type) {
         $types = array(
             'Trade' => 'trade',
             'Deposit' => 'transaction',
@@ -2375,7 +2378,7 @@ class ndax extends Exchange {
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         //
         // fetchDepositAddress, createDepositAddress
         //

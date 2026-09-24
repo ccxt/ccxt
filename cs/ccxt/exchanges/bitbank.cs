@@ -734,7 +734,7 @@ public partial class bitbank : Exchange
         List<object> assets = this.safeList(data, "assets", new List<object>() {});
         for (int i = 0; i < assets.Count; i++)
         {
-            object balance = assets[i];
+            IDictionary<string, object> balance = this.safeDict(assets, i);
             string? currencyId = this.safeString(balance, "asset");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -934,7 +934,7 @@ public partial class bitbank : Exchange
         //        }
         //    }
         //
-        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "data"));
+        IDictionary<string, object> data = this.safeDict(response, "data");
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data));
     }
 
@@ -1272,7 +1272,7 @@ public partial class bitbank : Exchange
             return null;
         }
         Int64? success = this.safeInteger(response, "success");
-        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "data"));
+        IDictionary<string, object> data = this.safeDict(response, "data");
         if (((success == null) || (success == 0)) || ((data == null)))
         {
             Dictionary<string, object> errorMessages = new Dictionary<string, object>() {

@@ -808,7 +808,7 @@ export default class sxbet extends Exchange {
             throw new BadRequest (this.id + ' approve() could not resolve the base token address from /metadata/obv3');
         }
         let spender = undefined;
-        [ spender, params ] = this.handleOptionAndParams2 (params, 'approve', 'spender', 'transferToProxySpender', executorAddress);
+        [ spender, params ] = this.handleOptionStringAndParams2 (params, 'approve', 'spender', 'transferToProxySpender', executorAddress);
         if (spender === undefined) {
             throw new BadRequest (this.id + ' approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender');
         }
@@ -822,12 +822,7 @@ export default class sxbet extends Exchange {
         const nonceCallData = '0x7ecebe00' + this.padHexAddress (owner); // nonces(address)
         const nonceResult = await this.ethRpc (rpcUrl, 'eth_call', [ { 'to': tokenAddress, 'data': nonceCallData }, 'latest' ]);
         const nonceHex = this.hexToRlpBytes (nonceResult);
-        let nonce: Str = undefined;
-        if (nonceHex === '') {
-            nonce = '0';
-        } else {
-            nonce = this.numberToString (this.hexToInt (nonceHex));
-        }
+        const nonce = (nonceHex === '') ? '0' : this.numberToString (this.hexToInt (nonceHex));
         const tokenName = await this.fetchErc20Name (rpcUrl, tokenAddress);
         const defaultDeadlineSeconds = this.safeInteger (this.options, 'approveDeadlineSeconds', 7200);
         const deadline = this.safeInteger (params, 'deadline', this.sum (this.seconds (), defaultDeadlineSeconds));
@@ -911,12 +906,7 @@ export default class sxbet extends Exchange {
         // matches the normalize-to-one-book convention used by other prediction venues
         const isMakerBettingOutcomeOne = (isBuy) ? isOutcomeOne : !isOutcomeOne;
         const priceStr = this.numberToString (price);
-        let probability: Str = undefined;
-        if (isBuy) {
-            probability = priceStr;
-        } else {
-            probability = Precise.stringSub ('1', priceStr);
-        }
+        const probability = (isBuy) ? priceStr : Precise.stringSub ('1', priceStr);
         const obv3 = await this.loadSxObv3Metadata ();
         const domain = this.safeDict (obv3, 'domain', {});
         const activeAsset = this.safeDict (obv3, 'activeAsset', {});
@@ -940,7 +930,7 @@ export default class sxbet extends Exchange {
             defaultTif = 'GTC';
         }
         let timeInForce = undefined;
-        [ timeInForce, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce', defaultTif);
+        [ timeInForce, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'timeInForce', defaultTif);
         // an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
         // that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
         // contradicting the immediate-fill semantics the type promises
@@ -1463,10 +1453,7 @@ export default class sxbet extends Exchange {
             trades.push (this.parseSxbetV3Fill (rawFills[i]));
         }
         trades = this.sortBy (trades, 'timestamp');
-        let sym: Str = undefined;
-        if (outcomeObj !== undefined) {
-            sym = this.safeString (outcomeObj, 'outcome');
-        }
+        const sym = (outcomeObj !== undefined) ? this.safeString (outcomeObj, 'outcome') : undefined;
         return this.filterByValueSinceLimit (trades, 'outcome', sym, since, limit, 'timestamp', true) as PredictionTrade[];
     }
 

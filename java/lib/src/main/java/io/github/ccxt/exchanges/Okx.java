@@ -2592,7 +2592,7 @@ public class Okx extends OkxApi
             }};
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object eventVar = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+                Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(data, i);
                 String state = this.safeString(eventVar, "state");
                 ((Map<String, Object>)update).put("eta", this.safeInteger(eventVar, "end"));
                 ((Map<String, Object>)update).put("url", this.safeString(eventVar, "href"));
@@ -3208,7 +3208,7 @@ public class Okx extends OkxApi
         Integer chainsLength = ((List<?>)chains).size();
         for (var j = 0; Helpers.isLessThan(j, chainsLength); j++)
         {
-            Object chain = Helpers.GetValue(chains, j);
+            Map<String, Object> chain = (Map<String, Object>) this.safeDict(chains, j);
             // allow empty string for rare fiat-currencies, e.g. TRY
             String networkId = this.safeString(chain, "chain", ""); // USDT-BEP20, USDT-Avalance-C, etc
             if (java.util.Objects.equals(networkId, ""))
@@ -3294,8 +3294,8 @@ public class Okx extends OkxApi
                 put( "instId", ((Map<String, Object>)market).get("id") );
             }};
             Boolean rpi = false;
-            List<Object> rpiparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrderBook", "rpi");
-            rpi = Boolean.TRUE.equals(((List<Object>) rpiparametersVariable).get(0));
+            List<Object> rpiparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrderBook", "rpi", false);
+            rpi = (Boolean) ((List<Object>) rpiparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) rpiparametersVariable).get(1);
             String method = null;
             List<Object> methodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchOrderBook", "method", "publicGetMarketBooks");
@@ -3863,8 +3863,8 @@ public class Okx extends OkxApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -4017,8 +4017,8 @@ public class Okx extends OkxApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -4188,8 +4188,8 @@ public class Okx extends OkxApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -4288,7 +4288,7 @@ public class Okx extends OkxApi
         List<Object> details = (List<Object>) this.safeList(first, "details", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)details).size(); i++)
         {
-            Object balance = (details == null || i < 0 || i >= details.size() ? null : details.get(i));
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(details, i);
             String currencyId = this.safeString(balance, "ccy");
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
@@ -4322,7 +4322,7 @@ public class Okx extends OkxApi
         List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object balance = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(data, i);
             String currencyId = this.safeString(balance, "ccy");
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
@@ -4758,18 +4758,18 @@ public class Okx extends OkxApi
         {
             if ((java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("future"), true)))
             {
-                Object positionSide = null;
-                List<Object> positionSideparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "positionSide");
-                positionSide = ((List<Object>) positionSideparametersVariable).get(0);
+                String positionSide = null;
+                List<Object> positionSideparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "positionSide");
+                positionSide = (String) ((List<Object>) positionSideparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) positionSideparametersVariable).get(1);
                 if (!java.util.Objects.equals(positionSide, null))
                 {
                     ((Map<String, Object>)request).put("posSide", positionSide);
                 } else
                 {
-                    Object hedged = null;
-                    List<Object> hedgedparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "hedged");
-                    hedged = ((List<Object>) hedgedparametersVariable).get(0);
+                    Boolean hedged = null;
+                    List<Object> hedgedparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "createOrder", "hedged");
+                    hedged = (Boolean) ((List<Object>) hedgedparametersVariable).get(0);
                     parameters = (Map<String, Object>) ((List<Object>) hedgedparametersVariable).get(1);
                     if (java.util.Objects.equals(hedged, true))
                     {
@@ -5196,7 +5196,7 @@ public class Okx extends OkxApi
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i);
                 String marketId = this.safeString(rawOrder, "symbol");
                 if (java.util.Objects.equals(marketId, null))
                 {
@@ -5776,7 +5776,7 @@ public class Okx extends OkxApi
             }
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object order = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+                Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, i);
                 String id = this.safeString(order, "id");
                 String clientOrderId = this.safeString2(order, "clOrdId", "clientOrderId");
                 String symbol = this.safeString(order, "symbol");
@@ -6461,8 +6461,8 @@ public class Okx extends OkxApi
             }
             Integer maxLimit = 100;
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -6892,8 +6892,8 @@ public class Okx extends OkxApi
             }
             Integer maxLimit = 100;
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchClosedOrders", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchClosedOrders", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -7117,8 +7117,8 @@ public class Okx extends OkxApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -7266,8 +7266,8 @@ public class Okx extends OkxApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -7494,7 +7494,7 @@ public class Okx extends OkxApi
         return this.parseLedgerEntry(item, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public Object parseDepositAddress(Object depositAddress, Map<String, Object> currency)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         //
         //     {
@@ -7595,7 +7595,7 @@ public class Okx extends OkxApi
             put( "tag", finalTag );
         }};
     }
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Object... optionalArgs)
     {
         return this.parseDepositAddress(depositAddress, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -7858,8 +7858,8 @@ public class Okx extends OkxApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -8024,8 +8024,8 @@ public class Okx extends OkxApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -8273,7 +8273,13 @@ public class Okx extends OkxApi
         String addressTo = this.safeString(transaction, "to");
         String address = addressTo;
         String tagTo = this.safeString2(transaction, "tag", "memo");
-        tagTo = (((java.util.Objects.equals(tagTo, null)))) ? this.safeString(transaction, "pmtId") : this.safeString2(transaction, "pmtId", tagTo);
+        if (java.util.Objects.equals(tagTo, null))
+        {
+            tagTo = this.safeString(transaction, "pmtId");
+        } else
+        {
+            tagTo = this.safeString2(transaction, "pmtId", tagTo);
+        }
         if (!java.util.Objects.equals(withdrawalId, null))
         {
             type = "withdrawal";
@@ -8293,10 +8299,7 @@ public class Okx extends OkxApi
             List<Object> chainParts = new ArrayList<Object>(Arrays.asList(((String)chain).split(java.util.regex.Pattern.quote("-"))));
             Object networkParts = this.arraySlice(chainParts, 1);
             String networkId = String.join("-", (List<String>)networkParts);
-            if (!java.util.Objects.equals(networkId, null))
-            {
-                network = this.networkIdToCode(networkId, code);
-            }
+            network = this.networkIdToCode(networkId, code);
         }
         Double amount = this.safeNumber(transaction, "amt");
         String status = this.parseTransactionStatus(this.safeString(transaction, "state"));
@@ -8427,7 +8430,7 @@ public class Okx extends OkxApi
         Long shortLeverage = null;
         for (var i = 0; i < ((List<?>)leverage).size(); i++)
         {
-            Object entry = Helpers.GetValue(leverage, i);
+            Map<String, Object> entry = (Map<String, Object>) this.safeDict(leverage, i);
             marginMode = this.safeStringLower(entry, "mgnMode");
             marketId = this.safeString(entry, "instId");
             String positionSide = this.safeStringLower(entry, "posSide");
@@ -9522,7 +9525,7 @@ public class Okx extends OkxApi
     {
         return this.fetchFundingRate(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
-    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
+    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters) //        "posBal": "0",
     {
         return this.fetchFundingRate(symbol, (Object) (parameters));
     }
@@ -10189,7 +10192,7 @@ public class Okx extends OkxApi
         Map<String, Object> borrowRateHistories = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
-            Object item = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
+            Map<String, Object> item = (Map<String, Object>) this.safeDict(response, i);
             String code = this.safeCurrencyCode(this.safeString(item, "ccy"));
             if ((!java.util.Objects.equals(code, null)) && (java.util.Objects.equals(codes, null) || this.inArray(code, codes)))
             {
@@ -10670,7 +10673,7 @@ public class Okx extends OkxApi
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < Helpers.getArrayLength(info); i++)
         {
-            Object tier = Helpers.GetValue(info, i);
+            Map<String, Object> tier = (Map<String, Object>) this.safeDict(info, i);
             String marketId = this.safeString(tier, "instId");
             ((List<Object>)tiers).add(new HashMap<String, Object>() {{
                 put( "tier", Okx.this.safeInteger(tier, "tier") );
@@ -10773,7 +10776,7 @@ public class Okx extends OkxApi
             //    }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object interest = this.parseBorrowInterests(data);
+            List<Object> interest = this.parseBorrowInterests(data);
             return this.filterByCurrencySinceLimit(interest, code, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(BorrowInterest::new).collect(Collectors.toList()));
 
@@ -11642,7 +11645,7 @@ public class Okx extends OkxApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)settlements).size(); i++)
         {
-            Object entry = (settlements == null || i < 0 || i >= ((List<?>)settlements).size() ? null : ((List<?>)settlements).get(i));
+            Map<String, Object> entry = (Map<String, Object>) this.safeDict(settlements, i);
             Long timestamp = this.safeInteger(entry, "ts");
             List<Object> details = (List<Object>) this.safeList(entry, "details", new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < ((List<?>)details).size(); j++)
@@ -12784,7 +12787,7 @@ public class Okx extends OkxApi
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object error = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+                Map<String, Object> error = (Map<String, Object>) this.safeDict(data, i);
                 String errorCode = this.safeString(error, "sCode");
                 String message = this.safeString(error, "sMsg");
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
@@ -12918,7 +12921,7 @@ public class Okx extends OkxApi
             //    }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object modifications = this.parseMarginModifications(data);
+            List<Object> modifications = this.parseMarginModifications(data);
             return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(MarginModification::new).collect(Collectors.toList()));
 
@@ -13138,7 +13141,7 @@ public class Okx extends OkxApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+                List<Object> entry = (List<Object>) this.safeList(data, i);
                 ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "timestamp", Okx.this.safeString(entry, 0) );
                     put( "longShortRatio", Okx.this.safeString(entry, 1) );

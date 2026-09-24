@@ -328,7 +328,9 @@ class mexc(ccxt.async_support.mexc):
         marketIdIsUndefined = marketId is None
         isSpot = channelStartsWithSpot if marketIdIsUndefined else market['spot']
         spotPrefix = 'spot:'
-        messageHashPrefix = spotPrefix if (isSpot is True) else ''
+        messageHashPrefix = ''
+        if isSpot is True:
+            messageHashPrefix = spotPrefix
         topic = messageHashPrefix + 'ticker'
         result = []
         for i in range(0, len(data)):
@@ -488,7 +490,9 @@ class mexc(ccxt.async_support.mexc):
         unsubscribed = self.safe_bool(params, 'unsubscribed', False)
         params = self.omit(params, ['unsubscribed'])
         url = self.urls['api']['ws']['spot']
-        method = 'UNSUBSCRIPTION' if (unsubscribed is True) else 'SUBSCRIPTION'
+        method = 'SUBSCRIPTION'
+        if unsubscribed is True:
+            method = 'UNSUBSCRIPTION'
         request = {
             'method': method,
             'params': [channel],
@@ -776,7 +780,7 @@ class mexc(ccxt.async_support.mexc):
         if nonce < firstDeltaNonce - 1:
             return -1
         for i in range(0, len(cache)):
-            delta = cache[i]
+            delta = self.safe_dict(cache, i)
             deltaNonce = self.safe_integer_n(delta, ['r', 'version', 'fromVersion'])
             if deltaNonce is None:
                 continue
@@ -1170,7 +1174,9 @@ class mexc(ccxt.async_support.mexc):
         priceString = self.safe_string_2(trade, 'p', 'price')
         amountString = self.safe_string_2(trade, 'v', 'quantity')
         rawSide = self.safe_string_2(trade, 'S', 'tradeType')
-        side = 'buy' if (rawSide == '1') else 'sell'
+        side = 'sell'
+        if rawSide == '1':
+            side = 'buy'
         isMaker = self.safe_integer(trade, 'm')
         feeAmount = self.safe_string_2(trade, 'n', 'feeAmount')
         feeCurrencyId = self.safe_string_2(trade, 'N', 'feeCurrency')
@@ -1528,7 +1534,9 @@ class mexc(ccxt.async_support.mexc):
         #     }
         #
         channel = self.safe_string(message, 'channel')
-        type = 'spot' if (channel == 'spot@private.account.v3.api.pb') else 'swap'
+        type = 'swap'
+        if channel == 'spot@private.account.v3.api.pb':
+            type = 'spot'
         messageHash = 'balance:' + type
         data = self.safe_dict_n(message, ['data', 'privateAccount'])
         futuresTimestamp = self.safe_integer_2(message, 'ts', 'createTime')

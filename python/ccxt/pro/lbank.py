@@ -467,7 +467,7 @@ class lbank(ccxt.async_support.lbank):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             stored = ArrayCache(limit)
             self.trades[symbol] = stored
-        rawTrade = self.safe_value(message, 'trade')
+        rawTrade = self.safe_dict(message, 'trade')
         rawTrades = self.safe_list(message, 'trades', [rawTrade])
         for i in range(0, len(rawTrades)):
             trade = self.parse_ws_trade(rawTrades[i], market)
@@ -493,7 +493,11 @@ class lbank(ccxt.async_support.lbank):
         #    }
         #
         timestamp = self.safe_integer(trade, 0)
-        datetime = (self.iso8601(timestamp)) if (timestamp is not None) else (self.safe_string(trade, 'TS'))
+        datetime = None
+        if timestamp is not None:
+            datetime = (self.iso8601(timestamp))
+        else:
+            datetime = (self.safe_string(trade, 'TS'))
         if timestamp is None:
             timestamp = self.parse8601(datetime)
         rawSide = self.safe_string_2(trade, 'direction', 3)
@@ -880,7 +884,7 @@ class lbank(ccxt.async_support.lbank):
         error = ExchangeError(self.id + ' ' + errMsg)
         client.reject(error)
 
-    async def handle_ping(self, client: Client, message: object):
+    async def handle_ping(self, client: Client, message: dict):
         #
         #  { ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping' }
         #
@@ -932,7 +936,7 @@ class lbank(ccxt.async_support.lbank):
             # a flight is already in progress - wake when the leader settles
             # it: the subscribeKey is then in the bucket
             await client.future(messageHash)
-            return client.subscriptions['authenticated']['key']
+            return self.safe_string(self.safe_dict(client.subscriptions, 'authenticated'), 'key')
         future = client.reusableFuture(messageHash)
         try:
             authenticated = self.safe_dict(client.subscriptions, 'authenticated')
@@ -972,4 +976,4 @@ class lbank(ccxt.async_support.lbank):
         # rethrows a rejected flight to the leader and attaches the handler
         # that keeps an alone leader from crashing on an unhandled rejection
         await future
-        return client.subscriptions['authenticated']['key']
+        return self.safe_string(self.safe_dict(client.subscriptions, 'authenticated'), 'key')

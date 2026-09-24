@@ -806,7 +806,7 @@ class onetrading extends Exchange {
         $takerFees = array();
         $makerFees = array();
         for ($i = 0; $i < count($feeTiers); $i++) {
-            $tier = $feeTiers[$i];
+            $tier = $this->safe_dict($feeTiers, $i);
             $volume = $this->safe_number($tier, 'volume');
             $taker = $this->safe_string($tier, 'taker_fee');
             $maker = $this->safe_string($tier, 'maker_fee');
@@ -1206,7 +1206,7 @@ class onetrading extends Exchange {
         //     }
         //
         $feeInfo = $this->safe_dict($trade, 'fee', array());
-        $trade = $this->safe_value($trade, 'trade', $trade);
+        $trade = $this->safe_dict($trade, 'trade', $trade);
         $timestamp = $this->safe_integer($trade, 'trade_timestamp');
         if ($timestamp === null) {
             $timestamp = $this->parse8601($this->safe_string($trade, 'time'));
@@ -1252,7 +1252,7 @@ class onetrading extends Exchange {
         $balances = $this->safe_list($response, 'balances', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+            $balance = $this->safe_dict($balances, $i);
             $currencyId = $this->safe_string($balance, 'currency_code');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -1385,7 +1385,7 @@ class onetrading extends Exchange {
         //         ]
         //     }
         //
-        $rawOrder = $this->safe_value($order, 'order', $order);
+        $rawOrder = $this->safe_dict($order, 'order', $order);
         $id = $this->safe_string($rawOrder, 'order_id');
         $clientOrderId = $this->safe_string($rawOrder, 'client_id');
         $timestamp = $this->parse8601($this->safe_string($rawOrder, 'time'));

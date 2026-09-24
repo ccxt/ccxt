@@ -564,9 +564,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         List<object> data = this.safeList(message, "candles", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            object tick = data[i];
+            IDictionary<string, object> tick = this.safeDict(data, i);
             IList<object> parsed = this.parseOHLCV(tick, market);
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
         }
         client.resolve(stored, add(add(messageHash, "::"), symbol));
     }
@@ -642,7 +642,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArrayCache;
         }
         ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
-        callDynamically(tradesArray, "append", new object[] {trade});
+        tradesArray.append(trade);
         ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
         client.resolve(tradesArray, channel);
         client.resolve(tradesArray, add(add(channel, "::"), (trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null)));
@@ -782,7 +782,11 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public override void handleDelta(object orderbook, object delta)
     {
         string? rawSide = this.safeStringLower(delta, 0);
-        string side = (rawSide == "buy") ? "bids" : "asks";
+        string side = "asks";
+        if (rawSide == "buy")
+        {
+            side = "bids";
+        }
         double? price = this.safeFloat(delta, 1);
         double? amount = this.safeFloat(delta, 2);
         object bookside = getValue(orderbook, side);

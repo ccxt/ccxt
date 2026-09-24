@@ -412,7 +412,7 @@ func (this *Bullish) HandleOrderBook(client any, message any) {
 		"asks": asks,
 	}
 	var parsed map[string]any = this.ParseOrderBook(snapshot, symbol, timestamp)
-	var sequenceNumberRange []any = ccxt.SafeListTypedDefault(data, "sequenceNumberRange", []any{})
+	var sequenceNumberRange []any = ccxt.SafeListTyped(data, "sequenceNumberRange")
 	if len(sequenceNumberRange) > 0 {
 		var lastIndex any = ccxt.Subtract(len(sequenceNumberRange), 1)
 		parsed["nonce"] = this.SafeInteger(sequenceNumberRange, lastIndex)

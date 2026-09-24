@@ -431,19 +431,17 @@ func (this *Cex) ParseCurrency(rawCurrency any) any {
 	var id *string = this.SafeString(rawCurrency, "currency")
 	var code *string = this.SafeCurrencyCode(id)
 	var isFiat bool = (IsEqual(this.SafeBool(rawCurrency, "fiat"), true))
-	var typeVar string = func() string {
-		if isFiat {
-			return "fiat"
-		}
-		return "crypto"
-	}()
+	var typeVar string = "crypto"
+	if isFiat {
+		typeVar = "fiat"
+	}
 	var currencyPrecision *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, "precision"))))
 	var networks map[string]any = map[string]any{}
 	var rawNetworks map[string]any = SafeMapTyped(rawCurrency, "blockchains")
 	var keys []string = ObjectKeys(rawNetworks)
 	for j := 0; j < len(keys); j++ {
 		var networkId string = GetValue(keys, j).(string)
-		var rawNetwork any = rawNetworks[networkId]
+		var rawNetwork map[string]any = SafeMapTyped(rawNetworks, networkId)
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		var deposit bool = (this.SafeString(rawNetwork, "deposit") != nil && *this.SafeString(rawNetwork, "deposit") == "enabled")
 		var withdraw bool = (this.SafeString(rawNetwork, "withdrawal") != nil && *this.SafeString(rawNetwork, "withdrawal") == "enabled")
@@ -948,9 +946,9 @@ func (this *Cex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var dataType any = nil
-	var dataTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "dataType")
-	dataType = GetValue(dataTypeparamsVariable, 0)
+	var dataType *string = nil
+	var dataTypeparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchOHLCV", "dataType")
+	dataType = SafeStringPtr(GetValue(dataTypeparamsVariable, 0))
 	params = GetValue(dataTypeparamsVariable, 1)
 	if dataType == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\""))
@@ -1372,8 +1370,8 @@ func (this *Cex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes112415 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStatusAsync("closed", symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes112415)
+	var retRes112715 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStatusAsync("closed", symbol, since, limit, params))))
+	ch <- BoxAbsent(retRes112715)
 	return nil
 }
 
@@ -1405,8 +1403,8 @@ func (this *Cex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes113915 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStatusAsync("open", symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes113915)
+	var retRes114215 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStatusAsync("open", symbol, since, limit, params))))
+	ch <- BoxAbsent(retRes114215)
 	return nil
 }
 
@@ -1604,9 +1602,9 @@ func (this *Cex) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var accountId any = nil
-	var accountIdparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "accountId")
-	accountId = GetValue(accountIdparamsVariable, 0)
+	var accountId *string = nil
+	var accountIdparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "accountId")
+	accountId = SafeStringPtr(GetValue(accountIdparamsVariable, 0))
 	params = GetValue(accountIdparamsVariable, 1)
 	if accountId == nil {
 		panic(ArgumentsRequired(this.Id + " createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account"))
@@ -1995,12 +1993,10 @@ func (this *Cex) ParseTransaction(transaction any, optionalArgs ...any) any {
 	_ = currency
 	var currencyId *string = this.SafeString(transaction, "currency")
 	var direction *string = this.SafeString(transaction, "direction")
-	var typeVar string = func() string {
-		if direction != nil && *direction == "withdraw" {
-			return "withdrawal"
-		}
-		return "deposit"
-	}()
+	var typeVar string = "deposit"
+	if direction != nil && *direction == "withdraw" {
+		typeVar = "withdrawal"
+	}
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var updatedAt *string = this.SafeString(transaction, "updatedAt")
 	var timestamp *int64 = this.Parse8601(updatedAt)
@@ -2096,12 +2092,10 @@ func (this *Cex) transferBetweenMainAndSubAccountBody(ch chan any, code any, amo
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var fromMain bool = (IsEqual(fromAccount, ""))
-	var targetAccount any = func() any {
-		if fromMain {
-			return toAccount
-		}
-		return fromAccount
-	}()
+	var targetAccount any = fromAccount
+	if fromMain {
+		targetAccount = toAccount
+	}
 	var guid *string = this.SafeString(params, "guid", this.Uuid())
 	var request map[string]any = map[string]any{
 		"currency":   currency["id"],
@@ -2231,9 +2225,9 @@ func (this *Cex) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var accountId any = nil
-	var accountIdparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "accountId")
-	accountId = GetValue(accountIdparamsVariable, 0)
+	var accountId *string = nil
+	var accountIdparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "accountId")
+	accountId = SafeStringPtr(GetValue(accountIdparamsVariable, 0))
 	params = MapTyped(GetValue(accountIdparamsVariable, 1))
 	if accountId == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account"))

@@ -255,7 +255,7 @@ func (this *Whitebit) HandleOrderBook(client any, message map[string]any) {
 	//     "id":null
 	//  }
 	//
-	var params []any = ccxt.SafeListTypedDefault(message, "params", []any{})
+	var params []any = ccxt.SafeListTyped(message, "params")
 	var isSnapshot any = this.SafeValue(params, 0)
 	var marketId *string = this.SafeString(params, 2)
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
@@ -392,7 +392,7 @@ func (this *Whitebit) HandleTicker(client any, message map[string]any) any {
 	//       "id": null
 	//   }
 	//
-	var tickers []any = ccxt.SafeListTypedDefault(message, "params", []any{})
+	var tickers []any = ccxt.SafeListTyped(message, "params")
 	var marketId *string = this.SafeString(tickers, 0)
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -490,7 +490,7 @@ func (this *Whitebit) HandleTrades(client any, message map[string]any) {
 	//        ]
 	//    }
 	//
-	var params []any = ccxt.SafeListTypedDefault(message, "params", []any{})
+	var params []any = ccxt.SafeListTyped(message, "params")
 	var marketId *string = this.SafeString(params, 0)
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -621,12 +621,12 @@ func (this *Whitebit) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var feeCost *string = this.SafeString(trade, 6)
 	if feeCost != nil {
 		var feeCurrencyId *string = this.SafeString(trade, 10)
-		var feeCurrencyCode any = func() any {
-			if feeCurrencyId != nil {
-				return this.SafeCurrencyCode(feeCurrencyId)
-			}
-			return ccxt.GetValue(market, "quote")
-		}()
+		var feeCurrencyCode any = nil
+		if feeCurrencyId != nil {
+			feeCurrencyCode = ccxt.DerefScalar(this.SafeCurrencyCode(feeCurrencyId))
+		} else {
+			feeCurrencyCode = ccxt.GetValue(market, "quote")
+		}
 		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": feeCurrencyCode,
@@ -741,7 +741,7 @@ func (this *Whitebit) HandleOrder(client any, message map[string]any, optionalAr
 	//
 	var subscription map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = subscription
-	var params []any = ccxt.SafeListTypedDefault(message, "params", []any{})
+	var params []any = ccxt.SafeListTyped(message, "params")
 	var data map[string]any = ccxt.SafeMapTyped(params, 1)
 	if ccxt.IsEqual(this.Orders, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
@@ -806,12 +806,10 @@ func (this *Whitebit) ParseWsOrder(order any, optionalArgs ...any) any {
 	var lastTradeTimestamp *int64 = this.SafeTimestamp(order, "mtime")
 	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var rawSide *int64 = this.SafeInteger(order, "side")
-	var side string = func() string {
-		if rawSide != nil && *rawSide == 1 {
-			return "sell"
-		}
-		return "buy"
-	}()
+	var side string = "buy"
+	if rawSide != nil && *rawSide == 1 {
+		side = "sell"
+	}
 	var dealFee *string = this.SafeString(order, "deal_fee")
 	var fee map[string]any = nil
 	if dealFee != nil {
@@ -1012,7 +1010,7 @@ func (this *Whitebit) HandleBalance(client any, message map[string]any) {
 		}
 		return strings.Index(*method, "Margin")
 	}() >= 0)
-	var data []any = ccxt.SafeListTypedDefault(message, "params", []any{})
+	var data []any = ccxt.SafeListTyped(message, "params")
 	for i := 0; i < len(data); i++ {
 		var balanceDict any = this.SafeDict(data, i, map[string]any{})
 		ccxt.AddElementToObject(this.Balance, "info", balanceDict)
@@ -1318,7 +1316,7 @@ func (this *Whitebit) HandleErrorMessage(client any, message any) any {
 	//         "id": 1656090882
 	//     }
 	//
-	var error any = this.SafeValue(message, "error")
+	var error map[string]any = ccxt.SafeMapTyped(message, "error")
 
 	{
 		func(this *Whitebit) (ret_ any) {
@@ -1384,7 +1382,7 @@ func (this *Whitebit) HandleMessage(client any, message any) {
 		"balanceMargin_update":  this.HandleBalance,
 		"deals_update":          this.HandleMyTrades,
 	}
-	var topic any = this.SafeValue(message, "method")
+	var topic *string = this.SafeString(message, "method")
 	var method any = this.SafeValue(methods, topic)
 	if !ccxt.IsEqual(method, nil) {
 		ccxt.CallDynamically(method, client, message)

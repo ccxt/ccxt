@@ -1011,7 +1011,7 @@ class indodax(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-        side = self.safe_value(params, 'side')
+        side = self.safe_string(params, 'side')
         if side is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires an extra "side" param')
         if self.markets is None:

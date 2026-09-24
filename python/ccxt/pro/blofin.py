@@ -509,7 +509,9 @@ class blofin(ccxt.async_support.blofin):
             await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
-        channel = 'orders-algo' if (trigger is True) else 'orders'
+        channel = 'orders'
+        if trigger is True:
+            channel = 'orders-algo'
         orders = await self.watch_multiple_wrapper(False, channel, 'watchOrdersForSymbols', symbols, params)
         if self.newUpdates:
             first = self.safe_dict(orders, 0)
@@ -687,7 +689,9 @@ class blofin(ccxt.async_support.blofin):
         if self.in_array(channelName, ['orders', 'orders-algo', 'positions']):
             rawSubscriptions = [{'channel': channelName}]
         request = self.get_subscription_request(rawSubscriptions)
-        privateOrPublic = 'public' if isPublic else 'private'
+        privateOrPublic = 'private'
+        if isPublic:
+            privateOrPublic = 'public'
         url = (self.urls['api'])['ws'][marketType][privateOrPublic]
         return await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), messageHashes)
 

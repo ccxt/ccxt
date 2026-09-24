@@ -154,12 +154,12 @@ func (this *Luno) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var symbol any = func() any {
-		if market == nil {
-			return nil
-		}
-		return ccxt.GetValue(market, "symbol")
-	}()
+	var symbol any = nil
+	if market == nil {
+		symbol = nil
+	} else {
+		symbol = ccxt.GetValue(market, "symbol")
+	}
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           nil,
@@ -263,7 +263,7 @@ func (this *Luno) HandleOrderBook(client any, message map[string]any, subscripti
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.IndexedOrderBook(map[string]any{}))
 	}
-	var asks any = this.SafeValue(message, "asks")
+	var asks []any = ccxt.SafeListTyped(message, "asks")
 	if !ccxt.IsEqual(asks, nil) {
 		var snapshot any = this.CustomParseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "volume", "id")
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.IndexedOrderBook(snapshot))
@@ -376,7 +376,7 @@ func (this *Luno) HandleDelta(orderbook any, message any) {
 	//         "timestamp": 1660598775360
 	//     }
 	//
-	var createUpdate any = this.SafeValue(message, "create_update")
+	var createUpdate map[string]any = ccxt.SafeMapTyped(message, "create_update")
 	var asksOrderSide any = ccxt.GetValue(orderbook, "asks")
 	var bidsOrderSide any = ccxt.GetValue(orderbook, "bids")
 	if !ccxt.IsEqual(createUpdate, nil) {
@@ -388,7 +388,7 @@ func (this *Luno) HandleDelta(orderbook any, message any) {
 			bidsOrderSide.(ccxt.IOrderBookSide).StoreArray(bidAskArray)
 		}
 	}
-	var deleteUpdate any = this.SafeValue(message, "delete_update")
+	var deleteUpdate map[string]any = ccxt.SafeMapTyped(message, "delete_update")
 	if !ccxt.IsEqual(deleteUpdate, nil) {
 		var orderId *string = this.SafeString(deleteUpdate, "order_id")
 		asksOrderSide.(ccxt.IOrderBookSide).StoreArray([]any{0, 0, orderId})

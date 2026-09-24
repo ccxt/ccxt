@@ -430,7 +430,7 @@ public class Coincheck extends CoincheckApi
             Long updated = null;
             for (var i = 0; i < ((List<?>)exchangeStatuses).size(); i++)
             {
-                Object exchangeStatus = (exchangeStatuses == null || i < 0 || i >= exchangeStatuses.size() ? null : exchangeStatuses.get(i));
+                Map<String, Object> exchangeStatus = (Map<String, Object>) this.safeDict(exchangeStatuses, i);
                 String rawStatus = this.safeString(exchangeStatus, "status");
                 if (java.util.Objects.equals(updated, null))
                 {
@@ -579,7 +579,7 @@ public class Coincheck extends CoincheckApi
         String amount = this.safeString(order, "pending_amount");
         String remaining = this.safeString(order, "pending_amount");
         String price = this.safeString(order, "rate");
-        Object status = null;
+        List<String> status = null;
         String marketId = this.safeString(order, "pair");
         String symbol = this.safeSymbol(marketId, market, "_");
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{

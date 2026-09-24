@@ -720,7 +720,7 @@ public class Bigone extends BigoneApi
 
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.publicGetAssetPairs(parameters), this.contractPublicGetSymbols(parameters)));
             Object promisesResult = (Helpers.promiseAll(promises)).join();
-            Object response = (promisesResult == null || 0 >= ((List<?>)promisesResult).size() ? null : ((List<?>)promisesResult).get(0));
+            Map<String, Object> response = (Map<String, Object>) this.safeDict(promisesResult, 0);
             Object contractResponse = (promisesResult == null || 1 >= ((List<?>)promisesResult).size() ? null : ((List<?>)promisesResult).get(1));
             //
             //     {
@@ -965,7 +965,11 @@ public class Bigone extends BigoneApi
         //        "openInterest": 1141372.0
         //    }
         //
-        String marketType = (((((Map<?, ?>)ticker).containsKey("asset_pair_name")))) ? "spot" : "swap";
+        String marketType = "swap";
+        if (((Map<?, ?>)ticker).containsKey("asset_pair_name"))
+        {
+            marketType = "spot";
+        }
         String marketId = this.safeString2(ticker, "asset_pair_name", "symbol");
         String symbol = this.safeSymbol(marketId, market, "-", marketType);
         String close = this.safeString2(ticker, "close", "latestPrice");
@@ -1108,7 +1112,7 @@ public class Bigone extends BigoneApi
             {
                 if (!java.util.Objects.equals(symbols, null))
                 {
-                    Object ids = this.marketIds(symbols);
+                    List<String> ids = this.marketIds(symbols);
                     ((Map<String, Object>)request).put("pair_names", String.join(",", (List<String>)ids));
                 }
                 Map<String, Object> response = (this.publicGetAssetPairsTickers(this.extend(request, parameters))).join();
@@ -1729,7 +1733,7 @@ public class Bigone extends BigoneApi
         List<Object> balances = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i);
             String symbol = this.safeString(balance, "asset_symbol");
             String code = this.safeCurrencyCode(symbol);
             Map<String, Object> account = (Map<String, Object>) this.account();
@@ -1983,7 +1987,11 @@ public class Bigone extends BigoneApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Boolean isBuy = (java.util.Objects.equals(side, "buy"));
-            String requestSide = ((Boolean.TRUE.equals(isBuy))) ? "BID" : "ASK";
+            String requestSide = "ASK";
+            if (Boolean.TRUE.equals(isBuy))
+            {
+                requestSide = "BID";
+            }
             String uppercaseType = ((String)type).toUpperCase();
             Boolean isLimit = java.util.Objects.equals(uppercaseType, "LIMIT");
             Boolean exchangeSpecificParam = (Boolean) this.safeBool(parameters, "post_only", false);
@@ -1992,9 +2000,10 @@ public class Bigone extends BigoneApi
             postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) postOnlyparametersVariable).get(1);
             String triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop_price")));
+            final String finalRequestSide = requestSide;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset_pair_name", ((Map<String, Object>)market).get("id") );
-                put( "side", requestSide );
+                put( "side", finalRequestSide );
                 put( "amount", Bigone.this.amountToPrecision(symbol, amount) );
             }};
             if (Boolean.TRUE.equals(isLimit) || (java.util.Objects.equals(uppercaseType, "STOP_LIMIT")))
@@ -2749,8 +2758,13 @@ public class Bigone extends BigoneApi
         String txid = this.safeString(transaction, "txid");
         String address = this.safeString(transaction, "target_address");
         String tag = this.safeString(transaction, "memo");
-        String type = (((transaction.containsKey("customer_id")))) ? "withdrawal" : "deposit";
+        String type = "deposit";
+        if (transaction.containsKey("customer_id"))
+        {
+            type = "withdrawal";
+        }
         Boolean intern = (Boolean) this.safeBool(transaction, "is_internal");
+        final String finalType = type;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", id );
@@ -2764,7 +2778,7 @@ public class Bigone extends BigoneApi
             put( "tagFrom", null );
             put( "tag", tag );
             put( "tagTo", null );
-            put( "type", type );
+            put( "type", finalType );
             put( "amount", amount );
             put( "currency", code );
             put( "status", status );

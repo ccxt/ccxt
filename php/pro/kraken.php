@@ -171,11 +171,26 @@ class kraken extends \ccxt\async\kraken {
         $isTrailingLimitAmountOrder = $trailingLimitAmount !== null;
         $isTrailingLimitPercentOrder = $trailingLimitPercent !== null;
         $offset = $this->safe_string($params, 'offset', ''); // can set this to - for minus
-        $trailingAmountString = ($trailingAmount !== null) ? $offset . $this->number_to_string($trailingAmount) : null;
-        $trailingPercentString = ($trailingPercent !== null) ? $offset . $this->number_to_string($trailingPercent) : null;
-        $trailingLimitAmountString = ($trailingLimitAmount !== null) ? $offset . $this->number_to_string($trailingLimitAmount) : null;
-        $trailingLimitPercentString = ($trailingLimitPercent !== null) ? $offset . $this->number_to_string($trailingLimitPercent) : null;
-        $priceType = ($isTrailingPercentOrder || $isTrailingLimitPercentOrder) ? 'pct' : 'quote';
+        $trailingAmountString = null;
+        if ($trailingAmount !== null) {
+            $trailingAmountString = $offset . $this->number_to_string($trailingAmount);
+        }
+        $trailingPercentString = null;
+        if ($trailingPercent !== null) {
+            $trailingPercentString = $offset . $this->number_to_string($trailingPercent);
+        }
+        $trailingLimitAmountString = null;
+        if ($trailingLimitAmount !== null) {
+            $trailingLimitAmountString = $offset . $this->number_to_string($trailingLimitAmount);
+        }
+        $trailingLimitPercentString = null;
+        if ($trailingLimitPercent !== null) {
+            $trailingLimitPercentString = $offset . $this->number_to_string($trailingLimitPercent);
+        }
+        $priceType = 'quote';
+        if ($isTrailingPercentOrder || $isTrailingLimitPercentOrder) {
+            $priceType = 'pct';
+        }
         if ($method === 'createOrderWs') {
             $reduceOnly = $this->safe_bool($params, 'reduceOnly');
             if ($reduceOnly === true) {
@@ -541,7 +556,7 @@ class kraken extends \ccxt\async\kraken {
         //     }
         //
         $data = $this->safe_list($message, 'data', array());
-        $ticker = $data[0];
+        $ticker = $this->safe_dict($data, 0);
         $symbol = $this->safe_string($ticker, 'symbol');
         $messageHash = $this->get_message_hash('ticker', null, $symbol);
         $vwap = $this->safe_string($ticker, 'vwap');
@@ -596,7 +611,7 @@ class kraken extends \ccxt\async\kraken {
         //     }
         //
         $data = $this->safe_list($message, 'data', array());
-        $trade = $data[0];
+        $trade = $this->safe_dict($data, 0);
         $symbol = $this->safe_string($trade, 'symbol');
         $messageHash = $this->get_message_hash('trade', null, $symbol);
         $stored = $this->safe_value($this->trades, $symbol);
@@ -637,7 +652,7 @@ class kraken extends \ccxt\async\kraken {
         //     }
         //
         $data = $this->safe_list($message, 'data', array());
-        $first = $data[0];
+        $first = $this->safe_dict($data, 0);
         $marketId = $this->safe_string($first, 'symbol');
         $symbol = $this->safe_symbol($marketId);
         if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
@@ -655,7 +670,7 @@ class kraken extends \ccxt\async\kraken {
         }
         $ohlcvsLength = count($data);
         for ($i = 0; $i < $ohlcvsLength; $i++) {
-            $candle = $data[$i];
+            $candle = $this->safe_dict($data, $i);
             $datetime = $this->safe_string($candle, 'interval_begin');
             $timestamp = $this->parse8601($datetime);
             $parsed = array(
@@ -1067,7 +1082,7 @@ class kraken extends \ccxt\async\kraken {
     public function custom_handle_deltas(mixed $bookside, array $deltas) {
         // const sortOrder = (key === 'bids') ? true : false;
         for ($j = 0; $j < count($deltas); $j++) {
-            $delta = $deltas[$j];
+            $delta = $this->safe_dict($deltas, $j);
             $price = $this->safe_number($delta, 'price');
             $amount = $this->safe_number($delta, 'qty');
             $bookside->store($price, $amount);
@@ -1347,7 +1362,10 @@ class kraken extends \ccxt\async\kraken {
         }
         $datetime = $this->safe_string($trade, 'timestamp');
         $liquidityIndicator = $this->safe_string($trade, 'liquidity_ind');
-        $takerOrMaker = ($liquidityIndicator === 't') ? 'taker' : 'maker';
+        $takerOrMaker = 'maker';
+        if ($liquidityIndicator === 't') {
+            $takerOrMaker = 'taker';
+        }
         return array(
             'info' => $trade,
             'id' => $this->safe_string($trade, 'exec_id'),

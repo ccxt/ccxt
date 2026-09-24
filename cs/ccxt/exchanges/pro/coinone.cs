@@ -299,10 +299,10 @@ public partial class coinone : ccxt.coinone
             } },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        object trades = await this.watch(url, messageHash, message, messageHash);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, message, messageHash));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {(market.ContainsKey("symbol") ? market["symbol"] : null), limitVar}));
+            limitVar = ((Int64?)trades.getLimit((market.ContainsKey("symbol") ? market["symbol"] : null), limitVar));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -334,7 +334,7 @@ public partial class coinone : ccxt.coinone
             stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        callDynamically(stored, "append", new object[] {trade});
+        stored.append(trade);
         string messageHash = ("trade:" + symbol);
         client.resolve(stored, messageHash);
     }

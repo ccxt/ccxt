@@ -1803,12 +1803,12 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var feeCostString *string = this.SafeString(trade, "fee")
 	var feeCurrency *string = this.SafeString(market, "quote")
-	var priceId any = func() any {
-		if rawMarketId != nil {
-			return rawMarketId
-		}
-		return this.SafeString(market, "id")
-	}()
+	var priceId any = nil
+	if rawMarketId != nil {
+		priceId = rawMarketId
+	} else {
+		priceId = DerefScalar(this.SafeString(market, "id"))
+	}
 	priceString = this.SafeString(trade, priceId, priceString)
 	amountString = this.SafeString(trade, this.SafeString(market, "baseId"), amountString)
 	costString = this.SafeString(trade, this.SafeString(market, "quoteId"), costString)
@@ -2073,7 +2073,7 @@ func (this *Bitstamp) ParseBalance(response any) any {
 		response = []any{}
 	}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var currencyBalance map[string]any = MapTyped(GetValue(response, i))
+		var currencyBalance map[string]any = SafeMapTyped(response, i)
 		var currencyId *string = this.SafeString(currencyBalance, "currency")
 		var currencyCode *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -2364,7 +2364,7 @@ func (this *Bitstamp) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any 
 	var result any = this.DepositWithdrawFee(fee)
 	var code *string = this.SafeString(currency, "code")
 	for j := 0; j < GetArrayLength(fee); j++ {
-		var networkEntry map[string]any = MapTyped(GetValue(fee, j))
+		var networkEntry map[string]any = SafeMapTyped(fee, j)
 		var networkId *string = this.SafeString(networkEntry, "network")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		var withdrawFee *float64 = this.SafeNumber(networkEntry, "fee")
@@ -2822,13 +2822,13 @@ func (this *Bitstamp) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes195719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))))
-		ch <- BoxAbsent(retRes195719)
+		var retRes196219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))))
+		ch <- BoxAbsent(retRes196219)
 		return nil
 	}
 	if this.Markets == nil {
@@ -3840,12 +3840,10 @@ func (this *Bitstamp) Sign(path any, optionalArgs ...any) any {
 				AddElementToObject(headers, "Content-Type", contentType)
 			}
 		}
-		var authBody any = func() any {
-			if (body != nil) && (!IsEqual(body, "")) {
-				return body
-			}
-			return ""
-		}()
+		var authBody any = ""
+		if (body != nil) && (!IsEqual(body, "")) {
+			authBody = body
+		}
 		var auth any = Add(Add(Add(Add(Add(Add(Add(xAuth, method), Replace(url, "https://", "")), contentType), xAuthNonce), xAuthTimestamp), xAuthVersion), authBody)
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		AddElementToObject(headers, "X-Auth-Signature", signature)

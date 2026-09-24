@@ -2291,12 +2291,7 @@ export default class kucoin extends kucoinRest {
         const matchSize = this.safeString (data, 'matchSize');
         if ((rawType === 'match') && (matchPrice !== undefined) && (matchSize !== undefined)) {
             const matchCost = Precise.stringMul (matchPrice, matchSize);
-            let previousCost: Str = undefined;
-            if (order === undefined) {
-                previousCost = '0';
-            } else {
-                previousCost = this.numberToString (this.safeNumber (order, 'cost', 0));
-            }
+            const previousCost = (order === undefined) ? '0' : this.numberToString (this.safeNumber (order, 'cost', 0));
             const costString = Precise.stringAdd (previousCost, matchCost);
             parsed['cost'] = this.parseNumber (costString);
             const filledString = this.numberToString (parsed['filled']);
@@ -2855,7 +2850,7 @@ export default class kucoin extends kucoinRest {
         account['free'] = this.safeString (data, 'a');
         account['used'] = this.safeString (data, 'h');
         account['total'] = this.safeString (data, 'b');
-        if ((type !== undefined) && (code !== undefined)) {
+        if (code !== undefined) {
             this.balance[type][code] = account;
         }
         this.balance[type] = this.safeBalance (this.balance[type]);

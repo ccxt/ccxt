@@ -550,7 +550,7 @@ func (this *Bitflyer) ParseBalance(response any) any {
 		"info": response,
 	}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var balance map[string]any = MapTyped(GetValue(response, i))
+		var balance map[string]any = SafeMapTyped(response, i)
 		var currencyId *string = this.SafeString(balance, "currency_code")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -752,7 +752,7 @@ func (this *Bitflyer) ParseTrade(trade any, optionalArgs ...any) any {
 			order = this.SafeString(trade, idInner)
 		}
 	}
-	if IsEqual(order, nil) {
+	if order == nil {
 		order = this.SafeString(trade, "child_order_acceptance_id")
 	}
 	var timestamp *int64 = this.Parse8601(this.SafeString(trade, "exec_date"))

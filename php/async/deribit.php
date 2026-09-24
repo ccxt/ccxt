@@ -1106,7 +1106,7 @@ class deribit extends Exchange {
             $summaries = array( $balance );
         }
         for ($i = 0; $i < count($summaries); $i++) {
-            $data = $summaries[$i];
+            $data = $this->safe_dict($summaries, $i);
             $currencyId = $this->safe_string($data, 'currency');
             $currencyCode = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -1546,7 +1546,7 @@ class deribit extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 5000));
         }
@@ -1597,7 +1597,7 @@ class deribit extends Exchange {
         //         "testnet": false
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         $ohlcvs = $this->convert_trading_view_to_ohlcv($result, 'ticks', 'open', 'high', 'low', 'close', 'volume', true);
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
@@ -3460,7 +3460,7 @@ class deribit extends Exchange {
         }
         $market = $this->market($symbol);
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         $maxEntriesPerRequest = 744; // seems exchange returns max 744 items per request
         $eachItemDuration = '1h';
         if ($paginate) {
@@ -3514,7 +3514,7 @@ class deribit extends Exchange {
         $rates = array();
         $result = $this->safe_list($response, 'result', array());
         for ($i = 0; $i < count($result); $i++) {
-            $fr = $result[$i];
+            $fr = $this->safe_dict($result, $i);
             $rate = $this->parse_funding_rate($fr, $market);
             $rates[] = $rate;
         }
@@ -3586,7 +3586,7 @@ class deribit extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLiquidations', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchLiquidations', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchLiquidations', $symbol, $since, $limit, $params, 'continuation', 'continuation', null));
         }

@@ -280,7 +280,9 @@ class limitless(PredictionExchange, ImplicitAPI):
         for i in range(0, len(expandedRaw)):
             raw = expandedRaw[i]
             groupId = self.safe_string_n(raw, ['groupSlug', 'groupId'], self.safe_string(raw, 'slug'))
-            eventKey = self.shorten_slug(groupId) if (groupId is not None and groupId != '') else None
+            eventKey = None
+            if groupId is not None and groupId != '':
+                eventKey = self.shorten_slug(groupId)
             m = self.parse_market(raw)
             markets.append(m)
             if (eventKey is not None) and (eventKey != ''):
@@ -789,7 +791,9 @@ class limitless(PredictionExchange, ImplicitAPI):
         endDate = self.safe_string(event, 'deadline', self.safe_string(event, 'expiresAt'))
         title = self.safe_string(event, 'title', groupId)
         hasGroupId = (groupId is not None) and (groupId != '')
-        eventSlug = self.shorten_slug(groupId) if hasGroupId else None
+        eventSlug = None
+        if hasGroupId:
+            eventSlug = self.shorten_slug(groupId)
         hasEndDate = (endDate is not None) and (endDate != '')
         endTimestamp = self.parse8601(endDate) if hasEndDate else None
         markets = []
@@ -1233,8 +1237,12 @@ class limitless(PredictionExchange, ImplicitAPI):
         rawBids = self.safe_list(response, 'bids', [])
         rawAsks = self.safe_list(response, 'asks', [])
         # the book endpoint is quoted in the yes token, the no side mirrors at 1 - price with bids and asks swapped
-        bidsSource = rawBids if (isYes) else rawAsks
-        asksSource = rawAsks if (isYes) else rawBids
+        bidsSource = rawAsks
+        if isYes:
+            bidsSource = rawBids
+        asksSource = rawBids
+        if isYes:
+            asksSource = rawAsks
         bids = []
         asks = []
         for bi in range(0, len(bidsSource)):
@@ -1342,7 +1350,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         # timeframe-aligned candles (single points would carry unaligned timestamps)
         pseudoTrades = []
         for i in range(0, len(history)):
-            point = history[i]
+            point = self.safe_dict(history, i)
             pointPrice = self.safe_number(point, 'price')
             pointTs = self.safe_integer(point, 'timestamp')
             if pointTs is None:
@@ -1362,7 +1370,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         candles = {}
         bucketOrder = []
         for i in range(0, len(sorted)):
-            point = sorted[i]
+            point = self.safe_dict(sorted, i)
             pTs = self.safe_integer(point, 'timestamp')
             pPrice = self.safe_number(point, 'price')
             if pTs is None:
@@ -1755,7 +1763,10 @@ class limitless(PredictionExchange, ImplicitAPI):
         rawSide = self.safe_string(rawOrder, 'side')
         side = self.parse_order_side(rawSide)
         price = self.safe_string(rawOrder, 'price')
-        amountKey = 'takerAmount' if (side == 'buy') else 'makerAmount'  # todo check
+        # todo check
+        amountKey = 'makerAmount'
+        if side == 'buy':
+            amountKey = 'takerAmount'
         amount = self.safe_string(rawOrder, amountKey)
         remaining = self.safe_string(rawOrder, 'remainingSize')
         datetime = self.safe_string(rawOrder, 'createdAt')
@@ -1912,8 +1923,14 @@ class limitless(PredictionExchange, ImplicitAPI):
         # smartWallet field can stay populated after switching to eoa, so key off the option here
         tradeWalletOption = self.safe_string(accountInfo, 'tradeWalletOption')
         usesSmartWallet = (tradeWalletOption == 'smartWallet')
-        walletFromAccount = self.safe_string(accountInfo, 'smartWallet') if (usesSmartWallet) else self.safe_string(accountInfo, 'account')
-        maker = self.walletAddress if (self.walletAddress != '') else walletFromAccount
+        walletFromAccount = None
+        if usesSmartWallet:
+            walletFromAccount = self.safe_string(accountInfo, 'smartWallet')
+        else:
+            walletFromAccount = self.safe_string(accountInfo, 'account')
+        maker = walletFromAccount
+        if self.walletAddress != '':
+            maker = self.walletAddress
         maker, params = self.handle_option_and_params(params, 'createOrder', 'maker', maker)
         try:
             self.check_address(maker)
@@ -1982,7 +1999,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         marketSymbol = self.safe_string(outcomeObj, 'market')
         if isMarket and (side == 'buy'):
             createMarketBuyOrderRequiresPrice = True
-            createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+            createMarketBuyOrderRequiresPrice, params = self.handle_option_bool_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
             cost = self.safe_number(params, 'cost')
             params = self.omit(params, 'cost')
             if createMarketBuyOrderRequiresPrice:
@@ -2444,7 +2461,9 @@ class limitless(PredictionExchange, ImplicitAPI):
         if rawSide is None:
             raise ExchangeError(self.id + ' parsePredictionTrade() missing rawSide')
         sellIndex = rawSide.find('sell')
-        side = 'sell' if (sellIndex >= 0) else 'buy'
+        side = 'buy'
+        if sellIndex >= 0:
+            side = 'sell'
         type = None
         takerOrMaker = None
         if rawSide is None:
@@ -2460,7 +2479,9 @@ class limitless(PredictionExchange, ImplicitAPI):
         rawMarket = self.safe_dict(trade, 'market', {})
         slug = self.safe_string(rawMarket, 'slug')
         outcomeIndex = self.safe_integer(trade, 'outcomeIndex')
-        label = 'yes' if (outcomeIndex == 0) else 'no'
+        label = 'no'
+        if outcomeIndex == 0:
+            label = 'yes'
         outcome = self.get_outcome_by_slug_and_label(slug, label, market)
         tradeOutcome = self.safe_string(outcome, 'outcome')
         return self.safe_prediction_trade({
@@ -2745,7 +2766,9 @@ class limitless(PredictionExchange, ImplicitAPI):
         for i in range(0, rawMarketsLength):
             raw = expandedMarkets[i]
             groupId = self.safe_string_n(raw, ['groupSlug', 'groupId'], self.safe_string(raw, 'slug'))
-            eventKey = self.shorten_slug(groupId) if (groupId is not None and groupId != '') else None
+            eventKey = None
+            if groupId is not None and groupId != '':
+                eventKey = self.shorten_slug(groupId)
             m = self.parse_market(raw)
             if m is None:
                 raise ExchangeError(self.id + ' fetchEvents() missing m')
@@ -2835,7 +2858,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         categoryIds = []
         categoriesLength = len(categories)
         for i in range(0, categoriesLength):
-            category = categories[i]
+            category = self.safe_dict(categories, i)
             name = self.safe_string_lower(category, 'name', '')
             categoryId = self.safe_string(category, 'id')
             matched = False

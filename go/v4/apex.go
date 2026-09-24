@@ -627,15 +627,10 @@ func (this *Apex) ParseCurrency(currency any) any {
 	var networks map[string]any = map[string]any{}
 	var chains any = GetValue(this.Options, "_temp_currencies_chains")
 	for j := 0; j < GetArrayLength(chains); j++ {
-		var chain any = GetValue(chains, j)
+		var chain map[string]any = SafeMapTyped(chains, j)
 		var tokens []any = SafeListTyped(chain, "tokens")
 		for f := 0; f < len(tokens); f++ {
-			var token map[string]any = MapTyped(func() any {
-				if f >= 0 && f < len(tokens) {
-					return DerefScalar(tokens[f])
-				}
-				return nil
-			}())
+			var token map[string]any = SafeMapTyped(tokens, f)
 			var tokenName *string = this.SafeString(token, "token")
 			if tokenName == currencyId || (tokenName != nil && currencyId != nil && *tokenName == *currencyId) {
 				var networkId *string = this.SafeString(chain, "chainId")
@@ -945,7 +940,7 @@ func (this *Apex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV3Ticker(this.Extend(request, params))).Raw))
-	var tickers []any = SafeListTypedDefault(response, "data", []any{})
+	var tickers []any = SafeListTyped(response, "data")
 	var rawTicker map[string]any = MapTyped(this.SafeDict(tickers, 0, map[string]any{}))
 
 	ch <- this.ParseTicker(rawTicker, market)
@@ -1268,7 +1263,7 @@ func (this *Apex) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ..
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV3Ticker(this.Extend(request, params))).Raw))
-	var tickers []any = SafeListTypedDefault(response, "data", []any{})
+	var tickers []any = SafeListTyped(response, "data")
 	var rawTicker map[string]any = MapTyped(this.SafeDict(tickers, 0, map[string]any{}))
 
 	ch <- this.ParseOpenInterest(rawTicker, market)
@@ -1571,12 +1566,12 @@ func (this *Apex) SafeMarket(optionalArgs ...any) any {
 }
 func (this *Apex) GenerateRandomClientIdOmni(_accountId any) any {
 	var hasAccountId bool = (!IsEqual(_accountId, nil)) && (!IsEqual(_accountId, ""))
-	var accountId any = func() any {
-		if hasAccountId {
-			return _accountId
-		}
-		return ToString(this.RandNumber(12))
-	}()
+	var accountId any = nil
+	if hasAccountId {
+		accountId = _accountId
+	} else {
+		accountId = ToString(this.RandNumber(12))
+	}
 	return Add(Add(Add(Add(Add("apexomni-", accountId), "-"), ToString(this.Milliseconds())), "-"), ToString(this.RandNumber(6)))
 }
 func (this *Apex) AddHyphenBeforeUsdt(symbol any) any {

@@ -114,7 +114,9 @@ class okx(ccxt.async_support.okx):
         if channel is None:
             raise ArgumentsRequired(self.id + ' getUrl() requires a channel argument')
         isSandbox = self.options['sandboxMode']
-        sandboxSuffix = '?brokerId=9999' if (isSandbox is True) else ''
+        sandboxSuffix = ''
+        if isSandbox is True:
+            sandboxSuffix = '?brokerId=9999'
         isBusiness = (access == 'business')
         isPublic = (access == 'public')
         url = self.urls['api']['ws']
@@ -406,7 +408,7 @@ class okx(ccxt.async_support.okx):
         #
         data = self.safe_list(message, 'data', [])
         for i in range(0, len(data)):
-            rawfr = data[i]
+            rawfr = self.safe_dict(data, i)
             fundingRate = self.parse_funding_rate(rawfr)
             symbol = fundingRate['symbol']
             if symbol is not None:
@@ -812,7 +814,9 @@ class okx(ccxt.async_support.okx):
             await self.load_markets()
         isTrigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         params = self.omit(params, ['stop', 'trigger'])
-        accessType = 'business' if (isTrigger is True) else 'private'
+        accessType = 'private'
+        if isTrigger is True:
+            accessType = 'business'
         await self.authenticate({'access': accessType})
         symbols = self.market_symbols(symbols, None, True, True)
         messageHash = 'myLiquidations'
@@ -1170,7 +1174,7 @@ class okx(ccxt.async_support.okx):
             await self.load_markets()
         symbols = self.market_symbols(symbols)
         depth = None
-        depth, params = self.handle_option_and_params(params, 'watchOrderBook', 'depth', 'books')
+        depth, params = self.handle_option_string_and_params(params, 'watchOrderBook', 'depth', 'books')
         if limit is not None:
             if limit == 1:
                 depth = 'bbo-tbt'
@@ -1219,7 +1223,7 @@ class okx(ccxt.async_support.okx):
             await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         depth = None
-        depth, params = self.handle_option_and_params(params, 'watchOrderBook', 'depth', 'books')
+        depth, params = self.handle_option_string_and_params(params, 'watchOrderBook', 'depth', 'books')
         limit = self.safe_integer(params, 'limit')
         if limit is not None:
             if limit == 1:
@@ -1662,9 +1666,13 @@ class okx(ccxt.async_support.okx):
         params = self.omit(params, ['trigger', 'stop'])
         if self.markets is None:
             await self.load_markets()
-        access = 'business' if (isTrigger is True) else 'private'
+        access = 'private'
+        if isTrigger is True:
+            access = 'business'
         await self.authenticate({'access': access})
-        channel = 'orders-algo' if (isTrigger is True) else 'orders'
+        channel = 'orders'
+        if isTrigger is True:
+            channel = 'orders-algo'
         messageHash = channel + '::myTrades'
         market = None
         if symbol is not None:
@@ -1844,7 +1852,9 @@ class okx(ccxt.async_support.okx):
         params = self.omit(params, ['stop', 'trigger'])
         if self.markets is None:
             await self.load_markets()
-        accessType = 'business' if (isTrigger is True) else 'private'
+        accessType = 'private'
+        if isTrigger is True:
+            accessType = 'business'
         await self.authenticate({'access': accessType})
         market = None
         if symbol is not None:
@@ -1864,7 +1874,9 @@ class okx(ccxt.async_support.okx):
         request = {
             'instType': uppercaseType,
         }
-        channel = 'orders-algo' if (isTrigger is True) else 'orders'
+        channel = 'orders'
+        if isTrigger is True:
+            channel = 'orders-algo'
         orders = await self.subscribe('private', channel, channel, symbol, self.extend(request, params))
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
@@ -2317,7 +2329,7 @@ class okx(ccxt.async_support.okx):
                 else:
                     data = self.safe_list(message, 'data', [])
                     for i in range(0, len(data)):
-                        d = data[i]
+                        d = self.safe_dict(data, i)
                         errorCode = self.safe_string(d, 'sCode')
                         if errorCode is not None:
                             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
@@ -2385,8 +2397,9 @@ class okx(ccxt.async_support.okx):
         #
         #
         #
-        if message == 'pong':
-            self.handle_pong(client, message)
+        if isinstance(message, str):
+            if message == 'pong':
+                self.handle_pong(client, message)
             return
         # const table = this.safeString (message, 'table');
         # if (table === undefined) {

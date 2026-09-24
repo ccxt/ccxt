@@ -1076,7 +1076,10 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $params = $this->safe_dict($unifiedResult, 1, $params);
         $dex = $this->safe_string($params, 'dex');
         $isSpot = (($type === 'spot') || ($isUnifiedEnabled === true)) && ($dex === null);
-        $topic = ($isSpot === true) ? 'spotState' : 'clearinghouseState';
+        $topic = 'clearinghouseState';
+        if ($isSpot === true) {
+            $topic = 'spotState';
+        }
         $messageHash = $topic . '::balance';
         $url = $this->urls['api']['ws']['public'];
         $subscription = array(
@@ -1129,7 +1132,10 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $params = $this->safe_dict($unifiedResult, 1, $params);
         $dex = $this->safe_string($params, 'dex');
         $isSpot = (($type === 'spot') || ($isUnifiedEnabled === true)) && ($dex === null);
-        $topic = ($isSpot === true) ? 'spotState' : 'clearinghouseState';
+        $topic = 'clearinghouseState';
+        if ($isSpot === true) {
+            $topic = 'spotState';
+        }
         $messageHash = 'unsubscribe' . ':' . $topic;
         $request = array(
             'method' => 'unsubscribe',

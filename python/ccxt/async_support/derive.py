@@ -1177,7 +1177,9 @@ class derive(Exchange, ImplicitAPI):
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
         ], order), 'keccak', 'binary')
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-        DOMAIN_SEPARATOR = '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105' if (sandboxMode is True) else 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b'
+        DOMAIN_SEPARATOR = 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b'
+        if sandboxMode is True:
+            DOMAIN_SEPARATOR = '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105'
         binaryDomainSeparator = self.base16_to_binary(DOMAIN_SEPARATOR)
         prefix = self.base16_to_binary('1901')
         return self.hash(self.binary_concat(prefix, binaryDomainSeparator, accountHash), 'keccak', 'hex')
@@ -1248,7 +1250,9 @@ class derive(Exchange, ImplicitAPI):
         signatureExpiry = self.safe_integer(params, 'signature_expiry_sec', self.seconds() + 7776000)
         ACTION_TYPEHASH = self.base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17')
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-        TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be' if (sandboxMode is True) else '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'
+        TRADE_MODULE_ADDRESS = '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'
+        if sandboxMode is True:
+            TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be'
         priceString = self.number_to_string(price)
         maxFee = None
         maxFee, params = self.handle_option_and_params(params, 'createOrder', 'max_fee')
@@ -1430,7 +1434,9 @@ class derive(Exchange, ImplicitAPI):
         # TODO: subaccount id / trade module address
         ACTION_TYPEHASH = self.base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17')
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-        TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be' if (sandboxMode is True) else '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'
+        TRADE_MODULE_ADDRESS = '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'
+        if sandboxMode is True:
+            TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be'
         priceString = self.number_to_string(price)
         maxFeeString = self.safe_string(params, 'max_fee', '0')
         amountString = self.number_to_string(amount)
@@ -1713,7 +1719,7 @@ class derive(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOrders', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_incremental('fetchOrders', symbol, since, limit, params, 'page', 500)
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
@@ -2070,7 +2076,7 @@ class derive(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_incremental('fetchMyTrades', symbol, since, limit, params, 'page', 500)
         subaccountId = None
@@ -2286,7 +2292,7 @@ class derive(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingHistory', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_incremental('fetchFundingHistory', symbol, since, limit, params, 'page', 500)
         subaccountId = None
@@ -2344,7 +2350,7 @@ class derive(Exchange, ImplicitAPI):
         events = self.safe_list(result, 'events', [])
         return self.parse_incomes(events, market, since, limit)
 
-    def parse_income(self, income: object, market: Market = None) -> dict:
+    def parse_income(self, income: dict, market: Market = None) -> dict:
         #
         # {
         #     "instrument_name": "BTC-PERP",
@@ -2442,10 +2448,10 @@ class derive(Exchange, ImplicitAPI):
             'info': response,
         }
         for i in range(0, len(response)):
-            subaccount = response[i]
+            subaccount = self.safe_dict(response, i)
             collaterals = self.safe_list(subaccount, 'collaterals', [])
             for j in range(0, len(collaterals)):
-                balance = collaterals[j]
+                balance = self.safe_dict(collaterals, j)
                 code = self.safe_currency_code(self.safe_string(balance, 'currency'))
                 account = self.safe_dict(result, code)
                 if account is None:
@@ -2608,9 +2614,9 @@ class derive(Exchange, ImplicitAPI):
             return [optionsWallet, params]
         raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a subaccount_id parameter inside \'params\' or exchange.options[\'subaccount_id\']=ID.')
 
-    def handle_derive_wallet_address(self, methodName: str, params: dict):
+    def handle_derive_wallet_address(self, methodName: str, params: dict) -> list:
         deriveWalletAddress = None
-        deriveWalletAddress, params = self.handle_option_and_params(params, methodName, 'deriveWalletAddress')
+        deriveWalletAddress, params = self.handle_option_string_and_params(params, methodName, 'deriveWalletAddress')
         if (deriveWalletAddress is not None) and (deriveWalletAddress != ''):
             self.options['deriveWalletAddress'] = deriveWalletAddress  # saving in options
             return [deriveWalletAddress, params]

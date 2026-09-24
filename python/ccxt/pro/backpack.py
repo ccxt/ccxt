@@ -64,7 +64,9 @@ class backpack(ccxt.async_support.backpack):
         if self.markets is None:
             await self.load_markets()
         url = self.urls['api']['ws']['public']
-        method = 'UNSUBSCRIBE' if unwatch else 'SUBSCRIBE'
+        method = 'SUBSCRIBE'
+        if unwatch:
+            method = 'UNSUBSCRIBE'
         request = {
             'method': method,
             'params': topics,
@@ -80,7 +82,9 @@ class backpack(ccxt.async_support.backpack):
         url = self.urls['api']['ws']['private']
         instruction = 'subscribe'
         ts = str(self.nonce())
-        method = 'UNSUBSCRIBE' if unwatch else 'SUBSCRIBE'
+        method = 'SUBSCRIBE'
+        if unwatch:
+            method = 'UNSUBSCRIBE'
         recvWindow = self.safe_string_2(self.options, 'recvWindow', 'X-Window', '5000')
         payload = 'instruction=' + instruction + '&' + 'timestamp=' + ts + '&window=' + recvWindow
         secretBytes = self.base64_to_binary(self.secret)
@@ -449,7 +453,7 @@ class backpack(ccxt.async_support.backpack):
         topics = []
         messageHashes = []
         for i in range(0, len(symbolsAndTimeframes)):
-            symbolAndTimeframe = symbolsAndTimeframes[i]
+            symbolAndTimeframe = self.safe_list(symbolsAndTimeframes, i)
             marketId = self.safe_string(symbolAndTimeframe, 0)
             market = self.market(marketId)
             tf = self.safe_string(symbolAndTimeframe, 1)
@@ -480,7 +484,7 @@ class backpack(ccxt.async_support.backpack):
         topics = []
         messageHashes = []
         for i in range(0, len(symbolsAndTimeframes)):
-            symbolAndTimeframe = symbolsAndTimeframes[i]
+            symbolAndTimeframe = self.safe_list(symbolsAndTimeframes, i)
             marketId = self.safe_string(symbolAndTimeframe, 0)
             market = self.market(marketId)
             tf = self.safe_string(symbolAndTimeframe, 1)
@@ -869,7 +873,7 @@ class backpack(ccxt.async_support.backpack):
         if nonce < firstDeltaStart - 1:
             return -1
         for i in range(0, len(cache)):
-            delta = cache[i]
+            delta = self.safe_dict(cache, i)
             deltaStart = self.safe_integer(delta, 'U')
             deltaEnd = self.safe_integer(delta, 'u')
             if (deltaStart is None) or (deltaEnd is None):

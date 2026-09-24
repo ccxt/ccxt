@@ -291,7 +291,7 @@ class toobit(ccxt.async_support.toobit):
         marketIds = []
         selectedTimeframe = None
         for i in range(0, len(symbolsAndTimeframes)):
-            data = symbolsAndTimeframes[i]
+            data = self.safe_list(symbolsAndTimeframes, i)
             symbolStr = self.safe_string(data, 0)
             market = self.market(symbolStr)
             marketId = market['id']
@@ -571,7 +571,7 @@ class toobit(ccxt.async_support.toobit):
         symbol = market['symbol']
         data = self.safe_list(message, 'data', [])
         for i in range(0, len(data)):
-            entry = data[i]
+            entry = self.safe_dict(data, i)
             messageHash = 'orderBook::' + symbol + '::' + 'diffDepth'
             if not (symbol in self.orderbooks):
                 limit = self.safe_integer(self.options['ws'], 'orderBookLimit', 1000)
@@ -621,7 +621,7 @@ class toobit(ccxt.async_support.toobit):
         if length == 0:
             return
         for i in range(0, length):
-            entry = data[i]
+            entry = self.safe_dict(data, i)
             marketId = self.safe_string(entry, 's')
             symbol = self.safe_symbol(marketId)
             messageHash = 'orderBook::' + symbol + '::' + channel
@@ -650,15 +650,19 @@ class toobit(ccxt.async_support.toobit):
         marketType = None
         marketType, params = self.handle_market_type_and_params('watchBalance', None, params)
         isSpot = (marketType == 'spot')
-        type = 'spot' if isSpot else 'contract'
+        type = 'contract'
+        if isSpot:
+            type = 'spot'
         spotSubHash = 'spot:balance'
         swapSubHash = 'contract:private'
         spotMessageHash = 'spot:balance'
         swapMessageHash = 'contract:balance'
-        messageHash = spotMessageHash if isSpot else swapMessageHash
-        subscriptionHash = spotSubHash if isSpot else swapSubHash
-        if subscriptionHash is None:
-            raise ArgumentsRequired(self.id + ' watchBalance() requires a subscription hash')
+        messageHash = swapMessageHash
+        if isSpot:
+            messageHash = spotMessageHash
+        subscriptionHash = swapSubHash
+        if isSpot:
+            subscriptionHash = spotSubHash
         url = self.get_user_stream_url()
         client = self.client(url)
         self.set_balance_cache(client, marketType, subscriptionHash, params)
@@ -668,7 +672,9 @@ class toobit(ccxt.async_support.toobit):
     def set_balance_cache(self, client: Client, marketType: Str, subscriptionHash: Str = None, params: dict = {}):
         if (subscriptionHash is None) or (subscriptionHash in client.subscriptions):
             return
-        type = 'spot' if (marketType == 'spot') else 'contract'
+        type = 'contract'
+        if marketType == 'spot':
+            type = 'spot'
         messageHash = type + ':fetchBalanceSnapshot'
         if not (messageHash in client.futures):
             client.future(messageHash)
@@ -711,7 +717,9 @@ class toobit(ccxt.async_support.toobit):
         channel = self.safe_string(message, 'e')
         data = self.safe_list(message, 'B', [])
         timestamp = self.safe_integer(message, 'E')
-        type = 'contract' if (channel == 'outboundContractAccountInfo') else 'spot'
+        type = 'spot'
+        if channel == 'outboundContractAccountInfo':
+            type = 'contract'
         if not (type in self.balance):
             self.balance[type] = {}
         self.balance[type]['info'] = data
@@ -725,14 +733,16 @@ class toobit(ccxt.async_support.toobit):
             account['info'] = balance
             account['used'] = self.safe_string(balance, 'l')
             account['free'] = self.safe_string(balance, 'f')
-            if (type is not None) and (code is not None):
+            if code is not None:
                 self.balance[type][code] = account
         self.balance[type] = self.safe_balance(self.balance[type])
         client.resolve(self.balance[type], type + ':balance')
 
     async def load_balance_snapshot(self, client: Client, messageHash: str, marketType: Str):
         response = await self.fetch_balance({'type': marketType})
-        type = 'spot' if (marketType == 'spot') else 'contract'
+        type = 'contract'
+        if marketType == 'spot':
+            type = 'spot'
         self.balance[type] = self.extend(response, self.safe_dict(self.balance, type, {}))
         # don't remove the future from the .futures cache
         if messageHash in client.futures:
@@ -914,7 +924,9 @@ class toobit(ccxt.async_support.toobit):
         marketId = self.safe_string(trade, 's')
         ts = self.safe_string(trade, 't')
         isMaker = (self.safe_bool(trade, 'm') is True)
-        takerOrMaker = 'maker' if isMaker else 'taker'
+        takerOrMaker = 'taker'
+        if isMaker:
+            takerOrMaker = 'maker'
         return self.safe_trade({
             'info': trade,
             'id': self.safe_string(trade, 'T'),

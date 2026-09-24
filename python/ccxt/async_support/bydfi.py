@@ -835,7 +835,7 @@ class bydfi(Exchange, ImplicitAPI):
             await self.load_markets()
         maxLimit = 500  # docs says max 1500, but in practice only 500 works
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit)
         market = self.market(symbol)
@@ -847,7 +847,7 @@ class bydfi(Exchange, ImplicitAPI):
         startTime = since
         numberOfCandles = limit if (limit is not None and limit is not None and limit != 0) else maxLimit
         until = None
-        until, params = self.handle_option_and_params(params, 'fetchOHLCV', 'until')
+        until, params = self.handle_option_integer_and_params(params, 'fetchOHLCV', 'until')
         now = self.milliseconds()
         duration = self.parse_timeframe(timeframe) * 1000
         timeDelta = duration * numberOfCandles
@@ -1100,7 +1100,7 @@ class bydfi(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         until = None
-        until, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'until')
+        until, params = self.handle_option_integer_and_params(params, 'fetchFundingRateHistory', 'until')
         if until is not None:
             request['endTime'] = until
         response = await self.publicGetV1FapiMarketFundingRateHistory(self.extend(request, params))
@@ -1327,7 +1327,7 @@ class bydfi(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' createOrders() accepts a maximum of 5 orders')
         ordersRequests = []
         for i in range(0, len(orders)):
-            rawOrder = orders[i]
+            rawOrder = self.safe_dict(orders, i)
             symbol = self.safe_string(rawOrder, 'symbol')
             type = self.safe_string(rawOrder, 'type')
             side = self.safe_string(rawOrder, 'side')
@@ -1391,7 +1391,7 @@ class bydfi(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' editOrders() accepts a maximum of 5 orders')
         ordersRequests = []
         for i in range(0, len(orders)):
-            rawOrder = orders[i]
+            rawOrder = self.safe_dict(orders, i)
             id = self.safe_string(rawOrder, 'id')
             symbol = self.safe_string(rawOrder, 'symbol')
             side = self.safe_string(rawOrder, 'side')
@@ -1683,7 +1683,7 @@ class bydfi(Exchange, ImplicitAPI):
 
     def handle_since_and_until(self, methodName: str, since: Int = None, params: dict = {}) -> dict:
         until = None
-        until, params = self.handle_option_and_params_2(params, methodName, 'until', 'endTime')
+        until, params = self.handle_option_integer_and_params_2(params, methodName, 'until', 'endTime')
         now = self.milliseconds()
         sevenDays = 7 * 24 * 60 * 60 * 1000  # the maximum range is 7 days
         startTime = since
@@ -2313,7 +2313,9 @@ class bydfi(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' setPositionMode() does not support a symbol argument. The position mode is set identically for all markets with same settle currency')
         if self.markets is None:
             await self.load_markets()
-        positionType = 'HEDGE' if hedged else 'ONEWAY'
+        positionType = 'ONEWAY'
+        if hedged:
+            positionType = 'HEDGE'
         wallet = 'W001'
         wallet, params = self.handle_option_string_and_params(params, 'setPositionMode', 'wallet', wallet)
         contractType = 'FUTURE'
@@ -2408,7 +2410,7 @@ class bydfi(Exchange, ImplicitAPI):
         type = None
         type, params = self.handle_market_type_and_params('fetchBalance', None, params)
         wallet = None
-        wallet, params = self.handle_option_and_params(params, 'fetchBalance', 'wallet')
+        wallet, params = self.handle_option_string_and_params(params, 'fetchBalance', 'wallet')
         request = {}
         response: dict
         if wallet is None:
@@ -2473,7 +2475,7 @@ class bydfi(Exchange, ImplicitAPI):
             'datetime': None,
         }
         for i in range(0, len(response)):
-            balance = response[i]
+            balance = self.safe_dict(response, i)
             symbol = self.safe_string(balance, 'asset')
             code = self.safe_currency_code(symbol)
             account = self.account()
@@ -2555,7 +2557,7 @@ class bydfi(Exchange, ImplicitAPI):
             'asset': currency['id'],
         }
         until = None
-        until, params = self.handle_option_and_params_2(params, 'fetchTransfers', 'until', 'endTime')
+        until, params = self.handle_option_integer_and_params_2(params, 'fetchTransfers', 'until', 'endTime')
         if until is None:
             until = self.milliseconds()  # exchange requires endTime
         if since is None:
@@ -2665,7 +2667,9 @@ class bydfi(Exchange, ImplicitAPI):
         return await self.fetch_transactions_helper('withdrawal', code, since, limit, params)
 
     async def fetch_transactions_helper(self, type: object, code: object, since: object, limit: object, params: object) -> list[Transaction]:
-        methodName = 'fetchDeposits' if (type == 'deposit') else 'fetchWithdrawals'
+        methodName = 'fetchWithdrawals'
+        if type == 'deposit':
+            methodName = 'fetchDeposits'
         if code is None:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a code argument')
         if self.markets is None:
@@ -2682,7 +2686,7 @@ class bydfi(Exchange, ImplicitAPI):
             'asset': currency['id'],
         }
         until = None
-        until, params = self.handle_option_and_params_2(params, 'fetchTransfers', 'until', 'endTime')
+        until, params = self.handle_option_integer_and_params_2(params, 'fetchTransfers', 'until', 'endTime')
         now = self.milliseconds()
         sevenDays = 7 * 24 * 60 * 60 * 1000  # the maximum range is 7 days
         startTime = since

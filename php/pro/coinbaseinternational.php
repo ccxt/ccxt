@@ -546,7 +546,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $stored = $this->ohlcvs[$symbol][$timeframe];
         $data = $this->safe_list($message, 'candles', array());
         for ($i = 0; $i < count($data); $i++) {
-            $tick = $data[$i];
+            $tick = $this->safe_dict($data, $i);
             $parsed = $this->parse_ohlcv($tick, $market);
             $stored->append($parsed);
         }
@@ -747,7 +747,10 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
 
     public function handle_delta(mixed $orderbook, mixed $delta) {
         $rawSide = $this->safe_string_lower($delta, 0);
-        $side = ($rawSide === 'buy') ? 'bids' : 'asks';
+        $side = 'asks';
+        if ($rawSide === 'buy') {
+            $side = 'bids';
+        }
         $price = $this->safe_float($delta, 1);
         $amount = $this->safe_float($delta, 2);
         $bookside = $orderbook[$side];

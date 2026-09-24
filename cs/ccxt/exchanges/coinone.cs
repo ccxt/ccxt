@@ -463,7 +463,11 @@ public partial class coinone : Exchange
         string? code = this.safeCurrencyCode(id);
         bool isWithdrawEnabled = (this.safeString(rawCurrency, "withdraw_status", "") == "normal");
         bool isDepositEnabled = (this.safeString(rawCurrency, "deposit_status", "") == "normal");
-        string type = (code != "KRW") ? "crypto" : "fiat";
+        string type = "fiat";
+        if (code != "KRW")
+        {
+            type = "crypto";
+        }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
             { "code", code },
@@ -611,7 +615,7 @@ public partial class coinone : Exchange
         for (int i = 0; i < currencyIds.Count; i++)
         {
             string? currencyId = ((string)currencyIds[i]);
-            object balance = getValue(balances, currencyId);
+            IDictionary<string, object> balance = this.safeDict(balances, currencyId);
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
             account["free"] = this.safeString(balance, "avail");
@@ -931,7 +935,14 @@ public partial class coinone : Exchange
             feeCostString = Precise.stringAbs(feeCostString);
             string? feeRateString = this.safeString(trade, "feeRate");
             feeRateString = Precise.stringAbs(feeRateString);
-            object feeCurrencyCode = (side == "sell") ? getValue(market, "quote") : getValue(market, "base");
+            object feeCurrencyCode = null;
+            if (side == "sell")
+            {
+                feeCurrencyCode = getValue(market, "quote");
+            } else
+            {
+                feeCurrencyCode = getValue(market, "base");
+            }
             fee = new Dictionary<string, object>() {
                 { "cost", feeCostString },
                 { "currency", feeCurrencyCode },
@@ -1221,7 +1232,11 @@ public partial class coinone : Exchange
         string? feeCostString = this.safeString(order, "fee");
         if ((feeCostString != null))
         {
-            string? feeCurrencyCode = (side == "sell") ? quote : bs;
+            string? feeCurrencyCode = bs;
+            if (side == "sell")
+            {
+                feeCurrencyCode = quote;
+            }
             fee = new Dictionary<string, object>() {
                 { "cost", feeCostString },
                 { "rate", this.safeString2(order, "feeRate", "fee_rate") },

@@ -98,7 +98,11 @@ public partial class hitbtc : ccxt.hitbtc
         {
             Int64 timestamp = this.milliseconds();
             string? timestampString = this.numberToString(timestamp);
-            string? timestampEncoded = ((timestampString == null)) ? "" : timestampString;
+            string? timestampEncoded = timestampString;
+            if ((timestampString == null))
+            {
+                timestampEncoded = "";
+            }
             string signature = this.hmac(this.encode(timestampEncoded), this.encode(this.secret), sha256, "hex");
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "method", "login" },
@@ -275,7 +279,11 @@ public partial class hitbtc : ccxt.hitbtc
         //
         IDictionary<string, object> snapshot = this.safeDict(message, "snapshot");
         IDictionary<string, object> data = this.safeDict2(message, "snapshot", "update", new Dictionary<string, object>() {});
-        string type = ((snapshot != null) && (snapshot != null)) ? "snapshot" : "update";
+        string type = "update";
+        if ((snapshot != null) && (snapshot != null))
+        {
+            type = "snapshot";
+        }
         List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
         for (int i = 0; i < marketIds.Count; i++)
         {
@@ -606,7 +614,11 @@ public partial class hitbtc : ccxt.hitbtc
     public virtual Dictionary<string, object> parseWsBidAsk(object ticker, IDictionary<string, object> market = null)
     {
         Int64? timestamp = this.safeInteger(ticker, "t");
-        object bidAskSymbol = ((market != null)) ? (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) : null;
+        object bidAskSymbol = null;
+        if ((market != null))
+        {
+            bidAskSymbol = (market != null && market.ContainsKey("symbol") ? market["symbol"] : null);
+        }
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", bidAskSymbol },
             { "timestamp", timestamp },
@@ -715,7 +727,7 @@ public partial class hitbtc : ccxt.hitbtc
             IList<object> trades = this.parseWsTrades(getValue(data, marketId), market);
             for (int j = 0; j < (trades?.Count ?? 0); j++)
             {
-                callDynamically(stored, "append", new object[] {trades[j]});
+                stored.append(trades[j]);
             }
             string messageHash = ("trades::" + symbol);
             client.resolve(stored, messageHash);
@@ -866,7 +878,7 @@ public partial class hitbtc : ccxt.hitbtc
             List<object> ohlcvs = this.parseWsOHLCVs(getValue(data, marketId), market);
             for (int j = 0; j < (ohlcvs?.Count ?? 0); j++)
             {
-                callDynamically(stored, "append", new object[] {ohlcvs[j]});
+                stored.append(ohlcvs[j]);
             }
             string messageHash = ("candles::" + symbol);
             client.resolve(stored, messageHash);
@@ -1030,7 +1042,7 @@ public partial class hitbtc : ccxt.hitbtc
         object messageHash = this.safeString(splitMethod, 0);
         string? symbol = this.safeSymbol(marketId);
         Dictionary<string, object> parsed = this.parseOrder(order);
-        callDynamically(orders, "append", new object[] {parsed});
+        orders.append(parsed);
         client.resolve(orders, messageHash);
         client.resolve(orders, add(add(messageHash, "::"), symbol));
     }

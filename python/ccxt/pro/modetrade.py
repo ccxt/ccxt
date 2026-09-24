@@ -651,7 +651,9 @@ class modetrade(ccxt.async_support.modetrade):
         if self.markets is None:
             await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
-        topic = 'algoexecutionreport' if (trigger is True) else 'executionreport'
+        topic = 'executionreport'
+        if trigger is True:
+            topic = 'algoexecutionreport'
         params = self.omit(params, ['stop', 'trigger'])
         messageHash = topic
         if symbol is not None:
@@ -685,7 +687,9 @@ class modetrade(ccxt.async_support.modetrade):
         if self.markets is None:
             await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
-        topic = 'algoexecutionreport' if (trigger is True) else 'executionreport'
+        topic = 'executionreport'
+        if trigger is True:
+            topic = 'algoexecutionreport'
         params = self.omit(params, 'stop')
         messageHash = 'myTrades'
         if symbol is not None:
@@ -1042,7 +1046,7 @@ class modetrade(ccxt.async_support.modetrade):
         cache = self.positions
         newPositions = []
         for i in range(0, len(rawPositions)):
-            rawPosition = rawPositions[i]
+            rawPosition = self.safe_dict(rawPositions, i)
             marketId = self.safe_string(rawPosition, 'symbol')
             market = self.safe_market(marketId)
             position = self.parse_ws_position(rawPosition, market)
@@ -1180,7 +1184,7 @@ class modetrade(ccxt.async_support.modetrade):
         self.balance['datetime'] = self.iso8601(ts)
         for i in range(0, len(keys)):
             key = keys[i]
-            value = balances[key]
+            value = self.safe_dict(balances, key)
             code = self.safe_currency_code(key)
             account = self.account()
             if (code is not None) and (code in self.balance):
@@ -1195,7 +1199,7 @@ class modetrade(ccxt.async_support.modetrade):
         self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, 'balance')
 
-    def handle_error_message(self, client: Client, message: object) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> Bool:
         #
         # {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         #

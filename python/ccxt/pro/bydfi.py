@@ -326,7 +326,7 @@ class bydfi(ccxt.async_support.bydfi):
         channels = []
         messageHashes = []
         for i in range(0, len(symbolsAndTimeframes)):
-            symbolAndTimeframe = symbolsAndTimeframes[i]
+            symbolAndTimeframe = self.safe_list(symbolsAndTimeframes, i)
             marketId = self.safe_string(symbolAndTimeframe, 0)
             market = self.market(marketId)
             tf = self.safe_string(symbolAndTimeframe, 1)
@@ -357,7 +357,7 @@ class bydfi(ccxt.async_support.bydfi):
         channels = []
         messageHashes = []
         for i in range(0, len(symbolsAndTimeframes)):
-            symbolAndTimeframe = symbolsAndTimeframes[i]
+            symbolAndTimeframe = self.safe_list(symbolsAndTimeframes, i)
             marketId = self.safe_string(symbolAndTimeframe, 0)
             market = self.market(marketId)
             tf = self.safe_string(symbolAndTimeframe, 1)
@@ -915,7 +915,7 @@ class bydfi(ccxt.async_support.bydfi):
                 'datetime': self.iso8601(timestamp),
             }
             for i in range(0, len(balances)):
-                balance = balances[i]
+                balance = self.safe_dict(balances, i)
                 currencyId = self.safe_string(balance, 'a')
                 code = self.safe_currency_code(currencyId)
                 account = self.account()

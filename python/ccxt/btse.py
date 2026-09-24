@@ -820,7 +820,7 @@ class btse(Exchange, ImplicitAPI):
         self.load_markets()
         maxLimit = 300
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit)
         market = self.market(symbol)
@@ -838,7 +838,7 @@ class btse(Exchange, ImplicitAPI):
             # the endpoint accepts timestamps in seconds
             request['start'] = self.parse_to_int(since / 1000)
         until = None
-        until, params = self.handle_option_and_params(params, 'fetchOHLCV', 'until')
+        until, params = self.handle_option_integer_and_params(params, 'fetchOHLCV', 'until')
         if until is not None:
             if since is not None:
                 # check if the requested time range is too large for one request
@@ -954,7 +954,7 @@ class btse(Exchange, ImplicitAPI):
         if market['contract'] is not True:
             raise BadRequest(self.id + ' fetchFundingRateHistory() supports contract markets only')
         period = None
-        period, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'period')
+        period, params = self.handle_option_string_and_params(params, 'fetchFundingRateHistory', 'period')
         if period is None:
             period = '7D'
             if since is not None:
@@ -969,7 +969,7 @@ class btse(Exchange, ImplicitAPI):
             'period': period,
         }
         until = None
-        until, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'until')
+        until, params = self.handle_option_integer_and_params(params, 'fetchFundingRateHistory', 'until')
         response = self.publicGetPublicApiMarketV1RecentFundingHistory(self.extend(request, params))
         #
         #     {
@@ -1084,20 +1084,20 @@ class btse(Exchange, ImplicitAPI):
         frees = {}
         useds = {}
         for i in range(0, len(response)):
-            row = response[i]
+            row = self.safe_dict(response, i)
             assets = self.safe_list(row, 'assets')
             if assets is not None:
                 # futures wallet row: per-currency totals in assets, locked amounts in assetsInUse
                 # several wallet rows can report the same currency, so amounts are aggregated
                 inUse = self.safe_list(row, 'assetsInUse', [])
                 for j in range(0, len(inUse)):
-                    usedRow = inUse[j]
+                    usedRow = self.safe_dict(inUse, j)
                     usedCode = self.safe_currency_code(self.safe_string(usedRow, 'currency'))
                     if usedCode is None:
                         continue
                     useds[usedCode] = Precise.string_add(self.safe_string(useds, usedCode, '0'), self.safe_string(usedRow, 'balance'))
                 for j in range(0, len(assets)):
-                    assetRow = assets[j]
+                    assetRow = self.safe_dict(assets, j)
                     code = self.safe_currency_code(self.safe_string(assetRow, 'currency'))
                     if code is None:
                         continue
@@ -1166,7 +1166,7 @@ class btse(Exchange, ImplicitAPI):
             data = [single]
         result = {}
         for i in range(0, len(data)):
-            entry = data[i]
+            entry = self.safe_dict(data, i)
             marketId = self.safe_string(entry, 'symbol')
             market = self.safe_market(marketId)
             symbol = market['symbol']
@@ -1528,7 +1528,7 @@ class btse(Exchange, ImplicitAPI):
             request['limit'] = min(limit, 500)  # the endpoint supports a maximum of 500 trades
         # the unified trades endpoint has no server-side time filtering, since and until are applied client-side below
         until = None
-        until, params = self.handle_option_and_params(params, 'fetchTrades', 'until')
+        until, params = self.handle_option_integer_and_params(params, 'fetchTrades', 'until')
         response = self.publicGetPublicApiMarketV1Trades(self.extend(request, params))
         #
         #     {
@@ -2701,7 +2701,7 @@ class btse(Exchange, ImplicitAPI):
         if limit is not None:
             request['pageSize'] = limit
         until = None
-        until, params = self.handle_option_and_params(params, methodName, 'until')
+        until, params = self.handle_option_integer_and_params(params, methodName, 'until')
         if until is not None:
             request['endTime'] = until
         response = self.privateGetPublicApiWalletV1UserWalletHistory(self.extend(request, params))
@@ -2905,7 +2905,7 @@ class btse(Exchange, ImplicitAPI):
         if limit is not None:
             request['pageSize'] = limit
         until = None
-        until, params = self.handle_option_and_params(params, 'fetchLedger', 'until')
+        until, params = self.handle_option_integer_and_params(params, 'fetchLedger', 'until')
         if until is not None:
             request['endTime'] = until
         response = self.privateGetPublicApiWalletV1UserWalletHistory(self.extend(request, params))
@@ -3254,7 +3254,9 @@ class btse(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' setPositionMode() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        positionMode = 'HEDGE' if hedged else 'ONE_WAY'
+        positionMode = 'ONE_WAY'
+        if hedged:
+            positionMode = 'HEDGE'
         request = {
             'symbol': self.futures_request_id(market),
             'positionMode': positionMode,
@@ -3426,7 +3428,7 @@ class btse(Exchange, ImplicitAPI):
         shortLeverage = None
         marginMode = None
         for i in range(0, len(safeResponse)):
-            entrty = safeResponse[i]
+            entrty = self.safe_dict(safeResponse, i)
             leverageValue = self.safe_integer(entrty, 'leverage')
             positionDirection = self.safe_string(entrty, 'positionDirection')
             marginMode = self.safe_string_lower(entrty, 'marginMode')
@@ -3529,7 +3531,7 @@ class btse(Exchange, ImplicitAPI):
         else:
             rows = [response]
         for i in range(0, len(rows)):
-            row = rows[i]
+            row = self.safe_dict(rows, i)
             status = self.safe_string(row, 'status')
             if status is not None:
                 message = self.safe_string(row, 'message')

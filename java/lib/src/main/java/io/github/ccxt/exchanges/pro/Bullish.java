@@ -256,7 +256,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
         for (var i = 0; i < ((List<?>)trades).size(); i++)
         {
-            Helpers.callDynamically(tradesArray, "append", new Object[]{(trades == null || i < 0 || i >= trades.size() ? null : trades.get(i))});
+            tradesArray.append((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)));
         }
         Helpers.addElementToObject(this.trades, symbol, tradesArray);
         String messageHash = ("trades::" + ((Map<String, Object>)market).get("symbol"));
@@ -460,7 +460,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             Object lastIndex = Helpers.subtract(((List<?>)sequenceNumberRange).size(), 1);
             ((Map<String, Object>)parsed).put("nonce", this.safeInteger(sequenceNumberRange, lastIndex));
         }
-        Helpers.callDynamically(orderbook, "reset", new Object[]{parsed});
+        orderbook.reset(parsed);
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         client.resolve(orderbook, messageHash);
     }
@@ -1011,7 +1011,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
-            Object symbolPositions = this.filterByArray(newPositions, "symbol", symbols, false);
+            List<Object> symbolPositions = (List<Object>) this.filterByArray(newPositions, "symbol", symbols, false);
             if (!this.isEmpty(symbolPositions))
             {
                 client.resolve(symbolPositions, messageHash);

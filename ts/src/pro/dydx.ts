@@ -58,7 +58,7 @@ export default class dydx extends dydxRest {
             'channel': 'v4_trades',
             'id': market['id'],
         };
-        const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -291,7 +291,7 @@ export default class dydx extends dydxRest {
             'channel': 'v4_candles',
             'id': market['id'] + '/' + resolution,
         };
-        const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
@@ -400,7 +400,7 @@ export default class dydx extends dydxRest {
         client.resolve (stored, messageHash);
     }
 
-    handleErrorMessage (client: Client, message: any): boolean {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         // {
         //     "type": "error",

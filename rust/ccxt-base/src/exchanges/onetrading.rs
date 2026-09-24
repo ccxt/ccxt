@@ -1154,7 +1154,7 @@ impl OnetradingCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1018: bool = true;
             while { if !__for_first_1018 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1018 = false; i.as_f64().unwrap_or(f64::NAN) < ((feeTiers.len() as i64) as f64) } {
-            let mut tier: Value = feeTiers.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut tier: Value = self.safe_dict(feeTiers.clone(), i.clone(), &[]);
             let mut volume: Value = self.safe_number_k(tier.clone(), "volume", &[]);
             let mut taker: Value = self.safe_string_k(tier.clone(), "taker_fee", &[]);
             let mut maker: Value = self.safe_string_k(tier, "maker_fee", &[]);
@@ -1574,7 +1574,7 @@ impl OnetradingCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        trade = self.safe_value_k(trade.clone(), "trade", &[trade.clone()]);
+        trade = self.safe_dict_k(trade.clone(), "trade", &[trade.clone()]);
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "trade_timestamp", &[]);
         if (timestamp == Value::Null) {
             timestamp = self.parse8601(self.safe_string_k(trade.clone(), "time", &[]));
@@ -1633,7 +1633,7 @@ impl OnetradingCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1020: bool = true;
             while { if !__for_first_1020 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1020 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
-            let mut balance: Value = balances.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut balance: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency_code", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut account: Value = self.account();
@@ -1760,7 +1760,7 @@ impl OnetradingCore {
         //         ]
         //     }
         //
-        let mut rawOrder: Value = self.safe_value_k(order.clone(), "order", &[order.clone()]);
+        let mut rawOrder: Value = self.safe_dict_k(order.clone(), "order", &[order.clone()]);
         let mut id: Value = self.safe_string_k(rawOrder.clone(), "order_id", &[]);
         let mut clientOrderId: Value = self.safe_string_k(rawOrder.clone(), "client_id", &[]);
         let mut timestamp: Value = self.parse8601(self.safe_string_k(rawOrder.clone(), "time", &[]));

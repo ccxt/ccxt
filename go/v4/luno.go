@@ -535,7 +535,7 @@ func (this *Luno) ParseCurrency(rawCurrency any) any {
 	var code *string = this.SafeCurrencyCode(id)
 	var networks map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(rawCurrency); i++ {
-		var networkEntry any = GetValue(rawCurrency, i)
+		var networkEntry map[string]any = SafeMapTyped(rawCurrency, i)
 		var networkId *string = this.SafeString(networkEntry, "name")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
@@ -774,12 +774,7 @@ func (this *Luno) ParseBalance(response any) any {
 		"datetime":  nil,
 	}
 	for i := 0; i < len(wallets); i++ {
-		var wallet map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(wallets) {
-				return DerefScalar(wallets[i])
-			}
-			return nil
-		}())
+		var wallet map[string]any = SafeMapTyped(wallets, i)
 		var currencyId *string = this.SafeString(wallet, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var reserved *string = this.SafeString(wallet, "reserved")
@@ -1830,7 +1825,7 @@ func (this *Luno) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		currency = MapTyped(this.Currency(code))
 		var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "currency")
 		var account map[string]any = SafeMapTyped(accountsByCurrencyCode, code)
-		if IsEqual(account, nil) {
+		if account == nil {
 			panic(ExchangeError(Add(this.Id+" fetchLedger() could not find account id for ", code)))
 		}
 		id = this.SafeString(account, "id")

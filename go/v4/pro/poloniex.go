@@ -177,12 +177,10 @@ func (this *Poloniex) subscribeBody(ch chan any, name any, messageHash any, isPr
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var publicOrPrivate string = func() string {
-		if ccxt.EvalTruthy(isPrivate) {
-			return "private"
-		}
-		return "public"
-	}()
+	var publicOrPrivate string = "public"
+	if ccxt.EvalTruthy(isPrivate) {
+		publicOrPrivate = "private"
+	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), publicOrPrivate)
 	var subscribe map[string]any = map[string]any{
 		"event":   "subscribe",
@@ -938,12 +936,7 @@ func (this *Poloniex) HandleTrade(client any, message map[string]any) any {
 	//
 	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {
-		var item any = func() any {
-			if i >= 0 && i < len(data) {
-				return ccxt.DerefScalar(data[i])
-			}
-			return nil
-		}()
+		var item map[string]any = ccxt.SafeMapTyped(data, i)
 		var marketId *string = this.SafeString(item, "symbol")
 		if marketId != nil {
 			var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(item))
@@ -1138,7 +1131,7 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 	//        ]
 	//    }
 	//
-	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var data []any = ccxt.SafeListTyped(message, "data")
 	var orders any = this.Orders
 	if ccxt.IsEqual(orders, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit")
@@ -1172,8 +1165,8 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 				if ccxt.IsEqual(ccxt.GetValue(previousOrder, "trades"), nil) {
 					ccxt.AddElementToObject(previousOrder, "trades", []any{})
 				}
-				retRes88820 := ccxt.GetValue(previousOrder, "trades")
-				ccxt.AppendToArray(&retRes88820, trade)
+				retRes89120 := ccxt.GetValue(previousOrder, "trades")
+				ccxt.AppendToArray(&retRes89120, trade)
 				ccxt.AddElementToObject(previousOrder, "lastTradeTimestamp", trade["timestamp"])
 				var totalCost any = "0"
 				var totalAmount any = "0"
@@ -1423,12 +1416,7 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 	var snapshot bool = (typeVar != nil && *typeVar == "snapshot")
 	var update bool = (typeVar != nil && *typeVar == "update")
 	for i := 0; i < len(data); i++ {
-		var item map[string]any = ccxt.MapTyped(func() any {
-			if i >= 0 && i < len(data) {
-				return ccxt.DerefScalar(data[i])
-			}
-			return nil
-		}())
+		var item map[string]any = ccxt.SafeMapTyped(data, i)
 		var marketId *string = this.SafeString(item, "symbol")
 		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])

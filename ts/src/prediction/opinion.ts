@@ -1118,10 +1118,7 @@ export default class opinion extends Exchange {
         // a false result does NOT mean the order is still open — it may already be filled,
         // already cancelled, or unknown; don't invent a status the venue didn't report.
         // error responses with an errno never reach this line, handleErrors throws on them
-        let status: Str = undefined;
-        if (canceled === true) {
-            status = 'canceled';
-        }
+        const status = (canceled === true) ? 'canceled' : undefined;
         return this.safePredictionOrder ({ 'id': id, 'status': status, 'info': response }) as PredictionOrder;
     }
 
@@ -1802,7 +1799,7 @@ export default class opinion extends Exchange {
         this.orderbooks[sym as string] = orderbook;
     }
 
-    handleOrderBook (client: any, message: any) {
+    handleOrderBook (client: any, message: Dict) {
         //
         //     {
         //         "marketId": 2764,
@@ -1853,7 +1850,7 @@ export default class opinion extends Exchange {
         return await this.subscribeOpinionChannel (messageHash, 'market.last.price', marketId);
     }
 
-    handleTicker (client: any, message: any) {
+    handleTicker (client: any, message: Dict) {
         //
         //     {
         //         "tokenId": "19120407572139442221452465677574895365338028945317996490376653704877573103648",
@@ -1906,7 +1903,7 @@ export default class opinion extends Exchange {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true) as PredictionTrade[];
     }
 
-    handleTrades (client: any, message: any) {
+    handleTrades (client: any, message: Dict) {
         //
         //     {
         //         "tokenId": "19120407572139442221452465677574895365338028945317996490376653704877573103648",
@@ -2007,7 +2004,7 @@ export default class opinion extends Exchange {
         return undefined;
     }
 
-    handleOrder (client: any, message: any) {
+    handleOrder (client: any, message: Dict) {
         //
         //     {
         //         "orderUpdateType": "orderConfirm",
@@ -2100,7 +2097,7 @@ export default class opinion extends Exchange {
         return this.filterByValueSinceLimit (trades, 'outcome', sym, since, limit, 'timestamp', true) as PredictionTrade[];
     }
 
-    handleMyTrade (client: any, message: any) {
+    handleMyTrade (client: any, message: Dict) {
         //
         //     {
         //         "orderId": "3c7af25f-e21f-11f0-9714-0a58a9feac02",

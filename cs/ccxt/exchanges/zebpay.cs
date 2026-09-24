@@ -2020,7 +2020,7 @@ public partial class zebpay : Exchange
         List<object> currencyList = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < currencyList.Count; i++)
         {
-            object entry = currencyList[i];
+            IDictionary<string, object> entry = this.safeDict(currencyList, i);
             Dictionary<string, object> account = this.account();
             account["total"] = this.safeString(entry, "total");
             account["free"] = this.safeString(entry, "free");
@@ -2193,7 +2193,11 @@ public partial class zebpay : Exchange
         parameters ??= new Dictionary<string, object>();
         parameters = this.omit(parameters, "defaultType");
         bool isV1 = getIndexOf(path, "v1/") > -1;
-        string marketType = isV1 ? "swap" : "spot";
+        string marketType = "spot";
+        if (isV1)
+        {
+            marketType = "swap";
+        }
         object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), marketType);
         string tail = ("/api/" + this.implodeParams(path, parameters));
         url = add(url, tail);
@@ -2206,7 +2210,7 @@ public partial class zebpay : Exchange
         {
             if (isEqual(method, "GET") || isEqual(method, "DELETE"))
             {
-                if ((!isEqual(queryLength, null)) && ((queryLength != 0)))
+                if ((queryLength != 0))
                 {
                     url = add(url, ("?" + this.urlencode(query)));
                 }

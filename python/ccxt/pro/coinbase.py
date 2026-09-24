@@ -88,7 +88,7 @@ class coinbase(ccxt.async_support.coinbase):
         elif symbol is not None:
             market = self.market(symbol)
             messageHash = name + '::' + symbol
-            productIds = [market['id']]
+            productIds = [self.safe_string(market, 'id')]
         url = self.urls['api']['ws']
         subscribe = {
             'type': 'subscribe',
@@ -137,7 +137,7 @@ class coinbase(ccxt.async_support.coinbase):
             market = self.market(symbol)
             watchMessageHash = name + '::' + symbol
             unWatchMessageHash = unWatchMessageHash + '::' + symbol
-            productIds = [market['id']]
+            productIds = [self.safe_string(market, 'id')]
         url = self.urls['api']['ws']
         # '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'
         message = {
@@ -434,7 +434,7 @@ class coinbase(ccxt.async_support.coinbase):
         timestamp = self.parse8601(datetime)
         newTickers = []
         for i in range(0, len(events)):
-            tickersObj = events[i]
+            tickersObj = self.safe_dict(events, i)
             tickers = self.safe_list(tickersObj, 'tickers', [])
             for j in range(0, len(tickers)):
                 ticker = tickers[j]
@@ -696,7 +696,7 @@ class coinbase(ccxt.async_support.coinbase):
             tradesArray = ArrayCacheBySymbolById(tradesLimit)
             self.trades[symbol] = tradesArray
         for i in range(0, len(events)):
-            currentEvent = events[i]
+            currentEvent = self.safe_dict(events, i)
             currentTrades = self.safe_list(currentEvent, 'trades')
             if currentTrades is None:
                 continue
@@ -745,7 +745,7 @@ class coinbase(ccxt.async_support.coinbase):
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
         for i in range(0, len(events)):
-            event = events[i]
+            event = self.safe_dict(events, i)
             responseOrders = self.safe_list(event, 'orders')
             if responseOrders is None:
                 continue
@@ -818,7 +818,7 @@ class coinbase(ccxt.async_support.coinbase):
 
     def handle_order_book_helper(self, orderbook: object, updates: object):
         for i in range(0, len(updates)):
-            trade = updates[i]
+            trade = self.safe_dict(updates, i)
             sideId = self.safe_string(trade, 'side')
             side = self.safe_string(self.options['sides'], sideId)
             price = self.safe_number(trade, 'price_level')
@@ -860,7 +860,7 @@ class coinbase(ccxt.async_support.coinbase):
             return
         datetime = self.safe_string(message, 'timestamp')
         for i in range(0, len(events)):
-            event = events[i]
+            event = self.safe_dict(events, i)
             updates = self.safe_list(event, 'updates', [])
             marketId = self.safe_string(event, 'product_id')
             # sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
@@ -958,7 +958,9 @@ class coinbase(ccxt.async_support.coinbase):
         if type == 'error':
             errorMessage = self.safe_string(message, 'message')
             # ternary (not ||) so the ast-transpiler emits a value-typed conditional, not a boolean
-            errorMessageValue = errorMessage if (errorMessage is not None) else 'unknown error'
+            errorMessageValue = 'unknown error'
+            if errorMessage is not None:
+                errorMessageValue = errorMessage
             raise ExchangeError(errorMessageValue)
         method = self.safe_value(methods, channel)
         if method is not None:

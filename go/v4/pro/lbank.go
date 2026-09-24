@@ -249,7 +249,7 @@ func (this *Lbank) HandleOHLCV(client any, message map[string]any) {
 	var timeframes any = this.SafeDict(watchOHLCVOptions, "timeframes", map[string]any{})
 	var records []any = ccxt.SafeListTyped(message, "records")
 	if !ccxt.IsEqual(records, nil) {
-		var rawOHLCV []any = ccxt.SafeListTypedDefault(records, 0, []any{})
+		var rawOHLCV []any = ccxt.SafeListTyped(records, 0)
 		var parsed []any = []any{this.SafeInteger(rawOHLCV, 0), this.SafeNumber(rawOHLCV, 1), this.SafeNumber(rawOHLCV, 2), this.SafeNumber(rawOHLCV, 3), this.SafeNumber(rawOHLCV, 4), this.SafeNumber(rawOHLCV, 5)}
 		var timeframeId *string = this.SafeString(message, "kbar")
 		var timeframe *string = this.FindTimeframe(timeframeId, timeframes)
@@ -573,7 +573,7 @@ func (this *Lbank) HandleTrades(client any, message map[string]any) {
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
-	var rawTrade any = this.SafeValue(message, "trade")
+	var rawTrade map[string]any = ccxt.SafeMapTyped(message, "trade")
 	var rawTrades []any = ccxt.SafeListTypedDefault(message, "trades", []any{rawTrade})
 	for i := 0; i < len(rawTrades); i++ {
 		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(func() any {
@@ -607,12 +607,12 @@ func (this *Lbank) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(trade, 0)
-	var datetime any = func() any {
-		if timestamp != nil {
-			return (this.Iso8601(timestamp))
-		}
-		return (this.SafeString(trade, "TS"))
-	}()
+	var datetime *string = nil
+	if timestamp != nil {
+		datetime = (this.Iso8601(timestamp))
+	} else {
+		datetime = (this.SafeString(trade, "TS"))
+	}
 	if timestamp == nil {
 		timestamp = this.Parse8601(datetime)
 	}
@@ -1187,7 +1187,7 @@ func (this *Lbank) authenticateBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-client.(ccxt.ClientInterface).Future(messageHash)))
 
-		ch <- ccxt.GetValue(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated"), "key")
+		ch <- this.SafeString(this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated"), "key")
 		return nil
 	}
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
@@ -1256,7 +1256,7 @@ func (this *Lbank) authenticateBody(ch chan any, optionalArgs ...any) any {
 
 	ccxt.PanicOnError(<-future.(*ccxt.Future).Await())
 
-	ch <- ccxt.GetValue(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated"), "key")
+	ch <- this.SafeString(this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated"), "key")
 	return nil
 }
 

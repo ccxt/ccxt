@@ -422,9 +422,9 @@ class nado(Exchange, ImplicitAPI):
         subaccount = None
         subaccount, params = self.handle_option_string_and_params(params, 'createOrder', 'subaccount', 'default')
         expiration = None
-        expiration, params = self.handle_option_and_params(params, 'createOrder', 'expiration', '4294967295')
+        expiration, params = self.handle_option_string_and_params(params, 'createOrder', 'expiration', '4294967295')
         recvWindow = None
-        recvWindow, params = self.handle_option_and_params(params, 'createOrder', 'recvWindow', 5000)
+        recvWindow, params = self.handle_option_integer_and_params(params, 'createOrder', 'recvWindow', 5000)
         nonce = self.create_order_nonce(recvWindow)
         requestId = self.safe_integer(params, 'id')
         spotLeverage = self.safe_bool_2(params, 'spotLeverage', 'spot_leverage')
@@ -454,7 +454,9 @@ class nado(Exchange, ImplicitAPI):
         if isStopOrder:
             triggerDirection = None
             triggerDirection, params = self.handle_trigger_direction_and_params(params)
-            directionSuffix = 'above' if (triggerDirection == 'ascending') else 'below'
+            directionSuffix = 'below'
+            if triggerDirection == 'ascending':
+                directionSuffix = 'above'
             triggerPriceX18 = self.convert_to_x18(triggerPrice)
             priceRequirement = {}
             priceRequirement['oracle_price_' + directionSuffix] = triggerPriceX18
@@ -465,15 +467,18 @@ class nado(Exchange, ImplicitAPI):
             }
             placeOrder['trigger'] = trigger
         elif isStopLossOrder or isTakeProfitOrder:
-            triggerDirection = ''
+            oracleSide = ''
             if isBuy:
-                triggerDirection = 'above' if isStopLossOrder else 'below'
+                oracleSide = 'above' if isStopLossOrder else 'below'
             else:
-                triggerDirection = 'below' if isStopLossOrder else 'above'
-            triggerPrice = stopLossTriggerPrice if isStopLossOrder else takeProfitTriggerPrice
+                oracleSide = 'below' if isStopLossOrder else 'above'
+            if isStopLossOrder:
+                triggerPrice = stopLossTriggerPrice
+            else:
+                triggerPrice = takeProfitTriggerPrice
             triggerPriceX18 = self.convert_to_x18(triggerPrice)
             priceRequirement = {}
-            priceRequirement['oracle_price_' + triggerDirection] = triggerPriceX18
+            priceRequirement['oracle_price_' + oracleSide] = triggerPriceX18
             trigger = {
                 'price_trigger': {
                     'price_requirement': priceRequirement,
@@ -575,7 +580,7 @@ class nado(Exchange, ImplicitAPI):
         expiration = None
         expiration, params = self.handle_option_string_and_params(params, 'editOrder', 'expiration', '4294967295')
         recvWindow = None
-        recvWindow, params = self.handle_option_and_params(params, 'editOrder', 'recvWindow', 5000)
+        recvWindow, params = self.handle_option_integer_and_params(params, 'editOrder', 'recvWindow', 5000)
         cancelNonce = self.create_order_nonce(recvWindow)
         orderNonce = Precise.string_add(cancelNonce, '1')
         appendix = self.safe_string(params, 'appendix')
@@ -725,7 +730,7 @@ class nado(Exchange, ImplicitAPI):
         subaccount, params = self.handle_option_string_and_params(params, 'cancelAllOrders', 'subaccount', 'default')
         sender = self.create_subaccount(self.walletAddress, subaccount)
         recvWindow = None
-        recvWindow, params = self.handle_option_and_params(params, 'cancelAllOrders', 'recvWindow', 5000)
+        recvWindow, params = self.handle_option_integer_and_params(params, 'cancelAllOrders', 'recvWindow', 5000)
         nonce = self.create_order_nonce(recvWindow)
         tx = {
             'sender': sender,
@@ -836,7 +841,7 @@ class nado(Exchange, ImplicitAPI):
         for i in range(0, len(ids)):
             productIds.append(productId)
         recvWindow = None
-        recvWindow, params = self.handle_option_and_params(params, 'cancelOrders', 'recvWindow', 5000)
+        recvWindow, params = self.handle_option_integer_and_params(params, 'cancelOrders', 'recvWindow', 5000)
         nonce = self.create_order_nonce(recvWindow)
         tx = {
             'sender': sender,
@@ -940,7 +945,7 @@ class nado(Exchange, ImplicitAPI):
         if trigger is not True:
             raise NotSupported(self.id + ' fetchOrders only support trigger')
         recvWindow = None
-        recvWindow, params = self.handle_option_and_params(params, 'fetchOrders', 'recvWindow', 5000)
+        recvWindow, params = self.handle_option_integer_and_params(params, 'fetchOrders', 'recvWindow', 5000)
         tx = {
             'sender': sender,
             'recvTime': self.number_to_string(self.milliseconds() + recvWindow),
@@ -1577,7 +1582,9 @@ class nado(Exchange, ImplicitAPI):
             pair = self.safe_dict(pairsById, id, {})
             asset = self.safe_dict(assetsById, id, {})
             rawType = self.safe_string(market, 'type')
-            type = 'swap' if (rawType == 'perp') else rawType
+            type = rawType
+            if rawType == 'perp':
+                type = 'swap'
             contract = (type == 'swap')
             tickerId = self.safe_string_2(pair, 'ticker_id', 'tickerId')
             if tickerId is None:
@@ -2397,7 +2404,7 @@ class nado(Exchange, ImplicitAPI):
         }
         balances = self.safe_list(response, 'spot_balances', [])
         for i in range(0, len(balances)):
-            rawBalance = balances[i]
+            rawBalance = self.safe_dict(balances, i)
             currencyId = self.safe_string(rawBalance, 'product_id')
             code = self.safe_currency_code(currencyId)
             if code == '0':
@@ -2827,7 +2834,11 @@ class nado(Exchange, ImplicitAPI):
         if length is None:
             raise ArgumentsRequired(self.id + ' padHex() requires length')
         zeros = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
-        padded = (zeros + value) if left else (value + zeros)
+        padded = None
+        if left:
+            padded = (zeros + value)
+        else:
+            padded = (value + zeros)
         if left:
             start = len(padded) - length
             return padded[start:len(padded)]

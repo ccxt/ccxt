@@ -522,20 +522,20 @@ public class Nado extends NadoApi
             List<Object> subaccountparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "subaccount", "default");
             subaccount = (String) ((List<Object>) subaccountparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subaccountparametersVariable).get(1);
-            Object expiration = null;
-            List<Object> expirationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "expiration", "4294967295");
-            expiration = ((List<Object>) expirationparametersVariable).get(0);
+            String expiration = null;
+            List<Object> expirationparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "expiration", "4294967295");
+            expiration = (String) ((List<Object>) expirationparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) expirationparametersVariable).get(1);
-            Object recvWindow = null;
-            List<Object> recvWindowparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "recvWindow", 5000);
-            recvWindow = ((List<Object>) recvWindowparametersVariable).get(0);
+            Long recvWindow = null;
+            List<Object> recvWindowparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "createOrder", "recvWindow", 5000);
+            recvWindow = (Long) ((List<Object>) recvWindowparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) recvWindowparametersVariable).get(1);
             String nonce = this.createOrderNonce(recvWindow);
             Long requestId = this.safeInteger(parameters, "id");
             Boolean spotLeverage = (Boolean) this.safeBool2(parameters, "spotLeverage", "spot_leverage");
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
             final String finalAmountX18 = amountX18;
-            final Object finalExpiration = expiration;
+            final String finalExpiration = expiration;
             Map<String, Object> order = new HashMap<String, Object>() {{
                 put( "sender", sender );
                 put( "priceX18", priceX18 );
@@ -568,7 +568,11 @@ public class Nado extends NadoApi
                 List<Object> triggerDirectionparametersVariable = (List<Object>) this.handleTriggerDirectionAndParams(parameters);
                 triggerDirection = (String) ((List<Object>) triggerDirectionparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) triggerDirectionparametersVariable).get(1);
-                String directionSuffix = (((java.util.Objects.equals(triggerDirection, "ascending")))) ? "above" : "below";
+                String directionSuffix = "below";
+                if (java.util.Objects.equals(triggerDirection, "ascending"))
+                {
+                    directionSuffix = "above";
+                }
                 String triggerPriceX18 = this.convertToX18(triggerPrice);
                 Map<String, Object> priceRequirement = new HashMap<String, Object>() {{}};
                 ((Map<String, Object>)priceRequirement).put((String)("oracle_price_" + directionSuffix), triggerPriceX18);
@@ -580,18 +584,24 @@ public class Nado extends NadoApi
                 ((Map<String, Object>)placeOrder).put("trigger", trigger);
             } else if (Boolean.TRUE.equals(isStopLossOrder) || Boolean.TRUE.equals(isTakeProfitOrder))
             {
-                String triggerDirection = "";
+                String oracleSide = "";
                 if (Boolean.TRUE.equals(isBuy))
                 {
-                    triggerDirection = ((Boolean.TRUE.equals(isStopLossOrder))) ? "above" : "below";
+                    oracleSide = ((Boolean.TRUE.equals(isStopLossOrder))) ? "above" : "below";
                 } else
                 {
-                    triggerDirection = ((Boolean.TRUE.equals(isStopLossOrder))) ? "below" : "above";
+                    oracleSide = ((Boolean.TRUE.equals(isStopLossOrder))) ? "below" : "above";
                 }
-                triggerPrice = ((Boolean.TRUE.equals(isStopLossOrder))) ? stopLossTriggerPrice : takeProfitTriggerPrice;
+                if (Boolean.TRUE.equals(isStopLossOrder))
+                {
+                    triggerPrice = stopLossTriggerPrice;
+                } else
+                {
+                    triggerPrice = takeProfitTriggerPrice;
+                }
                 String triggerPriceX18 = this.convertToX18(triggerPrice);
                 Map<String, Object> priceRequirement = new HashMap<String, Object>() {{}};
-                ((Map<String, Object>)priceRequirement).put((String)("oracle_price_" + triggerDirection), triggerPriceX18);
+                ((Map<String, Object>)priceRequirement).put((String)("oracle_price_" + oracleSide), triggerPriceX18);
                 Map<String, Object> trigger = new HashMap<String, Object>() {{
                     put( "price_trigger", new HashMap<String, Object>() {{
                         put( "price_requirement", priceRequirement );
@@ -780,9 +790,9 @@ public class Nado extends NadoApi
             List<Object> expirationparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "editOrder", "expiration", "4294967295");
             expiration = (String) ((List<Object>) expirationparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) expirationparametersVariable).get(1);
-            Object recvWindow = null;
-            List<Object> recvWindowparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "editOrder", "recvWindow", 5000);
-            recvWindow = ((List<Object>) recvWindowparametersVariable).get(0);
+            Long recvWindow = null;
+            List<Object> recvWindowparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "editOrder", "recvWindow", 5000);
+            recvWindow = (Long) ((List<Object>) recvWindowparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) recvWindowparametersVariable).get(1);
             String cancelNonce = this.createOrderNonce(recvWindow);
             String orderNonce = Precise.stringAdd(cancelNonce, "1");
@@ -1002,9 +1012,9 @@ public class Nado extends NadoApi
             subaccount = (String) ((List<Object>) subaccountparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subaccountparametersVariable).get(1);
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
-            Object recvWindow = null;
-            List<Object> recvWindowparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrders", "recvWindow", 5000);
-            recvWindow = ((List<Object>) recvWindowparametersVariable).get(0);
+            Long recvWindow = null;
+            List<Object> recvWindowparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "cancelAllOrders", "recvWindow", 5000);
+            recvWindow = (Long) ((List<Object>) recvWindowparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) recvWindowparametersVariable).get(1);
             String nonce = this.createOrderNonce(recvWindow);
             Map<String, Object> tx = new HashMap<String, Object>() {{
@@ -1149,9 +1159,9 @@ public class Nado extends NadoApi
             {
                 ((List<Object>)productIds).add(productId);
             }
-            Object recvWindow = null;
-            List<Object> recvWindowparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelOrders", "recvWindow", 5000);
-            recvWindow = ((List<Object>) recvWindowparametersVariable).get(0);
+            Long recvWindow = null;
+            List<Object> recvWindowparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "cancelOrders", "recvWindow", 5000);
+            recvWindow = (Long) ((List<Object>) recvWindowparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) recvWindowparametersVariable).get(1);
             String nonce = this.createOrderNonce(recvWindow);
             Map<String, Object> tx = new HashMap<String, Object>() {{
@@ -1316,11 +1326,11 @@ public class Nado extends NadoApi
             {
                 throw new NotSupported((this.id + " fetchOrders only support trigger")) ;
             }
-            Object recvWindow = null;
-            List<Object> recvWindowparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "recvWindow", 5000);
-            recvWindow = ((List<Object>) recvWindowparametersVariable).get(0);
+            Long recvWindow = null;
+            List<Object> recvWindowparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOrders", "recvWindow", 5000);
+            recvWindow = (Long) ((List<Object>) recvWindowparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) recvWindowparametersVariable).get(1);
-            final Object finalRecvWindow = recvWindow;
+            final Long finalRecvWindow = recvWindow;
             Map<String, Object> tx = new HashMap<String, Object>() {{
                 put( "sender", sender );
                 put( "recvTime", Nado.this.numberToString(Helpers.add(Nado.this.milliseconds(), finalRecvWindow)) );
@@ -2342,7 +2352,11 @@ public class Nado extends NadoApi
                 Map<String, Object> pair = (Map<String, Object>) this.safeDict(pairsById, id, new HashMap<String, Object>() {{}});
                 Map<String, Object> asset = (Map<String, Object>) this.safeDict(assetsById, id, new HashMap<String, Object>() {{}});
                 String rawType = this.safeString(market, "type");
-                String type = (((java.util.Objects.equals(rawType, "perp")))) ? "swap" : rawType;
+                String type = rawType;
+                if (java.util.Objects.equals(rawType, "perp"))
+                {
+                    type = "swap";
+                }
                 Boolean contract = (java.util.Objects.equals(type, "swap"));
                 String tickerId = this.safeString2(pair, "ticker_id", "tickerId");
                 if (java.util.Objects.equals(tickerId, null))
@@ -3453,7 +3467,7 @@ public class Nado extends NadoApi
     {
         String marketId = this.safeString(ticker, "product_id");
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
-        Object timestamp = null;
+        List<String> timestamp = null;
         String last = this.safeString(ticker, "last_price");
         final Map<String, Object> finalMarket = market;
         return this.safeTicker(new HashMap<String, Object>() {{
@@ -3539,7 +3553,7 @@ public class Nado extends NadoApi
         List<Object> balances = (List<Object>) this.safeList(response, "spot_balances", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Object rawBalance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
+            Map<String, Object> rawBalance = (Map<String, Object>) this.safeDict(balances, i);
             String currencyId = this.safeString(rawBalance, "product_id");
             String code = this.safeCurrencyCode(currencyId);
             if (java.util.Objects.equals(code, "0"))
@@ -4128,7 +4142,14 @@ public class Nado extends NadoApi
             throw new ArgumentsRequired((this.id + " padHex() requires length")) ;
         }
         Object zeros = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-        Object padded = ((Helpers.isTrue(left))) ? (Helpers.add(zeros, value)) : (Helpers.add(value, zeros));
+        Object padded = null;
+        if (Helpers.isTrue(left))
+        {
+            padded = (Helpers.add(zeros, value));
+        } else
+        {
+            padded = (Helpers.add(value, zeros));
+        }
         if (Helpers.isTrue(left))
         {
             Object start = Helpers.subtract(((String)padded).length(), length);

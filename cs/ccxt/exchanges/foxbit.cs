@@ -429,7 +429,7 @@ public partial class foxbit : Exchange
         Dictionary<string, object> parsedNetworks = new Dictionary<string, object>() {};
         for (int j = 0; j < networks.Count; j++)
         {
-            object network = networks[j];
+            IDictionary<string, object> network = this.safeDict(networks, j);
             string? networkId = this.safeString(network, "code");
             string? networkCode = this.networkIdToCode(networkId, code);
             IDictionary<string, object> networkWithdrawInfo = this.safeDict(network, "withdraw_info");
@@ -926,7 +926,7 @@ public partial class foxbit : Exchange
         };
         for (int i = 0; i < accounts.Count; i++)
         {
-            object account = accounts[i];
+            IDictionary<string, object> account = this.safeDict(accounts, i);
             string? currencyId = this.safeString(account, "currency_symbol");
             string? currencyCode = this.safeCurrencyCode(currencyId);
             string? total = this.safeString(account, "balance");
@@ -1935,11 +1935,11 @@ public partial class foxbit : Exchange
     {
         string? marketId = this.safeString(ticker, "market_symbol");
         string? symbol = this.safeSymbol(marketId, market, null, "spot");
-        object rolling_24h = getValue(ticker, "rolling_24h");
+        IDictionary<string, object> rolling_24h = this.safeDict(ticker, "rolling_24h");
         IDictionary<string, object> best = this.safeDict(ticker, "best");
         IDictionary<string, object> bestAsk = this.safeDict(best, "ask");
         IDictionary<string, object> bestBid = this.safeDict(best, "bid");
-        object lastTrade = getValue(ticker, "last_trade");
+        IDictionary<string, object> lastTrade = this.safeDict(ticker, "last_trade");
         string? lastPrice = this.safeString(lastTrade, "price");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },

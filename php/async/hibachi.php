@@ -1017,7 +1017,7 @@ class hibachi extends Exchange {
         $nonce = $this->incrementing_nonce();
         $requestOrders = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $symbol = $this->safe_string($rawOrder, 'symbol');
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
@@ -1131,7 +1131,7 @@ class hibachi extends Exchange {
         $nonce = $this->incrementing_nonce();
         $requestOrders = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $id = $this->safe_string($rawOrder, 'id');
             $symbol = $this->safe_string($rawOrder, 'symbol');
             $type = $this->safe_string($rawOrder, 'type');
@@ -1649,7 +1649,7 @@ class hibachi extends Exchange {
             $request['startTime'] = $since;
         }
         $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchOrdersByStatus', 'until');
+        list($until, $params) = $this->handle_option_integer_and_params($params, 'fetchOrdersByStatus', 'until');
         if ($until !== null) {
             $request['endTime'] = $until;
         }
@@ -1762,7 +1762,7 @@ class hibachi extends Exchange {
             $request['fromMs'] = $since;
         }
         $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'until');
+        list($until, $params) = $this->handle_option_integer_and_params($params, 'fetchOHLCV', 'until');
         if ($until !== null) {
             $request['toMs'] = $until;
         }
@@ -2046,7 +2046,7 @@ class hibachi extends Exchange {
             $this->privateGetTradeAccountTradingHistory($this->extend($request, $params)),
         );
         $promises = Async\await(Promise\all($rawPromises));
-        $responseCapitalHistory = $promises[0];
+        $responseCapitalHistory = $this->safe_dict($promises, 0);
         //
         // {
         //     "transactions": [
@@ -2101,7 +2101,7 @@ class hibachi extends Exchange {
         // }
         //
         $rowsCapitalHistory = $this->safe_list($responseCapitalHistory, 'transactions', array());
-        $responseTradingHistory = $promises[1];
+        $responseTradingHistory = $this->safe_dict($promises, 1);
         //
         // {
         //     "tradingHistory": [
@@ -2359,7 +2359,7 @@ class hibachi extends Exchange {
             $request['limit'] = $limit;
         }
         $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchMySettlementHistory', 'until');
+        list($until, $params) = $this->handle_option_integer_and_params($params, 'fetchMySettlementHistory', 'until');
         if ($until !== null) {
             $request['endTime'] = $this->parse_to_int($until / 1000);
         }

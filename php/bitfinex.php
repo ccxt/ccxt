@@ -644,7 +644,7 @@ class bitfinex extends Exchange {
         $markets = $this->array_concat($spotMarketsInfo, $futuresMarketsInfo);
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
-            $pairObj = $markets[$i];
+            $pairObj = $this->safe_list($markets, $i);
             $id = $this->safe_string_upper($pairObj, 0);
             $market = $this->safe_value($pairObj, 1, array());
             $spot = true;
@@ -862,7 +862,7 @@ class bitfinex extends Exchange {
         );
         $indexedNetworks = array();
         for ($i = 0; $i < count($indexed['networks']); $i++) {
-            $networkObj = $indexed['networks'][$i];
+            $networkObj = $this->safe_list($indexed['networks'], $i);
             $networkId = $this->safe_string($networkObj, 0);
             $valuesList = $this->safe_list($networkObj, 1);
             $networkName = $this->safe_string($valuesList, 0);
@@ -996,7 +996,7 @@ class bitfinex extends Exchange {
         $balances = $this->to_array($response);
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+            $balance = $this->safe_list($balances, $i);
             $account = $this->account();
             $interest = $this->safe_string($balance, 3);
             if ($interest !== '0') {
@@ -1212,7 +1212,10 @@ class bitfinex extends Exchange {
             $price = $this->safe_number($order, $priceIndex);
             $signedAmount = $this->safe_string($order, 2);
             $amount = Precise::string_abs($signedAmount);
-            $side = Precise::string_gt($signedAmount, '0') ? 'bids' : 'asks';
+            $side = 'asks';
+            if (Precise::string_gt($signedAmount, '0')) {
+                $side = 'bids';
+            }
             $result[$side][] = array( $price, $this->parse_number($amount) );
         }
         $result['bids'] = $this->sort_by($result['bids'], 0, true);
@@ -1522,7 +1525,7 @@ class bitfinex extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchTrades', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchTrades', $symbol, $since, $limit, $params, 10000);
         }
@@ -1579,7 +1582,7 @@ class bitfinex extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 10000);
         }
@@ -1687,7 +1690,10 @@ class bitfinex extends Exchange {
         $remaining = Precise::string_abs($this->safe_string($orderList, 6));
         $signedAmount = $this->safe_string($orderList, 7);
         $amount = Precise::string_abs($signedAmount);
-        $side = Precise::string_lt($signedAmount, '0') ? 'sell' : 'buy';
+        $side = 'buy';
+        if (Precise::string_lt($signedAmount, '0')) {
+            $side = 'sell';
+        }
         $orderType = $this->safe_string($orderList, 8);
         $type = $this->safe_string($this->safe_dict($this->options, 'exchangeTypes'), $orderType);
         $timeInForce = $this->parse_time_in_force($orderType);
@@ -1942,7 +1948,7 @@ class bitfinex extends Exchange {
         }
         $ordersRequests = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $symbol = $this->safe_string($rawOrder, 'symbol');
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
@@ -2277,7 +2283,7 @@ class bitfinex extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchClosedOrders', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchClosedOrders', $symbol, $since, $limit, $params);
         }
@@ -3206,7 +3212,7 @@ class bitfinex extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchLedger', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchLedger', $code, $since, $limit, $params, 2500);
         }
@@ -3324,7 +3330,7 @@ class bitfinex extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params, 5000);
         }
@@ -3616,7 +3622,7 @@ class bitfinex extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenInterestHistory', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOpenInterestHistory', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchOpenInterestHistory', $symbol, $since, $limit, '8h', $params, 5000);
         }
@@ -3755,7 +3761,7 @@ class bitfinex extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLiquidations', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchLiquidations', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchLiquidations', $symbol, $since, $limit, '8h', $params, 500);
         }
@@ -3811,7 +3817,7 @@ class bitfinex extends Exchange {
         //         ]
         //     ]
         //
-        $entry = $liquidation[0];
+        $entry = $this->safe_list($liquidation, 0);
         $timestamp = $this->safe_integer($entry, 2);
         $marketId = $this->safe_string($entry, 4);
         $contracts = Precise::string_abs($this->safe_string($entry, 5));
@@ -3819,7 +3825,10 @@ class bitfinex extends Exchange {
         $baseValue = Precise::string_mul($contracts, $contractSize);
         $price = $this->safe_string($entry, 11);
         $sideFlag = $this->safe_integer($entry, 8);
-        $side = ($sideFlag === 1) ? 'buy' : 'sell';
+        $side = 'sell';
+        if ($sideFlag === 1) {
+            $side = 'buy';
+        }
         return $this->safe_liquidation(array(
             'info' => $entry,
             'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
@@ -3879,7 +3888,10 @@ class bitfinex extends Exchange {
         //     ]
         //
         $marginStatusRaw = $data[0];
-        $marginStatus = ($marginStatusRaw === 1) ? 'ok' : 'failed';
+        $marginStatus = 'failed';
+        if ($marginStatusRaw === 1) {
+            $marginStatus = 'ok';
+        }
         return array(
             'info' => $data,
             'symbol' => $this->safe_string($market, 'symbol'),

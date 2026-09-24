@@ -973,7 +973,7 @@ func (this *Blofin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var first any = this.SafeDict(data, 0, map[string]any{})
 	var timestamp *int64 = this.SafeInteger(first, "ts")
 
@@ -1073,7 +1073,7 @@ func (this *Blofin) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketTickers(this.Extend(request, params))).Raw))
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var first any = this.SafeDict(data, 0, map[string]any{})
 
 	ch <- this.ParseTicker(first, market)
@@ -1110,7 +1110,7 @@ func (this *Blofin) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketMarkPrice(this.Extend(request, params))).Raw))
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var first any = this.SafeDict(data, 0, map[string]any{})
 
 	ch <- this.ParseTicker(first, market)
@@ -1293,7 +1293,7 @@ func (this *Blofin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchTrades", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -1378,7 +1378,7 @@ func (this *Blofin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -1445,7 +1445,7 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -1575,7 +1575,7 @@ func (this *Blofin) fetchFundingRateBody(ch chan any, symbol any, optionalArgs .
 	//        "msg": ""
 	//    }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var entry map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 
 	ch <- this.ParseFundingRate(entry, market)
@@ -1627,12 +1627,7 @@ func (this *Blofin) ParseBalance(response any) any {
 	var timestamp *int64 = this.SafeInteger(data, "ts")
 	var details []any = SafeListTyped(data, "details")
 	for i := 0; i < len(details); i++ {
-		var balance map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(details) {
-				return DerefScalar(details[i])
-			}
-			return nil
-		}())
+		var balance map[string]any = SafeMapTyped(details, i)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -1673,12 +1668,7 @@ func (this *Blofin) ParseFundingBalance(response any) any {
 	}
 	var data []any = SafeListTyped(response, "data")
 	for i := 0; i < len(data); i++ {
-		var balance map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(data) {
-				return DerefScalar(data[i])
-			}
-			return nil
-		}())
+		var balance map[string]any = SafeMapTyped(data, i)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -1728,7 +1718,7 @@ func (this *Blofin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var accountType any = nil
-	var accountTypeparamsVariable []any = this.HandleOptionAndParams2(params, "fetchBalance", "accountType", "type")
+	var accountTypeparamsVariable []any = this.HandleOptionStringAndParams2(params, "fetchBalance", "accountType", "type")
 	accountType = GetValue(accountTypeparamsVariable, 0)
 	params = MapTyped(GetValue(accountTypeparamsVariable, 1))
 	var request map[string]any = map[string]any{}
@@ -1790,12 +1780,10 @@ func (this *Blofin) CreateOrderRequest(symbol any, typeVar any, side any, amount
 	if isMarketOrder || marketIOC {
 		request["orderType"] = "market"
 	} else {
-		var key string = func() string {
-			if triggerPriceAny != nil {
-				return "orderPrice"
-			}
-			return "price"
-		}()
+		var key string = "price"
+		if triggerPriceAny != nil {
+			key = "orderPrice"
+		}
 		request[key] = this.PriceToPrecision(symbol, price)
 	}
 	var postOnly bool = false
@@ -1808,8 +1796,8 @@ func (this *Blofin) CreateOrderRequest(symbol any, typeVar any, side any, amount
 	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
 	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
 	params = MapTyped(this.Omit(params, []any{"stopLoss", "takeProfit", "hedged"}))
-	var hasStopLoss bool = !IsEqual(stopLoss, nil)
-	var hasTakeProfit bool = !IsEqual(takeProfit, nil)
+	var hasStopLoss bool = (stopLoss != nil)
+	var hasTakeProfit bool = (takeProfit != nil)
 	if hasStopLoss || hasTakeProfit {
 		if hasStopLoss {
 			var slTriggerPrice *string = this.SafeString2(stopLoss, "triggerPrice", "stopPrice")
@@ -2059,7 +2047,7 @@ func (this *Blofin) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		ch <- this.ParseOrder(dataDict, market)
 		return nil
 	}
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var first any = this.SafeDict(data, 0)
 	var order map[string]any = MapTyped(this.ParseOrder(first, market))
 	order["type"] = typeVar
@@ -2203,7 +2191,7 @@ func (this *Blofin) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 
 	response := (<-this.PrivatePostTradeCancelOrder(this.Extend(request, query)))
 	PanicOnError(response)
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var order any = this.SafeDict(data, 0)
 
 	ch <- this.ParseOrder(order, market)
@@ -2235,7 +2223,7 @@ func (this *Blofin) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 	}
 	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
+		var rawOrder map[string]any = SafeMapTyped(orders, i)
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
@@ -2291,13 +2279,13 @@ func (this *Blofin) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOpenOrders", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes179719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOpenOrders", symbol, since, limit, params))))
-		ch <- BoxAbsent(retRes179719)
+		var retRes180019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOpenOrders", symbol, since, limit, params))))
+		ch <- BoxAbsent(retRes180019)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -2373,13 +2361,13 @@ func (this *Blofin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes184919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))))
-		ch <- BoxAbsent(retRes184919)
+		var retRes185219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))))
+		ch <- BoxAbsent(retRes185219)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -2470,13 +2458,13 @@ func (this *Blofin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchDeposits", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchDeposits", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes191619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchDeposits", code, since, limit, params))))
-		ch <- BoxAbsent(retRes191619)
+		var retRes191919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchDeposits", code, since, limit, params))))
+		ch <- BoxAbsent(retRes191919)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -2536,13 +2524,13 @@ func (this *Blofin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchWithdrawals", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes195719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchWithdrawals", code, since, limit, params))))
-		ch <- BoxAbsent(retRes195719)
+		var retRes196019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchWithdrawals", code, since, limit, params))))
+		ch <- BoxAbsent(retRes196019)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -2746,13 +2734,13 @@ func (this *Blofin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLedger", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchLedger", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes212619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, params))))
-		ch <- BoxAbsent(retRes212619)
+		var retRes212919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, params))))
+		ch <- BoxAbsent(retRes212919)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -3126,9 +3114,9 @@ func (this *Blofin) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountPositions(this.Extend(request, params))).Raw))
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var position map[string]any = SafeMapTyped(data, 0)
-	if IsEqual(position, nil) {
+	if position == nil {
 		panic(NullResponse(this.Id + " fetchPosition() returned empty position"))
 	}
 
@@ -3357,7 +3345,7 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) any {
 	var maintenanceMarginPercentageString *string = Precise.StringDiv(maintenanceMarginString, notionalString)
 	if initialMarginPercentage == nil {
 		initialMarginPercentage = this.ParseNumber(Precise.StringDiv(initialMarginString, notionalString, 4))
-	} else if IsEqual(initialMarginString, nil) {
+	} else if initialMarginString == nil {
 		var initialMarginPercentageString *string = this.NumberToString(initialMarginPercentage)
 		initialMarginString = Precise.StringMul(initialMarginPercentageString, notionalString)
 	}
@@ -3694,13 +3682,13 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchClosedOrders", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchClosedOrders", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes290019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchClosedOrders", symbol, since, limit, params))))
-		ch <- BoxAbsent(retRes290019)
+		var retRes290319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchClosedOrders", symbol, since, limit, params))))
+		ch <- BoxAbsent(retRes290319)
 		return nil
 	}
 	var request map[string]any = map[string]any{}

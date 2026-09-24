@@ -1027,12 +1027,7 @@ func (this *Extended) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var data []any = SafeListTyped(response, "data")
 	var tickers map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var marketData map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(data) {
-				return DerefScalar(data[i])
-			}
-			return nil
-		}())
+		var marketData map[string]any = SafeMapTyped(data, i)
 		var marketId *string = this.SafeString(marketData, "name")
 		var market any = this.SafeMarket(marketId)
 		var stats map[string]any = MapTyped(this.SafeDict(marketData, "marketStats", map[string]any{}))
@@ -1265,7 +1260,7 @@ func (this *Extended) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -1366,7 +1361,7 @@ func (this *Extended) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingHistory", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -1711,7 +1706,7 @@ func (this *Extended) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -2112,7 +2107,7 @@ func (this *Extended) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLedger", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchLedger", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -2247,7 +2242,7 @@ func (this *Extended) fetchTransactionsBody(ch chan any, optionalArgs ...any) an
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTransactions", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchTransactions", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -2502,7 +2497,7 @@ func (this *Extended) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTransfers", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchTransfers", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -2691,7 +2686,7 @@ func (this *Extended) GetExtendedCurrencyCodeById(assetId any, optionalArgs ...a
 	}
 	var currenciesByNumericId map[string]any = SafeMapTyped(this.Options, "currenciesByNumericId")
 	var currencyByNumericId map[string]any = SafeMapTyped(currenciesByNumericId, assetId)
-	if !IsEqual(currencyByNumericId, nil) {
+	if currencyByNumericId != nil {
 		return this.SafeString(currencyByNumericId, "code")
 	}
 	if currency != nil {
@@ -2822,7 +2817,7 @@ func (this *Extended) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var first map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 
 	ch <- this.ParseTradingFee(first, market)
@@ -2866,7 +2861,7 @@ func (this *Extended) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
 		var fee map[string]any = MapTyped(this.SafeDict(data, i, map[string]any{}))
@@ -2941,7 +2936,7 @@ func (this *Extended) fetchLeverageBody(ch chan any, symbol any, optionalArgs ..
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 
 	ch <- this.ParseLeverage(this.SafeDict(data, 0, map[string]any{}), market)
 	return nil
@@ -3139,7 +3134,7 @@ func (this *Extended) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any
 		symbols = []any{symbols}
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositionsHistory", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchPositionsHistory", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -3472,7 +3467,7 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 		var builderFeeRateparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "builderFeeRate", "0.0001")
 		builderFeeRate = GetValue(builderFeeRateparamsVariable, 0)
 		params = MapTyped(GetValue(builderFeeRateparamsVariable, 1))
-		var builderIdparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "builderId")
+		var builderIdparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "builderId")
 		builderId = GetValue(builderIdparamsVariable, 0)
 		params = MapTyped(GetValue(builderIdparamsVariable, 1))
 	}
@@ -3544,15 +3539,15 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 		"starkKey":           starkKey,
 		"collateralPosition": collateralPosition,
 	}
-	var triggerPriceStr any = DerefScalar(this.SafeString2(params, "triggerPrice", "stopPrice"))
+	var triggerPriceStr *string = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLossTriggerPrice *string = this.SafeString(params, "stopLossPrice")
 	var takeProfitTriggerPrice *string = this.SafeString(params, "takeProfitPrice")
 	var isStopLossOrder bool = (stopLossTriggerPrice != nil)
 	var isTakeProfitOrder bool = (takeProfitTriggerPrice != nil)
 	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
 	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
-	var hasStopLoss bool = (!IsEqual(stopLoss, nil))
-	var hasTakeProfit bool = (!IsEqual(takeProfit, nil))
+	var hasStopLoss bool = ((stopLoss != nil))
+	var hasTakeProfit bool = ((takeProfit != nil))
 	if hasStopLoss || hasTakeProfit {
 		request["tpSlType"] = "ORDER"
 		if hasStopLoss {
@@ -3608,7 +3603,7 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 			request["takeProfit"] = requestTakeProfit
 		}
 	} else {
-		if !IsEqual(triggerPriceStr, nil) {
+		if triggerPriceStr != nil {
 			var triggerDirection *string = this.SafeStringUpper(params, "triggerDirection")
 			if triggerDirection == nil {
 				panic(ArgumentsRequired(this.Id + " createOrder() requires triggerDirection for trigger order"))
@@ -3620,12 +3615,11 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 			request["type"] = "CONDITIONAL"
 			request["trigger"] = trigger
 		} else if isStopLossOrder || isTakeProfitOrder {
-			triggerPriceStr = func() any {
-				if isStopLossOrder {
-					return stopLossTriggerPrice
-				}
-				return takeProfitTriggerPrice
-			}()
+			if isStopLossOrder {
+				triggerPriceStr = stopLossTriggerPrice
+			} else {
+				triggerPriceStr = takeProfitTriggerPrice
+			}
 			var trigger map[string]any = map[string]any{
 				"triggerPrice": this.PriceToPrecision(symbol, triggerPriceStr),
 			}
@@ -4095,7 +4089,7 @@ func (this *Extended) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 		}
 
 		response = MapTyped(PanicOnError((<-this.V1PrivateGetUserOrdersExternalExternalId(this.Extend(request, params))).Raw))
-		var data []any = SafeListTypedDefault(response, "data", []any{})
+		var data []any = SafeListTyped(response, "data")
 		order = this.SafeDict(data, 0, map[string]any{})
 	} else {
 		if IsEqual(id, nil) {
@@ -4215,13 +4209,13 @@ func (this *Extended) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOrders", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes321719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOrders", symbol, since, limit, params, "cursor", "cursor", nil, 100))))
-		ch <- BoxAbsent(retRes321719)
+		var retRes322119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOrders", symbol, since, limit, params, "cursor", "cursor", nil, 100))))
+		ch <- BoxAbsent(retRes322119)
 		return nil
 	}
 	var market map[string]any = nil
@@ -4520,12 +4514,10 @@ func (this *Extended) GetExtendedSignatureHex(signature any) any {
 func (this *Extended) GetExtendedDomainHash() any {
 	var domainTypeHash any = this.ConvertToBigInt(this.ExtendedStarknetGetSelectorFromName("\"StarknetDomain\"(\"name\":\"shortstring\",\"version\":\"shortstring\",\"chainId\":\"shortstring\",\"revision\":\"shortstring\")"))
 	var isTestnet bool = (GetIndexOf(GetValue(GetValue(this.Urls, "api"), "rest"), "sepolia") >= 0)
-	var defaultChainId string = func() string {
-		if isTestnet {
-			return "SN_SEPOLIA"
-		}
-		return "SN_MAIN"
-	}()
+	var defaultChainId string = "SN_MAIN"
+	if isTestnet {
+		defaultChainId = "SN_SEPOLIA"
+	}
 	var chainId *string = this.SafeString(this.Options, "chainId", defaultChainId)
 	return this.ConvertToBigInt(this.ExtendedStarknetComputePoseidonHashOnElements([]any{domainTypeHash, this.GetExtendedStringToFelt("Perpetuals"), this.GetExtendedStringToFelt("v0"), this.GetExtendedStringToFelt(chainId), this.ConvertToBigInt("1")}))
 }

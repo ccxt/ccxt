@@ -2179,6 +2179,10 @@ class BaseExchange(object):
         # the statically typed ports throw on a present non-boolean value; here it passes through unchanged
         return value
 
+    def check_option_integer(self, methodName, optionName, value):
+        # the statically typed ports throw on a present value that is not an integral number; here it passes through unchanged
+        return value
+
     def rand_number(self, size):
         return int(''.join([str(random.randint(0, 9)) for _ in range(size)]))
 
@@ -3624,7 +3628,7 @@ class BaseExchange(object):
     def parse_ticker(self, ticker: dict, market: Market = None):
         raise NotSupported(self.id + ' parseTicker() is not supported yet')
 
-    def parse_deposit_address(self, depositAddress: object, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None):
         raise NotSupported(self.id + ' parseDepositAddress() is not supported yet')
 
     def parse_trade(self, trade: dict, market: Market = None):
@@ -5037,7 +5041,7 @@ class BaseExchange(object):
     def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}):
         raise NotSupported(self.id + ' watchOHLCV() is not supported yet')
 
-    def convert_trading_view_to_ohlcv(self, ohlcvs: list[list[float]], timestamp='t', open='o', high='h', low='l', close='c', volume='v', ms=False):
+    def convert_trading_view_to_ohlcv(self, ohlcvs: dict, timestamp='t', open='o', high='h', low='l', close='c', volume='v', ms=False):
         result = []
         timestamps = self.safe_list(ohlcvs, timestamp, [])
         opens = self.safe_list(ohlcvs, open, [])
@@ -5773,9 +5777,9 @@ class BaseExchange(object):
             cost = self.calculate_rate_limiter_cost(api, method, path, params, config)
             self.throttle(cost)
         retries = 0
-        retries, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailure', retries)
+        retries, params = self.handle_option_integer_and_params(params, path, 'maxRetriesOnFailure', retries)
         retryDelay = 0
-        retryDelay, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailureDelay', retryDelay)
+        retryDelay, params = self.handle_option_integer_and_params(params, path, 'maxRetriesOnFailureDelay', retryDelay)
         fetchDataCacheEnabled = self.fetchHistoryCacheSize > 0
         for i in range(0, retries + 1):
             fetchData = None
@@ -6128,6 +6132,15 @@ class BaseExchange(object):
         value, newParams = self.handle_option_and_params_2(params, methodName, optionName1, optionName2, defaultValue)
         return [self.check_option_bool(methodName, optionName1, value), newParams]
 
+    def handle_option_integer_and_params(self, params: object, methodName: Str, optionName: str, defaultValue: Int = None):
+        # handleOptionAndParams read as an integer; the statically typed ports throw on another type
+        value, newParams = self.handle_option_and_params(params, methodName, optionName, defaultValue)
+        return [self.check_option_integer(methodName, optionName, value), newParams]
+
+    def handle_option_integer_and_params_2(self, params: object, methodName: str, optionName1: str, optionName2: str, defaultValue: Int = None):
+        value, newParams = self.handle_option_and_params_2(params, methodName, optionName1, optionName2, defaultValue)
+        return [self.check_option_integer(methodName, optionName1, value), newParams]
+
     def handle_option(self, methodName: str, optionName: str, defaultValue: object = None):
         res = self.handle_option_and_params({}, methodName, optionName, defaultValue)
         return self.safe_value(res, 0)
@@ -6386,7 +6399,7 @@ class BaseExchange(object):
     def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}):
         raise NotSupported(self.id + ' fetchFundingHistory() is not supported yet')
 
-    def parse_last_price(self, price: object, market: Market = None):
+    def parse_last_price(self, price: dict, market: Market = None):
         raise NotSupported(self.id + ' parseLastPrice() is not supported yet')
 
     def fetch_deposit_address(self, code: str, params: dict = {}):
@@ -7173,7 +7186,7 @@ class BaseExchange(object):
                 fee['deposit'] = fee['networks'][networkKeys[i]]['deposit']
         return fee
 
-    def parse_income(self, info: object, market: Market = None):
+    def parse_income(self, info: dict, market: Market = None):
         raise NotSupported(self.id + ' parseIncome () is not supported yet')
 
     def parse_incomes(self, incomes: object, market: Market = None, since: Int = None, limit: Int = None):
@@ -7261,7 +7274,7 @@ class BaseExchange(object):
 
     def handle_max_entries_per_request_and_params(self, method: str, maxEntriesPerRequest: Int = None, params: dict = {}):
         newMaxEntriesPerRequest = None
-        newMaxEntriesPerRequest, params = self.handle_option_and_params(params, method, 'maxEntriesPerRequest')
+        newMaxEntriesPerRequest, params = self.handle_option_integer_and_params(params, method, 'maxEntriesPerRequest')
         if (newMaxEntriesPerRequest is not None) and (newMaxEntriesPerRequest != maxEntriesPerRequest):
             maxEntriesPerRequest = newMaxEntriesPerRequest
         if maxEntriesPerRequest is None:
@@ -7270,9 +7283,9 @@ class BaseExchange(object):
 
     def fetch_paginated_call_dynamic(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}, maxEntriesPerRequest: Int = None, removeRepeated=True):
         maxCalls = 10
-        maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', maxCalls)
+        maxCalls, params = self.handle_option_integer_and_params(params, method, 'paginationCalls', maxCalls)
         maxRetries = 3
-        maxRetries, params = self.handle_option_and_params(params, method, 'maxRetries', maxRetries)
+        maxRetries, params = self.handle_option_integer_and_params(params, method, 'maxRetries', maxRetries)
         paginationDirection = None
         paginationDirection, params = self.handle_option_and_params(params, method, 'paginationDirection', 'backward')
         paginationTimestamp = None
@@ -7346,7 +7359,7 @@ class BaseExchange(object):
 
     def safe_deterministic_call(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, timeframe: Str = None, params: dict = {}):
         maxRetries = 3
-        maxRetries, params = self.handle_option_and_params(params, method, 'maxRetries', maxRetries)
+        maxRetries, params = self.handle_option_integer_and_params(params, method, 'maxRetries', maxRetries)
         errors = 0
         while(errors <= maxRetries):
             try:
@@ -7364,7 +7377,7 @@ class BaseExchange(object):
 
     def fetch_paginated_call_deterministic(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, timeframe: Str = None, params: dict = {}, maxEntriesPerRequest: Int = None):
         maxCalls = 10
-        maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', maxCalls)
+        maxCalls, params = self.handle_option_integer_and_params(params, method, 'paginationCalls', maxCalls)
         maxEntriesPerRequest, params = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, params)
         # paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
         # pagination always walks forward internally, so strip it here to avoid leaking an
@@ -7411,9 +7424,9 @@ class BaseExchange(object):
 
     def fetch_paginated_call_cursor(self, method: str, symbol: Str | Strings = None, since: Int = None, limit: Int = None, params: dict = {}, cursorReceived: Str = None, cursorSent: Str = None, cursorIncrement: Int = None, maxEntriesPerRequest: Int = None):
         maxCalls = 10
-        maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', maxCalls)
+        maxCalls, params = self.handle_option_integer_and_params(params, method, 'paginationCalls', maxCalls)
         maxRetries = 3
-        maxRetries, params = self.handle_option_and_params(params, method, 'maxRetries', maxRetries)
+        maxRetries, params = self.handle_option_integer_and_params(params, method, 'maxRetries', maxRetries)
         maxEntriesPerRequest, params = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, params)
         cursorValue = None
         i = 0
@@ -7483,9 +7496,9 @@ class BaseExchange(object):
 
     def fetch_paginated_call_incremental(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}, pageKey: Str = None, maxEntriesPerRequest: Int = None):
         maxCalls = 10
-        maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', maxCalls)
+        maxCalls, params = self.handle_option_integer_and_params(params, method, 'paginationCalls', maxCalls)
         maxRetries = 3
-        maxRetries, params = self.handle_option_and_params(params, method, 'maxRetries', maxRetries)
+        maxRetries, params = self.handle_option_integer_and_params(params, method, 'maxRetries', maxRetries)
         maxEntriesPerRequest, params = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, params)
         i = 0
         errors = 0

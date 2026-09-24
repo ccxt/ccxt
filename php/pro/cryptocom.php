@@ -874,7 +874,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         }
         $data = $this->safe_value($message, 'data');
         for ($i = 0; $i < count($data); $i++) {
-            $tick = $data[$i];
+            $tick = $this->safe_dict($data, $i);
             $parsed = $this->parse_ohlcv($tick, $market);
             $stored->append($parsed);
         }
@@ -1177,7 +1177,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $positionBalances = $this->safe_list($data[0], 'position_balances', array());
         $this->balance['info'] = $data;
         for ($i = 0; $i < count($positionBalances); $i++) {
-            $balance = $positionBalances[$i];
+            $balance = $this->safe_dict($positionBalances, $i);
             $currencyId = $this->safe_string($balance, 'instrument_name');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -1442,7 +1442,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         //    {
         //        "id": 0,

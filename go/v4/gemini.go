@@ -729,12 +729,10 @@ func (this *Gemini) ParseCurrency(rawCurrency any) any {
 	var code *string = this.SafeCurrencyCode(id)
 	var fiatFlag *string = this.SafeString(rawCurrency, 7)
 	var isFiat bool = (fiatFlag != nil) && (fiatFlag == nil || *fiatFlag != "")
-	var typeVar string = func() string {
-		if isFiat {
-			return "fiat"
-		}
-		return "crypto"
-	}()
+	var typeVar string = "crypto"
+	if isFiat {
+		typeVar = "fiat"
+	}
 	var precision *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, 5))))
 	var networks map[string]any = map[string]any{}
 	var networkId *string = this.SafeString(rawCurrency, 9)
@@ -819,8 +817,8 @@ func (this *Gemini) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	var retRes56515 []any = ListTyped(PanicOnError((<-this.FetchMarketsFromAPIAsync(params))))
-	ch <- BoxAbsent(retRes56515)
+	var retRes56815 []any = ListTyped(PanicOnError((<-this.FetchMarketsFromAPIAsync(params))))
+	ch <- BoxAbsent(retRes56815)
 	return nil
 }
 func (this *Gemini) FetchMarketsFromWebAsync(optionalArgs ...any) <-chan any {
@@ -1049,7 +1047,7 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan any, optionalArgs ...any) an
 					return nil
 				}()
 				var pairInfo []any = SafeListTyped(indexedTradingPairs, ToUpper(marketId))
-				if !IsEqual(pairInfo, nil) && !this.InArray(marketId, brokenPairs) {
+				if (pairInfo != nil) && !this.InArray(marketId, brokenPairs) {
 					result = append(result, this.ParseMarket(pairInfo))
 				}
 			}
@@ -1180,12 +1178,10 @@ func (this *Gemini) ParseMarket(response any) any {
 		linear = true           // always linear
 		inverse = false
 	}
-	var typeVar string = func() string {
-		if swap {
-			return "swap"
-		}
-		return "spot"
-	}()
+	var typeVar string = "spot"
+	if swap {
+		typeVar = "swap"
+	}
 	var isSpot bool = !swap
 	return this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
@@ -1403,19 +1399,19 @@ func (this *Gemini) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	var method *string = this.SafeString(this.Options, "fetchTickerMethod", "fetchTickerV1")
 	if method != nil && *method == "fetchTickerV1" {
 
-		var retRes103219 map[string]any = MapTyped(PanicOnError((<-this.FetchTickerV1Async(symbol, params))))
-		ch <- BoxAbsent(retRes103219)
+		var retRes103819 map[string]any = MapTyped(PanicOnError((<-this.FetchTickerV1Async(symbol, params))))
+		ch <- BoxAbsent(retRes103819)
 		return nil
 	}
 	if method != nil && *method == "fetchTickerV2" {
 
-		var retRes103519 map[string]any = MapTyped(PanicOnError((<-this.FetchTickerV2Async(symbol, params))))
-		ch <- BoxAbsent(retRes103519)
+		var retRes104119 map[string]any = MapTyped(PanicOnError((<-this.FetchTickerV2Async(symbol, params))))
+		ch <- BoxAbsent(retRes104119)
 		return nil
 	}
 
-	var retRes103715 map[string]any = MapTyped(PanicOnError((<-this.FetchTickerV1AndV2Async(symbol, params))))
-	ch <- BoxAbsent(retRes103715)
+	var retRes104315 map[string]any = MapTyped(PanicOnError((<-this.FetchTickerV1AndV2Async(symbol, params))))
+	ch <- BoxAbsent(retRes104315)
 	return nil
 }
 func (this *Gemini) ParseTicker(ticker any, optionalArgs ...any) any {
@@ -1714,7 +1710,7 @@ func (this *Gemini) ParseBalance(response any) any {
 		"info": response,
 	}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var balance map[string]any = MapTyped(GetValue(response, i))
+		var balance map[string]any = SafeMapTyped(response, i)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -1960,7 +1956,7 @@ func (this *Gemini) ParseOrder(order any, optionalArgs ...any) any {
 	var id *string = this.SafeString(order, "order_id")
 	var side *string = this.SafeStringLower(order, "side")
 	var clientOrderId *string = this.SafeString(order, "client_order_id")
-	var optionsArray []any = SafeListTypedDefault(order, "options", []any{})
+	var optionsArray []any = SafeListTyped(order, "options")
 	var option *string = this.SafeString(optionsArray, 0)
 	var timeInForce string = "GTC"
 	var postOnly bool = false

@@ -596,7 +596,7 @@ public partial class coinspot : Exchange
                 for (int j = 0; j < currencyIds.Count; j++)
                 {
                     object currencyId = currencyIds[j];
-                    object balance = getValue(currencies, currencyId);
+                    IDictionary<string, object> balance = this.safeDict(currencies, currencyId);
                     string? code = this.safeCurrencyCode(currencyId);
                     Dictionary<string, object> account = this.account();
                     account["total"] = this.safeString(balance, "balance");
@@ -1113,7 +1113,11 @@ public partial class coinspot : Exchange
         object version = isVersionedApi ? getValue(api, 0) : null;
         object accessType = isVersionedApi ? getValue(api, 1) : api;
         string endpoint = ("/" + this.implodeParams(path, parameters));
-        string fullPath = ((version != null)) ? (("/" + (version)) + endpoint) : endpoint;
+        string fullPath = endpoint;
+        if ((version != null))
+        {
+            fullPath = (("/" + (version)) + endpoint);
+        }
         object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), accessType), fullPath);
         if (isEqual(accessType, "private"))
         {

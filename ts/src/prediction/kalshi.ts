@@ -908,10 +908,7 @@ export default class kalshi extends Exchange {
         //
         const marketAny = market;
         const outcomeObj = this.safeOutcome (this.safeString (marketAny, 'outcome'), marketAny);
-        let outcomeLabel: Str = 'YES';
-        if (market !== undefined && market !== null) {
-            outcomeLabel = this.safeString (market, 'label', this.safeString (market['info'], 'outcomeLabel', 'YES'));
-        }
+        const outcomeLabel = (market !== undefined && market !== null) ? this.safeString (market, 'label', this.safeString (market['info'], 'outcomeLabel', 'YES')) : 'YES';
         const isNo = outcomeLabel.toUpperCase () === 'NO';
         const timestamp = this.parse8601 (this.safeString (raw, 'updated_time'));
         const outcome = this.safeString (outcomeObj, 'outcome');
@@ -2057,7 +2054,7 @@ export default class kalshi extends Exchange {
             defaultTif = 'good_till_canceled';
         }
         let timeInForce: Str = undefined;
-        [ timeInForce, params ] = this.handleOptionAndParams (params, 'createOrder', 'time_in_force', defaultTif);
+        [ timeInForce, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'time_in_force', defaultTif);
         let stp: Str = undefined;
         [ stp, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'self_trade_prevention_type', 'taker_at_cross');
         const request: Dict = {

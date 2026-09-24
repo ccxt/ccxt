@@ -151,10 +151,10 @@ public partial class ndax : ccxt.ndax
             { "o", this.json(payload) },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        object trades = await this.watch(url, messageHash, message, messageHash);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, message, messageHash));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)trades.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -295,7 +295,7 @@ public partial class ndax : ccxt.ndax
         Dictionary<string, object> updates = new Dictionary<string, object>() {};
         for (int i = 0; i < payload.Count; i++)
         {
-            object ohlcv = payload[i];
+            List<object> ohlcv = this.safeList(payload, i);
             string? marketId = this.safeString(ohlcv, 8);
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -338,7 +338,7 @@ public partial class ndax : ccxt.ndax
                         low = mathMin(((List<object>)parsed)[2], getValue(previous, 2));
                     }
                     ((List<object>)stored)[Convert.ToInt32((length - 1))] = new List<object>() {((List<object>)parsed)[0], getValue(previous, 1), high, low, ((List<object>)parsed)[4], this.sum(((List<object>)parsed)[5], getValue(previous, 5))};
-                    if (((marketId != null)) && ((timeframe != null)))
+                    if ((marketId != null))
                     {
                         ((IDictionary<string,object>)getValue(updates, marketId))[timeframe] = true;
                     }
@@ -355,7 +355,7 @@ public partial class ndax : ccxt.ndax
                         {
                             ((IList<object>)stored).First();
                         }
-                        if (((marketId != null)) && ((timeframe != null)))
+                        if ((marketId != null))
                         {
                             ((IDictionary<string,object>)getValue(updates, marketId))[timeframe] = true;
                         }
@@ -477,7 +477,7 @@ public partial class ndax : ccxt.ndax
         object nonce = null;
         for (int i = 0; i < payload.Count; i++)
         {
-            object bidask = payload[i];
+            List<object> bidask = this.safeList(payload, i);
             if (isEqual(timestamp, null))
             {
                 timestamp = this.safeInteger(bidask, 2);

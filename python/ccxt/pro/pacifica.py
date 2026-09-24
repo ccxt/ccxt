@@ -112,7 +112,9 @@ class pacifica(ccxt.async_support.pacifica):
             'stopLossPrice', 'stopLossLimitPrice', 'takeProfitCloid', 'takeProfitPrice', 'takeProfitLimitPrice', 'expiryWindow', 'agentAddress', 'originAddress',
         ])
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
         url = self.urls[urlKey]['ws']['public']
         wsRequest = self.wrap_as_post_action(operationType, request)
         requestId = self.safe_string(wsRequest, 'id')
@@ -188,7 +190,9 @@ class pacifica(ccxt.async_support.pacifica):
         request = self.edit_order_request(id, symbol, type, side, amount, price, market, params)
         params = self.omit(params, ['originAddress', 'agentAddress', 'expiryWindow', 'clientOrderId'])
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
         url = self.urls[urlKey]['ws']['public']
         wsRequest = self.wrap_as_post_action(batchOperationType, request)
         requestId = self.safe_string(wsRequest, 'id')
@@ -242,7 +246,9 @@ class pacifica(ccxt.async_support.pacifica):
         request = self.cancelOrdersRequest(ids, symbol, params)
         params = self.omit(params, ['originAddress', 'agentAddress', 'expiryWindow', 'clientOrderIds'])
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
         url = self.urls[urlKey]['ws']['public']
         wsRequest = self.wrap_as_post_action(batchOperationType, request)
         requestId = self.safe_string(wsRequest, 'id')
@@ -274,7 +280,7 @@ class pacifica(ccxt.async_support.pacifica):
         results = self.safe_list(data, 'results', [])
         ordersToReturn = []
         for i in range(0, len(results)):
-            order = results[i]
+            order = self.safe_dict(results, i)
             error = self.safe_string(order, 'error')
             success = self.safe_bool(order, 'success', False)
             marketId = self.safe_string(order, 'symbol')
@@ -313,7 +319,9 @@ class pacifica(ccxt.async_support.pacifica):
         request = self.cancel_order_request(id, symbol, params)
         params = self.omit(params, ['originAddress', 'agentAddress', 'expiryWindow', 'trigger', 'stop', 'clientOrderId'])
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
         url = self.urls[urlKey]['ws']['public']
         wsRequest = self.wrap_as_post_action(operationType, request)
         requestId = self.safe_string(wsRequest, 'id')
@@ -365,7 +373,9 @@ class pacifica(ccxt.async_support.pacifica):
         request = self.cancelAllOrdersRequest(symbol, params)
         params = self.omit(params, ['excludeReduceOnly', 'agentAddress', 'originAddress', 'expiryWindow'])
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
         url = self.urls[urlKey]['ws']['public']
         wsRequest = self.wrap_as_post_action(operationType, request)
         requestId = self.safe_string(wsRequest, 'id')
@@ -403,10 +413,12 @@ class pacifica(ccxt.async_support.pacifica):
             await self.load_markets()
         market = self.market(symbol)
         aggLevel = None
-        aggLevel, params = self.handle_option_and_params(params, 'watchOrderBook', 'aggLevel', 1)
+        aggLevel, params = self.handle_option_integer_and_params(params, 'watchOrderBook', 'aggLevel', 1)
         messageHash = 'orderbook:' + symbol
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
         url = self.urls[urlKey]['ws']['public']
         request = {
             'method': 'subscribe',
@@ -435,11 +447,13 @@ class pacifica(ccxt.async_support.pacifica):
             await self.load_markets()
         market = self.market(symbol)
         aggLevel = None
-        aggLevel, params = self.handle_option_and_params(params, 'watchOrderBook', 'aggLevel', 1)
+        aggLevel, params = self.handle_option_integer_and_params(params, 'watchOrderBook', 'aggLevel', 1)
         subMessageHash = 'orderbook:' + symbol
         messageHash = 'unsubscribe:' + subMessageHash
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
         url = self.urls[urlKey]['ws']['public']
         request = {
             'method': 'unsubscribe',
@@ -537,7 +551,9 @@ class pacifica(ccxt.async_support.pacifica):
         symbols = self.market_symbols(symbols, None, True)
         messageHash = 'tickers'
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
         url = self.urls[urlKey]['ws']['public']
         request = {
             'method': 'subscribe',
@@ -566,7 +582,9 @@ class pacifica(ccxt.async_support.pacifica):
         subMessageHash = 'tickers'
         messageHash = 'unsubscribe:' + subMessageHash
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
         url = self.urls[urlKey]['ws']['public']
         request = {
             'method': 'unsubscribe',
@@ -598,7 +616,9 @@ class pacifica(ccxt.async_support.pacifica):
             symbol = self.symbol(symbol)
             messageHash += ':' + symbol
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
         url = self.urls[urlKey]['ws']['public']
         request = {
             'method': 'subscribe',
@@ -632,7 +652,9 @@ class pacifica(ccxt.async_support.pacifica):
         userAddress, params = self.handleOriginAndSingleAddress('unWatchMyTrades', params)
         messageHash = 'unsubscribe:myTrades'
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
         url = self.urls[urlKey]['ws']['public']
         request = {
             'method': 'unsubscribe',
@@ -749,7 +771,9 @@ class pacifica(ccxt.async_support.pacifica):
         symbol = market['symbol']
         messageHash = 'trade:' + symbol
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
         url = self.urls[urlKey]['ws']['public']
         request = {
             'method': 'subscribe',
@@ -781,7 +805,9 @@ class pacifica(ccxt.async_support.pacifica):
         subMessageHash = 'trade:' + symbol
         messageHash = 'unsubscribe:' + subMessageHash
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
         url = self.urls[urlKey]['ws']['public']
         request = {
             'method': 'unsubscribe',
@@ -923,7 +949,9 @@ class pacifica(ccxt.async_support.pacifica):
         symbol = market['symbol']
         isTestnet = self.isSandboxModeEnabled
         parsedTf = self.safe_string(self.timeframes, timeframe, timeframe)
-        urlKey = 'test' if (isTestnet) else 'api'
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
         url = self.urls[urlKey]['ws']['public']
         request = {
             'method': 'subscribe',
@@ -956,7 +984,9 @@ class pacifica(ccxt.async_support.pacifica):
         market = self.market(symbol)
         symbol = market['symbol']
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
         url = self.urls[urlKey]['ws']['public']
         request = {
             'method': 'unsubscribe',
@@ -1033,7 +1063,9 @@ class pacifica(ccxt.async_support.pacifica):
             symbol = market['symbol']
             messageHash = messageHash + ':' + symbol
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
         url = self.urls[urlKey]['ws']['public']
         request = {
             'method': 'subscribe',
@@ -1065,7 +1097,9 @@ class pacifica(ccxt.async_support.pacifica):
             raise NotSupported(self.id + ' unWatchOrders() does not support a symbol argument, unWatch from all markets only')
         messageHash = 'unsubscribe:order'
         isTestnet = self.isSandboxModeEnabled
-        urlKey = 'test' if (isTestnet) else 'api'
+        urlKey = 'api'
+        if isTestnet:
+            urlKey = 'test'
         url = self.urls[urlKey]['ws']['public']
         userAddress = None
         userAddress, params = self.handleOriginAndSingleAddress('unWatchOrders', params)

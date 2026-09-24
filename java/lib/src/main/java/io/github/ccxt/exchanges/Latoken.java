@@ -809,7 +809,7 @@ public class Latoken extends LatokenApi
             List<Object> balances = (List<Object>) this.safeList(balancesByType, accountType, new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
-                Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
+                Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i);
                 String currencyId = this.safeString(balance, "currency");
                 Long timestamp = this.safeInteger(balance, "timestamp");
                 if (!java.util.Objects.equals(timestamp, null))
@@ -1156,7 +1156,7 @@ public class Latoken extends LatokenApi
         //         "makerBuyer":false
         //     }
         //
-        Object type = null;
+        List<String> type = null;
         Long timestamp = this.safeInteger(trade, "timestamp");
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "quantity");

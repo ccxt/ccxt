@@ -1464,7 +1464,7 @@ func (this *Modetrade) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -1604,7 +1604,7 @@ func (this *Modetrade) fetchFundingHistoryBody(ch chan any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingHistory", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -1944,14 +1944,14 @@ func (this *Modetrade) ParseOrder(order any, optionalArgs ...any) any {
 	var remaining *string = Precise.StringSub(cost, filled)
 	var fee *float64 = this.SafeNumber2(order, "total_fee", "totalFee")
 	var feeCurrency *string = this.SafeString2(order, "fee_asset", "feeAsset")
-	var transactions any = this.SafeValue(order, "Transactions")
+	var transactions []any = SafeListTyped(order, "Transactions")
 	var triggerPrice *float64 = this.SafeNumber(order, "triggerPrice")
 	var takeProfitPrice *float64 = nil
 	var stopLossPrice *float64 = nil
 	var childOrders []any = SafeListTyped(order, "childOrders")
-	if !IsEqual(childOrders, nil) {
+	if childOrders != nil {
 		var first map[string]any = SafeMapTyped(childOrders, 0)
-		var innerChildOrders []any = SafeListTypedDefault(first, "childOrders", []any{})
+		var innerChildOrders []any = SafeListTyped(first, "childOrders")
 		var innerChildOrdersLength int = len(innerChildOrders)
 		if innerChildOrdersLength > 0 {
 			var takeProfitOrder map[string]any = SafeMapTyped(innerChildOrders, 0)
@@ -2079,24 +2079,18 @@ func (this *Modetrade) CreateOrderRequest(symbol any, typeVar any, side any, amo
 	var isMarket bool = (orderType == "MARKET")
 	var timeInForce *string = this.SafeStringLower(params, "timeInForce")
 	var postOnly bool = this.IsPostOnly(isMarket, nil, params)
-	var orderQtyKey string = func() string {
-		if isConditional {
-			return "quantity"
-		}
-		return "order_quantity"
-	}()
-	var priceKey string = func() string {
-		if isConditional {
-			return "price"
-		}
-		return "order_price"
-	}()
-	var typeKey string = func() string {
-		if isConditional {
-			return "type"
-		}
-		return "order_type"
-	}()
+	var orderQtyKey string = "order_quantity"
+	if isConditional {
+		orderQtyKey = "quantity"
+	}
+	var priceKey string = "order_price"
+	if isConditional {
+		priceKey = "price"
+	}
+	var typeKey string = "order_type"
+	if isConditional {
+		typeKey = "type"
+	}
 	request[typeKey] = orderType // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
 	if !isConditional {
 		if postOnly {
@@ -2134,12 +2128,10 @@ func (this *Modetrade) CreateOrderRequest(symbol any, typeVar any, side any, amo
 			"child_orders": []any{},
 		}
 		var childOrders any = outterOrder["child_orders"]
-		var closeSide string = func() string {
-			if orderSide == "BUY" {
-				return "SELL"
-			}
-			return "BUY"
-		}()
+		var closeSide string = "BUY"
+		if orderSide == "BUY" {
+			closeSide = "SELL"
+		}
 		if hasStopLoss {
 			var stopLossPrice *float64 = this.SafeNumber2(stopLoss, "triggerPrice", "price", stopLoss)
 			var stopLossOrder map[string]any = map[string]any{
@@ -2257,7 +2249,7 @@ func (this *Modetrade) createOrdersBody(ch chan any, orders any, optionalArgs ..
 	}
 	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
+		var rawOrder map[string]any = SafeMapTyped(orders, i)
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		if marketId == nil {
 			panic(ArgumentsRequired(this.Id + " createOrders() requires a symbol for each order"))
@@ -2351,18 +2343,14 @@ func (this *Modetrade) editOrderBody(ch chan any, id any, symbol any, typeVar an
 		request["triggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 	}
 	var isConditional bool = (triggerPrice != nil) || (!IsEqual(this.SafeValue(params, "childOrders"), nil))
-	var orderQtyKey string = func() string {
-		if isConditional {
-			return "quantity"
-		}
-		return "order_quantity"
-	}()
-	var priceKey string = func() string {
-		if isConditional {
-			return "price"
-		}
-		return "order_price"
-	}()
+	var orderQtyKey string = "order_quantity"
+	if isConditional {
+		orderQtyKey = "quantity"
+	}
+	var priceKey string = "order_price"
+	if isConditional {
+		priceKey = "price"
+	}
 	if price != nil {
 		request[priceKey] = this.PriceToPrecision(symbol, price)
 	}
@@ -2784,13 +2772,13 @@ func (this *Modetrade) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		}
 		return 500
 	}()
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOrders", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes213019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, params, "page", maxLimit))))
-		ch <- BoxAbsent(retRes213019)
+		var retRes214819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, params, "page", maxLimit))))
+		ch <- BoxAbsent(retRes214819)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -2904,8 +2892,8 @@ func (this *Modetrade) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 		"status": "INCOMPLETE",
 	})
 
-	var retRes221815 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))))
-	ch <- BoxAbsent(retRes221815)
+	var retRes223615 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))))
+	ch <- BoxAbsent(retRes223615)
 	return nil
 }
 
@@ -2950,8 +2938,8 @@ func (this *Modetrade) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) a
 		"status": "COMPLETED",
 	})
 
-	var retRes224315 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))))
-	ch <- BoxAbsent(retRes224315)
+	var retRes226115 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))))
+	ch <- BoxAbsent(retRes226115)
 	return nil
 }
 
@@ -3058,13 +3046,13 @@ func (this *Modetrade) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes231619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, "page", 500))))
-		ch <- BoxAbsent(retRes231619)
+		var retRes233419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, "page", 500))))
+		ch <- BoxAbsent(retRes233419)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -3124,12 +3112,7 @@ func (this *Modetrade) ParseBalance(response any) any {
 	}
 	var balances []any = SafeListTyped(response, "holding")
 	for i := 0; i < len(balances); i++ {
-		var balance map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(balances) {
-				return DerefScalar(balances[i])
-			}
-			return nil
-		}())
+		var balance map[string]any = SafeMapTyped(balances, i)
 		var code *string = this.SafeCurrencyCode(this.SafeString(balance, "token"))
 		var account map[string]any = this.Account()
 		account["total"] = this.SafeString(balance, "holding")
@@ -3460,8 +3443,8 @@ func (this *Modetrade) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		"side": "DEPOSIT",
 	}
 
-	var retRes263215 []any = ListTyped(PanicOnError((<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes263215)
+	var retRes265015 []any = ListTyped(PanicOnError((<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes265015)
 	return nil
 }
 
@@ -3496,8 +3479,8 @@ func (this *Modetrade) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) an
 		"side": "WITHDRAW",
 	}
 
-	var retRes265015 []any = ListTyped(PanicOnError((<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes265015)
+	var retRes266815 []any = ListTyped(PanicOnError((<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes266815)
 	return nil
 }
 

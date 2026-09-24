@@ -488,7 +488,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         stored = self.ohlcvs[symbol][timeframe]
         data = self.safe_list(message, 'candles', [])
         for i in range(0, len(data)):
-            tick = data[i]
+            tick = self.safe_dict(data, i)
             parsed = self.parse_ohlcv(tick, market)
             stored.append(parsed)
         client.resolve(stored, messageHash + '::' + symbol)
@@ -671,7 +671,9 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
 
     def handle_delta(self, orderbook: object, delta: object):
         rawSide = self.safe_string_lower(delta, 0)
-        side = 'bids' if (rawSide == 'buy') else 'asks'
+        side = 'asks'
+        if rawSide == 'buy':
+            side = 'bids'
         price = self.safe_float(delta, 1)
         amount = self.safe_float(delta, 2)
         bookside = orderbook[side]

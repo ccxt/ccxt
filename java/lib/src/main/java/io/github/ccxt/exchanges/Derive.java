@@ -1744,7 +1744,11 @@ public class Derive extends DeriveApi
     {
         Object accountHash = this.hash(this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("bytes32", "uint256", "uint256", "address", "bytes32", "uint256", "address", "address")), order), keccak(), "binary");
         Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
-        String DOMAIN_SEPARATOR = (((java.util.Objects.equals(sandboxMode, true)))) ? "9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105" : "d96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b";
+        String DOMAIN_SEPARATOR = "d96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b";
+        if (java.util.Objects.equals(sandboxMode, true))
+        {
+            DOMAIN_SEPARATOR = "9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105";
+        }
         Object binaryDomainSeparator = this.base16ToBinary(DOMAIN_SEPARATOR);
         Object prefix = this.base16ToBinary("1901");
         return this.hash(this.binaryConcat(prefix, binaryDomainSeparator, accountHash), keccak(), "hex");
@@ -1842,7 +1846,11 @@ public class Derive extends DeriveApi
             Long signatureExpiry = this.safeInteger(parameters, "signature_expiry_sec", (this.seconds() + 7776000L));
             Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
             Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
-            String TRADE_MODULE_ADDRESS = (((java.util.Objects.equals(sandboxMode, true)))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
+            String TRADE_MODULE_ADDRESS = "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
+            if (java.util.Objects.equals(sandboxMode, true))
+            {
+                TRADE_MODULE_ADDRESS = "0x87F2863866D85E3192a35A73b388BD625D83f2be";
+            }
             String priceString = this.numberToString(price);
             Object maxFee = null;
             List<Object> maxFeeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "max_fee");
@@ -2069,7 +2077,11 @@ public class Derive extends DeriveApi
             // TODO: subaccount id / trade module address
             Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
             Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
-            String TRADE_MODULE_ADDRESS = (((java.util.Objects.equals(sandboxMode, true)))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
+            String TRADE_MODULE_ADDRESS = "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
+            if (java.util.Objects.equals(sandboxMode, true))
+            {
+                TRADE_MODULE_ADDRESS = "0x87F2863866D85E3192a35A73b388BD625D83f2be";
+            }
             String priceString = this.numberToString(price);
             String maxFeeString = this.safeString(parameters, "max_fee", "0");
             String amountString = this.numberToString(amount);
@@ -2462,8 +2474,8 @@ public class Derive extends DeriveApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -3023,8 +3035,8 @@ public class Derive extends DeriveApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -3326,8 +3338,8 @@ public class Derive extends DeriveApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -3420,7 +3432,7 @@ public class Derive extends DeriveApi
         return this.fetchFundingHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseIncome(Object income, Map<String, Object> market)
+    public Object parseIncome(Map<String, Object> income, Map<String, Object> market)
     {
         //
         // {
@@ -3446,7 +3458,7 @@ public class Derive extends DeriveApi
             put( "rate", rate );
         }};
     }
-    public Object parseIncome(Object income, Object... optionalArgs)
+    public Object parseIncome(Map<String, Object> income, Object... optionalArgs)
     {
         return this.parseIncome(income, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -3554,11 +3566,11 @@ public class Derive extends DeriveApi
         }};
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
-            Object subaccount = Helpers.GetValue(response, i);
+            Map<String, Object> subaccount = (Map<String, Object>) this.safeDict(response, i);
             List<Object> collaterals = (List<Object>) this.safeList(subaccount, "collaterals", new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < ((List<?>)collaterals).size(); j++)
             {
-                Object balance = (collaterals == null || j < 0 || j >= collaterals.size() ? null : collaterals.get(j));
+                Map<String, Object> balance = (Map<String, Object>) this.safeDict(collaterals, j);
                 String code = this.safeCurrencyCode(this.safeString(balance, "currency"));
                 Map<String, Object> account = (Map<String, Object>) this.safeDict(result, code);
                 if (java.util.Objects.equals(account, null))
@@ -3814,9 +3826,9 @@ public class Derive extends DeriveApi
 
     public Object handleDeriveWalletAddress(Object methodName, Map<String, Object> parameters)
     {
-        Object deriveWalletAddress = null;
-        List<Object> deriveWalletAddressparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "deriveWalletAddress");
-        deriveWalletAddress = ((List<Object>) deriveWalletAddressparametersVariable).get(0);
+        String deriveWalletAddress = null;
+        List<Object> deriveWalletAddressparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, (String) (methodName), "deriveWalletAddress");
+        deriveWalletAddress = (String) ((List<Object>) deriveWalletAddressparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) deriveWalletAddressparametersVariable).get(1);
         if ((!java.util.Objects.equals(deriveWalletAddress, null)) && (!java.util.Objects.equals(deriveWalletAddress, "")))
         {

@@ -1116,7 +1116,7 @@ public class Alpaca extends AlpacaApi
             paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             Object paginationCalls = 10;
-            List<Object> paginationCallsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginationCalls", 10);
+            List<Object> paginationCallsparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "paginationCalls", 10);
             paginationCalls = ((List<Object>) paginationCallsparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginationCallsparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1343,7 +1343,7 @@ public class Alpaca extends AlpacaApi
             }
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             String loc = this.safeString(parameters, "loc", "us");
-            Object ids = this.marketIds(symbols);
+            List<String> ids = this.marketIds(symbols);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbols", String.join(",", (List<String>)ids) );
                 put( "loc", loc );
@@ -1655,14 +1655,14 @@ public class Alpaca extends AlpacaApi
             {
                 ((Map<String, Object>)request).put("qty", this.amountToPrecision(symbol, amount));
             }
-            Object defaultTIF = null;
-            List<Object> defaultTIFparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "timeInForce");
-            defaultTIF = ((List<Object>) defaultTIFparametersVariable).get(0);
+            String defaultTIF = null;
+            List<Object> defaultTIFparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce");
+            defaultTIF = (String) ((List<Object>) defaultTIFparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) defaultTIFparametersVariable).get(1);
             if (!java.util.Objects.equals(defaultTIF, null))
             {
                 // the venue only accepts lowercase values, normalize the unified uppercase spellings
-                defaultTIF = ((String)defaultTIF).toLowerCase();
+                defaultTIF = defaultTIF.toLowerCase();
             }
             ((Map<String, Object>)request).put("time_in_force", defaultTIF);
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "triggerPrice")));
@@ -2488,7 +2488,7 @@ public class Alpaca extends AlpacaApi
             //         "created_at": "2024-11-03T07:30:05.609976344Z"
             //     }
             //
-            return this.parseDepositAddress(response, currency);
+            return this.parseDepositAddress((Map<String, Object>) (response), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -2506,7 +2506,7 @@ public class Alpaca extends AlpacaApi
         return this.fetchDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseDepositAddress(Object depositAddress, Map<String, Object> currency)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         //
         //     {
@@ -2529,7 +2529,7 @@ public class Alpaca extends AlpacaApi
             put( "tag", null );
         }};
     }
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Object... optionalArgs)
     {
         return this.parseDepositAddress(depositAddress, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -2668,7 +2668,11 @@ public class Alpaca extends AlpacaApi
                     String activityType = this.safeString(entry, "activity_type");
                     String amount = this.safeString(entry, "net_amount");
                     Boolean isIncoming = (java.util.Objects.equals(activityType, "CSD")) || ((java.util.Objects.equals(activityType, "TRANS")) && !Precise.stringLt(amount, "0"));
-                    String entryDirection = ((Boolean.TRUE.equals(isIncoming))) ? "INCOMING" : "OUTGOING";
+                    String entryDirection = "OUTGOING";
+                    if (Boolean.TRUE.equals(isIncoming))
+                    {
+                        entryDirection = "INCOMING";
+                    }
                     if ((java.util.Objects.equals(type, "BOTH")) || (java.util.Objects.equals(entryDirection, type)))
                     {
                         ((List<Object>)filtered).add(entry);
@@ -3121,7 +3125,7 @@ public class Alpaca extends AlpacaApi
         }
         for (var i = 0; i < ((List<?>)positions).size(); i++)
         {
-            Object position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
+            Map<String, Object> position = (Map<String, Object>) this.safeDict(positions, i);
             String positionSymbol = this.safeString(position, "symbol");
             if (java.util.Objects.equals(positionSymbol, null))
             {

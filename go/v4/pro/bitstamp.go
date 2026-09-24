@@ -259,7 +259,7 @@ func (this *Bitstamp) HandleBidAsks(bookSide any, bidAsks []any) {
 }
 func (this *Bitstamp) GetCacheIndex(orderbook any, deltas any) any {
 	// we will consider it a fail
-	var firstElement map[string]any = ccxt.MapTyped(ccxt.GetValue(deltas, 0))
+	var firstElement map[string]any = ccxt.SafeMapTyped(deltas, 0)
 	var firstElementNonce *int64 = this.SafeInteger(firstElement, "microtimestamp")
 	if firstElementNonce == nil {
 		return ccxt.OpNeg(1)
@@ -269,7 +269,7 @@ func (this *Bitstamp) GetCacheIndex(orderbook any, deltas any) any {
 		return ccxt.OpNeg(1)
 	}
 	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
-		var delta map[string]any = ccxt.MapTyped(ccxt.GetValue(deltas, i))
+		var delta map[string]any = ccxt.SafeMapTyped(deltas, i)
 		var deltaNonce *int64 = this.SafeInteger(delta, "microtimestamp")
 		if deltaNonce == nonce || (deltaNonce != nil && nonce != nil && *deltaNonce == *nonce) {
 			return i + 1
@@ -386,12 +386,10 @@ func (this *Bitstamp) ParseWsTrade(trade any, optionalArgs ...any) any {
 	}
 	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	var sideRaw *int64 = this.SafeInteger(trade, "type")
-	var side string = func() string {
-		if sideRaw != nil && *sideRaw == 0 {
-			return "buy"
-		}
-		return "sell"
-	}()
+	var side string = "sell"
+	if sideRaw != nil && *sideRaw == 0 {
+		side = "buy"
+	}
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
@@ -438,7 +436,7 @@ func (this *Bitstamp) HandleTrade(client any, message map[string]any) {
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "trades:" + *symbol
-	var data any = this.SafeValue(message, "data")
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(data, market))
 	var tradesArray any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(tradesArray, nil) {
@@ -869,12 +867,10 @@ func (this *Bitstamp) ParseWsOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var id *string = this.SafeString(order, "id_str")
 	var orderTypeRaw *string = this.SafeStringLower(order, "order_type")
-	var side string = func() string {
-		if orderTypeRaw != nil && *orderTypeRaw == "1" {
-			return "sell"
-		}
-		return "buy"
-	}()
+	var side string = "buy"
+	if orderTypeRaw != nil && *orderTypeRaw == "1" {
+		side = "sell"
+	}
 	var orderSubTypeRaw *string = this.SafeStringLower(order, "order_subtype") // https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
 	var orderType any = nil
 	var timeInForce any = nil

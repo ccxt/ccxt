@@ -1844,7 +1844,7 @@ public class Bitstamp extends BitstampApi
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "amount");
         String orderId = this.safeString(trade, "order_id");
-        Object type = null;
+        List<String> type = null;
         String costString = this.safeString(trade, "cost");
         String rawMarketId = null;
         if (java.util.Objects.equals(market, null))
@@ -1868,7 +1868,14 @@ public class Bitstamp extends BitstampApi
         }
         String feeCostString = this.safeString(trade, "fee");
         String feeCurrency = this.safeString(market, "quote");
-        String priceId = (((!java.util.Objects.equals(rawMarketId, null)))) ? rawMarketId : this.safeString(market, "id");
+        String priceId = null;
+        if (!java.util.Objects.equals(rawMarketId, null))
+        {
+            priceId = rawMarketId;
+        } else
+        {
+            priceId = this.safeString(market, "id");
+        }
         priceString = this.safeString(trade, priceId, priceString);
         amountString = this.safeString(trade, this.safeString(market, "baseId"), amountString);
         costString = this.safeString(trade, this.safeString(market, "quoteId"), costString);
@@ -2188,7 +2195,7 @@ public class Bitstamp extends BitstampApi
         }
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
-            Object currencyBalance = Helpers.GetValue(response, i);
+            Map<String, Object> currencyBalance = (Map<String, Object>) this.safeDict(response, i);
             String currencyId = this.safeString(currencyBalance, "currency");
             String currencyCode = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
@@ -2529,7 +2536,7 @@ public class Bitstamp extends BitstampApi
         String code = this.safeString(currency, "code");
         for (var j = 0; j < Helpers.getArrayLength(fee); j++)
         {
-            Object networkEntry = Helpers.GetValue(fee, j);
+            Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(fee, j);
             String networkId = this.safeString(networkEntry, "network");
             String networkCode = this.networkIdToCode(networkId, code);
             Double withdrawFee = this.safeNumber(networkEntry, "fee");
@@ -3050,8 +3057,8 @@ public class Bitstamp extends BitstampApi
             Long limit = limit3;
             Map<String, Object> parameters = parameters3;
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -3196,7 +3203,7 @@ public class Bitstamp extends BitstampApi
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
             }
-            Object transactions = this.filterByArray(response, "type", new ArrayList<Object>(Arrays.asList("0", "1")), false);
+            List<Object> transactions = (List<Object>) this.filterByArray(response, "type", new ArrayList<Object>(Arrays.asList("0", "1")), false);
             return this.parseTransactions(transactions, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -4208,7 +4215,11 @@ public class Bitstamp extends BitstampApi
                     ((Map<String, Object>)headers).put("Content-Type", contentType);
                 }
             }
-            Object authBody = (((!java.util.Objects.equals(body, null) && !java.util.Objects.equals(body, "")))) ? body : "";
+            Object authBody = "";
+            if (!java.util.Objects.equals(body, null) && !java.util.Objects.equals(body, ""))
+            {
+                authBody = body;
+            }
             String auth = (((((Helpers.add(Helpers.add(xAuth, method), Helpers.replace(((String)url), "https://", "")) + contentType) + xAuthNonce) + xAuthTimestamp) + xAuthVersion) + authBody);
             String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             ((Map<String, Object>)headers).put("X-Auth-Signature", signature);

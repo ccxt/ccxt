@@ -367,7 +367,7 @@ class hollaex(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(keys)):
             key = keys[i]
-            market = pairs[key]
+            market = self.safe_dict(pairs, key)
             baseId = self.safe_string(market, 'pair_base')
             quoteId = self.safe_string(market, 'pair_2')
             base = self.common_currency_code(baseId.upper())
@@ -508,7 +508,9 @@ class hollaex(Exchange, ImplicitAPI):
         code = self.safe_currency_code(id)
         withdrawalLimits = self.safe_list(rawCurrency, 'withdrawal_limits', [])
         rawType = self.safe_string(rawCurrency, 'type')
-        type = 'crypto' if (rawType == 'blockchain') else 'other'
+        type = 'other'
+        if rawType == 'blockchain':
+            type = 'crypto'
         rawNetworks = self.safe_dict(rawCurrency, 'withdrawal_fees', {})
         networks = {}
         networkIds = list(rawNetworks.keys())
@@ -1468,7 +1470,7 @@ class hollaex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "currency":"usdt",
@@ -1558,7 +1560,11 @@ class hollaex(Exchange, ImplicitAPI):
         #     }
         #
         wallet = self.safe_list(response, 'wallet', [])
-        addresses = wallet if (network is None) else self.filter_by(wallet, 'network', network)
+        addresses = None
+        if network is None:
+            addresses = wallet
+        else:
+            addresses = self.filter_by(wallet, 'network', network)
         return self.parse_deposit_addresses(addresses, codes, False)
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
@@ -1915,7 +1921,7 @@ class hollaex(Exchange, ImplicitAPI):
             keysLength = len(keys)
             for i in range(0, keysLength):
                 key = keys[i]
-                value = withdrawalFees[key]
+                value = self.safe_dict(withdrawalFees, key)
                 currencyId = self.safe_string(value, 'symbol')
                 currencyCode = self.safe_currency_code(currencyId)
                 networkCode = self.network_id_to_code(key, currencyCode)
