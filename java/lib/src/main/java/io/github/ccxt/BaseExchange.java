@@ -5326,7 +5326,7 @@ public Object describe()
                 continue;
             }
             String code = (String) ((Map<String, Object>)parsed).get("code");
-            ((Map<String, Object>)result).put((String)code, parsed);
+            result.put((String)code, parsed);
         }
         return result;
     }
@@ -6374,34 +6374,34 @@ public Object describe()
                 Boolean currencyDeposit = (Boolean) this.safeBool(currency, "deposit");
                 if (java.util.Objects.equals(currencyDeposit, null) || (java.util.Objects.equals(deposit, true)))
                 {
-                    ((Map<String, Object>)currency).put("deposit", deposit);
+                    currency.put("deposit", deposit);
                 }
                 Boolean withdraw = (Boolean) this.safeBool(network, "withdraw");
                 Boolean currencyWithdraw = (Boolean) this.safeBool(currency, "withdraw");
                 if (java.util.Objects.equals(currencyWithdraw, null) || (java.util.Objects.equals(withdraw, true)))
                 {
-                    ((Map<String, Object>)currency).put("withdraw", withdraw);
+                    currency.put("withdraw", withdraw);
                 }
                 // find lowest fee (which is more desired)
                 String fee = this.safeString(network, "fee");
                 String feeMain = this.safeString(currency, "fee");
                 if (java.util.Objects.equals(feeMain, null) || Precise.stringLt(fee, feeMain))
                 {
-                    ((Map<String, Object>)currency).put("fee", BaseExchange.this.parseNumber(fee));
+                    currency.put("fee", BaseExchange.this.parseNumber(fee));
                 }
                 // find lowest precision (which is more desired)
                 String precision = this.safeString(network, "precision");
                 String precisionMain = this.safeString(currency, "precision");
                 if (java.util.Objects.equals(precisionMain, null) || Precise.stringGt(precision, precisionMain))
                 {
-                    ((Map<String, Object>)currency).put("precision", BaseExchange.this.parseNumber(precision));
+                    currency.put("precision", BaseExchange.this.parseNumber(precision));
                 }
                 // limits
                 Map<String, Object> limits = (Map<String, Object>) this.safeDict(network, "limits");
                 Map<String, Object> limitsMain = (Map<String, Object>) this.safeDict(currency, "limits");
                 if (java.util.Objects.equals(limitsMain, null))
                 {
-                    ((Map<String, Object>)currency).put("limits", new HashMap<String, Object>() {{}});
+                    currency.put("limits", new HashMap<String, Object>() {{}});
                 }
                 // deposits
                 Map<String, Object> limitsDeposit = (Map<String, Object>) this.safeDict(limits, "deposit");
@@ -6602,7 +6602,7 @@ public Object describe()
                 Object valueKey = (valueKeys == null || j < 0 || j >= valueKeys.size() ? null : valueKeys.get(j));
                 if (!java.util.Objects.equals(Helpers.GetValue(value, valueKey), null))
                 {
-                    ((Map<String, Object>)valueDefined).put((String)valueKey, Helpers.GetValue(value, valueKey));
+                    valueDefined.put((String)valueKey, Helpers.GetValue(value, valueKey));
                 }
             }
             Map<String,Object> market = this.deepExtend(this.safeMarketStructure(), new HashMap<String, Object>() {{
@@ -6611,10 +6611,10 @@ public Object describe()
             }}, Helpers.GetValue(this.fees, "trading"), valueDefined);
             if (java.util.Objects.equals(market.get("linear"), true))
             {
-                Helpers.addElementToObject(market, "subType", "linear");
+                market.put("subType", "linear");
             } else if (java.util.Objects.equals(market.get("inverse"), true))
             {
-                Helpers.addElementToObject(market, "subType", "inverse");
+                market.put("subType", "inverse");
             } else
             {
                 Helpers.addElementToObject(market, "subType", null);
@@ -6647,22 +6647,22 @@ public Object describe()
                 Map<String, Object> marketPrecision = (Map<String, Object>) this.safeDict(market, "precision", new HashMap<String, Object>() {{}});
                 if (((Map<?, ?>)market).containsKey("base"))
                 {
-                    Map<String, Object> currency = (Map<String, Object>) this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+                    Map<String, Object> currency = (Map<String, Object>) this.safeCurrencyStructure(new HashMap<String, Object>() {{
                         put( "id", BaseExchange.this.safeString2(market, "baseId", "base") );
                         put( "numericId", BaseExchange.this.safeInteger(market, "baseNumericId") );
                         put( "code", BaseExchange.this.safeString(market, "base") );
                         put( "precision", BaseExchange.this.safeValue2(marketPrecision, "base", "amount", defaultCurrencyPrecision) );
-                    }}));
+                    }});
                     ((List<Object>)baseCurrencies).add(currency);
                 }
                 if (((Map<?, ?>)market).containsKey("quote"))
                 {
-                    Map<String, Object> currency = (Map<String, Object>) this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+                    Map<String, Object> currency = (Map<String, Object>) this.safeCurrencyStructure(new HashMap<String, Object>() {{
                         put( "id", BaseExchange.this.safeString2(market, "quoteId", "quote") );
                         put( "numericId", BaseExchange.this.safeInteger(market, "quoteNumericId") );
                         put( "code", BaseExchange.this.safeString(market, "quote") );
                         put( "precision", BaseExchange.this.safeValue2(marketPrecision, "quote", "price", defaultCurrencyPrecision) );
-                    }}));
+                    }});
                     ((List<Object>)quoteCurrencies).add(currency);
                 }
             }
@@ -6787,7 +6787,7 @@ public Object describe()
             if (!java.util.Objects.equals(debt, null))
             {
                 Helpers.addElementToObject(Helpers.GetValue(balance, code), "debt", this.parseNumber(debt));
-                ((Map<String, Object>)debtBalance).put((String)code, Helpers.GetValue(Helpers.GetValue(balance, code), "debt"));
+                debtBalance.put((String)code, Helpers.GetValue(Helpers.GetValue(balance, code), "debt"));
             }
         }
         List<String> debtBalanceArray = new ArrayList<String>(debtBalance.keySet());
@@ -6805,7 +6805,7 @@ public Object describe()
         // * it is important pass the trades as unparsed rawTrades
         if (java.util.Objects.equals(order, null))
         {
-            order = (Map<String, Object>) (new HashMap<String, Object>() {{}});
+            order = new HashMap<String, Object>() {{}};
         }
         Object amount = this.omitZero(this.safeString(order, "amount"));
         String remaining = this.safeString(order, "remaining");
@@ -6858,19 +6858,19 @@ public Object describe()
                 // move properties that are defined in trades up into the order
                 if (java.util.Objects.equals(((Map<String, Object>)order).get("symbol"), null))
                 {
-                    ((Map<String, Object>)order).put("symbol", Helpers.GetValue((trades == null || 0 >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(0)), "symbol"));
+                    order.put("symbol", Helpers.GetValue((trades == null || 0 >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(0)), "symbol"));
                 }
                 if (java.util.Objects.equals(((Map<String, Object>)order).get("side"), null))
                 {
-                    ((Map<String, Object>)order).put("side", Helpers.GetValue((trades == null || 0 >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(0)), "side"));
+                    order.put("side", Helpers.GetValue((trades == null || 0 >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(0)), "side"));
                 }
                 if (java.util.Objects.equals(((Map<String, Object>)order).get("type"), null))
                 {
-                    ((Map<String, Object>)order).put("type", Helpers.GetValue((trades == null || 0 >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(0)), "type"));
+                    order.put("type", Helpers.GetValue((trades == null || 0 >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(0)), "type"));
                 }
                 if (java.util.Objects.equals(((Map<String, Object>)order).get("id"), null))
                 {
-                    ((Map<String, Object>)order).put("id", Helpers.GetValue((trades == null || 0 >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(0)), "order"));
+                    order.put("id", Helpers.GetValue((trades == null || 0 >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(0)), "order"));
                 }
                 if (Boolean.TRUE.equals(parseFilled))
                 {
@@ -6965,10 +6965,10 @@ public Object describe()
                 }
                 ((List<Object>)reducedFees).add(feeCopy);
             }
-            ((Map<String, Object>)order).put("fees", reducedFees);
+            order.put("fees", reducedFees);
             if (Boolean.TRUE.equals(parseFee) && (java.util.Objects.equals(reducedLength, 1)))
             {
-                ((Map<String, Object>)order).put("fee", (reducedFees == null || 0 >= ((List<?>)reducedFees).size() ? null : ((List<?>)reducedFees).get(0)));
+                order.put("fee", (reducedFees == null || 0 >= ((List<?>)reducedFees).size() ? null : ((List<?>)reducedFees).get(0)));
             }
         }
         if (java.util.Objects.equals(amount, null))
@@ -7069,12 +7069,12 @@ public Object describe()
             Helpers.addElementToObject(tradeFee, "cost", this.safeNumber(tradeFee, "cost"));
             if (tradeFee.containsKey("rate"))
             {
-                ((Map<String, Object>)tradeFee).put("rate", BaseExchange.this.safeNumber(tradeFee, "rate"));
+                tradeFee.put("rate", BaseExchange.this.safeNumber(tradeFee, "rate"));
             }
             List<Object> entryFees = (List<Object>) this.safeList(entry, "fees", new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < (entryFees == null ? 0 : ((List<?>)entryFees).size()); j++)
             {
-                Helpers.addElementToObject(Helpers.GetValue(entryFees, j), "cost", this.safeNumber((entryFees == null || j < 0 || j >= entryFees.size() ? null : entryFees.get(j)), "cost"));
+                Helpers.addElementToObject((entryFees == null || j < 0 || j >= entryFees.size() ? null : entryFees.get(j)), "cost", this.safeNumber((entryFees == null || j < 0 || j >= entryFees.size() ? null : entryFees.get(j)), "cost"));
             }
             Helpers.addElementToObject(entry, "fees", entryFees);
             Helpers.addElementToObject(entry, "fee", tradeFee);
@@ -7316,11 +7316,11 @@ public Object describe()
         {
             quoteValue = Precise.stringMul(baseValue, price);
         }
-        ((Map<String, Object>)liquidation).put("contracts", BaseExchange.this.parseNumber(contracts));
-        ((Map<String, Object>)liquidation).put("contractSize", BaseExchange.this.parseNumber(contractSize));
-        ((Map<String, Object>)liquidation).put("price", BaseExchange.this.parseNumber(price));
-        ((Map<String, Object>)liquidation).put("baseValue", BaseExchange.this.parseNumber(baseValue));
-        ((Map<String, Object>)liquidation).put("quoteValue", BaseExchange.this.parseNumber(quoteValue));
+        liquidation.put("contracts", BaseExchange.this.parseNumber(contracts));
+        liquidation.put("contractSize", BaseExchange.this.parseNumber(contractSize));
+        liquidation.put("price", BaseExchange.this.parseNumber(price));
+        liquidation.put("baseValue", BaseExchange.this.parseNumber(baseValue));
+        liquidation.put("quoteValue", BaseExchange.this.parseNumber(quoteValue));
         return liquidation;
     }
     public Object safeLiquidation(Map<String, Object> liquidation, Object... optionalArgs)
@@ -7352,11 +7352,11 @@ public Object describe()
         var resultFeeresultFeesVariable = this.parsedFeeAndFees(trade);
         var resultFee = ((List<Object>) resultFeeresultFeesVariable).get(0);
         var resultFees = ((List<Object>) resultFeeresultFeesVariable).get(1);
-        ((Map<String, Object>)trade).put("fee", resultFee);
-        ((Map<String, Object>)trade).put("fees", resultFees);
-        ((Map<String, Object>)trade).put("amount", BaseExchange.this.parseNumber(amount));
-        ((Map<String, Object>)trade).put("price", BaseExchange.this.parseNumber(price));
-        ((Map<String, Object>)trade).put("cost", BaseExchange.this.parseNumber(cost));
+        trade.put("fee", resultFee);
+        trade.put("fees", resultFees);
+        trade.put("amount", BaseExchange.this.parseNumber(amount));
+        trade.put("price", BaseExchange.this.parseNumber(price));
+        trade.put("cost", BaseExchange.this.parseNumber(cost));
         return trade;
     }
     public Object safeTrade(Map<String, Object> trade, Object... optionalArgs)
@@ -7507,7 +7507,7 @@ public Object describe()
             Object value = Helpers.GetValue(dict, key);
             if ((value instanceof String))
             {
-                ((Map<String, Object>)reversed).put((String)value, key);
+                reversed.put((String)value, key);
             }
         }
         return reversed;
@@ -7581,23 +7581,23 @@ public Object describe()
                 }
                 if (!(reduced.containsKey(feeCurrencyCode)))
                 {
-                    ((Map<String, Object>)reduced).put((String)feeCurrencyCode, new HashMap<String, Object>() {{}});
+                    reduced.put((String)feeCurrencyCode, new HashMap<String, Object>() {{}});
                 }
                 String rateKey = (((java.util.Objects.equals(rate, null)))) ? "" : rate;
                 if (Helpers.inOp((reduced == null || feeCurrencyCode == null ? null : reduced.get(feeCurrencyCode)), rateKey))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(reduced, feeCurrencyCode), rateKey), "cost", Precise.stringAdd(Helpers.GetValue(Helpers.GetValue((reduced == null || feeCurrencyCode == null ? null : reduced.get(feeCurrencyCode)), rateKey), "cost"), cost));
+                    Helpers.addElementToObject(Helpers.GetValue((reduced == null || feeCurrencyCode == null ? null : reduced.get(feeCurrencyCode)), rateKey), "cost", Precise.stringAdd(Helpers.GetValue(Helpers.GetValue((reduced == null || feeCurrencyCode == null ? null : reduced.get(feeCurrencyCode)), rateKey), "cost"), cost));
                 } else
                 {
                     final Object finalCode = code;
                     final Object finalCost = cost;
-                    Helpers.addElementToObject(Helpers.GetValue(reduced, feeCurrencyCode), rateKey, new HashMap<String, Object>() {{
+                    Helpers.addElementToObject((reduced == null || feeCurrencyCode == null ? null : reduced.get(feeCurrencyCode)), rateKey, new HashMap<String, Object>() {{
     put( "currency", finalCode );
     put( "cost", finalCost );
 }});
                     if (!java.util.Objects.equals(rate, null))
                     {
-                        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(reduced, feeCurrencyCode), rateKey), "rate", rate);
+                        Helpers.addElementToObject(Helpers.GetValue((reduced == null || feeCurrencyCode == null ? null : reduced.get(feeCurrencyCode)), rateKey), "rate", rate);
                     }
                 }
             }
@@ -7936,12 +7936,12 @@ public Object describe()
     public Object convertOHLCVToTradingView(Object ohlcvs, Object timestamp, Object open, Object high, Object low, Object close, Object volume, Object ms)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        ((Map<String, Object>)result).put((String)timestamp, new ArrayList<Object>(Arrays.asList()));
-        ((Map<String, Object>)result).put((String)open, new ArrayList<Object>(Arrays.asList()));
-        ((Map<String, Object>)result).put((String)high, new ArrayList<Object>(Arrays.asList()));
-        ((Map<String, Object>)result).put((String)low, new ArrayList<Object>(Arrays.asList()));
-        ((Map<String, Object>)result).put((String)close, new ArrayList<Object>(Arrays.asList()));
-        ((Map<String, Object>)result).put((String)volume, new ArrayList<Object>(Arrays.asList()));
+        result.put((String)timestamp, new ArrayList<Object>(Arrays.asList()));
+        result.put((String)open, new ArrayList<Object>(Arrays.asList()));
+        result.put((String)high, new ArrayList<Object>(Arrays.asList()));
+        result.put((String)low, new ArrayList<Object>(Arrays.asList()));
+        result.put((String)close, new ArrayList<Object>(Arrays.asList()));
+        result.put((String)volume, new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)ohlcvs).size(); i++)
         {
             Object ts = ((Helpers.isTrue(ms))) ? Helpers.GetValue((ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i)), 0) : this.parseToInt(Helpers.divide(Helpers.GetValue((ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i)), 0), 1000));
@@ -8632,7 +8632,7 @@ public Object describe()
                 Boolean contract = (Boolean) this.safeBool(market, "contract", false);
                 if ((java.util.Objects.equals(contract, true)) && (Boolean.TRUE.equals(noSymbols) || ((!java.util.Objects.equals(symbols, null)) && this.inArray(symbol, symbols))))
                 {
-                    ((Map<String, Object>)tiers).put((String)symbol, this.parseMarketLeverageTiers(item, market));
+                    tiers.put((String)symbol, this.parseMarketLeverageTiers(item, market));
                 }
             }
         } else
@@ -8647,7 +8647,7 @@ public Object describe()
                 Boolean contract = (Boolean) this.safeBool(market, "contract", false);
                 if ((java.util.Objects.equals(contract, true)) && (Boolean.TRUE.equals(noSymbols) || ((!java.util.Objects.equals(symbols, null)) && this.inArray(symbol, symbols))))
                 {
-                    ((Map<String, Object>)tiers).put((String)symbol, this.parseMarketLeverageTiers(item, market));
+                    tiers.put((String)symbol, this.parseMarketLeverageTiers(item, market));
                 }
             }
         }
@@ -8704,7 +8704,7 @@ public Object describe()
         {
             // as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
             String percentageString = Precise.stringMul(Precise.stringDiv(unrealizedPnlString, initialMarginString, 4), "100");
-            ((Map<String, Object>)position).put("percentage", BaseExchange.this.parseNumber(percentageString));
+            position.put("percentage", BaseExchange.this.parseNumber(percentageString));
         }
         // if contractSize is undefined get from market
         Double contractSize = this.safeNumber(position, "contractSize");
@@ -8717,7 +8717,7 @@ public Object describe()
         if (java.util.Objects.equals(contractSize, null) && !java.util.Objects.equals(market, null))
         {
             contractSize = this.safeNumber(market, "contractSize");
-            ((Map<String, Object>)position).put("contractSize", contractSize);
+            position.put("contractSize", contractSize);
         }
         return position;
     }
@@ -9066,7 +9066,7 @@ public Object describe()
         parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
         if (!java.util.Objects.equals(networkCode, null))
         {
-            ((Map<String, Object>)request).put((String)exchangeSpecificKey, this.networkCodeToId(networkCode, currencyCode));
+            request.put((String)exchangeSpecificKey, this.networkCodeToId(networkCode, currencyCode));
         } else if (Helpers.isTrue(isRequired))
         {
             throw new ArgumentsRequired((this.id + " - \"network\" param is required for this request")) ;
@@ -9243,7 +9243,7 @@ public Object describe()
                     Object request = this.sign(path, api, method, parameters, headers, body);
                     if (!java.util.Objects.equals(fetchData, null))
                     {
-                        ((Map<String, Object>)fetchData).put("request", request);
+                        fetchData.put("request", request);
                     }
                     this.setLastRequest(request);
                     Object response = (this.fetch(((Map<String, Object>)request).get("url"), ((Map<String, Object>)request).get("method"), ((Map<String, Object>)request).get("headers"), ((Map<String, Object>)request).get("body"))).join();
@@ -9257,7 +9257,7 @@ public Object describe()
                 {
                     if (!java.util.Objects.equals(fetchData, null))
                     {
-                        ((Map<String, Object>)fetchData).put("error", e);
+                        fetchData.put("error", e);
                         this.addFetchCache(fetchData);
                     }
                     if (Helpers.isInstance(e, OperationFailed.class))
@@ -9495,11 +9495,11 @@ public Object describe()
         }
         final Object finalCurrencyId = currencyId;
         final Object finalCode = code;
-        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "id", finalCurrencyId );
             put( "code", finalCode );
             put( "precision", null );
-        }}));
+        }});
     }
     public Object safeCurrency(String currencyId, Object... optionalArgs)
     {
@@ -10922,7 +10922,7 @@ public Object describe()
     {
         if (!(result.containsKey(code)))
         {
-            ((Map<String, Object>)result).put((String)code, account);
+            result.put((String)code, account);
             return result;
         }
         List<String> fields = new ArrayList<String>(Arrays.asList("free", "used", "total", "debt"));
@@ -10933,10 +10933,10 @@ public Object describe()
             String incoming = this.safeString(account, field);
             if (java.util.Objects.equals(current, null))
             {
-                Helpers.addElementToObject(Helpers.GetValue(result, code), field, incoming);
+                Helpers.addElementToObject((result == null || code == null ? null : result.get(code)), field, incoming);
             } else if (!java.util.Objects.equals(incoming, null))
             {
-                Helpers.addElementToObject(Helpers.GetValue(result, code), field, Precise.stringAdd(current, incoming));
+                Helpers.addElementToObject((result == null || code == null ? null : result.get(code)), field, Precise.stringAdd(current, incoming));
             }
         }
         return result;
@@ -11532,7 +11532,7 @@ public Object describe()
             Object item = Helpers.GetValue(info, i);
             Object borrowRate = this.parseIsolatedBorrowRate((Map<String, Object>) (item));
             String symbol = this.safeString(borrowRate, "symbol");
-            ((Map<String, Object>)result).put((String)symbol, borrowRate);
+            result.put((String)symbol, borrowRate);
         }
         return result;
     }
@@ -11582,7 +11582,7 @@ public Object describe()
             Map<String, Object> parsed = (Map<String, Object>) this.parseFundingRate(entry);
             if (!java.util.Objects.equals(((Map<String, Object>)parsed).get("symbol"), null))
             {
-                ((Map<String, Object>)fundingRates).put((String)((Map<String, Object>)parsed).get("symbol"), parsed);
+                fundingRates.put((String)((Map<String, Object>)parsed).get("symbol"), parsed);
             }
         }
         return this.filterByArray(fundingRates, "symbol", symbols);
@@ -11878,7 +11878,7 @@ public Object describe()
             Object parsed = this.parseOpenInterest(entry);
             if (!java.util.Objects.equals(((Map<String, Object>)parsed).get("symbol"), null))
             {
-                ((Map<String, Object>)result).put((String)((Map<String, Object>)parsed).get("symbol"), parsed);
+                result.put((String)((Map<String, Object>)parsed).get("symbol"), parsed);
             }
         }
         return this.filterByArray(result, "symbol", symbols);
@@ -12206,7 +12206,7 @@ public Object describe()
             String code = this.safeString(currency, "code");
             if ((java.util.Objects.equals(codes, null)) || Helpers.isTrue((this.inArray(code, codes))))
             {
-                ((Map<String, Object>)depositWithdrawFees).put((String)code, this.parseDepositWithdrawFee(dictionary, currency));
+                depositWithdrawFees.put((String)code, this.parseDepositWithdrawFee(dictionary, currency));
             }
         }
         return depositWithdrawFees;
@@ -12429,8 +12429,8 @@ public Object describe()
     public Object createOHLCVObject(Object symbol, Object timeframe, Object data)
     {
         Map<String, Object> res = new HashMap<String, Object>() {{}};
-        ((Map<String, Object>)res).put((String)symbol, new HashMap<String, Object>() {{}});
-        Helpers.addElementToObject(Helpers.GetValue(res, symbol), timeframe, data);
+        res.put((String)symbol, new HashMap<String, Object>() {{}});
+        Helpers.addElementToObject((res == null || symbol == null ? null : res.get(symbol)), timeframe, data);
         return res;
     }
 
@@ -12961,7 +12961,7 @@ public Object describe()
             String uniqValue = ((Helpers.isTrue(fallbackToTimestamp))) ? this.safeStringN(entry, new ArrayList<Object>(Arrays.asList("id", "timestamp", 0))) : this.safeString(entry, "id");
             if (!java.util.Objects.equals(uniqValue, null) && !(uniqueDic.containsKey(uniqValue)))
             {
-                ((Map<String, Object>)uniqueDic).put((String)uniqValue, 1);
+                uniqueDic.put((String)uniqValue, 1);
                 ((List<Object>)uniqueResult).add(entry);
             }
         }
@@ -12999,7 +12999,7 @@ public Object describe()
             }
             if (!java.util.Objects.equals(id, null) && !(uniqueResult.containsKey(id)))
             {
-                ((Map<String, Object>)uniqueResult).put((String)id, entry);
+                uniqueResult.put((String)id, entry);
             }
         }
         Object values = Helpers.objectValues(uniqueResult);
@@ -13015,7 +13015,7 @@ public Object describe()
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (!this.inArray(key, removeKeys))
             {
-                ((Map<String, Object>)newDict).put((String)key, (dict == null || key == null ? null : dict.get(key)));
+                newDict.put((String)key, (dict == null || key == null ? null : dict.get(key)));
             }
         }
         return newDict;
@@ -13026,7 +13026,7 @@ public Object describe()
         Long until = (Long) this.safeInteger2(parameters, "until", "till");
         if (!java.util.Objects.equals(until, null))
         {
-            ((Map<String, Object>)request).put((String)key, this.parseToInt(Helpers.multiply(until, multiplier)));
+            request.put((String)key, this.parseToInt(Helpers.multiply(until, multiplier)));
             parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till"))));
         }
         return new ArrayList<Object>(Arrays.asList(request, parameters));
@@ -13159,7 +13159,7 @@ public Object describe()
             Map<String, Object> currency = (Map<String, Object>) this.safeCurrency(currencyId);
             String marketId = (((java.util.Objects.equals(symbolKey, null)))) ? null : this.safeString(info, symbolKey);
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, "option");
-            ((Map<String, Object>)optionStructures).put((String)((Map<String, Object>)market).get("symbol"), this.parseOption((Map<String, Object>) (info), currency, market));
+            optionStructures.put((String)((Map<String, Object>)market).get("symbol"), this.parseOption((Map<String, Object>) (info), currency, market));
         }
         return optionStructures;
     }
@@ -13182,7 +13182,7 @@ public Object describe()
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
             if ((java.util.Objects.equals(symbols, null)) || this.inArray(((Map<String, Object>)market).get("symbol"), symbols))
             {
-                ((Map<String, Object>)marginModeStructures).put((String)((Map<String, Object>)market).get("symbol"), this.parseMarginMode((Map<String, Object>) (info), market));
+                marginModeStructures.put((String)((Map<String, Object>)market).get("symbol"), this.parseMarginMode((Map<String, Object>) (info), market));
             }
         }
         return marginModeStructures;
@@ -13215,7 +13215,7 @@ public Object describe()
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
             if ((java.util.Objects.equals(symbols, null)) || this.inArray(((Map<String, Object>)market).get("symbol"), symbols))
             {
-                ((Map<String, Object>)leverageStructures).put((String)((Map<String, Object>)market).get("symbol"), this.parseLeverage((Map<String, Object>) (info), market));
+                leverageStructures.put((String)((Map<String, Object>)market).get("symbol"), this.parseLeverage((Map<String, Object>) (info), market));
             }
         }
         return leverageStructures;

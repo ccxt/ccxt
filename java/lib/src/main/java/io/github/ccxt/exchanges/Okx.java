@@ -2395,31 +2395,31 @@ public class Okx extends OkxApi
                 }} );
             }} );
             put( "currencies", new HashMap<String, Object>() {{
-                put( "USD", Okx.this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+                put( "USD", Okx.this.safeCurrencyStructure(new HashMap<String, Object>() {{
                     put( "id", "USD" );
                     put( "code", "USD" );
                     put( "precision", Okx.this.parseNumber("0.0001") );
-                }})) );
-                put( "EUR", Okx.this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+                }}) );
+                put( "EUR", Okx.this.safeCurrencyStructure(new HashMap<String, Object>() {{
                     put( "id", "EUR" );
                     put( "code", "EUR" );
                     put( "precision", Okx.this.parseNumber("0.0001") );
-                }})) );
-                put( "AED", Okx.this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+                }}) );
+                put( "AED", Okx.this.safeCurrencyStructure(new HashMap<String, Object>() {{
                     put( "id", "AED" );
                     put( "code", "AED" );
                     put( "precision", Okx.this.parseNumber("0.0001") );
-                }})) );
-                put( "GBP", Okx.this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+                }}) );
+                put( "GBP", Okx.this.safeCurrencyStructure(new HashMap<String, Object>() {{
                     put( "id", "GBP" );
                     put( "code", "GBP" );
                     put( "precision", Okx.this.parseNumber("0.0001") );
-                }})) );
-                put( "AUD", Okx.this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+                }}) );
+                put( "AUD", Okx.this.safeCurrencyStructure(new HashMap<String, Object>() {{
                     put( "id", "AUD" );
                     put( "code", "AUD" );
                     put( "precision", Okx.this.parseNumber("0.0001") );
-                }})) );
+                }}) );
             }} );
             put( "commonCurrencies", new HashMap<String, Object>() {{
                 put( "AE", "AET" );
@@ -2594,20 +2594,20 @@ public class Okx extends OkxApi
             {
                 Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(data, i);
                 String state = this.safeString(eventVar, "state");
-                ((Map<String, Object>)update).put("eta", this.safeInteger(eventVar, "end"));
-                ((Map<String, Object>)update).put("url", this.safeString(eventVar, "href"));
+                update.put("eta", this.safeInteger(eventVar, "end"));
+                update.put("url", this.safeString(eventVar, "href"));
                 if (java.util.Objects.equals(state, "ongoing"))
                 {
-                    ((Map<String, Object>)update).put("status", "maintenance");
+                    update.put("status", "maintenance");
                 } else if (java.util.Objects.equals(state, "scheduled"))
                 {
-                    ((Map<String, Object>)update).put("status", "ok");
+                    update.put("status", "ok");
                 } else if (java.util.Objects.equals(state, "completed"))
                 {
-                    ((Map<String, Object>)update).put("status", "ok");
+                    update.put("status", "ok");
                 } else if (java.util.Objects.equals(state, "canceled"))
                 {
-                    ((Map<String, Object>)update).put("status", "ok");
+                    update.put("status", "ok");
                 }
             }
             return update;
@@ -3029,7 +3029,7 @@ public class Okx extends OkxApi
                 for (var i = 0; i < ((List<?>)optionsUnderlying).size(); i++)
                 {
                     Object underlying = (optionsUnderlying == null || i < 0 || i >= optionsUnderlying.size() ? null : optionsUnderlying.get(i));
-                    ((Map<String, Object>)request).put("uly", underlying);
+                    request.put("uly", underlying);
                     ((List<Object>)promises).add(this.publicGetPublicInstruments(this.extend(request, parameters)));
                 }
                 Object promisesResult = (Helpers.promiseAll(promises)).join();
@@ -3224,7 +3224,7 @@ public class Okx extends OkxApi
             {
                 final String finalNetworkId = networkId;
                 final String finalNetworkCode = networkCode;
-                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
+                networks.put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", finalNetworkId );
     put( "network", finalNetworkCode );
     put( "active", null );
@@ -3243,7 +3243,7 @@ public class Okx extends OkxApi
             }
         }
         final String finalType = type;
-        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "info", chains );
             put( "code", code );
             put( "id", currencyId );
@@ -3261,7 +3261,7 @@ public class Okx extends OkxApi
             }} );
             put( "type", finalType );
             put( "networks", networks );
-        }}));
+        }});
     }
 
     /**
@@ -3314,7 +3314,7 @@ public class Okx extends OkxApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("sz", limit); // max 400
+                request.put("sz", limit); // max 400
             }
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(rpi))
@@ -3566,7 +3566,7 @@ public class Okx extends OkxApi
                     throw new ArgumentsRequired((this.id + " fetchTickers() requires an underlying uly or marketId parameter for options markets")) ;
                 } else
                 {
-                    ((Map<String, Object>)request).put("uly", currencyId);
+                    request.put("uly", currencyId);
                 }
             }
             Map<String, Object> response = (this.publicGetMarketTickers(this.extend(request, parameters))).join();
@@ -3710,7 +3710,7 @@ public class Okx extends OkxApi
                     throw new ArgumentsRequired((this.id + " fetchMarkPrices() requires an underlying uly or marketId parameter for options markets")) ;
                 } else
                 {
-                    ((Map<String, Object>)request).put("uly", currencyId);
+                    request.put("uly", currencyId);
                 }
             }
             Map<String, Object> response = (this.publicGetPublicMarkPrice(this.extend(request, parameters))).join();
@@ -3815,7 +3815,7 @@ public class Okx extends OkxApi
         }
         final String finalTakerOrMaker = takerOrMaker;
         final Map<String, Object> finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Okx.this.iso8601(timestamp) );
@@ -3829,7 +3829,7 @@ public class Okx extends OkxApi
             put( "amount", amount );
             put( "cost", null );
             put( "fee", finalFee );
-        }}), market);
+        }}, market);
     }
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
@@ -3882,7 +3882,7 @@ public class Okx extends OkxApi
             {
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    ((Map<String, Object>)request).put("limit", limit); // default 100
+                    request.put("limit", limit); // default 100
                 }
                 String method = null;
                 List<Object> methodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchTrades", "method", "publicGetMarketTrades");
@@ -4065,13 +4065,13 @@ public class Okx extends OkxApi
                     limit = Helpers.mathMin(limit, maxLimit);
                 }
                 Object startTime = Helpers.mathMax(Helpers.subtract(since, 1), 0);
-                ((Map<String, Object>)request).put("before", startTime);
-                ((Map<String, Object>)request).put("after", this.sum(since, Helpers.multiply(durationInMilliseconds, limit)));
+                request.put("before", startTime);
+                request.put("after", this.sum(since, Helpers.multiply(durationInMilliseconds, limit)));
             }
             Long until = this.safeInteger(parameters, "until");
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("after", until);
+                request.put("after", until);
                 parameters = (Map<String, Object>) this.omit(parameters, "until");
             }
             defaultType = this.safeString(options, "type", defaultType); // Candles or HistoryCandles
@@ -4090,7 +4090,7 @@ public class Okx extends OkxApi
                 }
             } else if (java.util.Objects.equals(priceType, "index"))
             {
-                ((Map<String, Object>)request).put("instId", Helpers.GetValue(((Map<String, Object>)market).get("info"), "instFamily")); // okx index candles require instFamily instead of instId
+                request.put("instId", Helpers.GetValue(((Map<String, Object>)market).get("info"), "instFamily")); // okx index candles require instFamily instead of instId
                 if (Boolean.TRUE.equals(isHistoryCandles))
                 {
                     response = (this.publicGetMarketHistoryIndexCandles(this.extend(request, parameters))).join();
@@ -4105,7 +4105,7 @@ public class Okx extends OkxApi
                     if (Boolean.TRUE.equals(limitIsUndefined) && (Helpers.isEqual(limit, 100)))
                     {
                         limit = 300;
-                        ((Map<String, Object>)request).put("limit", 300); // reassign to 300, but this whole logic needs to be simplified...
+                        request.put("limit", 300); // reassign to 300, but this whole logic needs to be simplified...
                     }
                     response = (this.publicGetMarketHistoryCandles(this.extend(request, parameters))).join();
                 } else
@@ -4201,11 +4201,11 @@ public class Okx extends OkxApi
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("before", Helpers.mathMax(Helpers.subtract(since, 1), 0));
+                request.put("before", Helpers.mathMax(Helpers.subtract(since, 1), 0));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.publicGetPublicFundingRateHistory(this.extend(request, parameters))).join();
             //
@@ -4295,22 +4295,22 @@ public class Okx extends OkxApi
             // it may be incorrect to use total, free and used for swap accounts
             String eq = this.safeString(balance, "eq");
             String availEq = this.safeString(balance, "availEq");
-            ((Map<String, Object>)account).put("total", eq);
+            account.put("total", eq);
             if (java.util.Objects.equals(availEq, null))
             {
-                ((Map<String, Object>)account).put("free", this.safeString(balance, "availBal"));
-                ((Map<String, Object>)account).put("used", this.safeString(balance, "frozenBal"));
+                account.put("free", this.safeString(balance, "availBal"));
+                account.put("used", this.safeString(balance, "frozenBal"));
             } else
             {
-                ((Map<String, Object>)account).put("free", availEq);
+                account.put("free", availEq);
             }
             if (!java.util.Objects.equals(code, null))
             {
-                ((Map<String, Object>)result).put((String)code, account);
+                result.put((String)code, account);
             }
         }
-        ((Map<String, Object>)result).put("timestamp", timestamp);
-        ((Map<String, Object>)result).put("datetime", this.iso8601(timestamp));
+        result.put("timestamp", timestamp);
+        result.put("datetime", this.iso8601(timestamp));
         return this.safeBalance(result);
     }
 
@@ -4327,12 +4327,12 @@ public class Okx extends OkxApi
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
             // it may be incorrect to use total, free and used for swap accounts
-            ((Map<String, Object>)account).put("total", this.safeString(balance, "bal"));
-            ((Map<String, Object>)account).put("free", this.safeString(balance, "availBal"));
-            ((Map<String, Object>)account).put("used", this.safeString(balance, "frozenBal"));
+            account.put("total", this.safeString(balance, "bal"));
+            account.put("free", this.safeString(balance, "availBal"));
+            account.put("used", this.safeString(balance, "frozenBal"));
             if (!java.util.Objects.equals(code, null))
             {
-                ((Map<String, Object>)result).put((String)code, account);
+                result.put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -4391,10 +4391,10 @@ public class Okx extends OkxApi
             }};
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                ((Map<String, Object>)request).put("instId", ((Map<String, Object>)market).get("id"));
+                request.put("instId", ((Map<String, Object>)market).get("id"));
             } else if ((java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("future"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("option"), true)))
             {
-                ((Map<String, Object>)request).put("uly", Helpers.add((((Map<String, Object>)market).get("baseId") + "-"), ((Map<String, Object>)market).get("quoteId")));
+                request.put("uly", Helpers.add((((Map<String, Object>)market).get("baseId") + "-"), ((Map<String, Object>)market).get("quoteId")));
             } else
             {
                 throw new NotSupported((this.id + " fetchTradingFee() supports spot, swap, future or option markets only")) ;
@@ -4889,7 +4889,7 @@ public class Okx extends OkxApi
                 }
                 String slTriggerPx = this.priceToPrecision(symbol, stopLossTriggerPrice);
                 Map<String, Object> slOrder = new HashMap<String, Object>() {{}};
-                ((Map<String, Object>)slOrder).put("slTriggerPx", slTriggerPx);
+                slOrder.put("slTriggerPx", slTriggerPx);
                 Object stopLossLimitPrice = this.safeValueN(stopLoss, new ArrayList<Object>(Arrays.asList("price", "stopLossPrice", "slOrdPx")));
                 String stopLossOrderType = this.safeString(stopLoss, "type");
                 if (!java.util.Objects.equals(stopLossOrderType, null))
@@ -4906,18 +4906,18 @@ public class Okx extends OkxApi
                             throw new InvalidOrder((this.id + " createOrder() requires a limit price in params[\"stopLoss\"][\"price\"] or params[\"stopLoss\"][\"slOrdPx\"] for a stop loss limit order")) ;
                         } else
                         {
-                            ((Map<String, Object>)slOrder).put("slOrdPx", this.priceToPrecision(symbol, stopLossLimitPrice));
+                            slOrder.put("slOrdPx", this.priceToPrecision(symbol, stopLossLimitPrice));
                         }
                     } else if (java.util.Objects.equals(stopLossOrderType, "market"))
                     {
-                        ((Map<String, Object>)slOrder).put("slOrdPx", "-1");
+                        slOrder.put("slOrdPx", "-1");
                     }
                 } else if (!java.util.Objects.equals(stopLossLimitPrice, null))
                 {
-                    ((Map<String, Object>)slOrder).put("slOrdPx", this.priceToPrecision(symbol, stopLossLimitPrice)); // limit sl order
+                    slOrder.put("slOrdPx", this.priceToPrecision(symbol, stopLossLimitPrice)); // limit sl order
                 } else
                 {
-                    ((Map<String, Object>)slOrder).put("slOrdPx", "-1"); // market sl order
+                    slOrder.put("slOrdPx", "-1"); // market sl order
                 }
                 String stopLossTriggerPriceType = this.safeString2(stopLoss, "triggerPriceType", "slTriggerPxType", "last");
                 if (!java.util.Objects.equals(stopLossTriggerPriceType, null))
@@ -4926,7 +4926,7 @@ public class Okx extends OkxApi
                     {
                         throw new InvalidOrder((this.id + " createOrder() stop loss trigger price type must be one of \"last\", \"index\" or \"mark\"")) ;
                     }
-                    ((Map<String, Object>)slOrder).put("slTriggerPxType", stopLossTriggerPriceType);
+                    slOrder.put("slTriggerPxType", stopLossTriggerPriceType);
                 }
                 attachAlgoOrd = this.extend(attachAlgoOrd, slOrder);
             }
@@ -4938,7 +4938,7 @@ public class Okx extends OkxApi
                     throw new InvalidOrder((this.id + " createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"], or params[\"takeProfit\"][\"stopPrice\"], or params[\"takeProfit\"][\"tpTriggerPx\"] for a take profit order")) ;
                 }
                 Map<String, Object> tpOrder = new HashMap<String, Object>() {{}};
-                ((Map<String, Object>)tpOrder).put("tpTriggerPx", this.priceToPrecision(symbol, takeProfitTriggerPrice));
+                tpOrder.put("tpTriggerPx", this.priceToPrecision(symbol, takeProfitTriggerPrice));
                 Object takeProfitLimitPrice = this.safeValueN(takeProfit, new ArrayList<Object>(Arrays.asList("price", "takeProfitPrice", "tpOrdPx")));
                 String takeProfitOrderType = this.safeString2(takeProfit, "type", "tpOrdKind");
                 if (!java.util.Objects.equals(takeProfitOrderType, null))
@@ -4955,20 +4955,20 @@ public class Okx extends OkxApi
                             throw new InvalidOrder((this.id + " createOrder() requires a limit price in params[\"takeProfit\"][\"price\"] or params[\"takeProfit\"][\"tpOrdPx\"] for a take profit limit order")) ;
                         } else
                         {
-                            ((Map<String, Object>)tpOrder).put("tpOrdKind", takeProfitOrderType);
-                            ((Map<String, Object>)tpOrder).put("tpOrdPx", this.priceToPrecision(symbol, takeProfitLimitPrice));
+                            tpOrder.put("tpOrdKind", takeProfitOrderType);
+                            tpOrder.put("tpOrdPx", this.priceToPrecision(symbol, takeProfitLimitPrice));
                         }
                     } else if (java.util.Objects.equals(takeProfitOrderType, "market"))
                     {
-                        ((Map<String, Object>)tpOrder).put("tpOrdPx", "-1");
+                        tpOrder.put("tpOrdPx", "-1");
                     }
                 } else if (!java.util.Objects.equals(takeProfitLimitPrice, null))
                 {
-                    ((Map<String, Object>)tpOrder).put("tpOrdKind", "limit");
-                    ((Map<String, Object>)tpOrder).put("tpOrdPx", this.priceToPrecision(symbol, takeProfitLimitPrice)); // limit tp order
+                    tpOrder.put("tpOrdKind", "limit");
+                    tpOrder.put("tpOrdPx", this.priceToPrecision(symbol, takeProfitLimitPrice)); // limit tp order
                 } else
                 {
-                    ((Map<String, Object>)tpOrder).put("tpOrdPx", "-1"); // market tp order
+                    tpOrder.put("tpOrdPx", "-1"); // market tp order
                 }
                 String takeProfitTriggerPriceType = this.safeString2(takeProfit, "triggerPriceType", "tpTriggerPxType", "last");
                 if (!java.util.Objects.equals(takeProfitTriggerPriceType, null))
@@ -4977,7 +4977,7 @@ public class Okx extends OkxApi
                     {
                         throw new InvalidOrder((this.id + " createOrder() take profit trigger price type must be one of \"last\", \"index\" or \"mark\"")) ;
                     }
-                    ((Map<String, Object>)tpOrder).put("tpTriggerPxType", takeProfitTriggerPriceType);
+                    tpOrder.put("tpTriggerPxType", takeProfitTriggerPriceType);
                 }
                 attachAlgoOrd = this.extend(attachAlgoOrd, tpOrder);
             }
@@ -5269,19 +5269,19 @@ public class Okx extends OkxApi
         {
             if (Boolean.TRUE.equals(isAlgoOrder))
             {
-                ((Map<String, Object>)request).put("algoClOrdId", clientOrderId);
+                request.put("algoClOrdId", clientOrderId);
             } else
             {
-                ((Map<String, Object>)request).put("clOrdId", clientOrderId);
+                request.put("clOrdId", clientOrderId);
             }
         } else
         {
             if (Boolean.TRUE.equals(isAlgoOrder))
             {
-                ((Map<String, Object>)request).put("algoId", id);
+                request.put("algoId", id);
             } else
             {
-                ((Map<String, Object>)request).put("ordId", id);
+                request.put("ordId", id);
             }
         }
         Double stopLossTriggerPrice = this.safeNumber2(parameters, "stopLossPrice", "newSlTriggerPx");
@@ -5306,9 +5306,9 @@ public class Okx extends OkxApi
                 {
                     throw new BadRequest((this.id + " editOrder() requires a newSlOrdPx parameter for editing an algo order")) ;
                 }
-                ((Map<String, Object>)request).put("newSlTriggerPx", this.priceToPrecision(symbol, stopLossTriggerPrice));
-                ((Map<String, Object>)request).put("newSlOrdPx", (((java.util.Objects.equals(type, "market")))) ? "-1" : this.priceToPrecision(symbol, stopLossPrice));
-                ((Map<String, Object>)request).put("newSlTriggerPxType", stopLossTriggerPriceType);
+                request.put("newSlTriggerPx", this.priceToPrecision(symbol, stopLossTriggerPrice));
+                request.put("newSlOrdPx", (((java.util.Objects.equals(type, "market")))) ? "-1" : this.priceToPrecision(symbol, stopLossPrice));
+                request.put("newSlTriggerPxType", stopLossTriggerPriceType);
             }
             if (!java.util.Objects.equals(takeProfitTriggerPrice, null))
             {
@@ -5316,53 +5316,53 @@ public class Okx extends OkxApi
                 {
                     throw new BadRequest((this.id + " editOrder() requires a newTpOrdPx parameter for editing an algo order")) ;
                 }
-                ((Map<String, Object>)request).put("newTpTriggerPx", this.priceToPrecision(symbol, takeProfitTriggerPrice));
-                ((Map<String, Object>)request).put("newTpOrdPx", (((java.util.Objects.equals(type, "market")))) ? "-1" : this.priceToPrecision(symbol, takeProfitPrice));
-                ((Map<String, Object>)request).put("newTpTriggerPxType", takeProfitTriggerPriceType);
+                request.put("newTpTriggerPx", this.priceToPrecision(symbol, takeProfitTriggerPrice));
+                request.put("newTpOrdPx", (((java.util.Objects.equals(type, "market")))) ? "-1" : this.priceToPrecision(symbol, takeProfitPrice));
+                request.put("newTpTriggerPxType", takeProfitTriggerPriceType);
             }
         } else
         {
             if (!java.util.Objects.equals(stopLossTriggerPrice, null))
             {
-                ((Map<String, Object>)request).put("newSlTriggerPx", this.priceToPrecision(symbol, stopLossTriggerPrice));
-                ((Map<String, Object>)request).put("newSlOrdPx", (((java.util.Objects.equals(type, "market")))) ? "-1" : this.priceToPrecision(symbol, stopLossPrice));
-                ((Map<String, Object>)request).put("newSlTriggerPxType", stopLossTriggerPriceType);
+                request.put("newSlTriggerPx", this.priceToPrecision(symbol, stopLossTriggerPrice));
+                request.put("newSlOrdPx", (((java.util.Objects.equals(type, "market")))) ? "-1" : this.priceToPrecision(symbol, stopLossPrice));
+                request.put("newSlTriggerPxType", stopLossTriggerPriceType);
             }
             if (!java.util.Objects.equals(takeProfitTriggerPrice, null))
             {
-                ((Map<String, Object>)request).put("newTpTriggerPx", this.priceToPrecision(symbol, takeProfitTriggerPrice));
-                ((Map<String, Object>)request).put("newTpOrdPx", (((java.util.Objects.equals(type, "market")))) ? "-1" : this.priceToPrecision(symbol, takeProfitPrice));
-                ((Map<String, Object>)request).put("newTpTriggerPxType", takeProfitTriggerPriceType);
+                request.put("newTpTriggerPx", this.priceToPrecision(symbol, takeProfitTriggerPrice));
+                request.put("newTpOrdPx", (((java.util.Objects.equals(type, "market")))) ? "-1" : this.priceToPrecision(symbol, takeProfitPrice));
+                request.put("newTpTriggerPxType", takeProfitTriggerPriceType);
             }
             if (Boolean.TRUE.equals(hasStopLoss))
             {
                 stopLossTriggerPrice = this.safeNumber(stopLoss, "triggerPrice");
                 stopLossPrice = this.safeNumber(stopLoss, "price");
                 String stopLossType = this.safeString(stopLoss, "type");
-                ((Map<String, Object>)request).put("newSlTriggerPx", this.priceToPrecision(symbol, stopLossTriggerPrice));
-                ((Map<String, Object>)request).put("newSlOrdPx", (((java.util.Objects.equals(stopLossType, "market")))) ? "-1" : this.priceToPrecision(symbol, stopLossPrice));
-                ((Map<String, Object>)request).put("newSlTriggerPxType", stopLossTriggerPriceType);
+                request.put("newSlTriggerPx", this.priceToPrecision(symbol, stopLossTriggerPrice));
+                request.put("newSlOrdPx", (((java.util.Objects.equals(stopLossType, "market")))) ? "-1" : this.priceToPrecision(symbol, stopLossPrice));
+                request.put("newSlTriggerPxType", stopLossTriggerPriceType);
             }
             if (Boolean.TRUE.equals(hasTakeProfit))
             {
                 takeProfitTriggerPrice = this.safeNumber(takeProfit, "triggerPrice");
                 takeProfitPrice = this.safeNumber(takeProfit, "price");
                 String takeProfitType = this.safeString(takeProfit, "type");
-                ((Map<String, Object>)request).put("newTpOrdKind", (((java.util.Objects.equals(takeProfitType, "limit")))) ? takeProfitType : "condition");
-                ((Map<String, Object>)request).put("newTpTriggerPx", this.priceToPrecision(symbol, takeProfitTriggerPrice));
-                ((Map<String, Object>)request).put("newTpOrdPx", (((java.util.Objects.equals(takeProfitType, "market")))) ? "-1" : this.priceToPrecision(symbol, takeProfitPrice));
-                ((Map<String, Object>)request).put("newTpTriggerPxType", takeProfitTriggerPriceType);
+                request.put("newTpOrdKind", (((java.util.Objects.equals(takeProfitType, "limit")))) ? takeProfitType : "condition");
+                request.put("newTpTriggerPx", this.priceToPrecision(symbol, takeProfitTriggerPrice));
+                request.put("newTpOrdPx", (((java.util.Objects.equals(takeProfitType, "market")))) ? "-1" : this.priceToPrecision(symbol, takeProfitPrice));
+                request.put("newTpTriggerPxType", takeProfitTriggerPriceType);
             }
         }
         if (!java.util.Objects.equals(amount, null))
         {
-            ((Map<String, Object>)request).put("newSz", this.amountToPrecision(symbol, amount));
+            request.put("newSz", this.amountToPrecision(symbol, amount));
         }
         if (!Boolean.TRUE.equals(isAlgoOrder))
         {
             if (!java.util.Objects.equals(price, null))
             {
-                ((Map<String, Object>)request).put("newPx", this.priceToPrecision(symbol, price));
+                request.put("newPx", this.priceToPrecision(symbol, price));
             }
         }
         parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdId", "clientOrderId", "takeProfitPrice", "stopLossPrice", "stopLoss", "takeProfit", "postOnly"))));
@@ -5529,10 +5529,10 @@ public class Okx extends OkxApi
             String clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                ((Map<String, Object>)request).put("clOrdId", clientOrderId);
+                request.put("clOrdId", clientOrderId);
             } else
             {
-                ((Map<String, Object>)request).put("ordId", id);
+                request.put("ordId", id);
             }
             Map<String, Object> query = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdId", "clientOrderId")));
             Map<String, Object> response = (this.privatePostTradeCancelOrder(this.extend(request, query))).join();
@@ -5796,7 +5796,7 @@ public class Okx extends OkxApi
                 Map<String, Object> requestItem = new HashMap<String, Object>() {{
                     put( "instId", ((Map<String, Object>)market).get("id") );
                 }};
-                ((Map<String, Object>)requestItem).put((String)idKey, (((!java.util.Objects.equals(clientOrderId, null)))) ? clientOrderId : id);
+                requestItem.put((String)idKey, (((!java.util.Objects.equals(clientOrderId, null)))) ? clientOrderId : id);
                 ((List<Object>)request).add(requestItem);
             }
             Map<String, Object> response = null;
@@ -6123,12 +6123,12 @@ public class Okx extends OkxApi
         String scode = this.safeString(order, "sCode");
         if ((!java.util.Objects.equals(scode, null)) && (!java.util.Objects.equals(scode, "0")))
         {
-            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return this.safeOrder(new HashMap<String, Object>() {{
                 put( "id", Okx.this.safeString(order, "ordId") );
                 put( "clientOrderId", Okx.this.safeString(order, "clOrdId") );
                 put( "status", "rejected" );
                 put( "info", order );
-            }}));
+            }});
         }
         String id = this.safeString2(order, "algoId", "ordId");
         Long timestamp = this.safeInteger(order, "cTime");
@@ -6213,7 +6213,7 @@ public class Okx extends OkxApi
         final String finalAmount = amount;
         final Map<String, Object> finalFee = fee;
         final Boolean finalReduceOnly = reduceOnly;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
             put( "clientOrderId", finalClientOrderId );
@@ -6239,7 +6239,7 @@ public class Okx extends OkxApi
             put( "fee", finalFee );
             put( "trades", null );
             put( "reduceOnly", finalReduceOnly );
-        }}), market);
+        }}, market);
     }
     public Object parseOrder(Object order, Object... optionalArgs)
     {
@@ -6286,19 +6286,19 @@ public class Okx extends OkxApi
                 method = "privateGetTradeOrderAlgo";
                 if (!java.util.Objects.equals(clientOrderId, null))
                 {
-                    ((Map<String, Object>)request).put("algoClOrdId", clientOrderId);
+                    request.put("algoClOrdId", clientOrderId);
                 } else
                 {
-                    ((Map<String, Object>)request).put("algoId", id);
+                    request.put("algoId", id);
                 }
             } else
             {
                 if (!java.util.Objects.equals(clientOrderId, null))
                 {
-                    ((Map<String, Object>)request).put("clOrdId", clientOrderId);
+                    request.put("clOrdId", clientOrderId);
                 } else
                 {
-                    ((Map<String, Object>)request).put("ordId", id);
+                    request.put("ordId", id);
                 }
             }
             Map<String, Object> query = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("method", "clOrdId", "clientOrderId", "stop", "trigger")));
@@ -6473,11 +6473,11 @@ public class Okx extends OkxApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("instId", ((Map<String, Object>)market).get("id"));
+                request.put("instId", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, maxLimit)); // default 100, max 100
+                request.put("limit", Helpers.mathMin(limit, maxLimit)); // default 100, max 100
             }
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchOpenOrders", new HashMap<String, Object>() {{}});
             Map<String, Object> algoOrderTypes = (Map<String, Object>) this.safeDict(this.options, "algoOrderTypes", new HashMap<String, Object>() {{}});
@@ -6493,10 +6493,10 @@ public class Okx extends OkxApi
             }
             if (java.util.Objects.equals(trailing, true))
             {
-                ((Map<String, Object>)request).put("ordType", "move_order_stop");
+                request.put("ordType", "move_order_stop");
             } else if (Boolean.TRUE.equals(isTrigger) && (java.util.Objects.equals(ordType, null)))
             {
-                ((Map<String, Object>)request).put("ordType", "trigger");
+                request.put("ordType", "trigger");
             }
             Object query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("method", "stop", "trigger", "trailing")));
             Map<String, Object> response = null;
@@ -6666,19 +6666,19 @@ public class Okx extends OkxApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("instId", ((Map<String, Object>)market).get("id"));
+                request.put("instId", ((Map<String, Object>)market).get("id"));
             }
             String type = null;
             Object query = null;
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchCanceledOrders", market, parameters);
             type = (String) ((List<Object>) typequeryVariable).get(0);
             query = ((List<Object>) typequeryVariable).get(1);
-            ((Map<String, Object>)request).put("instType", this.convertToInstrumentType(type));
+            request.put("instType", this.convertToInstrumentType(type));
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit); // default 100, max 100
+                request.put("limit", limit); // default 100, max 100
             }
-            ((Map<String, Object>)request).put("state", "canceled");
+            request.put("state", "canceled");
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchCanceledOrders", new HashMap<String, Object>() {{}});
             Map<String, Object> algoOrderTypes = (Map<String, Object>) this.safeDict(this.options, "algoOrderTypes", new HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "privateGetTradeOrdersHistory");
@@ -6690,14 +6690,14 @@ public class Okx extends OkxApi
             if (java.util.Objects.equals(trailing, true))
             {
                 method = "privateGetTradeOrdersAlgoHistory";
-                ((Map<String, Object>)request).put("ordType", "move_order_stop");
+                request.put("ordType", "move_order_stop");
             } else if (Boolean.TRUE.equals(isTrigger) || ((!java.util.Objects.equals(ordType, null)) && (algoOrderTypes.containsKey(ordType))))
             {
                 method = "privateGetTradeOrdersAlgoHistory";
                 String algoId = this.safeString(parameters, "algoId");
                 if (!java.util.Objects.equals(algoId, null))
                 {
-                    ((Map<String, Object>)request).put("algoId", algoId);
+                    request.put("algoId", algoId);
                     parameters = (Map<String, Object>) this.omit(parameters, "algoId");
                 }
                 if (Boolean.TRUE.equals(isTrigger))
@@ -6711,12 +6711,12 @@ public class Okx extends OkxApi
             {
                 if (!java.util.Objects.equals(since, null))
                 {
-                    ((Map<String, Object>)request).put("begin", since);
+                    request.put("begin", since);
                 }
                 Long until = this.safeInteger(query, "until");
                 if (!java.util.Objects.equals(until, null))
                 {
-                    ((Map<String, Object>)request).put("end", until);
+                    request.put("end", until);
                     query = this.omit(query, new ArrayList<Object>(Arrays.asList("until")));
                 }
             }
@@ -6904,17 +6904,17 @@ public class Okx extends OkxApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("instId", ((Map<String, Object>)market).get("id"));
+                request.put("instId", ((Map<String, Object>)market).get("id"));
             }
             String type = null;
             Object query = null;
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
             type = (String) ((List<Object>) typequeryVariable).get(0);
             query = ((List<Object>) typequeryVariable).get(1);
-            ((Map<String, Object>)request).put("instType", this.convertToInstrumentType(type));
+            request.put("instType", this.convertToInstrumentType(type));
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, maxLimit)); // default 100, max 100
+                request.put("limit", Helpers.mathMin(limit, maxLimit)); // default 100, max 100
             }
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchClosedOrders", new HashMap<String, Object>() {{}});
             Map<String, Object> algoOrderTypes = (Map<String, Object>) this.safeDict(this.options, "algoOrderTypes", new HashMap<String, Object>() {{}});
@@ -6926,30 +6926,30 @@ public class Okx extends OkxApi
             if ((java.util.Objects.equals(trailing, true)) || (java.util.Objects.equals(trigger, true)) || ((!java.util.Objects.equals(ordType, null)) && (algoOrderTypes.containsKey(ordType))))
             {
                 method = "privateGetTradeOrdersAlgoHistory";
-                ((Map<String, Object>)request).put("state", "effective");
+                request.put("state", "effective");
             }
             if (java.util.Objects.equals(trailing, true))
             {
-                ((Map<String, Object>)request).put("ordType", "move_order_stop");
+                request.put("ordType", "move_order_stop");
             } else if (java.util.Objects.equals(trigger, true))
             {
                 if (java.util.Objects.equals(ordType, null))
                 {
-                    ((Map<String, Object>)request).put("ordType", "trigger");
+                    request.put("ordType", "trigger");
                 }
             } else
             {
                 if (!java.util.Objects.equals(since, null))
                 {
-                    ((Map<String, Object>)request).put("begin", since);
+                    request.put("begin", since);
                 }
                 Long until = this.safeInteger(query, "until");
                 if (!java.util.Objects.equals(until, null))
                 {
-                    ((Map<String, Object>)request).put("end", until);
+                    request.put("end", until);
                     query = this.omit(query, new ArrayList<Object>(Arrays.asList("until")));
                 }
-                ((Map<String, Object>)request).put("state", "filled");
+                request.put("state", "filled");
             }
             Object send = this.omit(query, new ArrayList<Object>(Arrays.asList("method", "stop", "trigger", "trailing")));
             Map<String, Object> response = null;
@@ -7129,11 +7129,11 @@ public class Okx extends OkxApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("instId", ((Map<String, Object>)market).get("id"));
+                request.put("instId", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("begin", since);
+                request.put("begin", since);
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
@@ -7141,10 +7141,10 @@ public class Okx extends OkxApi
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             String type = (String) ((List<Object>) typequeryVariable).get(0);
             var query = ((List<Object>) typequeryVariable).get(1);
-            ((Map<String, Object>)request).put("instType", this.convertToInstrumentType(type));
+            request.put("instType", this.convertToInstrumentType(type));
             if ((!java.util.Objects.equals(limit, null)) && (java.util.Objects.equals(since, null)))
             {
-                ((Map<String, Object>)request).put("limit", limit); // default 100, max 100
+                request.put("limit", limit); // default 100, max 100
             }
             Map<String, Object> response = (this.privateGetTradeFillsHistory(this.extend(request, query))).join();
             //
@@ -7290,7 +7290,7 @@ public class Okx extends OkxApi
             {
                 if (!java.util.Objects.equals(marginMode, null))
                 {
-                    ((Map<String, Object>)request).put("mgnMode", marginMode);
+                    request.put("mgnMode", marginMode);
                 }
             }
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLedger", null, parameters);
@@ -7298,17 +7298,17 @@ public class Okx extends OkxApi
             var query = ((List<Object>) typequeryVariable).get(1);
             if (!java.util.Objects.equals(type, null))
             {
-                ((Map<String, Object>)request).put("instType", this.convertToInstrumentType(type));
+                request.put("instType", this.convertToInstrumentType(type));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
-                ((Map<String, Object>)request).put("ccy", ((Map<String, Object>)currency).get("id"));
+                request.put("ccy", ((Map<String, Object>)currency).get("id"));
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
@@ -7774,7 +7774,7 @@ public class Okx extends OkxApi
             {
                 Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
                 network = this.safeString(networks, network.toUpperCase(), network); // handle ETH>ERC20 alias
-                ((Map<String, Object>)request).put("chain", ((((Map<String, Object>)currency).get("id") + "-") + network));
+                request.put("chain", ((((Map<String, Object>)currency).get("id") + "-") + network));
                 parameters = (Map<String, Object>) this.omit(parameters, "network");
             }
             String fee = this.safeString(parameters, "fee");
@@ -7790,7 +7790,7 @@ public class Okx extends OkxApi
                     throw new ArgumentsRequired((this.id + " withdraw() requires a \"fee\" string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set \"0\". Withdrawing to external digital asset address requires network transaction fee.")) ;
                 }
             }
-            ((Map<String, Object>)request).put("fee", this.numberToString(fee)); // withdrawals to OKCoin or OKX are fee-free, please set 0
+            request.put("fee", this.numberToString(fee)); // withdrawals to OKCoin or OKX are fee-free, please set 0
             Object query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("fee")));
             Map<String, Object> response = (this.privatePostAssetWithdrawal(this.extend(request, query))).join();
             //
@@ -7870,15 +7870,15 @@ public class Okx extends OkxApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
-                ((Map<String, Object>)request).put("ccy", ((Map<String, Object>)currency).get("id"));
+                request.put("ccy", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("before", Helpers.mathMax(Helpers.subtract(since, 1), 0));
+                request.put("before", Helpers.mathMax(Helpers.subtract(since, 1), 0));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit); // default 100, max 100
+                request.put("limit", limit); // default 100, max 100
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("after", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
@@ -7971,7 +7971,7 @@ public class Okx extends OkxApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
-                ((Map<String, Object>)request).put("ccy", ((Map<String, Object>)currency).get("id"));
+                request.put("ccy", ((Map<String, Object>)currency).get("id"));
             }
             Map<String, Object> response = (this.privateGetAssetDepositHistory(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data");
@@ -8036,15 +8036,15 @@ public class Okx extends OkxApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
-                ((Map<String, Object>)request).put("ccy", ((Map<String, Object>)currency).get("id"));
+                request.put("ccy", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("before", Helpers.mathMax(Helpers.subtract(since, 1), 0));
+                request.put("before", Helpers.mathMax(Helpers.subtract(since, 1), 0));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit); // default 100, max 100
+                request.put("limit", limit); // default 100, max 100
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("after", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
@@ -8129,7 +8129,7 @@ public class Okx extends OkxApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
-                ((Map<String, Object>)request).put("ccy", ((Map<String, Object>)currency).get("id"));
+                request.put("ccy", ((Map<String, Object>)currency).get("id"));
             }
             Map<String, Object> response = (this.privateGetAssetWithdrawalHistory(this.extend(request, parameters))).join();
             //
@@ -8491,7 +8491,7 @@ public class Okx extends OkxApi
             }};
             if (!java.util.Objects.equals(type, null))
             {
-                ((Map<String, Object>)request).put("instType", this.convertToInstrumentType(type));
+                request.put("instType", this.convertToInstrumentType(type));
             }
             Map<String, Object> response = (this.privateGetAccountPositions(this.extend(request, query))).join();
             //
@@ -8598,7 +8598,7 @@ public class Okx extends OkxApi
                 Integer marketIdsLength = ((List<?>)marketIds).size();
                 if (Helpers.isGreaterThan(marketIdsLength, 0))
                 {
-                    ((Map<String, Object>)request).put("instId", String.join(",", (List<String>)marketIds));
+                    request.put("instId", String.join(",", (List<String>)marketIds));
                 }
             }
             Map<String, Object> fetchPositionsOptions = (Map<String, Object>) this.safeDict(this.options, "fetchPositions", new HashMap<String, Object>() {{}});
@@ -8882,7 +8882,7 @@ public class Okx extends OkxApi
         final String finalCollateralString = collateralString;
         final String finalInitialMarginString = initialMarginString;
         final Object finalInitialMarginPercentage = initialMarginPercentage;
-        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePosition(new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", Okx.this.safeString(position, "posId") );
             put( "symbol", symbol );
@@ -8911,7 +8911,7 @@ public class Okx extends OkxApi
             put( "marginRatio", marginRatio );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
-        }}));
+        }});
     }
     public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
@@ -8954,16 +8954,16 @@ public class Okx extends OkxApi
             }};
             if (java.util.Objects.equals(fromId, "master"))
             {
-                ((Map<String, Object>)request).put("type", "1");
-                ((Map<String, Object>)request).put("subAcct", toId);
-                ((Map<String, Object>)request).put("from", this.safeString(parameters, "from", "6"));
-                ((Map<String, Object>)request).put("to", this.safeString(parameters, "to", "6"));
+                request.put("type", "1");
+                request.put("subAcct", toId);
+                request.put("from", this.safeString(parameters, "from", "6"));
+                request.put("to", this.safeString(parameters, "to", "6"));
             } else if (java.util.Objects.equals(toId, "master"))
             {
-                ((Map<String, Object>)request).put("type", "2");
-                ((Map<String, Object>)request).put("subAcct", fromId);
-                ((Map<String, Object>)request).put("from", this.safeString(parameters, "from", "6"));
-                ((Map<String, Object>)request).put("to", this.safeString(parameters, "to", "6"));
+                request.put("type", "2");
+                request.put("subAcct", fromId);
+                request.put("from", this.safeString(parameters, "from", "6"));
+                request.put("to", this.safeString(parameters, "to", "6"));
             }
             Map<String, Object> response = (this.privatePostAssetTransfer(this.extend(request, parameters))).join();
             //
@@ -9198,15 +9198,15 @@ public class Okx extends OkxApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
-                ((Map<String, Object>)request).put("ccy", ((Map<String, Object>)currency).get("id"));
+                request.put("ccy", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("begin", since);
+                request.put("begin", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.privateGetAccountBillsArchive(this.extend(request, parameters))).join();
             //
@@ -9629,7 +9629,7 @@ public class Okx extends OkxApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", String.valueOf(limit)); // default 100, max 100
+                request.put("limit", String.valueOf(limit)); // default 100, max 100
             }
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -9640,12 +9640,12 @@ public class Okx extends OkxApi
                 {
                     if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
                     {
-                        ((Map<String, Object>)request).put("ctType", "linear");
-                        ((Map<String, Object>)request).put("ccy", ((Map<String, Object>)market).get("quoteId"));
+                        request.put("ctType", "linear");
+                        request.put("ccy", ((Map<String, Object>)market).get("quoteId"));
                     } else
                     {
-                        ((Map<String, Object>)request).put("ctType", "inverse");
-                        ((Map<String, Object>)request).put("ccy", ((Map<String, Object>)market).get("baseId"));
+                        request.put("ctType", "inverse");
+                        request.put("ccy", ((Map<String, Object>)market).get("baseId"));
                     }
                 }
             }
@@ -9654,7 +9654,7 @@ public class Okx extends OkxApi
             var query = ((List<Object>) typequeryVariable).get(1);
             if (java.util.Objects.equals(type, "swap"))
             {
-                ((Map<String, Object>)request).put("instType", this.convertToInstrumentType(type));
+                request.put("instType", this.convertToInstrumentType(type));
             }
             // AccountBillsArchive has the same cost as AccountBills but supports three months of data
             Map<String, Object> response = (this.privateGetAccountBillsArchive(this.extend(request, query))).join();
@@ -9796,7 +9796,7 @@ public class Okx extends OkxApi
                 {
                     throw new BadRequest((this.id + " setLeverage() requires the posSide argument to be either \"long\", \"short\" or \"net\"")) ;
                 }
-                ((Map<String, Object>)request).put("posSide", posSide);
+                request.put("posSide", posSide);
             }
             Map<String, Object> response = (this.privatePostAccountSetLeverage(this.extend(request, parameters))).join();
             //
@@ -10074,7 +10074,7 @@ public class Okx extends OkxApi
                 String code = this.safeString(rate, "currency");
                 if (!java.util.Objects.equals(code, null))
                 {
-                    ((Map<String, Object>)rates).put((String)code, rate);
+                    rates.put((String)code, rate);
                 }
             }
             return rates;
@@ -10198,11 +10198,11 @@ public class Okx extends OkxApi
             {
                 if (!(borrowRateHistories.containsKey(code)))
                 {
-                    ((Map<String, Object>)borrowRateHistories).put((String)code, new ArrayList<Object>(Arrays.asList()));
+                    borrowRateHistories.put((String)code, new ArrayList<Object>(Arrays.asList()));
                 }
                 Map<String, Object> borrowRateStructure = (Map<String, Object>) this.parseBorrowRate(item);
                 // GET /api/v5/finance/savings/lending-rate-history returns annualized rates, unlike the hourly cross-margin endpoint
-                ((Map<String, Object>)borrowRateStructure).put("period", 31536000000L);
+                borrowRateStructure.put("period", 31536000000L);
                 Object borrrowRateCode = (borrowRateHistories == null || code == null ? null : borrowRateHistories.get(code));
                 ((List<Object>)borrrowRateCode).add(borrowRateStructure);
             }
@@ -10211,7 +10211,7 @@ public class Okx extends OkxApi
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String code = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            ((Map<String, Object>)borrowRateHistories).put((String)code, this.filterByCurrencySinceLimit((borrowRateHistories == null || code == null ? null : borrowRateHistories.get(code)), code, since, limit));
+            borrowRateHistories.put((String)code, this.filterByCurrencySinceLimit((borrowRateHistories == null || code == null ? null : borrowRateHistories.get(code)), code, since, limit));
         }
         return borrowRateHistories;
     }
@@ -10241,11 +10241,11 @@ public class Okx extends OkxApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("before", since);
+                request.put("before", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.publicGetFinanceSavingsLendingRateHistory(this.extend(request, parameters))).join();
             //
@@ -10311,11 +10311,11 @@ public class Okx extends OkxApi
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("before", since);
+                request.put("before", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.publicGetFinanceSavingsLendingRateHistory(this.extend(request, parameters))).join();
             //
@@ -10600,7 +10600,7 @@ public class Okx extends OkxApi
             }};
             if (java.util.Objects.equals(type, "MARGIN"))
             {
-                ((Map<String, Object>)request).put("instId", ((Map<String, Object>)market).get("id"));
+                request.put("instId", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> response = (this.publicGetPublicPositionTiers(this.extend(request, parameters))).join();
             //
@@ -10740,20 +10740,20 @@ public class Okx extends OkxApi
             if (!java.util.Objects.equals(code, null))
             {
                 Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
-                ((Map<String, Object>)request).put("ccy", ((Map<String, Object>)currency).get("id"));
+                request.put("ccy", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("before", Helpers.subtract(since, 1));
+                request.put("before", Helpers.subtract(since, 1));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("instId", ((Map<String, Object>)market).get("id"));
+                request.put("instId", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> response = (this.privateGetAccountInterestAccrued(this.extend(request, parameters))).join();
             //
@@ -11102,12 +11102,12 @@ public class Okx extends OkxApi
             String uly = this.safeString(parameters, "uly");
             if (!java.util.Objects.equals(uly, null))
             {
-                ((Map<String, Object>)request).put("uly", uly);
+                request.put("uly", uly);
             }
             String instFamily = this.safeString(parameters, "instFamily");
             if (!java.util.Objects.equals(instFamily, null))
             {
-                ((Map<String, Object>)request).put("instFamily", instFamily);
+                request.put("instFamily", instFamily);
             }
             if (java.util.Objects.equals(instType, "OPTION") && java.util.Objects.equals(uly, null) && java.util.Objects.equals(instFamily, null))
             {
@@ -11217,12 +11217,12 @@ public class Okx extends OkxApi
             {
                 if (!java.util.Objects.equals(since, null))
                 {
-                    ((Map<String, Object>)request).put("begin", since);
+                    request.put("begin", since);
                 }
                 Long until = this.safeInteger(parameters, "until");
                 if (!java.util.Objects.equals(until, null))
                 {
-                    ((Map<String, Object>)request).put("end", until);
+                    request.put("end", until);
                     parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
                 }
                 response = (this.publicGetRubikStatContractsOpenInterestVolume(this.extend(request, parameters))).join();
@@ -11368,7 +11368,7 @@ public class Okx extends OkxApi
             if (!java.util.Objects.equals(codes, null))
             {
                 Object ids = this.currencyIds(codes);
-                ((Map<String, Object>)request).put("ccy", String.join(",", (List<String>)ids));
+                request.put("ccy", String.join(",", (List<String>)ids));
             }
             Map<String, Object> response = (this.privateGetAssetCurrencies(this.extend(request, parameters))).join();
             //
@@ -11468,11 +11468,11 @@ public class Okx extends OkxApi
                 Map<String, Object> depositWithdrawFee = (Map<String, Object>) this.safeDict(depositWithdrawFees, code);
                 if (java.util.Objects.equals(depositWithdrawFee, null))
                 {
-                    ((Map<String, Object>)depositWithdrawFees).put((String)code, this.depositWithdrawFee(new HashMap<String, Object>() {{}}));
+                    depositWithdrawFees.put((String)code, this.depositWithdrawFee(new HashMap<String, Object>() {{}}));
                 }
                 if (!java.util.Objects.equals(currencyId, null))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(depositWithdrawFees, code), "info"), currencyId, feeInfo);
+                    Helpers.addElementToObject(Helpers.GetValue((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), "info"), currencyId, feeInfo);
                 }
                 String chain = this.safeString(feeInfo, "chain");
                 if (java.util.Objects.equals(chain, null))
@@ -11494,7 +11494,7 @@ public class Okx extends OkxApi
                 String networkCode = this.networkIdToCode(networkId, code);
                 if (!java.util.Objects.equals(networkCode, null))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(depositWithdrawFees, code), "networks"), networkCode, new HashMap<String, Object>() {{
+                    Helpers.addElementToObject(Helpers.GetValue((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), "networks"), networkCode, new HashMap<String, Object>() {{
     put( "withdraw", withdrawResult );
     put( "deposit", depositResult );
 }});
@@ -11506,7 +11506,7 @@ public class Okx extends OkxApi
         {
             String code = (depositWithdrawCodes == null || i < 0 || i >= depositWithdrawCodes.size() ? null : depositWithdrawCodes.get(i));
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            ((Map<String, Object>)depositWithdrawFees).put((String)code, this.assignDefaultDepositWithdrawFees((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), currency));
+            depositWithdrawFees.put((String)code, this.assignDefaultDepositWithdrawFees((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), currency));
         }
         return depositWithdrawFees;
     }
@@ -11561,11 +11561,11 @@ public class Okx extends OkxApi
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("before", Helpers.subtract(since, 1));
+                request.put("before", Helpers.subtract(since, 1));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.publicGetPublicDeliveryExerciseHistory(this.extend(request, parameters))).join();
             //
@@ -11844,12 +11844,12 @@ public class Okx extends OkxApi
                 String uly = this.safeString(parameters, "uly");
                 if (!java.util.Objects.equals(uly, null))
                 {
-                    ((Map<String, Object>)request).put("uly", uly);
+                    request.put("uly", uly);
                 }
                 String instFamily = this.safeString(parameters, "instFamily");
                 if (!java.util.Objects.equals(instFamily, null))
                 {
-                    ((Map<String, Object>)request).put("instFamily", instFamily);
+                    request.put("instFamily", instFamily);
                 }
                 if ((java.util.Objects.equals(uly, null)) && (java.util.Objects.equals(instFamily, null)))
                 {
@@ -11864,9 +11864,9 @@ public class Okx extends OkxApi
                     market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     String marketId = this.safeString(market, "id", "");
                     List<Object> optionParts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("-"))));
-                    ((Map<String, Object>)request).put("uly", Helpers.GetValue(((Map<String, Object>)market).get("info"), "uly"));
-                    ((Map<String, Object>)request).put("instFamily", Helpers.GetValue(((Map<String, Object>)market).get("info"), "instFamily"));
-                    ((Map<String, Object>)request).put("expTime", this.safeString(optionParts, 2));
+                    request.put("uly", Helpers.GetValue(((Map<String, Object>)market).get("info"), "uly"));
+                    request.put("instFamily", Helpers.GetValue(((Map<String, Object>)market).get("info"), "instFamily"));
+                    request.put("expTime", this.safeString(optionParts, 2));
                 }
             }
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("uly", "instFamily")));
@@ -12020,23 +12020,23 @@ public class Okx extends OkxApi
             {
                 if ((java.util.Objects.equals(side, "buy")))
                 {
-                    ((Map<String, Object>)request).put("posSide", "long");
+                    request.put("posSide", "long");
                 } else if (java.util.Objects.equals(side, "sell"))
                 {
-                    ((Map<String, Object>)request).put("posSide", "short");
+                    request.put("posSide", "short");
                 } else
                 {
-                    ((Map<String, Object>)request).put("posSide", side);
+                    request.put("posSide", side);
                 }
             }
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                ((Map<String, Object>)request).put("clOrdId", clientOrderId);
+                request.put("clOrdId", clientOrderId);
             }
             if (!java.util.Objects.equals(code, null))
             {
                 Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-                ((Map<String, Object>)request).put("ccy", ((Map<String, Object>)currency).get("id"));
+                request.put("ccy", ((Map<String, Object>)currency).get("id"));
             }
             Map<String, Object> response = (this.privatePostTradeClosePosition(this.extend(request, parameters))).join();
             //
@@ -12539,11 +12539,11 @@ public class Okx extends OkxApi
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("before", since);
+                request.put("before", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.privateGetAssetConvertHistory(this.extend(request, parameters))).join();
             //
@@ -12707,7 +12707,7 @@ public class Okx extends OkxApi
                 if (!java.util.Objects.equals(code, null))
                 {
                     final String finalCode = code;
-                    ((Map<String, Object>)result).put((String)code, new HashMap<String, Object>() {{
+                    result.put((String)code, new HashMap<String, Object>() {{
         put( "info", entry );
         put( "id", id );
         put( "code", finalCode );
@@ -12854,15 +12854,15 @@ public class Okx extends OkxApi
             parameters = (Map<String, Object>) this.omit(parameters, "until");
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("endTime", until);
+                request.put("endTime", until);
             }
             Map<String, Object> response = null;
             Long now = this.milliseconds();
@@ -12994,16 +12994,16 @@ public class Okx extends OkxApi
                 if (java.util.Objects.equals(symbolsLength, 1))
                 {
                     Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
-                    ((Map<String, Object>)request).put("instId", ((Map<String, Object>)market).get("id"));
+                    request.put("instId", ((Map<String, Object>)market).get("id"));
                 }
             }
             if (!java.util.Objects.equals(marginMode, null))
             {
-                ((Map<String, Object>)request).put("mgnMode", marginMode);
+                request.put("mgnMode", marginMode);
             }
             if (!java.util.Objects.equals(instType, null))
             {
-                ((Map<String, Object>)request).put("instType", instType);
+                request.put("instType", instType);
             }
             Map<String, Object> response = (this.privateGetAccountPositionsHistory(this.extend(request, parameters))).join();
             //
@@ -13111,19 +13111,19 @@ public class Okx extends OkxApi
             parameters = (Map<String, Object>) this.omit(parameters, "until");
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("end", until);
+                request.put("end", until);
             }
             if (!java.util.Objects.equals(timeframe, null))
             {
-                ((Map<String, Object>)request).put("period", this.safeString(this.timeframes, timeframe, timeframe));
+                request.put("period", this.safeString(this.timeframes, timeframe, timeframe));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("begin", since);
+                request.put("begin", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.publicGetRubikStatContractsLongShortAccountRatioContract(this.extend(request, parameters))).join();
             //

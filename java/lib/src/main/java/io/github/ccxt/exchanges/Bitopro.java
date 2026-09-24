@@ -454,7 +454,7 @@ public class Bitopro extends BitoproApi
         boolean isFiat = this.inArray(code, fiatCurrencies);
         final Boolean finalDeposit = deposit;
         final Boolean finalWithdraw = withdraw;
-        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "id", currencyId );
             put( "code", code );
             put( "info", rawCurrency );
@@ -476,7 +476,7 @@ public class Bitopro extends BitoproApi
                 }} );
             }} );
             put( "networks", null );
-        }}));
+        }});
     }
 
     /**
@@ -777,7 +777,7 @@ public class Bitopro extends BitoproApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.publicGetOrderBookPair(this.extend(request, parameters))).join();
             //
@@ -907,7 +907,7 @@ public class Bitopro extends BitoproApi
         final String finalSide = side;
         final String finalAmount = amount;
         final Map<String, Object> finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", finalId );
             put( "info", trade );
             put( "order", orderId );
@@ -921,7 +921,7 @@ public class Bitopro extends BitoproApi
             put( "amount", finalAmount );
             put( "cost", null );
             put( "fee", finalFee );
-        }}), market);
+        }}, market);
     }
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
@@ -1074,7 +1074,7 @@ public class Bitopro extends BitoproApi
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
+                result.put((String)symbol, new HashMap<String, Object>() {{
         put( "info", first );
         put( "symbol", symbol );
         put( "maker", maker );
@@ -1150,14 +1150,14 @@ public class Bitopro extends BitoproApi
             Object alignedSince = null;
             if (java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("to", this.seconds());
-                ((Map<String, Object>)request).put("from", Helpers.subtract(((Map<String, Object>)request).get("to"), (Helpers.multiply(limit, timeframeInSeconds))));
+                request.put("to", this.seconds());
+                request.put("from", Helpers.subtract(((Map<String, Object>)request).get("to"), (Helpers.multiply(limit, timeframeInSeconds))));
             } else
             {
                 Long timeframeInMilliseconds = (((long) timeframeInSeconds) * 1000L);
                 alignedSince = Helpers.multiply((Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(since, timeframeInMilliseconds))))), timeframeInMilliseconds);
-                ((Map<String, Object>)request).put("from", (Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(since, 1000))))));
-                ((Map<String, Object>)request).put("to", this.sum(((Map<String, Object>)request).get("from"), Helpers.multiply(limit, timeframeInSeconds)));
+                request.put("from", (Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(since, 1000))))));
+                request.put("to", this.sum(((Map<String, Object>)request).get("from"), Helpers.multiply(limit, timeframeInSeconds)));
             }
             Map<String, Object> response = (this.publicGetTradingHistoryPair(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
@@ -1271,7 +1271,7 @@ public class Bitopro extends BitoproApi
             }};
             if (!java.util.Objects.equals(code, null))
             {
-                ((Map<String, Object>)result).put((String)code, account);
+                result.put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -1415,7 +1415,7 @@ public class Bitopro extends BitoproApi
         final Boolean finalPostOnly = postOnly;
         final String finalSide = side;
         final Map<String, Object> finalFee = fee;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
             put( "timestamp", timestamp );
@@ -1437,7 +1437,7 @@ public class Bitopro extends BitoproApi
             put( "fee", finalFee );
             put( "trades", null );
             put( "info", order );
-        }}), market);
+        }}, market);
     }
     public Object parseOrder(Object order, Object... optionalArgs)
     {
@@ -1478,11 +1478,11 @@ public class Bitopro extends BitoproApi
             String orderType = ((String)type).toUpperCase();
             if (java.util.Objects.equals(orderType, "LIMIT"))
             {
-                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+                request.put("price", this.priceToPrecision(symbol, price));
             }
             if (java.util.Objects.equals(orderType, "STOP_LIMIT"))
             {
-                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+                request.put("price", this.priceToPrecision(symbol, price));
                 String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
                 parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice")));
                 if (java.util.Objects.equals(triggerPrice, null))
@@ -1490,7 +1490,7 @@ public class Bitopro extends BitoproApi
                     throw new InvalidOrder((((this.id + " createOrder() requires a triggerPrice parameter for ") + orderType) + " orders")) ;
                 } else
                 {
-                    ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision(symbol, triggerPrice));
+                    request.put("stopPrice", this.priceToPrecision(symbol, triggerPrice));
                 }
                 String condition = this.safeString(parameters, "condition");
                 if (java.util.Objects.equals(condition, null))
@@ -1498,13 +1498,13 @@ public class Bitopro extends BitoproApi
                     throw new InvalidOrder((((this.id + " createOrder() requires a condition parameter for ") + orderType) + " orders")) ;
                 } else
                 {
-                    ((Map<String, Object>)request).put("condition", condition);
+                    request.put("condition", condition);
                 }
             }
             boolean postOnly = Helpers.isTrue(this.isPostOnly(java.util.Objects.equals(orderType, "MARKET"), null, parameters));
             if (postOnly)
             {
-                ((Map<String, Object>)request).put("timeInForce", "POST_ONLY");
+                request.put("timeInForce", "POST_ONLY");
             }
             Map<String, Object> response = (this.privatePostOrdersPair(this.extend(request, parameters))).join();
             //
@@ -1608,11 +1608,11 @@ public class Bitopro extends BitoproApi
             for (var j = 0; j < Helpers.getArrayLength(orderIds); j++)
             {
 final Object finalJ = j;
-                                ((List<Object>)orders).add(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+                                ((List<Object>)orders).add(this.safeOrder(new HashMap<String, Object>() {{
                     put( "info", Helpers.GetValue(orderIds, finalJ) );
                     put( "id", Helpers.GetValue(orderIds, finalJ) );
                     put( "symbol", Bitopro.this.safeSymbol(marketId) );
-                }})));
+                }}));
             }
         }
         return orders;
@@ -1646,7 +1646,7 @@ final Object finalJ = j;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(id, null))
             {
-                ((Map<String, Object>)request).put((String)id, ids);
+                request.put((String)id, ids);
             }
             Map<String, Object> response = (this.privatePutOrders(this.extend(request, parameters))).join();
             //
@@ -1702,7 +1702,7 @@ final Object finalJ = j;
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("pair", ((Map<String, Object>)market).get("id"));
+                request.put("pair", ((Map<String, Object>)market).get("id"));
                 response = (this.privateDeleteOrdersPair(this.extend(request, parameters))).join();
             } else
             {
@@ -1842,11 +1842,11 @@ final Object finalJ = j;
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTimestamp", since);
+                request.put("startTimestamp", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.privateGetOrdersAllPair(this.extend(request, parameters))).join();
             List<Object> orders = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
@@ -1925,7 +1925,7 @@ final Object finalJ = j;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("pair", ((Map<String, Object>)market).get("id"));
+                request.put("pair", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> response = (this.privateGetOrdersOpen(this.extend(request, parameters))).join();
             List<Object> orders = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
@@ -2197,11 +2197,11 @@ final Object finalJ = j;
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTimestamp", since);
+                request.put("startTimestamp", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.privateGetWalletDepositHistoryCurrency(this.extend(request, parameters))).join();
             List<Object> result = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
@@ -2280,11 +2280,11 @@ final Object finalJ = j;
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTimestamp", since);
+                request.put("startTimestamp", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.privateGetWalletWithdrawHistoryCurrency(this.extend(request, parameters))).join();
             List<Object> result = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
@@ -2436,11 +2436,11 @@ final Object finalJ = j;
                 {
                     throw new ExchangeError(((this.id + " invalid network ") + requestedNetwork)) ;
                 }
-                ((Map<String, Object>)request).put("protocol", networkId);
+                request.put("protocol", networkId);
             }
             if (!java.util.Objects.equals(tag, null))
             {
-                ((Map<String, Object>)request).put("message", tag);
+                request.put("message", tag);
             }
             Map<String, Object> response = (this.privatePostWalletWithdrawCurrency(this.extend(request, parameters))).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});

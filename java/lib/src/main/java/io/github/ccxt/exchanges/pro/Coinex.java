@@ -189,7 +189,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, defaultType);
             Object parsedTicker = this.parseWSTicker((Map<String, Object>) (entry), market);
             Helpers.addElementToObject(this.tickers, symbol, parsedTicker);
-            ((Map<String, Object>)newTickers).put((String)symbol, parsedTicker);
+            newTickers.put((String)symbol, parsedTicker);
         }
         Object messageHashes = this.findMessageHashes(client, "tickers::");
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
@@ -467,8 +467,8 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         Map<String, Object> account = (Map<String, Object>) this.account();
         String currencyId = this.safeString(balance, "ccy");
         String code = this.safeCurrencyCode((String) (currencyId));
-        ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
-        ((Map<String, Object>)account).put("used", this.safeString(balance, "frozen"));
+        account.put("free", this.safeString(balance, "available"));
+        account.put("used", this.safeString(balance, "frozen"));
         if (!java.util.Objects.equals(accountType, null))
         {
             if (java.util.Objects.equals(this.safeDict(this.balance, accountType), null))
@@ -758,7 +758,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         final Map<String, Object> finalMarket = market;
         final String finalDefaultType = defaultType;
         final Map<String, Object> finalFee = fee;
-        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
             put( "id", Coinex.this.safeString(trade, "deal_id") );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -772,7 +772,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             put( "amount", Coinex.this.safeString(trade, "amount") );
             put( "cost", null );
             put( "fee", finalFee );
-        }}), market));
+        }}, market));
     }
     public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
@@ -1077,7 +1077,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 market = (Map<String, Object>) this.market(symbol);
                 messageHashes.add(("orderbook:" + ((Map<String, Object>)market).get("symbol")));
-                ((Map<String, Object>)watchOrderBookSubscriptions).put((String)symbol, new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"), limit, aggregation, true)));
+                watchOrderBookSubscriptions.put((String)symbol, new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"), limit, aggregation, true)));
             }
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(callerMethodName, market, parameters);
             type = (String) ((List<Object>) typeparametersVariable).get(0);
@@ -1593,7 +1593,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         }
         final Map<String, Object> finalMarket = market;
         final Map<String, Object> finalFee = fee;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Coinex.this.safeString2(order, "order_id", "stop_id") );
             put( "clientOrderId", Coinex.this.safeString(order, "client_id") );
@@ -1616,7 +1616,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             put( "status", Coinex.this.parseWsOrderStatus((String) (status)) );
             put( "fee", finalFee );
             put( "trades", null );
-        }}), market);
+        }}, market);
     }
     public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {

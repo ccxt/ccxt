@@ -650,7 +650,7 @@ public class Lbank extends LbankApi
             {
                 final String finalNetworkId = networkId;
                 final String finalNetworkCode = networkCode;
-                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
+                networks.put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", finalNetworkId );
     put( "network", finalNetworkCode );
     put( "limits", new HashMap<String, Object>() {{
@@ -672,7 +672,7 @@ public class Lbank extends LbankApi
 }});
             }
         }
-        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "code", code );
             put( "precision", null );
@@ -694,7 +694,7 @@ public class Lbank extends LbankApi
             }} );
             put( "networks", networks );
             put( "info", networksRaw );
-        }}));
+        }});
     }
 
     /**
@@ -1114,11 +1114,11 @@ public class Lbank extends LbankApi
             Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "swap"))
             {
-                ((Map<String, Object>)request).put("productGroup", "SwapU");
+                request.put("productGroup", "SwapU");
                 response = (this.contractPublicGetCfdOpenApiV1PubMarketData(this.extend(request, parameters))).join();
             } else
             {
-                ((Map<String, Object>)request).put("symbol", "all");
+                request.put("symbol", "all");
                 response = (this.spotPublicGetTicker24hr(this.extend(request, parameters))).join();
             }
             //
@@ -1223,11 +1223,11 @@ public class Lbank extends LbankApi
             Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "swap"))
             {
-                ((Map<String, Object>)request).put("depth", limit);
+                request.put("depth", limit);
                 response = (this.contractPublicGetCfdOpenApiV1PubMarketOrder(this.extend(request, parameters))).join();
             } else
             {
-                ((Map<String, Object>)request).put("size", limit);
+                request.put("size", limit);
                 response = (this.spotPublicGetDepth(this.extend(request, parameters))).join();
             }
             //
@@ -1412,7 +1412,7 @@ public class Lbank extends LbankApi
         final String finalAmountString = amountString;
         final String finalCostString = costString;
         final Map<String, Object> finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "timestamp", finalTimestamp );
             put( "datetime", Lbank.this.iso8601(finalTimestamp) );
             put( "symbol", symbol );
@@ -1426,7 +1426,7 @@ public class Lbank extends LbankApi
             put( "cost", finalCostString );
             put( "fee", finalFee );
             put( "info", trade );
-        }}), market);
+        }}, market);
     }
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
@@ -1464,14 +1464,14 @@ public class Lbank extends LbankApi
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("time", since);
+                request.put("time", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("size", Helpers.mathMin(limit, 600));
+                request.put("size", Helpers.mathMin(limit, 600));
             } else
             {
-                ((Map<String, Object>)request).put("size", 600); // max
+                request.put("size", 600); // max
             }
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchTrades", new HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "spotPublicGetTrades");
@@ -1729,11 +1729,11 @@ public class Lbank extends LbankApi
                 String currencyId = (currencies == null || i < 0 || i >= currencies.size() ? null : currencies.get(i));
                 String code = this.safeCurrencyCode(currencyId);
                 Map<String, Object> account = (Map<String, Object>) this.account();
-                ((Map<String, Object>)account).put("used", this.safeString(used, currencyId));
-                ((Map<String, Object>)account).put("free", this.safeString(free, currencyId));
+                account.put("used", this.safeString(used, currencyId));
+                account.put("free", this.safeString(free, currencyId));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    ((Map<String, Object>)result).put((String)code, account);
+                    result.put((String)code, account);
                 }
             }
             return this.safeBalance(result);
@@ -1748,11 +1748,11 @@ public class Lbank extends LbankApi
                 String currencyId = this.safeString(item, "asset");
                 String codeInner = this.safeCurrencyCode(currencyId);
                 Map<String, Object> account = (Map<String, Object>) this.account();
-                ((Map<String, Object>)account).put("free", this.safeString(item, "free"));
-                ((Map<String, Object>)account).put("used", this.safeString(item, "locked"));
+                account.put("free", this.safeString(item, "free"));
+                account.put("used", this.safeString(item, "locked"));
                 if (!java.util.Objects.equals(codeInner, null))
                 {
-                    ((Map<String, Object>)result).put((String)codeInner, account);
+                    result.put((String)codeInner, account);
                 }
             }
             return this.safeBalance(result);
@@ -1767,11 +1767,11 @@ public class Lbank extends LbankApi
                 String currencyId = this.safeString(item, "coin");
                 String codeInner = this.safeCurrencyCode(currencyId);
                 Map<String, Object> account = (Map<String, Object>) this.account();
-                ((Map<String, Object>)account).put("free", this.safeString(item, "usableAmt"));
-                ((Map<String, Object>)account).put("used", this.safeString(item, "freezeAmt"));
+                account.put("free", this.safeString(item, "usableAmt"));
+                account.put("used", this.safeString(item, "freezeAmt"));
                 if (!java.util.Objects.equals(codeInner, null))
                 {
-                    ((Map<String, Object>)result).put((String)codeInner, account);
+                    result.put((String)codeInner, account);
                 }
             }
             return this.safeBalance(result);
@@ -2111,7 +2111,7 @@ public class Lbank extends LbankApi
             {
                 Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) ((fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))));
                 Object symbol = ((Map<String, Object>)fee).get("symbol");
-                ((Map<String, Object>)result).put((String)((String)symbol), fee);
+                result.put((String)((String)symbol), fee);
             }
             return result;
         }).thenApply(TradingFees::new);
@@ -2222,28 +2222,28 @@ public class Lbank extends LbankApi
             }
             if (java.util.Objects.equals(type, "limit"))
             {
-                ((Map<String, Object>)request).put("type", side);
-                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
-                ((Map<String, Object>)request).put("amount", this.amountToPrecision(symbol, amount));
+                request.put("type", side);
+                request.put("price", this.priceToPrecision(symbol, price));
+                request.put("amount", this.amountToPrecision(symbol, amount));
                 if (Boolean.TRUE.equals(ioc))
                 {
-                    ((Map<String, Object>)request).put("type", ((side + "_") + "ioc"));
+                    request.put("type", ((side + "_") + "ioc"));
                 } else if (Boolean.TRUE.equals(fok))
                 {
-                    ((Map<String, Object>)request).put("type", ((side + "_") + "fok"));
+                    request.put("type", ((side + "_") + "fok"));
                 } else if (Boolean.TRUE.equals(maker))
                 {
-                    ((Map<String, Object>)request).put("type", ((side + "_") + "maker"));
+                    request.put("type", ((side + "_") + "maker"));
                 }
             } else if (java.util.Objects.equals(type, "market"))
             {
                 if (java.util.Objects.equals(side, "sell"))
                 {
-                    ((Map<String, Object>)request).put("type", ((side + "_") + "market"));
-                    ((Map<String, Object>)request).put("amount", this.amountToPrecision(symbol, amount));
+                    request.put("type", ((side + "_") + "market"));
+                    request.put("amount", this.amountToPrecision(symbol, amount));
                 } else if (java.util.Objects.equals(side, "buy"))
                 {
-                    ((Map<String, Object>)request).put("type", ((side + "_") + "market"));
+                    request.put("type", ((side + "_") + "market"));
                     String quoteAmount = null;
                     Boolean createMarketBuyOrderRequiresPrice = true;
                     List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
@@ -2271,12 +2271,12 @@ public class Lbank extends LbankApi
                         quoteAmount = this.costToPrecision(symbol, amount);
                     }
                     // market buys require filling the price param instead of the amount param, for market buys the price is treated as the cost by lbank
-                    ((Map<String, Object>)request).put("price", quoteAmount);
+                    request.put("price", quoteAmount);
                 }
             }
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                ((Map<String, Object>)request).put("custom_id", clientOrderId);
+                request.put("custom_id", clientOrderId);
             }
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "createOrder", new HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "spotPrivatePostSupplementCreateOrder");
@@ -2302,10 +2302,10 @@ public class Lbank extends LbankApi
             //      }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return this.safeOrder(new HashMap<String, Object>() {{
                 put( "id", Lbank.this.safeString(result, "order_id") );
                 put( "info", result );
-            }}), market);
+            }}, market);
         }).thenApply(Order::new);
 
     }
@@ -2473,7 +2473,7 @@ public class Lbank extends LbankApi
         final String finalTimeInForce = timeInForce;
         final Boolean finalPostOnly = postOnly;
         final String finalAmountString = amountString;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", clientOrderId );
             put( "datetime", Lbank.this.iso8601(timestamp) );
@@ -2495,7 +2495,7 @@ public class Lbank extends LbankApi
             put( "fee", null );
             put( "info", order );
             put( "average", null );
-        }}), market);
+        }}, market);
     }
     public Object parseOrder(Object order, Object... optionalArgs)
     {
@@ -2697,12 +2697,12 @@ public class Lbank extends LbankApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("size", limit);
+                request.put("size", limit);
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_date", this.ymd(since, "-")); // max query 2 days ago
-                ((Map<String, Object>)request).put("end_date", this.ymd(Helpers.add(since, 86400000), "-")); // will cover 2 days
+                request.put("start_date", this.ymd(since, "-")); // max query 2 days ago
+                request.put("end_date", this.ymd(Helpers.add(since, 86400000), "-")); // will cover 2 days
             }
             Map<String, Object> response = (this.spotPrivatePostTransactionHistory(this.extend(request, parameters))).join();
             //
@@ -2956,7 +2956,7 @@ public class Lbank extends LbankApi
             }};
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                ((Map<String, Object>)request).put("origClientOrderId", clientOrderId);
+                request.put("origClientOrderId", clientOrderId);
             }
             Map<String, Object> response = (this.spotPrivatePostSupplementCancelOrder(this.extend(request, parameters))).join();
             //
@@ -3131,7 +3131,7 @@ public class Lbank extends LbankApi
             Object network = this.getNetworkCodeForCurrency((String) (code), (Map<String, Object>) (parameters));
             if (!java.util.Objects.equals(network, null))
             {
-                ((Map<String, Object>)request).put("netWork", network); // ... yes, really lol
+                request.put("netWork", network); // ... yes, really lol
                 parameters = (Map<String, Object>) this.omit(parameters, "network");
             }
             Map<String, Object> response = (this.spotPrivatePostGetDepositAddress(this.extend(request, parameters))).join();
@@ -3185,7 +3185,7 @@ public class Lbank extends LbankApi
             network = this.safeString(networks, network, network);
             if (!java.util.Objects.equals(network, null))
             {
-                ((Map<String, Object>)request).put("networkName", network);
+                request.put("networkName", network);
                 parameters = (Map<String, Object>) this.omit(parameters, "network");
             }
             Map<String, Object> response = (this.spotPrivatePostSupplementGetDepositAddress(this.extend(request, parameters))).join();
@@ -3259,7 +3259,7 @@ public class Lbank extends LbankApi
             }};
             if (!java.util.Objects.equals(tag, null))
             {
-                ((Map<String, Object>)request).put("memo", tag);
+                request.put("memo", tag);
             }
             String network = this.safeStringUpper2(parameters, "network", "networkName");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("network", "networkName")));
@@ -3267,7 +3267,7 @@ public class Lbank extends LbankApi
             String networkId = this.safeString(networks, network, network);
             if (!java.util.Objects.equals(networkId, null))
             {
-                ((Map<String, Object>)request).put("networkName", networkId);
+                request.put("networkName", networkId);
             }
             Map<String, Object> response = (this.spotPrivatePostSupplementWithdraw(this.extend(request, parameters))).join();
             //
@@ -3453,11 +3453,11 @@ public class Lbank extends LbankApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
-                ((Map<String, Object>)request).put("coin", ((Map<String, Object>)currency).get("id"));
+                request.put("coin", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             Map<String, Object> response = (this.spotPrivatePostSupplementDepositHistory(this.extend(request, parameters))).join();
             //
@@ -3532,11 +3532,11 @@ public class Lbank extends LbankApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
-                ((Map<String, Object>)request).put("coin", ((Map<String, Object>)currency).get("id"));
+                request.put("coin", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             Map<String, Object> response = (this.spotPrivatePostSupplementWithdraws(this.extend(request, parameters))).join();
             //
@@ -3697,7 +3697,7 @@ public class Lbank extends LbankApi
                 List<Object> networkList = (List<Object>) this.safeList(entry, "networkList", new ArrayList<Object>(Arrays.asList()));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    ((Map<String, Object>)withdrawFees).put((String)code, new HashMap<String, Object>() {{}});
+                    withdrawFees.put((String)code, new HashMap<String, Object>() {{}});
                 }
                 for (var j = 0; j < ((List<?>)networkList).size(); j++)
                 {
@@ -3710,7 +3710,7 @@ public class Lbank extends LbankApi
                         {
                             if ((!java.util.Objects.equals(code, null)) && (!java.util.Objects.equals(networkCode, null)))
                             {
-                                Helpers.addElementToObject(Helpers.GetValue(withdrawFees, code), networkCode, fee);
+                                Helpers.addElementToObject((withdrawFees == null || code == null ? null : withdrawFees.get(code)), networkCode, fee);
                             }
                         }
                     }
@@ -3746,7 +3746,7 @@ public class Lbank extends LbankApi
             if (!java.util.Objects.equals(code, null))
             {
                 Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-                ((Map<String, Object>)request).put("assetCode", ((Map<String, Object>)currency).get("id"));
+                request.put("assetCode", ((Map<String, Object>)currency).get("id"));
             }
             Map<String, Object> response = (this.spotPublicGetWithdrawConfigs(this.extend(request, parameters))).join();
             //
@@ -3790,12 +3790,12 @@ public class Lbank extends LbankApi
                     {
                         if (!java.util.Objects.equals(codeInner, null))
                         {
-                            ((Map<String, Object>)withdrawFees).put((String)codeInner, new HashMap<String, Object>() {{}});
+                            withdrawFees.put((String)codeInner, new HashMap<String, Object>() {{}});
                         }
                     }
                     if ((!java.util.Objects.equals(codeInner, null)) && (!java.util.Objects.equals(network, null)))
                     {
-                        Helpers.addElementToObject(Helpers.GetValue(withdrawFees, codeInner), network, this.parseNumber(fee));
+                        Helpers.addElementToObject((withdrawFees == null || codeInner == null ? null : withdrawFees.get(codeInner)), network, this.parseNumber(fee));
                     }
                 }
             }
@@ -4000,7 +4000,7 @@ public class Lbank extends LbankApi
                         Map<String, Object> resultValue = (Map<String, Object>) this.safeDict(result, code);
                         if (java.util.Objects.equals(resultValue, null))
                         {
-                            ((Map<String, Object>)result).put((String)code, this.depositWithdrawFee(new ArrayList<Object>(Arrays.asList(fee))));
+                            result.put((String)code, this.depositWithdrawFee(new ArrayList<Object>(Arrays.asList(fee))));
                         } else
                         {
                             Object resultCodeInfo = Helpers.GetValue((result == null || code == null ? null : result.get(code)), "info");
@@ -4010,7 +4010,7 @@ public class Lbank extends LbankApi
                         if (!java.util.Objects.equals(networkCode, null))
                         {
                             final Double finalWithdrawFee = withdrawFee;
-                            Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(result, code), "networks"), networkCode, new HashMap<String, Object>() {{
+                            Helpers.addElementToObject(Helpers.GetValue((result == null || code == null ? null : result.get(code)), "networks"), networkCode, new HashMap<String, Object>() {{
     put( "withdraw", new HashMap<String, Object>() {{
         put( "fee", finalWithdrawFee );
         put( "percentage", null );
@@ -4023,7 +4023,7 @@ public class Lbank extends LbankApi
                         } else
                         {
                             final Double finalWithdrawFee_2 = withdrawFee;
-                            Helpers.addElementToObject(Helpers.GetValue(result, code), "withdraw", new HashMap<String, Object>() {{
+                            Helpers.addElementToObject((result == null || code == null ? null : result.get(code)), "withdraw", new HashMap<String, Object>() {{
     put( "fee", finalWithdrawFee_2 );
     put( "percentage", null );
 }});

@@ -532,8 +532,8 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
                     put( "nonce", Upbit.this.uuid() );
                 }};
                 Object token = jwt(auth, this.encode(this.secret), sha256(), false);
-                ((Map<String, Object>)wsOptions).put("token", token);
-                ((Map<String, Object>)wsOptions).put("options", new HashMap<String, Object>() {{
+                wsOptions.put("token", token);
+                wsOptions.put("options", new HashMap<String, Object>() {{
         put( "headers", new HashMap<String, Object>() {{
             put( "authorization", ("Bearer " + token) );
         }} );
@@ -572,7 +572,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
                 symbol = (String) (((Map<String, Object>)market).get("symbol"));
                 List<Object> symbols = new ArrayList<Object>(Arrays.asList(symbol));
                 List<String> marketIds = this.marketIds(symbols);
-                ((Map<String, Object>)request).put("codes", marketIds);
+                request.put("codes", marketIds);
                 messageHash = ((messageHash + ":") + symbol);
             }
             String url = (String) this.implodeParams(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), new HashMap<String, Object>() {{
@@ -784,7 +784,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         final Map<String, Object> finalMarket_2 = market;
         final String finalSide = side;
         final Map<String, Object> finalFee = fee;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
             put( "clientOrderId", null );
@@ -807,7 +807,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             put( "status", status );
             put( "fee", finalFee );
             put( "trades", null );
-        }}));
+        }});
     }
     public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
@@ -842,7 +842,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         final Map<String, Object> finalMarket_2 = market;
         final String finalSide = side;
         final Map<String, Object> finalFee = fee;
-        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
             put( "id", Upbit.this.safeString(trade, "trade_uuid") );
             put( "timestamp", timestamp );
             put( "datetime", Upbit.this.iso8601(timestamp) );
@@ -856,7 +856,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             put( "type", Upbit.this.safeString(trade, "order_type") );
             put( "fee", finalFee );
             put( "info", trade );
-        }}), market));
+        }}, market));
     }
     public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
@@ -993,8 +993,8 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             String available = this.safeString(balance, "balance");
             String frozen = this.safeString(balance, "locked");
             Map<String, Object> account = (Map<String, Object>) this.account();
-            ((Map<String, Object>)account).put("free", available);
-            ((Map<String, Object>)account).put("used", frozen);
+            account.put("free", available);
+            account.put("used", frozen);
             if (!java.util.Objects.equals(code, null))
             {
                 Helpers.addElementToObject(this.balance, code, account);

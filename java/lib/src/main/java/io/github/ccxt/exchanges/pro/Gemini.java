@@ -209,7 +209,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         String marketId = this.safeStringLower(trade, "symbol");
         String symbol = this.safeSymbol(marketId, market);
         final String finalSide = side;
-        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
             put( "id", id );
             put( "order", null );
             put( "info", trade );
@@ -223,7 +223,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             put( "cost", null );
             put( "amount", amountString );
             put( "fee", null );
-        }}), market));
+        }}, market));
     }
     public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
@@ -343,7 +343,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                     Helpers.addElementToObject(this.trades, symbol, stored);
                 }
                 stored.append(trade);
-                ((Map<String, Object>)storesForSymbols).put((String)symbol, stored);
+                storesForSymbols.put((String)symbol, stored);
             }
             List<String> symbols = new ArrayList<String>(storesForSymbols.keySet());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
@@ -703,7 +703,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         Helpers.addElementToObject(currentBidAsk, "datetime", this.iso8601(timestamp));
         Helpers.addElementToObject(currentBidAsk, "info", rawBidAskChanges);
         Map<String, Object> bidsAsksDict = new HashMap<String, Object>() {{}};
-        ((Map<String, Object>)bidsAsksDict).put((String)symbol, currentBidAsk);
+        bidsAsksDict.put((String)symbol, currentBidAsk);
         Helpers.addElementToObject(this.bidsasks, symbol, currentBidAsk);
         client.resolve(bidsAsksDict, messageHash);
     }
@@ -1027,7 +1027,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         }
         final String finalTimeInForce = timeInForce;
         final Boolean finalPostOnly = postOnly;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", Gemini.this.safeString(order, "order_id") );
             put( "clientOrderId", Gemini.this.safeString(order, "client_order_id") );
             put( "info", order );
@@ -1049,7 +1049,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             put( "remaining", Gemini.this.safeNumber(order, "remaining_amount") );
             put( "fee", null );
             put( "trades", null );
-        }}), market);
+        }}, market);
     }
     public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {

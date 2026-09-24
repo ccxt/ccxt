@@ -534,11 +534,11 @@ public class Binance extends BinanceApi
                 Map<String, Object> listingRequest = new HashMap<String, Object>() {{}};
                 if (!java.util.Objects.equals(l1Category, null))
                 {
-                    ((Map<String, Object>)listingRequest).put("l1Category", l1Category);
+                    listingRequest.put("l1Category", l1Category);
                 }
                 if (!java.util.Objects.equals(l2Category, null))
                 {
-                    ((Map<String, Object>)listingRequest).put("l2Category", l2Category);
+                    listingRequest.put("l2Category", l2Category);
                 }
                 String sortBy = this.safeStringUpper2(parameters, "sortBy", "sort");
                 if (!java.util.Objects.equals(sortBy, null))
@@ -556,7 +556,7 @@ public class Binance extends BinanceApi
                     }
                     if (!java.util.Objects.equals(sortBy, null))
                     {
-                        ((Map<String, Object>)listingRequest).put("sortBy", sortBy);
+                        listingRequest.put("sortBy", sortBy);
                         parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("sort", "sortBy")));
                     }
                 }
@@ -647,7 +647,7 @@ public class Binance extends BinanceApi
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "query", Helpers.GetValue(queries, finalQi) );
                 }};
-                ((Map<String, Object>)request).put("topK", limit);
+                request.put("topK", limit);
                 List<Object> response = (this.sapiPrivateGetMarketSearch(this.extend(request, rest))).join();
                 //
                 //     [
@@ -671,7 +671,7 @@ public class Binance extends BinanceApi
                         String already = this.safeString(seen, topicId);
                         if (java.util.Objects.equals(already, null))
                         {
-                            ((Map<String, Object>)seen).put((String)topicId, topicId);
+                            seen.put((String)topicId, topicId);
                             ((List<Object>)collected).add(rawTopic);
                         }
                     }
@@ -1097,7 +1097,7 @@ final Object finalMarketSymbol = marketSymbol;
             }
         }
         final Double finalLast = last;
-        return (Map<String, Object>) (this.safePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safePredictionTicker(new HashMap<String, Object>() {{
             put( "outcome", Binance.this.safeString(outcomeObj, "outcome") );
             put( "outcomeId", Binance.this.safeString2(outcomeObj, "outcomeId", "id") );
             put( "label", Binance.this.safeString(outcomeObj, "label") );
@@ -1121,7 +1121,7 @@ final Object finalMarketSymbol = marketSymbol;
             put( "baseVolume", null );
             put( "quoteVolume", null );
             put( "info", raw );
-        }}), market));
+        }}, market));
     }
     /**
      * @ignore
@@ -1176,11 +1176,11 @@ final Object finalMarketSymbol = marketSymbol;
                         put( "marketId", finalMarketId );
                     }};
                     response = (this.sapiPrivateGetOrderBookLastTradePrice(this.extend(request, parameters))).join();
-                    ((Map<String, Object>)responsesByMarketId).put((String)marketId, response);
+                    responsesByMarketId.put((String)marketId, response);
                 }
                 Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (response), ((Object)outcomeObj));
                 String symbolKey = this.safeString(ticker, "outcome", (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i)));
-                ((Map<String, Object>)result).put((String)symbolKey, ticker);
+                result.put((String)symbolKey, ticker);
             }
             return result;
         }).thenApply(PredictionTickers::new);
@@ -1296,8 +1296,8 @@ final Object finalMarketSymbol = marketSymbol;
                 {
                     String free = this.safeString(balance, "availableBalanceDisplay");
                     Map<String, Object> account = (Map<String, Object>) this.account();
-                    ((Map<String, Object>)account).put("free", free);
-                    ((Map<String, Object>)result).put("USDT", account);
+                    account.put("free", free);
+                    result.put("USDT", account);
                 }
             }
             return this.safeBalance(result);
@@ -1373,7 +1373,7 @@ final Object finalMarketSymbol = marketSymbol;
         String side = this.safeStringLower(order, "side");
         Long timestamp = this.safeInteger(order, "createTime");
         final Map<String, Object> finalOutcomeObj = outcomeObj;
-        return this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePredictionOrder(new HashMap<String, Object>() {{
             put( "id", Binance.this.safeString(order, "orderId") );
             put( "clientOrderId", null );
             put( "info", order );
@@ -1399,7 +1399,7 @@ final Object finalMarketSymbol = marketSymbol;
             put( "remaining", null );
             put( "fee", null );
             put( "trades", new ArrayList<Object>(Arrays.asList()) );
-        }}), outcomeObj);
+        }}, outcomeObj);
     }
     /**
      * @ignore
@@ -1477,7 +1477,7 @@ final Object finalMarketSymbol = marketSymbol;
             Long offSet = this.safeInteger(parameters, "offset", Helpers.multiply(page, maxEntriesPerRequest));
             if (Helpers.isGreaterThan(offSet, 0))
             {
-                ((Map<String, Object>)request).put("offset", offSet);
+                request.put("offset", offSet);
             }
             Object outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
@@ -1485,14 +1485,14 @@ final Object finalMarketSymbol = marketSymbol;
                 (this.loadOutcome((String) (outcome))).join();
                 outcomeObj = this.outcome((String) (outcome));
                 Map<String, Object> market = (Map<String, Object>) this.market(((Map<String, Object>)outcomeObj).get("market"));
-                ((Map<String, Object>)request).put("marketId", ((Map<String, Object>)market).get("id"));
+                request.put("marketId", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Object wallet = (this.fetchWallet("fetchOpenOrders", parameters)).join();
-            ((Map<String, Object>)request).put("walletAddress", Helpers.GetValue(wallet, "walletAddress"));
+            request.put("walletAddress", Helpers.GetValue(wallet, "walletAddress"));
             Map<String, Object> response = (this.sapiPrivateGetOrderList(this.extend(request, parameters))).join();
             //
             // {
@@ -1598,7 +1598,7 @@ final Object finalMarketSymbol = marketSymbol;
             Long offSet = this.safeInteger(parameters, "offset", Helpers.multiply(page, maxEntriesPerRequest));
             if (Helpers.isGreaterThan(offSet, 0))
             {
-                ((Map<String, Object>)request).put("offset", offSet);
+                request.put("offset", offSet);
             }
             Object outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
@@ -1608,20 +1608,20 @@ final Object finalMarketSymbol = marketSymbol;
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startDate", this.yyyymmdd(since));
+                request.put("startDate", this.yyyymmdd(since));
             }
             Long until = this.safeInteger(parameters, "until");
             parameters = (Map<String, Object>) this.omit(parameters, "until");
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("endDate", this.yyyymmdd(until));
+                request.put("endDate", this.yyyymmdd(until));
             }
             Object wallet = (this.fetchWallet("fetchOrders", parameters)).join();
-            ((Map<String, Object>)request).put("walletAddress", Helpers.GetValue(wallet, "walletAddress"));
+            request.put("walletAddress", Helpers.GetValue(wallet, "walletAddress"));
             Map<String, Object> response = (this.sapiPrivateGetOrderHistory(this.extend(request, parameters))).join();
             //
             // {
@@ -1709,7 +1709,7 @@ final Object finalMarketSymbol = marketSymbol;
                     Object requested = (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i));
                     Map<String, Object> requestedOutcomeObj = this.safeOutcome((String) (requested));
                     String requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
-                    ((Map<String, Object>)requestedOutcomeSymbols).put((String)requestedOutcome, true);
+                    requestedOutcomeSymbols.put((String)requestedOutcome, true);
                 }
             }
             Object wallet = (this.fetchWallet("fetchPositions", parameters)).join();
@@ -1823,10 +1823,10 @@ final Object finalMarketSymbol = marketSymbol;
                 (this.loadOutcome((String) (outcome))).join();
                 outcomeObj = this.outcome((String) (outcome));
                 Map<String, Object> market = (Map<String, Object>) this.market(((Map<String, Object>)outcomeObj).get("market"));
-                ((Map<String, Object>)request).put("marketTopicId", Helpers.GetValue(((Map<String, Object>)market).get("info"), "marketTopicId"));
+                request.put("marketTopicId", Helpers.GetValue(((Map<String, Object>)market).get("info"), "marketTopicId"));
             }
             Object wallet = (this.fetchWallet("fetchOrders", parameters)).join();
-            ((Map<String, Object>)request).put("walletAddress", Helpers.GetValue(wallet, "walletAddress"));
+            request.put("walletAddress", Helpers.GetValue(wallet, "walletAddress"));
             Map<String, Object> response = (this.sapiPrivateGetPositionFilter(this.extend(request, parameters))).join();
             //
             //
@@ -1878,7 +1878,7 @@ final Object finalMarketSymbol = marketSymbol;
         Long timestamp = this.safeInteger(position, "createdTime");
         Double totalCost = this.parseNumber(this.safeString(position, "totalCost"));
         final Map<String, Object> finalOutcomeObj = outcomeObj;
-        return this.safePredictionPosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePredictionPosition(new HashMap<String, Object>() {{
             put( "id", Binance.this.safeInteger(position, "positionId") );
             put( "outcome", Binance.this.safeString(finalOutcomeObj, "outcome") );
             put( "outcomeId", Binance.this.safeString2(finalOutcomeObj, "outcomeId", "id") );
@@ -1906,7 +1906,7 @@ final Object finalMarketSymbol = marketSymbol;
             put( "marginMode", "cross" );
             put( "percentage", Binance.this.parseNumber(Binance.this.safeString(position, "unrealizedPnlPercent")) );
             put( "info", position );
-        }}));
+        }});
     }
     /**
      * @ignore
@@ -1969,7 +1969,7 @@ final Object finalMarketSymbol = marketSymbol;
             Long offSet = this.safeInteger(parameters, "offset", Helpers.multiply(page, maxEntriesPerRequest));
             if (Helpers.isGreaterThan(offSet, 0))
             {
-                ((Map<String, Object>)request).put("offset", offSet);
+                request.put("offset", offSet);
             }
             Object outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
@@ -1979,20 +1979,20 @@ final Object finalMarketSymbol = marketSymbol;
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startDate", this.yyyymmdd(since));
+                request.put("startDate", this.yyyymmdd(since));
             }
             Long until = this.safeInteger(parameters, "until");
             parameters = (Map<String, Object>) this.omit(parameters, "until");
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("endDate", this.yyyymmdd(until));
+                request.put("endDate", this.yyyymmdd(until));
             }
             Object wallet = (this.fetchWallet("fetchMyTrades", parameters)).join();
-            ((Map<String, Object>)request).put("walletAddress", Helpers.GetValue(wallet, "walletAddress"));
+            request.put("walletAddress", Helpers.GetValue(wallet, "walletAddress"));
             Map<String, Object> response = (this.sapiPrivateGetOrderHistory(this.extend(request, parameters))).join();
             //
             // {
@@ -2129,7 +2129,7 @@ final Object finalMarketSymbol = marketSymbol;
         final String finalFilled = filled;
         final String finalCost = cost;
         final Map<String, Object> finalFee = fee;
-        return this.safePredictionTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePredictionTrade(new HashMap<String, Object>() {{
             put( "id", null );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -2148,7 +2148,7 @@ final Object finalMarketSymbol = marketSymbol;
             put( "filled", finalFilled );
             put( "cost", finalCost );
             put( "fee", finalFee );
-        }}), outcomeObj);
+        }}, outcomeObj);
     }
     /**
      * @ignore
@@ -2389,7 +2389,7 @@ final Object finalMarketSymbol = marketSymbol;
                 {
                     throw new ArgumentsRequired((this.id + "createOrder requires price for limit order")) ;
                 }
-                ((Map<String, Object>)commonRequest).put("priceLimit", this.priceToPrecision(marketSymbol, price));
+                commonRequest.put("priceLimit", this.priceToPrecision(marketSymbol, price));
                 defaultTif = "GTC";
             }
             if (java.util.Objects.equals(sideUpper, "BUY"))
@@ -2442,7 +2442,7 @@ final Object finalMarketSymbol = marketSymbol;
             }});
             Map<String, Object> response = (this.sapiPrivatePostTradePlaceOrderBundle(this.extend(orderRequest, parameters))).join();
             final Object finalPrice = price;
-            return this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return this.safePredictionOrder(new HashMap<String, Object>() {{
                 put( "id", Binance.this.safeString(response, "orderId") );
                 put( "clientOrderId", null );
                 put( "info", response );
@@ -2462,7 +2462,7 @@ final Object finalMarketSymbol = marketSymbol;
                 put( "cost", null );
                 put( "fee", null );
                 put( "trades", new ArrayList<Object>(Arrays.asList()) );
-            }}), market);
+            }}, market);
         }).thenApply(PredictionOrder::new);
 
     }
@@ -2595,7 +2595,7 @@ final Object finalMarketSymbol = marketSymbol;
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
                 String key = (("cancelInfoList[" + this.numberToString(i)) + "].orderId");
-                ((Map<String, Object>)request).put((String)key, (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i)));
+                request.put((String)key, (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i)));
             }
             Map<String, Object> response = (this.sapiPrivatePostTradeBatchCancel(this.extend(request, parameters))).join();
             //
@@ -2715,7 +2715,7 @@ final Object finalMarketSymbol = marketSymbol;
         Long defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
         if (!java.util.Objects.equals(defaultRecvWindow, null))
         {
-            Helpers.addElementToObject(extendedParams, "recvWindow", defaultRecvWindow);
+            extendedParams.put("recvWindow", defaultRecvWindow);
         }
         Object querystring = this.urlencodeNested(extendedParams);
         querystring = (querystring == null ? null : ((String)querystring).replace("%5B", "["));

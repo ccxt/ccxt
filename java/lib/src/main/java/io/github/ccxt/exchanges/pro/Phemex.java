@@ -496,8 +496,8 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 String totalEv = this.safeString2(balance, "accountBalanceEv", "balanceEv");
                 total = this.fromEn(totalEv, scale);
             }
-            ((Map<String, Object>)account).put("used", used);
-            ((Map<String, Object>)account).put("total", total);
+            account.put("used", used);
+            account.put("total", total);
             if (!java.util.Objects.equals(code, null))
             {
                 Helpers.addElementToObject(this.balance, code, account);
@@ -1254,7 +1254,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }
             if (!java.util.Objects.equals(symbol, null))
             {
-                ((Map<String, Object>)marketIds).put((String)symbol, true);
+                marketIds.put((String)symbol, true);
             }
         }
         List<String> keys = new ArrayList<String>(marketIds.keySet());
@@ -1724,7 +1724,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         final String finalClientOrderId = clientOrderId;
         final Long finalLastTradeTimestamp = lastTradeTimestamp;
         final String finalTimeInForce = timeInForce;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
             put( "clientOrderId", finalClientOrderId );
@@ -1747,7 +1747,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             put( "status", status );
             put( "fee", null );
             put( "trades", null );
-        }}), market);
+        }}, market);
     }
     public Object parseWSSwapOrder(Map<String, Object> order, Object... optionalArgs)
     {

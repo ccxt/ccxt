@@ -751,7 +751,7 @@ public class Backpack extends BackpackApi
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final String finalNetworkCode = networkCode;
-                ((Map<String, Object>)parsedNetworks).put((String)networkCode, new HashMap<String, Object>() {{
+                parsedNetworks.put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", finalNetworkCode );
     put( "limits", new HashMap<String, Object>() {{
@@ -785,7 +785,7 @@ public class Backpack extends BackpackApi
         final Boolean finalActive = active;
         final Boolean finalDeposit = deposit;
         final Boolean finalWithdraw = withdraw;
-        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "id", currencyId );
             put( "code", code );
             put( "precision", null );
@@ -807,7 +807,7 @@ public class Backpack extends BackpackApi
             }} );
             put( "networks", parsedNetworks );
             put( "info", rawCurrency );
-        }}));
+        }});
     }
 
     /**
@@ -1234,7 +1234,7 @@ public class Backpack extends BackpackApi
             }
             Long timestamp = this.parseToInt((((double) microseconds) / ((double) 1000)));
             Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, symbol, timestamp);
-            ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(response, "lastUpdateId"));
+            orderbook.put("nonce", this.safeInteger(response, "lastUpdateId"));
             return orderbook;
         }).thenApply(OrderBook::new);
 
@@ -1291,7 +1291,7 @@ public class Backpack extends BackpackApi
             parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("endTime", this.parseToInt((((double) until) / ((double) 1000)))); // convert milliseconds to seconds
+                request.put("endTime", this.parseToInt((((double) until) / ((double) 1000)))); // convert milliseconds to seconds
             }
             Integer defaultLimit = 100;
             if (java.util.Objects.equals(since, null))
@@ -1303,15 +1303,15 @@ public class Backpack extends BackpackApi
                 int duration = this.parseTimeframe(timeframe);
                 Long endTime = (((!java.util.Objects.equals(until, null) && !java.util.Objects.equals(until, null) && (until == null || until != 0)))) ? this.parseToInt((((double) until) / ((double) 1000))) : this.seconds();
                 Object startTime = Helpers.subtract(endTime, (Helpers.multiply(limit, duration)));
-                ((Map<String, Object>)request).put("startTime", startTime);
+                request.put("startTime", startTime);
             } else
             {
-                ((Map<String, Object>)request).put("startTime", this.parseToInt(Helpers.divide(since, 1000))); // convert milliseconds to seconds
+                request.put("startTime", this.parseToInt(Helpers.divide(since, 1000))); // convert milliseconds to seconds
             }
             String price = this.safeString(parameters, "price");
             if (!java.util.Objects.equals(price, null))
             {
-                ((Map<String, Object>)request).put("priceType", this.capitalize(price));
+                request.put("priceType", this.capitalize(price));
                 parameters = (Map<String, Object>) this.omit(parameters, "price");
             }
             List<Object> response = (this.publicGetApiV1Klines(this.extend(request, parameters))).join();
@@ -1558,7 +1558,7 @@ public class Backpack extends BackpackApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000)); // api maximum 1000
+                request.put("limit", Helpers.mathMin(limit, 1000)); // api maximum 1000
             }
             List<Object> response = (this.publicGetApiV1FundingRates(this.extend(request, parameters))).join();
             //
@@ -1634,7 +1634,7 @@ public class Backpack extends BackpackApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000)); // api maximum 1000
+                request.put("limit", Helpers.mathMin(limit, 1000)); // api maximum 1000
             }
             List<Object> response = null;
             Long offset = this.safeInteger(parameters, "offset");
@@ -1701,26 +1701,26 @@ public class Backpack extends BackpackApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("from", since);
+                request.put("from", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Long until = this.safeInteger(parameters, "until");
             if (!java.util.Objects.equals(until, null))
             {
                 parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
-                ((Map<String, Object>)request).put("to", until);
+                request.put("to", until);
             }
             String fillType = this.safeString(parameters, "fillType");
             if (java.util.Objects.equals(fillType, null))
             {
-                ((Map<String, Object>)request).put("fillType", "User"); // default
+                request.put("fillType", "User"); // default
             }
             List<Object> response = (this.privateGetWapiV1HistoryFills(this.extend(request, parameters))).join();
             List<Object> responseList = this.toArray(response);
@@ -1817,7 +1817,7 @@ public class Backpack extends BackpackApi
         final String finalSide = side;
         final String finalTakerOrMaker = takerOrMaker;
         final Map<String, Object> finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", finalTimestamp );
             put( "datetime", Backpack.this.iso8601(finalTimestamp) );
@@ -1831,7 +1831,7 @@ public class Backpack extends BackpackApi
             put( "amount", amount );
             put( "cost", null );
             put( "fee", finalFee );
-        }}), market);
+        }}, market);
     }
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
@@ -1978,11 +1978,11 @@ public class Backpack extends BackpackApi
             String locked = this.safeString(balance, "locked");
             String staked = this.safeString(balance, "staked");
             String used = Precise.stringAdd(locked, staked);
-            ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
-            ((Map<String, Object>)account).put("used", used);
+            account.put("free", this.safeString(balance, "available"));
+            account.put("used", used);
             if (!java.util.Objects.equals(code, null))
             {
-                ((Map<String, Object>)result).put((String)code, account);
+                result.put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -2023,11 +2023,11 @@ public class Backpack extends BackpackApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("from", since);
+                request.put("from", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit); // default 100, max 1000
+                request.put("limit", limit); // default 100, max 1000
             }
             Long until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchDeposits", "until");
@@ -2035,7 +2035,7 @@ public class Backpack extends BackpackApi
             parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("endTime", until);
+                request.put("endTime", until);
             }
             List<Object> response = (this.privateGetWapiV1CapitalDeposits(this.extend(request, parameters))).join();
             return this.parseTransactions(response, currency, since, limit);
@@ -2094,11 +2094,11 @@ public class Backpack extends BackpackApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("from", since);
+                request.put("from", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Long until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchWithdrawals", "until");
@@ -2106,7 +2106,7 @@ public class Backpack extends BackpackApi
             parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("to", until);
+                request.put("to", until);
             }
             List<Object> response = (this.privateGetWapiV1CapitalWithdrawals(this.extend(request, parameters))).join();
             return this.parseTransactions(response, currency, since, limit);
@@ -2160,7 +2160,7 @@ public class Backpack extends BackpackApi
             }};
             if (!java.util.Objects.equals(tag, null))
             {
-                ((Map<String, Object>)request).put("clientId", tag); // memo or tag
+                request.put("clientId", tag); // memo or tag
             }
             List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             String networkCode = (String) ((List<Object>) networkCodequeryVariable).get(0);
@@ -2170,7 +2170,7 @@ public class Backpack extends BackpackApi
             {
                 throw new BadRequest((this.id + " withdraw() requires a network parameter")) ;
             }
-            ((Map<String, Object>)request).put("blockchain", networkId);
+            request.put("blockchain", networkId);
             Map<String, Object> response = (this.privatePostWapiV1CapitalWithdrawals(this.extend(request, query))).join();
             return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
@@ -2571,30 +2571,30 @@ public class Backpack extends BackpackApi
         // handle basic limit/market order types
         if (java.util.Objects.equals(type, "limit"))
         {
-            ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
-            ((Map<String, Object>)request).put((String)quantityKey, this.amountToPrecision(symbol, amount));
+            request.put("price", this.priceToPrecision(symbol, price));
+            request.put((String)quantityKey, this.amountToPrecision(symbol, amount));
         } else if (java.util.Objects.equals(type, "market"))
         {
             String cost = this.safeString2(parameters, "cost", "quoteQuantity");
             if (!java.util.Objects.equals(cost, null))
             {
-                ((Map<String, Object>)request).put("quoteQuantity", this.costToPrecision(symbol, cost));
+                request.put("quoteQuantity", this.costToPrecision(symbol, cost));
                 parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("cost", "quoteQuantity"))));
             } else
             {
-                ((Map<String, Object>)request).put((String)quantityKey, this.amountToPrecision(symbol, amount));
+                request.put((String)quantityKey, this.amountToPrecision(symbol, amount));
             }
         }
         // trigger orders
         if (Boolean.TRUE.equals(isTriggerOrder))
         {
-            ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
+            request.put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
             parameters = (Map<String, Object>) (this.omit(parameters, "triggerPrice"));
         }
         Long clientOrderId = this.safeInteger(parameters, "clientOrderId"); // the exchange requires uint
         if (!java.util.Objects.equals(clientOrderId, null))
         {
-            ((Map<String, Object>)request).put("clientId", clientOrderId);
+            request.put("clientId", clientOrderId);
             parameters = (Map<String, Object>) (this.omit(parameters, "clientOrderId"));
         }
         Boolean postOnly = false;
@@ -2611,12 +2611,12 @@ public class Backpack extends BackpackApi
             String takeProfitTriggerPrice = this.safeString(takeProfit, "triggerPrice");
             if (!java.util.Objects.equals(takeProfitTriggerPrice, null))
             {
-                ((Map<String, Object>)request).put("takeProfitTriggerPrice", this.priceToPrecision(symbol, takeProfitTriggerPrice));
+                request.put("takeProfitTriggerPrice", this.priceToPrecision(symbol, takeProfitTriggerPrice));
             }
             String takeProfitPrice = this.safeString(takeProfit, "price");
             if (!java.util.Objects.equals(takeProfitPrice, null))
             {
-                ((Map<String, Object>)request).put("takeProfitLimitPrice", this.priceToPrecision(symbol, takeProfitPrice));
+                request.put("takeProfitLimitPrice", this.priceToPrecision(symbol, takeProfitPrice));
             }
             parameters = (Map<String, Object>) (this.omit(parameters, "takeProfit"));
         }
@@ -2626,12 +2626,12 @@ public class Backpack extends BackpackApi
             String stopLossTriggerPrice = this.safeString(stopLoss, "triggerPrice");
             if (!java.util.Objects.equals(stopLossTriggerPrice, null))
             {
-                ((Map<String, Object>)request).put("stopLossTriggerPrice", this.priceToPrecision(symbol, stopLossTriggerPrice));
+                request.put("stopLossTriggerPrice", this.priceToPrecision(symbol, stopLossTriggerPrice));
             }
             String stopLossPrice = this.safeString(stopLoss, "price");
             if (!java.util.Objects.equals(stopLossPrice, null))
             {
-                ((Map<String, Object>)request).put("stopLossLimitPrice", this.priceToPrecision(symbol, stopLossPrice));
+                request.put("stopLossLimitPrice", this.priceToPrecision(symbol, stopLossPrice));
             }
             parameters = (Map<String, Object>) (this.omit(parameters, "stopLoss"));
         }
@@ -2643,13 +2643,13 @@ public class Backpack extends BackpackApi
         {
             if (java.util.Objects.equals(selfTradePrevention, "EXPIRE_MAKER"))
             {
-                ((Map<String, Object>)request).put("selfTradePrevention", "RejectMaker");
+                request.put("selfTradePrevention", "RejectMaker");
             } else if (java.util.Objects.equals(selfTradePrevention, "EXPIRE_TAKER"))
             {
-                ((Map<String, Object>)request).put("selfTradePrevention", "RejectTaker");
+                request.put("selfTradePrevention", "RejectTaker");
             } else if (java.util.Objects.equals(selfTradePrevention, "EXPIRE_BOTH"))
             {
-                ((Map<String, Object>)request).put("selfTradePrevention", "RejectBoth");
+                request.put("selfTradePrevention", "RejectBoth");
             }
         }
         return (Map<String, Object>) (this.extend(request, parameters));
@@ -2693,7 +2693,7 @@ public class Backpack extends BackpackApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             List<Object> response = (this.privateGetApiV1Orders(this.extend(request, parameters))).join();
             return this.parseOrders(response, market, since, limit);
@@ -2884,11 +2884,11 @@ public class Backpack extends BackpackApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             List<Object> response = (this.privateGetWapiV1HistoryOrders(this.extend(request, parameters))).join();
             return this.parseOrders(response, market, since, limit);
@@ -3028,7 +3028,7 @@ public class Backpack extends BackpackApi
         String stopLossPrice = this.safeString2(order, "stopLossLimitPrice", "stopLossTriggerPrice");
         String takeProfitPrice = this.safeString2(order, "takeProfitLimitPrice", "takeProfitTriggerPrice");
         final Long finalTimestamp = timestamp;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
             put( "clientOrderId", clientOrderId );
@@ -3053,7 +3053,7 @@ public class Backpack extends BackpackApi
             put( "status", status );
             put( "fee", null );
             put( "trades", null );
-        }}), market);
+        }}, market);
     }
     public Object parseOrder(Object order, Object... optionalArgs)
     {
@@ -3186,7 +3186,7 @@ public class Backpack extends BackpackApi
         final Boolean finalHedged = hedged;
         final String finalSide = side;
         final String finalNetCost = netCost;
-        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePosition(new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", id );
             put( "symbol", symbol );
@@ -3215,7 +3215,7 @@ public class Backpack extends BackpackApi
             put( "percentage", null );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
-        }}));
+        }});
     }
     public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
@@ -3250,11 +3250,11 @@ public class Backpack extends BackpackApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             List<Object> response = (this.privateGetWapiV1HistoryFunding(this.extend(request, parameters))).join();
             return this.parseIncomes(response, market, since, limit);

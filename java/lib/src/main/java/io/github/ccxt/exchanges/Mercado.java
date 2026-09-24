@@ -622,7 +622,7 @@ public class Mercado extends MercadoApi
         }
         final Map<String, Object> finalMarket = market;
         final Map<String, Object> finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -636,7 +636,7 @@ public class Mercado extends MercadoApi
             put( "amount", amount );
             put( "cost", null );
             put( "fee", finalFee );
-        }}), market);
+        }}, market);
     }
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
@@ -668,7 +668,7 @@ public class Mercado extends MercadoApi
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("from", this.parseToInt(Helpers.divide(since, 1000)));
+                request.put("from", this.parseToInt(Helpers.divide(since, 1000)));
             }
             Long to = this.safeInteger(parameters, "to");
             List<Object> response = null;
@@ -717,11 +717,11 @@ public class Mercado extends MercadoApi
             {
                 Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, currencyId, new HashMap<String, Object>() {{}});
                 Map<String, Object> account = (Map<String, Object>) this.account();
-                ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
-                ((Map<String, Object>)account).put("total", this.safeString(balance, "total"));
+                account.put("free", this.safeString(balance, "available"));
+                account.put("total", this.safeString(balance, "total"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    ((Map<String, Object>)result).put((String)code, account);
+                    result.put((String)code, account);
                 }
             }
         }
@@ -793,8 +793,8 @@ public class Mercado extends MercadoApi
             Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "limit"))
             {
-                ((Map<String, Object>)request).put("limit_price", this.priceToPrecision(((Map<String, Object>)market).get("symbol"), price));
-                ((Map<String, Object>)request).put("quantity", this.amountToPrecision(((Map<String, Object>)market).get("symbol"), amount));
+                request.put("limit_price", this.priceToPrecision(((Map<String, Object>)market).get("symbol"), price));
+                request.put("quantity", this.amountToPrecision(((Map<String, Object>)market).get("symbol"), amount));
                 if (java.util.Objects.equals(side, "buy"))
                 {
                     response = (this.privatePostPlaceBuyOrder(this.extend(request, parameters))).join();
@@ -813,20 +813,20 @@ public class Mercado extends MercadoApi
                     String amountString = this.numberToString(amount);
                     String priceString = this.numberToString(price);
                     Object cost = this.parseToNumeric(Precise.stringMul(amountString, priceString));
-                    ((Map<String, Object>)request).put("cost", this.priceToPrecision(((Map<String, Object>)market).get("symbol"), cost));
+                    request.put("cost", this.priceToPrecision(((Map<String, Object>)market).get("symbol"), cost));
                     response = (this.privatePostPlaceMarketBuyOrder(this.extend(request, parameters))).join();
                 } else
                 {
-                    ((Map<String, Object>)request).put("quantity", this.amountToPrecision(((Map<String, Object>)market).get("symbol"), amount));
+                    request.put("quantity", this.amountToPrecision(((Map<String, Object>)market).get("symbol"), amount));
                     response = (this.privatePostPlaceMarketSellOrder(this.extend(request, parameters))).join();
                 }
             }
             // TODO: replace this with a call to parseOrder for unification
             final Map<String, Object> finalResponse = response;
-            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", finalResponse );
                 put( "id", String.valueOf(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)finalResponse).get("response_data"), "order"), "order_id")) );
-            }}), market);
+            }}, market);
         }).thenApply(Order::new);
 
     }
@@ -980,7 +980,7 @@ public class Mercado extends MercadoApi
         List<Object> rawTrades = (List<Object>) this.safeList(order, "operations", new ArrayList<Object>(Arrays.asList()));
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         final String finalSide = side;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
             put( "clientOrderId", null );
@@ -1002,7 +1002,7 @@ public class Mercado extends MercadoApi
             put( "status", status );
             put( "fee", fee );
             put( "trades", rawTrades );
-        }}), market);
+        }}, market);
     }
     public Object parseOrder(Object order, Object... optionalArgs)
     {
@@ -1115,7 +1115,7 @@ public class Mercado extends MercadoApi
                         }
                     } else
                     {
-                        ((Map<String, Object>)request).put("destination_tag", tag);
+                        request.put("destination_tag", tag);
                     }
                 }
             }
@@ -1248,12 +1248,12 @@ public class Mercado extends MercadoApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("from", this.parseToInt(Helpers.divide(since, 1000)));
-                ((Map<String, Object>)request).put("to", this.sum(((Map<String, Object>)request).get("from"), Helpers.multiply(limit, this.parseTimeframe(timeframe))));
+                request.put("from", this.parseToInt(Helpers.divide(since, 1000)));
+                request.put("to", this.sum(((Map<String, Object>)request).get("from"), Helpers.multiply(limit, this.parseTimeframe(timeframe))));
             } else
             {
-                ((Map<String, Object>)request).put("to", this.seconds());
-                ((Map<String, Object>)request).put("from", Helpers.subtract(((Map<String, Object>)request).get("to"), (Helpers.multiply(limit, this.parseTimeframe(timeframe)))));
+                request.put("to", this.seconds());
+                request.put("from", Helpers.subtract(((Map<String, Object>)request).get("to"), (Helpers.multiply(limit, this.parseTimeframe(timeframe)))));
             }
             Map<String, Object> response = (this.v4PublicNetGetCandles(this.extend(request, parameters))).join();
             // parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and

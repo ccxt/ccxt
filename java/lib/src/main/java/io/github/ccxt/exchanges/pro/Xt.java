@@ -270,17 +270,17 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 if (!Boolean.TRUE.equals(isContract))
                 {
-                    ((Map<String, Object>)subscribe).put("params", new ArrayList<Object>(Arrays.asList(name)));
-                    ((Map<String, Object>)subscribe).put("listenKey", (this.getListenKey(isContract)).join());
+                    subscribe.put("params", new ArrayList<Object>(Arrays.asList(name)));
+                    subscribe.put("listenKey", (this.getListenKey(isContract)).join());
                 } else
                 {
                     Object listenKey = (this.getListenKey(isContract)).join();
                     String param = Helpers.add((name + "@"), listenKey);
-                    ((Map<String, Object>)subscribe).put("params", new ArrayList<Object>(Arrays.asList(param)));
+                    subscribe.put("params", new ArrayList<Object>(Arrays.asList(param)));
                 }
             } else
             {
-                ((Map<String, Object>)subscribe).put("params", new ArrayList<Object>(Arrays.asList(name)));
+                subscribe.put("params", new ArrayList<Object>(Arrays.asList(name)));
             }
             String tradeType = "spot";
             if (Boolean.TRUE.equals(isContract))
@@ -368,17 +368,17 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 if (!Boolean.TRUE.equals(isContract))
                 {
-                    ((Map<String, Object>)unsubscribe).put("params", new ArrayList<Object>(Arrays.asList(name)));
-                    ((Map<String, Object>)unsubscribe).put("listenKey", (this.getListenKey(isContract)).join());
+                    unsubscribe.put("params", new ArrayList<Object>(Arrays.asList(name)));
+                    unsubscribe.put("listenKey", (this.getListenKey(isContract)).join());
                 } else
                 {
                     Object listenKey = (this.getListenKey(isContract)).join();
                     String param = Helpers.add((name + "@"), listenKey);
-                    ((Map<String, Object>)unsubscribe).put("params", new ArrayList<Object>(Arrays.asList(param)));
+                    unsubscribe.put("params", new ArrayList<Object>(Arrays.asList(param)));
                 }
             } else
             {
-                ((Map<String, Object>)unsubscribe).put("params", new ArrayList<Object>(Arrays.asList(name)));
+                unsubscribe.put("params", new ArrayList<Object>(Arrays.asList(name)));
             }
             String tradeType = "spot";
             if (Boolean.TRUE.equals(isContract))
@@ -404,7 +404,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             List<Object> symbolsAndTimeframes = (List<Object>) this.safeList(subscriptionParams, "symbolsAndTimeframes");
             if (!java.util.Objects.equals(symbolsAndTimeframes, null))
             {
-                ((Map<String, Object>)subscription).put("symbolsAndTimeframes", symbolsAndTimeframes);
+                subscription.put("symbolsAndTimeframes", symbolsAndTimeframes);
                 subscriptionParams = this.omit(subscriptionParams, "symbolsAndTimeframes");
             }
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, this.extend(subscription, subscriptionParams))).join();
@@ -1242,8 +1242,8 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             }};
             Map<String, Object> fundingRate = (Map<String, Object>) this.parseFundingRate(raw);
             Long timestamp = this.safeInteger(data, "t");
-            ((Map<String, Object>)fundingRate).put("timestamp", timestamp);
-            ((Map<String, Object>)fundingRate).put("datetime", this.iso8601(timestamp));
+            fundingRate.put("timestamp", timestamp);
+            fundingRate.put("datetime", this.iso8601(timestamp));
             Object symbol = ((Map<String, Object>)fundingRate).get("symbol");
             Helpers.addElementToObject(this.fundingRates, ((String)symbol), fundingRate);
             String eventVar = this.safeString(message, "event");
@@ -1850,7 +1850,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         market = (Map<String, Object>) (this.safeMarket(marketId, market, null, tradeType));
         String timestamp = this.safeString(trade, "t");
         final Map<String, Object> finalMarket = market;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", null );
             put( "timestamp", timestamp );
@@ -1868,7 +1868,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 put( "cost", Xt.this.safeNumber(trade, "f") );
                 put( "rate", null );
             }} );
-        }}), market);
+        }}, market);
     }
     public Object parseWsOrderTrade(Map<String, Object> trade, Object... optionalArgs)
     {
@@ -1928,7 +1928,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         market = (Map<String, Object>) (this.safeMarket(marketId, market, null, tradeType));
         Long timestamp = (Long) this.safeInteger2(order, "ct", "createTime");
         final Map<String, Object> finalMarket = market;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Xt.this.safeString2(order, "i", "orderId") );
             put( "clientOrderId", Xt.this.safeString2(order, "ci", "clientOrderId") );
@@ -1955,7 +1955,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 put( "cost", Xt.this.safeNumber(order, "f") );
             }} );
             put( "trades", null );
-        }}), market);
+        }}, market);
     }
     public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
@@ -2070,9 +2070,9 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         String currencyId = this.safeString2(data, "c", "coin");
         String code = this.safeCurrencyCode((String) (currencyId));
         Map<String, Object> account = (Map<String, Object>) this.account();
-        ((Map<String, Object>)account).put("free", this.safeString(data, "availableBalance"));
-        ((Map<String, Object>)account).put("used", this.safeString(data, "f"));
-        ((Map<String, Object>)account).put("total", this.safeString2(data, "b", "walletBalance"));
+        account.put("free", this.safeString(data, "availableBalance"));
+        account.put("used", this.safeString(data, "f"));
+        account.put("total", this.safeString2(data, "b", "walletBalance"));
         if (!java.util.Objects.equals(code, null))
         {
             Helpers.addElementToObject(this.balance, code, account);

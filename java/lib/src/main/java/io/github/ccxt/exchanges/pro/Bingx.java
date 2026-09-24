@@ -168,7 +168,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             List<Object> symbolsAndTimeframes = (List<Object>) this.safeList(parameters, "symbolsAndTimeframes");
             if (!java.util.Objects.equals(symbolsAndTimeframes, null))
             {
-                ((Map<String, Object>)subscription).put("symbolsAndTimeframes", symbolsAndTimeframes);
+                subscription.put("symbolsAndTimeframes", symbolsAndTimeframes);
                 parameters = this.omit(parameters, "symbolsAndTimeframes");
             }
             return (this.watch(url, messageHash, this.extend(request, parameters), subscribeHash, subscription)).join();
@@ -226,7 +226,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             }};
             if (java.util.Objects.equals(marketType, "swap"))
             {
-                ((Map<String, Object>)request).put("reqType", "sub");
+                request.put("reqType", "sub");
             }
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "unsubscribe", false );
@@ -540,7 +540,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             }};
             if (java.util.Objects.equals(marketType, "swap"))
             {
-                ((Map<String, Object>)request).put("reqType", "sub");
+                request.put("reqType", "sub");
             }
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "unsubscribe", false );
@@ -798,7 +798,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             }};
             if (java.util.Objects.equals(marketType, "swap"))
             {
-                ((Map<String, Object>)request).put("reqType", "sub");
+                request.put("reqType", "sub");
             }
             Map<String, Object> subscriptionArgs = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
@@ -1236,7 +1236,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             }};
             if (java.util.Objects.equals(marketType, "swap"))
             {
-                ((Map<String, Object>)request).put("reqType", "sub");
+                request.put("reqType", "sub");
             }
             final Map<String, Object> finalParameters = parameters;
             Map<String, Object> subscriptionArgs = new HashMap<String, Object>() {{
@@ -1888,7 +1888,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         final String finalMarginMode = marginMode;
         final String finalPositionSide = positionSide;
         final Boolean finalHedged = hedged;
-        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePosition(new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", Bingx.this.safeSymbol(marketId, null, null, "swap") );
@@ -1912,7 +1912,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             put( "initialMarginPercentage", null );
             put( "leverage", null );
             put( "marginRatio", null );
-        }}));
+        }});
     }
     public Object parseWsPosition(Map<String, Object> position, Object... optionalArgs)
     {
@@ -2438,9 +2438,9 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             String currencyId = this.safeString(balance, "a");
             String code = this.safeCurrencyCode((String) (currencyId));
             Map<String, Object> account = (Map<String, Object>) this.account();
-            ((Map<String, Object>)account).put("info", balance);
-            ((Map<String, Object>)account).put("used", this.safeString(balance, "lk"));
-            ((Map<String, Object>)account).put("free", this.safeString(balance, "wb"));
+            account.put("info", balance);
+            account.put("used", this.safeString(balance, "lk"));
+            account.put("free", this.safeString(balance, "wb"));
             if (!java.util.Objects.equals(code, null))
             {
                 Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), code, account);

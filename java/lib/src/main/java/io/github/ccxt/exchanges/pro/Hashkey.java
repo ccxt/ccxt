@@ -660,7 +660,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         final Object finalSide = side;
         final Object finalReduceOnly = reduceOnly;
         final Object finalPostOnly = postOnly;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", Hashkey.this.safeString(order, "i") );
             put( "clientOrderId", Hashkey.this.safeString(order, "c") );
             put( "datetime", Hashkey.this.iso8601(timestamp) );
@@ -690,7 +690,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             put( "reduceOnly", finalReduceOnly );
             put( "postOnly", finalPostOnly );
             put( "info", order );
-        }}), market);
+        }}, market);
     }
     public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
@@ -838,7 +838,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         final Map<String, Object> finalMarket = market;
         final String finalSide = side;
         final String finalTakerOrMaker = takerOrMaker;
-        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
             put( "id", Hashkey.this.safeString2(trade, "v", "T") );
             put( "timestamp", timestamp );
             put( "datetime", Hashkey.this.iso8601(timestamp) );
@@ -852,7 +852,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             put( "order", Hashkey.this.safeString(trade, "o") );
             put( "fee", null );
             put( "info", trade );
-        }}), market));
+        }}, market));
     }
     public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
@@ -962,7 +962,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         market = (Map<String, Object>) (this.safeMarket(marketId));
         Long timestamp = this.safeInteger(position, "E");
         final Map<String, Object> finalMarket = market;
-        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePosition(new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
             put( "id", null );
             put( "timestamp", timestamp );
@@ -991,7 +991,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             put( "takeProfitPrice", null );
             put( "percentage", null );
             put( "info", position );
-        }}));
+        }});
     }
     public Object parseWsPosition(Object position, Object... optionalArgs)
     {
@@ -1133,8 +1133,8 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         String currencyId = this.safeString(balanceUpdate, "a");
         String code = this.safeCurrencyCode((String) (currencyId));
         Map<String, Object> account = (Map<String, Object>) this.account();
-        ((Map<String, Object>)account).put("free", this.safeString(balanceUpdate, "f"));
-        ((Map<String, Object>)account).put("used", this.safeString(balanceUpdate, "l"));
+        account.put("free", this.safeString(balanceUpdate, "f"));
+        account.put("used", this.safeString(balanceUpdate, "l"));
         if (!java.util.Objects.equals(code, null))
         {
             Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), code, account);

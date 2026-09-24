@@ -1083,7 +1083,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         final String finalAmount = amount;
         final String finalFilled = filled;
         final String finalRemaining = remaining;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "symbol", symbol );
             put( "id", id );
@@ -1106,7 +1106,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             put( "status", status );
             put( "fee", null );
             put( "trades", null );
-        }}));
+        }});
     }
     public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
