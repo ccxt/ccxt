@@ -3130,7 +3130,7 @@ class grvt(Exchange, ImplicitAPI):
             'chain_id': '326' if self.isSandboxModeEnabled else '325',
         }
 
-    def handle_until_option_string(self, key: str, request: dict, params: dict = None, multiplier: float = 1) -> list[object]:
+    def handle_until_option_string(self, key: str, request: dict, params: dict = {}, multiplier: float = 1) -> list:
         until = self.safe_integer_2(params, 'until', 'till')
         if until is not None:
             request[key] = self.number_to_string(self.parse_to_int(until * multiplier))

@@ -6709,24 +6709,24 @@ func (this *Okx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes511119)
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(request, "instId", GetValue(market, "id"))
+		request["instId"] = GetValue(market, "id")
 	}
 	if since != nil {
-		AddElementToObject(request, "begin", since)
+		request["begin"] = since
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
 	var typeVar *string = SafeStringPtr(GetValue(typeVarqueryVariable, 0))
 	query := GetValue(typeVarqueryVariable, 1)
-	AddElementToObject(request, "instType", this.ConvertToInstrumentType(typeVar))
+	request["instType"] = this.ConvertToInstrumentType(typeVar)
 	if (limit != nil) && (since == nil) {
-		AddElementToObject(request, "limit", limit) // default 100, max 100
+		request["limit"] = limit // default 100, max 100
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTradeFillsHistory(this.Extend(request, query))).Raw))
@@ -6848,7 +6848,7 @@ func (this *Okx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var method *string = this.SafeString(options, "method")
 	method = this.SafeString(params, "method", method)
 	params = MapTyped(this.Omit(params, "method"))
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var marginMode any = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchLedger", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
@@ -6858,25 +6858,25 @@ func (this *Okx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	}
 	if method == nil || *method != "privateGetAssetBills" {
 		if !IsEqual(marginMode, nil) {
-			AddElementToObject(request, "mgnMode", marginMode)
+			request["mgnMode"] = marginMode
 		}
 	}
 	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("fetchLedger", nil, params)
 	var typeVar *string = SafeStringPtr(GetValue(typeVarqueryVariable, 0))
 	query := GetValue(typeVarqueryVariable, 1)
 	if typeVar != nil {
-		AddElementToObject(request, "instType", this.ConvertToInstrumentType(typeVar))
+		request["instType"] = this.ConvertToInstrumentType(typeVar)
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var currency map[string]any = nil
 	if code != nil {
 		currency = MapTyped(this.Currency(code))
-		AddElementToObject(request, "ccy", GetValue(currency, "id"))
+		request["ccy"] = GetValue(currency, "id")
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var response any = nil
 	if method != nil && *method == "privateGetAccountBillsArchive" {
@@ -7386,20 +7386,20 @@ func (this *Okx) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes566819)
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var currency map[string]any = nil
 	if code != nil {
 		currency = MapTyped(this.Currency(code))
-		AddElementToObject(request, "ccy", GetValue(currency, "id"))
+		request["ccy"] = GetValue(currency, "id")
 	}
 	if since != nil {
-		AddElementToObject(request, "before", mathMax(Subtract(since, 1), 0))
+		request["before"] = mathMax(Subtract(since, 1), 0)
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit) // default 100, max 100
+		request["limit"] = limit // default 100, max 100
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("after", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	response := (<-this.PrivateGetAssetDepositHistory(this.Extend(request, params)))
@@ -7535,20 +7535,20 @@ func (this *Okx) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes578019)
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var currency map[string]any = nil
 	if code != nil {
 		currency = MapTyped(this.Currency(code))
-		AddElementToObject(request, "ccy", GetValue(currency, "id"))
+		request["ccy"] = GetValue(currency, "id")
 	}
 	if since != nil {
-		AddElementToObject(request, "before", mathMax(Subtract(since, 1), 0))
+		request["before"] = mathMax(Subtract(since, 1), 0)
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit) // default 100, max 100
+		request["limit"] = limit // default 100, max 100
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("after", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	response := (<-this.PrivateGetAssetWithdrawalHistory(this.Extend(request, params)))
@@ -11548,15 +11548,15 @@ func (this *Okx) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...any) 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var requestparamsVariable []any = this.HandleUntilOption("after", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	if since != nil {
-		AddElementToObject(request, "before", since)
+		request["before"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 
 	response := (<-this.PrivateGetAssetConvertHistory(this.Extend(request, params)))

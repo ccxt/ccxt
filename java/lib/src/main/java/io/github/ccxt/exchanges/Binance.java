@@ -4681,7 +4681,7 @@ public class Binance extends BinanceApi
         {
             ((Map<String, Object>)request).put("size", limit);
         }
-        List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
+        List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
         request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
         Object response = this.sapiGetEquityTokenizedHistory(this.extend(request, parameters));
@@ -16402,7 +16402,7 @@ final Map<String, Object> finalMarket = market;
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchFundingHistory", "papi", "portfolioMargin", false);
             isPortfolioMargin = Helpers.isTrue(((List<Object>) isPortfolioMarginparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) isPortfolioMarginparametersVariable).get(1);
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
@@ -18622,7 +18622,7 @@ final Map<String, Object> finalMarket = market;
             {
                 ((Map<String, Object>)request).put("size", limit);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = null;
@@ -19356,7 +19356,7 @@ final Map<String, Object> finalMarket = market;
                     ((Map<String, Object>)request).put("limit", limit);
                 }
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = null;
@@ -20867,7 +20867,7 @@ final Map<String, Object> finalMarket = market;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "period", finalTimeframe );
             }};
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))

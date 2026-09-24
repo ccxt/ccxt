@@ -2438,17 +2438,17 @@ func (this *Weex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response []any = ListTyped(PanicOnError((<-this.ContractGetCapiV3MarketFundingRate(this.Extend(request, params))).Raw))
@@ -2625,7 +2625,7 @@ func (this *Weex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var currency map[string]any = nil
 	if code != nil {
 		currency = MapTyped(this.Currency(code))
@@ -2642,13 +2642,13 @@ func (this *Weex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	if since != nil {
-		AddElementToObject(request, "after", since)
+		request["after"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("before", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response []any = ListTyped(PanicOnError((<-this.PrivateGetApiV3AccountTransferRecords(this.Extend(request, params))).Raw))
@@ -3455,9 +3455,9 @@ func (this *Weex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes276419)
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if symbol != nil {
-		AddElementToObject(request, "symbol", this.SafeString(market, "id"))
+		request["symbol"] = this.SafeString(market, "id")
 	}
 	var response any = nil
 	if isSpot {
@@ -3486,13 +3486,13 @@ func (this *Weex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(response)
 	} else {
 		if since != nil {
-			AddElementToObject(request, "startTime", since)
+			request["startTime"] = since
 		}
 		if limit != nil {
-			AddElementToObject(request, "limit", limit)
+			request["limit"] = limit
 		}
 		var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-		request = GetValue(requestparamsVariable, 0)
+		request = MapTyped(GetValue(requestparamsVariable, 0))
 		params = MapTyped(GetValue(requestparamsVariable, 1))
 		var trigger *bool = this.SafeBool(params, "trigger", false)
 		if trigger != nil && *trigger == true {
@@ -3742,17 +3742,17 @@ func (this *Weex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes297219)
 		return nil
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", mathMin(limit, maxLimit))
+		request["limit"] = mathMin(limit, maxLimit)
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response []any = ListTyped(PanicOnError((<-this.PrivateGetApiV3AllOrders(this.Extend(request, params))).Raw))
@@ -3838,18 +3838,18 @@ func (this *Weex) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ...
 		ch <- BoxAbsent(retRes304019)
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if symbol != nil {
-		AddElementToObject(request, "symbol", this.ToSandboxMarketId(market))
+		request["symbol"] = this.ToSandboxMarketId(market)
 	}
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var response any = nil
@@ -4203,18 +4203,18 @@ func (this *Weex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes335219)
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if symbol != nil {
-		AddElementToObject(request, "symbol", this.SafeString(market, "id"))
+		request["symbol"] = this.SafeString(market, "id")
 	}
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var response any = nil
 	if isSpot {
@@ -4323,7 +4323,7 @@ func (this *Weex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(accountTypeparamsVariable, 1))
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	accountType = DerefScalar(this.SafeString(accountsByType, accountType, accountType))
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var items any = nil
 	var currency map[string]any = nil
 	if code != nil {
@@ -4331,42 +4331,42 @@ func (this *Weex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	}
 	if IsEqual(accountType, "contract") {
 		if !IsEqual(currency, nil) {
-			AddElementToObject(request, "currency", GetValue(currency, "id"))
+			request["currency"] = GetValue(currency, "id")
 		}
 		if since != nil {
-			AddElementToObject(request, "startTime", since)
+			request["startTime"] = since
 		}
 		if limit != nil {
-			AddElementToObject(request, "limit", limit)
+			request["limit"] = limit
 		}
 		var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-		request = GetValue(requestparamsVariable, 0)
+		request = MapTyped(GetValue(requestparamsVariable, 0))
 		params = MapTyped(GetValue(requestparamsVariable, 1))
 
 		var contractResponse map[string]any = MapTyped(PanicOnError((<-this.ContractPrivatePostCapiV3AccountIncome(this.Extend(request, params))).Raw))
 		items = this.SafeList(contractResponse, "items", []any{})
 	} else if IsEqual(accountType, "funding") {
 		if since != nil {
-			AddElementToObject(request, "startTime", since)
+			request["startTime"] = since
 		}
 		if limit != nil {
-			AddElementToObject(request, "pageSize", limit)
+			request["pageSize"] = limit
 		}
 		var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-		request = GetValue(requestparamsVariable, 0)
+		request = MapTyped(GetValue(requestparamsVariable, 0))
 		params = MapTyped(GetValue(requestparamsVariable, 1))
 
 		var fundingResponse map[string]any = MapTyped(PanicOnError((<-this.PrivatePostApiV3AccountFundingBills(this.Extend(request, params))).Raw))
 		items = this.SafeList(fundingResponse, "items", []any{})
 	} else {
 		if since != nil {
-			AddElementToObject(request, "after", since)
+			request["after"] = since
 		}
 		if limit != nil {
-			AddElementToObject(request, "limit", limit)
+			request["limit"] = limit
 		}
 		var requestparamsVariable []any = this.HandleUntilOption("before", request, params)
-		request = GetValue(requestparamsVariable, 0)
+		request = MapTyped(GetValue(requestparamsVariable, 0))
 		params = MapTyped(GetValue(requestparamsVariable, 1))
 
 		var billsResponse []any = ListTyped(PanicOnError((<-this.PrivatePostApiV3AccountBills(this.Extend(request, params))).Raw))
@@ -4530,7 +4530,7 @@ func (this *Weex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 		return nil
 	}
 	var market map[string]any = nil
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"incomeType": "position_funding",
 	}
 	if symbol != nil {
@@ -4538,22 +4538,22 @@ func (this *Weex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 		if GetValue(market, "swap") != true {
 			panic(NotSupported(this.Id + " fetchFundingHistory() supports swap contracts only"))
 		}
-		AddElementToObject(request, "symbol", GetValue(market, "id"))
+		request["symbol"] = GetValue(market, "id")
 	}
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	// the exchange rejects startTime and endTime when either is sent alone, they only work as a pair
-	var hasSince bool = (InOp(request, "startTime"))
-	var hasUntil bool = (InOp(request, "endTime"))
+	var hasSince bool = (func() bool { _, ok := request["startTime"]; return ok }())
+	var hasUntil bool = (func() bool { _, ok := request["endTime"]; return ok }())
 	if hasSince && !hasUntil {
-		AddElementToObject(request, "endTime", this.Milliseconds())
+		request["endTime"] = this.Milliseconds()
 	} else if hasUntil && !hasSince {
 		panic(ArgumentsRequired(this.Id + " fetchFundingHistory() requires since to be set when until is used"))
 	}

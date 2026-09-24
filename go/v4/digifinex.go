@@ -5610,20 +5610,20 @@ func (this *Digifinex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any)
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var requestparamsVariable []any = this.HandleUntilOption("end_timestamp", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(request, "instrument_id", GetValue(market, "id"))
+		request["instrument_id"] = GetValue(market, "id")
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	if since != nil {
-		AddElementToObject(request, "start_timestamp", since)
+		request["start_timestamp"] = since
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateSwapGetAccountFundingFee(this.Extend(request, params))).Raw))

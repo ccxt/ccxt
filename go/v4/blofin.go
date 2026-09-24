@@ -2385,17 +2385,17 @@ func (this *Blofin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes184919)
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(request, "instId", GetValue(market, "id"))
+		request["instId"] = GetValue(market, "id")
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	if limit != nil {
-		AddElementToObject(request, "limit", limit) // default 100, max 100
+		request["limit"] = limit // default 100, max 100
 	}
 	var typeVar any = "swap"
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params, typeVar)
@@ -2403,7 +2403,7 @@ func (this *Blofin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var response any = nil
 	if IsEqual(typeVar, "spot") {
-		AddElementToObject(request, "instType", "SPOT")
+		request["instType"] = "SPOT"
 		//
 		//     {
 		//         "code": "0",
@@ -2482,20 +2482,20 @@ func (this *Blofin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes191619)
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var currency map[string]any = nil
 	if code != nil {
 		currency = MapTyped(this.Currency(code))
-		AddElementToObject(request, "currency", GetValue(currency, "id"))
+		request["currency"] = GetValue(currency, "id")
 	}
 	if since != nil {
-		AddElementToObject(request, "before", mathMax(Subtract(since, 1), 0))
+		request["before"] = mathMax(Subtract(since, 1), 0)
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit) // default 100, max 100
+		request["limit"] = limit // default 100, max 100
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("after", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAssetDepositHistory(this.Extend(request, params))).Raw))
@@ -2548,20 +2548,20 @@ func (this *Blofin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes195719)
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var currency map[string]any = nil
 	if code != nil {
 		currency = MapTyped(this.Currency(code))
-		AddElementToObject(request, "currency", GetValue(currency, "id"))
+		request["currency"] = GetValue(currency, "id")
 	}
 	if since != nil {
-		AddElementToObject(request, "before", mathMax(Subtract(since, 1), 0))
+		request["before"] = mathMax(Subtract(since, 1), 0)
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit) // default 100, max 100
+		request["limit"] = limit // default 100, max 100
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("after", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAssetWithdrawalHistory(this.Extend(request, params))).Raw))
@@ -2758,17 +2758,17 @@ func (this *Blofin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes212619)
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var currency map[string]any = nil
 	if code != nil {
 		currency = MapTyped(this.Currency(code))
-		AddElementToObject(request, "currency", GetValue(currency, "id"))
+		request["currency"] = GetValue(currency, "id")
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAssetBills(this.Extend(request, params))).Raw))
@@ -3209,23 +3209,23 @@ func (this *Blofin) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength == 0 {
 			market = this.Market(GetValue(symbols, 0))
-			AddElementToObject(request, "instId", GetValue(market, "id"))
+			request["instId"] = GetValue(market, "id")
 		}
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", mathMin(limit, 100))
+		request["limit"] = mathMin(limit, 100)
 	}
 	if since != nil {
-		AddElementToObject(request, "begin", since)
+		request["begin"] = since
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountPositionsHistory(this.Extend(request, params))).Raw))

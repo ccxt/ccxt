@@ -2529,17 +2529,17 @@ func (this *Bingx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 		ch <- BoxAbsent(retRes187619)
 		return nil
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", mathMin(limit, 1000)) // api maximum 1000
+		request["limit"] = mathMin(limit, 1000) // api maximum 1000
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.SwapV2PublicGetQuoteFundingRate(this.Extend(request, params))).Raw))
@@ -3487,17 +3487,17 @@ func (this *Bingx) fetchPositionHistoryBody(ch chan any, symbol any, optionalArg
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		AddElementToObject(request, "pageSize", limit)
+		request["pageSize"] = limit
 	}
 	if since != nil {
-		AddElementToObject(request, "startTs", since)
+		request["startTs"] = since
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTs", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var response any = nil
 	if GetValue(market, "linear") == true {
@@ -5430,11 +5430,11 @@ func (this *Bingx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(request, "symbol", GetValue(market, "id"))
+		request["symbol"] = GetValue(market, "id")
 	}
 	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrders", market, params)
@@ -5444,13 +5444,13 @@ func (this *Bingx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		panic(NotSupported(this.Id + " fetchOrders() is only supported for swap markets"))
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.SwapV1PrivateGetTradeFullOrder(this.Extend(request, params))).Raw))
@@ -6044,7 +6044,7 @@ func (this *Bingx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var currency map[string]any = nil
 	if code != nil {
 		currency = MapTyped(this.Currency(code))
@@ -6059,10 +6059,10 @@ func (this *Bingx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " fetchTransfers() requires params[\"transferId\"] or both params[\"fromAccount\"] and params[\"toAccount\"]"))
 	}
 	if fromAccount != nil {
-		AddElementToObject(request, "fromAccount", fromId)
+		request["fromAccount"] = fromId
 	}
 	if toAccount != nil {
-		AddElementToObject(request, "toAccount", toId)
+		request["toAccount"] = toId
 	}
 	var maxLimit int = 100
 	var paginate bool = false
@@ -6077,13 +6077,13 @@ func (this *Bingx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	}
 	params = MapTyped(this.Omit(params, []any{"fromAccount", "toAccount"}))
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "pageSize", mathMin(limit, maxLimit))
+		request["pageSize"] = mathMin(limit, maxLimit)
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.ApiV3PrivateGetAssetTransferRecord(this.Extend(request, params))).Raw))
@@ -6314,20 +6314,20 @@ func (this *Bingx) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var currency map[string]any = nil
 	if code != nil {
 		currency = MapTyped(this.Currency(code))
-		AddElementToObject(request, "coin", GetValue(currency, "id"))
+		request["coin"] = GetValue(currency, "id")
 	}
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", mathMin(limit, 1000)) // api maximum 1000
+		request["limit"] = mathMin(limit, 1000) // api maximum 1000
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response []any = ListTyped(PanicOnError((<-this.SpotV3PrivateGetCapitalDepositHisrec(this.Extend(request, params))).Raw))
@@ -6385,20 +6385,20 @@ func (this *Bingx) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var currency map[string]any = nil
 	if code != nil {
 		currency = MapTyped(this.Currency(code))
-		AddElementToObject(request, "coin", GetValue(currency, "id"))
+		request["coin"] = GetValue(currency, "id")
 	}
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", mathMin(limit, 1000)) // api maximum 1000
+		request["limit"] = mathMin(limit, 1000) // api maximum 1000
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response []any = ListTyped(PanicOnError((<-this.SpotV3PrivateGetCapitalWithdrawHistory(this.Extend(request, params))).Raw))
@@ -7201,22 +7201,22 @@ func (this *Bingx) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"autoCloseType": "LIQUIDATION",
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(request, "symbol", GetValue(market, "id"))
+		request["symbol"] = GetValue(market, "id")
 	}
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", mathMin(limit, 100)) // api maximum 100
+		request["limit"] = mathMin(limit, 100) // api maximum 100
 	}
 	var subType *string = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchMyLiquidations", market, params)

@@ -6042,17 +6042,17 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	} else {
 		customSymbol = Add(Add(".", market["baseId"]), "FR8H")
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": customSymbol,
 	}
 	if since != nil {
-		AddElementToObject(request, "start", since)
+		request["start"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var response any = nil
 	if isUsdtSettled {
@@ -6447,18 +6447,18 @@ func (this *Phemex) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if code != nil {
-		AddElementToObject(request, "fromCurrency", code)
+		request["fromCurrency"] = code
 	}
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAssetsConvert(this.Extend(request, params))).Raw))

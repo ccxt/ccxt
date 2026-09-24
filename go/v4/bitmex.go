@@ -4197,17 +4197,17 @@ func (this *Bitmex) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs 
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "count", limit)
+		request["count"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response []any = ListTyped(PanicOnError((<-this.PublicGetLiquidation(this.Extend(request, params))).Raw))

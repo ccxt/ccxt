@@ -6025,7 +6025,7 @@ final Object finalI = i;
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_timestamp", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_timestamp", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> market = null;

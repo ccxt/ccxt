@@ -1683,17 +1683,17 @@ func (this *Paradex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
 	if limit != nil {
-		AddElementToObject(request, "page_size", mathMin(limit, 1000))
+		request["page_size"] = mathMin(limit, 1000)
 	}
 	if since != nil {
-		AddElementToObject(request, "start_at", since)
+		request["start_at"] = since
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end_at", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTrades(this.Extend(request, params))).Raw))
@@ -3010,20 +3010,20 @@ func (this *Paradex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes225419)
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(request, "market", GetValue(market, "id"))
+		request["market"] = GetValue(market, "id")
 	}
 	if since != nil {
-		AddElementToObject(request, "start_at", since)
+		request["start_at"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "page_size", limit)
+		request["page_size"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end_at", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOrdersHistory(this.Extend(request, params))).Raw))
@@ -3257,20 +3257,20 @@ func (this *Paradex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes243919)
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(request, "market", GetValue(market, "id"))
+		request["market"] = GetValue(market, "id")
 	}
 	if limit != nil {
-		AddElementToObject(request, "page_size", limit)
+		request["page_size"] = limit
 	}
 	if since != nil {
-		AddElementToObject(request, "start_at", since)
+		request["start_at"] = since
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end_at", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetFills(this.Extend(request, params))).Raw))
@@ -3494,18 +3494,18 @@ func (this *Paradex) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if since != nil {
-		AddElementToObject(request, "from", since)
+		request["from"] = since
 	} else {
-		AddElementToObject(request, "from", 1)
+		request["from"] = 1
 	}
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("to", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetLiquidations(this.Extend(request, params))).Raw))
@@ -3593,15 +3593,15 @@ func (this *Paradex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes269419)
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if limit != nil {
-		AddElementToObject(request, "page_size", limit)
+		request["page_size"] = limit
 	}
 	if since != nil {
-		AddElementToObject(request, "start_at", since)
+		request["start_at"] = since
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end_at", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTransfers(this.Extend(request, params))).Raw))
@@ -3689,15 +3689,15 @@ func (this *Paradex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 		ch <- BoxAbsent(retRes275819)
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if limit != nil {
-		AddElementToObject(request, "page_size", limit)
+		request["page_size"] = limit
 	}
 	if since != nil {
-		AddElementToObject(request, "start_at", since)
+		request["start_at"] = since
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end_at", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTransfers(this.Extend(request, params))).Raw))
@@ -3785,19 +3785,19 @@ func (this *Paradex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes282219)
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var currency map[string]any = nil
 	if code != nil {
 		currency = MapTyped(this.SafeCurrency(code))
 	}
 	if limit != nil {
-		AddElementToObject(request, "page_size", limit)
+		request["page_size"] = limit
 	}
 	if since != nil {
-		AddElementToObject(request, "start_at", since)
+		request["start_at"] = since
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end_at", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTransfers(this.Extend(request, params))).Raw))
@@ -4413,19 +4413,19 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) a
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
 	if limit != nil {
-		AddElementToObject(request, "page_size", mathMin(limit, 5000))
+		request["page_size"] = mathMin(limit, 5000)
 	} else {
-		AddElementToObject(request, "page_size", 100)
+		request["page_size"] = 100
 	}
 	if since != nil {
-		AddElementToObject(request, "start_at", since)
+		request["start_at"] = since
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end_at", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetFundingPayments(this.Extend(request, params))).Raw))

@@ -4553,17 +4553,17 @@ func (this *Binance) TokenizedConvertHistory(optionalArgs ...any) any {
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"timestamp": this.Milliseconds(),
 	}
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "size", limit)
+		request["size"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var response any = this.SapiGetEquityTokenizedHistory(this.Extend(request, params))
 	//
@@ -15188,12 +15188,12 @@ func (this *Binance) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = nil
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"incomeType": "FUNDING_FEE",
 	}
 	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(request, "symbol", GetValue(market, "id"))
+		request["symbol"] = GetValue(market, "id")
 		if GetValue(market, "swap") != true {
 			panic(NotSupported(this.Id + " fetchFundingHistory() supports swap contracts only"))
 		}
@@ -15207,13 +15207,13 @@ func (this *Binance) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) a
 	isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
 	params = MapTyped(GetValue(isPortfolioMarginparamsVariable, 1))
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var defaultType *string = this.SafeString2(this.Options, "fetchFundingHistory", "defaultType", "future")
 	var typeVar *string = this.SafeString(params, "type", defaultType)
@@ -17164,20 +17164,20 @@ func (this *Binance) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) a
 	var isPortfolioMarginparamsVariable []any = this.HandleOptionAndParams2(params, "fetchBorrowInterest", "papi", "portfolioMargin", false)
 	isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
 	params = MapTyped(GetValue(isPortfolioMarginparamsVariable, 1))
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	if code != nil {
 		var currency map[string]any = MapTyped(this.Currency(code))
-		AddElementToObject(request, "asset", currency["id"])
+		request["asset"] = currency["id"]
 	}
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "size", limit)
+		request["size"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var response any = nil
 	if isPortfolioMargin == true {
@@ -17187,7 +17187,7 @@ func (this *Binance) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) a
 	} else {
 		if symbol != nil {
 			market = this.Market(symbol)
-			AddElementToObject(request, "isolatedSymbol", GetValue(market, "id"))
+			request["isolatedSymbol"] = GetValue(market, "id")
 		}
 
 		response = (<-this.SapiGetMarginInterestHistory(this.Extend(request, params)))
@@ -17807,9 +17807,9 @@ func (this *Binance) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) a
 	var isPortfolioMarginparamsVariable []any = this.HandleOptionAndParams2(params, "fetchMyLiquidations", "papi", "portfolioMargin", false)
 	isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
 	params = MapTyped(GetValue(isPortfolioMarginparamsVariable, 1))
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if typeVar == nil || *typeVar != "spot" {
-		AddElementToObject(request, "autoCloseType", "LIQUIDATION")
+		request["autoCloseType"] = "LIQUIDATION"
 	}
 	if !IsEqual(market, nil) {
 		var symbolKey string = func() string {
@@ -17819,21 +17819,21 @@ func (this *Binance) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) a
 			return "symbol"
 		}()
 		if !(isPortfolioMargin == true) {
-			AddElementToObject(request, symbolKey, GetValue(market, "id"))
+			request[symbolKey] = GetValue(market, "id")
 		}
 	}
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if limit != nil {
 		if typeVar != nil && *typeVar == "spot" {
-			AddElementToObject(request, "size", limit)
+			request["size"] = limit
 		} else {
-			AddElementToObject(request, "limit", limit)
+			request["limit"] = limit
 		}
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var response any = nil
 	if typeVar != nil && *typeVar == "spot" {
@@ -19182,17 +19182,17 @@ func (this *Binance) fetchLongShortRatioHistoryBody(ch chan any, optionalArgs ..
 	if timeframe == nil {
 		timeframe = "1d"
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"period": timeframe,
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var subType *string = nil
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchLongShortRatioHistory", market, params)
@@ -19200,12 +19200,12 @@ func (this *Binance) fetchLongShortRatioHistoryBody(ch chan any, optionalArgs ..
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	var response any = nil
 	if subType != nil && *subType == "linear" {
-		AddElementToObject(request, "symbol", market["id"])
+		request["symbol"] = market["id"]
 
 		response = (<-this.FapiDataGetGlobalLongShortAccountRatio(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else if subType != nil && *subType == "inverse" {
-		AddElementToObject(request, "pair", GetValue(market["info"], "pair"))
+		request["pair"] = GetValue(market["info"], "pair")
 
 		response = (<-this.DapiDataGetGlobalLongShortAccountRatio(this.Extend(request, params))).Raw
 		PanicOnError(response)

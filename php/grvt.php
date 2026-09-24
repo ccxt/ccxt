@@ -3277,7 +3277,7 @@ class grvt extends Exchange {
         );
     }
 
-    public function handle_until_option_string(string $key, array $request, ?array $params = null, float $multiplier = 1): array {
+    public function handle_until_option_string(string $key, array $request, $params = array(), float $multiplier = 1): array {
         $until = $this->safe_integer_2($params, 'until', 'till');
         if ($until !== null) {
             $request[$key] = $this->number_to_string($this->parse_to_int($until * $multiplier));

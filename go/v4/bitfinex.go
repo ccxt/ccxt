@@ -1986,19 +1986,19 @@ func (this *Bitfinex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var sort string = "-1"
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 	if since != nil {
-		AddElementToObject(request, "start", since)
+		request["start"] = since
 		sort = "1"
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", mathMin(limit, 10000)) // default 120, max 10000
+		request["limit"] = mathMin(limit, 10000) // default 120, max 10000
 	}
-	AddElementToObject(request, "sort", sort)
+	request["sort"] = sort
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	response := (<-this.PublicGetTradesSymbolHist(this.Extend(request, params)))
@@ -2081,17 +2081,17 @@ func (this *Bitfinex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	} else {
 		limit = mathMin(limit, 10000)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol":    market["id"],
 		"timeframe": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"limit":     limit,
 	}
 	if since != nil {
-		AddElementToObject(request, "start", since)
-		AddElementToObject(request, "sort", 1)
+		request["start"] = since
+		request["sort"] = 1
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	response := (<-this.PublicGetCandlesTradeTimeframeSymbolHist(this.Extend(request, params)))
@@ -2962,15 +2962,15 @@ func (this *Bitfinex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 		ch <- BoxAbsent(retRes228919)
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if since != nil {
-		AddElementToObject(request, "start", since)
+		request["start"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit) // default 25, max 2500
+		request["limit"] = limit // default 25, max 2500
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var market map[string]any = nil
 	var response any = nil
@@ -2980,7 +2980,7 @@ func (this *Bitfinex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 		PanicOnError(response)
 	} else {
 		market = this.Market(symbol)
-		AddElementToObject(request, "symbol", GetValue(market, "id"))
+		request["symbol"] = GetValue(market, "id")
 
 		response = (<-this.PrivatePostAuthROrdersSymbolHist(this.Extend(request, params)))
 		PanicOnError(response)
@@ -4151,20 +4151,20 @@ func (this *Bitfinex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var currency map[string]any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if since != nil {
-		AddElementToObject(request, "start", since)
+		request["start"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var response any = nil
 	if code != nil {
 		currency = MapTyped(this.Currency(code))
-		AddElementToObject(request, "currency", GetValue(currency, "id"))
+		request["currency"] = GetValue(currency, "id")
 
 		response = (<-this.PrivatePostAuthRLedgersCurrencyHist(this.Extend(request, params)))
 		PanicOnError(response)
@@ -4317,14 +4317,14 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 	if since != nil {
-		AddElementToObject(request, "start", since)
+		request["start"] = since
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	response := (<-this.PublicGetStatusDerivSymbolHist(this.Extend(request, params)))
@@ -4673,17 +4673,17 @@ func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan any, symbol any, opti
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 	if since != nil {
-		AddElementToObject(request, "start", since)
+		request["start"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	response := (<-this.PublicGetStatusDerivSymbolHist(this.Extend(request, params)))
@@ -4843,15 +4843,15 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan any, symbol any, optionalArg
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if since != nil {
-		AddElementToObject(request, "start", since)
+		request["start"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response []any = ListTyped(PanicOnError((<-this.PublicGetLiquidationsHist(this.Extend(request, params))).Raw))

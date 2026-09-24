@@ -4723,17 +4723,17 @@ func (this *Whitebit) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 		panic(ArgumentsRequired(this.Id + " fetchFundingHistory() requires a symbol argument"))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
 	if since != nil {
-		AddElementToObject(request, "startDate", since)
+		request["startDate"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endDate", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V4PrivatePostCollateralAccountFundingHistory(this.Extend(request, params))).Raw))
@@ -5033,19 +5033,19 @@ func (this *Whitebit) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if code != nil {
-		AddElementToObject(request, "fromTicker", code)
+		request["fromTicker"] = code
 	}
 	if since != nil {
 		var start int64 = this.ParseToInt(Divide(since, 1000))
-		AddElementToObject(request, "from", this.NumberToString(start))
+		request["from"] = this.NumberToString(start)
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("to", request, params, 0.001)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V4PrivatePostConvertHistory(this.Extend(request, params))).Raw))
@@ -5173,17 +5173,17 @@ func (this *Whitebit) fetchPositionHistoryBody(ch chan any, symbol any, optional
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
 	if since != nil {
-		AddElementToObject(request, "startDate", since)
+		request["startDate"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", since)
+		request["limit"] = since
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endDate", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response []any = ListTyped(PanicOnError((<-this.V4PrivatePostCollateralAccountPositionsHistory(this.Extend(request, params))).Raw))
@@ -5458,17 +5458,17 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
 	if since != nil {
-		AddElementToObject(request, "startDate", MathRound(Divide(since, 1000)))
+		request["startDate"] = MathRound(Divide(since, 1000))
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("until_timestamp", request, params, 0.001)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 
 	var response []any = ListTyped(PanicOnError((<-this.V4PublicGetFundingHistoryMarket(this.Extend(request, params))).Raw))

@@ -1639,7 +1639,7 @@ public class Aster extends AsterApi
             {
                 ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1500));
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             ((Map<String, Object>)request).put("interval", this.safeString(this.timeframes, timeframe, timeframe));
@@ -1843,7 +1843,7 @@ public class Aster extends AsterApi
             }
             if (Boolean.TRUE.equals(untilDefined))
             {
-                request = this.handleUntilOption("endTime", request, parameters);
+                request = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             }
             // use historical endpoint for targeted requests
             if (((Map<?, ?>)request).containsKey("startTime"))
@@ -1932,7 +1932,7 @@ public class Aster extends AsterApi
             {
                 ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000));
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = null;
@@ -2773,7 +2773,7 @@ public class Aster extends AsterApi
             {
                 ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000));
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.fapiPublicGetV3FundingRate(this.extend(request, parameters))).join();
@@ -3476,7 +3476,7 @@ public class Aster extends AsterApi
             {
                 ((Map<String, Object>)request).put("startTime", since);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = null;
@@ -4812,7 +4812,7 @@ public class Aster extends AsterApi
                 market = (Map<String, Object>) this.market(symbol);
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))

@@ -4132,21 +4132,21 @@ func (this *Coinex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	if since != nil {
-		AddElementToObject(request, "start_time", since)
+		request["start_time"] = since
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end_time", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var response any = nil
 	if GetValue(market, "swap") == true {
-		AddElementToObject(request, "market_type", "FUTURES")
+		request["market_type"] = "FUTURES"
 
 		response = (<-this.V2PrivateGetFuturesUserDeals(this.Extend(request, params))).Raw
 		PanicOnError(response)
@@ -4156,9 +4156,9 @@ func (this *Coinex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		marginMode = GetValue(marginModeparamsVariable, 0)
 		params = MapTyped(GetValue(marginModeparamsVariable, 1))
 		if marginMode != nil {
-			AddElementToObject(request, "market_type", "MARGIN")
+			request["market_type"] = "MARGIN"
 		} else {
-			AddElementToObject(request, "market_type", "SPOT")
+			request["market_type"] = "SPOT"
 		}
 
 		response = (<-this.V2PrivateGetSpotUserDeals(this.Extend(request, params))).Raw
@@ -4894,18 +4894,18 @@ func (this *Coinex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market":      market["id"],
 		"market_type": "FUTURES",
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end_time", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	if since != nil {
-		AddElementToObject(request, "start_time", since)
+		request["start_time"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivateGetFuturesPositionFundingHistory(this.Extend(request, params))).Raw))
@@ -5301,17 +5301,17 @@ func (this *Coinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
 	if since != nil {
-		AddElementToObject(request, "start_time", since)
+		request["start_time"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end_time", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V2PublicGetFuturesFundingRateHistory(this.Extend(request, params))).Raw))
@@ -5604,7 +5604,7 @@ func (this *Coinex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		panic(ArgumentsRequired(this.Id + " fetchTransfers() requires a code argument"))
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"ccy": currency["id"],
 	}
 	var marginMode any = nil
@@ -5612,18 +5612,18 @@ func (this *Coinex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	if marginMode != nil {
-		AddElementToObject(request, "transfer_type", "MARGIN")
+		request["transfer_type"] = "MARGIN"
 	} else {
-		AddElementToObject(request, "transfer_type", "FUTURES")
+		request["transfer_type"] = "FUTURES"
 	}
 	if since != nil {
-		AddElementToObject(request, "start_time", since)
+		request["start_time"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end_time", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivateGetAssetsTransferHistory(this.Extend(request, params))).Raw))
@@ -6501,18 +6501,18 @@ func (this *Coinex) fetchPositionHistoryBody(ch chan any, symbol any, optionalAr
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market_type": "FUTURES",
 		"market":      market["id"],
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	if since != nil {
-		AddElementToObject(request, "start_time", since)
+		request["start_time"] = since
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end_time", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivateGetFuturesFinishedPosition(this.Extend(request, params))).Raw))
@@ -6851,19 +6851,19 @@ func (this *Coinex) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs .
 		panic(ArgumentsRequired(this.Id + " fetchMarginAdjustmentHistory() requires a positionId parameter"))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market":      market["id"],
 		"market_type": "FUTURES",
 		"position_id": positionId,
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end_time", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	if since != nil {
-		AddElementToObject(request, "start_time", since)
+		request["start_time"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivateGetFuturesPositionMarginHistory(this.Extend(request, params))).Raw))

@@ -4805,20 +4805,20 @@ func (this *Bitget) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 			since = this.Milliseconds() - 7776000000 // 90 days
 		}
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"startTime": since,
 		"endTime":   this.Milliseconds(),
 	}
 	var currency map[string]any = nil
 	if code != nil {
 		currency = MapTyped(this.Currency(code))
-		AddElementToObject(request, "coin", GetValue(currency, "id"))
+		request["coin"] = GetValue(currency, "id")
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = GetValue(requestparamsVariable, 1)
 	var response any = nil
 	if uta == true {
@@ -5078,18 +5078,18 @@ func (this *Bitget) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 			since = this.Milliseconds() - 7776000000 // 90 days
 		}
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"startTime": since,
 		"endTime":   this.Milliseconds(),
 	}
 	if !IsEqual(currency, nil) {
-		AddElementToObject(request, "coin", GetValue(currency, "id"))
+		request["coin"] = GetValue(currency, "id")
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = GetValue(requestparamsVariable, 1)
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var response any = nil
 	if uta == true {
@@ -6304,7 +6304,7 @@ func (this *Bitget) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 	var uta any = nil
@@ -6313,30 +6313,30 @@ func (this *Bitget) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	params = GetValue(utaparamsVariable, 1)
 	if limit != nil {
 		if uta == true {
-			AddElementToObject(request, "limit", mathMin(limit, 100))
+			request["limit"] = mathMin(limit, 100)
 		} else if GetValue(market, "contract") == true {
-			AddElementToObject(request, "limit", mathMin(limit, 1000))
+			request["limit"] = mathMin(limit, 1000)
 		} else {
-			AddElementToObject(request, "limit", limit)
+			request["limit"] = limit
 		}
 	}
 	var options map[string]any = SafeMapTyped(this.Options, "fetchTrades")
 	var response any = nil
-	var productType *string = nil
+	var productType any = nil
 	productTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
-	productType = SafeStringPtr(GetValue(productTypeparamsVariable, 0))
+	productType = GetValue(productTypeparamsVariable, 0)
 	params = GetValue(productTypeparamsVariable, 1)
 	if uta == true {
-		if productType != nil && *productType == "SPOT" {
+		if IsEqual(productType, "SPOT") {
 			var marginMode any = nil
 			var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchTrades", params)
 			marginMode = GetValue(marginModeparamsVariable, 0)
 			params = GetValue(marginModeparamsVariable, 1)
 			if marginMode != nil {
-				productType = SafeStringPtr("MARGIN")
+				productType = "MARGIN"
 			}
 		}
-		AddElementToObject(request, "category", productType)
+		request["category"] = productType
 
 		response = (<-this.PublicUtaGetV3MarketFills(this.Extend(request, params))).Raw
 		PanicOnError(response)
@@ -6347,10 +6347,10 @@ func (this *Bitget) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		params = this.Omit(params, "method")
 		if spotMethod != nil && *spotMethod == "publicSpotGetV2SpotMarketFillsHistory" {
 			var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-			request = GetValue(requestparamsVariable, 0)
+			request = MapTyped(GetValue(requestparamsVariable, 0))
 			params = GetValue(requestparamsVariable, 1)
 			if since != nil {
-				AddElementToObject(request, "startTime", since)
+				request["startTime"] = since
 			}
 
 			response = (<-this.PublicSpotGetV2SpotMarketFillsHistory(this.Extend(request, params))).Raw
@@ -6365,13 +6365,13 @@ func (this *Bitget) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		var defaultSwapMethod *string = this.SafeString(swapOptions, "method", "publicMixGetV2MixMarketFillsHistory")
 		var swapMethod *string = this.SafeString(params, "method", defaultSwapMethod)
 		params = this.Omit(params, "method")
-		AddElementToObject(request, "productType", productType)
+		request["productType"] = productType
 		if swapMethod != nil && *swapMethod == "publicMixGetV2MixMarketFillsHistory" {
 			var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-			request = GetValue(requestparamsVariable, 0)
+			request = MapTyped(GetValue(requestparamsVariable, 0))
 			params = GetValue(requestparamsVariable, 1)
 			if since != nil {
-				AddElementToObject(request, "startTime", since)
+				request["startTime"] = since
 			}
 
 			response = (<-this.PublicMixGetV2MixMarketFillsHistory(this.Extend(request, params))).Raw
@@ -9588,7 +9588,7 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market map[string]any = nil
 	var typeVar any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var marginMode any = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchOpenOrders", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
@@ -9599,7 +9599,7 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(utaparamsVariable, 1)
 	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(request, "symbol", GetValue(market, "id"))
+		request["symbol"] = GetValue(market, "id")
 		var defaultType *string = this.SafeString2(this.Options, "fetchOpenOrders", "defaultType", "spot")
 		var marketType any = func() any {
 			if InOp(market, "type") {
@@ -9642,35 +9642,35 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var planTypeDefined bool = (this.SafeString(params, "planType") != nil)
 	var isTrigger bool = (trigger != nil && *trigger == true) || planTypeDefined
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = GetValue(requestparamsVariable, 1)
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	if (uta != true) && ((IsEqual(typeVar, "swap")) || (IsEqual(typeVar, "future")) || (marginMode != nil)) {
 		var clientOrderId *string = this.SafeString2(params, "clientOid", "clientOrderId")
 		params = this.Omit(params, "clientOrderId")
 		if clientOrderId != nil {
-			AddElementToObject(request, "clientOid", clientOrderId)
+			request["clientOid"] = clientOrderId
 		}
 	}
-	var productType *string = nil
+	var productType any = nil
 	productTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
-	productType = SafeStringPtr(GetValue(productTypeparamsVariable, 0))
+	productType = GetValue(productTypeparamsVariable, 0)
 	params = GetValue(productTypeparamsVariable, 1)
 	params = this.Omit(params, []any{"type", "stop", "trigger", "trailing"})
 	if uta == true {
 		if IsEqual(typeVar, "spot") {
 			if marginMode != nil {
-				productType = SafeStringPtr("MARGIN")
+				productType = "MARGIN"
 			} else {
-				productType = SafeStringPtr("SPOT")
+				productType = "SPOT"
 			}
 		}
-		AddElementToObject(request, "category", productType)
+		request["category"] = productType
 		if trigger != nil && *trigger == true {
 
 			response = (<-this.PrivateUtaGetV3TradeUnfilledStrategyOrders(this.Extend(request, params))).Raw
@@ -9684,7 +9684,7 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		if marginMode != nil {
 			if since == nil {
 				since = this.Milliseconds() - 7776000000
-				AddElementToObject(request, "startTime", since)
+				request["startTime"] = since
 			}
 			if IsEqual(marginMode, "isolated") {
 
@@ -9707,16 +9707,16 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 			}
 		}
 	} else {
-		AddElementToObject(request, "productType", productType)
+		request["productType"] = productType
 		if trailing != nil && *trailing == true {
 			var planType *string = this.SafeString(params, "planType", "track_plan")
-			AddElementToObject(request, "planType", planType)
+			request["planType"] = planType
 
 			response = (<-this.PrivateMixGetV2MixOrderOrdersPlanPending(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else if isTrigger {
 			var planType *string = this.SafeString(params, "planType", "normal_plan")
-			AddElementToObject(request, "planType", planType)
+			request["planType"] = planType
 
 			response = (<-this.PrivateMixGetV2MixOrderOrdersPlanPending(this.Extend(request, params))).Raw
 			PanicOnError(response)
@@ -10163,10 +10163,10 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs .
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(request, "symbol", GetValue(market, "id"))
+		request["symbol"] = GetValue(market, "id")
 	}
 	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, params)
@@ -10199,19 +10199,19 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs .
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	params = this.Omit(params, []any{"stop", "trigger", "trailing"})
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = GetValue(requestparamsVariable, 1)
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	if (marketType != nil && *marketType == "swap") || (marketType != nil && *marketType == "future") || (marginMode != nil) {
 		var clientOrderId *string = this.SafeString2(params, "clientOid", "clientOrderId")
 		params = this.Omit(params, "clientOrderId")
 		if clientOrderId != nil {
-			AddElementToObject(request, "clientOid", clientOrderId)
+			request["clientOid"] = clientOrderId
 		}
 	}
 	var now int64 = this.Milliseconds()
@@ -10219,7 +10219,7 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs .
 		if marginMode != nil {
 			if since == nil {
 				since = now - 7776000000
-				AddElementToObject(request, "startTime", since)
+				request["startTime"] = since
 			}
 			if IsEqual(marginMode, "isolated") {
 
@@ -10238,10 +10238,10 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs .
 			params = this.Omit(params, []any{"until"})
 			if since == nil {
 				since = now - 7776000000
-				AddElementToObject(request, "startTime", since)
+				request["startTime"] = since
 			}
 			if endTime == nil {
-				AddElementToObject(request, "endTime", now)
+				request["endTime"] = now
 			}
 
 			response = (<-this.PrivateSpotGetV2SpotTradeHistoryPlanOrder(this.Extend(request, params))).Raw
@@ -10252,21 +10252,21 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs .
 			PanicOnError(response)
 		}
 	} else {
-		var productType *string = nil
+		var productType any = nil
 		productTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
-		productType = SafeStringPtr(GetValue(productTypeparamsVariable, 0))
+		productType = GetValue(productTypeparamsVariable, 0)
 		params = GetValue(productTypeparamsVariable, 1)
-		AddElementToObject(request, "productType", productType)
+		request["productType"] = productType
 		var planTypeDefined bool = (this.SafeString(params, "planType") != nil)
 		if trailing != nil && *trailing == true {
 			var planType *string = this.SafeString(params, "planType", "track_plan")
-			AddElementToObject(request, "planType", planType)
+			request["planType"] = planType
 
 			response = (<-this.PrivateMixGetV2MixOrderOrdersPlanHistory(this.Extend(request, params))).Raw
 			PanicOnError(response)
 		} else if (trigger != nil && *trigger == true) || planTypeDefined {
 			var planType *string = this.SafeString(params, "planType", "normal_plan")
-			AddElementToObject(request, "planType", planType)
+			request["planType"] = planType
 
 			response = (<-this.PrivateMixGetV2MixOrderOrdersPlanHistory(this.Extend(request, params))).Raw
 			PanicOnError(response)
@@ -10511,7 +10511,7 @@ func (this *Bitget) fetchUtaCanceledAndClosedOrdersBody(ch chan any, optionalArg
 			productType = SafeStringPtr("MARGIN")
 		}
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"category": productType,
 	}
 	var paginate bool = false
@@ -10525,13 +10525,13 @@ func (this *Bitget) fetchUtaCanceledAndClosedOrdersBody(ch chan any, optionalArg
 		return nil
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var response any = nil
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
@@ -10728,19 +10728,19 @@ func (this *Bitget) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var currency map[string]any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if code != nil {
 		currency = MapTyped(this.Currency(code))
-		AddElementToObject(request, "coin", GetValue(currency, "id"))
+		request["coin"] = GetValue(currency, "id")
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = GetValue(requestparamsVariable, 1)
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var response any = nil
 	if uta == true {
@@ -10755,19 +10755,19 @@ func (this *Bitget) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 			params = GetValue(marginModeparamsVariable, 1)
 			if marketType != nil && *marketType == "spot" {
 				if marginMode != nil {
-					AddElementToObject(request, "category", "MARGIN")
+					request["category"] = "MARGIN"
 				} else {
-					AddElementToObject(request, "category", "SPOT")
+					request["category"] = "SPOT"
 				}
 			} else {
 				var productType any = nil
 				productTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
 				productType = GetValue(productTypeparamsVariable, 0)
 				params = GetValue(productTypeparamsVariable, 1)
-				AddElementToObject(request, "category", productType)
+				request["category"] = productType
 			}
 			if symbol != nil {
-				AddElementToObject(request, "symbol", this.SafeString(market, "id"))
+				request["symbol"] = this.SafeString(market, "id")
 			}
 
 			response = (<-this.PrivateUtaGetV3AccountFinancialRecords(this.Extend(request, params))).Raw
@@ -10785,13 +10785,13 @@ func (this *Bitget) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(response)
 	} else {
 		if symbol != nil {
-			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
+			request["symbol"] = this.SafeString(market, "id")
 		}
 		var productType any = nil
 		productTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
 		productType = GetValue(productTypeparamsVariable, 0)
 		params = GetValue(productTypeparamsVariable, 1)
-		AddElementToObject(request, "productType", productType)
+		request["productType"] = productType
 
 		response = (<-this.PrivateMixGetV2MixAccountBill(this.Extend(request, params))).Raw
 		PanicOnError(response)
@@ -11192,15 +11192,15 @@ func (this *Bitget) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = GetValue(requestparamsVariable, 1)
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var paginate bool = false
 	var marginMode any = nil
@@ -11236,11 +11236,11 @@ func (this *Bitget) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.PrivateUtaGetV3TradeFills(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
-		AddElementToObject(request, "symbol", market["id"])
+		request["symbol"] = market["id"]
 		if GetValue(market, "spot") == true {
 			if marginMode != nil {
 				if since == nil {
-					AddElementToObject(request, "startTime", this.Milliseconds()-7776000000)
+					request["startTime"] = this.Milliseconds() - 7776000000
 				}
 				if IsEqual(marginMode, "isolated") {
 
@@ -11257,11 +11257,11 @@ func (this *Bitget) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 				PanicOnError(response)
 			}
 		} else {
-			var productType *string = nil
+			var productType any = nil
 			productTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
-			productType = SafeStringPtr(GetValue(productTypeparamsVariable, 0))
+			productType = GetValue(productTypeparamsVariable, 0)
 			params = GetValue(productTypeparamsVariable, 1)
-			AddElementToObject(request, "productType", productType)
+			request["productType"] = productType
 
 			response = (<-this.PrivateMixGetV2MixOrderFills(this.Extend(request, params))).Raw
 			PanicOnError(response)
@@ -12499,32 +12499,32 @@ func (this *Bitget) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	if GetValue(market, "swap") != true {
 		panic(BadSymbol(this.Id + " fetchFundingHistory() supports swap contracts only"))
 	}
-	var productType *string = nil
+	var productType any = nil
 	productTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
-	productType = SafeStringPtr(GetValue(productTypeparamsVariable, 0))
+	productType = GetValue(productTypeparamsVariable, 0)
 	params = GetValue(productTypeparamsVariable, 1)
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = GetValue(requestparamsVariable, 1)
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var response any = nil
 	if uta == true {
-		AddElementToObject(request, "coin", market["settleId"])
-		AddElementToObject(request, "category", productType)
+		request["coin"] = market["settleId"]
+		request["category"] = productType
 
 		response = (<-this.PrivateUtaGetV3AccountFinancialRecords(this.Extend(request, params))).Raw
 		PanicOnError(response)
 	} else {
-		AddElementToObject(request, "symbol", market["id"])
-		AddElementToObject(request, "marginCoin", market["settleId"])
-		AddElementToObject(request, "businessType", "contract_settle_fee")
-		AddElementToObject(request, "productType", productType)
+		request["symbol"] = market["id"]
+		request["marginCoin"] = market["settleId"]
+		request["businessType"] = "contract_settle_fee"
+		request["productType"] = productType
 
 		response = (<-this.PrivateMixGetV2MixAccountBill(this.Extend(request, params))).Raw
 		PanicOnError(response)
@@ -13203,18 +13203,18 @@ func (this *Bitget) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	typeVar = DerefScalar(this.SafeString(accountsByType, fromAccount))
 	var currency map[string]any = MapTyped(this.Currency(code))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"coin":     currency["id"],
 		"fromType": typeVar,
 	}
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateSpotGetV2SpotAccountTransferRecords(this.Extend(request, params))).Raw))
@@ -13828,17 +13828,17 @@ func (this *Bitget) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) an
 	if typeVar == nil || *typeVar != "spot" {
 		panic(NotSupported(this.Id + " fetchMyLiquidations() supports spot margin markets only"))
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	} else {
-		AddElementToObject(request, "startTime", this.Milliseconds()-7776000000)
+		request["startTime"] = this.Milliseconds() - 7776000000
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var response any = nil
 	var marginMode any = nil
@@ -13849,7 +13849,7 @@ func (this *Bitget) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) an
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " fetchMyLiquidations() requires a symbol argument"))
 		}
-		AddElementToObject(request, "symbol", this.SafeString(market, "id"))
+		request["symbol"] = this.SafeString(market, "id")
 
 		response = (<-this.PrivateMarginGetV2MarginIsolatedLiquidationHistory(this.Extend(request, params))).Raw
 		PanicOnError(response)
@@ -14670,35 +14670,35 @@ func (this *Bitget) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
-	var productType *string = nil
+	var productType any = nil
 	var uta any = nil
 	var response any = nil
 	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength > 0 {
 			market = this.Market(GetValue(symbols, 0))
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
+			request["symbol"] = GetValue(market, "id")
 		}
 	}
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = GetValue(requestparamsVariable, 1)
 	productTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
-	productType = SafeStringPtr(GetValue(productTypeparamsVariable, 0))
+	productType = GetValue(productTypeparamsVariable, 0)
 	params = GetValue(productTypeparamsVariable, 1)
 	var utaparamsVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchPositionsHistory", false))))
 	uta = GetValue(utaparamsVariable, 0)
 	params = GetValue(utaparamsVariable, 1)
 	if uta == true {
-		AddElementToObject(request, "category", productType)
+		request["category"] = productType
 
 		response = (<-this.PrivateUtaGetV3PositionHistoryPosition(this.Extend(request, params))).Raw
 		PanicOnError(response)

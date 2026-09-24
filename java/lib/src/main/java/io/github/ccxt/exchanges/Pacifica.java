@@ -1702,7 +1702,7 @@ public class Pacifica extends PacificaApi
                 put( "interval", tf );
                 put( "start_time", finalSince );
             }};
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Long nowMillis = this.milliseconds();
@@ -1905,7 +1905,7 @@ public class Pacifica extends PacificaApi
                 return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, "next_cursor", "cursor", null, defaultLimit)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             ((Map<String, Object>)request).put("account", userAddress);

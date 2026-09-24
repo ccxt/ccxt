@@ -5165,7 +5165,7 @@ public class Whitebit extends WhitebitApi
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endDate", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endDate", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.v4PrivatePostCollateralAccountFundingHistory(this.extend(request, parameters))).join();
@@ -5526,7 +5526,7 @@ public class Whitebit extends WhitebitApi
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("to", request, parameters, 0.001);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("to", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 0.001);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.v4PrivatePostConvertHistory(this.extend(request, parameters))).join();
@@ -5681,7 +5681,7 @@ public class Whitebit extends WhitebitApi
             {
                 ((Map<String, Object>)request).put("limit", since);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endDate", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endDate", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.v4PrivatePostCollateralAccountPositionsHistory(this.extend(request, parameters))).join();
@@ -5991,7 +5991,7 @@ public class Whitebit extends WhitebitApi
             {
                 ((Map<String, Object>)request).put("startDate", Math.round(Double.parseDouble(Helpers.toString(Helpers.divide(since, 1000)))));
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("until_timestamp", request, parameters, 0.001);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("until_timestamp", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 0.001);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(limit, null))

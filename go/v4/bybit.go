@@ -3891,7 +3891,7 @@ func (this *Bybit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 	if limit == nil {
@@ -3906,23 +3906,23 @@ func (this *Bybit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		// candles from the first bucket at or after `since`
 		var duration int64 = this.ParseTimeframe(timeframe) * 1000
 		var rounded int64 = this.ParseToInt(Divide(since, duration)) * duration
-		AddElementToObject(request, "start", func() any {
+		request["start"] = func() any {
 			if rounded == since {
 				return since
 			}
 			return this.Sum(rounded, duration)
-		}())
+		}()
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit) // max 1000, default 1000
+		request["limit"] = limit // max 1000, default 1000
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
-	AddElementToObject(request, "interval", this.SafeString(this.Timeframes, timeframe, timeframe))
+	request["interval"] = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var response any = nil
 	if GetValue(market, "spot") == true {
-		AddElementToObject(request, "category", "spot")
+		request["category"] = "spot"
 
 		response = (<-this.PublicGetV5MarketKline(this.Extend(request, params))).Raw
 		PanicOnError(response)
@@ -3930,9 +3930,9 @@ func (this *Bybit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		var price *string = this.SafeString(params, "price")
 		params = MapTyped(this.Omit(params, "price"))
 		if GetValue(market, "linear") == true {
-			AddElementToObject(request, "category", "linear")
+			request["category"] = "linear"
 		} else if GetValue(market, "inverse") == true {
-			AddElementToObject(request, "category", "inverse")
+			request["category"] = "inverse"
 		} else {
 			panic(NotSupported(this.Id + " fetchOHLCV() is not supported for option markets"))
 		}
@@ -7655,27 +7655,27 @@ func (this *Bybit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes590619)
 		return nil
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"execType": "Trade",
 	}
 	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(request, "symbol", GetValue(market, "id"))
+		request["symbol"] = GetValue(market, "id")
 	}
-	var typeVar *string = nil
+	var typeVar any = nil
 	typeVarparamsVariable := this.GetBybitType("fetchMyTrades", market, params)
-	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
+	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	AddElementToObject(request, "category", typeVar)
+	request["category"] = typeVar
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5ExecutionList(this.Extend(request, params))).Raw))
@@ -7896,20 +7896,20 @@ func (this *Bybit) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes608719)
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var currency map[string]any = nil
 	if code != nil {
 		currency = MapTyped(this.Currency(code))
-		AddElementToObject(request, "coin", GetValue(currency, "id"))
+		request["coin"] = GetValue(currency, "id")
 	}
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5AssetDepositQueryRecord(this.Extend(request, params))).Raw))
@@ -7989,20 +7989,20 @@ func (this *Bybit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes615819)
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var currency map[string]any = nil
 	if code != nil {
 		currency = MapTyped(this.Currency(code))
-		AddElementToObject(request, "coin", GetValue(currency, "id"))
+		request["coin"] = GetValue(currency, "id")
 	}
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5AssetWithdrawQueryRecord(this.Extend(request, params))).Raw))
@@ -10008,19 +10008,19 @@ func (this *Bybit) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var currency map[string]any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if code != nil {
 		currency = MapTyped(this.SafeCurrency(code))
-		AddElementToObject(request, "coin", GetValue(currency, "id"))
+		request["coin"] = GetValue(currency, "id")
 	}
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5AssetTransferQueryInterTransferList(this.Extend(request, params))).Raw))
@@ -11191,27 +11191,27 @@ func (this *Bybit) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) any
 		ch <- BoxAbsent(retRes876019)
 		return nil
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"execType": "BustTrade",
 	}
 	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(request, "symbol", GetValue(market, "id"))
+		request["symbol"] = GetValue(market, "id")
 	}
-	var typeVar *string = nil
+	var typeVar any = nil
 	typeVarparamsVariable := this.GetBybitType("fetchMyLiquidations", market, params)
-	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
+	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	AddElementToObject(request, "category", typeVar)
+	request["category"] = typeVar
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5ExecutionList(this.Extend(request, params))).Raw))
@@ -11534,32 +11534,32 @@ func (this *Bybit) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 		ch <- BoxAbsent(retRes902519)
 		return nil
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"execType": "Funding",
 	}
 	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(request, "symbol", GetValue(market, "id"))
+		request["symbol"] = GetValue(market, "id")
 	}
-	var typeVar *string = nil
+	var typeVar any = nil
 	typeVarparamsVariable := this.GetBybitType("fetchFundingHistory", market, params)
-	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
+	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	AddElementToObject(request, "category", typeVar)
+	request["category"] = typeVar
 	if symbol != nil {
-		AddElementToObject(request, "symbol", this.SafeString(market, "id"))
+		request["symbol"] = this.SafeString(market, "id")
 	}
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "size", limit)
+		request["size"] = limit
 	} else {
-		AddElementToObject(request, "size", 100)
+		request["size"] = 100
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5ExecutionList(this.Extend(request, params))).Raw))

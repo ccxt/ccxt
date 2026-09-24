@@ -2442,7 +2442,7 @@ public class Hitbtc extends HitbtcApi
             {
                 ((Map<String, Object>)request).put("from", this.iso8601(since));
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("until", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("until", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
@@ -4047,7 +4047,7 @@ public class Hitbtc extends HitbtcApi
             }
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("until", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("until", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(symbol, null))

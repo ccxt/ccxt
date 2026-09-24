@@ -987,17 +987,17 @@ func (this *Bitvavo) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		ch <- BoxAbsent(retRes82819)
 		return nil
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", mathMin(limit, 1000))
+		request["limit"] = mathMin(limit, 1000)
 	}
 	if since != nil {
-		AddElementToObject(request, "start", since)
+		request["start"] = since
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response []any = ListTyped(PanicOnError((<-this.PublicGetMarketTrades(this.Extend(request, params))).Raw))
@@ -1323,26 +1323,26 @@ func (this *Bitvavo) FetchOHLCVRequest(symbol any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market":   market["id"],
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	if since != nil {
 		// https://github.com/ccxt/ccxt/issues/9227
 		var duration int64 = this.ParseTimeframe(timeframe)
-		AddElementToObject(request, "start", since)
+		request["start"] = since
 		if limit == nil {
 			limit = Int64PtrTyped(1440)
 		} else {
 			limit = Int64PtrTyped(mathMin(limit, 1440))
 		}
-		AddElementToObject(request, "end", this.Sum(since, Multiply(Multiply(limit, duration), 1000)))
+		request["end"] = this.Sum(since, Multiply(Multiply(limit, duration), 1000))
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	if limit != nil {
-		AddElementToObject(request, "limit", mathMin(limit, 1440)) // default 1440, max 1440
+		request["limit"] = mathMin(limit, 1440) // default 1440, max 1440
 	}
 	return this.Extend(request, params)
 }
@@ -1625,24 +1625,24 @@ func (this *Bitvavo) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var currency map[string]any = nil
 	if code != nil {
 		currency = MapTyped(this.Currency(code))
-		AddElementToObject(request, "symbol", GetValue(currency, "id"))
+		request["symbol"] = GetValue(currency, "id")
 	}
 	var subaccountId *string = this.SafeString(params, "subaccountId")
 	if subaccountId == nil {
 		panic(ArgumentsRequired(this.Id + " fetchTransfers() requires a subaccountId parameter"))
 	}
 	if since != nil {
-		AddElementToObject(request, "start", since)
+		request["start"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetSubaccountsTransfers(this.Extend(request, params))).Raw))
@@ -2354,17 +2354,17 @@ func (this *Bitvavo) FetchOrdersRequest(optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
 	if since != nil {
-		AddElementToObject(request, "start", since)
+		request["start"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit) // default 500, max 1000
+		request["limit"] = limit // default 500, max 1000
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	return this.Extend(request, params)
 }
@@ -2671,17 +2671,17 @@ func (this *Bitvavo) FetchMyTradesRequest(optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
 	if since != nil {
-		AddElementToObject(request, "start", since)
+		request["start"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit) // default 500, max 1000
+		request["limit"] = limit // default 500, max 1000
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	return this.Extend(request, params)
 }
@@ -2791,19 +2791,19 @@ func (this *Bitvavo) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var currency map[string]any = nil
 	if code != nil {
 		currency = MapTyped(this.Currency(code))
 	}
 	if since != nil {
-		AddElementToObject(request, "fromDate", since)
+		request["fromDate"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "maxItems", mathMin(limit, 100))
+		request["maxItems"] = mathMin(limit, 100)
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("toDate", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountHistory(this.Extend(request, params))).Raw))

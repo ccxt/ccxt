@@ -5588,22 +5588,22 @@ func (this *Gate) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes415419)
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var currency map[string]any = nil
 	if code != nil {
 		currency = MapTyped(this.Currency(code))
-		AddElementToObject(request, "currency", GetValue(currency, "id")) // todo: currencies have network-junctions
+		request["currency"] = GetValue(currency, "id") // todo: currencies have network-junctions
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	if since != nil {
 		var start int64 = this.ParseToInt(Divide(since, 1000))
-		AddElementToObject(request, "from", start)
-		AddElementToObject(request, "to", this.Sum(start, (30*24)*60*60))
+		request["from"] = start
+		request["to"] = this.Sum(start, (30*24)*60*60)
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("to", request, params, 0.001)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response []any = ListTyped(PanicOnError((<-this.PrivateWalletGetDeposits(this.Extend(request, params))).Raw))
@@ -5655,22 +5655,22 @@ func (this *Gate) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes419519)
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var currency map[string]any = nil
 	if code != nil {
 		currency = MapTyped(this.Currency(code))
-		AddElementToObject(request, "currency", GetValue(currency, "id")) // todo: currencies have network-junctions
+		request["currency"] = GetValue(currency, "id") // todo: currencies have network-junctions
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	if since != nil {
 		var start int64 = this.ParseToInt(Divide(since, 1000))
-		AddElementToObject(request, "from", start)
-		AddElementToObject(request, "to", this.Sum(start, (30*24)*60*60))
+		request["from"] = start
+		request["to"] = this.Sum(start, (30*24)*60*60)
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("to", request, params, 0.001)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response []any = ListTyped(PanicOnError((<-this.PrivateWalletGetWithdrawals(this.Extend(request, params))).Raw))
@@ -9197,24 +9197,24 @@ func (this *Gate) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) any 
 	var isUnifiedAccountparamsVariable []any = this.HandleOptionAndParams(params, "fetchBorrowInterest", "unifiedAccount")
 	isUnifiedAccount = GetValueBool(isUnifiedAccountparamsVariable, 0, false)
 	params = MapTyped(GetValue(isUnifiedAccountparamsVariable, 1))
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var requestparamsVariable []any = this.HandleUntilOption("to", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var currency map[string]any = nil
 	if code != nil {
 		currency = MapTyped(this.Currency(code))
-		AddElementToObject(request, "currency", GetValue(currency, "id"))
+		request["currency"] = GetValue(currency, "id")
 	}
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
 	if since != nil {
-		AddElementToObject(request, "from", since)
+		request["from"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var response any = nil
 	var marginMode any = nil
@@ -9227,7 +9227,7 @@ func (this *Gate) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError(response)
 	} else if IsEqual(marginMode, "isolated") {
 		if !IsEqual(market, nil) {
-			AddElementToObject(request, "currency_pair", GetValue(market, "id"))
+			request["currency_pair"] = GetValue(market, "id")
 		}
 
 		response = (<-this.PrivateMarginGetUniInterestRecords(this.Extend(request, params)))
@@ -9982,14 +9982,14 @@ func (this *Gate) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var typeVar *string = nil
 	var currency map[string]any = nil
 	var response any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchLedger", nil, params)
 	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin") {
 		if code != nil {
 			currency = MapTyped(this.Currency(code))
-			AddElementToObject(request, "currency", GetValue(currency, "id")) // todo: currencies have network-junctions
+			request["currency"] = GetValue(currency, "id") // todo: currencies have network-junctions
 		}
 	}
 	if (typeVar != nil && *typeVar == "swap") || (typeVar != nil && *typeVar == "future") {
@@ -10001,16 +10001,16 @@ func (this *Gate) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		}()
 		var settle *string = this.SafeStringLower(params, "settle", defaultSettle)
 		params = MapTyped(this.Omit(params, "settle"))
-		AddElementToObject(request, "settle", settle)
+		request["settle"] = settle
 	}
 	if since != nil {
-		AddElementToObject(request, "from", since)
+		request["from"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("to", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	if typeVar != nil && *typeVar == "spot" {
 
@@ -10348,18 +10348,18 @@ func (this *Gate) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs ..
 	if GetValue(market, "swap") != true {
 		panic(NotSupported(this.Id + " fetchLiquidations() supports swap markets only"))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"settle":   market["settleId"],
 		"contract": market["id"],
 	}
 	if since != nil {
-		AddElementToObject(request, "from", since)
+		request["from"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("to", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response []any = ListTyped(PanicOnError((<-this.PublicFuturesGetSettleLiqOrders(this.Extend(request, params))).Raw))

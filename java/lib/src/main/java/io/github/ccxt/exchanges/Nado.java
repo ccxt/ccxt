@@ -1549,7 +1549,7 @@ public class Nado extends NadoApi
             {
                 ((Map<String, Object>)ordersRequest).put("product_ids", new ArrayList<Object>(Arrays.asList(this.parseToInt(((Map<String, Object>)market).get("id")))));
             }
-            List<Object> ordersRequestparametersVariable = (List<Object>) this.handleUntilOption("max_time", ordersRequest, parameters, 0.001);
+            List<Object> ordersRequestparametersVariable = (List<Object>) this.handleUntilOption("max_time", (Map<String, Object>) (ordersRequest), (Map<String, Object>) (parameters), 0.001);
             ordersRequest = (Map<String, Object>) ((List<Object>) ordersRequestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) ordersRequestparametersVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
@@ -1738,7 +1738,7 @@ public class Nado extends NadoApi
             {
                 ((Map<String, Object>)matchesRequest).put("product_ids", new ArrayList<Object>(Arrays.asList(this.parseToInt(((Map<String, Object>)market).get("id")))));
             }
-            List<Object> matchesRequestparametersVariable = (List<Object>) this.handleUntilOption("max_time", matchesRequest, parameters, 0.001);
+            List<Object> matchesRequestparametersVariable = (List<Object>) this.handleUntilOption("max_time", (Map<String, Object>) (matchesRequest), (Map<String, Object>) (parameters), 0.001);
             matchesRequest = (Map<String, Object>) ((List<Object>) matchesRequestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) matchesRequestparametersVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
@@ -1992,7 +1992,7 @@ public class Nado extends NadoApi
             {
                 ((Map<String, Object>)eventsRequest).put("product_ids", new ArrayList<Object>(Arrays.asList(this.parseToInt(((Map<String, Object>)currency).get("id")))));
             }
-            List<Object> eventsRequestparametersVariable = (List<Object>) this.handleUntilOption("max_time", eventsRequest, parameters, 0.001);
+            List<Object> eventsRequestparametersVariable = (List<Object>) this.handleUntilOption("max_time", (Map<String, Object>) (eventsRequest), (Map<String, Object>) (parameters), 0.001);
             eventsRequest = (Map<String, Object>) ((List<Object>) eventsRequestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) eventsRequestparametersVariable).get(1);
             final Map<String, Object> finalEventsRequest = eventsRequest;

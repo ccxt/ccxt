@@ -2064,7 +2064,7 @@ public class Bitfinex extends BitfinexApi
                 ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 10000)); // default 120, max 10000
             }
             ((Map<String, Object>)request).put("sort", sort);
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.publicGetTradesSymbolHist(this.extend(request, parameters))).join();
@@ -2164,7 +2164,7 @@ public class Bitfinex extends BitfinexApi
                 ((Map<String, Object>)request).put("start", since);
                 ((Map<String, Object>)request).put("sort", 1);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.publicGetCandlesTradeTimeframeSymbolHist(this.extend(request, parameters))).join();
@@ -3149,7 +3149,7 @@ public class Bitfinex extends BitfinexApi
             {
                 ((Map<String, Object>)request).put("limit", limit); // default 25, max 2500
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> market = null;
@@ -4415,7 +4415,7 @@ public class Bitfinex extends BitfinexApi
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = null;
@@ -4594,7 +4594,7 @@ public class Bitfinex extends BitfinexApi
             {
                 ((Map<String, Object>)request).put("start", since);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.publicGetStatusDerivSymbolHist(this.extend(request, parameters))).join();
@@ -4978,7 +4978,7 @@ public class Bitfinex extends BitfinexApi
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.publicGetStatusDerivSymbolHist(this.extend(request, parameters))).join();
@@ -5156,7 +5156,7 @@ public class Bitfinex extends BitfinexApi
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.publicGetLiquidationsHist(this.extend(request, parameters))).join();

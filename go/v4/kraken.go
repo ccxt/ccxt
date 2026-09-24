@@ -3543,22 +3543,22 @@ func (this *Kraken) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if since != nil {
-		AddElementToObject(request, "start", this.ParseToInt(Divide(since, 1000)))
+		request["start"] = this.ParseToInt(Divide(since, 1000))
 	}
 	var userref *int64 = this.SafeInteger(params, "userref")
 	if userref != nil {
-		AddElementToObject(request, "userref", userref)
+		request["userref"] = userref
 		params = MapTyped(this.Omit(params, "userref"))
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	if clientOrderId != nil {
-		AddElementToObject(request, "cl_ord_id", clientOrderId)
+		request["cl_ord_id"] = clientOrderId
 		params = MapTyped(this.Omit(params, "clientOrderId"))
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostClosedOrders(this.Extend(request, params))).Raw))

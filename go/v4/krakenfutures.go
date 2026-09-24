@@ -1231,7 +1231,7 @@ func (this *Krakenfutures) fetchTradesBody(ch chan any, symbol any, optionalArgs
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 	var method any = nil
@@ -1242,14 +1242,14 @@ func (this *Krakenfutures) fetchTradesBody(ch chan any, symbol any, optionalArgs
 	var isFullHistoryEndpoint bool = (IsEqual(method, "historyGetMarketSymbolExecutions"))
 	if isFullHistoryEndpoint {
 		var requestparamsVariable []any = this.HandleUntilOption("before", request, params)
-		request = GetValue(requestparamsVariable, 0)
+		request = MapTyped(GetValue(requestparamsVariable, 0))
 		params = MapTyped(GetValue(requestparamsVariable, 1))
 		if since != nil {
-			AddElementToObject(request, "since", since)
-			AddElementToObject(request, "sort", "asc")
+			request["since"] = since
+			request["sort"] = "asc"
 		}
 		if limit != nil {
-			AddElementToObject(request, "count", limit)
+			request["count"] = limit
 		}
 
 		response := (<-this.HistoryGetMarketSymbolExecutions(this.Extend(request, params))).Raw
@@ -1317,7 +1317,7 @@ func (this *Krakenfutures) fetchTradesBody(ch chan any, symbol any, optionalArgs
 		}
 	} else {
 		var requestparamsVariable []any = this.HandleUntilOption("lastTime", request, params)
-		request = GetValue(requestparamsVariable, 0)
+		request = MapTyped(GetValue(requestparamsVariable, 0))
 		params = MapTyped(GetValue(requestparamsVariable, 1))
 
 		response := (<-this.PublicGetHistory(this.Extend(request, params))).Raw

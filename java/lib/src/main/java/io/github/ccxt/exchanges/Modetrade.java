@@ -1561,7 +1561,7 @@ public class Modetrade extends ModetradeApi
             {
                 ((Map<String, Object>)request).put("start_t", since);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_t", request, parameters, 0.001);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_t", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 0.001);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.v1PublicGetPublicFundingRateHistory(this.extend(request, parameters))).join();
@@ -3052,7 +3052,7 @@ public class Modetrade extends ModetradeApi
             {
                 ((Map<String, Object>)request).put("algo_type", "STOP");
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_t", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_t", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = null;
@@ -3363,7 +3363,7 @@ public class Modetrade extends ModetradeApi
             {
                 ((Map<String, Object>)request).put("size", 500);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_t", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_t", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.v1PrivateGetTrades(this.extend(request, parameters))).join();

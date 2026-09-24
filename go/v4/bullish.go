@@ -1738,13 +1738,13 @@ func (this *Bullish) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		ch <- BoxAbsent(retRes136819)
 		return nil
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol":     market["id"],
 		"timeBucket": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"_pageSize":  maxLimit,
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("createdAtDatetime[lte]", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var until any = DerefScalar(this.SafeInteger(request, "createdAtDatetime[lte]"))
 	var duration int64 = this.ParseTimeframe(timeframe)
@@ -1759,8 +1759,8 @@ func (this *Bullish) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	} else if IsEqual(until, nil) {
 		until = this.Sum(startTime, maxDelta)
 	}
-	AddElementToObject(request, "createdAtDatetime[gte]", this.Iso8601(startTime))
-	AddElementToObject(request, "createdAtDatetime[lte]", this.Iso8601(until))
+	request["createdAtDatetime[gte]"] = this.Iso8601(startTime)
+	request["createdAtDatetime[lte]"] = this.Iso8601(until)
 
 	var response []any = ListTyped(PanicOnError((<-this.PublicGetV1MarketsSymbolCandle(this.Extend(request, params))).Raw))
 	//
@@ -2687,16 +2687,16 @@ func (this *Bullish) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 	_ = params
 
 	PanicOnError((<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()})))
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var requestparamsVariable []any = this.HandleUntilOption("createdAtDatetime[lte]", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var until *int64 = this.SafeInteger(request, "createdAtDatetime[lte]")
 	if until != nil {
-		AddElementToObject(request, "createdAtDatetime[lte]", this.Iso8601(until))
+		request["createdAtDatetime[lte]"] = this.Iso8601(until)
 	}
 	if since != nil {
-		AddElementToObject(request, "createdAtDatetime[gte]", this.Iso8601(since))
+		request["createdAtDatetime[gte]"] = this.Iso8601(since)
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV1WalletsTransactions(this.Extend(request, params))).Raw))
@@ -3585,14 +3585,14 @@ func (this *Bullish) fetchBorrowRateHistoryBody(ch chan any, code any, optionalA
 	tradingAccountId := (<-this.LoadAccountAsync(params))
 	PanicOnError(tradingAccountId)
 	var currency map[string]any = MapTyped(this.Currency(code))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"assetSymbol":      currency["id"],
 		"tradingAccountId": tradingAccountId,
 	}
 	var now int64 = this.Milliseconds()
 	var startTimestamp any = since
 	var requestparamsVariable []any = this.HandleUntilOption("createdAtDatetime[lte]", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var until any = DerefScalar(this.SafeInteger(request, "createdAtDatetime[lte]"))
 	// current endpoint requires both since and until parameters
@@ -3602,8 +3602,8 @@ func (this *Bullish) fetchBorrowRateHistoryBody(ch chan any, code any, optionalA
 	if IsEqual(until, nil) {
 		until = now
 	}
-	AddElementToObject(request, "createdAtDatetime[gte]", this.Iso8601(startTimestamp))
-	AddElementToObject(request, "createdAtDatetime[lte]", this.Iso8601(until))
+	request["createdAtDatetime[gte]"] = this.Iso8601(startTimestamp)
+	request["createdAtDatetime[lte]"] = this.Iso8601(until)
 
 	var response []any = ListTyped(PanicOnError((<-this.PrivateGetV1HistoryBorrowInterest(this.Extend(request, params))).Raw))
 

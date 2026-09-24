@@ -1085,7 +1085,7 @@ public class Apex extends ApexApi
             }
             limit = Helpers.mathMin(limit, 200); // fix maxcap
             ((Map<String, Object>)request).put("limit", limit); // max 200, default 200
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters, 0.001);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 0.001);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))

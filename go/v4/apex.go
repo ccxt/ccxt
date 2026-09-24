@@ -1019,20 +1019,20 @@ func (this *Apex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"symbol":   this.SafeString(market, "id2"),
 	}
 	if limit == nil {
 		limit = Int64PtrTyped(200) // default is 200 when requested with `since`
 	}
-	limit = Int64PtrTyped(mathMin(limit, 200))  // fix maxcap
-	AddElementToObject(request, "limit", limit) // max 200, default 200
+	limit = Int64PtrTyped(mathMin(limit, 200)) // fix maxcap
+	request["limit"] = limit                   // max 200, default 200
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params, 0.001)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	if since != nil {
-		AddElementToObject(request, "start", MathFloor(Divide(since, 1000)))
+		request["start"] = MathFloor(Divide(since, 1000))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV3Klines(this.Extend(request, params))).Raw))

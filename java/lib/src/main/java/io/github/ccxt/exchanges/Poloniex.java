@@ -927,7 +927,7 @@ public class Poloniex extends PoloniexApi
                 // limit should in between 100 and 500
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption(keyEnd, request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption(keyEnd, (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
@@ -2039,7 +2039,7 @@ public class Poloniex extends PoloniexApi
             {
                 ((Map<String, Object>)request).put("symbol", this.safeString(market, "id"));
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption(endKey, request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption(endKey, (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (isContract)
@@ -2547,7 +2547,7 @@ public class Poloniex extends PoloniexApi
             {
                 ((Map<String, Object>)request).put("sTime", since);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("eTime", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("eTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.swapPrivateGetV3TradeOrderHistory(this.extend(request, parameters))).join();

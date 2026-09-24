@@ -1644,13 +1644,13 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		return nil
 	}
 	var tf *string = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol":     market["id"],
 		"interval":   tf,
 		"start_time": since,
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end_time", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var nowMillis int64 = this.Milliseconds()
 	var until any = DerefScalar(this.SafeInteger(request, "end_time"))
@@ -1664,7 +1664,7 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		if IsGreaterThan(until, nowMillis) {
 			until = nowMillis
 		}
-		AddElementToObject(request, "end_time", until)
+		request["end_time"] = until
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetKline(this.Extend(request, params))).Raw))
@@ -1827,19 +1827,19 @@ func (this *Pacifica) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes139519)
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var requestparamsVariable []any = this.HandleUntilOption("end_time", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
-	AddElementToObject(request, "account", userAddress)
+	request["account"] = userAddress
 	if symbol != nil {
-		AddElementToObject(request, "symbol", this.SafeString(market, "id"))
+		request["symbol"] = this.SafeString(market, "id")
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	if since != nil {
-		AddElementToObject(request, "start_time", since)
+		request["start_time"] = since
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTradesHistory(this.Extend(request, params))).Raw))

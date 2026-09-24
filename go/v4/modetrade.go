@@ -1473,17 +1473,17 @@ func (this *Modetrade) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 		ch <- BoxAbsent(retRes104619)
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		var market map[string]any = MapTyped(this.Market(symbol))
 		symbol = market["symbol"]
-		AddElementToObject(request, "symbol", market["id"])
+		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		AddElementToObject(request, "start_t", since)
+		request["start_t"] = since
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end_t", request, params, 0.001)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetPublicFundingRateHistory(this.Extend(request, params))).Raw))
@@ -2807,26 +2807,26 @@ func (this *Modetrade) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes213019)
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	params = MapTyped(this.Omit(params, []any{"stop", "trigger"}))
 	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(request, "symbol", GetValue(market, "id"))
+		request["symbol"] = GetValue(market, "id")
 	}
 	if since != nil {
-		AddElementToObject(request, "start_t", since)
+		request["start_t"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "size", mathMin(limit, maxLimit))
+		request["size"] = mathMin(limit, maxLimit)
 	} else {
-		AddElementToObject(request, "size", maxLimit)
+		request["size"] = maxLimit
 	}
 	if isTrigger != nil && *isTrigger == true {
-		AddElementToObject(request, "algo_type", "STOP")
+		request["algo_type"] = "STOP"
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end_t", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var response any = nil
 	if isTrigger != nil && *isTrigger == true {
@@ -3083,22 +3083,22 @@ func (this *Modetrade) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes231619)
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(request, "symbol", GetValue(market, "id"))
+		request["symbol"] = GetValue(market, "id")
 	}
 	if since != nil {
-		AddElementToObject(request, "start_t", since)
+		request["start_t"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "size", limit)
+		request["size"] = limit
 	} else {
-		AddElementToObject(request, "size", 500)
+		request["size"] = 500
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end_t", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetTrades(this.Extend(request, params))).Raw))

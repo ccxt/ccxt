@@ -12887,17 +12887,17 @@ public Object describe()
         return newDict;
     }
 
-    public Object handleUntilOption(Object key, Object request, Object parameters, Object multiplier)
+    public Object handleUntilOption(Object key, Map<String, Object> request, Map<String, Object> parameters, Object multiplier)
     {
         Long until = (Long) this.safeInteger2(parameters, "until", "till");
         if (!java.util.Objects.equals(until, null))
         {
-            Helpers.addElementToObject(request, key, this.parseToInt(Helpers.multiply(until, multiplier)));
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till")));
+            ((Map<String, Object>)request).put((String)key, this.parseToInt(Helpers.multiply(until, multiplier)));
+            parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till"))));
         }
         return new ArrayList<Object>(Arrays.asList(request, parameters));
     }
-    public Object handleUntilOption(Object key, Object request, Object parameters, Object... optionalArgs)
+    public Object handleUntilOption(Object key, Map<String, Object> request, Map<String, Object> parameters, Object... optionalArgs)
     {
         return this.handleUntilOption(key, request, parameters, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : 1);
     }

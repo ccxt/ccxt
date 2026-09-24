@@ -2344,7 +2344,7 @@ public class Alpaca extends AlpacaApi
             {
                 ((Map<String, Object>)request).put("page_size", limit);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("until", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("until", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.traderPrivateGetV2AccountActivitiesActivityType(this.extend(request, parameters))).join();

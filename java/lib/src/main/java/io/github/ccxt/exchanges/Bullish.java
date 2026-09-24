@@ -1815,7 +1815,7 @@ public class Bullish extends BullishApi
                 put( "timeBucket", Bullish.this.safeString(Bullish.this.timeframes, timeframe, timeframe) );
                 put( "_pageSize", maxLimit );
             }};
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("createdAtDatetime[lte]", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("createdAtDatetime[lte]", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Object until = this.safeInteger(request, "createdAtDatetime[lte]");
@@ -2885,7 +2885,7 @@ public class Bullish extends BullishApi
             Map<String, Object> parameters = parameters3;
             (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets()), ((CompletableFuture<?>) this.handleToken()))).join();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("createdAtDatetime[lte]", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("createdAtDatetime[lte]", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Long until = this.safeInteger(request, "createdAtDatetime[lte]");
@@ -3881,7 +3881,7 @@ public class Bullish extends BullishApi
             }};
             Long now = this.milliseconds();
             Object startTimestamp = since;
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("createdAtDatetime[lte]", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("createdAtDatetime[lte]", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Long until = this.safeInteger(request, "createdAtDatetime[lte]");

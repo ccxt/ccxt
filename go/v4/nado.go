@@ -1396,17 +1396,17 @@ func (this *Nado) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes113019)
 		return nil
 	}
-	var ordersRequest any = map[string]any{
+	var ordersRequest map[string]any = map[string]any{
 		"subaccounts": []any{sender},
 	}
 	if !IsEqual(market, nil) {
-		AddElementToObject(ordersRequest, "product_ids", []any{this.ParseToInt(GetValue(market, "id"))})
+		ordersRequest["product_ids"] = []any{this.ParseToInt(GetValue(market, "id"))}
 	}
 	var ordersRequestparamsVariable []any = this.HandleUntilOption("max_time", ordersRequest, params, 0.001)
-	ordersRequest = GetValue(ordersRequestparamsVariable, 0)
+	ordersRequest = MapTyped(GetValue(ordersRequestparamsVariable, 0))
 	params = MapTyped(GetValue(ordersRequestparamsVariable, 1))
 	if limit != nil {
-		AddElementToObject(ordersRequest, "limit", mathMin(limit, 500))
+		ordersRequest["limit"] = mathMin(limit, 500)
 	}
 	var request map[string]any = map[string]any{
 		"orders": ordersRequest,
@@ -1566,17 +1566,17 @@ func (this *Nado) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
 	params = MapTyped(GetValue(subaccountparamsVariable, 1))
-	var matchesRequest any = map[string]any{
+	var matchesRequest map[string]any = map[string]any{
 		"subaccounts": []any{this.CreateSubaccount(this.WalletAddress, subaccount)},
 	}
 	if !IsEqual(market, nil) {
-		AddElementToObject(matchesRequest, "product_ids", []any{this.ParseToInt(GetValue(market, "id"))})
+		matchesRequest["product_ids"] = []any{this.ParseToInt(GetValue(market, "id"))}
 	}
 	var matchesRequestparamsVariable []any = this.HandleUntilOption("max_time", matchesRequest, params, 0.001)
-	matchesRequest = GetValue(matchesRequestparamsVariable, 0)
+	matchesRequest = MapTyped(GetValue(matchesRequestparamsVariable, 0))
 	params = MapTyped(GetValue(matchesRequestparamsVariable, 1))
 	if limit != nil {
-		AddElementToObject(matchesRequest, "limit", mathMin(limit, 500))
+		matchesRequest["limit"] = mathMin(limit, 500)
 	}
 	var request map[string]any = map[string]any{
 		"matches": matchesRequest,
@@ -1788,7 +1788,7 @@ func (this *Nado) queryTransactionsByEventTypeBody(ch chan any, eventType any, t
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, methodName, "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
 	params = MapTyped(GetValue(subaccountparamsVariable, 1))
-	var eventsRequest any = map[string]any{
+	var eventsRequest map[string]any = map[string]any{
 		"subaccounts": []any{this.CreateSubaccount(this.WalletAddress, subaccount)},
 		"event_types": []any{eventType},
 		"limit": map[string]any{
@@ -1801,10 +1801,10 @@ func (this *Nado) queryTransactionsByEventTypeBody(ch chan any, eventType any, t
 		},
 	}
 	if !IsEqual(currency, nil) {
-		AddElementToObject(eventsRequest, "product_ids", []any{this.ParseToInt(GetValue(currency, "id"))})
+		eventsRequest["product_ids"] = []any{this.ParseToInt(GetValue(currency, "id"))}
 	}
 	var eventsRequestparamsVariable []any = this.HandleUntilOption("max_time", eventsRequest, params, 0.001)
-	eventsRequest = GetValue(eventsRequestparamsVariable, 0)
+	eventsRequest = MapTyped(GetValue(eventsRequestparamsVariable, 0))
 	params = MapTyped(GetValue(eventsRequestparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"events": eventsRequest,

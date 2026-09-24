@@ -7135,7 +7135,7 @@ public class Okx extends OkxApi
             {
                 ((Map<String, Object>)request).put("begin", since);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
@@ -7310,7 +7310,7 @@ public class Okx extends OkxApi
                 currency = (Map<String, Object>) this.currency((String) (code));
                 ((Map<String, Object>)request).put("ccy", ((Map<String, Object>)currency).get("id"));
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = null;
@@ -7880,7 +7880,7 @@ public class Okx extends OkxApi
             {
                 ((Map<String, Object>)request).put("limit", limit); // default 100, max 100
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("after", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("after", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privateGetAssetDepositHistory(this.extend(request, parameters))).join();
@@ -8046,7 +8046,7 @@ public class Okx extends OkxApi
             {
                 ((Map<String, Object>)request).put("limit", limit); // default 100, max 100
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("after", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("after", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privateGetAssetWithdrawalHistory(this.extend(request, parameters))).join();
@@ -12531,7 +12531,7 @@ public class Okx extends OkxApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("after", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("after", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))

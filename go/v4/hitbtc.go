@@ -2248,18 +2248,18 @@ func (this *Hitbtc) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 		"period": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	if since != nil {
-		AddElementToObject(request, "from", this.Iso8601(since))
+		request["from"] = this.Iso8601(since)
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("until", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	if limit != nil {
-		AddElementToObject(request, "limit", mathMin(limit, 1000))
+		request["limit"] = mathMin(limit, 1000)
 	}
 	var price *string = this.SafeString(params, "price")
 	params = MapTyped(this.Omit(params, "price"))
@@ -3654,20 +3654,20 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		return nil
 	}
 	var market map[string]any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var requestparamsVariable []any = this.HandleUntilOption("until", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = GetValue(market, "symbol")
-		AddElementToObject(request, "symbols", GetValue(market, "id"))
+		request["symbols"] = GetValue(market, "id")
 	}
 	if since != nil {
-		AddElementToObject(request, "from", since)
+		request["from"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicFuturesHistoryFunding(this.Extend(request, params))).Raw))

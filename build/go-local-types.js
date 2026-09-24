@@ -3788,6 +3788,82 @@ function installCcxtGoWriteSiteConversions (goTranspiler) {
     goTranspiler.__ccxtGoWriteSiteConversionsInstalled = true;
 }
 
+// ----------------- identity tuple rebind: `[ request, params ] = this.handleUntilOption (k, request, params)` -----------------
+// helper -> argument slot whose map every Go return path hands back unchanged at element 0
+const CCXT_GO_IDENTITY_TUPLE_HOLDERS = { 'this.HandleUntilOption': 1, 'this.HandleUntilOptionString': 1 };
+
+// true when `n` is element 0 of `[ n, .. ] = <holder> (.., n, ..)` with `n` in the identity slot
+function ccxtGoIsIdentityTupleRebind (goTranspiler, n) {
+    const pattern = n?.parent;
+    const assignment = pattern?.parent;
+    if ((pattern?.kind !== ts.SyntaxKind.ArrayLiteralExpression) || (pattern.elements.indexOf (n) !== 0)
+        || (assignment?.kind !== ts.SyntaxKind.BinaryExpression) || (assignment.left !== pattern)
+        || (assignment.operatorToken.kind !== ts.SyntaxKind.EqualsToken)
+        || (assignment.parent?.kind !== ts.SyntaxKind.ExpressionStatement)) {
+        return false;
+    }
+    const slot = CCXT_GO_IDENTITY_TUPLE_HOLDERS[ccxtGoWriteSiteCallee (goTranspiler, assignment.right)];
+    return (slot !== undefined) && isIdentifierNamed (assignment.right.arguments?.[slot], n.escapedText);
+}
+
+// a map-literal local whose only vetoed writes are identity rebinds stays map[string]any
+function ccxtGoIdentityTupleLocalIsSafe (goTranspiler, scope, declaration, varName) {
+    if ((scope === undefined) || (declaration?.kind !== ts.SyntaxKind.VariableDeclaration)
+        || (declaration.initializer?.kind !== ts.SyntaxKind.ObjectLiteralExpression)) {
+        return false;
+    }
+    let rebinds = 0;
+    const unsafe = goTranspiler.hasNodeWhere (scope, (n) => {
+        if ((n.kind !== ts.SyntaxKind.Identifier) || (n.escapedText !== varName) || (n === declaration.name)) {
+            return false;
+        }
+        if (ccxtGoIsIdentityTupleRebind (goTranspiler, n)) {
+            rebinds += 1;
+            return false;
+        }
+        const parent = n.parent;
+        if ((parent?.kind === ts.SyntaxKind.BinaryExpression) && (parent.left === n)
+            && (parent.operatorToken?.kind === ts.SyntaxKind.EqualsToken)) {
+            return goTranspiler.goTypeOfInitializer (parent.right, goTranspiler.printNode (parent.right, 0)) !== 'map[string]any';
+        }
+        return ccxtGoWriteSiteShippedVeto (goTranspiler, n, parent, 'map[string]any');
+    });
+    return !unsafe && (rebinds > 0);
+}
+
+// the type half admits the local, the value half prints the rebind through MapTyped (same map, no copy)
+function installCcxtGoIdentityTupleRebind (goTranspiler) {
+    if ((goTranspiler === undefined) || goTranspiler.__ccxtGoIdentityTupleRebindInstalled
+        || (typeof goTranspiler.goLocalIsSafeToType !== 'function') || (typeof goTranspiler.printCustomBinaryExpressionIfAny !== 'function')
+        || (typeof goTranspiler.goDeclaredTypeOfIdentifier !== 'function')) {
+        return;
+    }
+    const shippedIsSafe = goTranspiler.goLocalIsSafeToType;
+    goTranspiler.goLocalIsSafeToType = function (scope, declaration, varName, goType) {
+        return shippedIsSafe.call (this, scope, declaration, varName, goType)
+            || ((goType === 'map[string]any') && ccxtGoIdentityTupleLocalIsSafe (this, scope, declaration, varName));
+    };
+    const shippedCustom = goTranspiler.printCustomBinaryExpressionIfAny;
+    goTranspiler.printCustomBinaryExpressionIfAny = function (node, identation) {
+        const printed = shippedCustom.call (this, node, identation);
+        const target = node?.left?.elements?.[0];
+        if ((typeof printed !== 'string') || (node.left.kind !== ts.SyntaxKind.ArrayLiteralExpression)
+            || !ccxtGoIsIdentityTupleRebind (this, target) || (this.goDeclaredTypeOfIdentifier (target) !== 'map[string]any')) {
+            return printed;
+        }
+        const read = this.printNode (target, 0) + ' = GetValue(';
+        const lines = printed.split ('\n');
+        const index = lines.findIndex ((line) => line.trimStart ().startsWith (read) && line.endsWith (', 0)'));
+        if (index < 0) {
+            return printed;
+        }
+        const indent = lines[index].substring (0, lines[index].length - lines[index].trimStart ().length);
+        lines[index] = indent + this.printNode (target, 0) + ' = MapTyped(' + lines[index].trimStart ().substring (read.length - 'GetValue('.length) + ')';
+        return lines.join ('\n');
+    };
+    goTranspiler.__ccxtGoIdentityTupleRebindInstalled = true;
+}
+
 // --------------------- printer ternary-IIFE locals: name the scalar join type ---------------------
 // `var x any = func() any { … }()` keeps its body, its call position and its boxed value; only the
 // declaration head learns the type every arm already produces. Anything unproven keeps `any`.
@@ -5690,6 +5766,7 @@ export function installCcxtGoLocalTypes (goTranspiler) {
     // same for the currency dict the accessors box in `any`
     installCcxtGoCurrencyUnbox (goTranspiler);
     installCcxtGoWriteSiteConversions (goTranspiler);
+    installCcxtGoIdentityTupleRebind (goTranspiler);
     // the container locals the printer's own predicate leaves out: cast-wrapped initializers,
     // non-empty (kept) defaults, the two-key accessors and the Safe* read shapes of the list family
     installCcxtGoSafeCollectionUnbox (goTranspiler);

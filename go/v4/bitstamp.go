@@ -2845,20 +2845,20 @@ func (this *Bitstamp) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(request, "pair", GetValue(market, "id"))
+		request["pair"] = GetValue(market, "id")
 	}
 	if since != nil {
-		AddElementToObject(request, "since_timestamp", MathRound(Divide(since, 1000)))
+		request["since_timestamp"] = MathRound(Divide(since, 1000))
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("until_timestamp", request, params, 0.001)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetFundingRateHistoryPair(this.Extend(request, params))).Raw))

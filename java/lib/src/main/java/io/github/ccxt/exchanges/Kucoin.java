@@ -7887,7 +7887,7 @@ public class Kucoin extends KucoinApi
             {
                 ((Map<String, Object>)request).put("startAt", since);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endAt", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endAt", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
@@ -9367,7 +9367,7 @@ public class Kucoin extends KucoinApi
             Object method = ((Map<String, Object>)this.options).get("fetchMyTradesMethod");
             Boolean parseResponseData = false;
             Map<String, Object> response = null;
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endAt", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endAt", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (java.util.Objects.equals(hf, true))
@@ -9541,7 +9541,7 @@ public class Kucoin extends KucoinApi
             {
                 ((Map<String, Object>)request).put("pageSize", Helpers.mathMin(1000, limit));
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endAt", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endAt", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.futuresPrivateGetFills(this.extend(request, parameters))).join();
@@ -9686,7 +9686,7 @@ public class Kucoin extends KucoinApi
             {
                 ((Map<String, Object>)request).put("pageSize", limit);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endAt", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endAt", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.utaPrivateGetAccountModeOrderExecution(this.extend(request, parameters))).join();
@@ -10707,7 +10707,7 @@ public class Kucoin extends KucoinApi
             {
                 ((Map<String, Object>)request).put("pageSize", limit);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endAt", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endAt", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = null;
@@ -10939,7 +10939,7 @@ public class Kucoin extends KucoinApi
             {
                 ((Map<String, Object>)request).put("pageSize", limit);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endAt", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endAt", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = null;
@@ -12383,7 +12383,7 @@ public class Kucoin extends KucoinApi
                 currency = (Map<String, Object>) this.currency((String) (code));
                 ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id"));
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endAt", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endAt", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
@@ -12863,7 +12863,7 @@ public class Kucoin extends KucoinApi
             {
                 ((Map<String, Object>)request).put("startTime", since);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
@@ -12953,7 +12953,7 @@ public class Kucoin extends KucoinApi
             {
                 ((Map<String, Object>)request).put("startTime", since);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
@@ -14159,7 +14159,7 @@ public class Kucoin extends KucoinApi
                 {
                     ((Map<String, Object>)request).put("pageSize", limit);
                 }
-                List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endAt", request, parameters);
+                List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endAt", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
                 request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
                 Map<String, Object> response = (this.utaPrivateGetPositionFundingHistory(this.extend(request, parameters))).join();
@@ -14509,7 +14509,7 @@ public class Kucoin extends KucoinApi
                 {
                     ((Map<String, Object>)request).put("pageSize", limit);
                 }
-                List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endAt", request, parameters);
+                List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endAt", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
                 request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
                 //
@@ -15899,7 +15899,7 @@ final Map<String, Object> finalMarket = market;
             {
                 ((Map<String, Object>)request).put("pageSize", limit);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endAt", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endAt", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.utaGetMarketOpenInterest(this.extend(request, parameters))).join();
@@ -16177,7 +16177,7 @@ final Map<String, Object> finalMarket = market;
             {
                 ((Map<String, Object>)request).put("pageSize", 500);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endAt", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endAt", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privateGetAccountsLedgers(this.extend(request, parameters))).join();
