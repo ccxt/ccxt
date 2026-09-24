@@ -1910,7 +1910,7 @@ export default class gate extends Exchange {
         return underlyings;
     }
 
-    prepareRequest (market: Market = undefined, type: Str = undefined, params: Dict = {}) {
+    prepareRequest (market: Market = undefined, type: Str = undefined, params: Dict = {}): [Dict, Dict] {
         /**
          * @ignore
          * @method
@@ -1948,7 +1948,7 @@ export default class gate extends Exchange {
         return [ request, params ];
     }
 
-    spotOrderPrepareRequest (market: Market = undefined, trigger: Bool = false, params: Dict = {}) {
+    spotOrderPrepareRequest (market: Market = undefined, trigger: Bool = false, params: Dict = {}): [Dict, Dict] {
         /**
          * @ignore
          * @method
@@ -1971,7 +1971,7 @@ export default class gate extends Exchange {
         return [ request, query ];
     }
 
-    multiOrderSpotPrepareRequest (market: Market = undefined, trigger: Bool = false, params: Dict = {}) {
+    multiOrderSpotPrepareRequest (market: Market = undefined, trigger: Bool = false, params: Dict = {}): [Dict, Dict] {
         /**
          * @ignore
          * @method

@@ -5962,7 +5962,7 @@ export class BaseExchange {
         return preferredChain;
     }
 
-    handleNetworkCodeAndParams (params: any): any[] {
+    handleNetworkCodeAndParams (params: any): [Str, Dict] {
         const networkCodeInParams = this.safeString2 (params, 'networkCode', 'network');
         if (networkCodeInParams !== undefined) {
             params = this.omit (params, [ 'networkCode', 'network' ]);
