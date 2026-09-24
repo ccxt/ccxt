@@ -1875,7 +1875,7 @@ export default class apex extends Exchange {
         return this.parseIncomes (fundingValues, market, since, limit);
     }
 
-    override parseIncome (income: any, market: Market = undefined): object {
+    override parseIncome (income: Dict, market: Market = undefined): object {
         //
         // {
         //     "id": "1234",

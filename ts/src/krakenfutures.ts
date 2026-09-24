@@ -2671,7 +2671,7 @@ export default class krakenfutures extends Exchange {
         return this.parseIncomes (logs, market, since, limit);
     }
 
-    override parseIncome (income: any, market: Market = undefined): object {
+    override parseIncome (income: Dict, market: Market = undefined): object {
         //
         //    {
         //        "asset": "usd",

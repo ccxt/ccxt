@@ -3359,7 +3359,7 @@ export default class paradex extends Exchange {
         return this.parseIncomes (results, market, since, limit);
     }
 
-    override parseIncome (income: any, market: Market = undefined): object {
+    override parseIncome (income: Dict, market: Market = undefined): object {
         //
         //     {
         //         "account": "string",

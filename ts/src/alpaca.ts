@@ -1760,7 +1760,7 @@ export default class alpaca extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",

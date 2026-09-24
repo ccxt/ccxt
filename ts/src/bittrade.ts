@@ -1843,7 +1843,7 @@ export default class bittrade extends Exchange {
         ];
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "currency": "usdt",

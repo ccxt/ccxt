@@ -1883,7 +1883,7 @@ export default class foxbit extends Exchange {
         });
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         const network = this.safeDict (depositAddress, 'network');
         const networkId = this.safeString (network, 'code');
         const currencyCode = this.safeCurrencyCode (undefined, currency);

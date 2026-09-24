@@ -1953,7 +1953,7 @@ export default class gemini extends Exchange {
         return this.safeString (statuses, status as string, status);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //      {
         //          "address": "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",

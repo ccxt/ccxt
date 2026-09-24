@@ -2331,7 +2331,7 @@ export default class htx extends Exchange {
         return this.parseLastPrices (data, symbols);
     }
 
-    override parseLastPrice (entry: any, market: Market = undefined): LastPrice {
+    override parseLastPrice (entry: Dict, market: Market = undefined): LastPrice {
         // example responses are documented in fetchLastPrices
         const marketId = this.safeString2 (entry, 'symbol', 'contract_code');
         market = this.safeMarket (marketId, market);
@@ -6374,7 +6374,7 @@ export default class htx extends Exchange {
         return response;
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined) {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined) {
         //
         //     {
         //         "currency": "usdt",
@@ -7945,7 +7945,7 @@ export default class htx extends Exchange {
         return response;
     }
 
-    override parseIncome (income: any, market: Market = undefined): Dict {
+    override parseIncome (income: Dict, market: Market = undefined): Dict {
         //
         //     {
         //       "id": "1667161118",
@@ -8445,7 +8445,7 @@ export default class htx extends Exchange {
         return parsed;
     }
 
-    parseLedgerEntryType (type: any) {
+    parseLedgerEntryType (type: Str) {
         const types: Dict = {
             'trade': 'trade',
             'etf': 'trade',
@@ -9543,7 +9543,7 @@ export default class htx extends Exchange {
         return result;
     }
 
-    parseSettlement (settlement: any, market: any) {
+    parseSettlement (settlement: Dict, market: Market) {
         //
         // coin-m swap, fetchSettlementHistory
         //

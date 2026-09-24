@@ -2978,7 +2978,7 @@ export default class whitebit extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "address": "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN",
@@ -3676,7 +3676,7 @@ export default class whitebit extends Exchange {
         return this.parseFundingHistories (data, market, since, limit);
     }
 
-    parseFundingHistory (contract: any, market: Market = undefined) {
+    parseFundingHistory (contract: Dict, market: Market = undefined) {
         //
         //     {
         //         "market": "BTC_PERP",
