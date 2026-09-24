@@ -123,11 +123,11 @@ export default class alpaca extends alpacaRest {
         //    }
         //
         const marketId = this.safeString (ticker, 'S');
-        const datetime = this.safeString (ticker, 't');
+        const timestamp = this.parse8601 (this.safeString (ticker, 't'));
         return this.safeTicker ({
             'symbol': this.safeSymbol (marketId, market),
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
             'bid': this.safeString (ticker, 'bp'),
@@ -595,7 +595,7 @@ export default class alpaca extends alpacaRest {
         //    }
         //
         const marketId = this.safeString (trade, 'symbol');
-        const datetime = this.safeString (trade, 'filled_at');
+        const timestamp = this.parse8601 (this.safeString (trade, 'filled_at'));
         let type = this.safeString (trade, 'type');
         if (type === undefined) {
             return undefined;
@@ -607,8 +607,8 @@ export default class alpaca extends alpacaRest {
         return this.safeTrade ({
             'id': this.safeString (trade, 'i'),
             'info': trade,
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'symbol': this.safeSymbol (marketId, undefined, '/'),
             'order': this.safeString (trade, 'id'),
             'type': type,

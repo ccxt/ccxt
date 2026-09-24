@@ -402,11 +402,11 @@ export default class blockchaincom extends blockchaincomRest {
         //     }
         //
         const marketId = this.safeString (trade, 'symbol');
-        const datetime = this.safeString (trade, 'timestamp');
+        const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         return this.safeTrade ({
             'id': this.safeString (trade, 'trade_id'),
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'symbol': this.safeSymbol (marketId, market, '-'),
             'order': undefined,
             'type': undefined,
@@ -587,7 +587,7 @@ export default class blockchaincom extends blockchaincomRest {
         //         "closePositionOrder": false
         //     }
         //
-        const datetime = this.safeString (order, 'transactTime');
+        const timestamp = this.parse8601 (this.safeString (order, 'transactTime'));
         const status = this.safeString (order, 'ordStatus');
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
@@ -599,8 +599,8 @@ export default class blockchaincom extends blockchaincomRest {
         return this.safeOrder ({
             'id': this.safeString (order, 'orderID'),
             'clientOrderId': this.safeString (order, 'clOrdID'),
-            'datetime': datetime,
-            'timestamp': this.parse8601 (datetime),
+            'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp,
             'status': this.parseWsOrderStatus (status),
             'symbol': this.safeSymbol (marketId, market),
             'type': this.safeString (order, 'ordType'), // limit, market, stop, stopLimit, trailingStop, fillOrKill
