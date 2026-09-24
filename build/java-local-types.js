@@ -93,8 +93,7 @@
 //     marketIds / marketCodes -> own parameter or a List<Object> local; getListFromObjectValues /
 //     parseAccounts / parseBorrowInterests / parseMarginModifications -> a List<Object> local.
 //
-// Deliberately absent: marketSymbols (`as string[]` call sites print a List<String> cast,
-// inconvertible from List<Object>); parseTickers / parsePositions / parseFundingRates /
+// Deliberately absent: parseTickers / parsePositions / parseFundingRates /
 // parseOpenInterests (they funnel through filterByArray, which hands back a keyed
 // dictionary when `indexed` is true — argument-dependent, so not a list type; the C#
 // census reached the same conclusion), parseWsTrade / parseWsTrades (their ws overrides
@@ -364,13 +363,11 @@ export const JAVA_LIST_RETURN_METHODS = new Set ([
     'filterBySymbolsSinceLimit', 'marketCodes', 'getListFromObjectValues', 'parseAccounts',
     'parseBorrowInterests', 'parseMarginModifications', 'parseConversions', 'parseIncomes',
     'parseLiquidations', 'parseFundingRateHistories', 'parseLongShortRatioHistory', 'parseOpenInterestsHistory',
-    // every return is the own `symbols` parameter (checkcast) or the `result` list
-    'marketSymbols',
 ]);
 
 // base methods whose every return is the own `symbols` parameter (checkcast) or a String
 // accumulator list (section 26) print `java.util.List<String>`; locals take it in section 31
-export const JAVA_STRING_LIST_RETURN_METHODS = new Set ([ 'marketIds' ]);
+export const JAVA_STRING_LIST_RETURN_METHODS = new Set ([ 'marketIds', 'marketSymbols' ]);
 const JAVA_STRING_LIST_TYPE = 'java.util.List<String>';
 
 // one name in both tables is a hard bug: the fixed per-name return type would differ
@@ -12317,7 +12314,8 @@ export function patchJavaStringListReturnLocals (transpiler) {
         }
         if (stringListLocalType (printer, declaration) === undefined) {
             // a declared List<Object> cannot take a List<String> call result
-            return head !== heads[0] && printed.slice (at + head.length).startsWith ('this.marketIds(')
+            const rhs = printed.slice (at + head.length);
+            return head !== heads[0] && [ ...JAVA_STRING_LIST_RETURN_METHODS ].some ((m) => rhs.startsWith (`this.${m}(`))
                 ? printed.slice (0, at) + heads[0] + printed.slice (at + head.length) : printed;
         }
         typed.set (declaration, JAVA_STRING_LIST_TYPE);
