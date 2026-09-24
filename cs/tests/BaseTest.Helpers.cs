@@ -409,7 +409,8 @@ public partial class testMainClass : BaseTest
             // LeverageTiers, ...) hold a Dictionary<string, T> where T is a unified
             // struct or a list of them; the unified shape is that dictionary itself,
             // keyed by symbol/currency, so splat its entries instead of nesting them.
-            if (fieldType.IsGenericType
+            // Network dictionaries are nested fields, not top-level containers.
+            if (field.Name != "networks" && fieldType.IsGenericType
                 && fieldType.GetGenericTypeDefinition() == typeof(Dictionary<,>)
                 && fieldType.GetGenericArguments()[0] == typeof(string)
                 && isProjectable(fieldType.GetGenericArguments()[1]))

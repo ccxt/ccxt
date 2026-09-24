@@ -49,5 +49,37 @@ public partial class BaseTest
         var plain = new List<object>() { row };
         Assert(ReferenceEquals(ccxt.BaseExchange.FromDictList(plain), plain), "an already-untyped List<object> must pass through FromDictList unchanged");
         Assert(ReferenceEquals(await ccxt.BaseExchange.AsTaskOfObject(Task.FromResult(plain)), plain), "an already-untyped List<object> must pass through the reflective await unchanged");
+
+        // Network fees contain separate deposit/withdraw leaves, not a single fee.
+        var networkFees = new Dictionary<string, object>() {
+            { "deposit", new Dictionary<string, object>() { { "fee", null }, { "percentage", null } } },
+            { "withdraw", new Dictionary<string, object>() { { "fee", 3.0 }, { "percentage", false } } },
+        };
+        var feeData = new Dictionary<string, object>() {
+            { "info", new Dictionary<string, object>() },
+            { "deposit", networkFees["deposit"] },
+            { "withdraw", networkFees["withdraw"] },
+            { "networks", new Dictionary<string, object>() { { "BEP20", networkFees } } },
+        };
+        var typedFee = new DepositWithdrawFee(feeData);
+        Assert(typedFee.networks["BEP20"].withdraw?.fee == 3.0, "the typed network must retain its withdrawal fee");
+        Assert(typedFee.networks["BEP20"].withdraw?.percentage == false, "the typed network must retain false percentage");
+        Assert(typedFee.networks["BEP20"].deposit.HasValue && typedFee.networks["BEP20"].deposit?.fee == null, "an unknown deposit fee must remain null");
+        var restored = (Dictionary<string, object>)ccxt.BaseExchange.FromDepositWithdrawFee(typedFee);
+        var restoredNetworks = (Dictionary<string, object>)restored["networks"];
+        var restoredNetwork = (Dictionary<string, object>)restoredNetworks["BEP20"];
+        var restoredWithdrawal = (Dictionary<string, object>)restoredNetwork["withdraw"];
+        Assert((double)restoredWithdrawal["fee"] == 3.0, "production conversion must retain the nested withdrawal fee");
+        var projected = (Dictionary<string, object>)testMainClass.detypeForComparison(typedFee);
+        Assert(projected.ContainsKey("networks") && !projected.ContainsKey("BEP20"), "comparison must keep networks nested");
+        var projectedNetworks = (Dictionary<string, object>)projected["networks"];
+        var projectedNetwork = (Dictionary<string, object>)projectedNetworks["BEP20"];
+        var projectedDeposit = (Dictionary<string, object>)projectedNetwork["deposit"];
+        Assert(projectedDeposit.ContainsKey("fee") && projectedDeposit["fee"] == null, "comparison must retain explicit null fees");
+        var fees = new DepositWithdrawFees(new Dictionary<string, object>() { { "ACE", feeData } });
+        var projectedFees = (Dictionary<string, object>)testMainClass.detypeForComparison(fees);
+        Assert(projectedFees.ContainsKey("ACE"), "the top-level currency container must still unwrap");
+        var projectedFee = (Dictionary<string, object>)projectedFees["ACE"];
+        Assert(projectedFee.ContainsKey("networks") && !projectedFee.ContainsKey("BEP20"), "nested networks must survive the fee container");
     }
 }
