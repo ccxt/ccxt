@@ -5,22 +5,19 @@ edition = "2021"
 publish = false
 
 [dependencies]
-# `ccxt` is the typed API crate; it re-exports the whole `ccxt-base` engine at
-# its root, so `ccxt::Value` etc. resolve here alongside the typed `ccxt::Binance`.
-ccxt = { path = "../../rust/ccxt" }
-# The transpiled pro/ WebSocket venues live in their own crate. Optional so the
-# default examples build (and CI) stays on the lighter set.
-ccxt-pro = { path = "../../rust/ccxt-pro", optional = true }
-# The typed prediction-market API crate (`ccxt_prediction::Kalshi`, …).
-ccxt-prediction = { path = "../../rust/ccxt-prediction" }
+ccxt = { path = "../../rust/ccxt", default-features = false, features = [
+    "binance", "bitget", "bitstamp", "bybit", "coinbase", "gate", "hyperliquid", "kraken", "kucoin", "okx",
+] }
+ccxt-pro = { path = "../../rust/ccxt-pro", optional = true, default-features = false, features = [
+    "binance", "bitget", "bitstamp", "bybit", "coinbase", "gate", "hyperliquid", "kraken", "kucoin", "okx",
+] }
+ccxt-prediction = { path = "../../rust/ccxt-prediction", default-features = false, features = ["kalshi", "polymarket"] }
 tokio = { version = "1", features = ["full"] }
 futures = "0.3"
 async-trait = "0.1"
 
 [features]
-# Opt-in: pulls in the transpiled pro/ WebSocket venue crate (`ccxt-pro`). Only
-# the watch*/probe bins need it, so the default `cargo build --bins` (and CI)
-# stays on the lighter transpiled-base set.
+all-venues = ["ccxt/all", "ccxt-pro?/all", "ccxt-prediction/all"]
 ws = ["dep:ccxt-pro"]
 
 # Typed prediction-market API demo (`ccxt_prediction::Kalshi::fetch_ticker`, …).
@@ -49,6 +46,7 @@ path = "src/exchanges_smoke.rs"
 [[bin]]
 name = "cli"
 path = "src/cli.rs"
+required-features = ["all-venues"]
 
 [[bin]]
 name = "bench_parse_markets"
@@ -72,7 +70,7 @@ required-features = ["ws"]
 [[bin]]
 name = "ws_health_probe"
 path = "src/ws_health_probe.rs"
-required-features = ["ws"]
+required-features = ["ws", "all-venues"]
 
 [[bin]]
 name = "watch_trades_count"
