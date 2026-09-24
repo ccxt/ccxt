@@ -731,7 +731,7 @@ public partial class bithumb : ccxt.bithumb
                 ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
             }
             ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
-            callDynamically(trades, "append", new object[] {parsed});
+            trades.append(parsed);
             string messageHash = (("trade" + ":") + symbol);
             client.resolve(trades, messageHash);
         }
@@ -1074,7 +1074,7 @@ public partial class bithumb : ccxt.bithumb
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache cachedOrders = this.orders;
-        callDynamically(cachedOrders, "append", new object[] {parsed});
+        cachedOrders.append(parsed);
         client.resolve(cachedOrders, messageHash);
         string symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(cachedOrders, symbolSpecificMessageHash);

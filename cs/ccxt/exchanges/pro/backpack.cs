@@ -666,7 +666,7 @@ public partial class backpack : ccxt.backpack
         }
         ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)getValue(getValue(this.ohlcvs, symbol), timeframe));
         List<object> parsed = this.parseWsOHLCV(data);
-        callDynamically(ohlcv, "append", new object[] {parsed});
+        ohlcv.append(parsed);
         string messageHash = ((("candles:" + symbol) + ":") + timeframe);
         client.resolve(new List<object>() {symbol, timeframe, ohlcv}, messageHash);
     }
@@ -834,7 +834,7 @@ public partial class backpack : ccxt.backpack
         }
         ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
         Dictionary<string, object> trade = this.parseWsTrade(data, market);
-        callDynamically(cache, "append", new object[] {trade});
+        cache.append(trade);
         string messageHash = ("trades:" + symbol);
         client.resolve(cache, messageHash);
         client.resolve(cache, "trades");
@@ -1223,7 +1223,7 @@ public partial class backpack : ccxt.backpack
             orders = new ArrayCacheBySymbolById(limit);
             this.orders = orders;
         }
-        callDynamically(orders, "append", new object[] {parsed});
+        orders.append(parsed);
         client.resolve(orders, messageHash);
         string symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(orders, symbolSpecificMessageHash);
@@ -1444,7 +1444,7 @@ public partial class backpack : ccxt.backpack
         Int64? timestamp = this.parseToInt((microseconds / 1000));
         parsedPosition["timestamp"] = timestamp;
         parsedPosition["datetime"] = this.iso8601(timestamp);
-        callDynamically(cache, "append", new object[] {parsedPosition});
+        cache.append(parsedPosition);
         string symbolSpecificMessageHash = ((messageHash + ":") + ((parsedPosition != null && ((IDictionary<string, object>)parsedPosition).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedPosition)["symbol"] : null)));
         client.resolve(new List<object>() {parsedPosition}, messageHash);
         client.resolve(new List<object>() {parsedPosition}, symbolSpecificMessageHash);

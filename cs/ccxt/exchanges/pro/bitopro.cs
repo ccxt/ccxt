@@ -197,7 +197,7 @@ public partial class bitopro : ccxt.bitopro
         }
         for (int i = 0; i < (trades?.Count ?? 0); i++)
         {
-            callDynamically(tradesCache, "append", new object[] {trades[i]});
+            tradesCache.append(trades[i]);
         }
         ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesCache;
         client.resolve(tradesCache, messageHash);
@@ -278,7 +278,7 @@ public partial class bitopro : ccxt.bitopro
         }
         ccxt.pro.ArrayCache trades = this.myTrades;
         Dictionary<string, object> parsed = this.parseWsTrade(data);
-        callDynamically(trades, "append", new object[] {parsed});
+        trades.append(parsed);
         client.resolve(trades, messageHash);
         client.resolve(trades, add(add(messageHash, ":"), symbol));
     }

@@ -217,7 +217,7 @@ public partial class alpaca : ccxt.alpaca
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = stored;
         }
         IList<object> parsed = this.parseOHLCV(message);
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         string messageHash = ("ohlcv:" + symbol);
         client.resolve(stored, messageHash);
     }
@@ -378,7 +378,7 @@ public partial class alpaca : ccxt.alpaca
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
         Dictionary<string, object> parsed = this.parseTrade(message);
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         string messageHash = (("trade" + ":") + symbol);
         client.resolve(stored, messageHash);
     }
@@ -530,7 +530,7 @@ public partial class alpaca : ccxt.alpaca
         }
         ccxt.pro.ArrayCache orders = this.orders;
         Dictionary<string, object> order = this.parseOrder(rawOrder);
-        callDynamically(orders, "append", new object[] {order});
+        orders.append(order);
         string messageHash = "orders";
         client.resolve(orders, messageHash);
         messageHash = ("orders:" + ((order != null && ((IDictionary<string, object>)order).ContainsKey("symbol") ? ((IDictionary<string, object>)order)["symbol"] : null)));
@@ -602,7 +602,7 @@ public partial class alpaca : ccxt.alpaca
         {
             return;
         }
-        callDynamically(myTrades, "append", new object[] {trade});
+        myTrades.append(trade);
         string messageHash = ("myTrades:" + (getValue(trade, "symbol")));
         client.resolve(myTrades, messageHash);
         messageHash = "myTrades";

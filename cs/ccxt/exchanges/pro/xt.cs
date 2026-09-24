@@ -883,7 +883,7 @@ public partial class xt : ccxt.xt
             double? contracts = this.safeNumber(position, "contracts", 0);
             if (((contracts != null)) && (isGreaterThan(contracts, 0)))
             {
-                callDynamically(cache, "append", new object[] {position});
+                cache.append(position);
             }
         }
         // don't remove the future from the .futures cache
@@ -934,7 +934,7 @@ public partial class xt : ccxt.xt
         ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> position = this.parsePosition(data);
-        callDynamically(cache, "append", new object[] {position});
+        cache.append(position);
         List<object> messageHashes = this.findMessageHashes(client, "position::contract");
         for (int i = 0; i < (messageHashes?.Count ?? 0); i++)
         {
@@ -1206,7 +1206,7 @@ public partial class xt : ccxt.xt
                 stored = new ArrayCacheByTimestamp(limit);
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
             }
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
             object eventVar = this.safeString(message, "event");
             string? messageHash = ((string)add(add(eventVar, "::"), tradeType));
             client.resolve(stored, messageHash);
@@ -1267,7 +1267,7 @@ public partial class xt : ccxt.xt
                 tradesArray = new ArrayCache(tradesLimit);
                 ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
             }
-            callDynamically(tradesArray, "append", new object[] {trade});
+            tradesArray.append(trade);
             string? messageHash = ((string)add(add(eventVar, "::"), tradeType));
             client.resolve(tradesArray, messageHash);
         }
@@ -1609,7 +1609,7 @@ public partial class xt : ccxt.xt
             }
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, tradeType);
             Dictionary<string, object> parsed = this.parseWsOrder(order, market);
-            callDynamically(orders, "append", new object[] {parsed});
+            orders.append(parsed);
             client.resolve(orders, ("order::" + tradeType));
         }
         return message;
@@ -1722,7 +1722,7 @@ public partial class xt : ccxt.xt
             return;
         }
         Dictionary<string, object> market = this.market(tradeSymbol);
-        callDynamically(stored, "append", new object[] {parsedTrade});
+        stored.append(parsedTrade);
         string tradeType = "spot";
         if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
         {

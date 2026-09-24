@@ -518,7 +518,7 @@ public partial class binance : ccxt.binance
             this.liquidations = new ArrayCache(limit);
         }
         ccxt.pro.ArrayCache cache = this.liquidations;
-        callDynamically(cache, "append", new object[] {liquidation});
+        cache.append(liquidation);
         client.resolve(new List<object>() {liquidation}, "liquidations");
         client.resolve(new List<object>() {liquidation}, ("liquidations::" + symbol));
     }
@@ -1803,7 +1803,7 @@ public partial class binance : ccxt.binance
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCache(limit);
         }
-        callDynamically(tradesArray, "append", new object[] {trade});
+        tradesArray.append(trade);
         ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
         client.resolve(tradesArray, messageHash);
     }
@@ -2178,7 +2178,7 @@ public partial class binance : ccxt.binance
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)unifiedTimeframe] = stored;
             }
         }
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         List<object> resolveData = new List<object>() {symbol, unifiedTimeframe, stored};
         client.resolve(resolveData, messageHash);
     }
@@ -5787,7 +5787,7 @@ public partial class binance : ccxt.binance
             double? contracts = this.safeNumber(position, "contracts", 0);
             if (((contracts != null)) && (isGreaterThan(contracts, 0)))
             {
-                callDynamically(cache, "append", new object[] {position});
+                cache.append(position);
             }
         }
         // don't remove the future from the .futures cache
@@ -5853,7 +5853,7 @@ public partial class binance : ccxt.binance
             position["timestamp"] = timestamp;
             position["datetime"] = this.iso8601(timestamp);
             newPositions.Add(position);
-            callDynamically(cache, "append", new object[] {position});
+            cache.append(position);
         }
         List<object> messageHashes = this.findMessageHashes(client, add(accountType, ":positions::"));
         for (int i = 0; i < (messageHashes?.Count ?? 0); i++)
@@ -6333,7 +6333,7 @@ public partial class binance : ccxt.binance
                 this.myTrades = new ArrayCacheBySymbolById(limit);
             }
             ccxt.pro.ArrayCache myTrades = this.myTrades;
-            callDynamically(myTrades, "append", new object[] {trade});
+            myTrades.append(trade);
             client.resolve(this.myTrades, messageHash);
             string messageHashSymbol = ((messageHash + ":") + symbol);
             client.resolve(this.myTrades, messageHashSymbol);
@@ -6375,7 +6375,7 @@ public partial class binance : ccxt.binance
                     parsed["datetime"] = this.safeString(order, "datetime");
                 }
             }
-            callDynamically(cachedOrders, "append", new object[] {parsed});
+            cachedOrders.append(parsed);
             string messageHash = "orders";
             string symbolSpecificMessageHash = ("orders:" + symbol);
             client.resolve(cachedOrders, messageHash);
@@ -6460,7 +6460,7 @@ public partial class binance : ccxt.binance
             position["timestamp"] = timestamp;
             position["datetime"] = this.iso8601(timestamp);
             newPositions.Add(position);
-            callDynamically(cache, "append", new object[] {position});
+            cache.append(position);
         }
         List<object> messageHashes = this.findMessageHashes(client, (accountType + ":positions::"));
         for (int i = 0; i < (messageHashes?.Count ?? 0); i++)

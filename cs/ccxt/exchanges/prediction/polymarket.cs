@@ -3820,7 +3820,7 @@ public partial class polymarket : PredictionExchange
             stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)outcome] = stored;
         }
-        callDynamically(stored, "append", new object[] {trade});
+        stored.append(trade);
         client.resolve(stored, ("trades::" + outcome));
     }
 
@@ -4059,7 +4059,7 @@ public partial class polymarket : PredictionExchange
         }
         ccxt.pro.ArrayCache stored = this.orders;
         Dictionary<string, object> parsed = this.parsePredictionOrder(eventVar);
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         client.resolve(stored, "orders");
         string? outcome = this.safeString(parsed, "outcome");
         if ((outcome != null))
@@ -4077,7 +4077,7 @@ public partial class polymarket : PredictionExchange
         }
         ccxt.pro.ArrayCache stored = this.myTrades;
         Dictionary<string, object> parsed = this.parsePredictionTrade(eventVar);
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         client.resolve(stored, "myTrades");
         string? outcome = this.safeString(parsed, "outcome");
         if ((outcome != null))

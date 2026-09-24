@@ -730,7 +730,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             Dictionary<string, object> parsed = this.parseWsTrade(rawTrade);
             string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
             symbols[(string)symbol] = true;
-            callDynamically(trades, "append", new object[] {parsed});
+            trades.append(parsed);
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
         for (int i = 0; i < keys.Count; i++)
@@ -856,7 +856,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         {
             IDictionary<string, object> data = this.safeDict(entry, i, new Dictionary<string, object>() {});
             Dictionary<string, object> trade = this.parseWsTrade(data);
-            callDynamically(trades, "append", new object[] {trade});
+            trades.append(trade);
         }
         string messageHash = ("trade:" + symbol);
         client.resolve(trades, messageHash);
@@ -1047,7 +1047,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
         ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)getValue(getValue(this.ohlcvs, symbol), timeframe));
         IList<object> parsed = this.parseOHLCV(data);
-        callDynamically(ohlcv, "append", new object[] {parsed});
+        ohlcv.append(parsed);
         string messageHash = ((("candles:" + timeframe) + ":") + symbol);
         client.resolve(ohlcv, messageHash);
     }
@@ -1422,7 +1422,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             object rawPosition = rawPositions[i];
             Dictionary<string, object> position = this.parsePosition(rawPosition);
             newPositions.Add(position);
-            callDynamically(cache, "append", new object[] {position});
+            cache.append(position);
         }
         string baseMessageHash = "clearinghouseState::positions";
         List<object> messageHashes = this.findMessageHashes(client, baseMessageHash);
@@ -1621,7 +1621,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         {
             object rawOrder = data[i];
             Dictionary<string, object> order = this.parseOrder(rawOrder);
-            callDynamically(stored, "append", new object[] {order});
+            stored.append(order);
             string? symbol = this.safeString(order, "symbol");
             marketSymbols[(string)symbol] = true;
         }

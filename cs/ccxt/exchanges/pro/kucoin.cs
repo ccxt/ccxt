@@ -1176,7 +1176,7 @@ public partial class kucoin : ccxt.kucoin
         bool isContractMarket = (topic.IndexOf("contractMarket", StringComparison.Ordinal) >= 0);
         int baseVolumeIndex = isContractMarket ? 6 : 5; // Note value 5 is incorrect and will be fixed in subsequent versions of kucoin
         List<object> parsed = new List<object> {this.safeTimestamp(candles, 0), this.safeNumber(candles, 1), this.safeNumber(candles, 3), this.safeNumber(candles, 4), this.safeNumber(candles, 2), this.safeNumber(candles, baseVolumeIndex)};
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         client.resolve(stored, messageHash);
     }
 
@@ -1217,7 +1217,7 @@ public partial class kucoin : ccxt.kucoin
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
         }
         List<object> parsed = new List<object> {this.safeIntegerProduct(data, "O", 1000), this.safeNumber(data, "o"), this.safeNumber(data, "h"), this.safeNumber(data, "l"), this.safeNumber(data, "c"), this.safeNumber(data, "v")};
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         client.resolve(stored, messageHash);
     }
 
@@ -1443,7 +1443,7 @@ public partial class kucoin : ccxt.kucoin
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
         ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
-        callDynamically(cache, "append", new object[] {trade});
+        cache.append(trade);
         client.resolve(cache, messageHash);
     }
 
@@ -1477,7 +1477,7 @@ public partial class kucoin : ccxt.kucoin
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
         ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
-        callDynamically(cache, "append", new object[] {trade});
+        cache.append(trade);
         client.resolve(cache, messageHash);
     }
 
@@ -2632,7 +2632,7 @@ public partial class kucoin : ccxt.kucoin
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache cachedOrders = this.orders;
-        callDynamically(cachedOrders, "append", new object[] {parsed});
+        cachedOrders.append(parsed);
         string messageHash = "uta:orders";
         string symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(cachedOrders, symbolSpecificMessageHash);
@@ -2770,7 +2770,7 @@ public partial class kucoin : ccxt.kucoin
         IDictionary<string, object> data = this.safeDict(message, "data");
         Dictionary<string, object> parsed = this.parseWsTrade(data);
         ccxt.pro.ArrayCache myTrades = this.myTrades;
-        callDynamically(myTrades, "append", new object[] {parsed});
+        myTrades.append(parsed);
         string messageHash = "myTrades";
         string? topic = this.safeString(message, "topic");
         string suffix = this.getMyTradesMessageHashSuffix(topic);
@@ -2810,7 +2810,7 @@ public partial class kucoin : ccxt.kucoin
             this.myTrades = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache cache = this.myTrades;
-        callDynamically(cache, "append", new object[] {trade});
+        cache.append(trade);
         string messageHash = "uta:myTrades";
         string symbolMessageHash = ((messageHash + ":") + symbol);
         client.resolve(this.myTrades, messageHash);
@@ -3331,7 +3331,7 @@ public partial class kucoin : ccxt.kucoin
             double? contracts = this.safeNumber(position, "contracts", 0);
             if (isGreaterThan(contracts, 0))
             {
-                callDynamically(cache, "append", new object[] {position});
+                cache.append(position);
             }
         }
         // don't remove the future from the .futures cache
@@ -3362,7 +3362,7 @@ public partial class kucoin : ccxt.kucoin
         Dictionary<string, object> position = ccxt.BaseExchange.FromPosition(await this.FetchPosition(((string)symbol)));
         this.positions = new ArrayCacheBySymbolById();
         ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
-        callDynamically(cache, "append", new object[] {position});
+        cache.append(position);
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))
         {
@@ -3485,7 +3485,7 @@ public partial class kucoin : ccxt.kucoin
             }
         }
         Dictionary<string, object> position = this.extend(currentPosition, newPosition);
-        callDynamically(cache, "append", new object[] {position});
+        cache.append(position);
         client.resolve(position, messageHash);
     }
 
@@ -3536,7 +3536,7 @@ public partial class kucoin : ccxt.kucoin
             }
         }
         Dictionary<string, object> position = this.extend(currentPosition, newPosition);
-        callDynamically(cache, "append", new object[] {position});
+        cache.append(position);
         string messageHash = "positions";
         string symbolMessageHash = ((messageHash + ":") + symbol);
         client.resolve(this.positions, messageHash);

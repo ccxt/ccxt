@@ -2985,7 +2985,7 @@ public partial class sxbet : PredictionExchange
                 ((IDictionary<string,object>)this.trades)[(string)sym] = new ArrayCache(tradesLimit);
             }
             ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(this.trades, sym));
-            callDynamically(stored, "append", new object[] {trade});
+            stored.append(trade);
             client.resolve(stored, ("trades::" + sym));
         }
     }
@@ -3042,7 +3042,7 @@ public partial class sxbet : PredictionExchange
                 this.myTrades = new ArrayCacheByOutcomeById(myTradesLimit);
             }
             ccxt.pro.ArrayCache stored = this.myTrades;
-            callDynamically(stored, "append", new object[] {trade});
+            stored.append(trade);
             client.resolve(stored, "myTrades");
             client.resolve(stored, ("myTrades::" + sym));
         }
@@ -3095,7 +3095,7 @@ public partial class sxbet : PredictionExchange
                 this.orders = new ArrayCacheByOutcomeById(cacheLimit);
             }
             ccxt.pro.ArrayCache stored = this.orders;
-            callDynamically(stored, "append", new object[] {order});
+            stored.append(order);
             client.resolve(stored, "orders");
             string? sym = this.safeString(order, "outcome");
             if ((sym != null))

@@ -179,7 +179,7 @@ public partial class coincheck : ccxt.coincheck
         {
             object data = this.safeValue(message, i);
             Dictionary<string, object> trade = this.parseWsTrade(data);
-            callDynamically(stored, "append", new object[] {trade});
+            stored.append(trade);
         }
         string messageHash = ("trade:" + symbol);
         client.resolve(stored, messageHash);

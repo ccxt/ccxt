@@ -2228,7 +2228,7 @@ public partial class opinion : PredictionExchange
             ((IDictionary<string,object>)this.trades)[(string)sym] = new ArrayCache(tradesLimit);
         }
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(this.trades, sym));
-        callDynamically(stored, "append", new object[] {trade});
+        stored.append(trade);
         client.resolve(stored, ("trades::" + sym));
     }
 
@@ -2362,7 +2362,7 @@ public partial class opinion : PredictionExchange
             this.orders = new ArrayCacheByOutcomeById(limit);
         }
         ccxt.pro.ArrayCache stored = this.orders;
-        callDynamically(stored, "append", new object[] {order});
+        stored.append(order);
         client.resolve(stored, "orders");
     }
 
@@ -2448,7 +2448,7 @@ public partial class opinion : PredictionExchange
             this.myTrades = new ArrayCacheByOutcomeById(myTradesLimit);
         }
         ccxt.pro.ArrayCache stored = this.myTrades;
-        callDynamically(stored, "append", new object[] {trade});
+        stored.append(trade);
         client.resolve(stored, "myTrades");
     }
 

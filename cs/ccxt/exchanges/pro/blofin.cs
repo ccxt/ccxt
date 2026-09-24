@@ -156,7 +156,7 @@ public partial class blofin : ccxt.blofin
                 stored = new ArrayCache(limit);
                 ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
             }
-            callDynamically(stored, "append", new object[] {trade});
+            stored.append(trade);
             string? messageHash = ((string)add(add(channelName, ":"), symbol));
             client.resolve(stored, messageHash);
         }
@@ -518,7 +518,7 @@ public partial class blofin : ccxt.blofin
         {
             object candle = data[i];
             IList<object> parsed = this.parseOHLCV(candle, market);
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
         }
         List<object> resolveData = new List<object>() {symbol, unifiedTimeframe, stored};
         string messageHash = ((("candle" + interval) + ":") + symbol);
@@ -668,7 +668,7 @@ public partial class blofin : ccxt.blofin
             Dictionary<string, object> order = this.parseWsOrder(data[i]);
             string? symbol = ((string)(order != null && ((IDictionary<string, object>)order).ContainsKey("symbol") ? ((IDictionary<string, object>)order)["symbol"] : null));
             string? messageHash = ((string)add(add(channelName, ":"), symbol));
-            callDynamically(orders, "append", new object[] {order});
+            orders.append(order);
             client.resolve(orders, messageHash);
             client.resolve(orders, channelName);
         }
@@ -729,7 +729,7 @@ public partial class blofin : ccxt.blofin
         {
             Dictionary<string, object> position = this.parseWsPosition(data[i]);
             newPositions.Add(position);
-            callDynamically(cache, "append", new object[] {position});
+            cache.append(position);
             object messageHash = add(add(channelName, ":"), (position != null && ((IDictionary<string, object>)position).ContainsKey("symbol") ? ((IDictionary<string, object>)position)["symbol"] : null));
             client.resolve(position, messageHash);
         }
