@@ -80,16 +80,30 @@ jobs:
           #   echo "No websocket files to process; skipping."
           # fi
           read -r -a files <<<"$(printf '%s %s' "${{ env.rest_files }}" "${{ env.ws_files }}" | xargs)"
-          if [ "${#files[@]}" -eq 0 ]; then
+          read -r -a prediction <<<"$(printf '%s' "${{ env.prediction_files }}" | xargs)"
+          if [ "${#files[@]}" -eq 0 ] && [ "${#prediction[@]}" -eq 0 ]; then
             echo "No files to process; skipping."
             exit 0
           fi
-          echo "Files to process: ${files[*]}"
-          tsx build/granular-go-build.ts "${files[@]}"
+          prediction_covered=false
+          if [ "${#files[@]}" -gt 0 ]; then
+            echo "Files to process: ${files[*]}"
+            tsx build/granular-go-build.ts "${files[@]}"
+            prediction_covered=true
+            for id in "${files[@]}"; do
+              if [ -f "ts/src/$id.ts" ] || [ -f "ts/src/pro/$id.ts" ]; then
+                prediction_covered=false
+              fi
+            done
+          fi
+          if [ "${#prediction[@]}" -gt 0 ] && [ "$prediction_covered" = false ]; then
+            echo "Prediction files to process: ${prediction[*]}"
+            npm run transpile-prediction-go
+          fi
       # - name: Install dependencies
       #   run: cd go && go get ./ccxt && cd ..
       - name: Transpile prediction to Go
-        if: env.prediction_modified == 'true'
+        if: env.important_modified == 'true'
         run: npm run transpile-prediction-go
       - name: Check emitted Go is gofmt-clean
         run: tsx build/goTranspiler.ts --check-gofmt
