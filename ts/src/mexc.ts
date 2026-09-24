@@ -2379,8 +2379,11 @@ export default class mexc extends Exchange {
         }
     }
 
-    createSpotOrderRequest (market: any, type: any, side: any, amount: any, price: Num = undefined, marginMode: Str = undefined, params = {}) {
+    createSpotOrderRequest (market: any, type: Str, side: Str, amount: any, price: Num = undefined, marginMode: Str = undefined, params = {}) {
         const symbol = market['symbol'];
+        if ((type === undefined) || (side === undefined)) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a type and a side argument');
+        }
         const orderSide = side.toUpperCase ();
         const request: Dict = {
             'symbol': market['id'],
