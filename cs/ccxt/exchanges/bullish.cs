@@ -1505,9 +1505,9 @@ public partial class bullish : Exchange
     public async override Task<object> safeDeterministicCall(object method, string symbol = null, object since = null, object limit = null, string timeframe = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object maxRetries = null;
-        IList<object> maxRetriesparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, method, "maxRetries", 3);
-        maxRetries = maxRetriesparametersVariable[0];
+        Int64? maxRetries = null;
+        IList<object> maxRetriesparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, method, "maxRetries", 3);
+        maxRetries = (Int64?)maxRetriesparametersVariable[0];
         parameters = maxRetriesparametersVariable[1];
         if ((!isEqual(method, "fetchOHLCV")) && (!isEqual(method, "fetchFundingRateHistory")) && (!isEqual(method, "fetchTrades")))
         {
@@ -2575,9 +2575,9 @@ public partial class bullish : Exchange
     public async virtual Task<object> loadAccount(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object tradingAccountId = null;
-        IList<object> tradingAccountIdparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "loadAccount", "tradingAccountId");
-        tradingAccountId = tradingAccountIdparametersVariable[0];
+        string? tradingAccountId = null;
+        IList<object> tradingAccountIdparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "loadAccount", "tradingAccountId");
+        tradingAccountId = (string)tradingAccountIdparametersVariable[0];
         parameters = tradingAccountIdparametersVariable[1];
         if ((tradingAccountId == null))
         {

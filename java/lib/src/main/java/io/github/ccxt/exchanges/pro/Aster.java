@@ -2154,7 +2154,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 client.future((type + ":fetchBalanceSnapshot")).getFuture().join();
             }
             String messageHash = (type + ":balance");
-            Object message = null;
+            List<String> message = null;
             return (this.watch(url, messageHash, message, type, null)).join();
         }).thenApply(Balances::new);
 

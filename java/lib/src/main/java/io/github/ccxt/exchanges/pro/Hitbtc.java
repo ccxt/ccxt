@@ -512,10 +512,10 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 put( "speed", speed );
             }});
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("method", "speed")));
-            List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
+            List<String> marketIds = new ArrayList<String>(Arrays.asList());
             if (java.util.Objects.equals(symbols, null))
             {
-                ((List<Object>)marketIds).add("*");
+                marketIds.add("*");
             } else
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
@@ -523,7 +523,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                     String marketId = this.marketId((String) ((symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i))));
                     if (!java.util.Objects.equals(marketId, null))
                     {
-                        ((List<Object>)marketIds).add(marketId);
+                        marketIds.add(marketId);
                     }
                 }
             }
@@ -711,7 +711,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 put( "speed", speed );
             }});
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("method", "speed")));
-            List<Object> marketIds = this.marketIds(symbols);
+            List<String> marketIds = this.marketIds(symbols);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "params", new HashMap<String, Object>() {{
                     put( "symbols", marketIds );

@@ -1157,7 +1157,7 @@ class onetrading extends Exchange {
         //     }
         //
         $feeInfo = $this->safe_dict($trade, 'fee', array());
-        $trade = $this->safe_value($trade, 'trade', $trade);
+        $trade = $this->safe_dict($trade, 'trade', $trade);
         $timestamp = $this->safe_integer($trade, 'trade_timestamp');
         if ($timestamp === null) {
             $timestamp = $this->parse8601($this->safe_string($trade, 'time'));
@@ -1332,7 +1332,7 @@ class onetrading extends Exchange {
         //         ]
         //     }
         //
-        $rawOrder = $this->safe_value($order, 'order', $order);
+        $rawOrder = $this->safe_dict($order, 'order', $order);
         $id = $this->safe_string($rawOrder, 'order_id');
         $clientOrderId = $this->safe_string($rawOrder, 'client_id');
         $timestamp = $this->parse8601($this->safe_string($rawOrder, 'time'));

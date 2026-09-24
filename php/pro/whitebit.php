@@ -1131,7 +1131,7 @@ class whitebit extends \ccxt\async\whitebit {
         return $message;
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         //     {
         //         "error": { code: 1, message: "invalid argument" },
@@ -1139,7 +1139,7 @@ class whitebit extends \ccxt\async\whitebit {
         //         "id": 1656090882
         //     }
         //
-        $error = $this->safe_value($message, 'error');
+        $error = $this->safe_dict($message, 'error');
         try {
             if ($error !== null) {
                 $code = $this->safe_string($message, 'code');

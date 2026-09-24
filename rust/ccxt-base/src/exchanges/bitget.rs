@@ -8488,9 +8488,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("category".into(), Value::Str("SPOT".into())); }
                 }
             }  else if (marketType.as_str() == Some("swap")) || (marketType.as_str() == Some("future")) {
-                let mut productType: Value = Value::Null;
-                { let __destr_tmp = self.handle_product_type_and_params(&[Value::Null, params.clone()]); productType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("category".into(), productType.clone()); }
+                let mut utaProductType: Value = Value::Null;
+                { let __destr_tmp = self.handle_product_type_and_params(&[Value::Null, params.clone()]); utaProductType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("category".into(), utaProductType); }
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" does not support ".into())).into()), marketType).into()), Value::Str(" market".into()))));
             }
@@ -12314,9 +12314,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("category".into(), Value::Str("SPOT".into())); }
                     }
                 }  else {
-                    let mut productType: Value = Value::Null;
-                    { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("category".into(), productType.clone()); }
+                    let mut utaProductType: Value = Value::Null;
+                    { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); utaProductType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("category".into(), utaProductType); }
                 }
                 if (symbol != Value::Null) {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k(market.clone(), "id", &[])); }

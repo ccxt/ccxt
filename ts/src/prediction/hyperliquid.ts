@@ -2257,11 +2257,11 @@ export default class hyperliquid extends Exchange {
         return undefined;
     }
 
-    handlePublicAddress (methodName: string, params: Dict): any {
+    handlePublicAddress (methodName: string, params: Dict): [Str, Dict] {
         let userAux: Str = undefined;
         [ userAux, params ] = this.handleOptionStringAndParams2 (params, methodName, 'user', 'subAccountAddress');
         let user = userAux;
-        [ user, params ] = this.handleOptionAndParams (params, methodName, 'address', userAux);
+        [ user, params ] = this.handleOptionStringAndParams (params, methodName, 'address', userAux);
         if (user !== undefined && user !== '') {
             return [ user, params ];
         }

@@ -1501,7 +1501,7 @@ export default class cex extends cexRest {
         //    "ok": "ok"
         //    }
         //
-        const data = this.safeValue (message, 'data');
+        const data = this.safeList (message, 'data');
         const messageHash = this.safeString (message, 'oid');
         client.resolve (data, messageHash);
     }
@@ -1515,7 +1515,7 @@ export default class cex extends cexRest {
         return message;
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         //
         //     {
         //         "e": "get-balance",

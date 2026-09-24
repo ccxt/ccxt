@@ -1464,7 +1464,7 @@ public class Hitbtc extends HitbtcApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbols, null))
             {
-                Object marketIds = this.marketIds(symbols);
+                List<String> marketIds = this.marketIds(symbols);
                 String delimited = String.join(",", (List<String>)marketIds);
                 ((Map<String, Object>)request).put("symbols", delimited);
             }
@@ -2155,7 +2155,7 @@ public class Hitbtc extends HitbtcApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbols, null))
             {
-                Object marketIdsInner = this.marketIds(symbols);
+                List<String> marketIdsInner = this.marketIds(symbols);
                 ((Map<String, Object>)request).put("symbols", String.join(",", (List<String>)marketIdsInner));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -3947,7 +3947,7 @@ public class Hitbtc extends HitbtcApi
             {
                 symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
                 market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
-                Object queryMarketIds = this.marketIds(symbols);
+                List<String> queryMarketIds = this.marketIds(symbols);
                 ((Map<String, Object>)request).put("symbols", String.join(",", (List<String>)queryMarketIds));
             }
             String type = null;
@@ -4490,7 +4490,7 @@ public class Hitbtc extends HitbtcApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
-            Object marketIds = null;
+            List<String> marketIds = null;
             if (!java.util.Objects.equals(symbols, null))
             {
                 marketIds = this.marketIds(symbols);

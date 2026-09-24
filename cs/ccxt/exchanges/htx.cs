@@ -4139,7 +4139,7 @@ public partial class htx : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data");
+        List<object> data = this.safeList(response, "data");
         return ccxt.BaseExchange.ToAccountList(this.parseAccounts(data));
     }
 
@@ -4439,10 +4439,10 @@ public partial class htx : Exchange
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBalance", null, parameters);
         type = (string)typeparametersVariable[0];
         parameters = typeparametersVariable[1];
-        object subType = null;
+        string? subType = null;
         bool? isMultiAssetMode = null;
-        IList<object> subTypeparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "fetchBalance", "defaultSubType", "subType");
-        subType = subTypeparametersVariable[0];
+        IList<object> subTypeparametersVariable = (IList<object>)this.handleOptionStringAndParams2(parameters, "fetchBalance", "defaultSubType", "subType");
+        subType = (string)subTypeparametersVariable[0];
         parameters = subTypeparametersVariable[1];
         if ((subType == null))
         {
@@ -4455,8 +4455,8 @@ public partial class htx : Exchange
         bool spot = (type == "spot");
         bool future = (type == "future");
         bool swap = (type == "swap");
-        bool inverse = (isEqual(subType, "inverse"));
-        bool linear = (isEqual(subType, "linear"));
+        bool inverse = (subType == "inverse");
+        bool linear = (subType == "linear");
         string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchBalance", parameters);
         marginMode = (string)marginModeparametersVariable[0];
@@ -8785,9 +8785,9 @@ public partial class htx : Exchange
         }
         symbols = this.marketSymbols(symbols);
         string defaultSubType = "linear";
-        object subType = null;
-        IList<object> subTypeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRates", "subType", defaultSubType);
-        subType = subTypeparametersVariable[0];
+        string? subType = null;
+        IList<object> subTypeparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchFundingRates", "subType", defaultSubType);
+        subType = (string)subTypeparametersVariable[0];
         parameters = subTypeparametersVariable[1];
         if ((symbols != null))
         {
@@ -8798,10 +8798,10 @@ public partial class htx : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = null;
-        if (isEqual(subType, "linear"))
+        if (subType == "linear")
         {
             throw new NotSupported ((this.id + " fetchFundingRates() not support this market type")) ;
-        } else if (isEqual(subType, "inverse"))
+        } else if (subType == "inverse")
         {
             response = await this.contractPublicGetSwapApiV1SwapBatchFundingRate(this.extend(request, parameters));
         } else
@@ -10453,7 +10453,7 @@ public partial class htx : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "Data", new List<object>() {});
-        object loan = this.safeValue(data, 0);
+        IDictionary<string, object> loan = this.safeDict(data, 0);
         Dictionary<string, object> transaction = this.parseMarginLoan(loan, currency);
         return this.extend(transaction, new Dictionary<string, object>() {
             { "amount", amount },
@@ -10498,7 +10498,7 @@ public partial class htx : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "Data", new List<object>() {});
-        object loan = this.safeValue(data, 0);
+        IDictionary<string, object> loan = this.safeDict(data, 0);
         Dictionary<string, object> transaction = this.parseMarginLoan(loan, currency);
         return this.extend(transaction, new Dictionary<string, object>() {
             { "amount", amount },

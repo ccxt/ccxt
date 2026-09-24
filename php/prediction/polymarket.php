@@ -3147,7 +3147,7 @@ class polymarket extends Exchange {
         }
     }
 
-    public function handle_order_book_snapshot(mixed $client, mixed $event) {
+    public function handle_order_book_snapshot(mixed $client, array $event) {
         $tokenId = $this->safe_string($event, 'asset_id');
         $outcome = $this->token_id_to_symbol($tokenId);
         if ($outcome === null) {
@@ -3185,7 +3185,7 @@ class polymarket extends Exchange {
         $client->resolve($orderbook, 'ticker::' . $outcome);
     }
 
-    public function handle_order_book_delta(mixed $client, mixed $event) {
+    public function handle_order_book_delta(mixed $client, array $event) {
         $timestamp = $this->parse_poly_timestamp($this->safe_string($event, 'timestamp'));
         $changes = $this->safe_list($event, 'price_changes', array());
         $updated = array();
@@ -3217,7 +3217,7 @@ class polymarket extends Exchange {
         }
     }
 
-    public function handle_trade(mixed $client, mixed $event) {
+    public function handle_trade(mixed $client, array $event) {
         $tokenId = $this->safe_string($event, 'asset_id');
         $outcome = $this->token_id_to_symbol($tokenId);
         if ($outcome === null) {
@@ -3474,7 +3474,7 @@ class polymarket extends Exchange {
         return Async\await($this->watch($url, $messageHash, $this->extend($subscribeMsg, $params), $subscribeHash));
     }
 
-    public function handle_order(mixed $client, mixed $event) {
+    public function handle_order(mixed $client, array $event) {
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheByOutcomeById($limit);
@@ -3489,7 +3489,7 @@ class polymarket extends Exchange {
         }
     }
 
-    public function handle_my_trade(mixed $client, mixed $event) {
+    public function handle_my_trade(mixed $client, array $event) {
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $this->myTrades = new ArrayCacheByOutcomeById($limit);

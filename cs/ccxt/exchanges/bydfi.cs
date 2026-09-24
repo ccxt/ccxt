@@ -1007,7 +1007,7 @@ public partial class bydfi : Exchange
         object startTime = since;
         object numberOfCandles = ((limit != null) && (limit != null) && (limit != 0)) ? limit : maxLimit;
         object until = null;
-        IList<object> untilparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
+        IList<object> untilparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "until");
         until = untilparametersVariable[0];
         parameters = untilparametersVariable[1];
         Int64 now = this.milliseconds();
@@ -1296,11 +1296,11 @@ public partial class bydfi : Exchange
         {
             request["limit"] = limit;
         }
-        object until = null;
-        IList<object> untilparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "until");
-        until = untilparametersVariable[0];
+        Int64? until = null;
+        IList<object> untilparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchFundingRateHistory", "until");
+        until = (Int64?)untilparametersVariable[0];
         parameters = untilparametersVariable[1];
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endTime"] = until;
         }
@@ -2034,7 +2034,7 @@ public partial class bydfi : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object until = null;
-        IList<object> untilparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, methodName, "until", "endTime");
+        IList<object> untilparametersVariable = (IList<object>)this.handleOptionIntegerAndParams2(parameters, methodName, "until", "endTime");
         until = untilparametersVariable[0];
         parameters = untilparametersVariable[1];
         Int64 now = this.milliseconds();
@@ -3081,11 +3081,11 @@ public partial class bydfi : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "asset", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
-        object until = null;
-        IList<object> untilparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "fetchTransfers", "until", "endTime");
-        until = untilparametersVariable[0];
+        Int64? until = null;
+        IList<object> untilparametersVariable = (IList<object>)this.handleOptionIntegerAndParams2(parameters, "fetchTransfers", "until", "endTime");
+        until = (Int64?)untilparametersVariable[0];
         parameters = untilparametersVariable[1];
-        if (isEqual(until, null))
+        if ((until == null))
         {
             until = this.milliseconds(); // exchange requires endTime
         }
@@ -3241,7 +3241,7 @@ public partial class bydfi : Exchange
             { "asset", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         object until = null;
-        IList<object> untilparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "fetchTransfers", "until", "endTime");
+        IList<object> untilparametersVariable = (IList<object>)this.handleOptionIntegerAndParams2(parameters, "fetchTransfers", "until", "endTime");
         until = untilparametersVariable[0];
         parameters = untilparametersVariable[1];
         Int64 now = this.milliseconds();

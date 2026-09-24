@@ -1894,9 +1894,9 @@ public partial class whitebit : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", null, parameters);
         marketType = (string)marketTypeparametersVariable[0];
         parameters = marketTypeparametersVariable[1];
-        object method = null;
-        IList<object> methodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTickers", "method", method);
-        method = methodparametersVariable[0];
+        string? method = null;
+        IList<object> methodparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchTickers", "method", method);
+        method = (string)methodparametersVariable[0];
         parameters = methodparametersVariable[1];
         if ((method == null))
         {
@@ -1910,7 +1910,7 @@ public partial class whitebit : Exchange
             }
         }
         Dictionary<string, object> response = null;
-        if (isEqual(method, "v4PublicGetTicker"))
+        if (method == "v4PublicGetTicker")
         {
             //
             //      "BCH_RUB": {
@@ -1924,7 +1924,7 @@ public partial class whitebit : Exchange
             //      },
             //
             response = await this.v4PublicGetTicker(parameters);
-        } else if (isEqual(method, "v4PublicGetFutures"))
+        } else if (method == "v4PublicGetFutures")
         {
             //
             //     {

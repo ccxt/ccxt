@@ -2366,11 +2366,11 @@ func (this *Grvt) transferBody(ch chan any, code any, amount any, fromAccount an
 	var defaultFromAccountId *string = this.SafeString(this.Options, "userMainAccountId")
 	if this.InArray(fromAccount, []any{"trading", "funding"}) && this.InArray(toAccount, []any{"trading", "funding"}) {
 		var tradingAccountId any = nil
-		var tradingAccountIdparamsVariable []any = this.HandleOptionAndParams(params, "transfer", "tradingAccountId")
+		var tradingAccountIdparamsVariable []any = this.HandleOptionStringAndParams(params, "transfer", "tradingAccountId")
 		tradingAccountId = GetValue(tradingAccountIdparamsVariable, 0)
 		params = MapTyped(GetValue(tradingAccountIdparamsVariable, 1))
 		var fundingAccountId any = nil
-		var fundingAccountIdparamsVariable []any = this.HandleOptionAndParams(params, "transfer", "fundingAccountId")
+		var fundingAccountIdparamsVariable []any = this.HandleOptionStringAndParams(params, "transfer", "fundingAccountId")
 		fundingAccountId = GetValue(fundingAccountIdparamsVariable, 0)
 		params = MapTyped(GetValue(fundingAccountIdparamsVariable, 1))
 		if (tradingAccountId == nil) || (fundingAccountId == nil) {

@@ -1677,11 +1677,11 @@ public partial class bingx : Exchange
         {
             // bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
             // the timeZone request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
-            object timeZone = null;
-            IList<object> timeZoneparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "timeZone", 0);
-            timeZone = timeZoneparametersVariable[0];
+            Int64? timeZone = null;
+            IList<object> timeZoneparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "timeZone", 0);
+            timeZone = (Int64?)timeZoneparametersVariable[0];
             parameters = timeZoneparametersVariable[1];
-            if (!isEqual(timeZone, null))
+            if ((timeZone != null))
             {
                 request["timeZone"] = timeZone;
             }

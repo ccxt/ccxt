@@ -1417,7 +1417,7 @@ export default class deepcoin extends Exchange {
      */
     override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params: Dict = {}): Promise<TransferEntry> {
         let userId: Str = undefined;
-        [ userId, params ] = this.handleOptionAndParams (params, 'transfer', 'userId');
+        [ userId, params ] = this.handleOptionStringAndParams (params, 'transfer', 'userId');
         userId = (userId !== undefined && userId !== '') ? userId : this.safeString (params, 'uid');
         if (userId === undefined) {
             throw new ArgumentsRequired (this.id + ' transfer() requires a userId parameter');

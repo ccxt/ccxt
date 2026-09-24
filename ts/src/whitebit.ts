@@ -1554,7 +1554,7 @@ export default class whitebit extends Exchange {
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
         let method: Str = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'method', method);
+        [ method, params ] = this.handleOptionStringAndParams (params, 'fetchTickers', 'method', method);
         if (method === undefined) {
             // if the user did not specify a method, choose it based on market type and symbols
             if (onlyContractSymbols || (marketType === 'swap')) {

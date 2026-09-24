@@ -734,8 +734,8 @@ func (this *Paradex) HandleErrorMessage(client any, message any) any {
 		if errorCode != nil {
 			var feedback any = ccxt.Add(this.Id+" ", this.Json(error))
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], "-32600", feedback)
-			var messageString any = this.SafeValue(error, "message")
-			if !ccxt.IsEqual(messageString, nil) {
+			var messageString *string = this.SafeString(error, "message")
+			if messageString != nil {
 				this.ThrowBroadlyMatchedException(this.Exceptions["broad"], messageString, feedback)
 			}
 		}

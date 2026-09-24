@@ -1602,9 +1602,9 @@ func (this *Cex) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var accountId any = nil
-	var accountIdparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "accountId")
-	accountId = GetValue(accountIdparamsVariable, 0)
+	var accountId *string = nil
+	var accountIdparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "accountId")
+	accountId = SafeStringPtr(GetValue(accountIdparamsVariable, 0))
 	params = GetValue(accountIdparamsVariable, 1)
 	if accountId == nil {
 		panic(ArgumentsRequired(this.Id + " createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account"))
@@ -2225,9 +2225,9 @@ func (this *Cex) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var accountId any = nil
-	var accountIdparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "accountId")
-	accountId = GetValue(accountIdparamsVariable, 0)
+	var accountId *string = nil
+	var accountIdparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "accountId")
+	accountId = SafeStringPtr(GetValue(accountIdparamsVariable, 0))
 	params = MapTyped(GetValue(accountIdparamsVariable, 1))
 	if accountId == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account"))

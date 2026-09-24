@@ -2715,7 +2715,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         //    }
         //
         List<Object> rawLiquidations = (List<Object>) this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
-        List<Object> newLiquidations = new ArrayList<Object>(Arrays.asList());
+        List<String> newLiquidations = new ArrayList<String>(Arrays.asList());
         if (java.util.Objects.equals(this.liquidations, null))
         {
             Long limit = this.safeInteger(this.options, "liquidationsLimit", 1000);

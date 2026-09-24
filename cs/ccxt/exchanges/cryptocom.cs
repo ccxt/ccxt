@@ -1697,12 +1697,12 @@ public partial class cryptocom : Exchange
         string? broker = this.safeString(this.options, "broker", "CCXT");
         request["broker_id"] = broker;
         string? marketType = null;
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("createOrder", market, parameters);
         marketType = (string)marketTypeparametersVariable[0];
         parameters = marketTypeparametersVariable[1];
         IList<object> marginModeparametersVariable = (IList<object>)this.customHandleMarginModeAndParams("createOrder", parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         if ((marketType == "margin") || ((marginMode != null)))
         {

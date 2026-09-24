@@ -1802,9 +1802,9 @@ public class Bingx extends BingxApi
             {
                 // bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
                 // the timeZone request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
-                Object timeZone = null;
-                List<Object> timeZoneparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "timeZone", 0);
-                timeZone = ((List<Object>) timeZoneparametersVariable).get(0);
+                Long timeZone = null;
+                List<Object> timeZoneparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "timeZone", 0);
+                timeZone = (Long) ((List<Object>) timeZoneparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) timeZoneparametersVariable).get(1);
                 if (!java.util.Objects.equals(timeZone, null))
                 {

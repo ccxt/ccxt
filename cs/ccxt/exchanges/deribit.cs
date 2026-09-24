@@ -1891,7 +1891,7 @@ public partial class deribit : Exchange
         //         "testnet": false
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> ohlcvs = this.convertTradingViewToOHLCV(result, "ticks", "open", "high", "low", "close", "volume", true);
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market,timeframeVar, sinceVar, limitVar));
     }

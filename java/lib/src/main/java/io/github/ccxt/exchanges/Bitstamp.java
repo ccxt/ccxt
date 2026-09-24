@@ -1844,7 +1844,7 @@ public class Bitstamp extends BitstampApi
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "amount");
         String orderId = this.safeString(trade, "order_id");
-        Object type = null;
+        List<String> type = null;
         String costString = this.safeString(trade, "cost");
         String rawMarketId = null;
         if (java.util.Objects.equals(market, null))

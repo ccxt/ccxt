@@ -1036,7 +1036,7 @@ func (this *Bitbank) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	//        }
 	//    }
 	//
-	var data any = this.SafeValue(response, "data")
+	var data map[string]any = SafeMapTyped(response, "data")
 
 	ch <- this.ParseOrder(data)
 	return nil

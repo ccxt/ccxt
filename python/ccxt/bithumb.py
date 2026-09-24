@@ -436,7 +436,7 @@ class bithumb(Exchange, ImplicitAPI):
         result = []
         request = {}
         generation = None
-        generation, params = self.handle_option_and_params(params, 'fetchMarkets', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'fetchMarkets', 'generation', 2)
         if generation == 2:
             request['isDetails'] = True
             response = self.publicGetV1MarketAll(self.extend(request, params))
@@ -691,7 +691,7 @@ class bithumb(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'fetchBalance', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'fetchBalance', 'generation', 2)
         response = None
         if generation == 2:
             response = self.privateGetV1Accounts(params)
@@ -740,7 +740,7 @@ class bithumb(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'fetchOrderBook', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'fetchOrderBook', 'generation', 2)
         market = self.market(symbol)
         request = {}
         response = None
@@ -963,7 +963,7 @@ class bithumb(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'fetchTickers', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'fetchTickers', 'generation', 2)
         request = {}
         result = {}
         if generation == 2:
@@ -1138,7 +1138,7 @@ class bithumb(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'fetchTicker', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'fetchTicker', 'generation', 2)
         market = self.market(symbol)
         request = {}
         response = None
@@ -1269,7 +1269,7 @@ class bithumb(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'fetchOHLCV', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'fetchOHLCV', 'generation', 2)
         market = self.market(symbol)
         request = {}
         response = None
@@ -1484,7 +1484,7 @@ class bithumb(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'fetchTrades', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'fetchTrades', 'generation', 2)
         market = self.market(symbol)
         request = {}
         if limit is not None:
@@ -1549,7 +1549,7 @@ class bithumb(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'createOrders', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'createOrders', 'generation', 2)
         if generation != 2:
             raise BadRequest(self.id + ' createOrders is only supported for the generation 2 API')
         ordersCount = len(orders)
@@ -1694,7 +1694,7 @@ class bithumb(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'createOrder', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'createOrder', 'generation', 2)
         request = {}
         market = self.market(symbol)
         response = None
@@ -1760,7 +1760,7 @@ class bithumb(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'createMarketBuyOrderWithCost', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'createMarketBuyOrderWithCost', 'generation', 2)
         if generation != 2:
             raise BadRequest(self.id + ' createMarketBuyOrderWithCost() is only supported for the generation 2 API')
         params['createMarketBuyOrderRequiresPrice'] = False
@@ -1785,7 +1785,7 @@ class bithumb(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'createTwapOrder', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'createTwapOrder', 'generation', 2)
         if generation != 2:
             raise BadRequest(self.id + ' createTwapOrder() is only supported for the generation 2 API')
         market = self.market(symbol)
@@ -1831,7 +1831,7 @@ class bithumb(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'fetchOrder', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'fetchOrder', 'generation', 2)
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -2189,7 +2189,7 @@ class bithumb(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'fetchOpenOrders', 'generation', 2)
         request = {}
         market = None
         response = None
@@ -2255,7 +2255,7 @@ class bithumb(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'fetchOrders', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'fetchOrders', 'generation', 2)
         if generation != 2:
             raise BadRequest(self.id + ' fetchOrders is only supported for the generation 2 API')
         request = {}
@@ -2388,7 +2388,7 @@ class bithumb(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'cancelOrder', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'cancelOrder', 'generation', 2)
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -2468,7 +2468,7 @@ class bithumb(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'cancelOrders', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'cancelOrders', 'generation', 2)
         if generation != 2:
             raise BadRequest(self.id + ' cancelOrders is only supported for the generation 2 API')
         market = None
@@ -2532,7 +2532,7 @@ class bithumb(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'withdraw', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'withdraw', 'generation', 2)
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         network = self.safe_string_2(params, 'network', 'net_type')
@@ -2707,7 +2707,7 @@ class bithumb(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'fetchWithdrawalWhitelist', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'fetchWithdrawalWhitelist', 'generation', 2)
         if generation != 2:
             raise BadRequest(self.id + ' fetchWithdrawalWhitelist() is only supported for the generation 2 API')
         response = self.privateGetV1WithdrawsCoinAddresses(params)
@@ -2743,7 +2743,7 @@ class bithumb(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'fetchWithdrawal', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'fetchWithdrawal', 'generation', 2)
         if generation != 2:
             raise BadRequest(self.id + ' fetchWithdrawal() is only supported for the generation 2 API')
         if code is None:
@@ -2794,7 +2794,7 @@ class bithumb(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'fetchWithdrawals', 'generation', 2)
         if generation != 2:
             raise BadRequest(self.id + ' fetchWithdrawals() is only supported for the generation 2 API')
         request = {}
@@ -2845,7 +2845,7 @@ class bithumb(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'fetchDeposit', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'fetchDeposit', 'generation', 2)
         if generation != 2:
             raise BadRequest(self.id + ' fetchDeposit() is only supported for the generation 2 API')
         if code is None:
@@ -2896,7 +2896,7 @@ class bithumb(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'fetchDeposits', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'fetchDeposits', 'generation', 2)
         if generation != 2:
             raise BadRequest(self.id + ' fetchDeposits() is only supported for the generation 2 API')
         request = {}
@@ -2946,7 +2946,7 @@ class bithumb(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'createDepositAddress', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'createDepositAddress', 'generation', 2)
         if generation != 2:
             raise BadRequest(self.id + ' createDepositAddress() is only supported for the generation 2 API')
         currency = self.currency(code)
@@ -2984,7 +2984,7 @@ class bithumb(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'fetchDepositAddress', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'fetchDepositAddress', 'generation', 2)
         if generation != 2:
             raise BadRequest(self.id + ' fetchDepositAddress() is only supported for the generation 2 API')
         currency = self.currency(code)
@@ -3021,7 +3021,7 @@ class bithumb(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'fetchDepositAddresses', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'fetchDepositAddresses', 'generation', 2)
         if generation != 2:
             raise BadRequest(self.id + ' fetchDepositAddresses() is only supported for the generation 2 API')
         response = self.privateGetV1DepositsCoinAddresses(params)

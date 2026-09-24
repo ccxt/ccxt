@@ -88,7 +88,7 @@ class coinbase(ccxt.async_support.coinbase):
         elif symbol is not None:
             market = self.market(symbol)
             messageHash = name + '::' + symbol
-            productIds = [market['id']]
+            productIds = [self.safe_string(market, 'id')]
         url = self.urls['api']['ws']
         subscribe = {
             'type': 'subscribe',
@@ -137,7 +137,7 @@ class coinbase(ccxt.async_support.coinbase):
             market = self.market(symbol)
             watchMessageHash = name + '::' + symbol
             unWatchMessageHash = unWatchMessageHash + '::' + symbol
-            productIds = [market['id']]
+            productIds = [self.safe_string(market, 'id')]
         url = self.urls['api']['ws']
         # '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'
         message = {

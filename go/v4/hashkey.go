@@ -1586,7 +1586,7 @@ func (this *Hashkey) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["endTime"] = until
 	}
 	var accountId any = nil
-	var accountIdparamsVariable []any = this.HandleOptionAndParams(params, methodName, "accountId")
+	var accountIdparamsVariable []any = this.HandleOptionStringAndParams(params, methodName, "accountId")
 	accountId = GetValue(accountIdparamsVariable, 0)
 	params = MapTyped(GetValue(accountIdparamsVariable, 1))
 	var response any = nil
@@ -3740,7 +3740,7 @@ func (this *Hashkey) fetchOpenSpotOrdersBody(ch chan any, optionalArgs ...any) a
 	var request map[string]any = map[string]any{}
 	var response []any = nil
 	var accountId any = nil
-	var accountIdparamsVariable []any = this.HandleOptionAndParams(params, methodName, "accountId")
+	var accountIdparamsVariable []any = this.HandleOptionStringAndParams(params, methodName, "accountId")
 	accountId = GetValue(accountIdparamsVariable, 0)
 	params = GetValue(accountIdparamsVariable, 1)
 	if accountId != nil {
@@ -3821,7 +3821,7 @@ func (this *Hashkey) fetchOpenSwapOrdersBody(ch chan any, optionalArgs ...any) a
 	}
 	var response []any = nil
 	var accountId any = nil
-	var accountIdparamsVariable []any = this.HandleOptionAndParams(params, methodName, "accountId")
+	var accountIdparamsVariable []any = this.HandleOptionStringAndParams(params, methodName, "accountId")
 	accountId = GetValue(accountIdparamsVariable, 0)
 	params = GetValue(accountIdparamsVariable, 1)
 	if accountId != nil {
@@ -3895,7 +3895,7 @@ func (this *Hashkey) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs 
 		request["endTime"] = until
 	}
 	var accountId any = nil
-	var accountIdparamsVariable []any = this.HandleOptionAndParams(params, methodName, "accountId")
+	var accountIdparamsVariable []any = this.HandleOptionStringAndParams(params, methodName, "accountId")
 	accountId = GetValue(accountIdparamsVariable, 0)
 	params = GetValue(accountIdparamsVariable, 1)
 	var market map[string]any = nil

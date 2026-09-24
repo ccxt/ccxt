@@ -301,7 +301,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         return Async\await($this->un_watch_channel($channel, $subHash, 'trades', array( $symbol ), $params));
     }
 
-    public function parse_ws_trade(array $trade, ?array $market = null): array {
+    public function parse_ws_trade(?array $trade, ?array $market = null): array {
         //
         //     {
         //         "buy_order_id": 1211625836466176,
@@ -377,7 +377,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $messageHash = 'trades:' . $symbol;
-        $data = $this->safe_value($message, 'data');
+        $data = $this->safe_dict($message, 'data');
         $trade = $this->parse_ws_trade($data, $market);
         $tradesArray = $this->safe_value($this->trades, $symbol);
         if ($tradesArray === null) {
@@ -958,7 +958,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         }
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         // {
         //     "event": "bts:error",
         //     "channel": '',

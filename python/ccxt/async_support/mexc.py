@@ -1907,7 +1907,7 @@ class mexc(Exchange, ImplicitAPI):
             #         }
             #     }
             #
-            data = self.safe_value(response, 'data')
+            data = self.safe_dict(response, 'data')
             candles = self.convert_trading_view_to_ohlcv(data, 'time', 'open', 'high', 'low', 'close', 'vol')
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 

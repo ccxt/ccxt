@@ -2133,9 +2133,9 @@ public class Whitebit extends WhitebitApi
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", null, parameters);
             marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
-            Object method = null;
-            List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTickers", "method", method);
-            method = ((List<Object>) methodparametersVariable).get(0);
+            String method = null;
+            List<Object> methodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchTickers", "method", method);
+            method = (String) ((List<Object>) methodparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
             if (java.util.Objects.equals(method, null))
             {
@@ -3209,7 +3209,7 @@ public class Whitebit extends WhitebitApi
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
             type = (String) ((List<Object>) typeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
-            List<Object> requestType = new ArrayList<Object>(Arrays.asList());
+            List<String> requestType = new ArrayList<String>(Arrays.asList());
             if (java.util.Objects.equals(type, "spot"))
             {
                 Boolean isMargin = null;
@@ -3218,14 +3218,14 @@ public class Whitebit extends WhitebitApi
                 parameters = (Map<String, Object>) ((List<Object>) isMarginparametersVariable).get(1);
                 if (Boolean.TRUE.equals(isMargin))
                 {
-                    ((List<Object>)requestType).add("margin");
+                    requestType.add("margin");
                 } else
                 {
-                    ((List<Object>)requestType).add("spot");
+                    requestType.add("spot");
                 }
             } else if (java.util.Objects.equals(type, "swap"))
             {
-                ((List<Object>)requestType).add("futures");
+                requestType.add("futures");
             } else
             {
                 throw new NotSupported((((this.id + " cancelAllOrders() does not support ") + type) + " type")) ;

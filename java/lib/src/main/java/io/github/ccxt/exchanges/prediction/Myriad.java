@@ -4622,19 +4622,19 @@ final Object finalNetworkId = networkId;
         String channelType = this.safeString(parts, 0);
         if (java.util.Objects.equals(channelType, "orderbook"))
         {
-            this.handleOrderBook(client, data);
+            this.handleOrderBook(client, (Map<String, Object>) (data));
         } else if (java.util.Objects.equals(channelType, "trades"))
         {
-            this.handleTrades(client, data);
+            this.handleTrades(client, (Map<String, Object>) (data));
         } else if (java.util.Objects.equals(channelType, "prices"))
         {
-            this.handleTicker(client, data);
+            this.handleTicker(client, (Map<String, Object>) (data));
         } else if (java.util.Objects.equals(channelType, "orders"))
         {
-            this.handleOrder(client, data);
+            this.handleOrder(client, (Map<String, Object>) (data));
         } else if (java.util.Objects.equals(channelType, "positions"))
         {
-            this.handlePosition(client, data);
+            this.handlePosition(client, (Map<String, Object>) (data));
         }
     }
 
@@ -4723,7 +4723,7 @@ final Object finalNetworkId = networkId;
         return this.seedOrderBook(outcome, sym, Helpers.getArgLong(optionalArgs, 0, null));
     }
 
-    public void handleOrderBook(Client client, Object data)
+    public void handleOrderBook(Client client, Map<String, Object> data)
     {
         String networkId = this.safeString(data, "networkId");
         String marketId = this.safeString(data, "marketId");
@@ -4871,7 +4871,7 @@ final Object finalNetworkId = networkId;
         return null;
     }
 
-    public void handleTrades(Client client, Object data)
+    public void handleTrades(Client client, Map<String, Object> data)
     {
         String networkId = this.safeString(data, "networkId");
         String marketId = this.safeString(data, "marketId");
@@ -5139,7 +5139,7 @@ final Object finalNetworkId = networkId;
         return this.watchOHLCV(outcome, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public void handleTicker(Client client, Object data)
+    public void handleTicker(Client client, Map<String, Object> data)
     {
         String networkId = this.safeString(data, "networkId");
         String marketId = this.safeString(data, "marketId");
@@ -5242,7 +5242,7 @@ final Object finalNetworkId = networkId;
         return this.watchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public void handleOrder(Client client, Object data)
+    public void handleOrder(Client client, Map<String, Object> data)
     {
         if (java.util.Objects.equals(this.orders, null))
         {
@@ -5386,7 +5386,7 @@ final Object finalNetworkId = networkId;
 
     }
 
-    public void handlePosition(Client client, Object data)
+    public void handlePosition(Client client, Map<String, Object> data)
     {
         if (java.util.Objects.equals(this.positions, null))
         {

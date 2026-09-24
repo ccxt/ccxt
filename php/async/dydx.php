@@ -1388,7 +1388,7 @@ class dydx extends Exchange {
         }
         $orderSide = strtoupper($side);
         $subaccountId = 0;
-        list($subaccountId, $params) = $this->handle_option_and_params($params, 'createOrder', 'subAccountId', $subaccountId);
+        list($subaccountId, $params) = $this->handle_option_integer_and_params($params, 'createOrder', 'subAccountId', $subaccountId);
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         $stopLossPrice = $this->safe_value($params, 'stopLossPrice', $triggerPrice);
         $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
@@ -1455,7 +1455,7 @@ class dydx extends Exchange {
         $goodTillBlock = $this->safe_integer($params, 'goodTillBlock');
         $goodTillBlockTime = null;
         $goodTillBlockTimeInSeconds = 2592000;
-        list($goodTillBlockTimeInSeconds, $params) = $this->handle_option_and_params($params, 'createOrder', 'goodTillBlockTimeInSeconds', $goodTillBlockTimeInSeconds); // default is 30 days
+        list($goodTillBlockTimeInSeconds, $params) = $this->handle_option_integer_and_params($params, 'createOrder', 'goodTillBlockTimeInSeconds', $goodTillBlockTimeInSeconds); // default is 30 days
         if ($orderFlag === 0) {
             if ($goodTillBlock === null) {
                 // short term order
@@ -1573,7 +1573,7 @@ class dydx extends Exchange {
          * @param {bool} [$params->postOnly] true or false whether the order is post-only
          * @param {bool} [$params->reduceOnly] true or false whether the order is reduce-only
          * @param {float} [$params->goodTillBlock] expired block number for the order, required for market order and non limit GTT order, default value is latestBlockHeight + 20
-         * @param {float} [$params->goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
+         * @param {int} [$params->goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($this->markets === null) {
@@ -1632,7 +1632,7 @@ class dydx extends Exchange {
          * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
          * @param {float} [$params->orderFlags] default is 64, $orderFlags for the order, $market order and non limit GTT order is 0, limit GTT order is 64 and conditional order is 32
          * @param {float} [$params->goodTillBlock] expired block number for the order, required for $market order and non limit GTT order ($orderFlags = 0), default value is $latestBlockHeight + 20
-         * @param {float} [$params->goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days
+         * @param {int} [$params->goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days
          * @param {int} [$params->subAccountId] sub $account $id, default is 0
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
@@ -1655,12 +1655,12 @@ class dydx extends Exchange {
         }
         $goodTillBlock = $this->safe_integer($params, 'goodTillBlock');
         $goodTillBlockTimeInSeconds = 2592000;
-        list($goodTillBlockTimeInSeconds, $params) = $this->handle_option_and_params($params, 'cancelOrder', 'goodTillBlockTimeInSeconds', $goodTillBlockTimeInSeconds); // default is 30 days
+        list($goodTillBlockTimeInSeconds, $params) = $this->handle_option_integer_and_params($params, 'cancelOrder', 'goodTillBlockTimeInSeconds', $goodTillBlockTimeInSeconds); // default is 30 days
         $goodTillBlockTime = null;
         $defaultOrderFlags = ($isTrigger === true) ? 32 : 64;
         $orderFlags = $this->safe_integer($params, 'orderFlags', $defaultOrderFlags);
         $subAccountId = 0;
-        list($subAccountId, $params) = $this->handle_option_and_params($params, 'cancelOrder', 'subAccountId', $subAccountId);
+        list($subAccountId, $params) = $this->handle_option_integer_and_params($params, 'cancelOrder', 'subAccountId', $subAccountId);
         $params = $this->omit($params, array( 'clientOrderId', 'orderFlags', 'goodTillBlock', 'goodTillBlockTime', 'goodTillBlockTimeInSeconds', 'subaccountId', 'clientId' ));
         if ($orderFlags !== 0 && $orderFlags !== 64 && $orderFlags !== 32) {
             throw new InvalidOrder($this->id . ' invalid $orderFlags, allowed values are (0, 64, 32).');
@@ -1747,7 +1747,7 @@ class dydx extends Exchange {
             throw new NotSupported($this->id . ' $cancelOrders only support $clientOrderIds->');
         }
         $subAccountId = 0;
-        list($subAccountId, $params) = $this->handle_option_and_params($params, 'cancelOrders', 'subAccountId', $subAccountId);
+        list($subAccountId, $params) = $this->handle_option_integer_and_params($params, 'cancelOrders', 'subAccountId', $subAccountId);
         $goodTillBlock = $this->safe_integer($params, 'goodTillBlock');
         if ($goodTillBlock === null) {
             $latestBlockHeight = Async\await($this->fetch_latest_block_height());
@@ -2519,7 +2519,7 @@ class dydx extends Exchange {
         $userAddress = null;
         list($userAddress, $params) = $this->handle_public_address('fetchBalance', $params);
         $subaccountNumber = null;
-        list($subaccountNumber, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'subaccountNumber', 0);
+        list($subaccountNumber, $params) = $this->handle_option_integer_and_params($params, 'fetchBalance', 'subaccountNumber', 0);
         $request = array(
             'address' => $userAddress,
             'subaccountNumber' => $subaccountNumber,

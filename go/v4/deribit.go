@@ -2038,7 +2038,7 @@ func (this *Deribit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	//         "testnet": false
 	//     }
 	//
-	var result any = this.SafeValue(response, "result", map[string]any{})
+	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 	var ohlcvs any = this.ConvertTradingViewToOHLCV(result, "ticks", "open", "high", "low", "close", "volume", true)
 
 	ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)

@@ -4177,7 +4177,7 @@ class coinbase extends Exchange {
             $request['limit'] = min($limit, 1000);
         }
         $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'until');
+        list($until, $params) = $this->handle_option_integer_and_params($params, 'fetchTrades', 'until');
         if ($until !== null) {
             $request['end'] = $this->number_to_string($this->parse_to_int($until / 1000));
         } elseif ($since !== null) {

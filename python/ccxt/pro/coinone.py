@@ -350,7 +350,7 @@ class coinone(ccxt.async_support.coinone):
             'fee': None,
         }, market)
 
-    def handle_error_message(self, client: Client, message: object) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> Bool:
         #
         #     {
         #         "response_type": "ERROR",

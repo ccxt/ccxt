@@ -263,7 +263,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 String rawHash = (String) ((Map<String, Object>)market).get("id");
                 ((List<Object>)subParams).add(rawHash);
             }
-            Object marketIds = this.marketIds(symbols);
+            List<String> marketIds = this.marketIds(symbols);
             Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "common"), "/quote/ws/v1");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", String.join(",", (List<String>)marketIds) );
@@ -626,7 +626,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 String rawHash = (String) ((Map<String, Object>)market).get("id");
                 ((List<Object>)subParams).add(rawHash);
             }
-            Object marketIds = this.marketIds(symbols);
+            List<String> marketIds = this.marketIds(symbols);
             Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "common"), "/quote/ws/v1");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", String.join(",", (List<String>)marketIds) );
@@ -809,7 +809,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 String rawHash = (String) ((Map<String, Object>)market).get("id");
                 ((List<Object>)subParams).add(rawHash);
             }
-            Object marketIds = this.marketIds(symbols);
+            List<String> marketIds = this.marketIds(symbols);
             Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "common"), "/quote/ws/v1");
             final String finalChannel = channel;
             Map<String, Object> request = new HashMap<String, Object>() {{

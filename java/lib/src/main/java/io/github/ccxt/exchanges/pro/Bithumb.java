@@ -116,11 +116,11 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             {
                 (this.loadMarkets()).join();
             }
-            Object generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTicker", "generation", 2);
-            generation = ((List<Object>) generationparametersVariable).get(0);
+            Long generation = null;
+            List<Object> generationparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchTicker", "generation", 2);
+            generation = (Long) ((List<Object>) generationparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
-            Boolean isGenerationTwo = (Helpers.isEqual(generation, 2));
+            Boolean isGenerationTwo = ((generation != null && generation == 2));
             Object url = ((Boolean.TRUE.equals(isGenerationTwo))) ? Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "publicGen2") : Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String messageHash = ("ticker:" + ((Map<String, Object>)market).get("symbol"));
@@ -186,11 +186,11 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             {
                 (this.loadMarkets()).join();
             }
-            Object generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "generation", 2);
-            generation = ((List<Object>) generationparametersVariable).get(0);
+            Long generation = null;
+            List<Object> generationparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchTickers", "generation", 2);
+            generation = (Long) ((List<Object>) generationparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
-            Boolean isGenerationTwo = (Helpers.isEqual(generation, 2));
+            Boolean isGenerationTwo = ((generation != null && generation == 2));
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, false, true, true));
             Integer symbolsLength = (((java.util.Objects.equals(symbols, null)))) ? 0 : ((List<?>)symbols).size();
             if (Boolean.TRUE.equals(isGenerationTwo) && ((symbolsLength != null && symbolsLength == 0)))
@@ -493,11 +493,11 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             {
                 (this.loadMarkets()).join();
             }
-            Object generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "generation", 2);
-            generation = ((List<Object>) generationparametersVariable).get(0);
+            Long generation = null;
+            List<Object> generationparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "generation", 2);
+            generation = (Long) ((List<Object>) generationparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
-            Boolean isGenerationTwo = (Helpers.isEqual(generation, 2));
+            Boolean isGenerationTwo = ((generation != null && generation == 2));
             Object url = ((Boolean.TRUE.equals(isGenerationTwo))) ? Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "publicGen2") : Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = (String) ((Map<String, Object>)market).get("symbol");
@@ -726,11 +726,11 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             {
                 (this.loadMarkets()).join();
             }
-            Object generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTrades", "generation", 2);
-            generation = ((List<Object>) generationparametersVariable).get(0);
+            Long generation = null;
+            List<Object> generationparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchTrades", "generation", 2);
+            generation = (Long) ((List<Object>) generationparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
-            Boolean isGenerationTwo = (Helpers.isEqual(generation, 2));
+            Boolean isGenerationTwo = ((generation != null && generation == 2));
             Object url = ((Boolean.TRUE.equals(isGenerationTwo))) ? Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "publicGen2") : Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = (String) ((Map<String, Object>)market).get("symbol");
@@ -997,11 +997,11 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             {
                 (this.loadMarkets()).join();
             }
-            Object generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchBalance", "generation", 2);
-            generation = ((List<Object>) generationparametersVariable).get(0);
+            Long generation = null;
+            List<Object> generationparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchBalance", "generation", 2);
+            generation = (Long) ((List<Object>) generationparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
-            if (!Helpers.isEqual(generation, 2))
+            if ((generation == null || generation != 2))
             {
                 throw new BadRequest((this.id + " watchBalance() is only supported for the generation 2 API")) ;
             }
@@ -1165,11 +1165,11 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             {
                 (this.loadMarkets()).join();
             }
-            Object generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrders", "generation", 2);
-            generation = ((List<Object>) generationparametersVariable).get(0);
+            Long generation = null;
+            List<Object> generationparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchOrders", "generation", 2);
+            generation = (Long) ((List<Object>) generationparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
-            if (!Helpers.isEqual(generation, 2))
+            if ((generation == null || generation != 2))
             {
                 throw new BadRequest((this.id + " watchOrders() is only supported for the generation 2 API")) ;
             }

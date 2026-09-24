@@ -515,7 +515,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String messageHash = ("trades:" + symbol);
-        Object data = this.safeValue(message, "data");
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data");
         Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data), market);
         io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(tradesArray, null))

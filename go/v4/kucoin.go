@@ -4116,7 +4116,7 @@ func (this *Kucoin) fetchUTAOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 		request["tradeType"] = "FUTURES"
 	}
 	var priceType any = nil
-	var priceTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "price", priceType)
+	var priceTypeparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchOHLCV", "price", priceType)
 	priceType = GetValue(priceTypeparamsVariable, 0)
 	params = MapTyped(GetValue(priceTypeparamsVariable, 1))
 	if priceType != nil {

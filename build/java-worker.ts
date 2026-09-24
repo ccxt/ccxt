@@ -2,7 +2,7 @@ import { Transpiler } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
 import { patchJavaLocalTypes } from './javaTranspiler.js';
 import { installJavaExpressionTypeResolver } from './javaTranspiler.js';
-import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, patchJavaStringReceiverCasts, patchJavaMapChannelStringCasts, patchJavaConsumerStringCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, patchJavaOmitLocalTypes, patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists, patchJavaTupleHolderElementLocals } from './java-local-types.js';
+import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, patchJavaStringReceiverCasts, patchJavaMapChannelStringCasts, patchJavaConsumerStringCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, patchJavaOmitLocalTypes, patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists, patchJavaTupleHolderElementLocals, patchJavaOrderBookCacheLocals } from './java-local-types.js';
 import log from 'ololog'
 
 // task payload posted by javaTranspiler.ts#webworkerTranspile (structured clone)
@@ -62,6 +62,7 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
         patchJavaQualifiedDtoListElementLocals (cachedTranspiler);
         patchJavaStringAccumulatorLists (cachedTranspiler);
         patchJavaTupleHolderElementLocals (cachedTranspiler);
+        patchJavaOrderBookCacheLocals (cachedTranspiler);
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;

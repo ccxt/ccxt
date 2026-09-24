@@ -2000,11 +2000,11 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             self.options['builderFee'] = False  # disable builder fee if an error occurs
         return None
 
-    def handle_public_address(self, methodName: str, params: dict) -> object:
+    def handle_public_address(self, methodName: str, params: dict) -> list:
         userAux = None
         userAux, params = self.handle_option_string_and_params_2(params, methodName, 'user', 'subAccountAddress')
         user = userAux
-        user, params = self.handle_option_and_params(params, methodName, 'address', userAux)
+        user, params = self.handle_option_string_and_params(params, methodName, 'address', userAux)
         if user is not None and user != '':
             return [user, params]
         if self.walletAddress is not None and self.walletAddress != '':

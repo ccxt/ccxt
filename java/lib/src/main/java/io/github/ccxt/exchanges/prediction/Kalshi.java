@@ -2927,9 +2927,9 @@ final Object finalOi = oi;
             {
                 defaultTif = "good_till_canceled";
             }
-            Object timeInForce = null;
-            List<Object> timeInForceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "time_in_force", defaultTif);
-            timeInForce = ((List<Object>) timeInForceparametersVariable).get(0);
+            String timeInForce = null;
+            List<Object> timeInForceparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "time_in_force", defaultTif);
+            timeInForce = (String) ((List<Object>) timeInForceparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) timeInForceparametersVariable).get(1);
             String stp = null;
             List<Object> stpparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "self_trade_prevention_type", "taker_at_cross");
@@ -2937,7 +2937,7 @@ final Object finalOi = oi;
             parameters = (Map<String, Object>) ((List<Object>) stpparametersVariable).get(1);
             final String finalBookSide = bookSide;
             final Object finalAmount = amount;
-            final Object finalTimeInForce = timeInForce;
+            final String finalTimeInForce = timeInForce;
             final String finalStp = stp;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "ticker", ticker );

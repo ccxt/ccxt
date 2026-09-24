@@ -1239,7 +1239,7 @@ class cex(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         accountId = None
-        accountId, params = self.handle_option_and_params(params, 'createOrder', 'accountId')
+        accountId, params = self.handle_option_string_and_params(params, 'createOrder', 'accountId')
         if accountId is None:
             raise ArgumentsRequired(self.id + ' createOrder() : API trading is now allowed from main account, set params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account')
         if self.markets is None:
@@ -1684,7 +1684,7 @@ class cex(Exchange, ImplicitAPI):
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         accountId = None
-        accountId, params = self.handle_option_and_params(params, 'createOrder', 'accountId')
+        accountId, params = self.handle_option_string_and_params(params, 'createOrder', 'accountId')
         if accountId is None:
             raise ArgumentsRequired(self.id + ' fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account')
         if self.markets is None:

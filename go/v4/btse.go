@@ -990,7 +990,7 @@ func (this *Btse) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		request["start"] = this.ParseToInt(Divide(since, 1000))
 	}
 	var until any = nil
-	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "until")
+	var untilparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOHLCV", "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = MapTyped(GetValue(untilparamsVariable, 1))
 	if !IsEqual(until, nil) {
@@ -1144,19 +1144,19 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	if GetValue(market, "contract") != true {
 		panic(BadRequest(this.Id + " fetchFundingRateHistory() supports contract markets only"))
 	}
-	var period any = nil
-	var periodparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "period")
-	period = GetValue(periodparamsVariable, 0)
+	var period *string = nil
+	var periodparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchFundingRateHistory", "period")
+	period = SafeStringPtr(GetValue(periodparamsVariable, 0))
 	params = MapTyped(GetValue(periodparamsVariable, 1))
-	if IsEqual(period, nil) {
-		period = "7D"
+	if period == nil {
+		period = SafeStringPtr("7D")
 		if since != nil {
 			var age any = Subtract(this.Milliseconds(), since)
 			var day int = 86400000
 			if IsGreaterThan(age, 14*day) {
-				period = "1M"
+				period = SafeStringPtr("1M")
 			} else if IsGreaterThan(age, 7*day) {
-				period = "2W"
+				period = SafeStringPtr("2W")
 			}
 		}
 	}
@@ -1165,7 +1165,7 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 		"period": period,
 	}
 	var until any = nil
-	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "until")
+	var untilparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchFundingRateHistory", "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = MapTyped(GetValue(untilparamsVariable, 1))
 
@@ -1925,7 +1925,7 @@ func (this *Btse) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	}
 	// the unified trades endpoint has no server-side time filtering, since and until are applied client-side below
 	var until any = nil
-	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "until")
+	var untilparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchTrades", "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = MapTyped(GetValue(untilparamsVariable, 1))
 
@@ -3468,7 +3468,7 @@ func (this *Btse) requestWalletHistoryRowsBody(ch chan any, methodName any, hist
 		request["pageSize"] = limit
 	}
 	var until any = nil
-	var untilparamsVariable []any = this.HandleOptionAndParams(params, methodName, "until")
+	var untilparamsVariable []any = this.HandleOptionIntegerAndParams(params, methodName, "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = MapTyped(GetValue(untilparamsVariable, 1))
 	if !IsEqual(until, nil) {
@@ -3773,7 +3773,7 @@ func (this *Btse) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		request["pageSize"] = limit
 	}
 	var until any = nil
-	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchLedger", "until")
+	var untilparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchLedger", "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = MapTyped(GetValue(untilparamsVariable, 1))
 	if !IsEqual(until, nil) {

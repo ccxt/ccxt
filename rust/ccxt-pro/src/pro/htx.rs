@@ -844,7 +844,7 @@ impl HtxCore {
                 add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, stored.clone());
             }
         }
-        let mut tick: Value = (match message.get("tick") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
+        let mut tick: Value = (match message.get("tick") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
         let mut parsed: Value = self.parse_ohlcv(tick, &[market]);
         stored.append(parsed);
         client.resolve(&[stored, ch]);
@@ -2158,7 +2158,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (type_var.as_str() == Some("spot")) {
                 type_var = Value::Str("future".into());
             }
-            { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchPositions".into()), Value::Str("subType".into()), &[subType.clone()]); subType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("watchPositions".into()), Value::Str("subType".into()), &[subType.clone()]); subType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut marginMode: Value = Value::Null;

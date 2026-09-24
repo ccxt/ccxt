@@ -2116,6 +2116,9 @@ impl Exchange {
     pub fn check_option_bool(&self, _method_name: Value, _option_name: Value, value: Value) -> Value {
         value
     }
+    pub fn check_option_integer(&self, _method_name: Value, _option_name: Value, value: Value) -> Value {
+        value
+    }
 
     /// `clone(value)` — CCXT's deep clone, distinct from Rust's `Clone` trait.
     /// We disambiguate by name; the transpiler emits `self.clone(x)`.

@@ -1015,9 +1015,9 @@ public class Btse extends BtseApi
                 // the endpoint accepts timestamps in seconds
                 ((Map<String, Object>)request).put("start", this.parseToInt(Helpers.divide(since, 1000)));
             }
-            Object until = null;
-            List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
-            until = ((List<Object>) untilparametersVariable).get(0);
+            Long until = null;
+            List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "until");
+            until = (Long) ((List<Object>) untilparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
@@ -1030,11 +1030,11 @@ public class Btse extends BtseApi
                     Object difference = Helpers.subtract(until, since);
                     if (Helpers.isLessThan(difference, maxDelta))
                     {
-                        ((Map<String, Object>)request).put("end", this.parseToInt(Helpers.divide(until, 1000)));
+                        ((Map<String, Object>)request).put("end", this.parseToInt((((double) until) / ((double) 1000))));
                     }
                 } else
                 {
-                    ((Map<String, Object>)request).put("end", this.parseToInt(Helpers.divide(until, 1000)));
+                    ((Map<String, Object>)request).put("end", this.parseToInt((((double) until) / ((double) 1000))));
                 }
             }
             Map<String, Object> response = (this.publicGetPublicApiMarketV1Klines(this.extend(request, parameters))).join();
@@ -1195,9 +1195,9 @@ public class Btse extends BtseApi
             {
                 throw new BadRequest((this.id + " fetchFundingRateHistory() supports contract markets only")) ;
             }
-            Object period = null;
-            List<Object> periodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "period");
-            period = ((List<Object>) periodparametersVariable).get(0);
+            String period = null;
+            List<Object> periodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchFundingRateHistory", "period");
+            period = (String) ((List<Object>) periodparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) periodparametersVariable).get(1);
             if (java.util.Objects.equals(period, null))
             {
@@ -1215,14 +1215,14 @@ public class Btse extends BtseApi
                     }
                 }
             }
-            final Object finalPeriod = period;
+            final String finalPeriod = period;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "period", finalPeriod );
             }};
-            Object until = null;
-            List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "until");
-            until = ((List<Object>) untilparametersVariable).get(0);
+            Long until = null;
+            List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchFundingRateHistory", "until");
+            until = (Long) ((List<Object>) untilparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             Map<String, Object> response = (this.publicGetPublicApiMarketV1RecentFundingHistory(this.extend(request, parameters))).join();
             //
@@ -2085,9 +2085,9 @@ public class Btse extends BtseApi
                 ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 500)); // the endpoint supports a maximum of 500 trades
             }
             // the unified trades endpoint has no server-side time filtering, since and until are applied client-side below
-            Object until = null;
-            List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "until");
-            until = ((List<Object>) untilparametersVariable).get(0);
+            Long until = null;
+            List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchTrades", "until");
+            until = (Long) ((List<Object>) untilparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             Map<String, Object> response = (this.publicGetPublicApiMarketV1Trades(this.extend(request, parameters))).join();
             //
@@ -3935,9 +3935,9 @@ public class Btse extends BtseApi
             {
                 ((Map<String, Object>)request).put("pageSize", limit);
             }
-            Object until = null;
-            List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "until");
-            until = ((List<Object>) untilparametersVariable).get(0);
+            Long until = null;
+            List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (methodName), "until");
+            until = (Long) ((List<Object>) untilparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
@@ -4259,9 +4259,9 @@ public class Btse extends BtseApi
             {
                 ((Map<String, Object>)request).put("pageSize", limit);
             }
-            Object until = null;
-            List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchLedger", "until");
-            until = ((List<Object>) untilparametersVariable).get(0);
+            Long until = null;
+            List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchLedger", "until");
+            until = (Long) ((List<Object>) untilparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {

@@ -565,7 +565,7 @@ func (this *Pacifica) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var aggLevel any = nil
-	var aggLevelparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "aggLevel", 1)
+	var aggLevelparamsVariable []any = this.HandleOptionIntegerAndParams(params, "watchOrderBook", "aggLevel", 1)
 	aggLevel = ccxt.GetValue(aggLevelparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(aggLevelparamsVariable, 1))
 	var messageHash any = ccxt.Add("orderbook:", symbol)
@@ -617,7 +617,7 @@ func (this *Pacifica) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs
 	}
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var aggLevel any = nil
-	var aggLevelparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "aggLevel", 1)
+	var aggLevelparamsVariable []any = this.HandleOptionIntegerAndParams(params, "watchOrderBook", "aggLevel", 1)
 	aggLevel = ccxt.GetValue(aggLevelparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(aggLevelparamsVariable, 1))
 	var subMessageHash any = ccxt.Add("orderbook:", symbol)

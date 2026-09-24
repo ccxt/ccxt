@@ -2614,7 +2614,7 @@ class derive(Exchange, ImplicitAPI):
             return [optionsWallet, params]
         raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a subaccount_id parameter inside \'params\' or exchange.options[\'subaccount_id\']=ID.')
 
-    def handle_derive_wallet_address(self, methodName: str, params: dict):
+    def handle_derive_wallet_address(self, methodName: str, params: dict) -> list:
         deriveWalletAddress = None
         deriveWalletAddress, params = self.handle_option_string_and_params(params, methodName, 'deriveWalletAddress')
         if (deriveWalletAddress is not None) and (deriveWalletAddress != ''):

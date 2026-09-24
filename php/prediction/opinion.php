@@ -1880,7 +1880,7 @@ class opinion extends Exchange {
         $this->orderbooks[$sym] = $orderbook;
     }
 
-    public function handle_order_book(mixed $client, mixed $message) {
+    public function handle_order_book(mixed $client, array $message) {
         //
         //     {
         //         "marketId": 2764,
@@ -1935,7 +1935,7 @@ class opinion extends Exchange {
         return Async\await($this->subscribe_opinion_channel($messageHash, 'market.last.price', $marketId));
     }
 
-    public function handle_ticker(mixed $client, mixed $message) {
+    public function handle_ticker(mixed $client, array $message) {
         //
         //     {
         //         "tokenId": "19120407572139442221452465677574895365338028945317996490376653704877573103648",
@@ -1992,7 +1992,7 @@ class opinion extends Exchange {
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_trades(mixed $client, mixed $message) {
+    public function handle_trades(mixed $client, array $message) {
         //
         //     {
         //         "tokenId": "19120407572139442221452465677574895365338028945317996490376653704877573103648",
@@ -2095,7 +2095,7 @@ class opinion extends Exchange {
         return null;
     }
 
-    public function handle_order(mixed $client, mixed $message) {
+    public function handle_order(mixed $client, array $message) {
         //
         //     {
         //         "orderUpdateType": "orderConfirm",
@@ -2192,7 +2192,7 @@ class opinion extends Exchange {
         return $this->filter_by_value_since_limit($trades, 'outcome', $sym, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_my_trade(mixed $client, mixed $message) {
+    public function handle_my_trade(mixed $client, array $message) {
         //
         //     {
         //         "orderId": "3c7af25f-e21f-11f0-9714-0a58a9feac02",

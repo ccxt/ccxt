@@ -1805,7 +1805,7 @@ func (this *Deepcoin) transferBody(ch chan any, code any, amount any, fromAccoun
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var userId any = nil
-	var userIdparamsVariable []any = this.HandleOptionAndParams(params, "transfer", "userId")
+	var userIdparamsVariable []any = this.HandleOptionStringAndParams(params, "transfer", "userId")
 	userId = GetValue(userIdparamsVariable, 0)
 	params = MapTyped(GetValue(userIdparamsVariable, 1))
 	userId = func() any {

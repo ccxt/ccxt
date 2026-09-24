@@ -1571,7 +1571,7 @@ class cex extends \ccxt\async\cex {
         //    "ok": "ok"
         //    }
         //
-        $data = $this->safe_value($message, 'data');
+        $data = $this->safe_list($message, 'data');
         $messageHash = $this->safe_string($message, 'oid');
         $client->resolve($data, $messageHash);
     }
@@ -1585,7 +1585,7 @@ class cex extends \ccxt\async\cex {
         return $message;
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         //     {
         //         "e": "get-balance",

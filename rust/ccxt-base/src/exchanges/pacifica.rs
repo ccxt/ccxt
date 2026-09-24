@@ -1804,7 +1804,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut market: Value = self.market(symbol);
         let mut aggLevel: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOrderBook".into()), Value::Str("aggLevel".into()), &[Value::Int(1)]); aggLevel = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_integer_and_params(params.clone(), Value::Str("fetchOrderBook".into()), Value::Str("aggLevel".into()), &[Value::Int(1)]); aggLevel = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -4605,7 +4605,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut timestamp: Value = Value::Null;
         { let __destr_tmp = self.handle_param_integer(params.clone(), Value::Str("timestamp".into()), &[self.milliseconds()]); timestamp = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut expiryWindow: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params2(params.clone(), Value::Str("createSubAccount".into()), Value::Str("expiryWindow".into()), Value::Str("expiry_window".into()), &[Value::Int(5000)]); expiryWindow = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_integer_and_params2(params.clone(), Value::Str("createSubAccount".into()), Value::Str("expiryWindow".into()), Value::Str("expiry_window".into()), &[Value::Int(5000)]); expiryWindow = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut subaccountSignatureHeader: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("timestamp".to_string(), timestamp.clone());
@@ -4961,7 +4961,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         let mut expiryWindow: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params2(params.clone(), Value::Str("postActionRequest".into()), Value::Str("expiryWindow".into()), Value::Str("expiry_window".into()), &[Value::Int(5000)]); expiryWindow = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_integer_and_params2(params.clone(), Value::Str("postActionRequest".into()), Value::Str("expiryWindow".into()), Value::Str("expiry_window".into()), &[Value::Int(5000)]); expiryWindow = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut timestamp: Value = self.safe_integer_k(params.clone(), "timestamp", &[self.milliseconds()]);
         let mut signatureHeader: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

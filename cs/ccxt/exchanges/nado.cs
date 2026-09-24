@@ -443,13 +443,13 @@ public partial class nado : Exchange
         IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "subaccount", "default");
         subaccount = (string)subaccountparametersVariable[0];
         parameters = subaccountparametersVariable[1];
-        object expiration = null;
-        IList<object> expirationparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "expiration", "4294967295");
-        expiration = expirationparametersVariable[0];
+        string? expiration = null;
+        IList<object> expirationparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "expiration", "4294967295");
+        expiration = (string)expirationparametersVariable[0];
         parameters = expirationparametersVariable[1];
-        object recvWindow = null;
-        IList<object> recvWindowparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "recvWindow", 5000);
-        recvWindow = recvWindowparametersVariable[0];
+        Int64? recvWindow = null;
+        IList<object> recvWindowparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "createOrder", "recvWindow", 5000);
+        recvWindow = (Int64?)recvWindowparametersVariable[0];
         parameters = recvWindowparametersVariable[1];
         string? nonce = this.createOrderNonce(recvWindow);
         Int64? requestId = this.safeInteger(parameters, "id");
@@ -483,12 +483,12 @@ public partial class nado : Exchange
         bool isTriggerOrder = isStopOrder || isStopLossOrder || isTakeProfitOrder;
         if (isStopOrder)
         {
-            object triggerDirection = null;
+            string? triggerDirection = null;
             IList<object> triggerDirectionparametersVariable = (IList<object>)this.handleTriggerDirectionAndParams(parameters);
-            triggerDirection = triggerDirectionparametersVariable[0];
+            triggerDirection = (string)triggerDirectionparametersVariable[0];
             parameters = triggerDirectionparametersVariable[1];
             string directionSuffix = "below";
-            if (isEqual(triggerDirection, "ascending"))
+            if (triggerDirection == "ascending")
             {
                 directionSuffix = "above";
             }
@@ -503,18 +503,18 @@ public partial class nado : Exchange
             placeOrder["trigger"] = trigger;
         } else if (isStopLossOrder || isTakeProfitOrder)
         {
-            string triggerDirection = "";
+            string oracleSide = "";
             if (isBuy)
             {
-                triggerDirection = isStopLossOrder ? "above" : "below";
+                oracleSide = isStopLossOrder ? "above" : "below";
             } else
             {
-                triggerDirection = isStopLossOrder ? "below" : "above";
+                oracleSide = isStopLossOrder ? "below" : "above";
             }
             triggerPrice = isStopLossOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
             string? triggerPriceX18 = this.convertToX18(triggerPrice);
             Dictionary<string, object> priceRequirement = new Dictionary<string, object>() {};
-            priceRequirement[(string)("oracle_price_" + triggerDirection)] = triggerPriceX18;
+            priceRequirement[(string)("oracle_price_" + oracleSide)] = triggerPriceX18;
             Dictionary<string, object> trigger = new Dictionary<string, object>() {
                 { "price_trigger", new Dictionary<string, object>() {
                     { "price_requirement", priceRequirement },
@@ -640,9 +640,9 @@ public partial class nado : Exchange
         IList<object> expirationparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "editOrder", "expiration", "4294967295");
         expiration = (string)expirationparametersVariable[0];
         parameters = expirationparametersVariable[1];
-        object recvWindow = null;
-        IList<object> recvWindowparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "editOrder", "recvWindow", 5000);
-        recvWindow = recvWindowparametersVariable[0];
+        Int64? recvWindow = null;
+        IList<object> recvWindowparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "editOrder", "recvWindow", 5000);
+        recvWindow = (Int64?)recvWindowparametersVariable[0];
         parameters = recvWindowparametersVariable[1];
         string? cancelNonce = this.createOrderNonce(recvWindow);
         string? orderNonce = Precise.stringAdd(cancelNonce, "1");
@@ -792,9 +792,9 @@ public partial class nado : Exchange
         subaccount = (string)subaccountparametersVariable[0];
         parameters = subaccountparametersVariable[1];
         string sender = this.createSubaccount(this.walletAddress, subaccount);
-        object recvWindow = null;
-        IList<object> recvWindowparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelAllOrders", "recvWindow", 5000);
-        recvWindow = recvWindowparametersVariable[0];
+        Int64? recvWindow = null;
+        IList<object> recvWindowparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "cancelAllOrders", "recvWindow", 5000);
+        recvWindow = (Int64?)recvWindowparametersVariable[0];
         parameters = recvWindowparametersVariable[1];
         string? nonce = this.createOrderNonce(recvWindow);
         Dictionary<string, object> tx = new Dictionary<string, object>() {
@@ -898,9 +898,9 @@ public partial class nado : Exchange
         {
             productIds.Add(productId);
         }
-        object recvWindow = null;
-        IList<object> recvWindowparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelOrders", "recvWindow", 5000);
-        recvWindow = recvWindowparametersVariable[0];
+        Int64? recvWindow = null;
+        IList<object> recvWindowparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "cancelOrders", "recvWindow", 5000);
+        recvWindow = (Int64?)recvWindowparametersVariable[0];
         parameters = recvWindowparametersVariable[1];
         string? nonce = this.createOrderNonce(recvWindow);
         Dictionary<string, object> tx = new Dictionary<string, object>() {
@@ -1025,9 +1025,9 @@ public partial class nado : Exchange
         {
             throw new NotSupported ((this.id + " fetchOrders only support trigger")) ;
         }
-        object recvWindow = null;
-        IList<object> recvWindowparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrders", "recvWindow", 5000);
-        recvWindow = recvWindowparametersVariable[0];
+        Int64? recvWindow = null;
+        IList<object> recvWindowparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOrders", "recvWindow", 5000);
+        recvWindow = (Int64?)recvWindowparametersVariable[0];
         parameters = recvWindowparametersVariable[1];
         Dictionary<string, object> tx = new Dictionary<string, object>() {
             { "sender", sender },

@@ -680,7 +680,7 @@ public partial class coinbaseinternational : Exchange
         paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         object maxEntriesPerRequest = 100;
-        IList<object> maxEntriesPerRequestparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "maxEntriesPerRequest", maxEntriesPerRequest);
+        IList<object> maxEntriesPerRequestparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchFundingRateHistory", "maxEntriesPerRequest", maxEntriesPerRequest);
         maxEntriesPerRequest = maxEntriesPerRequestparametersVariable[0];
         parameters = maxEntriesPerRequestparametersVariable[1];
         string pageKey = "ccxtPageKey";
@@ -1186,7 +1186,7 @@ public partial class coinbaseinternational : Exchange
         paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         object maxEntriesPerRequest = 100;
-        IList<object> maxEntriesPerRequestparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "maxEntriesPerRequest", maxEntriesPerRequest);
+        IList<object> maxEntriesPerRequestparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchDepositsWithdrawals", "maxEntriesPerRequest", maxEntriesPerRequest);
         maxEntriesPerRequest = maxEntriesPerRequestparametersVariable[0];
         parameters = maxEntriesPerRequestparametersVariable[1];
         string pageKey = "ccxtPageKey";
@@ -1216,11 +1216,11 @@ public partial class coinbaseinternational : Exchange
         {
             request["portfolios"] = portfolios;
         }
-        object until = null;
-        IList<object> untilparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "until");
-        until = untilparametersVariable[0];
+        Int64? until = null;
+        IList<object> untilparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchDepositsWithdrawals", "until");
+        until = (Int64?)untilparametersVariable[0];
         parameters = untilparametersVariable[1];
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["time_to"] = this.iso8601(until);
         }
@@ -2468,7 +2468,7 @@ public partial class coinbaseinternational : Exchange
         paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         object maxEntriesPerRequest = 100;
-        IList<object> maxEntriesPerRequestparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOpenOrders", "maxEntriesPerRequest", maxEntriesPerRequest);
+        IList<object> maxEntriesPerRequestparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOpenOrders", "maxEntriesPerRequest", maxEntriesPerRequest);
         maxEntriesPerRequest = maxEntriesPerRequestparametersVariable[0];
         parameters = maxEntriesPerRequestparametersVariable[1];
         string pageKey = "ccxtPageKey";
@@ -2565,7 +2565,7 @@ public partial class coinbaseinternational : Exchange
         parameters = paginateparametersVariable[1];
         string pageKey = "ccxtPageKey";
         object maxEntriesPerRequest = 100;
-        IList<object> maxEntriesPerRequestparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "maxEntriesPerRequest", maxEntriesPerRequest);
+        IList<object> maxEntriesPerRequestparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchMyTrades", "maxEntriesPerRequest", maxEntriesPerRequest);
         maxEntriesPerRequest = maxEntriesPerRequestparametersVariable[0];
         parameters = maxEntriesPerRequestparametersVariable[1];
         if ((paginate == true))

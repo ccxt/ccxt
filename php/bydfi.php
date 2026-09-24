@@ -859,7 +859,7 @@ class bydfi extends Exchange {
         $startTime = $since;
         $numberOfCandles = ($limit !== null && $limit !== null && $limit !== 0) ? $limit : $maxLimit;
         $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'until');
+        list($until, $params) = $this->handle_option_integer_and_params($params, 'fetchOHLCV', 'until');
         $now = $this->milliseconds();
         $duration = $this->parse_timeframe($timeframe) * 1000;
         $timeDelta = $duration * $numberOfCandles;
@@ -1130,7 +1130,7 @@ class bydfi extends Exchange {
             $request['limit'] = $limit;
         }
         $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'until');
+        list($until, $params) = $this->handle_option_integer_and_params($params, 'fetchFundingRateHistory', 'until');
         if ($until !== null) {
             $request['endTime'] = $until;
         }
@@ -1766,7 +1766,7 @@ class bydfi extends Exchange {
 
     public function handle_since_and_until(string $methodName, ?int $since = null, $params = array()): array {
         $until = null;
-        list($until, $params) = $this->handle_option_and_params_2($params, $methodName, 'until', 'endTime');
+        list($until, $params) = $this->handle_option_integer_and_params_2($params, $methodName, 'until', 'endTime');
         $now = $this->milliseconds();
         $sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
         $startTime = $since;
@@ -2697,7 +2697,7 @@ class bydfi extends Exchange {
             'asset' => $currency['id'],
         );
         $until = null;
-        list($until, $params) = $this->handle_option_and_params_2($params, 'fetchTransfers', 'until', 'endTime');
+        list($until, $params) = $this->handle_option_integer_and_params_2($params, 'fetchTransfers', 'until', 'endTime');
         if ($until === null) {
             $until = $this->milliseconds(); // exchange requires endTime
         }
@@ -2838,7 +2838,7 @@ class bydfi extends Exchange {
             'asset' => $currency['id'],
         );
         $until = null;
-        list($until, $params) = $this->handle_option_and_params_2($params, 'fetchTransfers', 'until', 'endTime');
+        list($until, $params) = $this->handle_option_integer_and_params_2($params, 'fetchTransfers', 'until', 'endTime');
         $now = $this->milliseconds();
         $sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
         $startTime = $since;

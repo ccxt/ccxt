@@ -908,7 +908,7 @@ public class Upbit extends UpbitApi
                 }
             } else
             {
-                Object marketIds = this.marketIds(symbols);
+                List<String> marketIds = this.marketIds(symbols);
                 ids = String.join(",", (List<String>)marketIds);
             }
             final Object finalIds = ids;
@@ -1140,7 +1140,7 @@ public class Upbit extends UpbitApi
                 tickers = (this.publicGetTickerAll(this.extend(request, parameters))).join();
             } else
             {
-                List<Object> ids = this.marketIds(symbols);
+                List<String> ids = this.marketIds(symbols);
                 List<Object> promises = new ArrayList<Object>(Arrays.asList());
                 Object queries = this.idsQueryStrings(ids, 4000); // the url is limited to about 8000 characters once the commas are percent-encoded
                 for (var i = 0; i < ((List<?>)queries).size(); i++)
@@ -1298,7 +1298,7 @@ public class Upbit extends UpbitApi
         //         }
         //
         String id = this.safeString2(trade, "sequential_id", "uuid");
-        Object orderId = null;
+        List<String> orderId = null;
         Long timestamp = this.safeInteger(trade, "timestamp");
         if (java.util.Objects.equals(timestamp, null))
         {
@@ -2510,8 +2510,8 @@ public class Upbit extends UpbitApi
         //         "krw_amount": "80420.0"
         //     }
         //
-        Object address = null; // not present in the data structure received from the exchange
-        Object tag = null; // not present in the data structure received from the exchange
+        List<String> address = null; // not present in the data structure received from the exchange
+        List<String> tag = null; // not present in the data structure received from the exchange
         String updatedRaw = this.safeString(transaction, "done_at");
         Long timestamp = this.parse8601(this.safeString(transaction, "created_at", updatedRaw));
         String type = this.safeString(transaction, "type");

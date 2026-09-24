@@ -4599,9 +4599,9 @@ class bitget extends Exchange {
                     $request['category'] = 'SPOT';
                 }
             } elseif (($marketType === 'swap') || ($marketType === 'future')) {
-                $productType = null;
-                list($productType, $params) = $this->handle_product_type_and_params(null, $params);
-                $request['category'] = $productType;
+                $utaProductType = null;
+                list($utaProductType, $params) = $this->handle_product_type_and_params(null, $params);
+                $request['category'] = $utaProductType;
             } else {
                 throw new NotSupported($this->id . ' does not support ' . $marketType . ' market');
             }
@@ -8262,9 +8262,9 @@ class bitget extends Exchange {
                         $request['category'] = 'SPOT';
                     }
                 } else {
-                    $productType = null;
-                    list($productType, $params) = $this->handle_product_type_and_params($market, $params);
-                    $request['category'] = $productType;
+                    $utaProductType = null;
+                    list($utaProductType, $params) = $this->handle_product_type_and_params($market, $params);
+                    $request['category'] = $utaProductType;
                 }
                 if ($symbol !== null) {
                     $request['symbol'] = $this->safe_string($market, 'id');

@@ -1367,7 +1367,7 @@ class hashkey(Exchange, ImplicitAPI):
         if until is not None:
             request['endTime'] = until
         accountId = None
-        accountId, params = self.handle_option_and_params(params, methodName, 'accountId')
+        accountId, params = self.handle_option_string_and_params(params, methodName, 'accountId')
         response = None
         if marketType == 'spot':
             if market is not None:
@@ -3188,7 +3188,7 @@ class hashkey(Exchange, ImplicitAPI):
         request = {}
         response = None
         accountId = None
-        accountId, params = self.handle_option_and_params(params, methodName, 'accountId')
+        accountId, params = self.handle_option_string_and_params(params, methodName, 'accountId')
         if accountId is not None:
             request['subAccountId'] = accountId
             response = await self.privateGetApiV1SpotSubAccountOpenOrders(self.extend(request, params))
@@ -3265,7 +3265,7 @@ class hashkey(Exchange, ImplicitAPI):
             request['limit'] = limit
         response = None
         accountId = None
-        accountId, params = self.handle_option_and_params(params, methodName, 'accountId')
+        accountId, params = self.handle_option_string_and_params(params, methodName, 'accountId')
         if accountId is not None:
             request['subAccountId'] = accountId
             response = await self.privateGetApiV1FuturesSubAccountOpenOrders(self.extend(request, params))
@@ -3352,7 +3352,7 @@ class hashkey(Exchange, ImplicitAPI):
         if until is not None:
             request['endTime'] = until
         accountId = None
-        accountId, params = self.handle_option_and_params(params, methodName, 'accountId')
+        accountId, params = self.handle_option_string_and_params(params, methodName, 'accountId')
         market = None
         if symbol is not None:
             market = self.market(symbol)

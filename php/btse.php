@@ -834,7 +834,7 @@ class btse extends Exchange {
             $request['start'] = $this->parse_to_int($since / 1000);
         }
         $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'until');
+        list($until, $params) = $this->handle_option_integer_and_params($params, 'fetchOHLCV', 'until');
         if ($until !== null) {
             if ($since !== null) {
                 // check if the requested time range is too large for one request
@@ -959,7 +959,7 @@ class btse extends Exchange {
             throw new BadRequest($this->id . ' fetchFundingRateHistory() supports contract markets only');
         }
         $period = null;
-        list($period, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'period');
+        list($period, $params) = $this->handle_option_string_and_params($params, 'fetchFundingRateHistory', 'period');
         if ($period === null) {
             $period = '7D';
             if ($since !== null) {
@@ -977,7 +977,7 @@ class btse extends Exchange {
             'period' => $period,
         );
         $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'until');
+        list($until, $params) = $this->handle_option_integer_and_params($params, 'fetchFundingRateHistory', 'until');
         $response = $this->publicGetPublicApiMarketV1RecentFundingHistory($this->extend($request, $params));
         //
         //     {
@@ -1586,7 +1586,7 @@ class btse extends Exchange {
         }
         // the unified trades endpoint has no server-side time filtering, since and until are applied client-side below
         $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'until');
+        list($until, $params) = $this->handle_option_integer_and_params($params, 'fetchTrades', 'until');
         $response = $this->publicGetPublicApiMarketV1Trades($this->extend($request, $params));
         //
         //     {
@@ -2865,7 +2865,7 @@ class btse extends Exchange {
             $request['pageSize'] = $limit;
         }
         $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, $methodName, 'until');
+        list($until, $params) = $this->handle_option_integer_and_params($params, $methodName, 'until');
         if ($until !== null) {
             $request['endTime'] = $until;
         }
@@ -3083,7 +3083,7 @@ class btse extends Exchange {
             $request['pageSize'] = $limit;
         }
         $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'until');
+        list($until, $params) = $this->handle_option_integer_and_params($params, 'fetchLedger', 'until');
         if ($until !== null) {
             $request['endTime'] = $until;
         }

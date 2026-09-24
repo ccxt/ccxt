@@ -1983,7 +1983,7 @@ impl HashkeyCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".into(), until); }
         }
         let mut accountId: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), methodName.clone(), Value::Str("accountId".into()), &[]); accountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), methodName.clone(), Value::Str("accountId".into()), &[]); accountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut response: Value = Value::Null;
         if (marketType.as_str() == Some("spot")) {
             if (market != Value::Null) {
@@ -3897,7 +3897,7 @@ impl HashkeyCore {
         });
         let mut response: Value = Value::Null;
         let mut accountId: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), methodName, Value::Str("accountId".into()), &[]); accountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), methodName, Value::Str("accountId".into()), &[]); accountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (accountId != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("subAccountId".into(), accountId); }
             let __ws_arg_26 = self.extend(request.clone(), &[params.clone()]);
@@ -3966,7 +3966,7 @@ impl HashkeyCore {
         }
         let mut response: Value = Value::Null;
         let mut accountId: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), methodName, Value::Str("accountId".into()), &[]); accountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), methodName, Value::Str("accountId".into()), &[]); accountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (accountId != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("subAccountId".into(), accountId); }
             let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
@@ -4030,7 +4030,7 @@ impl HashkeyCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".into(), until); }
         }
         let mut accountId: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), methodName.clone(), Value::Str("accountId".into()), &[]); accountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), methodName.clone(), Value::Str("accountId".into()), &[]); accountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());

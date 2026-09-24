@@ -475,12 +475,12 @@ func (this *Nado) createOrderRequestBody(ch chan any, symbol any, typeVar any, s
 	var subaccountparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
 	params = MapTyped(GetValue(subaccountparamsVariable, 1))
-	var expiration any = nil
-	var expirationparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "expiration", "4294967295")
-	expiration = GetValue(expirationparamsVariable, 0)
+	var expiration *string = nil
+	var expirationparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "expiration", "4294967295")
+	expiration = SafeStringPtr(GetValue(expirationparamsVariable, 0))
 	params = MapTyped(GetValue(expirationparamsVariable, 1))
 	var recvWindow any = nil
-	var recvWindowparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "recvWindow", 5000)
+	var recvWindowparamsVariable []any = this.HandleOptionIntegerAndParams(params, "createOrder", "recvWindow", 5000)
 	recvWindow = GetValue(recvWindowparamsVariable, 0)
 	params = MapTyped(GetValue(recvWindowparamsVariable, 1))
 	var nonce any = this.CreateOrderNonce(recvWindow)
@@ -530,16 +530,16 @@ func (this *Nado) createOrderRequestBody(ch chan any, symbol any, typeVar any, s
 		}
 		placeOrder["trigger"] = trigger
 	} else if isStopLossOrder || isTakeProfitOrder {
-		var triggerDirection any = ""
+		var oracleSide string = ""
 		if isBuy {
-			triggerDirection = func() string {
+			oracleSide = func() string {
 				if isStopLossOrder {
 					return "above"
 				}
 				return "below"
 			}()
 		} else {
-			triggerDirection = func() string {
+			oracleSide = func() string {
 				if isStopLossOrder {
 					return "below"
 				}
@@ -554,7 +554,7 @@ func (this *Nado) createOrderRequestBody(ch chan any, symbol any, typeVar any, s
 		}()
 		var triggerPriceX18 any = this.ConvertToX18(triggerPrice)
 		var priceRequirement map[string]any = map[string]any{}
-		AddElementToObject(priceRequirement, Add("oracle_price_", triggerDirection), triggerPriceX18)
+		AddElementToObject(priceRequirement, "oracle_price_"+oracleSide, triggerPriceX18)
 		var trigger map[string]any = map[string]any{
 			"price_trigger": map[string]any{
 				"price_requirement": priceRequirement,
@@ -709,7 +709,7 @@ func (this *Nado) editOrderRequestBody(ch chan any, id any, symbol any, typeVar 
 	expiration = SafeStringPtr(GetValue(expirationparamsVariable, 0))
 	params = MapTyped(GetValue(expirationparamsVariable, 1))
 	var recvWindow any = nil
-	var recvWindowparamsVariable []any = this.HandleOptionAndParams(params, "editOrder", "recvWindow", 5000)
+	var recvWindowparamsVariable []any = this.HandleOptionIntegerAndParams(params, "editOrder", "recvWindow", 5000)
 	recvWindow = GetValue(recvWindowparamsVariable, 0)
 	params = MapTyped(GetValue(recvWindowparamsVariable, 1))
 	var cancelNonce any = this.CreateOrderNonce(recvWindow)
@@ -897,7 +897,7 @@ func (this *Nado) cancelAllOrdersRequestBody(ch chan any, optionalArgs ...any) a
 	params = MapTyped(GetValue(subaccountparamsVariable, 1))
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var recvWindow any = nil
-	var recvWindowparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrders", "recvWindow", 5000)
+	var recvWindowparamsVariable []any = this.HandleOptionIntegerAndParams(params, "cancelAllOrders", "recvWindow", 5000)
 	recvWindow = GetValue(recvWindowparamsVariable, 0)
 	params = MapTyped(GetValue(recvWindowparamsVariable, 1))
 	var nonce any = this.CreateOrderNonce(recvWindow)
@@ -1029,7 +1029,7 @@ func (this *Nado) cancelOrdersRequestBody(ch chan any, ids any, optionalArgs ...
 		productIds = append(productIds, productId)
 	}
 	var recvWindow any = nil
-	var recvWindowparamsVariable []any = this.HandleOptionAndParams(params, "cancelOrders", "recvWindow", 5000)
+	var recvWindowparamsVariable []any = this.HandleOptionIntegerAndParams(params, "cancelOrders", "recvWindow", 5000)
 	recvWindow = GetValue(recvWindowparamsVariable, 0)
 	params = MapTyped(GetValue(recvWindowparamsVariable, 1))
 	var nonce any = this.CreateOrderNonce(recvWindow)
@@ -1179,7 +1179,7 @@ func (this *Nado) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		panic(NotSupported(this.Id + " fetchOrders only support trigger"))
 	}
 	var recvWindow any = nil
-	var recvWindowparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "recvWindow", 5000)
+	var recvWindowparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOrders", "recvWindow", 5000)
 	recvWindow = GetValue(recvWindowparamsVariable, 0)
 	params = MapTyped(GetValue(recvWindowparamsVariable, 1))
 	var tx map[string]any = map[string]any{
