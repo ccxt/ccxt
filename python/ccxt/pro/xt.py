@@ -1520,7 +1520,8 @@ class xt(ccxt.async_support.xt):
         #
         msg = self.safe_string(message, 'msg')
         if (msg == 'invalid_listen_key') or (msg == 'token expire'):
-            client.subscriptions['token'] = None
+            if 'token' in client.subscriptions:
+                del client.subscriptions['token']
             self.get_listen_key(True)
             return
         client.reject(message)

@@ -1747,7 +1747,9 @@ class xt extends \ccxt\async\xt {
         //
         $msg = $this->safe_string($message, 'msg');
         if (($msg === 'invalid_listen_key') || ($msg === 'token expire')) {
-            $client->subscriptions['token'] = null;
+            if (is_array($client->subscriptions) && array_key_exists('token' ?? '', $client->subscriptions)) {
+                unset($client->subscriptions['token']);
+            }
             $this->get_listen_key(true);
             return;
         }
