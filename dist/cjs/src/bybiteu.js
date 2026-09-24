@@ -59,6 +59,10 @@ class bybiteu extends bybit["default"] {
             },
             'options': {
                 'mica': true,
+                'defaultType': 'spot',
+                'fetchMarkets': {
+                    'types': ['spot'],
+                },
             },
         });
     }
