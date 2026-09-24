@@ -6291,7 +6291,89 @@ export function installCcxtGoLocalTypes (goTranspiler) {
     installCcxtGoStringConcatJoin (goTranspiler);
     installCcxtGoScalarElementReads (goTranspiler);
     installCcxtGoTupleStringJoin (goTranspiler);
+    installCcxtGoTupleParamsElement (goTranspiler);
     installCcxtGoLimitLocals (goTranspiler);
+}
+
+// ---------------------------------------------------------------------------------------------
+// Tuple params element: `const [ t, query ] = this.handleMarketTypeAndParams (…)` element 1.
+// callee -> params argument index whose map every Go return path hands back (whole or through
+// Omit, a fresh map); -1 when the callee binds params with GetArgMap (never untyped nil)
+const CCXT_GO_TUPLE_PARAMS_PRODUCERS = {
+    'this.HandleMarketTypeAndParams': -1, 'this.HandleSubTypeAndParams': -1, 'this.HandleMarginModeAndParams': -1,
+    'this.HandleNetworkCodeAndParams': 0, 'this.HandleParamString': 0, 'this.HandleParamString2': 0,
+    'this.HandleOptionAndParams': 0, 'this.HandleOptionAndParams2': 0,
+    'this.HandleOptionStringAndParams': 0, 'this.HandleOptionStringAndParams2': 0,
+    'this.HandleOptionBoolAndParams': 0, 'this.HandleOptionBoolAndParams2': 0,
+};
+
+function ccxtGoTupleParamsElementType (goTranspiler, element) {
+    const pattern = element?.parent;
+    const holder = pattern?.parent;
+    if ((element?.kind !== ts.SyntaxKind.BindingElement) || !ts.isIdentifier (element.name)
+        || (pattern?.kind !== ts.SyntaxKind.ArrayBindingPattern) || (pattern.elements.indexOf (element) !== 1)
+        || (holder?.kind !== ts.SyntaxKind.VariableDeclaration) || (holder.name !== pattern)
+        || (element.dotDotDotToken !== undefined) || (element.initializer !== undefined)
+        || (holder.parent?.parent?.kind !== ts.SyntaxKind.VariableStatement)
+        || (typeof goTranspiler.goDeclaredLocalTypeIfSafe !== 'function')) {
+        return undefined;
+    }
+    const init = holder.initializer;
+    const slot = CCXT_GO_TUPLE_PARAMS_PRODUCERS[ccxtGoWriteSiteCallee (goTranspiler, init) ?? ''];
+    if ((slot === undefined) || (init.expression?.expression?.kind !== ts.SyntaxKind.ThisKeyword)
+        || ((slot >= 0) && !ccxtGoProducerArgIsMap (goTranspiler, init.arguments[slot]))) {
+        return undefined;
+    }
+    const name = element.name.escapedText;
+    const scope = goTranspiler.goEnclosingFunction (element);
+    let rebound = false;
+    const visit = (n) => {
+        if (rebound) {
+            return;
+        }
+        if ((n !== element) && (n.kind === ts.SyntaxKind.BindingElement) && bindingMentionsName (n.name, name)) {
+            rebound = true;
+            return;
+        }
+        if (isIdentifierNamed (n, name) && (n !== element.name) && isDestructuringTarget (n)) {
+            rebound = true;
+            return;
+        }
+        ts.forEachChild (n, visit);
+    };
+    if (scope !== undefined) {
+        ts.forEachChild (scope, visit);
+    }
+    if (rebound) {
+        return undefined;
+    }
+    return goTranspiler.goDeclaredLocalTypeIfSafe (element, CCXT_GO_PRODUCER_DICT_TYPE, (n) => !ccxtGoProducerUseRebinds (n));
+}
+
+function installCcxtGoTupleParamsElement (goTranspiler) {
+    if ((goTranspiler === undefined) || goTranspiler.__ccxtGoTupleParamsElementInstalled
+        || (typeof goTranspiler.printVariableDeclarationList !== 'function')) {
+        return;
+    }
+    const shipped = goTranspiler.printVariableDeclarationList;
+    goTranspiler.printVariableDeclarationList = function (node, identation) {
+        const printed = shipped.call (this, node, identation);
+        const pattern = node?.declarations?.[0]?.name;
+        const element = pattern?.elements?.[1];
+        if ((typeof printed !== 'string') || (pattern?.kind !== ts.SyntaxKind.ArrayBindingPattern)
+            || (ccxtGoTupleParamsElementType (this, element) !== CCXT_GO_PRODUCER_DICT_TYPE)) {
+            return printed;
+        }
+        const name = this.printNode (element.name, 0);
+        const lines = printed.split ('\n');
+        const at = lines.findIndex ((line) => /^\s*\w+ := GetValue\(\w+, 1\)$/.test (line) && line.trimStart ().startsWith (name + ' := GetValue('));
+        if (at >= 0) {
+            const indent = lines[at].substring (0, lines[at].length - lines[at].trimStart ().length);
+            lines[at] = indent + 'var ' + name + ' map[string]any = MapTyped(' + lines[at].trimStart ().substring (name.length + 4) + ')';
+        }
+        return lines.join ('\n');
+    };
+    goTranspiler.__ccxtGoTupleParamsElementInstalled = true;
 }
 
 // ---------------------------------------------------------------------------------------------
