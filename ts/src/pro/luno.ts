@@ -63,7 +63,7 @@ export default class luno extends lunoRest {
             'api_key_secret': this.secret,
         };
         const request = this.deepExtend (subscribe, params);
-        const trades = await this.watch (url, messageHash, request, subscriptionHash, subscription);
+        const trades: ArrayCache = await this.watch (url, messageHash, request, subscriptionHash, subscription);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolValue, limit);

@@ -143,7 +143,7 @@ export default class bitfinex extends bitfinexRest {
         };
         const url = this.urls['api']['ws']['public'];
         // not using subscribe here because this message has a different format
-        const ohlcv = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = ohlcv.getLimit (symbolValue, limit);

@@ -757,13 +757,13 @@ public partial class extended : ccxt.extended
         {
             url = add(url, ("?" + query));
         }
-        object trades = await this.watch(url, messageHash, null, messageHash, new Dictionary<string, object>() {
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, null, messageHash, new Dictionary<string, object>() {
             { "symbol", symbolVar },
             { "limit", limitVar },
-        });
+        }));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)trades.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -870,17 +870,17 @@ public partial class extended : ccxt.extended
             { "interval", interval },
         }, parameters));
         string? url = ((string)add(add(add(add(add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/candles/"), (market.ContainsKey("id") ? market["id"] : null)), "/"), candleType), "?"), query));
-        object ohlcv = await this.watch(url, messageHash, null, messageHash, new Dictionary<string, object>() {
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)await this.watch(url, messageHash, null, messageHash, new Dictionary<string, object>() {
             { "name", "ohlcv" },
             { "symbol", symbolVar },
             { "timeframe", timeframeVar },
             { "candleType", candleType },
             { "limit", limitVar },
             { "messageHash", messageHash },
-        });
+        }));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)ohlcv.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }

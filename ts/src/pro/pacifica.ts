@@ -664,7 +664,7 @@ export default class pacifica extends pacificaRest {
             },
         };
         const message = this.extend (request, paramsOriginAndSingleAddress);
-        const trades = await this.watch (url, messageHash, message, messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, message, messageHash);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolResolved, limit);
@@ -836,7 +836,7 @@ export default class pacifica extends pacificaRest {
             },
         };
         const message = this.extend (request, params);
-        const trades = await this.watch (url, messageHash, message, messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, message, messageHash);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolValue, limit);
@@ -1031,7 +1031,7 @@ export default class pacifica extends pacificaRest {
         };
         const messageHash = 'candles:' + parsedTf + ':' + symbolValue;
         const message = this.extend (request, params);
-        const ohlcv = await this.watch (url, messageHash, message, messageHash);
+        const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, message, messageHash);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = ohlcv.getLimit (symbolValue, limit);
@@ -1156,7 +1156,7 @@ export default class pacifica extends pacificaRest {
             },
         };
         const message = this.extend (request, paramsOriginAndSingleAddress);
-        const orders = await this.watch (url, messageHash, message, messageHash);
+        const orders: ArrayCache = await this.watch (url, messageHash, message, messageHash);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);

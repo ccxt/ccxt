@@ -632,7 +632,7 @@ export default class phemex extends phemexRest {
             ],
         };
         const request = this.deepExtend (subscribe, params);
-        const trades = await this.watch (url, messageHash, request, messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, request, messageHash);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolValue, limit);
@@ -722,7 +722,7 @@ export default class phemex extends phemexRest {
             ],
         };
         const request = this.deepExtend (subscribe, params);
-        const ohlcv = await this.watch (url, messageHash, request, messageHash);
+        const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, request, messageHash);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = ohlcv.getLimit (symbolValue, limit);

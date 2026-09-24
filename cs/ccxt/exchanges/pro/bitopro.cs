@@ -231,10 +231,10 @@ public partial class bitopro : ccxt.bitopro
         }
         string? url = ((string)add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("ws") ? ((IDictionary<string, object>)this.urls)["ws"] : null), "private"), "/"), "user-trades"));
         this.authenticate(url);
-        object trades = await this.watch(url, messageHash, null, messageHash);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, null, messageHash));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbol, limitVar}));
+            limitVar = ((Int64?)trades.getLimit(symbol, limitVar));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }

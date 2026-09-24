@@ -133,7 +133,7 @@ export default class coincheck extends coincheckRest {
             'channel': market['id'] + '-trades',
         };
         const message = this.extend (request, params);
-        const trades = await this.watch (url, messageHash, message, messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, message, messageHash);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolValue, limit);

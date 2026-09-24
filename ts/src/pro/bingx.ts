@@ -408,7 +408,7 @@ export default class bingx extends bingxRest {
             'unsubscribe': false,
             'id': uuid,
         };
-        const trades = await this.watch (url, messageHash, this.extend (request, paramsSubType), messageHash, subscription);
+        const trades: ArrayCache = await this.watch (url, messageHash, this.extend (request, paramsSubType), messageHash, subscription);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolValue, limit);
@@ -1055,7 +1055,7 @@ export default class bingx extends bingxRest {
             'unsubscribe': false,
             'id': uuid,
         };
-        const orders = await this.watch (url, messageHash, request, subscriptionHash, subscription);
+        const orders: ArrayCache = await this.watch (url, messageHash, request, subscriptionHash, subscription);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);
@@ -1122,7 +1122,7 @@ export default class bingx extends bingxRest {
             'unsubscribe': false,
             'id': uuid,
         };
-        const trades = await this.watch (url, messageHash, request, subscriptionHash, subscription);
+        const trades: ArrayCache = await this.watch (url, messageHash, request, subscriptionHash, subscription);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolResolved, limit);

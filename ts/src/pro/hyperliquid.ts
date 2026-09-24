@@ -501,7 +501,7 @@ export default class hyperliquid extends hyperliquidRest {
             throw new ArgumentsRequired (this.id + ' watchMyTrades() requires a user address');
         }
         const subscribeHash = 'subscribe:userFills::' + userAddress.toLowerCase ();
-        const trades = await this.watch (url, messageHash, message, subscribeHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, message, subscribeHash);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolResolved, limit);
@@ -708,7 +708,7 @@ export default class hyperliquid extends hyperliquidRest {
             },
         };
         const message = this.extend (request, params);
-        const trades = await this.watch (url, messageHash, message, messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, message, messageHash);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolValue, limit);
@@ -880,7 +880,7 @@ export default class hyperliquid extends hyperliquidRest {
         };
         const messageHash = 'candles:' + timeframe + ':' + symbolValue;
         const message = this.extend (request, params);
-        const ohlcv = await this.watch (url, messageHash, message, messageHash);
+        const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, message, messageHash);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = ohlcv.getLimit (symbolValue, limit);
@@ -1386,7 +1386,7 @@ export default class hyperliquid extends hyperliquidRest {
             throw new ArgumentsRequired (this.id + ' watchOrders() requires a user address');
         }
         const subscribeHash = 'subscribe:orderUpdates::' + userAddress.toLowerCase ();
-        const orders = await this.watch (url, messageHash, message, subscribeHash);
+        const orders: ArrayCache = await this.watch (url, messageHash, message, subscribeHash);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);

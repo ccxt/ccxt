@@ -117,7 +117,7 @@ export default class paradex extends paradexRest {
                 'channel': messageHash,
             },
         };
-        const trades = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbol, limit);
@@ -352,7 +352,7 @@ export default class paradex extends paradexRest {
                 'channel': channel,
             },
         };
-        const orders = await this.watch (url, messageHash, this.deepExtend (request, params), channel);
+        const orders: ArrayCache = await this.watch (url, messageHash, this.deepExtend (request, params), channel);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);

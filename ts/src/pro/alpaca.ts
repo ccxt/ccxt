@@ -173,7 +173,7 @@ export default class alpaca extends alpacaRest {
             'bars': [ market['id'] ],
         };
         const messageHash = 'ohlcv:' + symbolValue;
-        const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = ohlcv.getLimit (symbolValue, limit);
@@ -319,7 +319,7 @@ export default class alpaca extends alpacaRest {
             'action': 'subscribe',
             'trades': [ market['id'] ],
         };
-        const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolValue, limit);
@@ -382,7 +382,7 @@ export default class alpaca extends alpacaRest {
                 'streams': [ 'trade_updates' ],
             },
         };
-        const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolResolved, limit);
@@ -419,7 +419,7 @@ export default class alpaca extends alpacaRest {
                 'streams': [ 'trade_updates' ],
             },
         };
-        const orders = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        const orders: ArrayCache = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);

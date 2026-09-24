@@ -215,7 +215,7 @@ export default class bitrue extends bitrueRest {
             },
         };
         const request = this.deepExtend (message, params);
-        const orders = await this.watch (url, messageHash, request, messageHash);
+        const orders: ArrayCache = await this.watch (url, messageHash, request, messageHash);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);
@@ -500,7 +500,7 @@ export default class bitrue extends bitrueRest {
             },
         };
         const request = this.deepExtend (message, params);
-        const trades = await this.watch (url, messageHash, request, messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, request, messageHash);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolValue, limit);
@@ -621,7 +621,7 @@ export default class bitrue extends bitrueRest {
             },
         };
         const request = this.deepExtend (message, params);
-        const ohlcv = await this.watch (url, messageHash, request, messageHash);
+        const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, request, messageHash);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = ohlcv.getLimit (symbolValue, limit);

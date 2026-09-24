@@ -653,7 +653,7 @@ export default class aster extends asterRest {
             subscriptionArgs.push (marketId + '@aggTrade');
             messageHashes.push ('trade::' + market['symbol']);
         }
-        const trades = await this.watchMultiple (url, messageHashes, this.extend (request, paramsOmitted), messageHashes);
+        const trades: ArrayCache = await this.watchMultiple (url, messageHashes, this.extend (request, paramsOmitted), messageHashes);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved = limit;
@@ -1745,7 +1745,7 @@ export default class aster extends asterRest {
         const url = this.getPrivateUrl (typeMarketType);
         const client = this.client (url);
         this.setBalanceCache (client, typeMarketType);
-        const orders = await this.watchMultiple (url, [ messageHash ], undefined, [ typeMarketType ]);
+        const orders: ArrayCache = await this.watchMultiple (url, [ messageHash ], undefined, [ typeMarketType ]);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);
@@ -1786,7 +1786,7 @@ export default class aster extends asterRest {
         const url = this.getPrivateUrl (typeMarketType);
         const client = this.client (url);
         this.setBalanceCache (client, typeMarketType);
-        const trades = await this.watchMultiple (url, [ messageHash ], undefined, [ typeMarketType ]);
+        const trades: ArrayCache = await this.watchMultiple (url, [ messageHash ], undefined, [ typeMarketType ]);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolResolved, limit);

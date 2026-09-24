@@ -330,7 +330,7 @@ export default class bitvavo extends bitvavoRest {
             ],
         };
         const message = this.extend (request, params);
-        const trades = await this.watchMultiple (url, messageHashes, message, messageHashes);
+        const trades: ArrayCache = await this.watchMultiple (url, messageHashes, message, messageHashes);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved = limit;
@@ -420,7 +420,7 @@ export default class bitvavo extends bitvavoRest {
             ],
         };
         const message = this.extend (request, params);
-        const ohlcv = await this.watch (url, messageHash, message, messageHash);
+        const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, message, messageHash);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = ohlcv.getLimit (symbolValue, limit);
@@ -1008,7 +1008,7 @@ export default class bitvavo extends bitvavoRest {
                 },
             ],
         };
-        const orders = await this.watch (url, messageHash, request, messageHash);
+        const orders: ArrayCache = await this.watch (url, messageHash, request, messageHash);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolValue, limit);
@@ -1049,7 +1049,7 @@ export default class bitvavo extends bitvavoRest {
                 },
             ],
         };
-        const trades = await this.watch (url, messageHash, request, messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, request, messageHash);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolValue, limit);

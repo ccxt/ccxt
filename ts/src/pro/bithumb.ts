@@ -581,7 +581,7 @@ export default class bithumb extends bithumbRest {
         } else {
             request = this.extend (request, paramsGeneration);
         }
-        const trades = await this.watch (url, messageHash, request, messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, request, messageHash);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolValue, limit);
@@ -914,7 +914,7 @@ export default class bithumb extends bithumbRest {
             symbolResolved = market['symbol'];
             messageHash = messageHash + ':' + symbolResolved;
         }
-        const orders = await this.watch (url, messageHash, request, messageHash);
+        const orders: ArrayCache = await this.watch (url, messageHash, request, messageHash);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);

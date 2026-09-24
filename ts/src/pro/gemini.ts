@@ -71,7 +71,7 @@ export default class gemini extends geminiRest {
         };
         const subscribeHash = 'l2:' + market['symbol'];
         const url = this.urls['api']['ws'] + '/v2/marketdata';
-        const trades = await this.watch (url, messageHash, request, subscribeHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, request, subscribeHash);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (market['symbol'], limit);
@@ -303,7 +303,7 @@ export default class gemini extends geminiRest {
         };
         const messageHash = 'ohlcv:' + market['symbol'] + ':' + timeframeId;
         const url = this.urls['api']['ws'] + '/v2/marketdata';
-        const ohlcv = await this.watch (url, messageHash, request, messageHash);
+        const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, request, messageHash);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = ohlcv.getLimit (symbol, limit);
@@ -677,7 +677,7 @@ export default class gemini extends geminiRest {
         const market: Market = (symbol !== undefined) ? this.market (symbol) : undefined;
         const symbolResolved: Str = (market !== undefined) ? market['symbol'] : undefined;
         const messageHash = 'orders';
-        const orders = await this.watch (url, messageHash, undefined, messageHash);
+        const orders: ArrayCache = await this.watch (url, messageHash, undefined, messageHash);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);

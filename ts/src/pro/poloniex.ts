@@ -475,7 +475,7 @@ export default class poloniex extends poloniexRest {
                 messageHashes.push (name + '::' + symbolsNormalized[i]);
             }
         }
-        const trades = await this.watchMultiple (url, messageHashes, request, messageHashes);
+        const trades: ArrayCache = await this.watchMultiple (url, messageHashes, request, messageHashes);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved: Int = limit;
