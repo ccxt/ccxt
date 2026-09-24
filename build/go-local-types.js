@@ -1463,6 +1463,8 @@ function ccxtGoSafeCollectionReadsDecodedValue (goTranspiler, node, depth = 0) {
         }
         if ((current.kind === ts.SyntaxKind.ElementAccessExpression) || (current.kind === ts.SyntaxKind.ParenthesizedExpression)) {
             current = current.expression;
+        } else if (current.kind === ts.SyntaxKind.AwaitExpression) {
+            return ccxtGoAwaitsGeneratedEndpoint (checker, current.expression);
         } else if ((current.kind === ts.SyntaxKind.CallExpression) && CCXT_GO_SAFE_ACCESSOR_CALLEE.test ('this.' + ((current.expression?.name?.text ?? '').charAt (0).toUpperCase () + (current.expression?.name?.text ?? '').slice (1)))
             && (current.expression?.expression?.kind === ts.SyntaxKind.ThisKeyword)) {
             current = current.arguments[0];
@@ -1471,6 +1473,21 @@ function ccxtGoSafeCollectionReadsDecodedValue (goTranspiler, node, depth = 0) {
         }
     }
     return false;
+}
+
+// `this.<endpoint> (...)` declared in ts/src/abstract: the awaited value is the decoded HTTP body
+function ccxtGoAwaitsGeneratedEndpoint (checker, call) {
+    if ((call?.kind !== ts.SyntaxKind.CallExpression) || (call.expression?.kind !== ts.SyntaxKind.PropertyAccessExpression)
+        || (call.expression.expression?.kind !== ts.SyntaxKind.ThisKeyword)) {
+        return false;
+    }
+    let fileName;
+    try {
+        fileName = checker.getResolvedSignature (call)?.declaration?.getSourceFile?. ()?.fileName;
+    } catch (e) {
+        return false;
+    }
+    return (typeof fileName === 'string') && (/(^|[\\/])ts[\\/]src[\\/]abstract[\\/]/).test (fileName);
 }
 
 // `this.options[...]` and friends may hold a *sync.Map, which the typed readers copy
