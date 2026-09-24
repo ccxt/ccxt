@@ -611,7 +611,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			var base any = nil
 			var quote any = nil
 			if marketId != nil {
-				var parts []string = Split(marketId, "-")
+				var parts []string = strings.Split(*marketId, "-")
 				// to match gen 1, the quoteId is the first currency derived from the market id
 				baseId = GetValue(parts, 1)
 				quoteId = GetValue(parts, 0)
@@ -1679,7 +1679,7 @@ func (this *Bithumb) ParseTrade(trade any, optionalArgs ...any) any {
 	var isGenerationTwo bool = (!IsEqual(timestamp, nil))
 	var transactionDatetime *string = this.SafeString(trade, "transaction_date")
 	if transactionDatetime != nil {
-		var parts []string = Split(transactionDatetime, " ")
+		var parts []string = strings.Split(*transactionDatetime, " ")
 		var numParts int = len(parts)
 		if numParts > 1 {
 			var transactionDate *string = SafeStringPtr(GetValue(parts, 0))
@@ -2510,7 +2510,7 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) any {
 			}
 			return strings.Index(*datetime, "+09:00")
 		}() > -1 {
-			var normalized string = Replace(datetime, "+09:00", "Z")
+			var normalized string = strings.Replace(*datetime, "+09:00", "Z", 1)
 			var normalizedTimestamp *int64 = this.Parse8601(normalized)
 			if normalizedTimestamp != nil {
 				timestamp = Subtract(normalizedTimestamp, 9*3600000)
@@ -3232,7 +3232,7 @@ func (this *Bithumb) ParseTransaction(transaction any, optionalArgs ...any) any 
 		}
 		return strings.Index(*datetime, "+09:00")
 	}() > -1) {
-		var normalized string = Replace(datetime, "+09:00", "Z")
+		var normalized string = strings.Replace(*datetime, "+09:00", "Z", 1)
 		var normalizedTimestamp *int64 = this.Parse8601(normalized)
 		if normalizedTimestamp != nil {
 			timestamp = Subtract(normalizedTimestamp, 9*3600000)

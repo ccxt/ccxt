@@ -1066,7 +1066,7 @@ public partial class lighter : Exchange
         if (hasStopLoss || hasTakeProfit)
         {
             // group order
-            ((IDictionary<string,object>)getValue(orders, 0))["client_order_index"] = 0; // client order index should be 0
+            ((IDictionary<string,object>)(orders != null && 0 < orders.Count ? orders[0] : null))["client_order_index"] = 0; // client order index should be 0
             string triggerOrderSide = "";
             if (isEqual(side, "BUY"))
             {
@@ -1159,7 +1159,7 @@ public partial class lighter : Exchange
         object order = null;
         if (totalOrderRequests > 0)
         {
-            order = getValue(orderRequests, 0);
+            order = (orderRequests != null && 0 < orderRequests.Count ? orderRequests[0] : null);
             apiKeyIndex = getValue(order, "api_key_index");
         }
         string strAccountIndex = this.numberToString(accountIndex);

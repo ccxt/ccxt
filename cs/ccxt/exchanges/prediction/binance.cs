@@ -192,11 +192,11 @@ public partial class binance : PredictionExchange
             List<object> queryMarkets = new List<object>() {};
             for (int ei = 0; ei < eventsLength; ei++)
             {
-                IList<object> eventMarkets = (IList<object>)(this.safeList(getValue(events, ei), "markets", new List<object>() {}));
+                IList<object> eventMarkets = (IList<object>)(this.safeList((events != null && ei < events.Count ? events[ei] : null), "markets", new List<object>() {}));
                 int eventMarketsLength = (eventMarkets?.Count ?? 0);
                 for (int mi = 0; mi < eventMarketsLength; mi++)
                 {
-                    queryMarkets.Add(getValue(eventMarkets, mi));
+                    queryMarkets.Add((eventMarkets != null && mi < eventMarkets.Count ? eventMarkets[mi] : null));
                 }
             }
             return ccxt.BaseExchange.ToMarketInterfaceList(queryMarkets);
@@ -209,13 +209,13 @@ public partial class binance : PredictionExchange
         int rawTopicsLength = (rawTopics?.Count ?? 0);
         for (int i = 0; i < rawTopicsLength; i++)
         {
-            Dictionary<string, object> parsedEvent = this.parseEvent(getValue(rawTopics, i));
+            Dictionary<string, object> parsedEvent = this.parseEvent((rawTopics != null && i < rawTopics.Count ? rawTopics[i] : null));
             parsedEvents.Add(parsedEvent);
             IList<object> eventMarkets = (IList<object>)(this.safeList(parsedEvent, "markets", new List<object>() {}));
             int eventMarketsLength = (eventMarkets?.Count ?? 0);
             for (int mi = 0; mi < eventMarketsLength; mi++)
             {
-                flatMarkets.Add(getValue(eventMarkets, mi));
+                flatMarkets.Add((eventMarkets != null && mi < eventMarkets.Count ? eventMarkets[mi] : null));
             }
         }
         this.setEvents(parsedEvents);
@@ -300,7 +300,7 @@ public partial class binance : PredictionExchange
             int pageTopicsLength = (pageTopics?.Count ?? 0);
             for (int i = 0; i < pageTopicsLength; i++)
             {
-                collected.Add(getValue(pageTopics, i));
+                collected.Add((pageTopics != null && i < pageTopics.Count ? pageTopics[i] : null));
             }
             bool? hasMore = this.safeBool(response, "hasMore", false);
             if (((hasMore != true)) || (isLessThan(pageTopicsLength, reqLimit)))
@@ -409,7 +409,7 @@ public partial class binance : PredictionExchange
         }
         for (int i = 0; i < tagsLength; i++)
         {
-            allQueries.Add(getValue(tags, i));
+            allQueries.Add((tags != null && i < tags.Count ? tags[i] : null));
         }
         int allQueriesLength = (allQueries?.Count ?? 0);
         parameters = this.omit(parameters, new List<object>() {"query", "queries"});
@@ -479,7 +479,7 @@ public partial class binance : PredictionExchange
             int parsedMarketsLength = (parsedMarkets?.Count ?? 0);
             for (int mi = 0; mi < parsedMarketsLength; mi++)
             {
-                object m = getValue(parsedMarkets, mi);
+                object m = (parsedMarkets != null && mi < parsedMarkets.Count ? parsedMarkets[mi] : null);
                 // prediction market rows are keyed by the unified 'market' handle
                 string? handle = this.safeString(m, "market");
                 if ((handle != null))
@@ -625,7 +625,7 @@ public partial class binance : PredictionExchange
         int rawMarketsLength = (rawMarkets?.Count ?? 0);
         for (int i = 0; i < rawMarketsLength; i++)
         {
-            Dictionary<string, object> parsed = this.parseTopicMarket(getValue(rawMarkets, i), rawTopic);
+            Dictionary<string, object> parsed = this.parseTopicMarket((rawMarkets != null && i < rawMarkets.Count ? rawMarkets[i] : null), rawTopic);
             marketsList.Add(parsed);
             if ((this.safeBool(parsed, "active", false) == true))
             {
@@ -962,7 +962,7 @@ public partial class binance : PredictionExchange
         int outcomesLength = outcomes?.Count ?? 0;
         for (int i = 0; i < outcomesLength; i++)
         {
-            IDictionary<string, object> outcomeObj = this.outcome(getValue(outcomes, i));
+            IDictionary<string, object> outcomeObj = this.outcome((outcomes != null && i < outcomes.Count ? outcomes[i] : null));
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
             string? marketId = this.safeString(info, "marketId");
             if ((marketId == null))
@@ -979,7 +979,7 @@ public partial class binance : PredictionExchange
                 responsesByMarketId[(string)marketId] = response;
             }
             Dictionary<string, object> ticker = this.parsePredictionTicker(response, ((object)outcomeObj));
-            string? symbolKey = this.safeString(ticker, "outcome", getValue(outcomes, i));
+            string? symbolKey = this.safeString(ticker, "outcome", (outcomes != null && i < outcomes.Count ? outcomes[i] : null));
             result[(string)symbolKey] = ticker;
         }
         return ccxt.BaseExchange.ToPredictionTickers(result);
@@ -1454,7 +1454,7 @@ public partial class binance : PredictionExchange
         int positionsLength = (positions?.Count ?? 0);
         for (int i = 0; i < positionsLength; i++)
         {
-            IDictionary<string, object> position = ((IDictionary<string, object>)getValue(positions, i));
+            IDictionary<string, object> position = ((IDictionary<string, object>)(positions != null && i < positions.Count ? positions[i] : null));
             string? positionOutcome = this.safeString(position, "outcome");
             if (((positionOutcome != null)) && (((positionOutcome != null) && requestedOutcomeSymbols.ContainsKey(positionOutcome))))
             {
@@ -1789,10 +1789,10 @@ public partial class binance : PredictionExchange
         int walletLength = wallets.Count;
         for (int i = 0; i < walletLength; i++)
         {
-            string? w = this.safeString(getValue(wallets, i), "walletAddress", "");
+            string? w = this.safeString((wallets != null && i < wallets.Count ? wallets[i] : null), "walletAddress", "");
             if ((w == walletAddress))
             {
-                cachedWallet = getValue(wallets, i);
+                cachedWallet = (wallets != null && i < wallets.Count ? wallets[i] : null);
                 break;
             }
         }
@@ -2085,7 +2085,7 @@ public partial class binance : PredictionExchange
         int canceledOrdersLength = canceledOrders.Count;
         for (int i = 0; i < canceledOrdersLength; i++)
         {
-            object status = getValue(canceledOrders, i);
+            object status = (canceledOrders != null && i < canceledOrders.Count ? canceledOrders[i] : null);
             Dictionary<string, object> order = new Dictionary<string, object>() {
                 { "id", status },
                 { "clientOrderId", null },

@@ -1922,7 +1922,7 @@ public partial class BaseExchange
         {
             for (int i = 0; i < length; i++)
             {
-                string? key = ((string)getValue(keys, i));
+                string? key = ((string)(keys != null && i < keys.Count ? keys[i] : null));
                 object network = getValue(networks, key);
                 bool? deposit = this.safeBool(network, "deposit");
                 bool? currencyDeposit = this.safeBool(currency, "deposit");
@@ -2494,10 +2494,10 @@ public partial class BaseExchange
             int reducedLength = (reducedFees?.Count ?? 0);
             for (int i = 0; i < reducedLength; i++)
             {
-                ((IDictionary<string,object>)getValue(reducedFees, i))["cost"] = this.safeNumber(getValue(reducedFees, i), "cost");
-                if (inOp(getValue(reducedFees, i), "rate"))
+                ((IDictionary<string,object>)(reducedFees != null && i < reducedFees.Count ? reducedFees[i] : null))["cost"] = this.safeNumber((reducedFees != null && i < reducedFees.Count ? reducedFees[i] : null), "cost");
+                if (inOp((reducedFees != null && i < reducedFees.Count ? reducedFees[i] : null), "rate"))
                 {
-                    ((IDictionary<string,object>)getValue(reducedFees, i))["rate"] = this.safeNumber(getValue(reducedFees, i), "rate");
+                    ((IDictionary<string,object>)(reducedFees != null && i < reducedFees.Count ? reducedFees[i] : null))["rate"] = this.safeNumber((reducedFees != null && i < reducedFees.Count ? reducedFees[i] : null), "rate");
                 }
             }
             if (!parseFee && ((reducedLength == 0)))
@@ -2514,7 +2514,7 @@ public partial class BaseExchange
             ((IDictionary<string,object>)order)["fees"] = reducedFees;
             if (parseFee && ((reducedLength == 1)))
             {
-                ((IDictionary<string,object>)order)["fee"] = getValue(reducedFees, 0);
+                ((IDictionary<string,object>)order)["fee"] = (reducedFees != null && 0 < reducedFees.Count ? reducedFees[0] : null);
             }
         }
         if ((amount == null))
@@ -5203,7 +5203,7 @@ public partial class BaseExchange
             if ((subType == null))
             {
                 List<object> values = this.handleOptionAndParams(new Dictionary<string, object>() {}, methodName, "subType", defaultValue); // no need to re-test params here
-                subType = getValue(values, 0);
+                subType = (values != null && 0 < values.Count ? values[0] : null);
             }
         }
         return new List<object>() {subType, parameters};
@@ -6777,11 +6777,11 @@ public partial class BaseExchange
         string? currencyCode = this.safeString(currency, "code");
         for (int i = 0; i < numNetworks; i++)
         {
-            string? network = ((string)getValue(networkKeys, i));
+            string? network = ((string)(networkKeys != null && i < networkKeys.Count ? networkKeys[i] : null));
             if ((network == currencyCode))
             {
-                ((IDictionary<string,object>)fee)["withdraw"] = getValue(getValue(getValue(fee, "networks"), getValue(networkKeys, i)), "withdraw");
-                ((IDictionary<string,object>)fee)["deposit"] = getValue(getValue(getValue(fee, "networks"), getValue(networkKeys, i)), "deposit");
+                ((IDictionary<string,object>)fee)["withdraw"] = getValue(getValue(getValue(fee, "networks"), (networkKeys != null && i < networkKeys.Count ? networkKeys[i] : null)), "withdraw");
+                ((IDictionary<string,object>)fee)["deposit"] = getValue(getValue(getValue(fee, "networks"), (networkKeys != null && i < networkKeys.Count ? networkKeys[i] : null)), "deposit");
             }
         }
         return fee;

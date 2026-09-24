@@ -1040,9 +1040,9 @@ public partial class bitopro : Exchange
                 List<object> copy = this.arrayConcat(new List<object>() {}, copyFrom);
                 copy[Convert.ToInt32(0)] = timestamp;
                 // set open, high, low to close
-                copy[Convert.ToInt32(1)] = getValue(copy, 4);
-                copy[Convert.ToInt32(2)] = getValue(copy, 4);
-                copy[Convert.ToInt32(3)] = getValue(copy, 4);
+                copy[Convert.ToInt32(1)] = (copy != null && 4 < copy.Count ? copy[4] : null);
+                copy[Convert.ToInt32(2)] = (copy != null && 4 < copy.Count ? copy[4] : null);
+                copy[Convert.ToInt32(3)] = (copy != null && 4 < copy.Count ? copy[4] : null);
                 copy[Convert.ToInt32(5)] = this.parseNumber("0");
                 result.Add(copy);
             }

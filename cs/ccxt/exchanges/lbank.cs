@@ -643,7 +643,7 @@ public partial class lbank : Exchange
         parameters ??= new Dictionary<string, object>();
         List<object> marketsPromises = new List<object> {this.FetchSpotMarkets(parameters), this.FetchSwapMarkets(parameters)};
         List<object> resolvedMarkets = await promiseAll(marketsPromises);
-        return ccxt.BaseExchange.ToMarketInterfaceList(this.arrayConcat(getValue(resolvedMarkets, 0), getValue(resolvedMarkets, 1)));
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.arrayConcat((resolvedMarkets != null && 0 < resolvedMarkets.Count ? resolvedMarkets[0] : null), (resolvedMarkets != null && 1 < resolvedMarkets.Count ? resolvedMarkets[1] : null)));
     }
 
     public async virtual Task<List<ccxt.MarketInterface>> FetchSpotMarkets(object parameters = null)
@@ -974,7 +974,7 @@ public partial class lbank : Exchange
             int symbolsLength = symbols?.Count ?? 0;
             if (symbolsLength > 0)
             {
-                market = this.market(getValue(symbols, 0));
+                market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};

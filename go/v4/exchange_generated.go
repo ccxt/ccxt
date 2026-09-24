@@ -8423,7 +8423,7 @@ func (this *BaseExchange) RemoveRepeatedTradesFromArray(input any) any {
 			if timestamp == nil {
 				panic(ExchangeError(this.Id + " removeRepeatedTradesFromArray() missing timestamp"))
 			}
-			id = Add(Add(Add(Add(Add("t_"+ToString(timestamp)+"_", side), "_"), price), "_"), amount)
+			id = Add(Add(Add(Add(Add("t_"+*timestamp+"_", side), "_"), price), "_"), amount)
 		}
 		if !IsEqual(id, nil) && !(InOp(uniqueResult, id)) {
 			AddElementToObject(uniqueResult, id, entry)

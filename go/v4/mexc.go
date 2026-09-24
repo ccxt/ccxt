@@ -6183,7 +6183,7 @@ func (this *Mexc) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var currencyId any = nil
 	var currencyWithNetwork *string = this.SafeString(transaction, "coin")
 	if currencyWithNetwork != nil {
-		currencyId = GetValue(Split(currencyWithNetwork, "-"), 0)
+		currencyId = GetValue(strings.Split(*currencyWithNetwork, "-"), 0)
 	}
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var network *string = nil

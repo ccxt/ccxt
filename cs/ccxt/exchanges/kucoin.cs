@@ -2211,7 +2211,7 @@ public partial class kucoin : Exchange
             promises.Add(this.loadMigrationStatus());
         }
         List<object> responses = await promiseAll(promises);
-        List<object> symbolsData = fetchSpotMarkets ? this.safeList(getValue(responses, 0), "data", new List<object>() {}) : new List<object>() {};
+        List<object> symbolsData = fetchSpotMarkets ? this.safeList((responses != null && 0 < responses.Count ? responses[0] : null), "data", new List<object>() {}) : new List<object>() {};
         object crossIndex = 0;
         object isolatedIndex = 0;
         object tickersIndex = 0;
@@ -2581,8 +2581,8 @@ public partial class kucoin : Exchange
         //     }
         //
         List<object> responses = await promiseAll(promises);
-        IDictionary<string, object> data = this.safeDict(getValue(responses, 0), "data", new Dictionary<string, object>() {});
-        IDictionary<string, object> contractData = this.safeDict(getValue(responses, 1), "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict((responses != null && 0 < responses.Count ? responses[0] : null), "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> contractData = this.safeDict((responses != null && 1 < responses.Count ? responses[1] : null), "data", new Dictionary<string, object>() {});
         List<object> spotData = this.safeList(data, "list", new List<object>() {});
         List<object> contractSymbolsData = this.safeList(contractData, "list", new List<object>() {});
         List<object> symbolsData = this.arrayConcat(spotData, contractSymbolsData);
@@ -12077,7 +12077,7 @@ public partial class kucoin : Exchange
             int length = symbols?.Count ?? 0;
             if ((length == 1))
             {
-                Dictionary<string, object> market = this.market(getValue(symbols, 0));
+                Dictionary<string, object> market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
                 request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             }
         }

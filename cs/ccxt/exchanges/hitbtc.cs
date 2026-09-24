@@ -2978,7 +2978,7 @@ public partial class hitbtc : Exchange
         if ((symbols != null))
         {
             symbols = this.marketSymbols(symbols);
-            market = this.market(getValue(symbols, 0));
+            market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
         }
         string? marketType = null;
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchMarginMode", market, parameters);
@@ -3197,7 +3197,7 @@ public partial class hitbtc : Exchange
         if ((symbols != null))
         {
             symbols = this.marketSymbols(symbols);
-            market = this.market(getValue(symbols, 0));
+            market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
             IList<object> queryMarketIds = this.marketIds(symbols);
             request["symbols"] = String.Join(",", queryMarketIds.ToArray());
         }

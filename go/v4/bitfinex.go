@@ -1232,7 +1232,7 @@ func (this *Bitfinex) ParseCurrencyCustom(id any, indexed map[string]any, indexe
 		if network != nil {
 			AddElementToObject(networks, network, map[string]any{
 				"info":      networkId,
-				"id":        ToLower(networkId),
+				"id":        strings.ToLower(*networkId),
 				"network":   networkId,
 				"active":    nil,
 				"deposit":   IsEqual(this.SafeInteger(dwStatuses, 1), 1),
@@ -1633,7 +1633,7 @@ func (this *Bitfinex) ParseTicker(ticker any, optionalArgs ...any) any {
 	// in PHP a non numeric string casts to 0.0 instead of undefined, so 'fUSD' would
 	// look like a number and the whole array would be read off by one.
 	var firstValue *string = this.SafeString(ticker, 0)
-	var hasMarketId bool = (firstValue != nil) && (StartsWith(firstValue, "t") || StartsWith(firstValue, "f"))
+	var hasMarketId bool = (firstValue != nil) && (strings.HasPrefix(*firstValue, "t") || strings.HasPrefix(*firstValue, "f"))
 	var isFetchTicker bool = !hasMarketId
 	var symbol *string = nil
 	var minusIndex int = 0
@@ -2114,7 +2114,7 @@ func (this *Bitfinex) ParseOrderStatus(status *string) *string {
 	if status == nil {
 		return nil
 	}
-	var parts []string = Split(status, " ")
+	var parts []string = strings.Split(*status, " ")
 	var state *string = this.SafeString(parts, 0)
 	var statuses map[string]any = map[string]any{
 		"ACTIVE":              "open",
@@ -2190,7 +2190,7 @@ func (this *Bitfinex) ParseOrder(order any, optionalArgs ...any) any {
 	var status *string = nil
 	var statusString *string = this.SafeString(orderList, 13)
 	if statusString != nil {
-		var parts []string = Split(statusString, " @ ")
+		var parts []string = strings.Split(*statusString, " @ ")
 		status = this.ParseOrderStatus(this.SafeString(parts, 0))
 	}
 	var average *string = this.SafeString(orderList, 17)
@@ -4071,7 +4071,7 @@ func (this *Bitfinex) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var after *float64 = this.SafeNumber(itemList, 6)
 	var description *string = this.SafeString(itemList, 8)
 	if description != nil {
-		var parts []string = Split(description, " @ ")
+		var parts []string = strings.Split(*description, " @ ")
 		var first *string = this.SafeStringLower(parts, 0)
 		typeVar = this.ParseLedgerEntryType(first)
 	}

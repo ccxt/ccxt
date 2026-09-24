@@ -1766,7 +1766,7 @@ public partial class grvt : Exchange
         {
             List<object> transfers = await this.internalFetchTransfers(this.extend(request, parameters), currency, since, limit);
             List<object> filteredResults = this.filterTransfersByType(transfers, "deposit", true);
-            List<object> transactions = this.getListFromObjectValues(getValue(filteredResults, 0), "info");
+            List<object> transactions = this.getListFromObjectValues((filteredResults != null && 0 < filteredResults.Count ? filteredResults[0] : null), "info");
             return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(transactions, currency, since, limit));
         } else
         {
@@ -1833,7 +1833,7 @@ public partial class grvt : Exchange
         {
             List<object> transfers = await this.internalFetchTransfers(this.extend(request, parameters), currency, since, limit);
             List<object> filteredResults = this.filterTransfersByType(transfers, "withdrawal", true);
-            List<object> transactions = this.getListFromObjectValues(getValue(filteredResults, 0), "info");
+            List<object> transactions = this.getListFromObjectValues((filteredResults != null && 0 < filteredResults.Count ? filteredResults[0] : null), "info");
             return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(transactions, currency, since, limit));
         } else
         {
@@ -2098,7 +2098,7 @@ public partial class grvt : Exchange
         List<object> rows = this.safeList(response, "result", new List<object>() {});
         List<object> transfers = ((List<object>)this.parseTransfers(rows, currency, since, limit));
         List<object> filteredResults = this.filterTransfersByType(transfers, "internal", false);
-        return ccxt.BaseExchange.ToTransferEntryList(getValue(filteredResults, 1));
+        return ccxt.BaseExchange.ToTransferEntryList((filteredResults != null && 1 < filteredResults.Count ? filteredResults[1] : null));
     }
 
     public virtual List<object> filterTransfersByType(object transfers, object transferType, object onlyMainAccount = null)
@@ -2294,12 +2294,12 @@ public partial class grvt : Exchange
         //     }
         //
         List<object> responses = await promiseAll(promises);
-        IDictionary<string, object> result1 = this.safeDict(getValue(responses, 0), "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result1 = this.safeDict((responses != null && 0 < responses.Count ? responses[0] : null), "result", new Dictionary<string, object>() {});
         string? mainAccountId = this.safeString(result1, "main_account_id");
         this.options["userMainAccountId"] = mainAccountId;
         if (accountIsUndefined)
         {
-            List<object> subAccountIds = this.safeList(getValue(responses, 1), "sub_account_ids", new List<object>() {});
+            List<object> subAccountIds = this.safeList((responses != null && 1 < responses.Count ? responses[1] : null), "sub_account_ids", new List<object>() {});
             int length = subAccountIds.Count;
             if (length < 1)
             {

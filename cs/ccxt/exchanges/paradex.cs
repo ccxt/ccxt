@@ -1345,7 +1345,7 @@ public partial class paradex : Exchange
             int symbolsLength = symbols?.Count ?? 0;
             if ((symbolsLength == 1))
             {
-                target = ((string)getValue(this.market(getValue(symbols, 0)), "id"));
+                target = ((string)getValue(this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null)), "id"));
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2734,7 +2734,7 @@ public partial class paradex : Exchange
         int ordersLength = (orders?.Count ?? 0);
         if (((paginationCursor != null)) && (ordersLength > 0))
         {
-            object first = getValue(orders, 0);
+            object first = (orders != null && 0 < orders.Count ? orders[0] : null);
             ((IDictionary<string,object>)first)["next"] = paginationCursor;
             orders[Convert.ToInt32(0)] = first;
         }

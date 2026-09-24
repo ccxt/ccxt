@@ -2435,7 +2435,7 @@ func (this *Cryptocom) cancelOrdersBody(ch chan any, ids any, optionalArgs ...an
 		var id *string = SafeStringPtr(GetValue(ids, i))
 		var order map[string]any = map[string]any{
 			"instrument_name": market["id"],
-			"order_id":        ToString(id),
+			"order_id":        *id,
 		}
 		orderRequests = append(orderRequests, order)
 	}

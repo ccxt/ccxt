@@ -276,7 +276,7 @@ public partial class bydfi : ccxt.bydfi
         {
             for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
-                string? symbol = ((string)getValue(symbols, i));
+                string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
                 object marketId = this.marketId(symbol);
                 messageHashes.Add((messageHash + symbol));
                 channels.Add(add(marketId, channel));
@@ -426,7 +426,7 @@ public partial class bydfi : ccxt.bydfi
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !((getValue(symbolsAndTimeframes, 0) is IList<object>) || (getValue(symbolsAndTimeframes, 0).GetType().IsGenericType && getValue(symbolsAndTimeframes, 0).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null) is IList<object>) || ((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().IsGenericType && (symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             throw new ArgumentsRequired ((this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
         }
@@ -602,7 +602,7 @@ public partial class bydfi : ccxt.bydfi
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
             Dictionary<string, object> market = this.market(symbol);
             channels.Add(add(add(add((market.ContainsKey("id") ? market["id"] : null), "@depth"), depth), channelSuffix));
             messageHashes.Add(("unsubscribe::orderbook::" + symbol));
@@ -693,7 +693,7 @@ public partial class bydfi : ccxt.bydfi
         {
             for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
-                string? symbol = ((string)getValue(symbols, i));
+                string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
                 messageHashes.Add(("orders::" + symbol));
             }
         }

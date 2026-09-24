@@ -1156,7 +1156,7 @@ public partial class cryptocom : Exchange
                 {
                     throw new BadRequest ((this.id + " fetchTickers() symbols argument cannot contain more than 1 symbol")) ;
                 }
-                symbol = getValue(symbols, 0);
+                symbol = (symbols != null && 0 < symbols.Count ? symbols[0] : null);
             } else
             {
                 symbol = symbols;

@@ -1080,7 +1080,7 @@ public partial class bitfinex : ccxt.bitfinex
         for (int i = 0; i < messageHashes.Count; i++)
         {
             object messageHash = messageHashes[i];
-            string? subHash = ((string)getValue(subMessageHashes, i));
+            string? subHash = ((string)(subMessageHashes != null && i < subMessageHashes.Count ? subMessageHashes[i] : null));
             this.cleanUnsubscription(client, subHash, messageHash);
         }
         this.cleanCache(subscription);

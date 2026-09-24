@@ -778,7 +778,7 @@ public partial class gemini : Exchange
             promises.Add(this.FetchMarketsFromWeb(parameters)); // get usd markets
             promises.Add(this.FetchUSDTMarkets(parameters)); // get usdt markets
             List<object> promisesResult = await promiseAll(promises);
-            return ccxt.BaseExchange.ToMarketInterfaceList(this.arrayConcat(getValue(promisesResult, 0), getValue(promisesResult, 1)));
+            return ccxt.BaseExchange.ToMarketInterfaceList(this.arrayConcat((promisesResult != null && 0 < promisesResult.Count ? promisesResult[0] : null), (promisesResult != null && 1 < promisesResult.Count ? promisesResult[1] : null)));
         }
         return await this.FetchMarketsFromAPI(parameters);
     }
@@ -804,7 +804,7 @@ public partial class gemini : Exchange
         // skip the first element (empty string)
         for (int i = 1; i < numRows; i++)
         {
-            string? row = ((string)getValue(rows, i));
+            string? row = ((string)(rows != null && i < rows.Count ? rows[i] : null));
             List<object> cells = row.Split(new [] {"</td>\n"}, StringSplitOptions.None).ToList<object>(); // eslint-disable-line quotes
             int numCells = (cells?.Count ?? 0);
             if (numCells < 5)

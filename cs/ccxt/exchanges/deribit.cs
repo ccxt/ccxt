@@ -1722,7 +1722,7 @@ public partial class deribit : Exchange
         {
             for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
-                Dictionary<string, object> market = this.market(getValue(symbols, i));
+                Dictionary<string, object> market = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
                 if ((code != null) && !isEqual(code, (market.ContainsKey("base") ? market["base"] : null)))
                 {
                     throw new BadRequest ((this.id + " fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency")) ;

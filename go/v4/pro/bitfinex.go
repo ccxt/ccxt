@@ -325,10 +325,10 @@ func (this *Bitfinex) HandleOHLCV(client any, message []any, subscription map[st
 	}
 	var channel *string = this.SafeString(subscription, "channel")
 	var key *string = this.SafeString(subscription, "key", "")
-	var keyParts []string = ccxt.Split(key, ":")
+	var keyParts []string = strings.Split(*key, ":")
 	var interval *string = this.SafeString(keyParts, 1)
 	var marketId *string = key
-	marketId = ccxt.SafeStringPtr(ccxt.Replace(marketId, "trade:", ""))
+	marketId = ccxt.SafeStringPtr(strings.Replace(*marketId, "trade:", "", 1))
 	marketId = ccxt.SafeStringPtr(ccxt.Replace(marketId, ccxt.Add(interval, ":"), ""))
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var timeframe *string = this.FindTimeframe(interval)
@@ -1563,7 +1563,7 @@ func (this *Bitfinex) ParseWsOrder(order any, optionalArgs ...any) any {
 		typeVar = ccxt.SafeStringPtr("market")
 	}
 	var rawState *string = this.SafeString(order, 13, "")
-	var stateParts []string = ccxt.Split(rawState, " ")
+	var stateParts []string = strings.Split(*rawState, " ")
 	var trimmedStatus *string = this.SafeString(stateParts, 0)
 	var status *string = this.ParseWsOrderStatus(trimmedStatus)
 	var price *string = this.SafeString(order, 16)
