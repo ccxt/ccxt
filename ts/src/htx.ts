@@ -3160,7 +3160,7 @@ export default class htx extends Exchange {
         //
         const typeId = this.safeString (account, 'type');
         const accountsById = this.safeDict (this.options, 'accountsById', {});
-        const type = this.safeValue (accountsById, typeId, typeId);
+        const type = this.safeString (accountsById, typeId, typeId);
         return {
             'info': account,
             'id': this.safeString (account, 'id'),
@@ -3280,7 +3280,7 @@ export default class htx extends Exchange {
         if (code !== undefined) {
             this.options['networkChainIdsByNames'][code] = {};
         }
-        const chains = this.safeList (rawCurrency, 'chains', []);
+        const chains: Dict[] = this.safeList (rawCurrency, 'chains', []);
         const networks: Dict = {};
         for (let j = 0; j < chains.length; j++) {
             const chainEntry = chains[j];
@@ -3352,7 +3352,7 @@ export default class htx extends Exchange {
         if (keysLength === 0) {
             throw new ExchangeError (this.id + ' networkIdToCode() - markets need to be loaded at first');
         }
-        const networkTitle = this.safeValue (this.options['networkNamesByChainIds'], networkId, networkId);
+        const networkTitle = this.safeString (this.options['networkNamesByChainIds'], networkId, networkId);
         return super.networkIdToCode (networkTitle, currencyCode);
     }
 
@@ -3373,7 +3373,7 @@ export default class htx extends Exchange {
             return uniqueNetworkIds[networkCode];
         } else {
             const networkTitle = super.networkCodeToId (networkCode, currencyCode);
-            return this.safeValue (uniqueNetworkIds, networkTitle, networkTitle);
+            return this.safeString (uniqueNetworkIds, networkTitle, networkTitle);
         }
     }
 
@@ -3589,7 +3589,7 @@ export default class htx extends Exchange {
         let result: Dict = { 'info': finalResponse };
         const data = this.safeValue (response, 'data');
         if (isMultiAssetMode || (linear && (swap || future))) {
-            const details = this.safeList (data, 'details', []);
+            const details: Dict[] = this.safeList (data, 'details', []);
             for (let i = 0; i < details.length; i++) {
                 const balance = details[i];
                 const currencyId = this.safeString (balance, 'currency');
@@ -3624,7 +3624,7 @@ export default class htx extends Exchange {
                 }
                 result = this.safeBalance (result);
             } else {
-                const balances = this.safeList (data, 'list', []);
+                const balances: Dict[] = this.safeList (data, 'list', []);
                 for (let i = 0; i < balances.length; i++) {
                     const balance = balances[i];
                     const currencyId = this.safeString (balance, 'currency');
@@ -7236,7 +7236,7 @@ export default class htx extends Exchange {
                 });
             }
         } else {
-            const cursor = this.safeValue (data, 'current_page');
+            const cursor = this.safeInteger (data, 'current_page');
             const result = this.safeList (data, 'data', []);
             for (let i = 0; i < result.length; i++) {
                 const entry = result[i];
@@ -7511,7 +7511,7 @@ export default class htx extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         const interest = this.parseBorrowInterests (data, market);
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
@@ -8256,7 +8256,7 @@ export default class htx extends Exchange {
             //     }
             //
         }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const timestamp = this.safeInteger (response, 'ts');
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
@@ -8641,7 +8641,7 @@ export default class htx extends Exchange {
         for (let i = 0; i < brackets.length; i++) {
             const item = brackets[i];
             const leverage = this.safeString (item, 'lever_rate');
-            const ladders = this.safeList (item, 'ladders', []);
+            const ladders: Dict[] = this.safeList (item, 'ladders', []);
             for (let k = 0; k < ladders.length; k++) {
                 const bracket = ladders[k];
                 const adjustFactor = this.safeString (bracket, 'adjust_factor');

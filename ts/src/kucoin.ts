@@ -1932,7 +1932,7 @@ export default class kucoin extends Exchange {
         //    }
         //
         const result: List = [];
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const id = this.safeString (market, 'symbol');
@@ -1951,7 +1951,7 @@ export default class kucoin extends Exchange {
                 symbol = symbol + '-' + this.yymmdd (expiry, '');
                 type = 'future';
             }
-            const inverse = this.safeValue (market, 'isInverse');
+            const inverse = this.safeBool (market, 'isInverse');
             const status = this.safeString (market, 'status');
             const multiplier = this.safeString (market, 'multiplier');
             const tickSize = this.safeNumber (market, 'tickSize');
@@ -2341,7 +2341,7 @@ export default class kucoin extends Exchange {
         const id = this.safeString (entry, 'currency');
         const code = this.safeCurrencyCode (id);
         const networks: Dict = {};
-        const chains = this.safeList2 (entry, 'chains', 'items', []);
+        const chains: Dict[] = this.safeList2 (entry, 'chains', 'items', []);
         const chainsLength = chains.length;
         for (let j = 0; j < chainsLength; j++) {
             const chain = chains[j];
@@ -2584,7 +2584,7 @@ export default class kucoin extends Exchange {
                 },
                 'networks': {},
             };
-            const chains = this.safeList (fee, 'chains', []);
+            const chains: Dict[] = this.safeList (fee, 'chains', []);
             for (let i = 0; i < chains.length; i++) {
                 const chain = chains[i];
                 const chainId = this.safeString (chain, 'chainId');
@@ -8307,7 +8307,7 @@ export default class kucoin extends Exchange {
             }
         } else if (cross) {
             const data = this.safeDict (response, 'data', {});
-            const accounts = this.safeList (data, 'accounts', []);
+            const accounts: Dict[] = this.safeList (data, 'accounts', []);
             for (let i = 0; i < accounts.length; i++) {
                 const balance = accounts[i];
                 const currencyId = this.safeString (balance, 'currency');

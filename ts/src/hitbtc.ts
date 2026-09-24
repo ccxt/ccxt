@@ -821,7 +821,7 @@ export default class hitbtc extends Exchange {
             if (id.endsWith ('_BQX')) {
                 continue; // seems like an invalid symbol and if we try to access it individually we get: {"timestamp":"2023-09-02T14:38:20.351Z","error":{"description":"Try get /public/symbol, to get list of all available symbols.","code":2001,"message":"No such symbol: EOSUSD_BQX"},"path":"/api/3/public/symbol/EOSUSD_BQX","requestId":"e1e9fce6-16374591"}
             }
-            const market = this.safeValue (response, id);
+            const market = this.safeDict (response, id);
             const marketType = this.safeString (market, 'type');
             const expiry = this.safeInteger (market, 'expiry');
             const contract = (marketType === 'futures');
@@ -978,7 +978,7 @@ export default class hitbtc extends Exchange {
         const currencyId = currency['_coin_id'];
         const code = this.safeCurrencyCode (currencyId);
         const entry = currency;
-        const rawNetworks = this.safeList (entry, 'networks', []);
+        const rawNetworks: Dict[] = this.safeList (entry, 'networks', []);
         const networks: Dict = {};
         for (let j = 0; j < rawNetworks.length; j++) {
             const rawNetwork = rawNetworks[j];
@@ -2631,7 +2631,7 @@ export default class hitbtc extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const postOnly = this.safeValue (order, 'post_only');
+        const postOnly = this.safeBool (order, 'post_only');
         const timeInForce = this.safeString (order, 'time_in_force');
         const rawTrades = this.safeList (order, 'trades');
         return this.safeOrder ({
@@ -2649,7 +2649,7 @@ export default class hitbtc extends Exchange {
             'side': side,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
-            'reduceOnly': this.safeValue (order, 'reduce_only'),
+            'reduceOnly': this.safeBool (order, 'reduce_only'),
             'filled': filled,
             'remaining': undefined,
             'cost': undefined,
@@ -2934,7 +2934,7 @@ export default class hitbtc extends Exchange {
             if (marketId === undefined) {
                 continue;
             }
-            const rawFundingRate = this.safeValue (response, marketId);
+            const rawFundingRate = this.safeDict (response, marketId);
             const marketInner = this.market (marketId);
             const symbol = marketInner['symbol'];
             const fundingRate = this.parseFundingRate (rawFundingRate, marketInner);
@@ -3008,7 +3008,7 @@ export default class hitbtc extends Exchange {
         for (let i = 0; i < contracts.length; i++) {
             const marketId = contracts[i];
             const marketInner = this.safeMarket (marketId);
-            const fundingRateData = this.safeList (response, marketId, []);
+            const fundingRateData: Dict[] = this.safeList (response, marketId, []);
             for (let j = 0; j < fundingRateData.length; j++) {
                 const entry = fundingRateData[j];
                 const symbolInner = this.safeSymbol (marketInner['symbol']);
