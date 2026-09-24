@@ -3,7 +3,7 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import umxRest from '../umx.js';
-import { AuthenticationError, BadRequest, ExchangeError } from '../base/errors.js';
+import { AuthenticationError, BadRequest, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -952,9 +952,12 @@ export default class umx extends umxRest {
                 'accessKey': this.apiKey,
                 'accessTimestamp': timestamp,
             };
-            // the venue signs the json of the data object appended to the same prehash the
-            // rest api uses, with an empty query string, and the field order above is fixed
-            const payload = timestamp + 'POST' + '/v2/notification' + this.json (request);
+            // the venue signs the json of the data object appended to the same prehash the rest
+            // api uses, with an empty query string, and requires the field order type, accessKey,
+            // accessTimestamp, the signed body is spelled out because the maps of some ports
+            // (go, java) do not keep the insertion order when serialized
+            const signedData = '{"type":"Token","accessKey":"' + this.apiKey + '","accessTimestamp":"' + timestamp + '"}';
+            const payload = timestamp + 'POST' + '/v2/notification' + signedData;
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'hex');
             const message: Dict = {
                 'data': request,
@@ -1197,6 +1200,11 @@ export default class umx extends umxRest {
         } else {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
+                const market = this.market (symbol);
+                if ((market['swap'] !== true) && (market['future'] !== true)) {
+                    // the venue streams positions of perpetual and dated futures markets only
+                    throw new NotSupported (this.id + ' watchPositions() supports swap and future markets only, ' + symbol + ' is not one');
+                }
                 const messageHash = 'positions::' + symbol;
                 if (!this.inArray (messageHash, messageHashes)) {
                     messageHashes.push (messageHash);
@@ -1330,17 +1338,34 @@ export default class umx extends umxRest {
             const parts = stream.split ('#');
             const streamName = this.safeString (parts, 0, '');
             let channel = streamName;
-            if (streamName.startsWith ('depth')) {
+            // some channels accept a subscription without a symbol
+            let symbollessHash = channel + 's';
+            const isPrivate = (client.url === this.urls['api']['ws']['private']);
+            if (isPrivate) {
+                // the private streams are named after the venue channels, the watchers after the
+                // unified methods, and the private fill stream shares its name with the public one
+                const privateChannels: Dict = {
+                    'order': 'orders',
+                    'trade': 'myTrades',
+                    'trading_account': 'balance',
+                    'position': 'positions',
+                };
+                channel = this.safeString (privateChannels, streamName, streamName);
+                symbollessHash = channel;
+            } else if (streamName.startsWith ('depth')) {
                 channel = 'orderbook';
+                symbollessHash = channel + 's';
             } else if (streamName === 'ticker24hr') {
                 channel = 'ticker';
+                symbollessHash = channel + 's';
             } else if (streamName === 'orderBook') {
                 channel = 'bidask';
+                symbollessHash = channel + 's';
             } else if (streamName === 'kline') {
                 channel = 'ohlcv';
+                symbollessHash = channel + 's';
             }
-            // some channels accept a subscription without a symbol
-            let messageHash = channel + 's';
+            let messageHash = symbollessHash;
             if (marketId !== undefined) {
                 messageHash = channel + '::' + symbol;
                 if (streamName === 'kline') {
