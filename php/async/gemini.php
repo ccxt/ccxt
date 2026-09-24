@@ -11,6 +11,7 @@ use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
+use ccxt\InvalidNonce;
 use ccxt\Precise;
 use React\Async;
 use React\Promise;
@@ -2128,7 +2129,8 @@ class gemini extends Exchange {
             if (mb_strpos($apiKey, 'account') === false) {
                 throw new AuthenticationError($this->id . ' sign() requires an account-key, master-keys are not-supported');
             }
-            $nonce = (string) $this->nonce();
+            // gemini rejects a nonce that is not greater than the previously used one (InvalidNonce)
+            $nonce = (string) $this->incrementing_nonce();
             $finalUrl = $url;
             $request = $this->extend(array(
                 'request' => $finalUrl,

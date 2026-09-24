@@ -1965,7 +1965,8 @@ class bitso extends Exchange {
         $url = $this->urls['api']['rest'] . $endpoint;
         if ($api === 'private') {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce();
+            // bitso rejects a nonce that is not higher than the previous one (error 104)
+            $nonce = (string) $this->incrementing_nonce();
             $endpoint = '/api' . $endpoint;
             $content = array( $nonce, $method, $endpoint );
             $request = implode('', $content);

@@ -153,6 +153,12 @@ class hyperliquid extends Exchange {
         $this->options['sandboxMode'] = $enabled;
     }
 
+    public function nonce(): float {
+        // the venue nonce is a millisecond timestamp and must be strictly increasing per signer
+        // incrementingNonce () reads this and bumps past the previous value when two signed actions share a millisecond
+        return $this->milliseconds();
+    }
+
     public function outcome_encoding(float $outcomeId, float $side): float {
         /**
          * @ignore
@@ -1235,7 +1241,7 @@ class hyperliquid extends Exchange {
         $marketSymbol = $this->safe_string($outcomeObj, 'market');
         $market = $this->market($marketSymbol);
         $outcomeInfo = $this->safe_dict($outcomeObj, 'info', array());
-        $nonce = $this->milliseconds();
+        $nonce = $this->incrementing_nonce();
         $isBuy = (strtoupper($side) === 'BUY');
         $isMarket = (strtoupper($type) === 'MARKET');
         $assetId = $this->safe_integer($outcomeInfo, 'assetId');
@@ -1398,7 +1404,7 @@ class hyperliquid extends Exchange {
         $outcomeObj = $this->outcome($outcome);
         $outcomeInfo = $this->safe_dict($outcomeObj, 'info', array());
         $assetId = $this->safe_integer($outcomeInfo, 'assetId');
-        $nonce = $this->milliseconds();
+        $nonce = $this->incrementing_nonce();
         $clientOrderId = $this->safe_value_2($params, 'clientOrderId', 'client_id');
         $params = $this->omit($params, array( 'clientOrderId', 'client_id' ));
         $cancelReq = array();
@@ -2182,7 +2188,7 @@ class hyperliquid extends Exchange {
          * @param {string} $maxFeeRate the maximum $builder fee rate to approve, e.g. '0%'
          * @return {array} the raw exchange response
          */
-        $nonce = $this->milliseconds();
+        $nonce = $this->incrementing_nonce();
         $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $payload = array(
             'hyperliquidChain' => ($isSandboxMode === true) ? 'Testnet' : 'Mainnet',

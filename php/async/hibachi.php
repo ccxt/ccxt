@@ -982,7 +982,7 @@ class hibachi extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $nonce = $this->nonce();
+        $nonce = $this->incrementing_nonce();
         $request = $this->create_order_request($nonce, $symbol, $type, $side, $amount, $price, $params);
         $request['accountId'] = $this->get_account_id();
         $response = Async\await($this->privatePostTradeOrder($request));
@@ -1014,7 +1014,7 @@ class hibachi extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $nonce = $this->nonce();
+        $nonce = $this->incrementing_nonce();
         $requestOrders = array();
         for ($i = 0; $i < count($orders); $i++) {
             $rawOrder = $orders[$i];
@@ -1097,7 +1097,7 @@ class hibachi extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $nonce = $this->nonce();
+        $nonce = $this->incrementing_nonce();
         $request = $this->edit_order_request($nonce, $id, $symbol, $type, $side, $amount, $price, $params);
         $request['accountId'] = $this->get_account_id();
         Async\await($this->privatePutTradeOrder($request));
@@ -1128,7 +1128,7 @@ class hibachi extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $nonce = $this->nonce();
+        $nonce = $this->incrementing_nonce();
         $requestOrders = array();
         for ($i = 0; $i < count($orders); $i++) {
             $rawOrder = $orders[$i];
@@ -1264,7 +1264,7 @@ class hibachi extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $nonce = $this->nonce();
+        $nonce = $this->incrementing_nonce();
         $nonce16 = $this->int_to_base16($nonce);
         $noncePadded = str_pad($nonce16, 16, '0', STR_PAD_LEFT);
         $message = $this->base16_to_binary($noncePadded);

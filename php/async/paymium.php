@@ -671,6 +671,11 @@ class paymium extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
+    public function nonce(): float {
+        // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return $this->milliseconds();
+    }
+
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->urls['api']['rest'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
@@ -680,7 +685,8 @@ class paymium extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce();
+            // paymium requires an increasing nonce
+            $nonce = (string) $this->incrementing_nonce();
             $auth = $nonce . $url;
             $headers = array(
                 'Api-Key' => $this->apiKey,

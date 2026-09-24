@@ -1354,7 +1354,8 @@ class coinmate extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce();
+            // coinmate requires each nonce to be greater than the previous one for the key
+            $nonce = (string) $this->incrementing_nonce();
             $auth = $nonce . $this->uid . $this->apiKey;
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             $body = $this->urlencode($this->extend(array(

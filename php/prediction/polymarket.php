@@ -2027,7 +2027,7 @@ class polymarket extends Exchange {
          * @param {string} [$params->funder] the wallet that holds the USDC collateral; defaults to options.funder or the signing address
          * @param {string} [$params->tickSize] the market tick size ('0.1'/'0.01'/'0.001'/'0.0001'); read from the $outcome when omitted
          * @param {bool} [$params->negRisk] whether the market is a neg-risk market; read from the $outcome when omitted
-         * @param {string} [$params->salt] $order salt; defaults to the current time in ms (pin it for idempotent retries)
+         * @param {string} [$params->salt] $order salt; defaults to a strictly-increasing millisecond value (pin it for idempotent retries)
          * @param {string} [$params->timestamp] $order timestamp; defaults to the current time in ms
          * @param {string} [$params->expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
          * @param {string} [$params->builderCode] builder wallet address or full bytes32 builder code attached to the $order for attribution (zero fee — tracking only); defaults to options.builder
@@ -2073,13 +2073,13 @@ class polymarket extends Exchange {
         $bodies = array();
         $outcomes = array();
         $requests = array();
-        $batchSalt = $this->milliseconds();
         for ($i = 0; $i < count($orders); $i++) {
             $o = $orders[$i];
             $orderParams = $this->safe_dict($o, 'params', array());
             if ($this->safe_string($orderParams, 'salt') === null) {
-                // a distinct salt per order so two identical orders in one batch don't collide
-                $orderParams = $this->extend($orderParams, array( 'salt' => $this->number_to_string($this->sum($batchSalt, $i)) ));
+                // a distinct salt per order so two identical orders don't collide, within a batch or across calls
+                $orderSalt = $this->incrementing_nonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
+                $orderParams = $this->extend($orderParams, array( 'salt' => $this->number_to_string($orderSalt) ));
             }
             $built = $this->build_clob_order_body($this->safe_string($o, 'outcome'), $this->safe_string($o, 'type'), $this->safe_string($o, 'side'), $this->safe_number($o, 'amount'), $this->safe_number($o, 'price'), $orderParams);
             $bodies[] = $this->safe_dict($built, 'body', array());
@@ -2157,8 +2157,9 @@ class polymarket extends Exchange {
         // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
         $eoa = $this->eth_checksum_address($this->eth_get_address_from_private_key($this->privateKey));
         $funder = $this->eth_checksum_address($this->safe_string_2($params, 'funder', 'maker', $this->safe_string($this->options, 'funder', $this->walletAddress)));
-        // salt and timestamp default to the current time but can be pinned via params for idempotency
-        $salt = $this->safe_string($params, 'salt', $this->number_to_string($this->milliseconds()));
+        // the salt defaults to a strictly-increasing millisecond value and the timestamp to the current time; both can be pinned via params for idempotency
+        $defaultSalt = $this->incrementing_nonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
+        $salt = $this->safe_string($params, 'salt', $this->number_to_string($defaultSalt));
         $timestamp = $this->safe_string($params, 'timestamp', $this->number_to_string($this->milliseconds()));
         // GTD (good-til-date) orders need a unix-seconds expiration; 0 means no expiry
         $expiration = $this->safe_string($params, 'expiration', '0');
@@ -2770,6 +2771,12 @@ class polymarket extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
         }
         return null;
+    }
+
+    public function nonce(): float {
+        // the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
+        // unique when two identical orders are signed within the same millisecond
+        return $this->milliseconds();
     }
 
     public function sign(mixed $path, mixed $api = 'gamma', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
