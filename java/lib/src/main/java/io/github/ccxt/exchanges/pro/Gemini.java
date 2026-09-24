@@ -1128,7 +1128,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             Object request = Helpers.slice(url, startIndex, endIndex);
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "request", request );
-                put( "nonce", Gemini.this.nonce() );
+                put( "nonce", Gemini.this.incrementingNonce() );
             }};
             Object b64 = this.stringToBase64(this.json(payload));
             Object signature = this.hmac(this.encode(b64), this.encode(this.secret), sha384(), "hex");

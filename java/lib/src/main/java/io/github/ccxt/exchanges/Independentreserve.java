@@ -1454,6 +1454,12 @@ public class Independentreserve extends IndependentreserveApi
         }};
     }
 
+    public Object nonce()
+    {
+        // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return this.milliseconds();
+    }
+
     public Object sign(Object path, Object... optionalArgs)
     {
         Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public";
@@ -1471,7 +1477,8 @@ public class Independentreserve extends IndependentreserveApi
         } else
         {
             this.checkRequiredCredentials();
-            Object nonce = this.nonce();
+            // independentreserve requires an increasing nonce
+            Object nonce = this.incrementingNonce();
             Object auth = new ArrayList<Object>(Arrays.asList(url, ("apiKey=" + this.apiKey), ("nonce=" + String.valueOf(nonce))));
             List<Object> keys = new ArrayList<Object>(((Map<String, Object>)parameters).keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)

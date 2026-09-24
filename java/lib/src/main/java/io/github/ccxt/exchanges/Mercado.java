@@ -1277,6 +1277,12 @@ public class Mercado extends MercadoApi
         return result;
     }
 
+    public Object nonce()
+    {
+        // the venue accepts any strictly-increasing integer tonce, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return this.milliseconds();
+    }
+
     public Object sign(Object path, Object... optionalArgs)
     {
         Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public";
@@ -1297,7 +1303,8 @@ public class Mercado extends MercadoApi
         {
             this.checkRequiredCredentials();
             url = Helpers.add(url, (this.version + "/"));
-            Object nonce = this.nonce();
+            // mercado requires each tonce to be greater than the previous one
+            Object nonce = this.incrementingNonce();
             body = this.urlencode(this.extend(new HashMap<String, Object>() {{
                 put( "tapi_method", path );
                 put( "tapi_nonce", nonce );

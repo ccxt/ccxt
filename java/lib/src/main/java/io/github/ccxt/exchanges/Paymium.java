@@ -807,6 +807,12 @@ public class Paymium extends PaymiumApi
         return this.safeString(statuses, status, status);
     }
 
+    public Object nonce()
+    {
+        // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return this.milliseconds();
+    }
+
     public Object sign(Object path, Object... optionalArgs)
     {
         Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public";
@@ -825,7 +831,8 @@ public class Paymium extends PaymiumApi
         } else
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            // paymium requires an increasing nonce
+            Object nonce = String.valueOf(this.incrementingNonce());
             Object auth = (nonce + url);
             final Object finalNonce = nonce;
             headers = new HashMap<String, Object>() {{

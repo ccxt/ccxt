@@ -707,7 +707,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 ((List<Object>)messageHashes).add(("ticker." + marketId));
             }
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
-            Object id = this.nonce();
+            Object id = this.incrementingNonce();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -889,7 +889,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 ((List<Object>)topics).add(("ticker." + marketId));
             }
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
-            Object id = this.nonce();
+            Object id = this.incrementingNonce();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -1179,7 +1179,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             }
             (this.authenticate()).join();
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
-            Object id = this.nonce();
+            Object id = this.incrementingNonce();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -1446,7 +1446,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 put( "method", "private/create-order" );
                 put( "params", finalParameters );
             }};
-            Object messageHash = this.nonce();
+            Object messageHash = this.incrementingNonce();
             return (this.watchPrivateRequest(messageHash, request)).join();
         }).thenApply(Order::new);
 
@@ -1485,7 +1485,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 put( "method", "private/amend-order" );
                 put( "params", finalParameters );
             }};
-            Object messageHash = this.nonce();
+            Object messageHash = this.incrementingNonce();
             return (this.watchPrivateRequest(messageHash, request)).join();
         }).thenApply(Order::new);
 
@@ -1539,7 +1539,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 put( "method", "private/cancel-order" );
                 put( "params", finalParameters );
             }};
-            Object messageHash = this.nonce();
+            Object messageHash = this.incrementingNonce();
             return (this.watchPrivateRequest(messageHash, request)).join();
         }).thenApply(Order::new);
 
@@ -1575,7 +1575,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 market = this.market(symbol);
                 Helpers.addElementToObject(Helpers.GetValue(request, "params"), "instrument_name", ((Map<String, Object>)market).get("id"));
             }
-            Object messageHash = this.nonce();
+            Object messageHash = this.incrementingNonce();
             return (this.watchPrivateRequest(messageHash, request)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1601,7 +1601,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
-            Object id = this.nonce();
+            Object id = this.incrementingNonce();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -1622,7 +1622,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
-            Object id = this.nonce();
+            Object id = this.incrementingNonce();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -1644,7 +1644,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object subExtend = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
-            Object id = this.nonce();
+            Object id = this.incrementingNonce();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -1692,7 +1692,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.authenticate()).join();
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
-            Object id = this.nonce();
+            Object id = this.incrementingNonce();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -1856,7 +1856,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             if (java.util.Objects.equals(authenticated, null))
             {
                 Object method = "public/auth";
-                Object nonce = String.valueOf(this.nonce());
+                Object nonce = String.valueOf(this.incrementingNonce());
                 Object auth = Helpers.add(Helpers.add(Helpers.add(method, nonce), this.apiKey), nonce);
                 Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                 final Object finalMethod = method;

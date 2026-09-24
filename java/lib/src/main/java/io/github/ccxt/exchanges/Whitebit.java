@@ -5349,7 +5349,8 @@ public class Whitebit extends WhitebitApi
         if (java.util.Objects.equals(accessibility, "private"))
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            // whitebit requires each nonce to be greater than the previous one unless nonceWindow is enabled
+            Object nonce = String.valueOf(this.incrementingNonce());
             Object secret = this.encode(this.secret);
             String request = (Helpers.add((("/" + "api") + "/"), version) + pathWithParams);
             List<Object> nonceWindowrequestParamsVariable = (List<Object>) this.handleOptionAndParams(parameters, "sign", "nonceWindow", false);

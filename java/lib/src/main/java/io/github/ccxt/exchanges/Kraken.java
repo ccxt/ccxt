@@ -4434,7 +4434,8 @@ final Object finalId = id;
             Boolean isCancelOrderBatch = (java.util.Objects.equals(path, "CancelOrderBatch"));
             Boolean isBatchOrder = (java.util.Objects.equals(path, "AddOrderBatch"));
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            // kraken rejects a nonce that is not greater than the previous one for the key (EAPI:Invalid nonce)
+            Object nonce = String.valueOf(this.incrementingNonce());
             if (Boolean.TRUE.equals(isCancelOrderBatch) || Boolean.TRUE.equals(isTriggerPercent) || Boolean.TRUE.equals(isBatchOrder))
             {
                 final Object finalNonce = nonce;
