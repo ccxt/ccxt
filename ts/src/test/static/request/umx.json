@@ -1041,6 +1041,19 @@
                     "ETH/USDT:USDT"
                 ],
                 "output": "{\"orderCreateReq\":[{\"symbol\":\"ETH-USDT-PERP\",\"orderId\":\"3538122818192056320\"}]}"
+            },
+            {
+                "description": "a batch cancel with one nonexistent order id",
+                "method": "cancelOrders",
+                "url": "https://api.umx.com/api/v1/trade/batchCancelOrder",
+                "input": [
+                    [
+                        "3538142730667081728",
+                        "1234567890123456789"
+                    ],
+                    "ETH/USDT:USDT"
+                ],
+                "output": "{\"orderCreateReq\":[{\"symbol\":\"ETH-USDT-PERP\",\"orderId\":\"3538142730667081728\"},{\"symbol\":\"ETH-USDT-PERP\",\"orderId\":\"1234567890123456789\"}]}"
             }
         ],
         "createOrderWithTakeProfitAndStopLoss": [

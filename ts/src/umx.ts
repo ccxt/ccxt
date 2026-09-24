@@ -3350,7 +3350,13 @@ export default class umx extends Exchange {
         const timestamp = this.safeInteger2 (order, 'createTime', 'ts');
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const ackCode = this.omitZero (this.safeString (order, 'code'));
+        if (ackCode !== undefined) {
+            // the batch endpoints answer with one acknowledgement row per requested
+            // order and a per-row code, a non-zero one means the venue refused the row
+            status = 'rejected';
+        }
         const triggerOrder = this.safeDict (order, 'triggerOrder', {});
         let type = this.safeString (order, 'orderType');
         if (type === undefined) {
@@ -4086,6 +4092,12 @@ export default class umx extends Exchange {
         //
         const errorCode = this.safeString (response, 'code');
         if ((errorCode !== undefined) && (errorCode !== '0')) {
+            if (errorCode === '50022') {
+                // "Batch orders partially failed", sent with an http 400: the batch endpoints keep
+                // the verdict of every row in data with a per-row code, parseOrder marks the refused
+                // rows as rejected, so the answer is handed over instead of throwing
+                return response;
+            }
             const message = this.safeString2 (response, 'msg', 'message');
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);

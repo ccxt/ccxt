@@ -5600,6 +5600,110 @@
                         "stopLossPrice": null
                     }
                 ]
+            },
+            {
+                "description": "a partially failed batch, the refused row parses as rejected",
+                "method": "cancelOrders",
+                "input": [
+                    [
+                        "3538142730667081728",
+                        "1234567890123456789"
+                    ],
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "50022",
+                    "msg": "Batch orders partially failed",
+                    "data": [
+                        {
+                            "orderId": "3538142730667081728",
+                            "clientOrderId": null,
+                            "msg": null,
+                            "code": 0,
+                            "ts": "1790243773360"
+                        },
+                        {
+                            "orderId": null,
+                            "clientOrderId": null,
+                            "msg": "Order already completed, cancelation failed",
+                            "code": 50026,
+                            "ts": "1790243773361"
+                        }
+                    ],
+                    "ts": "1790243773361"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "orderId": "3538142730667081728",
+                            "clientOrderId": null,
+                            "msg": null,
+                            "code": 0,
+                            "ts": "1790243773360"
+                        },
+                        "id": "3538142730667081728",
+                        "clientOrderId": null,
+                        "timestamp": 1790243773360,
+                        "datetime": "2026-09-24T09:56:13.360Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": "ETH/USDT:USDT",
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "side": null,
+                        "price": null,
+                        "triggerPrice": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "status": null,
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    },
+                    {
+                        "info": {
+                            "orderId": null,
+                            "clientOrderId": null,
+                            "msg": "Order already completed, cancelation failed",
+                            "code": 50026,
+                            "ts": "1790243773361"
+                        },
+                        "id": null,
+                        "clientOrderId": null,
+                        "timestamp": 1790243773361,
+                        "datetime": "2026-09-24T09:56:13.361Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": "ETH/USDT:USDT",
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "side": null,
+                        "price": null,
+                        "triggerPrice": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "status": "rejected",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
             }
         ],
         "createOrders": [
