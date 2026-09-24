@@ -9789,12 +9789,6 @@ impl std::ops::DerefMut for ${coreName} {
             // hand-transpiled per-language, cf. Go's transpileCryptoTests)
             // but the Rust base-test pipeline handles it fine — include it.
             if (tsContent.includes('// NO_AUTO_TRANSPILE') && testName !== 'test.cryptography') continue;
-            // the Rust base has no handleHttpStatusCode yet — its HTTP layer
-            // classifies statuses inline (ccxt-base/src/exchange.rs), so the
-            // contract that test pins does not exist on the Rust side; skip it
-            // here (the tests.init call is dropped automatically) until the
-            // method lands on BaseCore
-            if (testName === 'test.handleHttpStatusCode') continue;
 
             const outFile = `${outDir}/${testName}.rs`;
             log.magenta('Transpiling from', (tsFile as any).yellow);
@@ -9816,8 +9810,8 @@ impl std::ops::DerefMut for ${coreName} {
                 content = this.rewriteDynamicThrows(content);
                 content = this.normalizeJwtCalls(content);
                 content = this.wrapBoolValueArgs(content);
-                content = this.stripCatchBlocks(content);
-                content = this.unwrapCatchUnwind(content);
+                // catch_unwind keeps the catch body, so a test can assert that a call throws
+                content = this.rewriteTryCatchAsync(content);
                 content = this.rewriteNamespaceCalls(content, 'Math',    'crate::runtime::Math',    true);
                 content = this.rewriteNamespaceCalls(content, 'Precise', 'crate::precise::Precise', true);
                 // `Precise::stringDiv(a, b, precision)` (3 args) →
@@ -11588,9 +11582,14 @@ impl std::ops::DerefMut for ${coreName} {
         });
 
         if (!baseOnly) {
-            await this.transpileDerivedExchangeFiles(tsFolder, options, '.ts', force, false);
-            // Prediction-market exchanges (ts/src/prediction/*.ts → prediction Cores).
-            await this.transpileDerivedExchangeFiles('./ts/src/prediction', options, '.ts', force, false, true);
+            const predictionOnly = process.argv.includes('--prediction');
+            if (!predictionOnly) {
+                await this.transpileDerivedExchangeFiles(tsFolder, options, '.ts', force, false);
+            }
+            if (predictionOnly || exchanges.length === 0) {
+                // Prediction-market exchanges (ts/src/prediction/*.ts → prediction Cores).
+                await this.transpileDerivedExchangeFiles('./ts/src/prediction', options, '.ts', force, false, true);
+            }
         }
 
         if (child || transpilingSingle || baseOnly) return;

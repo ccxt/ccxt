@@ -61,25 +61,27 @@ function withAncestors (ids: string[]): string[] {
 }
 
 function main () {
-    const positional = process.argv.slice (2).filter ((arg) => !arg.startsWith ('-'));
-    if (positional.length < 1) {
-        console.error ('Usage: tsx granular-rust-build.ts <exchange1> <exchange2> ...');
+    const args = process.argv.slice (2);
+    const split = args.indexOf ('--prediction');
+    const positional = (split === -1 ? args : args.slice (0, split)).filter ((arg) => !arg.startsWith ('-'));
+    const predictionPositional = (split === -1 ? [] : args.slice (split + 1)).filter ((arg) => !arg.startsWith ('-'));
+    if (positional.length < 1 && predictionPositional.length < 1) {
+        console.error ('Usage: tsx granular-rust-build.ts <exchange1> <exchange2> ... [--prediction <exchange1> ...]');
         process.exit (1);
     }
     const exchanges = withAncestors ([ ...new Set (positional.concat (requiredByHandWrittenTests ())) ]);
-    // ccxt-base/lib.rs declares `pub mod prediction;`, and that folder's mod.rs is only
-    // written when the prediction tier is transpiled, so always include those cores.
-    const predictionIds = fs.readdirSync ('./ts/src/prediction')
-        .filter ((file) => file.endsWith ('.ts'))
-        .map ((file) => file.slice (0, -3));
-    const restIds = [ ...new Set (exchanges.concat (predictionIds)) ]
-        .filter ((id) => fs.existsSync ('./ts/src/' + id + '.ts') || fs.existsSync ('./ts/src/prediction/' + id + '.ts'));
+    const restIds = exchanges.filter ((id) => fs.existsSync ('./ts/src/' + id + '.ts'));
     // one invocation for every id rather than one per exchange: the transpiler builds an
     // in-process registry of the method signatures it has already emitted, and a derived
     // exchange transpiled in a separate process gets the wrong call shape for the methods
     // it inherits (E0308 on binanceusdm -> binance::futures_transfer).
     if (restIds.length > 0) {
         run (`tsx ./build/rustTranspiler.ts ${restIds.join (' ')}`);
+    }
+    const predictionIds = [ ...new Set (predictionPositional) ]
+        .filter ((id) => fs.existsSync ('./ts/src/prediction/' + id + '.ts'));
+    if (predictionIds.length > 0) {
+        run (`tsx ./build/rustTranspiler.ts --prediction ${predictionIds.join (' ')}`);
     }
     // a pro core Derefs into its REST parent (crate::exchanges::<id>), so only the ws
     // venues whose parent was emitted above can be transpiled. binance is the venue kept

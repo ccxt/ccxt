@@ -703,7 +703,7 @@ public partial class zebpay : Exchange
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-order-book
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#get-order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
@@ -718,13 +718,13 @@ public partial class zebpay : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
+        if ((limit != null))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
         Dictionary<string, object> response = null;
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            if ((limit != null))
-            {
-                ((IDictionary<string,object>)request)["limit"] = limit;
-            }
             //
             //       {
             //         "asks": [
@@ -838,9 +838,11 @@ public partial class zebpay : Exchange
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch. Swap: 1–1000, omit for 1000
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch (inclusive). Swap: requires since
      * @param {int} [params.endtime] the latest time in ms to fetch orders for
+     * @param {string} [params.priceType] *swap only* LTP (default) or MARK_PRICE
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -854,50 +856,52 @@ public partial class zebpay : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((limitVar == null))
-        {
-            limitVar = 100; // default is 200
-        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
-        {
-            ((IDictionary<string,object>)request)["interval"] = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        } else
-        {
-            ((IDictionary<string,object>)request)["interval"] = timeframeVar;
-        }
-        if (((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true)) && ((limitVar != null)))
-        {
-            ((IDictionary<string,object>)request)["limit"] = limitVar;
-        }
-        if ((since != null))
-        {
-            if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
-            {
-                ((IDictionary<string,object>)request)["startTime"] = since;
-            } else
-            {
-                ((IDictionary<string,object>)request)["since"] = since;
-            }
-        }
         Int64? until = this.safeInteger2(parameters, "until", "endtime");
-        if (!isEqual(until, null))
-        {
-            ((IDictionary<string,object>)request)["endTime"] = until;
-            parameters = this.omit(parameters, new List<object>() {"endtime", "until"});
-        }
+        parameters = this.omit(parameters, new List<object>() {"until", "endtime", "endTime", "interval", "startTime"});
         Dictionary<string, object> response = null;
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
+            if ((limitVar == null))
+            {
+                limitVar = 100;
+            }
+            ((IDictionary<string,object>)request)["interval"] = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+            if ((since != null))
+            {
+                ((IDictionary<string,object>)request)["startTime"] = since;
+            }
+            if (!isEqual(until, null))
+            {
+                ((IDictionary<string,object>)request)["endTime"] = until;
+            }
             if (isEqual(until, null) || (since == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " fetchOHLCV() requires a both a since and until/endtime parameter for spot markets")) ;
             }
+            parameters = this.omit(parameters, "priceType");
             response = await this.publicSpotGetV2MarketKlines(this.extend(request, parameters));
         } else
         {
+            ((IDictionary<string,object>)request)["timeframe"] = timeframeVar;
+            if ((limitVar != null))
+            {
+                ((IDictionary<string,object>)request)["limit"] = limitVar;
+            }
+            if ((since != null))
+            {
+                ((IDictionary<string,object>)request)["since"] = since;
+            }
+            if (!isEqual(until, null))
+            {
+                if ((since == null))
+                {
+                    throw new ArgumentsRequired ((string)(this.id + " fetchOHLCV() requires a since argument when params[\"until\"] is used")) ;
+                }
+                ((IDictionary<string,object>)request)["until"] = until;
+            }
             response = await this.publicSwapPostV1MarketKlines(this.extend(request, parameters));
         }
         //
@@ -2208,6 +2212,14 @@ public partial class zebpay : Exchange
                 }
             } else
             {
+                string? priceType = this.safeString(parameters, "priceType");
+                parameters = this.omit(parameters, "priceType");
+                if ((priceType != null))
+                {
+                    url = add(url, ("?" + this.urlencode(new Dictionary<string, object>() {
+    { "priceType", priceType },
+})));
+                }
                 body = json(parameters);
                 headers = new Dictionary<string, object>() {
                     { "Referrer", "ccxt" },

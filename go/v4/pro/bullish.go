@@ -807,7 +807,13 @@ func (this *Bullish) HandleBalance(client any, message any) {
 	var messageType *string = this.SafeString(message, "type")
 	if messageType != nil && *messageType == "snapshot" {
 		var data any = this.SafeList(message, "data", []any{})
-		ccxt.AddElementToObject(this.Balance, tradingAccountId, this.ParseBalance(data))
+		var parsed any = this.ParseBalance(data)
+		var parsedKeys []string = ccxt.ObjectKeys(parsed)
+		for i := 0; i < len(parsedKeys); i++ {
+			var parsedKey string = ccxt.GetValue(parsedKeys, i).(string)
+			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, tradingAccountId), parsedKey, ccxt.GetValue(parsed, parsedKey))
+		}
+		ccxt.AddElementToObject(this.Balance, tradingAccountId, this.SafeBalance(ccxt.GetValue(this.Balance, tradingAccountId)))
 	} else {
 		var data any = this.SafeDict(message, "data", map[string]any{})
 		var assetId *string = this.SafeString(data, "assetSymbol")
@@ -856,8 +862,8 @@ func (this *Bullish) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes70512 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes70512)
+		retRes71112 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes71112)
 	}
 	var subscribeHash string = "positions"
 	var messageHash any = subscribeHash
