@@ -1330,7 +1330,7 @@ export default class cryptocom extends cryptocomRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         //
         //    {
         //        "id": 0,

@@ -916,7 +916,7 @@ export default class bitstamp extends bitstampRest {
         }
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         // {
         //     "event": "bts:error",
         //     "channel": '',
