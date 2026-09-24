@@ -838,7 +838,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             {
                 String feedback = ((this.id + " ") + this.json(error));
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), "-32600", feedback);
-                Object messageString = this.safeValue(error, "message");
+                String messageString = this.safeString(error, "message");
                 if (!java.util.Objects.equals(messageString, null))
                 {
                     this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), messageString, feedback);

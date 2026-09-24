@@ -1543,7 +1543,7 @@ class deribit extends Exchange {
         //         "testnet": false
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         $ohlcvs = $this->convert_trading_view_to_ohlcv($result, 'ticks', 'open', 'high', 'low', 'close', 'volume', true);
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }

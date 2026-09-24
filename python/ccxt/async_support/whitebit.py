@@ -521,7 +521,8 @@ class whitebit(Exchange, ImplicitAPI):
         id = self.safe_string(market, 'name')
         baseId = self.safe_string(market, 'stock')
         quoteId = self.safe_string(market, 'money')
-        quoteId = 'USDT' if (quoteId == 'PERP') else quoteId
+        if quoteId == 'PERP':
+            quoteId = 'USDT'
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         active = self.safe_bool(market, 'tradesEnabled')
@@ -1493,7 +1494,7 @@ class whitebit(Exchange, ImplicitAPI):
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchTickers', None, params)
         method = None
-        method, params = self.handle_option_and_params(params, 'fetchTickers', 'method', method)
+        method, params = self.handle_option_string_and_params(params, 'fetchTickers', 'method', method)
         if method is None:
             # if the user did not specify a method, choose it based on market type and symbols
             if onlyContractSymbols or (marketType == 'swap'):

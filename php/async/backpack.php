@@ -1013,7 +1013,7 @@ class backpack extends Exchange {
             'interval' => $interval,
         );
         $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'until');
+        list($until, $params) = $this->handle_option_integer_and_params($params, 'fetchOHLCV', 'until');
         if ($until !== null) {
             $request['endTime'] = $this->parse_to_int($until / 1000); // convert milliseconds to seconds
         }
@@ -1537,7 +1537,7 @@ class backpack extends Exchange {
             $request['limit'] = $limit; // default 100, max 1000
         }
         $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'until');
+        list($until, $params) = $this->handle_option_integer_and_params($params, 'fetchDeposits', 'until');
         if ($until !== null) {
             $request['endTime'] = $until;
         }
@@ -1577,7 +1577,7 @@ class backpack extends Exchange {
             $request['limit'] = $limit;
         }
         $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'until');
+        list($until, $params) = $this->handle_option_integer_and_params($params, 'fetchWithdrawals', 'until');
         if ($until !== null) {
             $request['to'] = $until;
         }

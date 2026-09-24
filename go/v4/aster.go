@@ -1388,7 +1388,7 @@ func (this *Aster) ParseMarket(market any) any {
 		pricePrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "pricePrecision")))
 	}
 	var amountPrecision *float64 = func() *float64 {
-		if !IsEqual(filterLotSize, nil) {
+		if filterLotSize != nil {
 			return this.SafeNumber(filterLotSize, "stepSize")
 		}
 		return Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(market, "quantityPrecision"))))
@@ -4598,9 +4598,7 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 				var inner *string = Precise.StringMul(liquidationPriceString, onePlusMaintenanceMarginPercentageString)
 				var leftSide *string = Precise.StringAdd(inner, entryPriceSignString)
 				var quotePrecision int = this.PrecisionFromString(this.SafeString2(precision, "quote", "price"))
-				if !IsEqual(quotePrecision, nil) {
-					collateralString = Precise.StringDiv(Precise.StringMul(leftSide, contractsAbs), "1", quotePrecision)
-				}
+				collateralString = Precise.StringDiv(Precise.StringMul(leftSide, contractsAbs), "1", quotePrecision)
 			} else {
 				// walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
 				var onePlusMaintenanceMarginPercentageString *string = nil
@@ -4614,9 +4612,7 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 				var leftSide *string = Precise.StringMul(contractsAbs, contractSizeString)
 				var rightSide *string = Precise.StringSub(Precise.StringDiv("1", entryPriceSignString), Precise.StringDiv(onePlusMaintenanceMarginPercentageString, liquidationPriceString))
 				var basePrecision int = this.PrecisionFromString(this.SafeString(precision, "base"))
-				if !IsEqual(basePrecision, nil) {
-					collateralString = Precise.StringDiv(Precise.StringMul(leftSide, rightSide), "1", basePrecision)
-				}
+				collateralString = Precise.StringDiv(Precise.StringMul(leftSide, rightSide), "1", basePrecision)
 			}
 		}
 	} else {
@@ -4803,13 +4799,13 @@ func (this *Aster) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	if defaultMethod != nil && *defaultMethod == "positionRisk" {
 
-		var retRes381019 []any = ListTyped(PanicOnError((<-this.FetchPositionsRiskAsync(symbols, params))))
-		ch <- BoxAbsent(retRes381019)
+		var retRes380619 []any = ListTyped(PanicOnError((<-this.FetchPositionsRiskAsync(symbols, params))))
+		ch <- BoxAbsent(retRes380619)
 		return nil
 	} else if defaultMethod != nil && *defaultMethod == "account" {
 
-		var retRes381219 []any = ListTyped(PanicOnError((<-this.FetchAccountPositionsAsync(symbols, params))))
-		ch <- BoxAbsent(retRes381219)
+		var retRes380819 []any = ListTyped(PanicOnError((<-this.FetchAccountPositionsAsync(symbols, params))))
+		ch <- BoxAbsent(retRes380819)
 		return nil
 	} else {
 		panic(NotSupported(this.Id + ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \"" + *defaultMethod + "\" is invalid, please choose between \"account\" and \"positionRisk\""))

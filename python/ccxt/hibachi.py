@@ -1492,7 +1492,7 @@ class hibachi(Exchange, ImplicitAPI):
         if since is not None:
             request['startTime'] = since
         until = None
-        until, params = self.handle_option_and_params(params, 'fetchOrdersByStatus', 'until')
+        until, params = self.handle_option_integer_and_params(params, 'fetchOrdersByStatus', 'until')
         if until is not None:
             request['endTime'] = until
         response = self.privateGetTradeOrdersHistory(self.extend(request, params))
@@ -1587,7 +1587,7 @@ class hibachi(Exchange, ImplicitAPI):
         if since is not None:
             request['fromMs'] = since
         until = None
-        until, params = self.handle_option_and_params(params, 'fetchOHLCV', 'until')
+        until, params = self.handle_option_integer_and_params(params, 'fetchOHLCV', 'until')
         if until is not None:
             request['toMs'] = until
         response = self.publicGetMarketDataKlines(self.extend(request, params))
@@ -2122,7 +2122,7 @@ class hibachi(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         until = None
-        until, params = self.handle_option_and_params(params, 'fetchMySettlementHistory', 'until')
+        until, params = self.handle_option_integer_and_params(params, 'fetchMySettlementHistory', 'until')
         if until is not None:
             request['endTime'] = self.parse_to_int(until / 1000)
         response = self.privateGetTradeAccountSettlementsHistory(self.extend(request, params))

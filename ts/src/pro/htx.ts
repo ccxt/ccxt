@@ -1615,7 +1615,7 @@ export default class htx extends htxRest {
             messageHash = '::' + symbols.join (',');
         }
         let type: Str = undefined;
-        let subType: SubType = undefined;
+        let subType: Str = undefined;
         if (market !== undefined) {
             type = this.safeString (market, 'type');
             subType = (market['linear'] === true) ? 'linear' : 'inverse';
@@ -1624,7 +1624,7 @@ export default class htx extends htxRest {
             if (type === 'spot') {
                 type = 'future';
             }
-            [ subType, params ] = this.handleOptionAndParams (params, 'watchPositions', 'subType', subType);
+            [ subType, params ] = this.handleOptionStringAndParams (params, 'watchPositions', 'subType', subType);
         }
         symbols = this.marketSymbols (symbols);
         let marginMode: Str = undefined;

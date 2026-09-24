@@ -2758,13 +2758,18 @@ class krakenfutures(Exchange, ImplicitAPI):
                 raise ArgumentsRequired(self.id + ' fetchBalance requires symbol argument for margin accounts')
             type = symbol
         if type is None:
-            type = 'flex' if (symbol is None) else symbol
+            if symbol is None:
+                type = 'flex'
+            else:
+                type = symbol
         accountName = self.parse_account(type)
         accounts = self.safe_dict(response, 'accounts')
         account = self.safe_dict(accounts, accountName)
         if account is None:
-            type = '' if (type is None) else type
-            symbol = '' if (symbol is None) else symbol
+            if type is None:
+                type = ''
+            if symbol is None:
+                symbol = ''
             raise BadRequest(self.id + ' fetchBalance has no account for ' + type)
         balance = self.parse_balance(account)
         balance['info'] = response

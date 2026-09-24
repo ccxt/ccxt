@@ -524,7 +524,9 @@ class whitebit extends Exchange {
         $id = $this->safe_string($market, 'name');
         $baseId = $this->safe_string($market, 'stock');
         $quoteId = $this->safe_string($market, 'money');
-        $quoteId = ($quoteId === 'PERP') ? 'USDT' : $quoteId;
+        if ($quoteId === 'PERP') {
+            $quoteId = 'USDT';
+        }
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $active = $this->safe_bool($market, 'tradesEnabled');
@@ -1599,7 +1601,7 @@ class whitebit extends Exchange {
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', null, $params);
         $method = null;
-        list($method, $params) = $this->handle_option_and_params($params, 'fetchTickers', 'method', $method);
+        list($method, $params) = $this->handle_option_string_and_params($params, 'fetchTickers', 'method', $method);
         if ($method === null) {
             // if the user did not specify a method, choose it based on market type and symbols
             if ($onlyContractSymbols || ($marketType === 'swap')) {

@@ -628,7 +628,7 @@ func (this *Mudrex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			items = this.SafeList(data, "items", []any{})
 			// hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
 			var itemsLength int = GetArrayLength(items)
-			if (IsEqual(itemsLength, nil)) || (itemsLength == 0) {
+			if itemsLength == 0 {
 				items = this.SafeList(data, "results", []any{})
 				itemsLength = GetArrayLength(items)
 			}
@@ -639,7 +639,7 @@ func (this *Mudrex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			items = this.ToArray(data)
 		}
 		var numItems int = GetArrayLength(items)
-		if (IsEqual(numItems, nil)) || (numItems == 0) {
+		if numItems == 0 {
 			paging = false
 			break
 		}
@@ -1000,11 +1000,11 @@ func (this *Mudrex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	// mudrex only supports take-profit / stop-loss orders attached to the position-opening order
 	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
 	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
-	if !IsEqual(takeProfit, nil) {
+	if takeProfit != nil {
 		request["is_takeprofit"] = true
 		request["takeprofit_price"] = this.PriceToPrecision(symbol, this.SafeStringN(takeProfit, []any{"triggerPrice", "stopPrice", "price"}))
 	}
-	if !IsEqual(stopLoss, nil) {
+	if stopLoss != nil {
 		request["is_stoploss"] = true
 		request["stoploss_price"] = this.PriceToPrecision(symbol, this.SafeStringN(stopLoss, []any{"triggerPrice", "stopPrice", "price"}))
 	}
@@ -1779,7 +1779,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var maxCalls any = nil
-	var maxCallsparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginationCalls", 10)
+	var maxCallsparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchMyTrades", "paginationCalls", 10)
 	maxCalls = GetValue(maxCallsparamsVariable, 0)
 	params = MapTyped(GetValue(maxCallsparamsVariable, 1))
 	var pageSize any = 0
@@ -1812,7 +1812,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			allRows = append(allRows, entry)
 			if this.SafeString(entry, "fee_type") != nil && *this.SafeString(entry, "fee_type") == "TRANSACTION" {
 				// count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
-				if (IsEqual(market, nil)) || (IsEqual(this.SafeString(entry, "symbol"), GetValue(market, "id"))) {
+				if ((market == nil)) || (IsEqual(this.SafeString(entry, "symbol"), GetValue(market, "id"))) {
 					transactionsCount = this.Sum(transactionsCount, 1)
 				}
 			}
@@ -1869,7 +1869,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 				break
 			}
 		}
-		if IsEqual(rebate, nil) {
+		if rebate == nil {
 			rows = append(rows, func() any {
 				if i >= 0 && i < len(transactions) {
 					return DerefScalar(transactions[i])

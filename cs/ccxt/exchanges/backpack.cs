@@ -1145,13 +1145,13 @@ public partial class backpack : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", interval },
         };
-        object until = null;
-        IList<object> untilparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
-        until = untilparametersVariable[0];
+        Int64? until = null;
+        IList<object> untilparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "until");
+        until = (Int64?)untilparametersVariable[0];
         parameters = untilparametersVariable[1];
-        if (!isEqual(until, null))
+        if ((until != null))
         {
-            request["endTime"] = this.parseToInt(divide(until, 1000)); // convert milliseconds to seconds
+            request["endTime"] = this.parseToInt((until / 1000)); // convert milliseconds to seconds
         }
         int defaultLimit = 100;
         if ((since == null))
@@ -1161,7 +1161,7 @@ public partial class backpack : Exchange
                 limitVar = defaultLimit;
             }
             int duration = this.parseTimeframe(timeframeVar);
-            Int64? endTime = (!isEqual(until, null) && !isEqual(until, null) && !isEqual(until, 0)) ? this.parseToInt(divide(until, 1000)) : this.seconds();
+            Int64? endTime = ((until != null) && (until != null) && (until != 0)) ? this.parseToInt((until / 1000)) : this.seconds();
             object startTime = subtract(endTime, (multiply(limitVar, duration)));
             request["startTime"] = startTime;
         } else
@@ -1679,11 +1679,11 @@ public partial class backpack : Exchange
         {
             request["limit"] = limit; // default 100, max 1000
         }
-        object until = null;
-        IList<object> untilparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchDeposits", "until");
-        until = untilparametersVariable[0];
+        Int64? until = null;
+        IList<object> untilparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchDeposits", "until");
+        until = (Int64?)untilparametersVariable[0];
         parameters = untilparametersVariable[1];
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endTime"] = until;
         }
@@ -1724,11 +1724,11 @@ public partial class backpack : Exchange
         {
             request["limit"] = limit;
         }
-        object until = null;
-        IList<object> untilparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchWithdrawals", "until");
-        until = untilparametersVariable[0];
+        Int64? until = null;
+        IList<object> untilparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchWithdrawals", "until");
+        until = (Int64?)untilparametersVariable[0];
         parameters = untilparametersVariable[1];
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["to"] = until;
         }

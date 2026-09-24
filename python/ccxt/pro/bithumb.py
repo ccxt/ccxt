@@ -74,7 +74,7 @@ class bithumb(ccxt.async_support.bithumb):
         if self.markets is None:
             await self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'watchTicker', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'watchTicker', 'generation', 2)
         isGenerationTwo = (generation == 2)
         url = self.urls['api']['ws']['publicGen2'] if isGenerationTwo else self.urls['api']['ws']['public']
         market = self.market(symbol)
@@ -114,7 +114,7 @@ class bithumb(ccxt.async_support.bithumb):
         if self.markets is None:
             await self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'watchTickers', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'watchTickers', 'generation', 2)
         isGenerationTwo = (generation == 2)
         symbols = self.market_symbols(symbols, None, False, True, True)
         symbolsLength = 0 if (symbols is None) else len(symbols)
@@ -356,7 +356,7 @@ class bithumb(ccxt.async_support.bithumb):
         if self.markets is None:
             await self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'watchOrderBook', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'watchOrderBook', 'generation', 2)
         isGenerationTwo = (generation == 2)
         url = self.urls['api']['ws']['publicGen2'] if isGenerationTwo else self.urls['api']['ws']['public']
         market = self.market(symbol)
@@ -524,7 +524,7 @@ class bithumb(ccxt.async_support.bithumb):
         if self.markets is None:
             await self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'watchTrades', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'watchTrades', 'generation', 2)
         isGenerationTwo = (generation == 2)
         url = self.urls['api']['ws']['publicGen2'] if isGenerationTwo else self.urls['api']['ws']['public']
         market = self.market(symbol)
@@ -724,7 +724,7 @@ class bithumb(ccxt.async_support.bithumb):
         if self.markets is None:
             await self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'watchBalance', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'watchBalance', 'generation', 2)
         if generation != 2:
             raise BadRequest(self.id + ' watchBalance() is only supported for the generation 2 API')
         await self.authenticate()
@@ -833,7 +833,7 @@ class bithumb(ccxt.async_support.bithumb):
         if self.markets is None:
             await self.load_markets()
         generation = None
-        generation, params = self.handle_option_and_params(params, 'watchOrders', 'generation', 2)
+        generation, params = self.handle_option_integer_and_params(params, 'watchOrders', 'generation', 2)
         if generation != 2:
             raise BadRequest(self.id + ' watchOrders() is only supported for the generation 2 API')
         await self.authenticate()

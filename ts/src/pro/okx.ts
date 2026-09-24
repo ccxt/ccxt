@@ -1278,7 +1278,7 @@ export default class okx extends okxRest {
         }
         symbols = this.marketSymbols (symbols);
         let depth: Str = undefined;
-        [ depth, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'depth', 'books');
+        [ depth, params ] = this.handleOptionStringAndParams (params, 'watchOrderBook', 'depth', 'books');
         if (limit !== undefined) {
             if (limit === 1) {
                 depth = 'bbo-tbt';
@@ -1334,7 +1334,7 @@ export default class okx extends okxRest {
         }
         symbols = this.marketSymbols (symbols, undefined, false);
         let depth: Str = undefined;
-        [ depth, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'depth', 'books');
+        [ depth, params ] = this.handleOptionStringAndParams (params, 'watchOrderBook', 'depth', 'books');
         const limit = this.safeInteger (params, 'limit');
         if (limit !== undefined) {
             if (limit === 1) {

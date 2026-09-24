@@ -4116,7 +4116,7 @@ func (this *Kucoin) fetchUTAOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 		request["tradeType"] = "FUTURES"
 	}
 	var priceType any = nil
-	var priceTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "price", priceType)
+	var priceTypeparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchOHLCV", "price", priceType)
 	priceType = GetValue(priceTypeparamsVariable, 0)
 	params = MapTyped(GetValue(priceTypeparamsVariable, 1))
 	if priceType != nil {
@@ -4459,7 +4459,7 @@ func (this *Kucoin) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	// BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
 	AddElementToObject(GetValue(GetValue(GetValue(this.Options, "versions"), "private"), "GET"), "deposit-addresses", version)
 	var data map[string]any = SafeMapTyped(response, "data")
-	if IsEqual(data, nil) {
+	if data == nil {
 		panic(ExchangeError(this.Id + " fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again"))
 	}
 
@@ -5265,8 +5265,8 @@ func (this *Kucoin) CreateContractOrderRequest(symbol any, typeVar any, side any
 	takeProfitPrice := GetValue(triggerPricestopLossPricetakeProfitPriceVariable, 2)
 	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
 	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
-	var hasStopLoss bool = !IsEqual(stopLoss, nil)
-	var hasTakeProfit bool = !IsEqual(takeProfit, nil)
+	var hasStopLoss bool = (stopLoss != nil)
+	var hasTakeProfit bool = (takeProfit != nil)
 	// const isTpAndSl = stopLossPrice && takeProfitPrice;
 	var triggerPriceTypes map[string]any = map[string]any{
 		"mark":  "MP",
@@ -5563,8 +5563,8 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol any, typeVar any, side any, amo
 	takeProfitPrice := GetValue(triggerPricestopLossPricetakeProfitPriceVariable, 2)
 	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
 	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
-	var hasStopLoss bool = !IsEqual(stopLoss, nil)
-	var hasTakeProfit bool = !IsEqual(takeProfit, nil)
+	var hasStopLoss bool = (stopLoss != nil)
+	var hasTakeProfit bool = (takeProfit != nil)
 	var triggerPriceTypes map[string]any = map[string]any{
 		"mark":  "MP",
 		"last":  "TP",
@@ -6924,7 +6924,7 @@ func (this *Kucoin) fetchSpotOrdersByStatusBody(ch chan any, status any, optiona
 		}
 	}
 	var listData []any = SafeListTyped(response, "data")
-	if !IsEqual(listData, nil) {
+	if listData != nil {
 
 		ch <- this.ParseOrders(listData, market, since, limit)
 		return nil
@@ -10082,7 +10082,7 @@ func (this *Kucoin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var isolated bool = (marginMode != nil && *marginMode == "isolated") || (typeVar != nil && *typeVar == "isolated")
 	var cross bool = (marginMode != nil && *marginMode == "cross") || (typeVar != nil && *typeVar == "margin")
 	if isolated {
-		if !IsEqual(currency, nil) {
+		if currency != nil {
 			request["balanceCurrency"] = GetValue(currency, "id")
 		}
 
@@ -10091,7 +10091,7 @@ func (this *Kucoin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		response = MapTyped(PanicOnError((<-this.PrivateGetMarginAccount(this.Extend(request, params))).Raw))
 	} else {
-		if !IsEqual(currency, nil) {
+		if currency != nil {
 			request["currency"] = GetValue(currency, "id")
 		}
 		request["type"] = typeVar
@@ -11262,7 +11262,7 @@ func (this *Kucoin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var dataList []any = SafeListTyped(response, "data")
-	if !IsEqual(dataList, nil) {
+	if dataList != nil {
 
 		ch <- this.ParseLedger(dataList, currency, since, limit)
 		return nil

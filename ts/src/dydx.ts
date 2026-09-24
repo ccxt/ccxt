@@ -1339,7 +1339,7 @@ export default class dydx extends Exchange {
         }
         const orderSide = side.toUpperCase ();
         let subaccountId = 0;
-        [ subaccountId, params ] = this.handleOptionAndParams (params, 'createOrder', 'subAccountId', subaccountId);
+        [ subaccountId, params ] = this.handleOptionIntegerAndParams (params, 'createOrder', 'subAccountId', subaccountId);
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
@@ -1406,7 +1406,7 @@ export default class dydx extends Exchange {
         let goodTillBlock = this.safeInteger (params, 'goodTillBlock');
         let goodTillBlockTime: Num = undefined;
         let goodTillBlockTimeInSeconds = 2592000;
-        [ goodTillBlockTimeInSeconds, params ] = this.handleOptionAndParams (params, 'createOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
+        [ goodTillBlockTimeInSeconds, params ] = this.handleOptionIntegerAndParams (params, 'createOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
         if (orderFlag === 0) {
             if (goodTillBlock === undefined) {
                 // short term order
@@ -1515,7 +1515,7 @@ export default class dydx extends Exchange {
      * @param {bool} [params.postOnly] true or false whether the order is post-only
      * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
      * @param {float} [params.goodTillBlock] expired block number for the order, required for market order and non limit GTT order, default value is latestBlockHeight + 20
-     * @param {float} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
+     * @param {int} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
@@ -1570,7 +1570,7 @@ export default class dydx extends Exchange {
      * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @param {float} [params.orderFlags] default is 64, orderFlags for the order, market order and non limit GTT order is 0, limit GTT order is 64 and conditional order is 32
      * @param {float} [params.goodTillBlock] expired block number for the order, required for market order and non limit GTT order (orderFlags = 0), default value is latestBlockHeight + 20
-     * @param {float} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days
+     * @param {int} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days
      * @param {int} [params.subAccountId] sub account id, default is 0
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1594,12 +1594,12 @@ export default class dydx extends Exchange {
         }
         let goodTillBlock = this.safeInteger (params, 'goodTillBlock');
         let goodTillBlockTimeInSeconds = 2592000;
-        [ goodTillBlockTimeInSeconds, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
+        [ goodTillBlockTimeInSeconds, params ] = this.handleOptionIntegerAndParams (params, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
         let goodTillBlockTime: Num = undefined;
         const defaultOrderFlags = (isTrigger === true) ? 32 : 64;
         const orderFlags = this.safeInteger (params, 'orderFlags', defaultOrderFlags);
         let subAccountId = 0;
-        [ subAccountId, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'subAccountId', subAccountId);
+        [ subAccountId, params ] = this.handleOptionIntegerAndParams (params, 'cancelOrder', 'subAccountId', subAccountId);
         params = this.omit (params, [ 'clientOrderId', 'orderFlags', 'goodTillBlock', 'goodTillBlockTime', 'goodTillBlockTimeInSeconds', 'subaccountId', 'clientId' ]);
         if (orderFlags !== 0 && orderFlags !== 64 && orderFlags !== 32) {
             throw new InvalidOrder (this.id + ' invalid orderFlags, allowed values are (0, 64, 32).');
@@ -1684,7 +1684,7 @@ export default class dydx extends Exchange {
             throw new NotSupported (this.id + ' cancelOrders only support clientOrderIds.');
         }
         let subAccountId = 0;
-        [ subAccountId, params ] = this.handleOptionAndParams (params, 'cancelOrders', 'subAccountId', subAccountId);
+        [ subAccountId, params ] = this.handleOptionIntegerAndParams (params, 'cancelOrders', 'subAccountId', subAccountId);
         let goodTillBlock = this.safeInteger (params, 'goodTillBlock');
         if (goodTillBlock === undefined) {
             const latestBlockHeight = await this.fetchLatestBlockHeight ();
@@ -2412,7 +2412,7 @@ export default class dydx extends Exchange {
         let userAddress: Str = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('fetchBalance', params);
         let subaccountNumber: Int = undefined;
-        [ subaccountNumber, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'subaccountNumber', 0);
+        [ subaccountNumber, params ] = this.handleOptionIntegerAndParams (params, 'fetchBalance', 'subaccountNumber', 0);
         const request: Dict = {
             'address': userAddress,
             'subaccountNumber': subaccountNumber,

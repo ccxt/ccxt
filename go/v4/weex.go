@@ -2943,9 +2943,9 @@ func (this *Weex) CreateContractOrderRequest(symbol any, typeVar any, side any, 
 	}
 	request["positionSide"] = positionSide
 	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
-	var hasTakeProfit bool = (!IsEqual(takeProfit, nil))
+	var hasTakeProfit bool = ((takeProfit != nil))
 	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
-	var hasStopLoss bool = (!IsEqual(stopLoss, nil))
+	var hasStopLoss bool = ((stopLoss != nil))
 	// the exchange accepts but silently ignores execution prices for attached take profit / stop loss, they always execute at market price
 	if hasTakeProfit && (this.SafeNumber(takeProfit, "price") != nil) {
 		panic(NotSupported(this.Id + " createOrder() does not support the price field inside the takeProfit params, the attached take profit executes at market price"))
@@ -4294,7 +4294,7 @@ func (this *Weex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		currency = MapTyped(this.Currency(code))
 	}
 	if IsEqual(accountType, "contract") {
-		if !IsEqual(currency, nil) {
+		if currency != nil {
 			request["currency"] = GetValue(currency, "id")
 		}
 		if since != nil {

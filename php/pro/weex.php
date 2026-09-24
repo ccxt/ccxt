@@ -1852,7 +1852,7 @@ class weex extends \ccxt\async\weex {
             $account['free'] = $this->safe_string_2($entry, 'available', 'amount');
             $account['used'] = $this->safe_string($entry, 'frozen');
             $account['total'] = $this->safe_string_2($entry, 'equity', 'legacyAmount');
-            if (($accountType !== null) && ($code !== null)) {
+            if ($code !== null) {
                 $this->balance[$accountType][$code] = $account;
             }
         }

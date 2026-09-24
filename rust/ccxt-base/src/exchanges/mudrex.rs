@@ -859,7 +859,7 @@ impl MudrexCore {
                 items = self.safe_list_k(data.clone(), "items", &[Value::from(vec![])]);
                 // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                 let mut itemsLength: Value = Value::Int(items.len() as i64);
-                if (itemsLength == Value::Null) || (itemsLength.as_f64() == Some(0.0)) {
+                if (itemsLength.as_f64() == Some(0.0)) {
                     items = self.safe_list_k(data.clone(), "results", &[Value::from(vec![])]);
                     itemsLength = Value::Int(items.len() as i64);
                 }
@@ -869,19 +869,19 @@ impl MudrexCore {
             }  else {
                 items = self.to_array(data);
             }
-            let mut numItems: Value = Value::Int(items.len() as i64);
-            if (numItems == Value::Null) || (numItems.as_f64() == Some(0.0)) {
+            let mut numItems: f64 = ((items.len() as i64) as f64);
+            if (numItems == 0.0) {
                 paging = false;
                 break;
             }
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_951: bool = true;
-                while { if !__for_first_951 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_951 = false; i.as_f64().unwrap_or(f64::NAN) < numItems.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_951 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_951 = false; i.as_f64().unwrap_or(f64::NAN) < numItems } {
                 append_to_array(&mut aggregated, items.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             }
             }
-            if numItems.as_f64().unwrap_or(f64::NAN) < pageLimit.as_f64().unwrap_or(f64::NAN) {
+            if numItems < pageLimit.as_f64().unwrap_or(f64::NAN) {
                 paging = false;
             }  else {
                 // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
@@ -1924,7 +1924,7 @@ impl MudrexCore {
             market = self.market(symbol);
         }
         let mut maxCalls: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchMyTrades".into()), Value::Str("paginationCalls".into()), &[Value::Int(10)]); maxCalls = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_integer_and_params(params.clone(), Value::Str("fetchMyTrades".into()), Value::Str("paginationCalls".into()), &[Value::Int(10)]); maxCalls = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut pageSize: Value = Value::Int(0);
         if (limit != Value::Null) {
             // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied

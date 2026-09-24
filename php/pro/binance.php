@@ -1646,7 +1646,7 @@ class binance extends \ccxt\async\binance {
         ));
     }
 
-    public function handle_trade(Client $client, mixed $message) {
+    public function handle_trade(Client $client, array $message) {
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
         $marketId = $this->safe_string($message, 's');
@@ -5668,7 +5668,7 @@ class binance extends \ccxt\async\binance {
         return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
-    public function handle_my_trade(Client $client, mixed $message) {
+    public function handle_my_trade(Client $client, array $message) {
         $messageHash = 'myTrades';
         $executionType = $this->safe_string($message, 'x');
         if ($executionType === 'TRADE') {
@@ -5749,7 +5749,7 @@ class binance extends \ccxt\async\binance {
         }
     }
 
-    public function handle_order(Client $client, mixed $message) {
+    public function handle_order(Client $client, array $message) {
         $parsed = $this->parse_ws_order($message);
         $symbol = $this->safe_string($parsed, 'symbol');
         $orderId = $this->safe_string($parsed, 'id');
@@ -5818,9 +5818,6 @@ class binance extends \ccxt\async\binance {
             $this->balance[$accountType] = array();
         }
         $this->balance[$accountType]['info'] = $message;
-        if ($accountType === null) {
-            return;
-        }
         $B = $this->safe_list($message, 'B', array());
         for ($i = 0; $i < count($B); $i++) {
             $entry = $this->safe_dict($B, $i);

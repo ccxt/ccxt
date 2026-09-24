@@ -3800,7 +3800,9 @@ class binance extends Exchange {
         } elseif ($underlying !== null) {
             $contract = true;
             $option = true;
-            $settleId = ($settleId === null) ? 'USDT' : $settleId;
+            if ($settleId === null) {
+                $settleId = 'USDT';
+            }
         } elseif ($expiry !== null) {
             $future = true;
         }
@@ -11723,9 +11725,7 @@ class binance extends Exchange {
                     $inner = Precise::string_mul($liquidationPriceString, $onePlusMaintenanceMarginPercentageString);
                     $leftSide = Precise::string_add($inner, $entryPriceSignString);
                     $quotePrecision = $this->precision_from_string($this->safe_string_2($precision, 'quote', 'price'));
-                    if ($quotePrecision !== null) {
-                        $collateralString = Precise::string_div(Precise::string_mul($leftSide, $contractsAbs), '1', $quotePrecision);
-                    }
+                    $collateralString = Precise::string_div(Precise::string_mul($leftSide, $contractsAbs), '1', $quotePrecision);
                 } else {
                     // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
                     $onePlusMaintenanceMarginPercentageString = null;
@@ -11739,9 +11739,7 @@ class binance extends Exchange {
                     $leftSide = Precise::string_mul($contractsAbs, $contractSizeString);
                     $rightSide = Precise::string_sub(Precise::string_div('1', $entryPriceSignString), Precise::string_div($onePlusMaintenanceMarginPercentageString, $liquidationPriceString));
                     $basePrecision = $this->precision_from_string($this->safe_string($precision, 'base'));
-                    if ($basePrecision !== null) {
-                        $collateralString = Precise::string_div(Precise::string_mul($leftSide, $rightSide), '1', $basePrecision);
-                    }
+                    $collateralString = Precise::string_div(Precise::string_mul($leftSide, $rightSide), '1', $basePrecision);
                 }
             }
         } else {

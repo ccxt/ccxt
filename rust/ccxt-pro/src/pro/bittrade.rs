@@ -599,7 +599,7 @@ impl BittradeCore {
             stored = ArrayCacheByTimestamp::new(limit);
             add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, stored.clone());
         }
-        let mut tick: Value = (match message.get("tick") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
+        let mut tick: Value = (match message.get("tick") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
         let mut parsed: Value = self.parse_ohlcv(tick, &[market]);
         stored.append(parsed);
         client.resolve(&[stored, ch]);

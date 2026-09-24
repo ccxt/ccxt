@@ -2046,7 +2046,7 @@ public class Gemini extends GeminiApi
         {
             type = this.safeString(order, "type");
         }
-        Object fee = null;
+        List<String> fee = null;
         String marketId = this.safeString(order, "symbol");
         String symbol = this.safeSymbol(marketId, market);
         String id = this.safeString(order, "order_id");

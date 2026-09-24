@@ -2429,7 +2429,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("info".into(), balance.clone()); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(balance.clone(), "lk", &[])); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(balance.clone(), "wb", &[])); }
-            if (type_var != Value::Null) && (code != Value::Null) {
+            if (code != Value::Null) {
                 add_element_to_object(get_value_mut(&mut self.balance, &type_var), &code, account);
             }
         }

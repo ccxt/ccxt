@@ -1169,9 +1169,6 @@ impl ToobitCore {
         if isSpot {
             subscriptionHash = spotSubHash;
         }
-        if (subscriptionHash == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchBalance() requires a subscription hash".into()))));
-        }
         let mut url: Value = self.get_user_stream_url();
         let mut client: Value = self.client(&[url.clone()]);
         self.set_balance_cache(client.clone(), marketType, &[subscriptionHash.clone(), params.clone()]);
@@ -1264,7 +1261,7 @@ impl ToobitCore {
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("info".into(), balance.clone()); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(balance.clone(), "l", &[])); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(balance.clone(), "f", &[])); }
-            if (type_var != Value::Null) && (code != Value::Null) {
+            if (code != Value::Null) {
                 add_element_to_object(get_value_mut(&mut self.balance, &type_var), &code, account);
             }
         }

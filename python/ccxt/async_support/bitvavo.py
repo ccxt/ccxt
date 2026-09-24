@@ -1723,7 +1723,7 @@ class bitvavo(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         codGroupId = None
-        codGroupId, params = self.handle_option_and_params(params, 'cancelAllOrdersAfter', 'codGroupId', 1)
+        codGroupId, params = self.handle_option_integer_and_params(params, 'cancelAllOrdersAfter', 'codGroupId', 1)
         request = {
             'codGroupId': codGroupId,
             'expiryAfterSeconds': self.parse_to_int(timeout / 1000) if (timeout > 0) else 0,

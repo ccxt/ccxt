@@ -1694,11 +1694,11 @@ public partial class hibachi : Exchange
         {
             request["startTime"] = since;
         }
-        object until = null;
-        IList<object> untilparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrdersByStatus", "until");
-        until = untilparametersVariable[0];
+        Int64? until = null;
+        IList<object> untilparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOrdersByStatus", "until");
+        until = (Int64?)untilparametersVariable[0];
         parameters = untilparametersVariable[1];
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endTime"] = until;
         }
@@ -1808,11 +1808,11 @@ public partial class hibachi : Exchange
         {
             request["fromMs"] = since;
         }
-        object until = null;
-        IList<object> untilparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
-        until = untilparametersVariable[0];
+        Int64? until = null;
+        IList<object> untilparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "until");
+        until = (Int64?)untilparametersVariable[0];
         parameters = untilparametersVariable[1];
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["toMs"] = until;
         }
@@ -2430,13 +2430,13 @@ public partial class hibachi : Exchange
         {
             request["limit"] = limit;
         }
-        object until = null;
-        IList<object> untilparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMySettlementHistory", "until");
-        until = untilparametersVariable[0];
+        Int64? until = null;
+        IList<object> untilparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchMySettlementHistory", "until");
+        until = (Int64?)untilparametersVariable[0];
         parameters = untilparametersVariable[1];
-        if (!isEqual(until, null))
+        if ((until != null))
         {
-            request["endTime"] = this.parseToInt(divide(until, 1000));
+            request["endTime"] = this.parseToInt((until / 1000));
         }
         Dictionary<string, object> response = await this.privateGetTradeAccountSettlementsHistory(this.extend(request, parameters));
         //

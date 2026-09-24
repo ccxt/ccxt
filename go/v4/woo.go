@@ -2639,7 +2639,7 @@ func (this *Woo) ParseOrder(order any, optionalArgs ...any) any {
 			timestamp = this.SafeInteger(order, "createdTime") // regular orders
 		}
 	}
-	if IsEqual(timestamp, nil) {
+	if timestamp == nil {
 		timestamp = this.SafeInteger(order, "timestamp")
 	}
 	var orderId *string = this.SafeString2(order, "orderId", "algoOrderId")
@@ -2898,7 +2898,7 @@ func (this *Woo) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 	var data map[string]any = SafeMapTyped(response, "data")
 	var rows []any = SafeListTyped(data, "rows")
 	var first map[string]any = SafeMapTyped(rows, 0)
-	if IsEqual(first, nil) {
+	if first == nil {
 		panic(BadSymbol(Add(this.Id+" fetchTicker() could not find ticker data for ", symbol)))
 	}
 	var ticker map[string]any = this.Extend(map[string]any{

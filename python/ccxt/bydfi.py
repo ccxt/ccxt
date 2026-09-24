@@ -847,7 +847,7 @@ class bydfi(Exchange, ImplicitAPI):
         startTime = since
         numberOfCandles = limit if (limit is not None and limit is not None and limit != 0) else maxLimit
         until = None
-        until, params = self.handle_option_and_params(params, 'fetchOHLCV', 'until')
+        until, params = self.handle_option_integer_and_params(params, 'fetchOHLCV', 'until')
         now = self.milliseconds()
         duration = self.parse_timeframe(timeframe) * 1000
         timeDelta = duration * numberOfCandles
@@ -1100,7 +1100,7 @@ class bydfi(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         until = None
-        until, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'until')
+        until, params = self.handle_option_integer_and_params(params, 'fetchFundingRateHistory', 'until')
         if until is not None:
             request['endTime'] = until
         response = self.publicGetV1FapiMarketFundingRateHistory(self.extend(request, params))
@@ -1683,7 +1683,7 @@ class bydfi(Exchange, ImplicitAPI):
 
     def handle_since_and_until(self, methodName: str, since: Int = None, params: dict = {}) -> dict:
         until = None
-        until, params = self.handle_option_and_params_2(params, methodName, 'until', 'endTime')
+        until, params = self.handle_option_integer_and_params_2(params, methodName, 'until', 'endTime')
         now = self.milliseconds()
         sevenDays = 7 * 24 * 60 * 60 * 1000  # the maximum range is 7 days
         startTime = since
@@ -2557,7 +2557,7 @@ class bydfi(Exchange, ImplicitAPI):
             'asset': currency['id'],
         }
         until = None
-        until, params = self.handle_option_and_params_2(params, 'fetchTransfers', 'until', 'endTime')
+        until, params = self.handle_option_integer_and_params_2(params, 'fetchTransfers', 'until', 'endTime')
         if until is None:
             until = self.milliseconds()  # exchange requires endTime
         if since is None:
@@ -2686,7 +2686,7 @@ class bydfi(Exchange, ImplicitAPI):
             'asset': currency['id'],
         }
         until = None
-        until, params = self.handle_option_and_params_2(params, 'fetchTransfers', 'until', 'endTime')
+        until, params = self.handle_option_integer_and_params_2(params, 'fetchTransfers', 'until', 'endTime')
         now = self.milliseconds()
         sevenDays = 7 * 24 * 60 * 60 * 1000  # the maximum range is 7 days
         startTime = since

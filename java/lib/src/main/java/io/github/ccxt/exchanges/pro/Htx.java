@@ -628,7 +628,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
             }
         }
-        Object tick = this.safeValue(message, "tick");
+        Map<String, Object> tick = (Map<String, Object>) this.safeDict(message, "tick");
         List<Object> parsed = (List<Object>) this.parseOHLCV(tick, market);
         stored.append(parsed);
         client.resolve(stored, ch);
@@ -806,7 +806,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         {
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
             Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data");
-            Object messages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));
+            List<Object> messages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));
             Map<String, Object> firstMessage = (Map<String, Object>) this.safeDict(messages, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol);
             Map<String, Object> tick = (Map<String, Object>) this.safeDict(firstMessage, "tick");
@@ -2063,7 +2063,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 {
                     type = "future";
                 }
-                List<Object> subTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchPositions", "subType", subType);
+                List<Object> subTypeparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchPositions", "subType", (String) (subType));
                 subType = ((List<Object>) subTypeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) subTypeparametersVariable).get(1);
             }

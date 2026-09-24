@@ -1354,7 +1354,7 @@ class okx extends \ccxt\async\okx {
         }
         $symbols = $this->market_symbols($symbols);
         $depth = null;
-        list($depth, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'depth', 'books');
+        list($depth, $params) = $this->handle_option_string_and_params($params, 'watchOrderBook', 'depth', 'books');
         if ($limit !== null) {
             if ($limit === 1) {
                 $depth = 'bbo-tbt';
@@ -1414,7 +1414,7 @@ class okx extends \ccxt\async\okx {
         }
         $symbols = $this->market_symbols($symbols, null, false);
         $depth = null;
-        list($depth, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'depth', 'books');
+        list($depth, $params) = $this->handle_option_string_and_params($params, 'watchOrderBook', 'depth', 'books');
         $limit = $this->safe_integer($params, 'limit');
         if ($limit !== null) {
             if ($limit === 1) {

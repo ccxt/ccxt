@@ -3246,10 +3246,10 @@ public class Delta extends DeltaApi
         //
         String id = this.safeString(item, "uuid");
         String direction = null;
-        Object account = null;
+        List<String> account = null;
         Map<String, Object> metaData = (Map<String, Object>) this.safeDict(item, "meta_data", new HashMap<String, Object>() {{}});
         String referenceId = this.safeString(metaData, "transaction_id");
-        Object referenceAccount = null;
+        List<String> referenceAccount = null;
         Object type = this.safeString(item, "transaction_type");
         if ((java.util.Objects.equals(type, "deposit")) || (java.util.Objects.equals(type, "commission_rebate")) || (java.util.Objects.equals(type, "referral_bonus")) || (java.util.Objects.equals(type, "pnl")) || (java.util.Objects.equals(type, "withdrawal_cancellation")) || (java.util.Objects.equals(type, "promo_credit")))
         {

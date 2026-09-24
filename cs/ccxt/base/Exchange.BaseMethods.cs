@@ -4478,11 +4478,11 @@ public partial class BaseExchange
             await this.throttle(cost);
         }
         object retries = 0;
-        IList<object> retriesparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, path, "maxRetriesOnFailure", retries);
+        IList<object> retriesparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, path, "maxRetriesOnFailure", retries);
         retries = retriesparametersVariable[0];
         parameters = retriesparametersVariable[1];
         object retryDelay = 0;
-        IList<object> retryDelayparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, path, "maxRetriesOnFailureDelay", retryDelay);
+        IList<object> retryDelayparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, path, "maxRetriesOnFailureDelay", retryDelay);
         retryDelay = retryDelayparametersVariable[0];
         parameters = retryDelayparametersVariable[1];
         bool fetchDataCacheEnabled = isGreaterThan(this.fetchHistoryCacheSize, 0);
@@ -5092,6 +5092,27 @@ public partial class BaseExchange
         var value = valuenewParamsVariable[0];
         var newParams = valuenewParamsVariable[1];
         return new List<object> {this.checkOptionBool(methodName, optionName1, value), newParams};
+    }
+
+    /* eslint-disable no-unused-vars */
+    /* eslint-enable no-unused-vars */
+    public virtual List<object> handleOptionIntegerAndParams(object parameters, object methodName, object optionName, object defaultValue = null)
+    {
+        // handleOptionAndParams read as an integer; the statically typed ports throw on another type
+        IList<object> valuenewParamsVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, optionName, defaultValue);
+        var value = valuenewParamsVariable[0];
+        var newParams = valuenewParamsVariable[1];
+        return new List<object> {this.checkOptionInteger(methodName, optionName, value), newParams};
+    }
+
+    /* eslint-disable no-unused-vars */
+    /* eslint-enable no-unused-vars */
+    public virtual List<object> handleOptionIntegerAndParams2(object parameters, object methodName, object optionName1, object optionName2, object defaultValue = null)
+    {
+        IList<object> valuenewParamsVariable = (IList<object>)this.handleOptionAndParams2(parameters, methodName, optionName1, optionName2, defaultValue);
+        var value = valuenewParamsVariable[0];
+        var newParams = valuenewParamsVariable[1];
+        return new List<object> {this.checkOptionInteger(methodName, optionName1, value), newParams};
     }
 
     public virtual object handleOption(object methodName, object optionName, object defaultValue = null)
@@ -6896,11 +6917,11 @@ public partial class BaseExchange
     public virtual List<object> handleMaxEntriesPerRequestAndParams(object method, object maxEntriesPerRequest = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object newMaxEntriesPerRequest = null;
-        IList<object> newMaxEntriesPerRequestparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, method, "maxEntriesPerRequest");
-        newMaxEntriesPerRequest = newMaxEntriesPerRequestparametersVariable[0];
+        Int64? newMaxEntriesPerRequest = null;
+        IList<object> newMaxEntriesPerRequestparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, method, "maxEntriesPerRequest");
+        newMaxEntriesPerRequest = (Int64?)newMaxEntriesPerRequestparametersVariable[0];
         parameters = newMaxEntriesPerRequestparametersVariable[1];
-        if ((!isEqual(newMaxEntriesPerRequest, null)) && (!isEqual(newMaxEntriesPerRequest, maxEntriesPerRequest)))
+        if (((newMaxEntriesPerRequest != null)) && (!isEqual(newMaxEntriesPerRequest, maxEntriesPerRequest)))
         {
             maxEntriesPerRequest = newMaxEntriesPerRequest;
         }
@@ -6916,11 +6937,11 @@ public partial class BaseExchange
         parameters ??= new Dictionary<string, object>();
         removeRepeated ??= true;
         object maxCalls = 10;
-        IList<object> maxCallsparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, method, "paginationCalls", maxCalls);
+        IList<object> maxCallsparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, method, "paginationCalls", maxCalls);
         maxCalls = maxCallsparametersVariable[0];
         parameters = maxCallsparametersVariable[1];
         object maxRetries = 3;
-        IList<object> maxRetriesparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, method, "maxRetries", maxRetries);
+        IList<object> maxRetriesparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, method, "maxRetries", maxRetries);
         maxRetries = maxRetriesparametersVariable[0];
         parameters = maxRetriesparametersVariable[1];
         object paginationDirection = null;
@@ -7043,7 +7064,7 @@ public partial class BaseExchange
     {
         parameters ??= new Dictionary<string, object>();
         object maxRetries = 3;
-        IList<object> maxRetriesparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, method, "maxRetries", maxRetries);
+        IList<object> maxRetriesparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, method, "maxRetries", maxRetries);
         maxRetries = maxRetriesparametersVariable[0];
         parameters = maxRetriesparametersVariable[1];
         object errors = 0;
@@ -7078,7 +7099,7 @@ public partial class BaseExchange
     {
         parameters ??= new Dictionary<string, object>();
         object maxCalls = 10;
-        IList<object> maxCallsparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, method, "paginationCalls", maxCalls);
+        IList<object> maxCallsparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, method, "paginationCalls", maxCalls);
         maxCalls = maxCallsparametersVariable[0];
         parameters = maxCallsparametersVariable[1];
         IList<object> maxEntriesPerRequestparametersVariable = (IList<object>)this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
@@ -7154,11 +7175,11 @@ public partial class BaseExchange
     {
         parameters ??= new Dictionary<string, object>();
         object maxCalls = 10;
-        IList<object> maxCallsparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, method, "paginationCalls", maxCalls);
+        IList<object> maxCallsparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, method, "paginationCalls", maxCalls);
         maxCalls = maxCallsparametersVariable[0];
         parameters = maxCallsparametersVariable[1];
         object maxRetries = 3;
-        IList<object> maxRetriesparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, method, "maxRetries", maxRetries);
+        IList<object> maxRetriesparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, method, "maxRetries", maxRetries);
         maxRetries = maxRetriesparametersVariable[0];
         parameters = maxRetriesparametersVariable[1];
         IList<object> maxEntriesPerRequestparametersVariable = (IList<object>)this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
@@ -7272,11 +7293,11 @@ public partial class BaseExchange
     {
         parameters ??= new Dictionary<string, object>();
         object maxCalls = 10;
-        IList<object> maxCallsparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, method, "paginationCalls", maxCalls);
+        IList<object> maxCallsparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, method, "paginationCalls", maxCalls);
         maxCalls = maxCallsparametersVariable[0];
         parameters = maxCallsparametersVariable[1];
         object maxRetries = 3;
-        IList<object> maxRetriesparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, method, "maxRetries", maxRetries);
+        IList<object> maxRetriesparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, method, "maxRetries", maxRetries);
         maxRetries = maxRetriesparametersVariable[0];
         parameters = maxRetriesparametersVariable[1];
         IList<object> maxEntriesPerRequestparametersVariable = (IList<object>)this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);

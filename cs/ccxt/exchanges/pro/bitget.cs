@@ -149,13 +149,13 @@ public partial class bitget : ccxt.bitget
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("ticker:" + (symbolVar));
-        object instType = null;
+        string? instType = null;
         bool? uta = null;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "watchTicker", "uta", false);
         uta = (bool?)utaparametersVariable[0];
         parameters = utaparametersVariable[1];
         var instTypeparametersVariable = this.getInstType("watchTicker", market, uta, parameters);
-        instType = instTypeparametersVariable[0];
+        instType = (string)instTypeparametersVariable[0];
         parameters = instTypeparametersVariable[1];
         Dictionary<string, object> args = new Dictionary<string, object>() {
             { "instType", instType },
@@ -216,13 +216,13 @@ public partial class bitget : ccxt.bitget
             symbols = new List<object>() {};
         }
         Dictionary<string, object> market = this.market(getValue(symbols, 0));
-        object instType = null;
+        string? instType = null;
         bool? uta = null;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "watchTickers", "uta", false);
         uta = (bool?)utaparametersVariable[0];
         parameters = utaparametersVariable[1];
         var instTypeparametersVariable = this.getInstType("watchTickers", market, uta, parameters);
-        instType = instTypeparametersVariable[0];
+        instType = (string)instTypeparametersVariable[0];
         parameters = instTypeparametersVariable[1];
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
@@ -487,13 +487,13 @@ public partial class bitget : ccxt.bitget
             symbols = new List<object>() {};
         }
         Dictionary<string, object> market = this.market(getValue(symbols, 0));
-        object instType = null;
+        string? instType = null;
         bool? uta = null;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "watchBidsAsks", "uta", false);
         uta = (bool?)utaparametersVariable[0];
         parameters = utaparametersVariable[1];
         var instTypeparametersVariable = this.getInstType("watchBidsAsks", market, uta, parameters);
-        instType = instTypeparametersVariable[0];
+        instType = (string)instTypeparametersVariable[0];
         parameters = instTypeparametersVariable[1];
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
@@ -600,13 +600,13 @@ public partial class bitget : ccxt.bitget
         IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes");
         string? interval = this.safeString(timeframes, timeframeVar);
         string? messageHash = null;
-        object instType = null;
+        string? instType = null;
         bool? uta = null;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "watchOHLCV", "uta", false);
         uta = (bool?)utaparametersVariable[0];
         parameters = utaparametersVariable[1];
         var instTypeparametersVariable = this.getInstType("watchOHLCV", market, uta, parameters);
-        instType = instTypeparametersVariable[0];
+        instType = (string)instTypeparametersVariable[0];
         parameters = instTypeparametersVariable[1];
         Dictionary<string, object> args = new Dictionary<string, object>() {
             { "instType", instType },
@@ -660,12 +660,12 @@ public partial class bitget : ccxt.bitget
         string? interval = this.safeString(timeframes, timeframeVar);
         object channel = null;
         Dictionary<string, object> market = this.market(symbol);
-        object instType = null;
+        string? instType = null;
         object messageHash = null;
         List<object> values = this.handleOptionBoolAndParams(parameters, "watchOHLCV", "uta", false);
         object uta = getValue(values, 0);
         var instTypeparametersVariable = this.getInstType("watchOHLCV", market, uta, parameters);
-        instType = instTypeparametersVariable[0];
+        instType = (string)instTypeparametersVariable[0];
         parameters = instTypeparametersVariable[1];
         Dictionary<string, object> args = new Dictionary<string, object>() {
             { "instType", instType },
@@ -894,13 +894,13 @@ public partial class bitget : ccxt.bitget
         }
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = ((("unsubscribe:" + (messageHashTopic)) + ":") + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        object instType = null;
+        string? instType = null;
         bool? uta = null;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, methodName, "uta", false);
         uta = (bool?)utaparametersVariable[0];
         parameters = utaparametersVariable[1];
         var instTypeparametersVariable = this.getInstType(methodName, market, uta, parameters);
-        instType = instTypeparametersVariable[0];
+        instType = (string)instTypeparametersVariable[0];
         parameters = instTypeparametersVariable[1];
         Dictionary<string, object> args = new Dictionary<string, object>() {
             { "instType", instType },
@@ -960,9 +960,9 @@ public partial class bitget : ccxt.bitget
         {
             string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
-            object instType = null;
+            string? instType = null;
             var instTypeparametersVariable = this.getInstType("watchOrderBookForSymbols", market, uta, parameters);
-            instType = instTypeparametersVariable[0];
+            instType = (string)instTypeparametersVariable[0];
             parameters = instTypeparametersVariable[1];
             Dictionary<string, object> args = new Dictionary<string, object>() {
                 { "instType", instType },
@@ -1219,9 +1219,9 @@ public partial class bitget : ccxt.bitget
         {
             string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
-            object instType = null;
+            string? instType = null;
             var instTypeparametersVariable = this.getInstType("watchTradesForSymbols", market, uta, parameters);
-            instType = instTypeparametersVariable[0];
+            instType = (string)instTypeparametersVariable[0];
             parameters = instTypeparametersVariable[1];
             Dictionary<string, object> args = new Dictionary<string, object>() {
                 { "instType", instType },
@@ -1870,14 +1870,14 @@ public partial class bitget : ccxt.bitget
         {
             messageHash = (messageHash + ":usdcfutures"); // non unified channel
         }
-        object instType = null;
+        string? instType = null;
         if ((market == null) && type == "spot")
         {
             instType = "SPOT";
         } else
         {
             var instTypeparametersVariable = this.getInstType("watchOrders", market, uta, parameters);
-            instType = instTypeparametersVariable[0];
+            instType = (string)instTypeparametersVariable[0];
             parameters = instTypeparametersVariable[1];
         }
         if (type == "spot" && ((symbolVar != null)))
@@ -1920,7 +1920,7 @@ public partial class bitget : ccxt.bitget
             instType = "UTA";
             channel = "order";
         }
-        subscriptionHash = ((subscriptionHash + ":") + (instType));
+        subscriptionHash = ((subscriptionHash + ":") + instType);
         Dictionary<string, object> args = new Dictionary<string, object>() {
             { "instType", instType },
         };
@@ -2441,7 +2441,7 @@ public partial class bitget : ccxt.bitget
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
         type = (string)typeparametersVariable[0];
         parameters = typeparametersVariable[1];
-        object instType = null;
+        string? instType = null;
         bool? uta = null;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "watchMyTrades", "uta", false);
         uta = (bool?)utaparametersVariable[0];
@@ -2452,14 +2452,14 @@ public partial class bitget : ccxt.bitget
         } else
         {
             var instTypeparametersVariable = this.getInstType("watchMyTrades", market, uta, parameters);
-            instType = instTypeparametersVariable[0];
+            instType = (string)instTypeparametersVariable[0];
             parameters = instTypeparametersVariable[1];
         }
         if ((uta == true))
         {
             instType = "UTA";
         }
-        string subscriptionHash = ("fill:" + (instType));
+        string subscriptionHash = ("fill:" + instType);
         Dictionary<string, object> args = new Dictionary<string, object>() {
             { "instType", instType },
         };

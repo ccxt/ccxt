@@ -1140,7 +1140,7 @@ public class Bydfi extends BydfiApi
             Object startTime = since;
             Object numberOfCandles = (((!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(limit, null) && !Helpers.isEqual(limit, 0)))) ? limit : maxLimit;
             Object until = null;
-            List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
+            List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "until");
             until = ((List<Object>) untilparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             Long now = this.milliseconds();
@@ -1524,9 +1524,9 @@ public class Bydfi extends BydfiApi
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            Object until = null;
-            List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "until");
-            until = ((List<Object>) untilparametersVariable).get(0);
+            Long until = null;
+            List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchFundingRateHistory", "until");
+            until = (Long) ((List<Object>) untilparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
@@ -2486,7 +2486,7 @@ public class Bydfi extends BydfiApi
     public Object handleSinceAndUntil(Object methodName, Long since, Map<String, Object> parameters)
     {
         Object until = null;
-        List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, methodName, "until", "endTime");
+        List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams2(parameters, methodName, "until", "endTime");
         until = ((List<Object>) untilparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
         Long now = this.milliseconds();
@@ -3846,7 +3846,7 @@ public class Bydfi extends BydfiApi
                 put( "asset", ((Map<String, Object>)currency).get("id") );
             }};
             Object until = null;
-            List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchTransfers", "until", "endTime");
+            List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams2(parameters, "fetchTransfers", "until", "endTime");
             until = ((List<Object>) untilparametersVariable).get(0);
             parameters = ((List<Object>) untilparametersVariable).get(1);
             if (java.util.Objects.equals(until, null))
@@ -4074,7 +4074,7 @@ public class Bydfi extends BydfiApi
                 put( "asset", ((Map<String, Object>)currency).get("id") );
             }};
             Object until = null;
-            List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchTransfers", "until", "endTime");
+            List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams2(parameters, "fetchTransfers", "until", "endTime");
             until = ((List<Object>) untilparametersVariable).get(0);
             parameters = ((List<Object>) untilparametersVariable).get(1);
             Long now = this.milliseconds();

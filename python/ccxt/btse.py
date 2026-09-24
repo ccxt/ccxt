@@ -838,7 +838,7 @@ class btse(Exchange, ImplicitAPI):
             # the endpoint accepts timestamps in seconds
             request['start'] = self.parse_to_int(since / 1000)
         until = None
-        until, params = self.handle_option_and_params(params, 'fetchOHLCV', 'until')
+        until, params = self.handle_option_integer_and_params(params, 'fetchOHLCV', 'until')
         if until is not None:
             if since is not None:
                 # check if the requested time range is too large for one request
@@ -954,7 +954,7 @@ class btse(Exchange, ImplicitAPI):
         if market['contract'] is not True:
             raise BadRequest(self.id + ' fetchFundingRateHistory() supports contract markets only')
         period = None
-        period, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'period')
+        period, params = self.handle_option_string_and_params(params, 'fetchFundingRateHistory', 'period')
         if period is None:
             period = '7D'
             if since is not None:
@@ -969,7 +969,7 @@ class btse(Exchange, ImplicitAPI):
             'period': period,
         }
         until = None
-        until, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'until')
+        until, params = self.handle_option_integer_and_params(params, 'fetchFundingRateHistory', 'until')
         response = self.publicGetPublicApiMarketV1RecentFundingHistory(self.extend(request, params))
         #
         #     {
@@ -1528,7 +1528,7 @@ class btse(Exchange, ImplicitAPI):
             request['limit'] = min(limit, 500)  # the endpoint supports a maximum of 500 trades
         # the unified trades endpoint has no server-side time filtering, since and until are applied client-side below
         until = None
-        until, params = self.handle_option_and_params(params, 'fetchTrades', 'until')
+        until, params = self.handle_option_integer_and_params(params, 'fetchTrades', 'until')
         response = self.publicGetPublicApiMarketV1Trades(self.extend(request, params))
         #
         #     {
@@ -2701,7 +2701,7 @@ class btse(Exchange, ImplicitAPI):
         if limit is not None:
             request['pageSize'] = limit
         until = None
-        until, params = self.handle_option_and_params(params, methodName, 'until')
+        until, params = self.handle_option_integer_and_params(params, methodName, 'until')
         if until is not None:
             request['endTime'] = until
         response = self.privateGetPublicApiWalletV1UserWalletHistory(self.extend(request, params))
@@ -2905,7 +2905,7 @@ class btse(Exchange, ImplicitAPI):
         if limit is not None:
             request['pageSize'] = limit
         until = None
-        until, params = self.handle_option_and_params(params, 'fetchLedger', 'until')
+        until, params = self.handle_option_integer_and_params(params, 'fetchLedger', 'until')
         if until is not None:
             request['endTime'] = until
         response = self.privateGetPublicApiWalletV1UserWalletHistory(self.extend(request, params))

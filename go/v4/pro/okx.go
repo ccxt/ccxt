@@ -1683,7 +1683,7 @@ func (this *Okx) watchOrderBookForSymbolsBody(ch chan any, symbols any, optional
 	}
 	symbols = this.MarketSymbols(symbols)
 	var depth any = nil
-	var depthparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "depth", "books")
+	var depthparamsVariable []any = this.HandleOptionStringAndParams(params, "watchOrderBook", "depth", "books")
 	depth = ccxt.GetValue(depthparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(depthparamsVariable, 1))
 	if limit != nil {
@@ -1757,7 +1757,7 @@ func (this *Okx) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, option
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
 	var depth any = nil
-	var depthparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "depth", "books")
+	var depthparamsVariable []any = this.HandleOptionStringAndParams(params, "watchOrderBook", "depth", "books")
 	depth = ccxt.GetValue(depthparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(depthparamsVariable, 1))
 	var limit *int64 = this.SafeInteger(params, "limit")

@@ -526,7 +526,7 @@ impl HyperliquidCore {
                     }
                     let mut thresholdsLength: Value = Value::Int(thresholds.len() as i64);
                     let mut index: Value = self.parse_to_int(indexStr);
-                    if thresholdsLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) && (index != Value::Null) {
+                    if thresholdsLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
                         let mut bucketLabel: Value = Value::Null;
                         if index.as_f64().unwrap_or(f64::NAN) <= ((0i64) as f64) {
                             bucketLabel = Value::Str(format!("{}{}", Value::Str("BELOW_".into()), thresholds.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).into());
@@ -1687,10 +1687,8 @@ impl HyperliquidCore {
         if isNumericInput {
             append_to_array(&mut candidates, Value::Str(format!("{}{}", Value::Str("#".into()), outcomeInput).into())); // encoding id without #
             let mut numeric: Value = self.parse_to_int(outcomeInput.clone());
-            if (numeric != Value::Null) {
-                append_to_array(&mut candidates, self.outcome_coin(self.outcome_encoding(numeric.clone(), Value::Int(0))).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)); // raw outcome id -> YES encoding
-                append_to_array(&mut candidates, self.outcome_coin(self.outcome_encoding(numeric, Value::Int(1))).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)); // raw outcome id -> NO encoding
-            }
+            append_to_array(&mut candidates, self.outcome_coin(self.outcome_encoding(numeric.clone(), Value::Int(0))).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)); // raw outcome id -> YES encoding
+            append_to_array(&mut candidates, self.outcome_coin(self.outcome_encoding(numeric, Value::Int(1))).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)); // raw outcome id -> NO encoding
         }
         {
                         let mut i: Value = Value::Int(0);
@@ -3083,7 +3081,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut userAux: Value = Value::Null;
         { let __destr_tmp = self.handle_option_string_and_params2(params.clone(), methodName.clone(), Value::Str("user".into()), Value::Str("subAccountAddress".into()), &[]); userAux = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut user: Value = userAux.clone();
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), methodName.clone(), Value::Str("address".into()), &[userAux]); user = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), methodName.clone(), Value::Str("address".into()), &[userAux]); user = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (user != Value::Null) && (user.as_str() != Some("")) {
             return Value::from(vec![user, params.clone()]);
         }

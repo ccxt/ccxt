@@ -5633,7 +5633,13 @@ public partial class bybit : Exchange
             {
                 request["triggerDirection"] = isStopLossOrder ? 2 : 1;
             }
-            triggerPrice = isStopLossOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
+            if (isStopLossOrder)
+            {
+                triggerPrice = stopLossTriggerPrice;
+            } else
+            {
+                triggerPrice = takeProfitTriggerPrice;
+            }
             request["triggerPrice"] = this.getPrice(symbolVar, triggerPrice);
             request["reduceOnly"] = true;
         }
@@ -5852,7 +5858,13 @@ public partial class bybit : Exchange
         bool hasTakeProfit = (takeProfit != null);
         if (isStopLossOrder || isTakeProfitOrder)
         {
-            triggerPrice = isStopLossOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
+            if (isStopLossOrder)
+            {
+                triggerPrice = stopLossTriggerPrice;
+            } else
+            {
+                triggerPrice = takeProfitTriggerPrice;
+            }
         }
         if ((triggerPrice != null))
         {

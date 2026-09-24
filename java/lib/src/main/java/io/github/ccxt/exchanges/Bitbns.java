@@ -698,7 +698,7 @@ public class Bitbns extends BitbnsApi
 
     public Object parseBalance(Object response)
     {
-        Object timestamp = null;
+        List<String> timestamp = null;
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", timestamp );

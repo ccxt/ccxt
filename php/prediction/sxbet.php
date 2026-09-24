@@ -829,7 +829,7 @@ class sxbet extends Exchange {
             throw new BadRequest($this->id . ' approve() could not resolve the base token address from /metadata/obv3');
         }
         $spender = null;
-        list($spender, $params) = $this->handle_option_and_params_2($params, 'approve', 'spender', 'transferToProxySpender', $executorAddress);
+        list($spender, $params) = $this->handle_option_string_and_params_2($params, 'approve', 'spender', 'transferToProxySpender', $executorAddress);
         if ($spender === null) {
             throw new BadRequest($this->id . ' approve() could not resolve the transfer-to-$proxy executor from /metadata/obv3 - pass $params->spender');
         }
@@ -955,7 +955,7 @@ class sxbet extends Exchange {
             $defaultTif = 'GTC';
         }
         $timeInForce = null;
-        list($timeInForce, $params) = $this->handle_option_and_params($params, 'createOrder', 'timeInForce', $defaultTif);
+        list($timeInForce, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'timeInForce', $defaultTif);
         // an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
         // that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
         // contradicting the immediate-fill semantics the type promises

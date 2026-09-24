@@ -5283,13 +5283,13 @@ public class Coinbase extends CoinbaseApi
             {
                 ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000));
             }
-            Object until = null;
-            List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "until");
-            until = ((List<Object>) untilparametersVariable).get(0);
+            Long until = null;
+            List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchTrades", "until");
+            until = (Long) ((List<Object>) untilparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("end", this.numberToString(this.parseToInt(Helpers.divide(until, 1000))));
+                ((Map<String, Object>)request).put("end", this.numberToString(this.parseToInt((((double) until) / ((double) 1000)))));
             } else if (!java.util.Objects.equals(since, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchTrades() requires a `until` parameter when you use `since` argument")) ;

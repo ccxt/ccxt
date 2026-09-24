@@ -1236,7 +1236,7 @@ public partial class onetrading : Exchange
         //     }
         //
         IDictionary<string, object> feeInfo = this.safeDict(trade, "fee", new Dictionary<string, object>() {});
-        trade = this.safeValue(trade, "trade", trade);
+        trade = this.safeDict(trade, "trade", trade);
         Int64? timestamp = this.safeInteger(trade, "trade_timestamp");
         if ((timestamp == null))
         {
@@ -1423,7 +1423,7 @@ public partial class onetrading : Exchange
         //         ]
         //     }
         //
-        object rawOrder = this.safeValue(order, "order", order);
+        IDictionary<string, object> rawOrder = this.safeDict(order, "order", order);
         string? id = this.safeString(rawOrder, "order_id");
         string? clientOrderId = this.safeString(rawOrder, "client_id");
         Int64? timestamp = this.parse8601(this.safeString(rawOrder, "time"));

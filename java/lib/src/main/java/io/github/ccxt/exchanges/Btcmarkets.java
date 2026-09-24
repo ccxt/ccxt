@@ -632,8 +632,8 @@ public class Btcmarkets extends BtcmarketsApi
         }
         String addressTo = address;
         Object tagTo = tag;
-        Object addressFrom = null;
-        Object tagFrom = null;
+        List<String> addressFrom = null;
+        List<String> tagFrom = null;
         String fee = this.safeString(transaction, "fee");
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         String currencyId = this.safeString(transaction, "assetName");

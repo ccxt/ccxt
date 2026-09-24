@@ -722,7 +722,7 @@ final Object finalOi = oi;
      */
     public Object matchesEventQuery(Map<String, Object> raw, Object queries)
     {
-        List<Object> fields = new ArrayList<Object>(Arrays.asList(this.safeString(raw, "teamOneName"), this.safeString(raw, "teamTwoName"), this.safeString(raw, "leagueLabel"), this.safeString(raw, "sportLabel"), this.safeString(raw, "outcomeOneName"), this.safeString(raw, "outcomeTwoName")));
+        List<String> fields = new ArrayList<String>(Arrays.asList(this.safeString(raw, "teamOneName"), this.safeString(raw, "teamTwoName"), this.safeString(raw, "leagueLabel"), this.safeString(raw, "sportLabel"), this.safeString(raw, "outcomeOneName"), this.safeString(raw, "outcomeTwoName")));
         Integer queriesLength = ((List<?>)queries).size();
         for (var qi = 0; Helpers.isLessThan(qi, queriesLength); qi++)
         {
@@ -733,12 +733,12 @@ final Object finalOi = oi;
             }
             for (var fi = 0; fi < ((List<?>)fields).size(); fi++)
             {
-                Object field = (fields == null || fi < 0 || fi >= fields.size() ? null : fields.get(fi));
+                String field = (fields == null || fi < 0 || fi >= fields.size() ? null : fields.get(fi));
                 if (java.util.Objects.equals(field, null))
                 {
                     continue;
                 }
-                String fieldLower = ((String)field).toLowerCase();
+                String fieldLower = field.toLowerCase();
                 if ((((String)query).indexOf(fieldLower) >= 0) || (((String)fieldLower).indexOf(query) >= 0))
                 {
                     return true;
@@ -1036,9 +1036,9 @@ final Object finalOi = oi;
             {
                 throw new BadRequest((this.id + " approve() could not resolve the base token address from /metadata/obv3")) ;
             }
-            Object spender = null;
-            List<Object> spenderparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "approve", "spender", "transferToProxySpender", executorAddress);
-            spender = ((List<Object>) spenderparametersVariable).get(0);
+            String spender = null;
+            List<Object> spenderparametersVariable = (List<Object>) this.handleOptionStringAndParams2(parameters, "approve", "spender", "transferToProxySpender", (String) (executorAddress));
+            spender = (String) ((List<Object>) spenderparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) spenderparametersVariable).get(1);
             if (java.util.Objects.equals(spender, null))
             {
@@ -1088,7 +1088,7 @@ final Object finalOi = oi;
         put( "type", "uint256" );
     }})) );
             }};
-            final Object finalSpender = spender;
+            final String finalSpender = spender;
             Map<String, Object> messageData = new HashMap<String, Object>() {{
                 put( "owner", owner );
                 put( "spender", finalSpender );
@@ -1222,9 +1222,9 @@ final Object finalOi = oi;
             {
                 defaultTif = "GTC";
             }
-            Object timeInForce = null;
-            List<Object> timeInForceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "timeInForce", defaultTif);
-            timeInForce = ((List<Object>) timeInForceparametersVariable).get(0);
+            String timeInForce = null;
+            List<Object> timeInForceparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce", defaultTif);
+            timeInForce = (String) ((List<Object>) timeInForceparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) timeInForceparametersVariable).get(1);
             // an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
             // that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
@@ -1274,7 +1274,7 @@ final Object finalOi = oi;
             Object encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
             Object digest = this.hashEip712Digest(encoded);
             Object orderSignature = this.signDigest(digest, this.privateKey);
-            final Object finalTimeInForce = timeInForce;
+            final String finalTimeInForce = timeInForce;
             Map<String, Object> orderItem = new HashMap<String, Object>() {{
                 put( "marketHash", marketHash );
                 put( "maker", maker );

@@ -2988,13 +2988,13 @@ impl UpbitCore {
                     m.insert("nonce".to_string(), nonce);
                 m
             });
-            let mut hasQuery: Value = Value::Int(object_keys(&query).len() as i64);
+            let mut hasQuery: f64 = ((object_keys(&query).len() as i64) as f64);
             let mut auth: Value = Value::Null;
             if (method.as_str() != Some("GET")) && (method.as_str() != Some("DELETE")) {
                 body = json_stringify(&params);
                 if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
             }
-            if (hasQuery != Value::Null) && (hasQuery.as_f64() != Some(0.0)) {
+            if (hasQuery != 0.0) {
                 auth = self.rawencode(query, &[]);
             }
             if (auth != Value::Null) {

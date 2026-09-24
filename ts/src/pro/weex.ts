@@ -1755,7 +1755,7 @@ export default class weex extends weexRest {
             account['free'] = this.safeString2 (entry, 'available', 'amount');
             account['used'] = this.safeString (entry, 'frozen');
             account['total'] = this.safeString2 (entry, 'equity', 'legacyAmount');
-            if ((accountType !== undefined) && (code !== undefined)) {
+            if (code !== undefined) {
                 this.balance[accountType][code] = account;
             }
         }

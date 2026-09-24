@@ -491,9 +491,9 @@ public partial class lighter : Exchange
         {
             return signer;
         }
-        object libraryPath = null;
-        IList<object> libraryPathparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "loadAccount", "libraryPath");
-        libraryPath = libraryPathparametersVariable[0];
+        string? libraryPath = null;
+        IList<object> libraryPathparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "loadAccount", "libraryPath");
+        libraryPath = (string)libraryPathparametersVariable[0];
         parameters = libraryPathparametersVariable[1];
         bool lighterPrivateKeyIsSet = ((privateKey != null)) && (!isEqual(privateKey, ""));
         if (lighterPrivateKeyIsSet && ((libraryPath != null)) && ((apiKeyIndex != null)) && ((accountIndex != null)))
@@ -953,7 +953,7 @@ public partial class lighter : Exchange
         IList<object> nonceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "nonce");
         nonce = nonceparametersVariable[0];
         parameters = nonceparametersVariable[1];
-        IList<object> orderExpiryparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "orderExpiry", 0);
+        IList<object> orderExpiryparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "createOrder", "orderExpiry", 0);
         orderExpiry = orderExpiryparametersVariable[0];
         parameters = orderExpiryparametersVariable[1];
         if (!isEqual(nonce, null))
@@ -1149,9 +1149,9 @@ public partial class lighter : Exchange
         parameters = ((IList<object>)accountIndexparametersVariable)[1];
         ((IDictionary<string,object>)parameters)["accountIndex"] = accountIndex;
         Dictionary<string, object> market = this.market(symbol);
-        object groupingType = null;
-        IList<object> groupingTypeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, method, "groupingType", 3);
-        groupingType = groupingTypeparametersVariable[0];
+        Int64? groupingType = null;
+        IList<object> groupingTypeparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, method, "groupingType", 3);
+        groupingType = (Int64?)groupingTypeparametersVariable[0];
         parameters = groupingTypeparametersVariable[1]; // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         List<object> orderRequests = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         int totalOrderRequests = (orderRequests?.Count ?? 0);
@@ -1467,7 +1467,10 @@ public partial class lighter : Exchange
             object market = markets[i];
             string? id = this.safeString(market, "market_id");
             string? type = this.safeString(market, "market_type");
-            type = (type == "perp") ? "swap" : type;
+            if (type == "perp")
+            {
+                type = "swap";
+            }
             object baseId = this.safeString(market, "symbol");
             if ((baseId != null) && (((string)baseId).IndexOf("/", StringComparison.Ordinal) != -1))
             {
@@ -3380,11 +3383,11 @@ public partial class lighter : Exchange
         {
             request["limit"] = mathMin(limit, 100);
         }
-        object until = null;
-        IList<object> untilparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "fetchMyTrades", "until", "from");
-        until = untilparametersVariable[0];
+        Int64? until = null;
+        IList<object> untilparametersVariable = (IList<object>)this.handleOptionIntegerAndParams2(parameters, "fetchMyTrades", "until", "from");
+        until = (Int64?)untilparametersVariable[0];
         parameters = untilparametersVariable[1];
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["from"] = until;
         }

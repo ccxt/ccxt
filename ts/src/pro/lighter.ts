@@ -1597,7 +1597,7 @@ export default class lighter extends lighterRest {
         this.cleanCache (ordersStructure);
     }
 
-    handlePing (client: Client, message: any) {
+    handlePing (client: Client, message: Dict) {
         //
         //     { "type": "ping" }
         //

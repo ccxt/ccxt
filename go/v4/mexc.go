@@ -2434,7 +2434,7 @@ func (this *Mexc) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		//         }
 		//     }
 		//
-		var data any = this.SafeValue(response, "data")
+		var data map[string]any = SafeMapTyped(response, "data")
 		candles = this.ConvertTradingViewToOHLCV(data, "time", "open", "high", "low", "close", "vol")
 	}
 
@@ -4809,7 +4809,7 @@ func (this *Mexc) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		var symbol *string = this.SafeString(params, "symbol")
 		if symbol == nil {
 			var symbols []any = SafeListTyped(params, "symbols")
-			if !IsEqual(symbols, nil) {
+			if symbols != nil {
 				var symbolIds any = this.MarketIds(symbols)
 				if !IsEqual(symbolIds, nil) {
 					parsedSymbols = Join(symbolIds, ",")

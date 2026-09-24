@@ -2507,11 +2507,11 @@ final String finalBase = base;
             {
                 (this.loadMarkets()).join();
             }
-            Object codGroupId = null;
-            List<Object> codGroupIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrdersAfter", "codGroupId", 1);
-            codGroupId = ((List<Object>) codGroupIdparametersVariable).get(0);
+            Long codGroupId = null;
+            List<Object> codGroupIdparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "cancelAllOrdersAfter", "codGroupId", 1);
+            codGroupId = (Long) ((List<Object>) codGroupIdparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) codGroupIdparametersVariable).get(1);
-            final Object finalCodGroupId = codGroupId;
+            final Long finalCodGroupId = codGroupId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "codGroupId", finalCodGroupId );
                 put( "expiryAfterSeconds", (((Helpers.isGreaterThan(timeout, 0)))) ? ((Object) Bitvavo.this.parseToInt(Helpers.divide(timeout, 1000))) : 0 );
@@ -3528,7 +3528,7 @@ final String finalBase = base;
         //         "txId":"0x5167b473fd37811f9ef22364c3d54726a859ef9d98934b3a1e11d7baa8d2c2e2"
         //     }
         //
-        Object id = null;
+        List<String> id = null;
         Long timestamp = this.safeInteger(transaction, "timestamp");
         String currencyId = this.safeString(transaction, "symbol");
         String code = this.safeCurrencyCode(currencyId, currency);

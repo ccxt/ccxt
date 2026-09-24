@@ -904,7 +904,7 @@ public partial class hashkey : ccxt.hashkey
         Dictionary<string, object> account = this.account();
         account["free"] = this.safeString(balanceUpdate, "f");
         account["used"] = this.safeString(balanceUpdate, "l");
-        if (((type != null)) && ((code != null)))
+        if ((code != null))
         {
             ((IDictionary<string,object>)getValue(this.balance, type))[(string)code] = account;
         }

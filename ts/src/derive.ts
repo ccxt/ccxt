@@ -1311,7 +1311,7 @@ export default class derive extends Exchange {
             subaccountId,
             orderSideIsBuy,
         ]), keccak, 'binary');
-        let deriveWalletAddress: Str | Dict = undefined;
+        let deriveWalletAddress: Str = undefined;
         [ deriveWalletAddress, params ] = this.handleDeriveWalletAddress ('createOrder', params);
         const signature = this.signOrder ([
             ACTION_TYPEHASH,
@@ -1501,7 +1501,7 @@ export default class derive extends Exchange {
             subaccountId,
             orderSideIsBuy,
         ]), keccak, 'binary');
-        let deriveWalletAddress: Str | Dict = undefined;
+        let deriveWalletAddress: Str = undefined;
         [ deriveWalletAddress, params ] = this.handleDeriveWalletAddress ('editOrder', params);
         const signature = this.signOrder ([
             ACTION_TYPEHASH,
@@ -2502,7 +2502,7 @@ export default class derive extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let deriveWalletAddress: Str | Dict = undefined;
+        let deriveWalletAddress: Str = undefined;
         [ deriveWalletAddress, params ] = this.handleDeriveWalletAddress ('fetchBalance', params);
         const request: Dict = {
             'wallet': deriveWalletAddress,
@@ -2748,7 +2748,7 @@ export default class derive extends Exchange {
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a subaccount_id parameter inside \'params\' or exchange.options[\'subaccount_id\']=ID.');
     }
 
-    handleDeriveWalletAddress (methodName: string, params: Dict) {
+    handleDeriveWalletAddress (methodName: string, params: Dict): [Str, Dict] {
         let deriveWalletAddress: Str = undefined;
         [ deriveWalletAddress, params ] = this.handleOptionStringAndParams (params, methodName, 'deriveWalletAddress');
         if ((deriveWalletAddress !== undefined) && (deriveWalletAddress !== '')) {

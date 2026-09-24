@@ -798,13 +798,10 @@ func (this *Whitebit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 func (this *Whitebit) ParseMarket(market any) any {
 	var id *string = this.SafeString(market, "name")
 	var baseId *string = this.SafeString(market, "stock")
-	var quoteId any = DerefScalar(this.SafeString(market, "money"))
-	quoteId = func() any {
-		if IsEqual(quoteId, "PERP") {
-			return "USDT"
-		}
-		return quoteId
-	}()
+	var quoteId *string = this.SafeString(market, "money")
+	if quoteId != nil && *quoteId == "PERP" {
+		quoteId = SafeStringPtr("USDT")
+	}
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var active *bool = this.SafeBool(market, "tradesEnabled")
@@ -1274,7 +1271,7 @@ func (this *Whitebit) ParseDepositWithdrawFees(response any, optionalArgs ...any
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (code != nil) && ((codes == nil) || (this.InArray(code, codes))) {
 			var depositWithdrawFee map[string]any = SafeMapTyped(depositWithdrawFees, code)
-			if IsEqual(depositWithdrawFee, nil) {
+			if depositWithdrawFee == nil {
 				AddElementToObject(depositWithdrawFees, code, this.DepositWithdrawFee(map[string]any{}))
 			}
 			AddElementToObject(GetValue(GetValue(depositWithdrawFees, code), "info"), entry, feeInfo)
@@ -2051,7 +2048,7 @@ func (this *Whitebit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var method any = nil
-	var methodparamsVariable []any = this.HandleOptionAndParams(params, "fetchTickers", "method", method)
+	var methodparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchTickers", "method", method)
 	method = GetValue(methodparamsVariable, 0)
 	params = MapTyped(GetValue(methodparamsVariable, 1))
 	if method == nil {
@@ -2127,7 +2124,7 @@ func (this *Whitebit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(response)
 	}
 	var resultList []any = SafeListTyped(response, "result")
-	if !IsEqual(resultList, nil) {
+	if resultList != nil {
 
 		ch <- this.ParseTickers(resultList, symbols)
 		return nil
@@ -2626,9 +2623,9 @@ func (this *Whitebit) createMarketOrderWithCostBody(ch chan any, symbol any, sid
 		"cost": cost,
 	}
 
-	var retRes200515 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", side, 0, nil, this.Extend(req, params)))))
+	var retRes200715 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", side, 0, nil, this.Extend(req, params)))))
 	// only buy side is supported
-	ch <- BoxAbsent(retRes200515)
+	ch <- BoxAbsent(retRes200715)
 	return nil
 }
 
@@ -2652,8 +2649,8 @@ func (this *Whitebit) createMarketBuyOrderWithCostBody(ch chan any, symbol any, 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes201815 map[string]any = MapTyped(PanicOnError((<-this.CreateMarketOrderWithCostAsync(symbol, "buy", cost, params))))
-	ch <- BoxAbsent(retRes201815)
+	var retRes202015 map[string]any = MapTyped(PanicOnError((<-this.CreateMarketOrderWithCostAsync(symbol, "buy", cost, params))))
+	ch <- BoxAbsent(retRes202015)
 	return nil
 }
 
@@ -5436,8 +5433,8 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes422319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, maxLimit))))
-		ch <- BoxAbsent(retRes422319)
+		var retRes422519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, maxLimit))))
+		ch <- BoxAbsent(retRes422519)
 		return nil
 	}
 	if this.Markets == nil {
@@ -5563,7 +5560,7 @@ func (this *Whitebit) HandleErrors(code any, reason any, url any, method any, he
 		// For these cases where we have a generic code variable error key
 		// {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
 		var codeNew *int64 = this.SafeInteger(response, "code")
-		var hasErrorStatus bool = (status != nil) && (status == nil || *status != "200") && !IsEqual(errors, nil)
+		var hasErrorStatus bool = (status != nil) && (status == nil || *status != "200") && (errors != nil)
 		if hasErrorStatus || (codeNew != nil) {
 			var feedback any = Add(this.Id+" ", body)
 			var errorInfo any = message

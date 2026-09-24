@@ -1003,7 +1003,7 @@ public partial class alpaca : Exchange
         paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         object paginationCalls = 10;
-        IList<object> paginationCallsparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginationCalls", 10);
+        IList<object> paginationCallsparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "paginationCalls", 10);
         paginationCalls = paginationCallsparametersVariable[0];
         parameters = paginationCallsparametersVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {

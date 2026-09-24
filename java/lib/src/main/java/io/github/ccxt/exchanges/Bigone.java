@@ -1112,7 +1112,7 @@ public class Bigone extends BigoneApi
             {
                 if (!java.util.Objects.equals(symbols, null))
                 {
-                    Object ids = this.marketIds(symbols);
+                    List<String> ids = this.marketIds(symbols);
                     ((Map<String, Object>)request).put("pair_names", String.join(",", (List<String>)ids));
                 }
                 Map<String, Object> response = (this.publicGetAssetPairsTickers(this.extend(request, parameters))).join();

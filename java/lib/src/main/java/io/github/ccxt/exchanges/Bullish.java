@@ -1729,9 +1729,9 @@ public class Bullish extends BullishApi
         return BaseExchange.supplyAsync(() -> {
             Object method = method3;
             Map<String, Object> parameters = parameters3;
-            Object maxRetries = null;
-            List<Object> maxRetriesparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, method, "maxRetries", 3);
-            maxRetries = ((List<Object>) maxRetriesparametersVariable).get(0);
+            Long maxRetries = null;
+            List<Object> maxRetriesparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "maxRetries", 3);
+            maxRetries = (Long) ((List<Object>) maxRetriesparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) maxRetriesparametersVariable).get(1);
             if ((!java.util.Objects.equals(method, "fetchOHLCV")) && (!java.util.Objects.equals(method, "fetchFundingRateHistory")) && (!java.util.Objects.equals(method, "fetchTrades")))
             {
@@ -3141,9 +3141,9 @@ public class Bullish extends BullishApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Map<String, Object> parameters = parameters3;
-            Object tradingAccountId = null;
-            List<Object> tradingAccountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "loadAccount", "tradingAccountId");
-            tradingAccountId = ((List<Object>) tradingAccountIdparametersVariable).get(0);
+            String tradingAccountId = null;
+            List<Object> tradingAccountIdparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "loadAccount", "tradingAccountId");
+            tradingAccountId = (String) ((List<Object>) tradingAccountIdparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) tradingAccountIdparametersVariable).get(1);
             if (java.util.Objects.equals(tradingAccountId, null))
             {

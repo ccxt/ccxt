@@ -670,7 +670,7 @@ public partial class paradex : ccxt.paradex
             {
                 string feedback = ((this.id + " ") + this.json(error));
                 this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), "-32600", feedback);
-                object messageString = this.safeValue(error, "message");
+                string? messageString = this.safeString(error, "message");
                 if ((messageString != null))
                 {
                     this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), messageString, feedback);

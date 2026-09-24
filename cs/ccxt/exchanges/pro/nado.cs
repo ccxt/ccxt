@@ -1245,9 +1245,9 @@ public partial class nado : ccxt.nado
             }
             return authenticated;
         }
-        object recvWindow = null;
-        IList<object> recvWindowparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "authenticate", "recvWindow", 5000);
-        recvWindow = recvWindowparametersVariable[0];
+        Int64? recvWindow = null;
+        IList<object> recvWindowparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "authenticate", "recvWindow", 5000);
+        recvWindow = (Int64?)recvWindowparametersVariable[0];
         parameters = recvWindowparametersVariable[1];
         string? subaccount = null;
         IList<object> subaccountparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "authenticate", "subaccount", "default");
@@ -1255,7 +1255,7 @@ public partial class nado : ccxt.nado
         parameters = subaccountparametersVariable[1];
         Int64 id = this.requestId();
         string sender = this.createSubaccount(this.walletAddress, subaccount);
-        object expiration = this.sum(this.milliseconds(), recvWindow);
+        Int64 expiration = this.sum(this.milliseconds(), recvWindow);
         Dictionary<string, object> tx = new Dictionary<string, object>() {
             { "sender", sender },
             { "expiration", this.numberToString(expiration) },

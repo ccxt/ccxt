@@ -2997,7 +2997,7 @@ public class Gate extends GateApi
     {
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, type, new HashMap<String, Object>() {{}}); // [ 'BTC', 'USDT' ] unified codes
         Map<String, Object> fetchMarketsContractOptions = (Map<String, Object>) this.safeDict(options, method, new HashMap<String, Object>() {{}});
-        List<Object> defaultSettle = (((java.util.Objects.equals(type, "swap")))) ? new ArrayList<Object>(Arrays.asList("usdt")) : new ArrayList<Object>(Arrays.asList("btc"));
+        List<String> defaultSettle = (((java.util.Objects.equals(type, "swap")))) ? new ArrayList<String>(Arrays.asList("usdt")) : new ArrayList<String>(Arrays.asList("btc"));
         return this.safeList(fetchMarketsContractOptions, "settlementCurrencies", defaultSettle);
     }
 

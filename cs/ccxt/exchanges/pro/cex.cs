@@ -1608,7 +1608,7 @@ public partial class cex : ccxt.cex
         //    "ok": "ok"
         //    }
         //
-        object data = this.safeValue(message, "data");
+        List<object> data = this.safeList(message, "data");
         string? messageHash = this.safeString(message, "oid");
         client.resolve(data, messageHash);
     }

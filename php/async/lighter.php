@@ -409,7 +409,7 @@ class lighter extends Exchange {
             return $signer;
         }
         $libraryPath = null;
-        list($libraryPath, $params) = $this->handle_option_and_params($params, 'loadAccount', 'libraryPath');
+        list($libraryPath, $params) = $this->handle_option_string_and_params($params, 'loadAccount', 'libraryPath');
         $lighterPrivateKeyIsSet = ($privateKey !== null) && ($privateKey !== '');
         if ($lighterPrivateKeyIsSet && ($libraryPath !== null) && ($apiKeyIndex !== null) && ($accountIndex !== null)) {
             // load lighter library, and create lighter client
@@ -798,7 +798,7 @@ class lighter extends Exchange {
         list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'createOrder', 'apiKeyIndex', 'api_key_index');
         list($accountIndex, $params) = $this->handle_option_and_params_2($params, 'createOrder', 'accountIndex', 'account_index');
         list($nonce, $params) = $this->handle_option_and_params($params, 'createOrder', 'nonce');
-        list($orderExpiry, $params) = $this->handle_option_and_params($params, 'createOrder', 'orderExpiry', 0);
+        list($orderExpiry, $params) = $this->handle_option_integer_and_params($params, 'createOrder', 'orderExpiry', 0);
         if ($nonce !== null) {
             $request['nonce'] = $nonce;
         }
@@ -961,7 +961,7 @@ class lighter extends Exchange {
         $params['accountIndex'] = $accountIndex;
         $market = $this->market($symbol);
         $groupingType = null;
-        list($groupingType, $params) = $this->handle_option_and_params($params, $method, 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
+        list($groupingType, $params) = $this->handle_option_integer_and_params($params, $method, 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         $orderRequests = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $totalOrderRequests = count($orderRequests);
         $apiKeyIndex = null;
@@ -1263,7 +1263,9 @@ class lighter extends Exchange {
             $market = $markets[$i];
             $id = $this->safe_string($market, 'market_id');
             $type = $this->safe_string($market, 'market_type');
-            $type = ($type === 'perp') ? 'swap' : $type;
+            if ($type === 'perp') {
+                $type = 'swap';
+            }
             $baseId = $this->safe_string($market, 'symbol');
             if ($baseId !== null && mb_strpos($baseId, '/') !== -1) {
                 $baseId = explode('/', $baseId)[0];
@@ -3062,7 +3064,7 @@ class lighter extends Exchange {
             $request['limit'] = min($limit, 100);
         }
         $until = null;
-        list($until, $params) = $this->handle_option_and_params_2($params, 'fetchMyTrades', 'until', 'from');
+        list($until, $params) = $this->handle_option_integer_and_params_2($params, 'fetchMyTrades', 'until', 'from');
         if ($until !== null) {
             $request['from'] = $until;
         }

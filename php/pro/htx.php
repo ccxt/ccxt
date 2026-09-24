@@ -468,7 +468,7 @@ class htx extends \ccxt\async\htx {
                 $this->ohlcvs[$symbol][$timeframe] = $stored;
             }
         }
-        $tick = $this->safe_value($message, 'tick');
+        $tick = $this->safe_dict($message, 'tick');
         $parsed = $this->parse_ohlcv($tick, $market);
         $stored->append($parsed);
         $client->resolve($stored, $ch);
@@ -1682,7 +1682,7 @@ class htx extends \ccxt\async\htx {
             if ($type === 'spot') {
                 $type = 'future';
             }
-            list($subType, $params) = $this->handle_option_and_params($params, 'watchPositions', 'subType', $subType);
+            list($subType, $params) = $this->handle_option_string_and_params($params, 'watchPositions', 'subType', $subType);
         }
         $symbols = $this->market_symbols($symbols);
         $marginMode = null;

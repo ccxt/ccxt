@@ -4957,7 +4957,7 @@ public class Coinex extends CoinexApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbols, null))
             {
-                Object marketIds = this.marketIds(symbols);
+                List<String> marketIds = this.marketIds(symbols);
                 ((Map<String, Object>)request).put("market", String.join(",", (List<String>)marketIds));
             }
             Map<String, Object> response = (this.v2PublicGetFuturesPositionLevel(this.extend(request, parameters))).join();
@@ -5570,7 +5570,7 @@ final Object finalI = i;
                 {
                     throw new BadSymbol((this.id + " fetchFundingRates() supports swap contracts only")) ;
                 }
-                Object marketIds = this.marketIds(symbols);
+                List<String> marketIds = this.marketIds(symbols);
                 ((Map<String, Object>)request).put("market", String.join(",", (List<String>)marketIds));
             }
             Map<String, Object> response = (this.v2PublicGetFuturesFundingRate(this.extend(request, parameters))).join();

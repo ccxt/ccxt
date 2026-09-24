@@ -3048,7 +3048,7 @@ func (this *Upbit) Sign(path any, optionalArgs ...any) any {
 			body = this.Json(params)
 			AddElementToObject(headers, "Content-Type", "application/json")
 		}
-		if (!IsEqual(hasQuery, nil)) && (hasQuery != 0) {
+		if hasQuery != 0 {
 			auth = this.Rawencode(query)
 		}
 		if auth != nil {
@@ -3082,7 +3082,7 @@ func (this *Upbit) HandleErrors(httpCode any, reason any, url any, method any, h
 	//   { 'error': { 'message': "Jwt 토큰 검증에 실패했습니다.", 'name': "jwt_verification" } }
 	//
 	var error map[string]any = SafeMapTyped(response, "error")
-	if !IsEqual(error, nil) {
+	if error != nil {
 		var message *string = this.SafeString(error, "message")
 		var name *string = this.SafeString(error, "name")
 		var feedback any = Add(this.Id+" ", body)

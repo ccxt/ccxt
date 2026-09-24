@@ -1480,11 +1480,11 @@ public class Pacifica extends PacificaApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object aggLevel = null;
-            List<Object> aggLevelparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrderBook", "aggLevel", 1);
-            aggLevel = ((List<Object>) aggLevelparametersVariable).get(0);
+            Long aggLevel = null;
+            List<Object> aggLevelparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOrderBook", "aggLevel", 1);
+            aggLevel = (Long) ((List<Object>) aggLevelparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) aggLevelparametersVariable).get(1);
-            final Object finalAggLevel = aggLevel;
+            final Long finalAggLevel = aggLevel;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "agg_level", finalAggLevel );
@@ -4794,12 +4794,12 @@ public class Pacifica extends PacificaApi
             List<Object> timestampparametersVariable = (List<Object>) this.handleParamInteger(parameters, "timestamp", this.milliseconds());
             timestamp = (Long) ((List<Object>) timestampparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) timestampparametersVariable).get(1);
-            Object expiryWindow = null;
-            List<Object> expiryWindowparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "createSubAccount", "expiryWindow", "expiry_window", 5000);
-            expiryWindow = ((List<Object>) expiryWindowparametersVariable).get(0);
+            Long expiryWindow = null;
+            List<Object> expiryWindowparametersVariable = (List<Object>) this.handleOptionIntegerAndParams2(parameters, "createSubAccount", "expiryWindow", "expiry_window", 5000);
+            expiryWindow = (Long) ((List<Object>) expiryWindowparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) expiryWindowparametersVariable).get(1);
             final Long finalTimestamp = timestamp;
-            final Object finalExpiryWindow = expiryWindow;
+            final Long finalExpiryWindow = expiryWindow;
             Map<String, Object> subaccountSignatureHeader = new HashMap<String, Object>() {{
                 put( "timestamp", finalTimestamp );
                 put( "expiry_window", finalExpiryWindow );
@@ -5181,12 +5181,12 @@ public class Pacifica extends PacificaApi
                 }
             }
         }
-        Object expiryWindow = null;
-        List<Object> expiryWindowparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "postActionRequest", "expiryWindow", "expiry_window", 5000);
-        expiryWindow = ((List<Object>) expiryWindowparametersVariable).get(0);
+        Long expiryWindow = null;
+        List<Object> expiryWindowparametersVariable = (List<Object>) this.handleOptionIntegerAndParams2(parameters, "postActionRequest", "expiryWindow", "expiry_window", 5000);
+        expiryWindow = (Long) ((List<Object>) expiryWindowparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) expiryWindowparametersVariable).get(1);
         Long timestamp = this.safeInteger(parameters, "timestamp", this.milliseconds());
-        final Object finalExpiryWindow = expiryWindow;
+        final Long finalExpiryWindow = expiryWindow;
         final String finalOperationType = operationType;
         Map<String, Object> signatureHeader = new HashMap<String, Object>() {{
             put( "timestamp", timestamp );

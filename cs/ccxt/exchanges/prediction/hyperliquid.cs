@@ -341,7 +341,7 @@ public partial class hyperliquid : PredictionExchange
                     }
                     int thresholdsLength = (thresholds?.Count ?? 0);
                     Int64? index = this.parseToInt(indexStr);
-                    if (thresholdsLength > 0 && (index != null))
+                    if (thresholdsLength > 0)
                     {
                         string? bucketLabel = null;
                         if (isLessThanOrEqual(index, 0))
@@ -1338,11 +1338,8 @@ public partial class hyperliquid : PredictionExchange
         {
             candidates.Add(("#" + (outcomeInput))); // encoding id without #
             Int64? numeric = this.parseToInt(outcomeInput);
-            if ((numeric != null))
-            {
-                candidates.Add(this.outcomeCoin(this.outcomeEncoding(numeric, 0))); // raw outcome id -> YES encoding
-                candidates.Add(this.outcomeCoin(this.outcomeEncoding(numeric, 1))); // raw outcome id -> NO encoding
-            }
+            candidates.Add(this.outcomeCoin(this.outcomeEncoding(numeric, 0))); // raw outcome id -> YES encoding
+            candidates.Add(this.outcomeCoin(this.outcomeEncoding(numeric, 1))); // raw outcome id -> NO encoding
         }
         for (int i = 0; i < (candidates?.Count ?? 0); i++)
         {
@@ -2574,11 +2571,11 @@ public partial class hyperliquid : PredictionExchange
         IList<object> userAuxparametersVariable = (IList<object>)this.handleOptionStringAndParams2(parameters, methodName, "user", "subAccountAddress");
         userAux = (string)userAuxparametersVariable[0];
         parameters = userAuxparametersVariable[1];
-        object user = userAux;
-        IList<object> userparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "address", userAux);
-        user = userparametersVariable[0];
+        string? user = userAux;
+        IList<object> userparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "address", userAux);
+        user = (string)userparametersVariable[0];
         parameters = userparametersVariable[1];
-        if ((user != null) && !isEqual(user, ""))
+        if ((user != null) && user != "")
         {
             return new List<object>() {user, parameters};
         }

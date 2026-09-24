@@ -1845,7 +1845,7 @@ class zebpay(Exchange, ImplicitAPI):
         access = self.safe_string(api, 0, 'public')
         if access == 'public':
             if method == 'GET' or method == 'DELETE':
-                if (queryLength is not None) and (queryLength != 0):
+                if queryLength != 0:
                     url += '?' + self.urlencode(query)
             else:
                 priceType = self.safe_string(params, 'priceType')

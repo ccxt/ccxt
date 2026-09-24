@@ -1574,7 +1574,7 @@ impl OnetradingCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        trade = self.safe_value_k(trade.clone(), "trade", &[trade.clone()]);
+        trade = self.safe_dict_k(trade.clone(), "trade", &[trade.clone()]);
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "trade_timestamp", &[]);
         if (timestamp == Value::Null) {
             timestamp = self.parse8601(self.safe_string_k(trade.clone(), "time", &[]));
@@ -1760,7 +1760,7 @@ impl OnetradingCore {
         //         ]
         //     }
         //
-        let mut rawOrder: Value = self.safe_value_k(order.clone(), "order", &[order.clone()]);
+        let mut rawOrder: Value = self.safe_dict_k(order.clone(), "order", &[order.clone()]);
         let mut id: Value = self.safe_string_k(rawOrder.clone(), "order_id", &[]);
         let mut clientOrderId: Value = self.safe_string_k(rawOrder.clone(), "client_id", &[]);
         let mut timestamp: Value = self.parse8601(self.safe_string_k(rawOrder.clone(), "time", &[]));

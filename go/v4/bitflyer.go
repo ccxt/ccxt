@@ -752,7 +752,7 @@ func (this *Bitflyer) ParseTrade(trade any, optionalArgs ...any) any {
 			order = this.SafeString(trade, idInner)
 		}
 	}
-	if IsEqual(order, nil) {
+	if order == nil {
 		order = this.SafeString(trade, "child_order_acceptance_id")
 	}
 	var timestamp *int64 = this.Parse8601(this.SafeString(trade, "exec_date"))

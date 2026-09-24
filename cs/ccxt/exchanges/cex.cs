@@ -1431,9 +1431,9 @@ public partial class cex : Exchange
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object accountId = null;
-        IList<object> accountIdparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "accountId");
-        accountId = accountIdparametersVariable[0];
+        string? accountId = null;
+        IList<object> accountIdparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "accountId");
+        accountId = (string)accountIdparametersVariable[0];
         parameters = accountIdparametersVariable[1];
         if ((accountId == null))
         {
@@ -1977,9 +1977,9 @@ public partial class cex : Exchange
     public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object accountId = null;
-        IList<object> accountIdparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "accountId");
-        accountId = accountIdparametersVariable[0];
+        string? accountId = null;
+        IList<object> accountIdparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "accountId");
+        accountId = (string)accountIdparametersVariable[0];
         parameters = accountIdparametersVariable[1];
         if ((accountId == null))
         {

@@ -1988,7 +1988,7 @@ func (this *Delta) ParseBalance(response any) any {
 		var currencyId *string = this.SafeString(balance, "asset_id")
 		var currency map[string]any = SafeMapTyped(currenciesByNumericId, currencyId)
 		var code any = func() any {
-			if IsEqual(currency, nil) {
+			if currency == nil {
 				return currencyId
 			}
 			return currency["code"]

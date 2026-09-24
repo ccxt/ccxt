@@ -1298,9 +1298,9 @@ public partial class pacifica : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object aggLevel = null;
-        IList<object> aggLevelparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrderBook", "aggLevel", 1);
-        aggLevel = aggLevelparametersVariable[0];
+        Int64? aggLevel = null;
+        IList<object> aggLevelparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOrderBook", "aggLevel", 1);
+        aggLevel = (Int64?)aggLevelparametersVariable[0];
         parameters = aggLevelparametersVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -3854,9 +3854,9 @@ public partial class pacifica : Exchange
         IList<object> timestampparametersVariable = (IList<object>)this.handleParamInteger(parameters, "timestamp", this.milliseconds());
         timestamp = (Int64?)timestampparametersVariable[0];
         parameters = timestampparametersVariable[1];
-        object expiryWindow = null;
-        IList<object> expiryWindowparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "createSubAccount", "expiryWindow", "expiry_window", 5000);
-        expiryWindow = expiryWindowparametersVariable[0];
+        Int64? expiryWindow = null;
+        IList<object> expiryWindowparametersVariable = (IList<object>)this.handleOptionIntegerAndParams2(parameters, "createSubAccount", "expiryWindow", "expiry_window", 5000);
+        expiryWindow = (Int64?)expiryWindowparametersVariable[0];
         parameters = expiryWindowparametersVariable[1];
         Dictionary<string, object> subaccountSignatureHeader = new Dictionary<string, object>() {
             { "timestamp", timestamp },
@@ -4159,9 +4159,9 @@ public partial class pacifica : Exchange
                 }
             }
         }
-        object expiryWindow = null;
-        IList<object> expiryWindowparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "postActionRequest", "expiryWindow", "expiry_window", 5000);
-        expiryWindow = expiryWindowparametersVariable[0];
+        Int64? expiryWindow = null;
+        IList<object> expiryWindowparametersVariable = (IList<object>)this.handleOptionIntegerAndParams2(parameters, "postActionRequest", "expiryWindow", "expiry_window", 5000);
+        expiryWindow = (Int64?)expiryWindowparametersVariable[0];
         parameters = expiryWindowparametersVariable[1];
         Int64? timestamp = this.safeInteger(parameters, "timestamp", this.milliseconds());
         Dictionary<string, object> signatureHeader = new Dictionary<string, object>() {

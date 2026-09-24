@@ -3028,7 +3028,7 @@ class htx(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         return self.parse_accounts(data)
 
     def parse_account(self, account: dict) -> Account:
@@ -3262,7 +3262,7 @@ class htx(Exchange, ImplicitAPI):
         type, params = self.handle_market_type_and_params('fetchBalance', None, params)
         subType = None
         isMultiAssetMode = None
-        subType, params = self.handle_option_and_params_2(params, 'fetchBalance', 'defaultSubType', 'subType')
+        subType, params = self.handle_option_string_and_params_2(params, 'fetchBalance', 'defaultSubType', 'subType')
         if subType is None:
             subType = 'linear'
         isMultiAssetMode, params = self.handle_option_bool_and_params(params, 'fetchBalance', 'multiAssetMode', False)
@@ -6925,7 +6925,7 @@ class htx(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         defaultSubType = 'linear'
         subType = None
-        subType, params = self.handle_option_and_params(params, 'fetchFundingRates', 'subType', defaultSubType)
+        subType, params = self.handle_option_string_and_params(params, 'fetchFundingRates', 'subType', defaultSubType)
         if symbols is not None:
             firstSymbol = self.safe_string(symbols, 0)
             market = self.market(firstSymbol)
@@ -8541,7 +8541,7 @@ class htx(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'Data', [])
-        loan = self.safe_value(data, 0)
+        loan = self.safe_dict(data, 0)
         transaction = self.parse_margin_loan(loan, currency)
         return self.extend(transaction, {
             'amount': amount,
@@ -8581,7 +8581,7 @@ class htx(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'Data', [])
-        loan = self.safe_value(data, 0)
+        loan = self.safe_dict(data, 0)
         transaction = self.parse_margin_loan(loan, currency)
         return self.extend(transaction, {
             'amount': amount,
