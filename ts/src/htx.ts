@@ -7236,7 +7236,7 @@ export default class htx extends Exchange {
                 });
             }
         } else {
-            const cursor = this.safeValue (data, 'current_page');
+            const cursor = this.safeInteger (data, 'current_page');
             const result = this.safeList (data, 'data', []);
             for (let i = 0; i < result.length; i++) {
                 const entry = result[i];
