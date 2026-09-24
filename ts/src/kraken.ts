@@ -8,7 +8,7 @@ import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 
 ;
-import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, CurrencyInterface, Market, TransferEntry, Num, Bool, TradingFeeInterface, Currencies, int, LedgerEntry, List, DepositAddress, Position, OrderRequest, NullableDict, FeeString, NullableList, Status, Endpoint } from './base/types.js';
+import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, CurrencyInterface, Market, MarketInterface, TransferEntry, Num, Bool, TradingFeeInterface, Currencies, int, LedgerEntry, List, DepositAddress, Position, OrderRequest, NullableDict, FeeString, NullableList, Status, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -991,13 +991,13 @@ export default class kraken extends Exchange {
         return this.parseTradingFee (result, market);
     }
 
-    parseTradingFee (response: Dict, market: any): TradingFeeInterface {
-        const makerFees = this.safeDict (response, 'fees_maker', {});
-        const takerFees = this.safeDict (response, 'fees', {});
+    parseTradingFee (fee: Dict, market: MarketInterface): TradingFeeInterface {
+        const makerFees = this.safeDict (fee, 'fees_maker', {});
+        const takerFees = this.safeDict (fee, 'fees', {});
         const symbolMakerFee = this.safeDict (makerFees, market['id'], {});
         const symbolTakerFee = this.safeDict (takerFees, market['id'], {});
         return {
-            'info': response,
+            'info': fee,
             'symbol': market['symbol'],
             'maker': this.parseNumber (Precise.stringDiv (this.safeString (symbolMakerFee, 'fee'), '100')),
             'taker': this.parseNumber (Precise.stringDiv (this.safeString (symbolTakerFee, 'fee'), '100')),
@@ -1055,13 +1055,13 @@ export default class kraken extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        let orderbook = this.safeValue (result, market['id']);
+        let orderbook = this.safeDict (result, market['id']);
         // sometimes kraken returns wsname instead of market id
         // https://github.com/ccxt/ccxt/issues/8662
         const marketInfo = this.safeDict (market, 'info', {});
         const wsName = this.safeString (marketInfo, 'wsname');
         if (wsName !== undefined) {
-            orderbook = this.safeValue (result, wsName, orderbook);
+            orderbook = this.safeDict (result, wsName, orderbook);
         }
         return this.parseOrderBook (orderbook, symbol);
     }
@@ -3408,7 +3408,7 @@ export default class kraken extends Exchange {
         return this.parseDepositAddress (firstResult, currency);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "address":"0x77b5051f97efa9cc52c9ad5b023a53fc15c200d3",

@@ -4908,7 +4908,7 @@ export default class hyperliquid extends Exchange {
         return this.parseIncomes (response, market, since, limit);
     }
 
-    override parseIncome (income: any, market: Market = undefined): Dict {
+    override parseIncome (income: Dict, market: Market = undefined): Dict {
         //
         // {
         //     "time": 1734026400057,

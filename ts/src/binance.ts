@@ -3954,7 +3954,7 @@ export default class binance extends Exchange {
         return this.safeMarketStructure (entry);
     }
 
-    parseBalanceHelper (entry: any) {
+    parseBalanceHelper (entry: Dict) {
         const account = this.account ();
         account['used'] = this.safeString (entry, 'locked');
         account['free'] = this.safeString (entry, 'free');
@@ -4857,7 +4857,7 @@ export default class binance extends Exchange {
         return this.parseLastPrices (response, symbols);
     }
 
-    override parseLastPrice (entry: any, market: Market = undefined): LastPrice {
+    override parseLastPrice (entry: Dict, market: Market = undefined): LastPrice {
         //
         // spot
         //
@@ -9591,7 +9591,7 @@ export default class binance extends Exchange {
         return this.parseTransactions (responseList, currency, since, limit);
     }
 
-    parseTransactionStatusByType (status: any, type: Str = undefined) {
+    parseTransactionStatusByType (status: Str, type: Str = undefined) {
         if (type === undefined) {
             return status;
         }
@@ -9874,7 +9874,7 @@ export default class binance extends Exchange {
         };
     }
 
-    override parseIncome (income: any, market: Market = undefined): object {
+    override parseIncome (income: Dict, market: Market = undefined): object {
         //
         //     {
         //       "symbol": "ETHUSDT",
@@ -10197,7 +10197,7 @@ export default class binance extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    override parseDepositAddress (response: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (response: Dict, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "coin": "XRP",
@@ -11118,7 +11118,7 @@ export default class binance extends Exchange {
         return result;
     }
 
-    parseAccountPosition (position: any, market: Market = undefined) {
+    parseAccountPosition (position: Dict, market: Market = undefined) {
         //
         // usdm
         //
@@ -11371,7 +11371,7 @@ export default class binance extends Exchange {
         };
     }
 
-    parsePositionRisk (position: any, market: Market = undefined) {
+    parsePositionRisk (position: Dict, market: Market = undefined) {
         //
         // usdm
         //
@@ -12747,7 +12747,7 @@ export default class binance extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    parseSettlement (settlement: any, market: any) {
+    parseSettlement (settlement: Dict, market: Market) {
         //
         // fetchSettlementHistory
         //
@@ -12789,7 +12789,7 @@ export default class binance extends Exchange {
         };
     }
 
-    parseSettlements (settlements: any, market: any) {
+    parseSettlements (settlements: any[], market: Market) {
         //
         // fetchSettlementHistory
         //
@@ -13033,7 +13033,7 @@ export default class binance extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type: any) {
+    parseLedgerEntryType (type: Str) {
         const ledgerType: Dict = {
             'FEE': 'fee',
             'FUNDING_FEE': 'fee',
@@ -13653,7 +13653,7 @@ export default class binance extends Exchange {
         return this.parseBorrowRateHistory (response, code, since, limit);
     }
 
-    override parseBorrowRate (info: any, currency: Currency = undefined) {
+    override parseBorrowRate (info: NullableDict, currency: Currency = undefined) {
         //
         //    {
         //        "asset": "USDT",
@@ -14082,7 +14082,7 @@ export default class binance extends Exchange {
         return this.parseMarginLoan (response, currency);
     }
 
-    parseMarginLoan (info: any, currency: Currency = undefined): MarginLoan {
+    parseMarginLoan (info: Dict, currency: Currency = undefined): MarginLoan {
         //
         //     {
         //         "tranId": 108988250265,

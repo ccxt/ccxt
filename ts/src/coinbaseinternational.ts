@@ -670,7 +670,7 @@ export default class coinbaseinternational extends Exchange {
         return this.parseIncomes (fundings, market, since, limit);
     }
 
-    override parseIncome (income: any, market: Market = undefined): object {
+    override parseIncome (income: Dict, market: Market = undefined): object {
         //
         // {
         //     "amount":"0.0008",

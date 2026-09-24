@@ -810,7 +810,7 @@ export default class lbank extends Exchange {
         const market = this.market (symbol);
         if (market['swap'] === true) {
             const responseForSwap = await this.fetchTickers ([ market['symbol'] ], params);
-            return this.safeValue (responseForSwap, market['symbol']) as Ticker;
+            return this.safeDict (responseForSwap, market['symbol']) as Ticker;
         }
         const request: Dict = {
             'symbol': market['id'],
@@ -1457,7 +1457,7 @@ export default class lbank extends Exchange {
         }
         const market = this.market (symbol);
         const responseForSwap = await this.fetchFundingRates ([ market['symbol'] ], params);
-        return this.safeValue (responseForSwap, market['symbol']) as FundingRate;
+        return this.safeDict (responseForSwap, market['symbol']) as FundingRate;
     }
 
     /**

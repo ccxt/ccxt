@@ -3506,7 +3506,7 @@ export default class bitget extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "coin": "BTC",
@@ -5486,7 +5486,7 @@ export default class bitget extends Exchange {
                 let feeObject: NullableDict = undefined;
                 for (let i = 0; i < feeValues.length; i++) {
                     const feeValue = feeValues[i];
-                    if (this.safeValue (feeValue, 'feeCoinCode') !== undefined) {
+                    if (this.safeString (feeValue, 'feeCoinCode') !== undefined) {
                         feeObject = feeValue as Dict;
                         break;
                     }
@@ -9750,7 +9750,7 @@ export default class bitget extends Exchange {
         return this.parseFundingHistories (bills, market, since, limit);
     }
 
-    parseFundingHistory (contract: any, market: Market = undefined) {
+    parseFundingHistory (contract: Dict, market: Market = undefined) {
         //
         //     {
         //         "billId": "1111499428100472833",
@@ -11117,7 +11117,7 @@ export default class bitget extends Exchange {
         return this.parseBorrowRate (result, currency);
     }
 
-    override parseBorrowRate (info: any, currency: Currency = undefined) {
+    override parseBorrowRate (info: Dict, currency: Currency = undefined) {
         //
         // default
         //

@@ -2142,7 +2142,7 @@ export default class bitvavo extends Exchange {
         }
         const rawTrades = this.safeList (order, 'fills', []);
         const timeInForce = this.safeString (order, 'timeInForce');
-        const postOnly = this.safeValue (order, 'postOnly');
+        const postOnly = this.safeBool (order, 'postOnly');
         // https://github.com/ccxt/ccxt/issues/8489
         return this.safeOrder ({
             'info': order,

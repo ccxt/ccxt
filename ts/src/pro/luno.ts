@@ -215,7 +215,7 @@ export default class luno extends lunoRest {
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.indexedOrderBook ({});
         }
-        const asks = this.safeValue (message, 'asks');
+        const asks = this.safeList (message, 'asks');
         if (asks !== undefined) {
             const snapshot = this.customParseOrderBook (message, symbol, timestamp, 'bids', 'asks', 'price', 'volume', 'id');
             this.orderbooks[symbol] = this.indexedOrderBook (snapshot);
@@ -308,7 +308,7 @@ export default class luno extends lunoRest {
         //         "timestamp": 1660598775360
         //     }
         //
-        const createUpdate = this.safeValue (message, 'create_update');
+        const createUpdate = this.safeDict (message, 'create_update');
         const asksOrderSide = orderbook['asks'];
         const bidsOrderSide = orderbook['bids'];
         if (createUpdate !== undefined) {
@@ -320,7 +320,7 @@ export default class luno extends lunoRest {
                 bidsOrderSide.storeArray (bidAskArray);
             }
         }
-        const deleteUpdate = this.safeValue (message, 'delete_update');
+        const deleteUpdate = this.safeDict (message, 'delete_update');
         if (deleteUpdate !== undefined) {
             const orderId = this.safeString (deleteUpdate, 'order_id');
             asksOrderSide.storeArray ([ 0, 0, orderId ]);

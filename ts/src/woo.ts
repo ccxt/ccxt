@@ -2907,7 +2907,7 @@ export default class woo extends Exchange {
         return [ currentyNetworkId, params ];
     }
 
-    override parseDepositAddress (depositEntry: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositEntry: Dict, currency: Currency = undefined): DepositAddress {
         const address = this.safeString (depositEntry, 'address');
         this.checkAddress (address);
         const networkId = this.safeString (depositEntry, 'network');
@@ -3475,7 +3475,7 @@ export default class woo extends Exchange {
         });
     }
 
-    parseMarginLoan (info: any, currency: Currency = undefined): MarginLoan {
+    parseMarginLoan (info: Dict, currency: Currency = undefined): MarginLoan {
         //
         //     {
         //         "success": true,
@@ -3585,7 +3585,7 @@ export default class woo extends Exchange {
         return undefined;
     }
 
-    override parseIncome (income: any, market: Market = undefined): object {
+    override parseIncome (income: Dict, market: Market = undefined): object {
         //
         //     {
         //         "id": 1286360,

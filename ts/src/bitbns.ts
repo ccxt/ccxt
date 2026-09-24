@@ -576,7 +576,7 @@ export default class bitbns extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseStatus (status: any) {
+    parseStatus (status: Str) {
         const statuses: Dict = {
             '-1': 'cancelled',
             '0': 'open',
@@ -1157,7 +1157,7 @@ export default class bitbns extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    parseTransactionStatusByType (status: any, type: Str = undefined) {
+    parseTransactionStatusByType (status: Str, type: Str = undefined) {
         const statusesByType: Dict = {
             'deposit': {
                 '0': 'pending',

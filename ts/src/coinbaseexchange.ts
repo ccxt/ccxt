@@ -2047,12 +2047,12 @@ export default class coinbaseexchange extends Exchange {
     }
 
     parseTransactionStatus (transaction: Dict): string {
-        const canceled = this.safeValue (transaction, 'canceled_at');
+        const canceled = this.safeString (transaction, 'canceled_at');
         if ((canceled !== undefined) && (canceled !== null)) {
             return 'canceled';
         }
-        const processed = this.safeValue (transaction, 'processed_at');
-        const completed = this.safeValue (transaction, 'completed_at');
+        const processed = this.safeString (transaction, 'processed_at');
+        const completed = this.safeString (transaction, 'completed_at');
         if ((completed !== undefined) && (completed !== null)) {
             return 'ok';
         } else if ((processed !== undefined) && (processed !== null)) {

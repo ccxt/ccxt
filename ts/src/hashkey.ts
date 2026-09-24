@@ -1776,7 +1776,7 @@ export default class hashkey extends Exchange {
         return this.parseLastPrices (response, symbols);
     }
 
-    override parseLastPrice (entry: any, market: Market = undefined): LastPrice {
+    override parseLastPrice (entry: Dict, market: Market = undefined): LastPrice {
         const marketId = this.safeString (entry, 's');
         market = this.safeMarket (marketId, market);
         return {
@@ -1954,7 +1954,7 @@ export default class hashkey extends Exchange {
         return depositAddress as DepositAddress;
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "canDeposit": true,

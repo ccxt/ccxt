@@ -4419,7 +4419,7 @@ export default class coinbase extends Exchange {
         return this.indexBy (addressStructures, 'network') as DepositAddresses;
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //    {
         //        id: '64ceb5f1-5fa2-5310-a4ff-9fd46271003d',

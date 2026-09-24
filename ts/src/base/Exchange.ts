@@ -3551,7 +3551,7 @@ export class BaseExchange {
         return result;
     }
 
-    filterByLimit (array: any[], limit: Int = undefined, key: IndexType = 'timestamp', fromStart: boolean = false): any {
+    filterByLimit (array: any[], limit: Int = undefined, key: IndexType = 'timestamp', fromStart: boolean = false): any[] {
         if (this.valueIsDefined (limit)) {
             const arrayLength = array.length;
             if (arrayLength > 0) {
@@ -3586,7 +3586,7 @@ export class BaseExchange {
         return array;
     }
 
-    filterBySinceLimit (array: object[] | undefined, since: Int = undefined, limit: Int = undefined, key: IndexType = 'timestamp', tail = false): any {
+    filterBySinceLimit (array: object[] | undefined, since: Int = undefined, limit: Int = undefined, key: IndexType = 'timestamp', tail = false): any[] {
         if (array === undefined) {
             return [];
         }
@@ -3612,7 +3612,7 @@ export class BaseExchange {
         return this.filterByLimit (result, limit, key, shouldFilterFromStart);
     }
 
-    filterByValueSinceLimit (array: object[], field: IndexType, value: any = undefined, since: Int = undefined, limit: Int = undefined, key = 'timestamp', tail = false): any {
+    filterByValueSinceLimit (array: object[], field: IndexType, value: any = undefined, since: Int = undefined, limit: Int = undefined, key = 'timestamp', tail = false): any[] {
         const valueIsDefined = this.valueIsDefined (value);
         const sinceIsDefined = this.valueIsDefined (since);
         const parsedArray = this.toArray (array) as any;
@@ -3828,7 +3828,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseTicker() is not supported yet');
     }
 
-    parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         throw new NotSupported (this.id + ' parseDepositAddress() is not supported yet');
     }
 
@@ -5305,7 +5305,7 @@ export class BaseExchange {
         return '0x' + this.binaryToBase16 (this.base64ToBinary (this.stringToBase64 (str)));
     }
 
-    reduceFeesByCurrency (fees: any): any[] {
+    reduceFeesByCurrency (fees: any): Dict[] {
         //
         // this function takes a list of fee structures having the following format
         //
@@ -7289,7 +7289,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' fetchFundingHistory() is not supported yet');
     }
 
-    parseLastPrice (price: any, market: Market = undefined): LastPrice {
+    parseLastPrice (price: Dict, market: Market = undefined): LastPrice {
         throw new NotSupported (this.id + ' parseLastPrice() is not supported yet');
     }
 
@@ -7635,15 +7635,15 @@ export class BaseExchange {
         return currency['code'];
     }
 
-    filterBySymbolSinceLimit (array: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
+    filterBySymbolSinceLimit (array: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, tail = false): any[] {
         return this.filterByValueSinceLimit (array, 'symbol', symbol, since, limit, 'timestamp', tail);
     }
 
-    filterByCurrencySinceLimit (array: any, code: Str = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
+    filterByCurrencySinceLimit (array: any, code: Str = undefined, since: Int = undefined, limit: Int = undefined, tail = false): any[] {
         return this.filterByValueSinceLimit (array, 'currency', code, since, limit, 'timestamp', tail);
     }
 
-    filterBySymbolsSinceLimit (array: any, symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
+    filterBySymbolsSinceLimit (array: any, symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, tail = false): any[] {
         const result = this.filterByArray (array, 'symbol', symbols, false);
         return this.filterBySinceLimit (result, since, limit, 'timestamp', tail);
     }
@@ -8271,7 +8271,7 @@ export class BaseExchange {
         return fee;
     }
 
-    parseIncome (info: any, market: Market = undefined): object {
+    parseIncome (info: Dict, market: Market = undefined): object {
         throw new NotSupported (this.id + ' parseIncome () is not supported yet');
     }
 

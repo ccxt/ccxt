@@ -5399,7 +5399,7 @@ export default class okx extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "addr": "okbtothemoon",

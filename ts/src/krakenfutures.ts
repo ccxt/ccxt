@@ -1307,7 +1307,7 @@ export default class krakenfutures extends Exchange {
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         const triggerSignal = this.safeString (params, 'triggerSignal', 'last');
-        let reduceOnly = this.safeValue (params, 'reduceOnly');
+        let reduceOnly = this.safeBool (params, 'reduceOnly');
         if (isStopLossOrTakeProfitTrigger || isTriggerOrder) {
             request['triggerSignal'] = triggerSignal;
         }
@@ -2674,7 +2674,7 @@ export default class krakenfutures extends Exchange {
         return this.parseIncomes (logs, market, since, limit);
     }
 
-    override parseIncome (income: any, market: Market = undefined): object {
+    override parseIncome (income: Dict, market: Market = undefined): object {
         //
         //    {
         //        "asset": "usd",

@@ -1954,7 +1954,7 @@ export default class kucoin extends Exchange {
                 symbol = symbol + '-' + this.yymmdd (expiry, '');
                 type = 'future';
             }
-            const inverse = this.safeValue (market, 'isInverse');
+            const inverse = this.safeBool (market, 'isInverse');
             const status = this.safeString (market, 'status');
             const multiplier = this.safeString (market, 'multiplier');
             const tickSize = this.safeNumber (market, 'tickSize');
@@ -3714,7 +3714,7 @@ export default class kucoin extends Exchange {
         } as DepositAddress;
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         let address = this.safeString (depositAddress, 'address');
         // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
         if (address !== undefined) {
@@ -4387,7 +4387,7 @@ export default class kucoin extends Exchange {
         }
         const iceberg = this.safeValue (params, 'iceberg');
         if ((iceberg !== undefined) && (iceberg !== false)) {
-            const visibleSize = this.safeValue (params, 'visibleSize');
+            const visibleSize = this.safeString (params, 'visibleSize');
             if (visibleSize === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a visibleSize parameter for iceberg orders');
             }
@@ -9262,7 +9262,7 @@ export default class kucoin extends Exchange {
         return this.safeValue (config, 'cost', 1);
     }
 
-    override parseBorrowRate (info: any, currency: Currency = undefined) {
+    override parseBorrowRate (info: Dict, currency: Currency = undefined) {
         //
         //     {
         //         "tradeId": "62db2dcaff219600012b56cd",
@@ -9841,7 +9841,7 @@ export default class kucoin extends Exchange {
         return this.parseMarginLoan (data, currency);
     }
 
-    parseMarginLoan (info: any, currency: Currency = undefined): MarginLoan {
+    parseMarginLoan (info: Dict, currency: Currency = undefined): MarginLoan {
         //
         //     {
         //         "orderNo": "5da6dba0f943c0c81f5d5db5",

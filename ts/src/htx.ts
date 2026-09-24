@@ -6,7 +6,7 @@ import Exchange from './abstract/htx.js';
 import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RateLimitExceeded, RequestTimeout, OperationFailed, NotSupported, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, NullableDict, FeeString, List, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL, OpenInterest, Bool, SubType, CurrencyInterface, DepositWithdrawFees, Status, MarginLoan, Endpoint, DepositAddresses, LastPrice, LastPrices, Liquidation, FundingHistory } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, NullableDict, FeeString, List, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, MarketInterface, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL, OpenInterest, Bool, SubType, CurrencyInterface, DepositWithdrawFees, Status, MarginLoan, Endpoint, DepositAddresses, LastPrice, LastPrices, Liquidation, FundingHistory } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2336,7 +2336,7 @@ export default class htx extends Exchange {
         return this.parseLastPrices (data, symbols);
     }
 
-    override parseLastPrice (entry: any, market: Market = undefined): LastPrice {
+    override parseLastPrice (entry: Dict, market: Market = undefined): LastPrice {
         // example responses are documented in fetchLastPrices
         const marketId = this.safeString2 (entry, 'symbol', 'contract_code');
         market = this.safeMarket (marketId, market);
@@ -2868,7 +2868,7 @@ export default class htx extends Exchange {
         //
         let trades = this.safeValue (response, 'data');
         if (!Array.isArray (trades)) {
-            trades = this.safeValue (trades, 'trades');
+            trades = this.safeList (trades, 'trades');
         }
         return this.parseTrades (trades, market, since, limit);
     }
@@ -3875,7 +3875,7 @@ export default class htx extends Exchange {
         //
         let order = this.safeValue (response, 'data');
         if (Array.isArray (order)) {
-            order = this.safeValue (order, 0);
+            order = this.safeDict (order, 0);
         }
         return this.parseOrder (order, market);
     }
@@ -6385,7 +6385,7 @@ export default class htx extends Exchange {
         return response;
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined) {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined) {
         //
         //     {
         //         "currency": "usdt",
@@ -7522,7 +7522,7 @@ export default class htx extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         const interest = this.parseBorrowInterests (data, market);
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
@@ -7959,7 +7959,7 @@ export default class htx extends Exchange {
         return response;
     }
 
-    override parseIncome (income: any, market: Market = undefined): Dict {
+    override parseIncome (income: Dict, market: Market = undefined): Dict {
         //
         //     {
         //       "id": "1667161118",
@@ -8462,7 +8462,7 @@ export default class htx extends Exchange {
         return parsed;
     }
 
-    parseLedgerEntryType (type: any) {
+    parseLedgerEntryType (type: Str) {
         const types: Dict = {
             'trade': 'trade',
             'etf': 'trade',
@@ -9358,7 +9358,7 @@ export default class htx extends Exchange {
             return this.sortBy (settlementsLinear, 'timestamp');
         }
         const data = this.safeDict (response, 'data');
-        const settlementRecord = this.safeValue (data, 'settlement_record');
+        const settlementRecord = this.safeList (data, 'settlement_record');
         const settlements = this.parseSettlements (settlementRecord, market);
         return this.sortBy (settlements, 'timestamp');
     }
@@ -9486,7 +9486,7 @@ export default class htx extends Exchange {
         return result;
     }
 
-    parseSettlements (settlements: any, market: any) {
+    parseSettlements (settlements: any, market: MarketInterface) {
         //
         // coin-m swap, fetchSettlementHistory
         //
@@ -9560,7 +9560,7 @@ export default class htx extends Exchange {
         return result;
     }
 
-    parseSettlement (settlement: any, market: any) {
+    parseSettlement (settlement: Dict, market: Market) {
         //
         // coin-m swap, fetchSettlementHistory
         //

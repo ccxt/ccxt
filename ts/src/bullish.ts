@@ -2243,7 +2243,7 @@ export default class bullish extends Exchange {
         };
     }
 
-    parseTransactionType (type: any) {
+    parseTransactionType (type: Str) {
         const types: Dict = {
             'DEPOSIT': 'deposit',
             'WITHDRAW': 'withdrawal',
@@ -2442,7 +2442,7 @@ export default class bullish extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         const id = this.safeString (depositAddress, 'symbol');
         const network = this.safeString (depositAddress, 'network');
         const code = this.safeCurrencyCode (id, currency);
@@ -2838,7 +2838,7 @@ export default class bullish extends Exchange {
         return this.parseBorrowRateHistory (response, code, since, limit);
     }
 
-    override parseBorrowRate (info: any, currency: Currency = undefined): Dict {
+    override parseBorrowRate (info: Dict, currency: Currency = undefined): Dict {
         //
         //     {
         //         "assetId": "1",

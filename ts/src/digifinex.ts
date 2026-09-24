@@ -2695,7 +2695,7 @@ export default class digifinex extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    parseLedgerEntryType (type: any) {
+    parseLedgerEntryType (type: Str) {
         const types: Dict = {};
         return this.safeString (types, (type as string), type);
     }
@@ -2846,7 +2846,7 @@ export default class digifinex extends Exchange {
         return this.parseLedger (ledger, currency, since, limit);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "addressTag":"",
@@ -3373,7 +3373,7 @@ export default class digifinex extends Exchange {
         return this.parseBorrowRates (result, 'currency');
     }
 
-    override parseBorrowRate (info: any, currency: Currency = undefined) {
+    override parseBorrowRate (info: NullableDict, currency: Currency = undefined) {
         //
         //     {
         //         "valuation_rate": 1,
@@ -4478,7 +4478,7 @@ export default class digifinex extends Exchange {
         return this.parseIncomes (data, market, since, limit);
     }
 
-    override parseIncome (income: any, market: Market = undefined): object {
+    override parseIncome (income: Dict, market: Market = undefined): object {
         //
         //     {
         //         "instrument_id": "BTCUSDTPERP",

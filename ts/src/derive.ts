@@ -2464,7 +2464,7 @@ export default class derive extends Exchange {
         return this.parseIncomes (events, market, since, limit);
     }
 
-    override parseIncome (income: any, market: Market = undefined): Dict {
+    override parseIncome (income: Dict, market: Market = undefined): Dict {
         //
         // {
         //     "instrument_name": "BTC-PERP",

@@ -1247,7 +1247,7 @@ export default class deepcoin extends Exchange {
         return address as DepositAddress;
     }
 
-    override parseDepositAddress (response: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (response: Dict, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "chain": "TRC20",

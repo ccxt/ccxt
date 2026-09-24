@@ -1531,7 +1531,7 @@ export default class hollaex extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "currency":"usdt",

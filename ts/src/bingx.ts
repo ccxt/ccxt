@@ -1996,7 +1996,7 @@ export default class bingx extends Exchange {
         return this.parseIncomes (data, market, since, limit) as FundingHistory[];
     }
 
-    override parseIncome (income: any, market: Market = undefined): object {
+    override parseIncome (income: Dict, market: Market = undefined): object {
         // {
         //     "symbol": "LDO-USDT",
         //     "incomeType": "FUNDING_FEE",
@@ -5545,7 +5545,7 @@ export default class bingx extends Exchange {
         }
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         // {
         //     "coinId":"4",

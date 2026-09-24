@@ -2457,7 +2457,7 @@ export default class gate extends Exchange {
         return chainsIndexedById[selectedNetworkIdOrCode as string];
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         chain: "BTC",
@@ -2819,7 +2819,7 @@ export default class gate extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    parseFundingHistory (info: any, market: Market = undefined) {
+    parseFundingHistory (info: Dict, market: Market = undefined) {
         //
         //    {
         //        "time": 1646899200,
@@ -4477,7 +4477,7 @@ export default class gate extends Exchange {
         const trigger = this.safeValue (params, 'trigger');
         const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
-        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const isStopLossOrder = stopLossPrice !== undefined;
         const isTakeProfitOrder = takeProfitPrice !== undefined;
         const isTpsl = isStopLossOrder || isTakeProfitOrder;
@@ -4686,7 +4686,7 @@ export default class gate extends Exchange {
             }
         }
         if (contract === true) {
-            const isClose = this.safeValue (params, 'close');
+            const isClose = this.safeBool (params, 'close');
             if (isClose === true) {
                 amount = 0;
             } else {
@@ -7050,7 +7050,7 @@ export default class gate extends Exchange {
         return this.parseMarginLoan (response, currency);
     }
 
-    parseMarginLoan (info: any, currency: Currency = undefined): MarginLoan {
+    parseMarginLoan (info: NullableDict, currency: Currency = undefined): MarginLoan {
         //
         // Cross
         //

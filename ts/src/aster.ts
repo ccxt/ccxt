@@ -1757,7 +1757,7 @@ export default class aster extends Exchange {
         return this.filterByArray (results, 'symbol', symbols) as LastPrices;
     }
 
-    override parseLastPrice (entry: any, market: Market = undefined): LastPrice {
+    override parseLastPrice (entry: Dict, market: Market = undefined): LastPrice {
         //
         // spot & swap
         //
@@ -3397,7 +3397,7 @@ export default class aster extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 1, params);
     }
 
-    override parseIncome (income: any, market: Market = undefined): object {
+    override parseIncome (income: Dict, market: Market = undefined): object {
         //
         //     {
         //       "symbol": "ETHUSDT",

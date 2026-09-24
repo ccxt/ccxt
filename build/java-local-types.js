@@ -72,8 +72,8 @@
 //
 // ===== 2. list-returning parse families -> java.util.List<Object> =====
 //
-// JAVA_LIST_RETURN_METHODS (11 names) retypes the parse/filter collection helpers whose
-// every return site yields a list (or null) at runtime:
+// JAVA_LIST_RETURN_METHODS retypes the parse/filter collection helpers whose every return
+// site yields a list (or null) at runtime; each name's return delegates are listed too:
 //
 //   * parseTrades / parseTradesHelper / parseOrders / parseOHLCVs / parseTransactions /
 //     parseLedger — the parse* bodies return `new java.util.ArrayList<Object>(...)` or
@@ -87,8 +87,14 @@
 //     (the parameter is reassigned from arraySlice results inside the body; a non-list
 //     input threw on the arraySlice path before, and a checkcast only moves that throw
 //     to the return site).
+//   * filterBySymbolsSinceLimit / parseConversions -> filterBySinceLimit;
+//     parseIncomes / parseLiquidations / parseFundingRateHistories /
+//     parseLongShortRatioHistory / parseOpenInterestsHistory -> filterBySymbolSinceLimit;
+//     marketIds / marketCodes -> own parameter or a List<Object> local; getListFromObjectValues /
+//     parseAccounts / parseBorrowInterests / parseMarginModifications -> a List<Object> local.
 //
-// Deliberately absent: parseTickers / parsePositions / parseFundingRates /
+// Deliberately absent: marketSymbols (`as string[]` call sites print a List<String> cast,
+// inconvertible from List<Object>); parseTickers / parsePositions / parseFundingRates /
 // parseOpenInterests (they funnel through filterByArray, which hands back a keyed
 // dictionary when `indexed` is true — argument-dependent, so not a list type; the C#
 // census reached the same conclusion), parseWsTrade / parseWsTrades (their ws overrides
@@ -355,6 +361,11 @@ export const JAVA_LIST_RETURN_METHODS = new Set ([
     'filterBySymbolSinceLimit', 'filterByCurrencySinceLimit',
     'parseTrades', 'parseTradesHelper', 'parseOrders', 'parseOHLCVs',
     'parseTransactions', 'parseLedger', 'marketIds',
+    'filterBySymbolsSinceLimit', 'marketCodes', 'getListFromObjectValues', 'parseAccounts',
+    'parseBorrowInterests', 'parseMarginModifications', 'parseConversions', 'parseIncomes',
+    'parseLiquidations', 'parseFundingRateHistories', 'parseLongShortRatioHistory', 'parseOpenInterestsHistory',
+    // every return is the own `symbols` parameter (checkcast) or the `result` list
+    'marketSymbols',
 ]);
 
 // one name in both tables is a hard bug: the fixed per-name return type would differ
@@ -5663,6 +5674,8 @@ export function installJavaLocalTypes (transpiler) {
     patchJavaLimitLocalTypes (transpiler);
     // (17) element reads of declared typed lists (section 23)
     patchJavaTypedListElementLocals (transpiler);
+    // (18) asserted collection-helper calls and filterByArray locals (section 29)
+    patchJavaListHelperLocalTypes (transpiler);
 }
 
 // ===== 4. dataflow engine: accumulators, local propagation, ternary arms, scope safety =====
@@ -11605,4 +11618,348 @@ export function patchJavaOmitLocalTypes (transpiler) {
         const info = javaOmitMapCall (printer, node.right) ?? accumulatorWriteInfo (printer, node.right);
         return info === undefined || info.type !== JAVA_STRUCTURE_TYPE ? printed : accumulatorCastWrite (printer, node, printed, info);
     };
+}
+
+// ===== 27. element-read locals of awaited typed-DTO lists =====
+// An awaited core publishes its qualified `java.util.List<io.github.ccxt.types.X>`; section 23
+// only reads the short spelling. Same proof: counter index, TypedMap DTO, Map-only uses.
+const QUALIFIED_DTO_LIST = /^(?:java\.util\.)?List<io\.github\.ccxt\.types\.(\w+)>$/;
+
+function javaQualifiedDtoListElementLocalType (printer, declaration) {
+    const read = unwrapParens (declaration.initializer);
+    if (read === undefined || !ts.isElementAccessExpression (read) || !ts.isIdentifier (read.expression)
+        || typeof printer.javaDeclaredTypeOf !== 'function' || typeof printer.javaPrimitiveCounterIndex !== 'function'
+        || !printer.javaPrimitiveCounterIndex (read.argumentExpression)) {
+        return undefined;
+    }
+    const element = QUALIFIED_DTO_LIST.exec (String (printer.javaDeclaredTypeOf (read.expression) ?? '').trim ())?.[1];
+    if (element === undefined || !javaIsTypedMapDto (element) || !javaDtoElementUsesAreMapOnly (declaration)) {
+        return undefined;
+    }
+    const type = 'io.github.ccxt.types.' + element;
+    if (!isSafeToNarrow (printer, declaration, declaration.name.escapedText, type, /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName), { type })) {
+        return undefined;
+    }
+    const list = printer.printNode (read.expression, 0);
+    const index = printer.printNode (read.argumentExpression, 0);
+    return { type, rhs: `(${list} == null || ${index} < 0 || ${index} >= ${list}.size() ? null : ${list}.get(${index}))` };
+}
+
+export function patchJavaQualifiedDtoListElementLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaQualifiedDtoListElementPatched) {
+        return;
+    }
+    printer._javaQualifiedDtoListElementPatched = true;
+    const retyped = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || declaration.initializer === undefined
+            || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        let found;
+        try {
+            found = javaQualifiedDtoListElementLocalType (printer, declaration);
+        } catch (e) {
+            return printed;
+        }
+        if (found === undefined) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const name = printer.printNode (declaration.name, 0);
+        const marker = `${iden}${printer.VAR_TOKEN} ${name} = `;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1 || printed.slice (at + marker.length).trim ().replace (/;$/, '') !== found.rhs) {
+            return printed;
+        }
+        retyped.set (declaration, found.type);
+        return printed.slice (0, at) + `${iden}${found.type} ${name} = ` + printed.slice (at + marker.length);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => retyped.get (declaration));
+}
+
+// ===== 26. String accumulator lists =====
+// `const xs = []` / `['a', ..]` whose every push is statically String and which is never
+// reassigned prints `java.util.List<String>`; its pushes drop the List<Object> receiver cast
+// (inconvertible now); every other use passes the section 19 List<String> use audit
+// (no writes, spreads, casts, `+`, list-parameter callees) plus the pro inherited-async guard.
+const STRING_LIST_INIT = /^new java\.util\.ArrayList<Object>\(java\.util\.Arrays\.asList\(((?:"(?:[^"\\]|\\.)*"(?:, )?)*)\)\)(;?\s*)$/;
+const stringAccumulatorDecisions = new WeakMap ();
+
+function stringAccumulatorPush (n) {
+    const access = n.parent;
+    const call = access?.parent;
+    return access !== undefined && ts.isPropertyAccessExpression (access) && access.expression === n
+        && access.name.escapedText === 'push' && call !== undefined && ts.isCallExpression (call)
+        && call.expression === access && ts.isExpressionStatement (call.parent) ? call : undefined;
+}
+
+function stringAccumulatorListLocal (printer, declaration) {
+    const init = unwrapParens (declaration.initializer);
+    if (init === undefined || !ts.isArrayLiteralExpression (init) || !ts.isIdentifier (declaration.name)
+        || declaration.parent?.declarations?.length !== 1 || declaration.parent?.parent?.kind === ts.SyntaxKind.ForStatement
+        || !init.elements.every ((e) => ts.isStringLiteralLike (e))) {
+        return false;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return false;
+    }
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    let pushes = 0;
+    for (const n of (identifierIndex (scope).get (declaration.name.escapedText) ?? [])) {
+        if (n === declaration.name || (ts.isPropertyAccessExpression (n.parent) && n.parent.name === n)
+            || (ts.isPropertyAssignment (n.parent) && n.parent.name === n)) {
+            continue;
+        }
+        if (ts.isVariableDeclaration (n.parent) && n.parent.name === n) {
+            return false; // same-named sibling binding
+        }
+        const push = stringAccumulatorPush (n);
+        if (push !== undefined) {
+            if (push.arguments.length !== 1 || !isStaticallyStringExpression (printer, unwrapParens (push.arguments[0]), undefined)) {
+                return false;
+            }
+            pushes++;
+            continue;
+        }
+        if (!objectKeysUseIsSafe (n) || (isProFile && feedsInheritedAsyncCall (printer, n, scope))) {
+            return false;
+        }
+    }
+    return pushes > 0 || init.elements.length > 0;
+}
+
+function stringAccumulatorDeclaredType (printer, declaration) {
+    if (declaration === undefined || !ts.isVariableDeclaration (declaration) || declaration.initializer === undefined) {
+        return undefined;
+    }
+    if (!stringAccumulatorDecisions.has (declaration)) {
+        let ok = false;
+        try {
+            ok = stringAccumulatorListLocal (printer, declaration);
+        } catch (e) {
+            ok = false;
+        }
+        stringAccumulatorDecisions.set (declaration, ok);
+    }
+    return stringAccumulatorDecisions.get (declaration) ? 'java.util.List<String>' : undefined;
+}
+
+export function patchJavaStringAccumulatorLists (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || typeof printer.printArrayPushCall !== 'function'
+        || printer._javaStringAccumulatorListsPatched) {
+        return;
+    }
+    printer._javaStringAccumulatorListsPatched = true;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || declaration.initializer === undefined
+            || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const name = printer.printNode (declaration.name, 0);
+        let at = -1;
+        let head;
+        for (const token of [ JAVA_ARRAY_TYPE, printer.VAR_TOKEN ]) {
+            head = `${iden}${token} ${name} = `;
+            at = printed.lastIndexOf (head);
+            if (at !== -1) {
+                break;
+            }
+        }
+        const match = at === -1 ? null : STRING_LIST_INIT.exec (printed.slice (at + head.length));
+        if (match === null || stringAccumulatorDeclaredType (printer, declaration) === undefined) {
+            return printed;
+        }
+        typed.set (declaration, true);
+        return printed.slice (0, at) + `${iden}java.util.List<String> ${name} = new java.util.ArrayList<String>(java.util.Arrays.asList(${match[1]}))${match[2]}`;
+    };
+    const upstreamPush = printer.printArrayPushCall.bind (printer);
+    printer.printArrayPushCall = function (node, identation, name = undefined, parsedArg = undefined) {
+        const receiver = node?.expression?.expression;
+        let declaration;
+        try {
+            declaration = receiver !== undefined && ts.isIdentifier (receiver)
+                ? printer.getChecker ().getSymbolAtLocation (receiver)?.valueDeclaration : undefined;
+        } catch (e) {
+            declaration = undefined;
+        }
+        return declaration !== undefined && typed.has (declaration)
+            ? `${name}.add(${parsedArg})` : upstreamPush (node, identation, name, parsedArg);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.has (declaration) ? 'java.util.List<String>' : undefined);
+}
+
+// ===== 28. element-read locals of handle* tuple holders =====
+// `const x = holder[k]` where holder is a local initialised by an audited tuple producer
+// (handleElementType) prints `((java.util.List<Object>)holder).get(k)`: the element box is proven.
+function javaTupleHolderElementLocalType (printer, declaration) {
+    const read = unwrapParens (declaration.initializer);
+    if (read === undefined || !ts.isElementAccessExpression (read) || !ts.isIdentifier (read.expression)
+        || !ts.isNumericLiteral (read.argumentExpression)) {
+        return undefined;
+    }
+    const holder = printer.getChecker ().getSymbolAtLocation (read.expression)?.valueDeclaration;
+    if (holder === undefined || !ts.isVariableDeclaration (holder) || !ts.isIdentifier (holder.name)
+        || holder.initializer === undefined || (ts.getCombinedNodeFlags (holder) & ts.NodeFlags.Const) === 0
+        || enclosingFunction (holder) !== enclosingFunction (declaration)) {
+        return undefined;
+    }
+    const type = handleElementType (printer, unwrapParens (holder.initializer), Number (read.argumentExpression.text));
+    if (type === undefined) {
+        return undefined;
+    }
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    const scope = enclosingFunction (declaration);
+    if (!handleTupleIsSafeToNarrow (printer, scope, declaration.name, declaration.name.escapedText, type, isProFile)) {
+        return undefined;
+    }
+    const list = printer.printNode (read.expression, 0);
+    return { type, rhs: `((java.util.List<Object>)${list}).get(${read.argumentExpression.text})` };
+}
+
+export function patchJavaTupleHolderElementLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaTupleHolderElementPatched) {
+        return;
+    }
+    printer._javaTupleHolderElementPatched = true;
+    const retyped = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || declaration.initializer === undefined
+            || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        let found;
+        try {
+            found = javaTupleHolderElementLocalType (printer, declaration);
+        } catch (e) {
+            return printed;
+        }
+        if (found === undefined) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const name = printer.printNode (declaration.name, 0);
+        const marker = `${iden}${printer.VAR_TOKEN} ${name} = `;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1 || printed.slice (at + marker.length).trim ().replace (/;$/, '') !== found.rhs) {
+            return printed;
+        }
+        retyped.set (declaration, found.type);
+        return printed.slice (0, at) + `${iden}${found.type} ${name} = (${found.type}) ` + printed.slice (at + marker.length);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => retyped.get (declaration));
+}
+
+// ===== 29. list/dict helper locals under a bare assertion, and filterByArray =====
+// `this.filterBy (..) as Order[]` prints the bare call (printAsExpression casts only any/string
+// and any[]/string[]), so the collection table's proof holds for the inner call. filterByArray
+// returns indexBy (a Map) when `indexed` is true/omitted and a list (toArray / fresh results)
+// when it is the literal false; Java declares it Object, so the declaration carries the checkcast.
+function bareAssertionOperand (node) {
+    let current = unwrapParens (node);
+    while (current !== undefined && (ts.isAsExpression (current) || ts.isTypeAssertionExpression (current))) {
+        const type = current.type;
+        if (type === undefined || type.kind === ts.SyntaxKind.AnyKeyword || type.kind === ts.SyntaxKind.StringKeyword
+            || (ts.isArrayTypeNode (type) && (type.elementType.kind === ts.SyntaxKind.AnyKeyword
+                || type.elementType.kind === ts.SyntaxKind.StringKeyword))) {
+            return undefined; // printed as a cast
+        }
+        current = unwrapParens (current.expression);
+    }
+    return current;
+}
+
+function filterByArrayCallInfo (printer, node) {
+    if (node === undefined || !isThisCall (node) || node.expression.name.escapedText !== 'filterByArray'
+        || node.arguments.some ((a) => ts.isSpreadElement (a))) {
+        return undefined;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getResolvedSignature (node)?.declaration;
+    } catch (e) {
+        return undefined;
+    }
+    const file = declaration?.getSourceFile?.().fileName;
+    if (declaration === undefined || !ts.isMethodDeclaration (declaration) || declaration.name?.escapedText !== 'filterByArray'
+        || file === undefined || !HELPER_SOURCE_FILE.test (file) || !/Exchange(\.nooverloads\.\d+)?\.ts$/.test (file)) {
+        return undefined;
+    }
+    const indexed = node.arguments.length === 3 ? ts.SyntaxKind.TrueKeyword : node.arguments[3]?.kind;
+    if (node.arguments.length < 3 || node.arguments.length > 4) {
+        return undefined;
+    }
+    if (indexed === ts.SyntaxKind.TrueKeyword) {
+        return { type: JAVA_MAP_TYPE, cast: true };
+    }
+    return indexed === ts.SyntaxKind.FalseKeyword ? { type: JAVA_ARRAY_TYPE, cast: true } : undefined;
+}
+
+function listHelperLocalInfo (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.initializer === undefined) {
+        return undefined;
+    }
+    const inner = bareAssertionOperand (declaration.initializer);
+    if (inner === undefined) {
+        return undefined;
+    }
+    const asserted = inner !== unwrapParens (declaration.initializer);
+    const info = filterByArrayCallInfo (printer, inner) ?? (asserted ? collectionCallInfo (printer, inner) : undefined);
+    if (info === undefined) {
+        return undefined;
+    }
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    return collectionIsSafeToNarrow (printer, declaration, declaration.name.escapedText, info.type, isProFile) ? info : undefined;
+}
+
+export function patchJavaListHelperLocalTypes (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaListHelperLocalTypesPatched) {
+        return;
+    }
+    printer._javaListHelperLocalTypesPatched = true;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1) {
+            return printed;
+        }
+        let info;
+        try {
+            info = listHelperLocalInfo (printer, declaration);
+        } catch (e) {
+            return printed;
+        }
+        if (info === undefined) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const printedName = printer.printNode (declaration.name, 0);
+        const marker = `${iden}${printer.VAR_TOKEN} ${printedName} = `;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1 || !printed.startsWith ('this.', at + marker.length)) {
+            return printed;
+        }
+        typed.set (declaration, info.type);
+        const cast = info.cast ? `(${info.type}) ` : '';
+        return printed.slice (0, at) + `${iden}${info.type} ${printedName} = ${cast}` + printed.slice (at + marker.length);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
 }

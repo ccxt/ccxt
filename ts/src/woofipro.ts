@@ -1407,7 +1407,7 @@ export default class woofipro extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
-    override parseIncome (income: any, market: Market = undefined): object {
+    override parseIncome (income: Dict, market: Market = undefined): object {
         //
         // {
         //         "symbol": "PERP_ETH_USDC",
@@ -1739,7 +1739,7 @@ export default class woofipro extends Exchange {
         const remaining = Precise.stringSub (amount, filled);
         const fee = this.safeValue2 (order, 'total_fee', 'totalFee');
         const feeCurrency = this.safeString2 (order, 'fee_asset', 'feeAsset');
-        const transactions = this.safeValue (order, 'Transactions');
+        const transactions = this.safeList (order, 'Transactions');
         const triggerPrice = this.safeNumber (order, 'triggerPrice');
         let takeProfitPrice: Num = undefined;
         let stopLossPrice: Num = undefined;

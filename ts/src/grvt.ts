@@ -2657,7 +2657,7 @@ export default class grvt extends Exchange {
         return this.parseIncomes (result, market, since, limit);
     }
 
-    override parseIncome (income: any, market: Market = undefined) {
+    override parseIncome (income: Dict, market: Market = undefined) {
         //
         //            {
         //                "event_time": "1765267200004987902",

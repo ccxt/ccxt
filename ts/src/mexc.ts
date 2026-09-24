@@ -4821,7 +4821,7 @@ export default class mexc extends Exchange {
         return tiers as LeverageTier[];
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //    {
         //        coin: "USDT",
