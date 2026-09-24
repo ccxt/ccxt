@@ -1799,7 +1799,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param str [params.funder]: the wallet that holds the USDC collateral; defaults to options.funder or the signing address
         :param str [params.tickSize]: the market tick size('0.1'/'0.01'/'0.001'/'0.0001'); read from the outcome when omitted
         :param bool [params.negRisk]: whether the market is a neg-risk market; read from the outcome when omitted
-        :param str [params.salt]: order salt; defaults to the current time in ms(pin it for idempotent retries)
+        :param str [params.salt]: order salt; defaults to a strictly-increasing millisecond value(pin it for idempotent retries)
         :param str [params.timestamp]: order timestamp; defaults to the current time in ms
         :param str [params.expiration]: unix-seconds expiration for GTD orders; defaults to '0'(no expiry)
         :param str [params.builderCode]: builder wallet address or full bytes32 builder code attached to the order for attribution(zero fee — tracking only); defaults to options.builder
@@ -1838,13 +1838,13 @@ class polymarket(PredictionExchange, ImplicitAPI):
         bodies = []
         outcomes = []
         requests = []
-        batchSalt = self.milliseconds()
         for i in range(0, len(orders)):
             o = orders[i]
             orderParams = self.safe_dict(o, 'params', {})
             if self.safe_string(orderParams, 'salt') is None:
-                # a distinct salt per order so two identical orders in one batch don't collide
-                orderParams = self.extend(orderParams, {'salt': self.number_to_string(self.sum(batchSalt, i))})
+                # a distinct salt per order so two identical orders don't collide, within a batch or across calls
+                orderSalt = self.incrementing_nonce()  # hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
+                orderParams = self.extend(orderParams, {'salt': self.number_to_string(orderSalt)})
             built = self.build_clob_order_body(self.safe_string(o, 'outcome'), self.safe_string(o, 'type'), self.safe_string(o, 'side'), self.safe_number(o, 'amount'), self.safe_number(o, 'price'), orderParams)
             bodies.append(self.safe_dict(built, 'body', {}))
             outcomes.append(self.safe_dict(built, 'outcome', {}))
@@ -1911,8 +1911,9 @@ class polymarket(PredictionExchange, ImplicitAPI):
         # the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
         eoa = self.eth_checksum_address(self.eth_get_address_from_private_key(self.privateKey))
         funder = self.eth_checksum_address(self.safe_string_2(params, 'funder', 'maker', self.safe_string(self.options, 'funder', self.walletAddress)))
-        # salt and timestamp default to the current time but can be pinned via params for idempotency
-        salt = self.safe_string(params, 'salt', self.number_to_string(self.milliseconds()))
+        # the salt defaults to a strictly-increasing millisecond value and the timestamp to the current time; both can be pinned via params for idempotency
+        defaultSalt = self.incrementing_nonce()  # hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
+        salt = self.safe_string(params, 'salt', self.number_to_string(defaultSalt))
         timestamp = self.safe_string(params, 'timestamp', self.number_to_string(self.milliseconds()))
         # GTD (good-til-date) orders need a unix-seconds expiration; 0 means no expiry
         expiration = self.safe_string(params, 'expiration', '0')
@@ -2460,6 +2461,11 @@ class polymarket(PredictionExchange, ImplicitAPI):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorMessage, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
         return None
+
+    def nonce(self):
+        # the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
+        # unique when two identical orders are signed within the same millisecond
+        return self.milliseconds()
 
     def sign(self, path: object, api: object = 'gamma', method='GET', params={}, headers: object = None, body: object = None):
         """

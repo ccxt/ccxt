@@ -259,7 +259,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         subMessageHash = 'orderbook:' + symbol
         messageHash = 'unsubscribe:' + subMessageHash
         url = self.urls['api']['ws']['public']
-        id = str(self.nonce())
+        id = str(self.incrementing_nonce())
         request = {
             'id': id,
             'method': 'unsubscribe',

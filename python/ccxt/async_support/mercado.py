@@ -946,6 +946,10 @@ class mercado(Exchange, ImplicitAPI):
                 result.append(trades[y])
         return result
 
+    def nonce(self):
+        # the venue accepts any strictly-increasing integer tonce, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return self.milliseconds()
+
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         url = self.urls['api'][api] + '/'
         query = self.omit(params, self.extract_params(path))
@@ -956,7 +960,8 @@ class mercado(Exchange, ImplicitAPI):
         else:
             self.check_required_credentials()
             url += self.version + '/'
-            nonce = self.nonce()
+            # mercado requires each tonce to be greater than the previous one
+            nonce = self.incrementing_nonce()
             body = self.urlencode(self.extend({
                 'tapi_method': path,
                 'tapi_nonce': nonce,

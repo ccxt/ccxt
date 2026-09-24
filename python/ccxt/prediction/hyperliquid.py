@@ -153,6 +153,11 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         super(hyperliquid, self).set_sandbox_mode(enabled)
         self.options['sandboxMode'] = enabled
 
+    def nonce(self):
+        # the venue nonce is a millisecond timestamp and must be strictly increasing per signer
+        # incrementingNonce () reads this and bumps past the previous value when two signed actions share a millisecond
+        return self.milliseconds()
+
     def outcome_encoding(self, outcomeId: float, side: float) -> float:
         """
  @ignore
@@ -1098,7 +1103,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         marketSymbol = self.safe_string(outcomeObj, 'market')
         market = self.market(marketSymbol)
         outcomeInfo = self.safe_dict(outcomeObj, 'info', {})
-        nonce = self.milliseconds()
+        nonce = self.incrementing_nonce()
         isBuy = (side.upper() == 'BUY')
         isMarket = (type.upper() == 'MARKET')
         assetId = self.safe_integer(outcomeInfo, 'assetId')
@@ -1240,7 +1245,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         outcomeObj = self.outcome(outcome)
         outcomeInfo = self.safe_dict(outcomeObj, 'info', {})
         assetId = self.safe_integer(outcomeInfo, 'assetId')
-        nonce = self.milliseconds()
+        nonce = self.incrementing_nonce()
         clientOrderId = self.safe_value_2(params, 'clientOrderId', 'client_id')
         params = self.omit(params, ['clientOrderId', 'client_id'])
         cancelReq = []
@@ -1919,7 +1924,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :param str maxFeeRate: the maximum builder fee rate to approve, e.g. '0%'
         :returns dict: the raw exchange response
         """
-        nonce = self.milliseconds()
+        nonce = self.incrementing_nonce()
         isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         payload = {
             'hyperliquidChain': 'Testnet' if (isSandboxMode is True) else 'Mainnet',

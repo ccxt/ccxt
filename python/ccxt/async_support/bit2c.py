@@ -996,7 +996,8 @@ class bit2c(Exchange, ImplicitAPI):
             url += '.json'
         else:
             self.check_required_credentials()
-            nonce = self.nonce()
+            # bit2c requires an increasing nonce per key
+            nonce = self.incrementing_nonce()
             query = self.extend({
                 'nonce': nonce,
             }, params)

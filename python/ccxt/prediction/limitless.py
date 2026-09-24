@@ -1938,7 +1938,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             self.check_address(taker)
         except Exception as e:
             raise InvalidAddress(self.id + ' createOrder requires a valid taker address. Set the "taker" parameter to a valid address or set the "nullAddress" property in the constructor options.')
-        nonce = self.milliseconds()
+        nonce = self.incrementing_nonce()
         sides = {
             'buy': 0,
             'sell': 1,
@@ -2862,6 +2862,11 @@ class limitless(PredictionExchange, ImplicitAPI):
                     seen[slug] = True
                     allRaw.append(raw)
         return allRaw
+
+    def nonce(self):
+        # the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
+        # unique when two orders are signed within the same millisecond
+        return self.milliseconds()
 
     def sign(self, path: object, api: object = 'limitless', method='GET', params={}, headers: object = None, body: object = None):
         """

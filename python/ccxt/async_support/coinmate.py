@@ -1234,7 +1234,8 @@ class coinmate(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(params)
         else:
             self.check_required_credentials()
-            nonce = str(self.nonce())
+            # coinmate requires each nonce to be greater than the previous one for the key
+            nonce = str(self.incrementing_nonce())
             auth = nonce + self.uid + self.apiKey
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             body = self.urlencode(self.extend({
