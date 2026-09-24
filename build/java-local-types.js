@@ -355,6 +355,8 @@ export const JAVA_LIST_RETURN_METHODS = new Set ([
     'filterBySymbolSinceLimit', 'filterByCurrencySinceLimit',
     'parseTrades', 'parseTradesHelper', 'parseOrders', 'parseOHLCVs',
     'parseTransactions', 'parseLedger', 'marketIds',
+    // every return is the own `symbols`/`codes` parameter (checkcast) or the `result` list
+    'marketSymbols', 'marketCodes',
 ]);
 
 // one name in both tables is a hard bug: the fixed per-name return type would differ
@@ -5663,6 +5665,8 @@ export function installJavaLocalTypes (transpiler) {
     patchJavaLimitLocalTypes (transpiler);
     // (17) element reads of declared typed lists (section 23)
     patchJavaTypedListElementLocals (transpiler);
+    // (18) asserted collection-helper calls and filterByArray locals (section 26)
+    patchJavaListHelperLocalTypes (transpiler);
 }
 
 // ===== 4. dataflow engine: accumulators, local propagation, ternary arms, scope safety =====
@@ -11605,4 +11609,103 @@ export function patchJavaOmitLocalTypes (transpiler) {
         const info = javaOmitMapCall (printer, node.right) ?? accumulatorWriteInfo (printer, node.right);
         return info === undefined || info.type !== JAVA_STRUCTURE_TYPE ? printed : accumulatorCastWrite (printer, node, printed, info);
     };
+}
+
+// ===== 26. list/dict helper locals under a bare assertion, and filterByArray =====
+// `this.filterBy (..) as Order[]` prints the bare call (printAsExpression casts only any/string
+// and any[]/string[]), so the collection table's proof holds for the inner call. filterByArray
+// returns indexBy (a Map) when `indexed` is true/omitted and a list (toArray / fresh results)
+// when it is the literal false; Java declares it Object, so the declaration carries the checkcast.
+function bareAssertionOperand (node) {
+    let current = unwrapParens (node);
+    while (current !== undefined && (ts.isAsExpression (current) || ts.isTypeAssertionExpression (current))) {
+        const type = current.type;
+        if (type === undefined || type.kind === ts.SyntaxKind.AnyKeyword || type.kind === ts.SyntaxKind.StringKeyword
+            || (ts.isArrayTypeNode (type) && (type.elementType.kind === ts.SyntaxKind.AnyKeyword
+                || type.elementType.kind === ts.SyntaxKind.StringKeyword))) {
+            return undefined; // printed as a cast
+        }
+        current = unwrapParens (current.expression);
+    }
+    return current;
+}
+
+function filterByArrayCallInfo (printer, node) {
+    if (node === undefined || !isThisCall (node) || node.expression.name.escapedText !== 'filterByArray'
+        || node.arguments.some ((a) => ts.isSpreadElement (a))) {
+        return undefined;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getResolvedSignature (node)?.declaration;
+    } catch (e) {
+        return undefined;
+    }
+    const file = declaration?.getSourceFile?.().fileName;
+    if (declaration === undefined || !ts.isMethodDeclaration (declaration) || declaration.name?.escapedText !== 'filterByArray'
+        || file === undefined || !HELPER_SOURCE_FILE.test (file) || !/Exchange(\.nooverloads\.\d+)?\.ts$/.test (file)) {
+        return undefined;
+    }
+    const indexed = node.arguments.length === 3 ? ts.SyntaxKind.TrueKeyword : node.arguments[3]?.kind;
+    if (node.arguments.length < 3 || node.arguments.length > 4) {
+        return undefined;
+    }
+    if (indexed === ts.SyntaxKind.TrueKeyword) {
+        return { type: JAVA_MAP_TYPE, cast: true };
+    }
+    return indexed === ts.SyntaxKind.FalseKeyword ? { type: JAVA_ARRAY_TYPE, cast: true } : undefined;
+}
+
+function listHelperLocalInfo (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.initializer === undefined) {
+        return undefined;
+    }
+    const inner = bareAssertionOperand (declaration.initializer);
+    if (inner === undefined) {
+        return undefined;
+    }
+    const asserted = inner !== unwrapParens (declaration.initializer);
+    const info = filterByArrayCallInfo (printer, inner) ?? (asserted ? collectionCallInfo (printer, inner) : undefined);
+    if (info === undefined) {
+        return undefined;
+    }
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    return collectionIsSafeToNarrow (printer, declaration, declaration.name.escapedText, info.type, isProFile) ? info : undefined;
+}
+
+export function patchJavaListHelperLocalTypes (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaListHelperLocalTypesPatched) {
+        return;
+    }
+    printer._javaListHelperLocalTypesPatched = true;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1) {
+            return printed;
+        }
+        let info;
+        try {
+            info = listHelperLocalInfo (printer, declaration);
+        } catch (e) {
+            return printed;
+        }
+        if (info === undefined) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const printedName = printer.printNode (declaration.name, 0);
+        const marker = `${iden}${printer.VAR_TOKEN} ${printedName} = `;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1 || !printed.startsWith ('this.', at + marker.length)) {
+            return printed;
+        }
+        typed.set (declaration, info.type);
+        const cast = info.cast ? `(${info.type}) ` : '';
+        return printed.slice (0, at) + `${iden}${info.type} ${printedName} = ${cast}` + printed.slice (at + marker.length);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
 }
