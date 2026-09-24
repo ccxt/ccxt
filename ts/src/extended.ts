@@ -351,7 +351,7 @@ export default class extended extends Exchange {
         });
     }
 
-    override async loadMarkets (reload = false, params = {}) {
+    override async loadMarkets (reload = false, params: Dict = {}) {
         const markets = await super.loadMarkets (reload, params);
         const currenciesByNumericId = this.safeDict (this.options, 'currenciesByNumericId');
         if ((currenciesByNumericId === undefined) || reload) {
