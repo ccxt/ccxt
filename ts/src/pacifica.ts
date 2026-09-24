@@ -1661,11 +1661,7 @@ export default class pacifica extends Exchange {
         } else {
             operationType = 'create_order';
             sigPayload['reduce_only'] = reduceOnly;
-            if (timeInForce === undefined) {
-                sigPayload['tif'] = 'GTC';
-            } else {
-                sigPayload['tif'] = timeInForce;
-            }
+            sigPayload['tif'] = timeInForce;
         }
         if (isTakeProfitOrder) {
             const tpPayload: Dict = {
@@ -2546,7 +2542,7 @@ export default class pacifica extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    mapTimeInForce (tifRaw: Str) {
+    mapTimeInForce (tifRaw: Str): string {
         const tifMap: Dict = {
             'GTC': 'GTC',
             'IOC': 'IOC',
@@ -2560,7 +2556,7 @@ export default class pacifica extends Exchange {
         if (tifRaw !== undefined) {
             tif = tifRaw.toUpperCase ();
         }
-        return this.safeString (tifMap, tif);
+        return this.safeString (tifMap, tif, 'GTC');
     }
 
     mapSide (sideRaw: Str) {

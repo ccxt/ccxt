@@ -7026,7 +7026,22 @@ function ccxtGoScalarElementReadType (goTranspiler, initializer) {
             return undefined;
         }
     }
-    return goType;
+    // `y = x` copies the pointer into a local another rule owns (often `any`), where a raw
+    // `y == "spot"` then compares the box against a string and never matches
+    const varName = declaration.name.escapedText;
+    let copied = false;
+    const visit = (n) => {
+        if (!copied && (n.kind === ts.SyntaxKind.Identifier) && (n.escapedText === varName) && (n !== declaration.name)
+            && (n.parent?.kind === ts.SyntaxKind.BinaryExpression) && (n.parent.right === n)
+            && (n.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) && (n.parent.left.kind === ts.SyntaxKind.Identifier)) {
+            copied = true;
+        }
+        if (!copied) {
+            ts.forEachChild (n, visit);
+        }
+    };
+    visit (declaration.parent.parent.parent);
+    return copied ? undefined : goType;
 }
 
 function installCcxtGoScalarElementReads (goTranspiler) {
@@ -7171,6 +7186,22 @@ const CCXT_GO_PRODUCER_DECLARATIONS = {
 const CCXT_GO_PRODUCER_DICT_TYPE = 'map[string]any';
 const CCXT_GO_PRODUCER_LIST_TYPE = '[]any';
 
+// false when the resolved declaration's annotated return names the other container shape
+function ccxtGoProducerDeclaredShapeAgrees (goTranspiler, callee, family) {
+    let declaration = undefined;
+    try {
+        declaration = goTranspiler.getChecker ().getSymbolAtLocation (callee.name)?.valueDeclaration;
+    } catch (e) {
+        return false;
+    }
+    const text = (declaration?.type?.getText?. () ?? '').replace (/\s+/g, ' ').trim ();
+    if ((text === '') || text.includes ('|') || (text === 'any')) {
+        return true;
+    }
+    const isList = text.startsWith ('[') || text.endsWith ('[]') || /^(List|Array<[\s\S]*>)$/.test (text);
+    return (family === 'map') ? !isList : true;
+}
+
 // the container type a producer declaration can carry, or undefined when the site keeps its box
 function ccxtGoProducerDeclarationType (goTranspiler, declaration, family) {
     if ((declaration === undefined) || (declaration.kind !== ts.SyntaxKind.VariableDeclaration)
@@ -7196,6 +7227,10 @@ function ccxtGoProducerDeclarationType (goTranspiler, declaration, family) {
     // the table is keyed by the printed Go name; the ts callee is camelCase
     const goName = callee.name.text.charAt (0).toUpperCase () + callee.name.text.slice (1);
     if (CCXT_GO_PRODUCER_DECLARATIONS['this.' + goName] !== family) {
+        return undefined;
+    }
+    // the override the checker resolves may declare another shape (a tuple): keep the box
+    if (!ccxtGoProducerDeclaredShapeAgrees (goTranspiler, callee, family)) {
         return undefined;
     }
     const dictLike = (family === 'map');
