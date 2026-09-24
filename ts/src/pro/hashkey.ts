@@ -68,7 +68,7 @@ export default class hashkey extends hashkeyRest {
         return await this.watch (url, messageHash, undefined, messageHash);
     }
 
-    getPrivateUrl (listenKey: any) {
+    getPrivateUrl (listenKey: Str) {
         return this.urls['api']['ws']['private'] + '/' + listenKey;
     }
 

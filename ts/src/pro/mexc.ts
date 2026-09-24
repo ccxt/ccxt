@@ -911,7 +911,7 @@ export default class mexc extends mexcRest {
         let shouldReturn = false;
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
-            const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 25);
+            const snapshotDelay: Int = this.handleOption ('watchOrderBook', 'snapshotDelay', 25);
             if (cacheLength === snapshotDelay) {
                 this.spawn (this.loadOrderBook, client, messageHash, symbol, limit, {});
             }

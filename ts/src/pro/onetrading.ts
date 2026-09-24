@@ -309,7 +309,7 @@ export default class onetrading extends onetradingRest {
             limit = trades.getLimit (symbol, limit);
         }
         trades = this.filterBySymbolSinceLimit (trades, symbol, since, limit);
-        const numTrades = trades.length;
+        const numTrades: number = trades.length;
         if (numTrades === 0) {
             return await this.watchMyTrades (symbol, since, limit, params);
         }
@@ -476,7 +476,7 @@ export default class onetrading extends onetradingRest {
             limit = orders.getLimit (symbol, limit);
         }
         orders = this.filterBySymbolSinceLimit (orders, symbol, since, limit);
-        const numOrders = orders.length;
+        const numOrders: number = orders.length;
         if (numOrders === 0) {
             return await this.watchOrders (symbol, since, limit, params);
         }

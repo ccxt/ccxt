@@ -300,7 +300,7 @@ export default class ndax extends ndaxRest {
                     this.safeFloat (ohlcv, 5),
                 ];
                 const stored = this.safeValue (this.ohlcvs[symbol], timeframe, []);
-                const length = stored.length;
+                const length: number = stored.length;
                 if ((length > 0) && (parsed[0] === stored[length - 1][0])) {
                     const previous = stored[length - 1];
                     let high = parsed[1];
