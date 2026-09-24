@@ -11582,9 +11582,14 @@ impl std::ops::DerefMut for ${coreName} {
         });
 
         if (!baseOnly) {
-            await this.transpileDerivedExchangeFiles(tsFolder, options, '.ts', force, false);
-            // Prediction-market exchanges (ts/src/prediction/*.ts → prediction Cores).
-            await this.transpileDerivedExchangeFiles('./ts/src/prediction', options, '.ts', force, false, true);
+            const predictionOnly = process.argv.includes('--prediction');
+            if (!predictionOnly) {
+                await this.transpileDerivedExchangeFiles(tsFolder, options, '.ts', force, false);
+            }
+            if (predictionOnly || exchanges.length === 0) {
+                // Prediction-market exchanges (ts/src/prediction/*.ts → prediction Cores).
+                await this.transpileDerivedExchangeFiles('./ts/src/prediction', options, '.ts', force, false, true);
+            }
         }
 
         if (child || transpilingSingle || baseOnly) return;

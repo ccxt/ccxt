@@ -115,7 +115,7 @@ fi
 # echo "$diff_without_statics"
 
 if [ "$IMPORTANT_MODIFIED" == "true" ]; then
-  echo "{\"important_modified\": \"$IMPORTANT_MODIFIED\", \"prediction_modified\": \"$PREDICTION_MODIFIED\", \"rest_exchanges\": [], \"ws_exchanges\": []}"
+  echo "{\"important_modified\": \"$IMPORTANT_MODIFIED\", \"prediction_modified\": \"$PREDICTION_MODIFIED\", \"rest_exchanges\": [], \"ws_exchanges\": [], \"prediction_exchanges\": []}"
   exit
 fi
 
@@ -131,6 +131,7 @@ pattern_static_response='ts\/src\/test\/static\/response\/([A-Za-z0-9_-]+)\.json
 
 REST_EXCHANGES=()
 WS_EXCHANGES=()
+PREDICTION_EXCHANGES=()
 
 
 # for file in "${y[@]}"; do
@@ -155,10 +156,16 @@ for file in "${y[@]}"; do
     if [[ ! " ${WS_EXCHANGES[@]} " =~ " ${modified_exchange} " ]]; then
       WS_EXCHANGES+=("$modified_exchange")
     fi
+    if [[ ! " ${PREDICTION_EXCHANGES[@]} " =~ " ${modified_exchange} " ]]; then
+      PREDICTION_EXCHANGES+=("$modified_exchange")
+    fi
   elif [[ "$file" =~ $prediction_pattern ]]; then
     modified_exchange="${BASH_REMATCH[1]}"
     if [[ ! " ${REST_EXCHANGES[@]} " =~ " ${modified_exchange} " ]]; then
       REST_EXCHANGES+=("$modified_exchange")
+    fi
+    if [[ ! " ${PREDICTION_EXCHANGES[@]} " =~ " ${modified_exchange} " ]]; then
+      PREDICTION_EXCHANGES+=("$modified_exchange")
     fi
   elif [[ "$file" =~ $rest_pattern ]]; then
     modified_exchange="${BASH_REMATCH[1]}"
@@ -204,4 +211,10 @@ else
   ws_exchanges_json=$(printf '%s\n' "${WS_EXCHANGES[@]}" | jq -R . | jq -s .)
 fi
 
-echo "{\"important_modified\": \"$IMPORTANT_MODIFIED\", \"prediction_modified\": \"$PREDICTION_MODIFIED\", \"rest_exchanges\": $rest_exchanges_json, \"ws_exchanges\": $ws_exchanges_json}"
+if [ ${#PREDICTION_EXCHANGES[@]} -eq 0 ]; then
+  prediction_exchanges_json="[]"
+else
+  prediction_exchanges_json=$(printf '%s\n' "${PREDICTION_EXCHANGES[@]}" | jq -R . | jq -s .)
+fi
+
+echo "{\"important_modified\": \"$IMPORTANT_MODIFIED\", \"prediction_modified\": \"$PREDICTION_MODIFIED\", \"rest_exchanges\": $rest_exchanges_json, \"ws_exchanges\": $ws_exchanges_json, \"prediction_exchanges\": $prediction_exchanges_json}"

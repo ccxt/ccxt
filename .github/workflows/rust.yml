@@ -99,12 +99,15 @@ jobs:
         if: env.important_modified == 'false'
         run: |
           read -r -a files <<<"$(printf '%s %s' "${{ env.rest_files }}" "${{ env.ws_files }}" | xargs)"
-          if [ "${#files[@]}" -eq 0 ]; then
+          read -r -a prediction <<<"$(printf '%s' "${{ env.prediction_files }}" | xargs)"
+          if [ "${#files[@]}" -eq 0 ] && [ "${#prediction[@]}" -eq 0 ]; then
             echo "No files to process; building the reference venue only."
-            tsx build/granular-rust-build.ts binance
-          else
+          elif [ "${#prediction[@]}" -eq 0 ]; then
             echo "Files to process: ${files[*]}"
             tsx build/granular-rust-build.ts "${files[@]}"
+          else
+            echo "Files to process: ${files[*]} (prediction: ${prediction[*]})"
+            tsx build/granular-rust-build.ts "${files[@]}" --prediction "${prediction[@]}"
           fi
       - name: Generate Rust typed wrappers
         run: npm run emitRustTyped
