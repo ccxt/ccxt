@@ -3780,7 +3780,9 @@ export default class binance extends Exchange {
         } else if (underlying !== undefined) {
             contract = true;
             option = true;
-            settleId = (settleId === undefined) ? 'USDT' : settleId;
+            if (settleId === undefined) {
+                settleId = 'USDT';
+            }
         } else if (expiry !== undefined) {
             future = true;
         }

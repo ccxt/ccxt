@@ -5979,7 +5979,11 @@ export default class okx extends Exchange {
         const addressTo = this.safeString (transaction, 'to');
         const address = addressTo;
         let tagTo = this.safeString2 (transaction, 'tag', 'memo');
-        tagTo = (tagTo === undefined) ? this.safeString (transaction, 'pmtId') : this.safeString2 (transaction, 'pmtId', tagTo);
+        if (tagTo === undefined) {
+            tagTo = this.safeString (transaction, 'pmtId');
+        } else {
+            tagTo = this.safeString2 (transaction, 'pmtId', tagTo);
+        }
         if (withdrawalId !== undefined) {
             type = 'withdrawal';
             id = withdrawalId;
