@@ -862,7 +862,7 @@ export default class paradex extends Exchange {
         if (since !== undefined) {
             request['start_at'] = since;
             if (limit !== undefined) {
-                request['end_at'] = this.sum (since, duration * (limit + 1) * 1000) - 1;
+                request['end_at'] = since + duration * (limit + 1) * 1000 - 1;
             } else {
                 request['end_at'] = until;
             }
@@ -1415,7 +1415,8 @@ export default class paradex extends Exchange {
     }
 
     hashMessage (message: any) {
-        return '0x' + this.hash (message, keccak, 'hex');
+        const hashed: string = this.hash (message, keccak, 'hex');
+        return '0x' + hashed;
     }
 
     signHash (hash: string, privateKey: string): string {
@@ -1808,7 +1809,7 @@ export default class paradex extends Exchange {
         const orderReq: Dict = {
             'timestamp': now * 1000,
             'market': this.stringToBase16 (request['market']),
-            'side': (request['side'] === 'BUY') ? '1' : '2',
+            'side': (this.safeString (request, 'side') === 'BUY') ? '1' : '2',
             'orderType': this.stringToBase16 (request['type']),
             'size': this.scaleNumber (request['size']),
             'price': (isMarket) ? '0' : this.scaleNumber (request['price']),
@@ -2734,7 +2735,7 @@ export default class paradex extends Exchange {
         const deposits: List = [];
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
-            if (row['kind'] === 'DEPOSIT') {
+            if (this.safeString (row, 'kind') === 'DEPOSIT') {
                 deposits.push (row);
             }
         }
@@ -2798,7 +2799,7 @@ export default class paradex extends Exchange {
         const deposits: List = [];
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
-            if (row['kind'] === 'WITHDRAWAL') {
+            if (this.safeString (row, 'kind') === 'WITHDRAWAL') {
                 deposits.push (row);
             }
         }
@@ -3499,7 +3500,10 @@ export default class paradex extends Exchange {
                     'public_key': query['public_key'],
                 });
             } else {
-                const token = this.options['authToken'];
+                const token = this.safeString (this.options, 'authToken');
+                if (token === undefined) {
+                    throw new AuthenticationError (this.id + ' sign() requires an authToken, call authenticateRest() first');
+                }
                 headers['Authorization'] = 'Bearer ' + token;
                 if ((method === 'POST') || (method === 'PUT') || ((method === 'DELETE') && (path === 'orders/batch'))) {
                     headers['Content-Type'] = 'application/json';

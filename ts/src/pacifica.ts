@@ -1735,10 +1735,10 @@ export default class pacifica extends Exchange {
         //  Cancel (Only common (limit) orders)
         //
         const lenActions = actions.length;
-        const maxLen = this.handleOption ('batchOrdersRequest', 'batchOrdersMax');
+        const maxLen: Int = this.handleOption ('batchOrdersRequest', 'batchOrdersMax');
         if (maxLen !== undefined) {
             if (lenActions > maxLen) {
-                throw new ExchangeError (this.id + ' batchOrdersRequest() too many orders to create/cancel. Limit is ' + maxLen);
+                throw new ExchangeError (this.id + ' batchOrdersRequest() too many orders to create/cancel. Limit is ' + this.numberToString (maxLen));
             }
         }
         return {
@@ -3584,7 +3584,7 @@ export default class pacifica extends Exchange {
         if (this.isDictionary (value)) {
             const result: Dict = {};
             const keys = Object.keys (value);
-            const sortedKeys = this.sort (keys);
+            const sortedKeys: string[] = this.sort (keys);
             for (let i = 0; i < sortedKeys.length; i++) {
                 const key = sortedKeys[i];
                 result[key] = this.sortJsonKeys (value[key]);
@@ -3627,7 +3627,7 @@ export default class pacifica extends Exchange {
             throw new ArgumentsRequired (this.id + ' action: ' + operationType + ' postActionRequest() requires "operationType"');
         }
         if (!this.isSandboxModeEnabled) { // At this stage, building codes are mostly only on the mainnet.
-            const useBuilder = this.handleOption ('postActionRequest', 'builderFee', true);
+            const useBuilder: Bool = this.handleOption ('postActionRequest', 'builderFee', true);
             let builderCode: Str = undefined;
             if (useBuilder === true) {
                 builderCode = this.handleOption ('postActionRequest', 'builderCode');

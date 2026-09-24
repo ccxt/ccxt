@@ -2600,7 +2600,7 @@ export default class bitstamp extends Exchange {
         return code.toLowerCase ();
     }
 
-    isFiat (code: any): boolean {
+    isFiat (code: Str): boolean {
         return code === 'USD' || code === 'EUR' || code === 'GBP';
     }
 
@@ -2760,7 +2760,11 @@ export default class bitstamp extends Exchange {
     }
 
     override sign (path: any, api = 'public', method: any = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let url = this.urls['api'][api] + '/';
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/';
         url += this.version + '/';
         url += this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));

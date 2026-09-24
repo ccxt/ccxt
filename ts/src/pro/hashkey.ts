@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import hashkeyRest from '../hashkey.js';
-import { AuthenticationError } from '../base/errors.js';
+import { AuthenticationError, ExchangeError } from '../base/errors.js';
 import type { Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
@@ -68,8 +68,12 @@ export default class hashkey extends hashkeyRest {
         return await this.watch (url, messageHash, undefined, messageHash);
     }
 
-    getPrivateUrl (listenKey: any) {
-        return this.urls['api']['ws']['private'] + '/' + listenKey;
+    getPrivateUrl (listenKey: Str) {
+        const wsUrl = this.safeString (this.urls['api']['ws'], 'private');
+        if (wsUrl === undefined) {
+            throw new ExchangeError (this.id + ' getPrivateUrl() has no private websocket url');
+        }
+        return wsUrl + '/' + listenKey;
     }
 
     /**

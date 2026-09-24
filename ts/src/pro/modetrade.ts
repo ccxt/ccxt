@@ -2,7 +2,7 @@
 
 import { ed25519 } from '@noble/curves/ed25519.js';
 import modetradeRest from '../modetrade.js';
-import { AuthenticationError, NotSupported } from '../base/errors.js';
+import { AuthenticationError, NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { eddsa } from '../base/functions/crypto.js';
@@ -84,7 +84,11 @@ export default class modetrade extends modetradeRest {
         if (this.accountId !== undefined && this.accountId !== '') {
             id = this.accountId;
         }
-        const url = this.urls['api']['ws']['public'] + '/' + id;
+        const wsUrl = this.safeString (this.urls['api']['ws'], 'public');
+        if (wsUrl === undefined) {
+            throw new ExchangeError (this.id + ' watchPublic() has no public websocket url');
+        }
+        const url = wsUrl + '/' + id;
         const requestId = this.requestId (url);
         const subscribe: Dict = {
             'id': requestId,
@@ -626,7 +630,11 @@ export default class modetrade extends modetradeRest {
 
     async authenticate (params: Dict = {}) {
         this.checkRequiredCredentials ();
-        const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
+        const wsUrl = this.safeString (this.urls['api']['ws'], 'private');
+        if (wsUrl === undefined) {
+            throw new ExchangeError (this.id + ' authenticate() has no private websocket url');
+        }
+        const url = wsUrl + '/' + this.accountId;
         const client = this.client (url);
         const messageHash = 'authenticated';
         const event = 'auth';
@@ -657,7 +665,11 @@ export default class modetrade extends modetradeRest {
 
     async watchPrivate (messageHash: string, message: Dict, params: Dict = {}) {
         await this.authenticate (params);
-        const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
+        const wsUrl = this.safeString (this.urls['api']['ws'], 'private');
+        if (wsUrl === undefined) {
+            throw new ExchangeError (this.id + ' watchPrivate() has no private websocket url');
+        }
+        const url = wsUrl + '/' + this.accountId;
         const requestId = this.requestId (url);
         const subscribe: Dict = {
             'id': requestId,
@@ -668,7 +680,11 @@ export default class modetrade extends modetradeRest {
 
     async watchPrivateMultiple (messageHashes: string[], message: Dict, params: Dict = {}) {
         await this.authenticate (params);
-        const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
+        const wsUrl = this.safeString (this.urls['api']['ws'], 'private');
+        if (wsUrl === undefined) {
+            throw new ExchangeError (this.id + ' watchPrivateMultiple() has no private websocket url');
+        }
+        const url = wsUrl + '/' + this.accountId;
         const requestId = this.requestId (url);
         const subscribe: Dict = {
             'id': requestId,
@@ -1036,11 +1052,15 @@ export default class modetrade extends modetradeRest {
         } else {
             messageHashes.push ('positions');
         }
-        const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
+        const wsUrl = this.safeString (this.urls['api']['ws'], 'private');
+        if (wsUrl === undefined) {
+            throw new ExchangeError (this.id + ' watchPositions() has no private websocket url');
+        }
+        const url = wsUrl + '/' + this.accountId;
         const client = this.client (url);
         this.setPositionsCache (client, symbols);
-        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
-        const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
+        const fetchPositionsSnapshot: Bool = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
+        const awaitPositionsSnapshot: Bool = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
         if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (this.positions === undefined)) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
@@ -1057,7 +1077,7 @@ export default class modetrade extends modetradeRest {
     }
 
     setPositionsCache (client: Client, type: any, symbols: Strings = undefined) {
-        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
+        const fetchPositionsSnapshot: Bool = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
         if (fetchPositionsSnapshot === true) {
             const messageHash = 'fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {

@@ -2050,7 +2050,11 @@ export default class foxbit extends Exchange {
             fullPath = '/status';
             urlPath = 'status';
         }
-        let url = this.urls['api'][urlPath] + fullPath;
+        const apiUrl = this.safeString (this.urls['api'], urlPath);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + fullPath;
         params = this.omit (params, this.extractParams (path));
         const timestamp = this.milliseconds ();
         let query = '';

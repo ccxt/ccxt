@@ -3,7 +3,7 @@
 
 import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bit2c.js';
-import { ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied, NotSupported, OrderNotFound, ArgumentsRequired } from './base/errors.js';
+import { ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied, NotSupported, OrderNotFound, ArgumentsRequired, BadResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, int, DepositAddress, NullableDict, FeeString, Endpoint, List } from './base/types.js';
@@ -884,7 +884,7 @@ export default class bit2c extends Exchange {
         return this.parseTrades (responseList, market, since, limit);
     }
 
-    removeCommaFromValue (str: any) {
+    removeCommaFromValue (str: string) {
         let newString = '';
         const strParts = str.split (',');
         for (let i = 0; i < strParts.length; i++) {
@@ -938,8 +938,11 @@ export default class bit2c extends Exchange {
         if (reference !== undefined) {
             id = reference;
             timestamp = this.safeTimestamp (trade, 'ticks');
-            price = this.safeString (trade, 'price');
-            price = this.removeCommaFromValue (price);
+            const rawPrice = this.safeString (trade, 'price');
+            if (rawPrice === undefined) {
+                throw new BadResponse (this.id + ' parseTrade() missing price in ' + this.json (trade));
+            }
+            price = this.removeCommaFromValue (rawPrice);
             amount = this.safeString (trade, 'firstAmount');
             const reference_parts = reference.split ('|'); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             const marketId = this.safeString (trade, 'pair');
@@ -1051,7 +1054,11 @@ export default class bit2c extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let url = this.urls['api']['rest'] + '/' + this.implodeParams (path, params);
+        const apiUrl = this.safeString (this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + this.implodeParams (path, params);
         if (api === 'public') {
             url += '.json';
         } else {

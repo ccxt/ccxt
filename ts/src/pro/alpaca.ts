@@ -633,7 +633,7 @@ export default class alpaca extends alpacaRest {
                 'key': this.apiKey,
                 'secret': this.secret,
             };
-            if (url === this.urls['api']['ws']['trading']) {
+            if (url === this.safeString (this.urls['api']['ws'], 'trading')) {
                 // this auth request is being deprecated in test environment
                 request = {
                     'action': 'authenticate',
@@ -657,8 +657,12 @@ export default class alpaca extends alpacaRest {
         //    }
         //
         const code = this.safeString (message, 'code');
-        const msg = this.safeValue (message, 'msg', {});
-        throw new ExchangeError (this.id + ' code: ' + code + ' message: ' + msg);
+        const msg = this.safeString (message, 'msg');
+        let errorMessage = this.id + ' code: ' + code;
+        if (msg !== undefined) {
+            errorMessage = errorMessage + ' message: ' + msg;
+        }
+        throw new ExchangeError (errorMessage);
     }
 
     handleConnected (client: Client, message: Dict): Dict {

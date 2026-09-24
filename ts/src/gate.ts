@@ -1380,7 +1380,7 @@ export default class gate extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        if (this.options['adjustForTimeDifference'] === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference') === true) {
             await this.loadTimeDifference ();
         }
         if (this.checkRequiredCredentials (false)) {
@@ -1390,7 +1390,7 @@ export default class gate extends Exchange {
         const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets');
         const types = this.safeList (fetchMarketsOptions, 'types', [ 'spot', 'swap', 'future', 'option' ]);
         for (let i = 0; i < types.length; i++) {
-            const marketType = types[i];
+            const marketType = this.safeString (types, i);
             if (marketType === 'spot') {
                 // if (!sandboxMode) {
                 // gate doesn't have a sandbox for spot markets
@@ -1529,7 +1529,7 @@ export default class gate extends Exchange {
     async fetchSwapMarkets (params: Dict = {}): Promise<Market[]> {
         const result: List = [];
         let swapSettlementCurrencies = this.getSettlementCurrencies ('swap', 'fetchMarkets');
-        if (this.options['sandboxMode'] === true) {
+        if (this.safeBool (this.options, 'sandboxMode') === true) {
             swapSettlementCurrencies = [ 'usdt' ]; // gate sandbox only has usdt-margined swaps
         }
         for (let c = 0; c < swapSettlementCurrencies.length; c++) {
@@ -1548,7 +1548,7 @@ export default class gate extends Exchange {
     }
 
     async fetchFutureMarkets (params: Dict = {}): Promise<Market[]> {
-        if (this.options['sandboxMode'] === true) {
+        if (this.safeBool (this.options, 'sandboxMode') === true) {
             return []; // right now sandbox does not have inverse swaps
         }
         const result: List = [];
@@ -3009,7 +3009,7 @@ export default class gate extends Exchange {
         if (market['option'] === true) {
             for (let i = 0; i < (response as List).length; i++) {
                 const entry = response[i];
-                if (entry['name'] === market['id']) {
+                if (this.safeString (entry, 'name') === market['id']) {
                     ticker = entry;
                     break;
                 }
@@ -7183,7 +7183,11 @@ export default class gate extends Exchange {
     }
 
     override nonce (): number {
-        return this.milliseconds () - this.options['timeDifference'];
+        const timeDifference = this.safeInteger (this.options, 'timeDifference');
+        if (timeDifference === undefined) {
+            throw new ExchangeError (this.id + ' nonce() requires a numeric options["timeDifference"]');
+        }
+        return this.milliseconds () - timeDifference;
     }
 
     override sign (path: any, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {

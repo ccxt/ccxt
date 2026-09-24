@@ -3905,7 +3905,11 @@ export default class hitbtc extends Exchange {
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const query = this.omit (params, this.extractParams (path));
         const implodedPath = this.implodeParams (path, params);
-        let url = this.urls['api'][api] + '/' + implodedPath;
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + implodedPath;
         let getRequest: Str = undefined;
         const keys = Object.keys (query);
         const queryLength = keys.length;

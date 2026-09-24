@@ -1243,13 +1243,13 @@ export default class bittrade extends Exchange {
             if (account === undefined) {
                 throw new ExchangeError (this.id + ' parseBalance() could not resolve account');
             }
-            if (balance['type'] === 'trade') {
+            if (this.safeString (balance, 'type') === 'trade') {
                 account['free'] = this.safeString (balance, 'balance');
             }
             if (account === undefined) {
                 throw new ExchangeError (this.id + ' parseBalance() could not resolve account');
             }
-            if (balance['type'] === 'frozen') {
+            if (this.safeString (balance, 'type') === 'frozen') {
                 account['used'] = this.safeString (balance, 'balance');
             }
             if (code !== undefined) {

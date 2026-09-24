@@ -394,7 +394,7 @@ export default class lighter extends Exchange {
         });
     }
 
-    async loadAccount (chainId: any, privateKey: any, apiKeyIndex: string, accountIndex: string, params: Dict = {}) {
+    async loadAccount (chainId: any, privateKey: Str, apiKeyIndex: string, accountIndex: string, params: Dict = {}) {
         this.initAuthObject (accountIndex, apiKeyIndex);
         const cachedAuths = this.safeDict (this.options['auths'][accountIndex], apiKeyIndex);
         let signer = this.safeValue (cachedAuths, 'signer');
@@ -2450,7 +2450,7 @@ export default class lighter extends Exchange {
         return this.safeString (types, (type as string), type);
     }
 
-    parseOrderTypeInteger (typeInteger: any) {
+    parseOrderTypeInteger (typeInteger: Int) {
         if (typeInteger === undefined) {
             return undefined;
         }

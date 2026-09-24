@@ -595,7 +595,7 @@ export default class kraken extends Exchange {
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const promises: List = [];
         promises.push (this.publicGetAssetPairs (params));
-        if (this.options['adjustForTimeDifference'] === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference') === true) {
             promises.push (this.loadTimeDifference ());
         }
         const responses = await Promise.all (promises);
@@ -1494,8 +1494,8 @@ export default class kraken extends Exchange {
         let symbol: Str = undefined;
         if (Array.isArray (trade)) {
             timestamp = this.safeTimestamp (trade, 2);
-            side = (trade[3] === 's') ? 'sell' : 'buy';
-            type = (trade[4] === 'l') ? 'limit' : 'market';
+            side = (this.safeString (trade, 3) === 's') ? 'sell' : 'buy';
+            type = (this.safeString (trade, 4) === 'l') ? 'limit' : 'market';
             price = this.safeString (trade, 0);
             amount = this.safeString (trade, 1);
             const tradeLength = trade.length;
@@ -1856,7 +1856,7 @@ export default class kraken extends Exchange {
         }
     }
 
-    getDelistedMarketById (id: any) {
+    getDelistedMarketById (id: string) {
         if (id === undefined) {
             return id;
         }
@@ -3730,12 +3730,16 @@ export default class kraken extends Exchange {
         } else {
             url = '/' + path;
         }
-        url = this.urls['api'][api] + url;
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        url = apiUrl + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     override nonce (): number {
-        return this.milliseconds () - this.options['timeDifference'];
+        return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
