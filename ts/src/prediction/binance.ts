@@ -1059,7 +1059,7 @@ export default class binance extends Exchange {
      */
     override async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOpenOrders', 'paginate', false);
         let maxEntriesPerRequest = undefined;
         [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'maxEntriesPerRequest', 100);
         const pageKey = 'ccxtPageKey';
@@ -1142,7 +1142,7 @@ export default class binance extends Exchange {
      */
     override async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOrders', 'paginate', false);
         let maxEntriesPerRequest = undefined;
         [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'maxEntriesPerRequest', 100);
         const pageKey = 'ccxtPageKey';
@@ -1407,7 +1407,7 @@ export default class binance extends Exchange {
      */
     override async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         let maxEntriesPerRequest = undefined;
         [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'maxEntriesPerRequest', 100);
         const pageKey = 'ccxtPageKey';

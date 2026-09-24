@@ -1262,7 +1262,7 @@ export default class grvt extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params) as FundingRateHistory[];
         }
@@ -2281,7 +2281,7 @@ export default class grvt extends Exchange {
     override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         await this.loadMarketsAndSignIn ();
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
         }
@@ -2614,7 +2614,7 @@ export default class grvt extends Exchange {
     override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingHistory[]> {
         await this.loadMarketsAndSignIn ();
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchFundingHistory', symbol, since, limit, params, 1000) as FundingHistory[];
         }

@@ -5505,7 +5505,7 @@ export default class mexc extends Exchange {
             currency = this.currency (code);
         }
         let fromAccountType: Str = undefined;
-        [ fromAccountType, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'fromAccountType');
+        [ fromAccountType, params ] = this.handleOptionStringAndParams (params, 'fetchTransfers', 'fromAccountType');
         const accountTypes: Dict = {
             'spot': 'SPOT',
             'swap': 'FUTURES',
@@ -5519,7 +5519,7 @@ export default class mexc extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a fromAccountType parameter, one of "SPOT", "FUTURES"');
         }
         let toAccountType: Str = undefined;
-        [ toAccountType, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'toAccountType');
+        [ toAccountType, params ] = this.handleOptionStringAndParams (params, 'fetchTransfers', 'toAccountType');
         if (toAccountType !== undefined) {
             request['toAccountType'] = this.safeString (accountTypes, toAccountType, toAccountType);
         } else {

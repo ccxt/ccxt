@@ -1311,7 +1311,7 @@ export default class hyperliquid extends Exchange {
             orderObj['c'] = clientOrderId;
         }
         let vaultAddress: Str = undefined;
-        [ vaultAddress, params ] = this.handleOptionAndParams (params, 'createOrder', 'vaultAddress');
+        [ vaultAddress, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'vaultAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
         const orderAction: Dict = {
             'type': 'order',
@@ -1438,7 +1438,7 @@ export default class hyperliquid extends Exchange {
         }
         cancelAction['cancels'] = cancelReq;
         let vaultAddress: Str = undefined;
-        [ vaultAddress, params ] = this.handleOptionAndParams (params, 'cancelOrders', 'vaultAddress');
+        [ vaultAddress, params ] = this.handleOptionStringAndParams (params, 'cancelOrders', 'vaultAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
         const signature = this.signL1Action (cancelAction, nonce, vaultAddress);
         const request: Dict = {
@@ -1508,7 +1508,7 @@ export default class hyperliquid extends Exchange {
         let userAddress: Str;
         [ userAddress, params ] = this.handlePublicAddress ('fetchOpenOrders', params);
         let method: Str;
-        [ method, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
+        [ method, params ] = this.handleOptionStringAndParams (params, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
         const request = { 'type': method, 'user': userAddress };
         const response = await this.publicPostInfo (this.extend (request, params));
         const ordersWithStatus: Dict[] = [];
@@ -2273,7 +2273,7 @@ export default class hyperliquid extends Exchange {
 
     handlePublicAddress (methodName: string, params: Dict): any {
         let userAux: Str = undefined;
-        [ userAux, params ] = this.handleOptionAndParams2 (params, methodName, 'user', 'subAccountAddress');
+        [ userAux, params ] = this.handleOptionStringAndParams2 (params, methodName, 'user', 'subAccountAddress');
         let user = userAux;
         [ user, params ] = this.handleOptionAndParams (params, methodName, 'address', userAux);
         if (user !== undefined && user !== '') {

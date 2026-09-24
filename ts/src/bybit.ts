@@ -2830,7 +2830,7 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000) as OHLCV[];
         }
@@ -3089,7 +3089,7 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchFundingRateHistory', symbol, since, limit, params, 200) as FundingRateHistory[];
         }
@@ -4465,7 +4465,7 @@ export default class bybit extends Exchange {
             // classic accounts
             // for market buy it requires the amount of quote currency to spend
             let createMarketBuyOrderRequiresPrice = true;
-            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice');
+            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionBoolAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', false);
             if (createMarketBuyOrderRequiresPrice) {
                 if ((price === undefined) && (cost === undefined)) {
                     throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
@@ -5311,7 +5311,7 @@ export default class bybit extends Exchange {
             return await this.fetchOrderClassic (id, symbol, params);
         }
         let acknowledge = false;
-        [ acknowledge, params ] = this.handleOptionAndParams (params, 'fetchOrder', 'acknowledged');
+        [ acknowledge, params ] = this.handleOptionBoolAndParams (params, 'fetchOrder', 'acknowledged', false);
         if (!acknowledge) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() can only access an order if it is in last 500 orders (of any status) for your account. Set params["acknowledged"] = true to hide this warning. Alternatively, we suggest to use fetchOpenOrder or fetchClosedOrder');
         }
@@ -5417,7 +5417,7 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrdersClassic', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOrdersClassic', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchOrdersClassic', symbol, since, limit, params, 'nextPageCursor', 'cursor', undefined, 50) as Order[];
         }
@@ -5600,7 +5600,7 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchCanceledAndClosedOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchCanceledAndClosedOrders', symbol, since, limit, params, 'nextPageCursor', 'cursor', undefined, 50) as Order[];
         }
@@ -5779,7 +5779,7 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOpenOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchOpenOrders', symbol, since, limit, params, 'nextPageCursor', 'cursor', undefined, 50) as Order[];
         }
@@ -5920,7 +5920,7 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, 'nextPageCursor', 'cursor', undefined, 100) as Trade[];
         }
@@ -6101,7 +6101,7 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchDeposits', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchDeposits', code, since, limit, params, 'nextPageCursor', 'cursor', undefined, 50);
         }
@@ -6172,7 +6172,7 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchWithdrawals', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchWithdrawals', code, since, limit, params, 'nextPageCursor', 'cursor', undefined, 50);
         }
@@ -6361,7 +6361,7 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchLedger', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchLedger', code, since, limit, params, 'nextPageCursor', 'cursor', undefined, 50) as LedgerEntry[];
         }
@@ -6654,7 +6654,7 @@ export default class bybit extends Exchange {
         let accountType: Str = undefined;
         const accounts = await this.isUnifiedEnabled ();
         const isUta = accounts[1];
-        [ accountType, params ] = this.handleOptionAndParams (params, 'withdraw', 'accountType');
+        [ accountType, params ] = this.handleOptionStringAndParams (params, 'withdraw', 'accountType');
         if (accountType === undefined) {
             accountType = (isUta === true) ? 'UTA' : 'SPOT';
         }
@@ -6788,7 +6788,7 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchPositions', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchPositions', symbols, undefined, undefined, params, 'nextPageCursor', 'cursor', undefined, 200) as Position[];
         }
@@ -7847,7 +7847,7 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchTransfers', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchTransfers', code, since, limit, params, 'nextPageCursor', 'cursor', undefined, 50);
         }
@@ -8797,7 +8797,7 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyLiquidations', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyLiquidations', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchMyLiquidations', symbol, since, limit, params, 'nextPageCursor', 'cursor', undefined, 100) as Liquidation[];
         }
@@ -8922,7 +8922,7 @@ export default class bybit extends Exchange {
             market = this.market (symbol);
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'getLeverageTiersPaginated', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'getLeverageTiersPaginated', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('getLeverageTiersPaginated', symbol, undefined, undefined, params, 'nextPageCursor', 'cursor', undefined, 100);
         }
@@ -9062,7 +9062,7 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchFundingHistory', symbol, since, limit, params, 'nextPageCursor', 'cursor', undefined, 100) as FundingHistory[];
         }

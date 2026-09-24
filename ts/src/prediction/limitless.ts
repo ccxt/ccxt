@@ -2152,7 +2152,7 @@ export default class limitless extends Exchange {
         const marketSymbol = this.safeString (outcomeObj, 'market');
         if (isMarket && (side === 'buy')) {
             let createMarketBuyOrderRequiresPrice = true;
-            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionBoolAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
             const cost = this.safeNumber (params, 'cost');
             params = this.omit (params, 'cost');
             if (createMarketBuyOrderRequiresPrice) {

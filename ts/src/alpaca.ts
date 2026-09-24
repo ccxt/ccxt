@@ -1195,7 +1195,7 @@ export default class alpaca extends Exchange {
             request['qty'] = this.amountToPrecision (symbol, amount);
         }
         let defaultTIF: Str = undefined;
-        [ defaultTIF, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce');
+        [ defaultTIF, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'timeInForce');
         if (defaultTIF !== undefined) {
             // the venue only accepts lowercase values, normalize the unified uppercase spellings
             defaultTIF = defaultTIF.toLowerCase ();

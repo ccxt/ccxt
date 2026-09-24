@@ -1603,14 +1603,14 @@ export default class weex extends Exchange {
         }
         const maxHistoricalLimit = 100;
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             params = this.extend (params, { 'historical': true });
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxHistoricalLimit) as OHLCV[];
         }
         const until = this.safeInteger (params, 'until');
         let historical = false;
-        [ historical, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'historical');
+        [ historical, params ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'historical', false);
         const timeframeOption = this.safeDict (this.options, 'timeframes', {});
         const contractTimeframes = this.safeDict (timeframeOption, 'contract', {});
         const market = this.market (symbol);

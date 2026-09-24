@@ -596,7 +596,7 @@ export default class coinbase extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchAccounts', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchAccounts', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchAccounts', undefined, undefined, undefined, params, 'next_starting_after', 'starting_after', undefined, 100);
         }
@@ -667,7 +667,7 @@ export default class coinbase extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchAccounts', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchAccounts', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchAccounts', undefined, undefined, undefined, params, 'cursor', 'cursor', undefined, 250);
         }
@@ -969,7 +969,7 @@ export default class coinbase extends Exchange {
      */
     override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         let currencyType: Str = undefined;
-        [ currencyType, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'currencyType');
+        [ currencyType, params ] = this.handleOptionStringAndParams (params, 'fetchWithdrawals', 'currencyType');
         if (currencyType === 'crypto') {
             const results = await this.fetchTransactionsWithMethod ('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params);
             return this.filterByArray (results, 'type', 'withdrawal', false);
@@ -992,7 +992,7 @@ export default class coinbase extends Exchange {
      */
     override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         let currencyType: Str = undefined;
-        [ currencyType, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'currencyType');
+        [ currencyType, params ] = this.handleOptionStringAndParams (params, 'fetchDeposits', 'currencyType');
         if (currencyType === 'crypto') {
             const results = await this.fetchTransactionsWithMethod ('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params);
             return this.filterByArray (results, 'type', 'deposit', false);
@@ -2630,7 +2630,7 @@ export default class coinbase extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchLedger', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchLedger', code, since, limit, params, 'next_starting_after', 'starting_after', undefined, 100) as LedgerEntry[];
         }
@@ -3683,7 +3683,7 @@ export default class coinbase extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 1000) as Order[];
         }
@@ -3856,7 +3856,7 @@ export default class coinbase extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOpenOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchOpenOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100) as Order[];
         }
@@ -3881,7 +3881,7 @@ export default class coinbase extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchClosedOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchClosedOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 1000) as Order[];
         }
@@ -4082,7 +4082,7 @@ export default class coinbase extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, 'cursor', 'cursor', undefined, 250) as Trade[];
         }
@@ -4963,7 +4963,7 @@ export default class coinbase extends Exchange {
             response = await this.v3PrivateGetBrokerageCfmPositions (params);
         } else {
             let portfolio: Str = undefined;
-            [ portfolio, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'portfolio');
+            [ portfolio, params ] = this.handleOptionStringAndParams (params, 'fetchPositions', 'portfolio');
             if (portfolio === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchPositions() requires a "portfolio" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()');
             }
@@ -5005,7 +5005,7 @@ export default class coinbase extends Exchange {
             response = await this.v3PrivateGetBrokerageCfmPositionsProductId (this.extend (futureRequest, params));
         } else {
             let portfolio: Str = undefined;
-            [ portfolio, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'portfolio');
+            [ portfolio, params ] = this.handleOptionStringAndParams (params, 'fetchPositions', 'portfolio');
             if (portfolio === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchPosition() requires a "portfolio" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()');
             }

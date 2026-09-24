@@ -3369,7 +3369,7 @@ export default class pacifica extends Exchange {
     override async createSubAccount (name: string, params: Dict = {}) {
         const finalHeaders: Dict = { };
         let agentAddress: Str = undefined;
-        [ agentAddress, params ] = this.handleOptionAndParams (params, 'createSubAccount', 'agentAddress');
+        [ agentAddress, params ] = this.handleOptionStringAndParams (params, 'createSubAccount', 'agentAddress');
         let originAddress: Str = undefined;
         [ originAddress, params ] = this.handleOriginAndSingleAddress ('createSubAccount', params);
         if (originAddress === undefined) {
@@ -3379,9 +3379,9 @@ export default class pacifica extends Exchange {
             finalHeaders['agent_wallet'] = agentAddress;
         }
         let subAccountAddress: Str = undefined;
-        [ subAccountAddress, params ] = this.handleOptionAndParams (params, 'createSubAccount', 'subAccountAddress');
+        [ subAccountAddress, params ] = this.handleOptionStringAndParams (params, 'createSubAccount', 'subAccountAddress');
         let subAccountPrivateKey: Str = undefined;
-        [ subAccountPrivateKey, params ] = this.handleOptionAndParams (params, 'createSubAccount', 'subAccountPrivateKey');
+        [ subAccountPrivateKey, params ] = this.handleOptionStringAndParams (params, 'createSubAccount', 'subAccountPrivateKey');
         if (subAccountAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' createSubAccount() requires a "subAccountAddress"!');
         }
@@ -3650,7 +3650,7 @@ export default class pacifica extends Exchange {
         const signature = this.signMessage (signatureHeader, sigPayload, this.privateKey);
         const finalHeaders: Dict = { };
         let agentAddress: Str = undefined;
-        [ agentAddress, params ] = this.handleOptionAndParams (params, 'postActionRequest', 'agentAddress');
+        [ agentAddress, params ] = this.handleOptionStringAndParams (params, 'postActionRequest', 'agentAddress');
         let originAddress: Str = undefined;
         [ originAddress, params ] = this.handleOriginAndSingleAddress ('postActionRequest', params);
         if (originAddress === undefined) {

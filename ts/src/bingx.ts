@@ -1875,7 +1875,7 @@ export default class bingx extends Exchange {
             throw new NotSupported (this.id + ' fetchFundingRateHistory() is not supported for inverse swap markets');
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params) as FundingRateHistory[];
         }
@@ -1954,7 +1954,7 @@ export default class bingx extends Exchange {
             throw new NotSupported (this.id + ' fetchFundingHistory() is not supported for inverse swap markets');
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingHistory', symbol, since, limit, '24h', params) as FundingHistory[];
         }
