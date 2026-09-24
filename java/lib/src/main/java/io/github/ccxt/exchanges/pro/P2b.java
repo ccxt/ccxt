@@ -495,7 +495,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
                 Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), stored);
             }
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
             client.resolve(stored, messageHash);
         }
         return message;
@@ -538,7 +538,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         {
             Object item = Helpers.GetValue((List<Object>)(trades), i);
             Map<String, Object> trade = (Map<String, Object>) this.parseTrade(item, market);
-            Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
+            tradesArray.append(trade);
         }
         String messageHash = ("deals::" + symbol);
         client.resolve(tradesArray, messageHash);

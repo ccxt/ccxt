@@ -1135,7 +1135,7 @@ export default class onetrading extends onetradingRest {
                 },
             ],
         };
-        const ohlcv = await this.watch (url, messageHash, this.deepExtend (request, params), subscriptionHash, subscription);
+        const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, this.deepExtend (request, params), subscriptionHash, subscription);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }

@@ -158,10 +158,10 @@ public partial class bitfinex : ccxt.bitfinex
         };
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
         // not using subscribe here because this message has a different format
-        object ohlcv = await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)ohlcv.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
@@ -293,7 +293,7 @@ public partial class bitfinex : ccxt.bitfinex
         {
             object ohlcv = getValue(ohlcvs, subtract(subtract(ohlcvsLength, i), 1));
             IList<object> parsed = this.parseOHLCV(ohlcv, market);
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
         }
         client.resolve(stored, messageHash);
     }
@@ -430,7 +430,7 @@ public partial class bitfinex : ccxt.bitfinex
             this.myTrades = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache tradesArray = this.myTrades;
-        callDynamically(tradesArray, "append", new object[] {trade});
+        tradesArray.append(trade);
         this.myTrades = tradesArray;
         // generic subscription
         client.resolve(tradesArray, name);
@@ -493,7 +493,7 @@ public partial class bitfinex : ccxt.bitfinex
             {
                 object index = subtract(subtract(length, i), 1);
                 Dictionary<string, object> parsed = this.parseWsTrade(getValue(trades, index), market);
-                callDynamically(stored, "append", new object[] {parsed});
+                stored.append(parsed);
             }
         } else
         {
@@ -507,7 +507,7 @@ public partial class bitfinex : ccxt.bitfinex
             }
             List<object> trade = this.safeList(message, 2, new List<object>() {});
             Dictionary<string, object> parsed = this.parseWsTrade(trade, market);
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
         }
         client.resolve(stored, messageHash);
     }
@@ -1282,12 +1282,12 @@ public partial class bitfinex : ccxt.bitfinex
                 Dictionary<string, object> parsed = this.parseWsOrder(value);
                 object symbol = (parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null);
                 symbolIds[(string)((string)symbol)] = true;
-                callDynamically(orders, "append", new object[] {parsed});
+                orders.append(parsed);
             }
         } else
         {
             Dictionary<string, object> parsed = this.parseWsOrder(data);
-            callDynamically(orders, "append", new object[] {parsed});
+            orders.append(parsed);
             object symbol = (parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null);
             symbolIds[(string)((string)symbol)] = true;
         }

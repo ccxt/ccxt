@@ -225,7 +225,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 ((Map<String, Object>)subscription).put("method", "handleOrderBookSubscription");
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, topic, this.extend(request, parameters), topic, subscription)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -376,7 +376,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
             Long timestamp = this.safeInteger(message, "ts");
             Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
-            Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+            orderbook.reset(snapshot);
             client.resolve(orderbook, topic);
         }
     }
@@ -417,7 +417,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                     return null;
                 }
                 io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
-                Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+                orderbook.reset(snapshot);
                 Object messages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));
                 for (var i = 0; i < Helpers.getArrayLength(messages); i++)
                 {
@@ -1082,7 +1082,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
             }
         }
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        stored.append(parsed);
         client.resolve(stored, topic);
     }
 
@@ -1214,7 +1214,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCache(((Number)limit).intValue());
         }
-        Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
+        tradesArray.append(trade);
         Helpers.addElementToObject(this.trades, symbol, tradesArray);
         client.resolve(tradesArray, topic);
     }

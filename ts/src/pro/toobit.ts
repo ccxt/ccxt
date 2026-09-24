@@ -208,7 +208,7 @@ export default class toobit extends toobitRest {
             'topic': 'trade',
             'event': 'sub',
         };
-        const trades = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        const trades: ArrayCache = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -845,7 +845,7 @@ export default class toobit extends toobitRest {
             messageHash = messageHash + ':' + symbol;
         }
         const url = this.getUserStreamUrl ();
-        const orders = await this.watch (url, messageHash, params, messageHash);
+        const orders: ArrayCache = await this.watch (url, messageHash, params, messageHash);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -968,7 +968,7 @@ export default class toobit extends toobitRest {
             messageHash = messageHash + ':' + symbol;
         }
         const url = this.getUserStreamUrl ();
-        const trades = await this.watch (url, messageHash, params, messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, params, messageHash);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }

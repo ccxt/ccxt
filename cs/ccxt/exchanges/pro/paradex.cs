@@ -129,10 +129,10 @@ public partial class paradex : ccxt.paradex
                 { "channel", messageHash },
             } },
         };
-        object trades = await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbol, limitVar}));
+            limitVar = ((Int64?)trades.getLimit(symbol, limitVar));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -168,7 +168,7 @@ public partial class paradex : ccxt.paradex
             stored = new ArrayCache(this.safeInteger(this.options, "tradesLimit", 1000));
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        callDynamically(stored, "append", new object[] {parsedTrade});
+        stored.append(parsedTrade);
         client.resolve(stored, messageHash);
         return message;
     }
@@ -392,10 +392,10 @@ public partial class paradex : ccxt.paradex
                 { "channel", channel },
             } },
         };
-        object orders = await this.watch(url, messageHash, this.deepExtend(request, parameters), channel);
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, this.deepExtend(request, parameters), channel));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)orders.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -438,7 +438,7 @@ public partial class paradex : ccxt.paradex
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
         }
-        callDynamically(this.orders, "append", new object[] {parsed});
+        this.orders.append(parsed);
         string messageHash = "orders";
         client.resolve(this.orders, messageHash);
         if ((symbol != null))

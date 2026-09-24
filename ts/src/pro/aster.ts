@@ -670,7 +670,7 @@ export default class aster extends asterRest {
             subscriptionArgs.push (marketId + '@aggTrade');
             messageHashes.push ('trade::' + market['symbol']);
         }
-        const trades = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        const trades: ArrayCache = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -1769,7 +1769,7 @@ export default class aster extends asterRest {
         const url = this.getPrivateUrl (type);
         const client = this.client (url);
         this.setBalanceCache (client, type);
-        const orders = await this.watchMultiple (url, [ messageHash ], undefined, [ type ]);
+        const orders: ArrayCache = await this.watchMultiple (url, [ messageHash ], undefined, [ type ]);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -1811,7 +1811,7 @@ export default class aster extends asterRest {
         const url = this.getPrivateUrl (type);
         const client = this.client (url);
         this.setBalanceCache (client, type);
-        const trades = await this.watchMultiple (url, [ messageHash ], undefined, [ type ]);
+        const trades: ArrayCache = await this.watchMultiple (url, [ messageHash ], undefined, [ type ]);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }

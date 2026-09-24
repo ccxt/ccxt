@@ -166,10 +166,10 @@ public partial class bittrade : ccxt.bittrade
             { "symbol", symbolVar },
             { "params", parameters },
         };
-        object trades = await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)trades.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -217,7 +217,7 @@ public partial class bittrade : ccxt.bittrade
         for (int i = 0; i < data.Count; i++)
         {
             Dictionary<string, object> trade = this.parseTrade(data[i], market);
-            callDynamically(tradesCache, "append", new object[] {trade});
+            tradesCache.append(trade);
         }
         client.resolve(tradesCache, ch);
         return message;
@@ -266,10 +266,10 @@ public partial class bittrade : ccxt.bittrade
             { "timeframe", timeframeVar },
             { "params", parameters },
         };
-        object ohlcv = await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription);
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)ohlcv.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
@@ -313,7 +313,7 @@ public partial class bittrade : ccxt.bittrade
         }
         IDictionary<string, object> tick = ((IDictionary<string, object>)this.safeValue(message, "tick"));
         IList<object> parsed = this.parseOHLCV(tick, market);
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         client.resolve(stored, ch);
     }
 

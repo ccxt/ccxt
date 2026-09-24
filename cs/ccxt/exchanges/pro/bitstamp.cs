@@ -280,10 +280,10 @@ public partial class bitstamp : ccxt.bitstamp
             } },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        object trades = await this.watch(url, messageHash, message, messageHash);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, message, messageHash));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)trades.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -402,7 +402,7 @@ public partial class bitstamp : ccxt.bitstamp
             tradesArray = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
         }
-        callDynamically(tradesArray, "append", new object[] {trade});
+        tradesArray.append(trade);
         client.resolve(tradesArray, messageHash);
     }
 
@@ -646,7 +646,7 @@ public partial class bitstamp : ccxt.bitstamp
         }
         ccxt.pro.ArrayCache stored = this.myTrades;
         Dictionary<string, object> trade = this.parseWsMyTrade(data, market);
-        callDynamically(stored, "append", new object[] {trade});
+        stored.append(trade);
         client.resolve(stored, channel);
     }
 
@@ -746,7 +746,7 @@ public partial class bitstamp : ccxt.bitstamp
         Dictionary<string, object> market = this.market(symbol);
         order["event"] = this.safeString(message, "event");
         Dictionary<string, object> parsed = this.parseWsOrder(order, market);
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         client.resolve(this.orders, channel);
     }
 

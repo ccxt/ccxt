@@ -688,7 +688,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         }
         io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe));
         Object parsed = this.parseWsOHLCV(message);
-        Helpers.callDynamically(ohlcv, "append", new Object[]{parsed});
+        ohlcv.append(parsed);
         String messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
         client.resolve(new ArrayList<Object>(Arrays.asList(symbol, timeframe, ohlcv)), messageHash);
     }
@@ -922,7 +922,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Map<String, Object> parsed = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "b", "a");
-        Helpers.callDynamically(orderbook, "reset", new Object[]{parsed});
+        orderbook.reset(parsed);
         String messageHash = ("orderbook::" + symbol);
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         client.resolve(orderbook, messageHash);

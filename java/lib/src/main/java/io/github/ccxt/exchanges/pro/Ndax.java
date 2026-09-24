@@ -517,7 +517,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             }};
             Map<String, Object> message = this.extend(request, parameters);
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, message, messageHash, subscription)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }

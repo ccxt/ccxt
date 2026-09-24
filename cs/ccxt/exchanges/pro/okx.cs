@@ -263,12 +263,12 @@ public partial class okx : ccxt.okx
             });
         }
         string? url = this.getUrl(channel, access);
-        object trades = await this.watchMultiple(url, messageHashes, request, messageHashes);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watchMultiple(url, messageHashes, request, messageHashes));
         if (this.newUpdates)
         {
             IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar}));
+            limitVar = ((Int64?)trades.getLimit(tradeSymbol, limitVar));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -387,7 +387,7 @@ public partial class okx : ccxt.okx
                 stored = new ArrayCache(tradesLimit);
                 ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
             }
-            callDynamically(stored, "append", new object[] {trade});
+            stored.append(trade);
             client.resolve(stored, messageHash);
         }
     }
@@ -968,7 +968,7 @@ public partial class okx : ccxt.okx
                 this.liquidations = new ArrayCache(limit);
             }
             ccxt.pro.ArrayCache cache = this.liquidations;
-            callDynamically(cache, "append", new object[] {liquidation});
+            cache.append(liquidation);
             client.resolve(new List<object>() {liquidation}, "liquidations");
             client.resolve(new List<object>() {liquidation}, ("liquidations::" + symbol));
         }
@@ -1085,7 +1085,7 @@ public partial class okx : ccxt.okx
                 this.liquidations = new ArrayCache(limit);
             }
             ccxt.pro.ArrayCache cache = this.liquidations;
-            callDynamically(cache, "append", new object[] {liquidation});
+            cache.append(liquidation);
             client.resolve(new List<object>() {liquidation}, "myLiquidations");
             client.resolve(new List<object>() {liquidation}, ("myLiquidations::" + symbol));
         }
@@ -1380,7 +1380,7 @@ public partial class okx : ccxt.okx
                     ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
                 }
             }
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
             string messageHash = ((channel + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
             client.resolve(stored, messageHash);
             // for multiOHLCV we need special object, as opposed to other "multi"
@@ -2214,11 +2214,11 @@ public partial class okx : ccxt.okx
                 position["side"] = "long";
                 object shortPosition = this.clone(position);
                 ((IDictionary<string,object>)shortPosition)["side"] = "short";
-                callDynamically(cache, "append", new object[] {shortPosition});
+                cache.append(shortPosition);
                 newPositions.Add(shortPosition);
             }
             newPositions.Add(position);
-            callDynamically(cache, "append", new object[] {position});
+            cache.append(position);
         }
         string messageHash = channel;
         if ((symbol != null))
@@ -2485,7 +2485,7 @@ public partial class okx : ccxt.okx
         {
             Dictionary<string, object> rawTrade = ((Dictionary<string, object>)filteredOrders[i]);
             Dictionary<string, object> trade = this.orderToTrade(rawTrade);
-            callDynamically(myTrades, "append", new object[] {trade});
+            myTrades.append(trade);
             string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
             if ((symbol != null))
             {

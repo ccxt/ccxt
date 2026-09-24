@@ -199,7 +199,7 @@ public partial class bullish : ccxt.bullish
         ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
         for (int i = 0; i < (trades?.Count ?? 0); i++)
         {
-            callDynamically(tradesArray, "append", new object[] {trades[i]});
+            tradesArray.append(trades[i]);
         }
         ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
         string messageHash = ("trades::" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
@@ -508,7 +508,7 @@ public partial class bullish : ccxt.bullish
             {
                 object rawOrder = rawOrders[i];
                 Dictionary<string, object> parsedOrder = this.parseOrder(rawOrder);
-                callDynamically(orders, "append", new object[] {parsedOrder});
+                orders.append(parsedOrder);
                 string? symbol = this.safeString(parsedOrder, "symbol");
                 if ((symbol != null))
                 {
@@ -635,7 +635,7 @@ public partial class bullish : ccxt.bullish
             {
                 object rawTrade = rawTrades[i];
                 Dictionary<string, object> parsedTrade = this.parseTrade(rawTrade);
-                callDynamically(trades, "append", new object[] {parsedTrade});
+                trades.append(parsedTrade);
                 string? symbol = this.safeString(parsedTrade, "symbol");
                 if ((symbol != null))
                 {
@@ -830,7 +830,7 @@ public partial class bullish : ccxt.bullish
         {
             object rawPosition = rawPositions[i];
             Dictionary<string, object> position = this.parsePosition(rawPosition);
-            callDynamically(positions, "append", new object[] {position});
+            positions.append(position);
             newPositions.Add(position);
         }
         List<object> messageHashes = this.findMessageHashes(client, "positions::");

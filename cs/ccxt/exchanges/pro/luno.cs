@@ -68,10 +68,10 @@ public partial class luno : ccxt.luno
             { "api_key_secret", this.secret },
         };
         Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
-        object trades = await this.watch(url, messageHash, request, subscriptionHash, subscription);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, request, subscriptionHash, subscription));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)trades.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -113,7 +113,7 @@ public partial class luno : ccxt.luno
         {
             object rawTrade = rawTrades[i];
             Dictionary<string, object> trade = this.parseTrade(rawTrade, market);
-            callDynamically(stored, "append", new object[] {trade});
+            stored.append(trade);
         }
         ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         client.resolve(getValue(this.trades, symbol), messageHash);

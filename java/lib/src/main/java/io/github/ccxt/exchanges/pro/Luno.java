@@ -154,7 +154,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         {
             Object rawTrade = (rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i));
             Map<String, Object> trade = (Map<String, Object>) this.parseTrade(rawTrade, market);
-            Helpers.callDynamically(stored, "append", new Object[]{trade});
+            stored.append(trade);
         }
         Helpers.addElementToObject(this.trades, symbol, stored);
         client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
@@ -239,7 +239,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             }};
             Map<String,Object> request = this.deepExtend(subscribe, parameters);
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, request, subscriptionHash, subscription)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }

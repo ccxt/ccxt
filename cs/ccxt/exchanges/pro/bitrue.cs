@@ -234,10 +234,10 @@ public partial class bitrue : ccxt.bitrue
             } },
         };
         Dictionary<string, object> request = this.deepExtend(message, parameters);
-        object orders = await this.watch(url, messageHash, request, messageHash);
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, request, messageHash));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)orders.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -274,7 +274,7 @@ public partial class bitrue : ccxt.bitrue
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache orders = this.orders;
-        callDynamically(orders, "append", new object[] {parsed});
+        orders.append(parsed);
         string messageHash = "orders";
         client.resolve(this.orders, messageHash);
     }
@@ -550,10 +550,10 @@ public partial class bitrue : ccxt.bitrue
             } },
         };
         Dictionary<string, object> request = this.deepExtend(message, parameters);
-        object trades = await this.watch(url, messageHash, request, messageHash);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, request, messageHash));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)trades.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -602,7 +602,7 @@ public partial class bitrue : ccxt.bitrue
                 ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
             }
             Dictionary<string, object> trade = this.parseWsTrade(data[i], market);
-            callDynamically(stored, "append", new object[] {trade});
+            stored.append(trade);
             appended = true;
         }
         if (appended)
@@ -686,10 +686,10 @@ public partial class bitrue : ccxt.bitrue
             } },
         };
         Dictionary<string, object> request = this.deepExtend(message, parameters);
-        object ohlcv = await this.watch(url, messageHash, request, messageHash);
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)await this.watch(url, messageHash, request, messageHash));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)ohlcv.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
@@ -742,7 +742,7 @@ public partial class bitrue : ccxt.bitrue
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = new ArrayCacheByTimestamp(limit);
         }
         ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue(getValue(this.ohlcvs, symbol), timeframe));
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         string messageHash = ((("ohlcv:" + (symbol)) + ":") + timeframe);
         client.resolve(stored, messageHash);
     }

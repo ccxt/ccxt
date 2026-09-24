@@ -374,7 +374,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         {
             Object ohlcv = Helpers.GetValue(ohlcvs, Helpers.subtract(Helpers.subtract(ohlcvsLength, i), 1));
             List<Object> parsed = (List<Object>) this.parseOHLCV(ohlcv, market);
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
         }
         client.resolve(stored, messageHash);
     }
@@ -669,7 +669,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             {
                 Object index = Helpers.subtract(Helpers.subtract(length, i), 1);
                 Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (Helpers.GetValue(trades, index)), market);
-                Helpers.callDynamically(stored, "append", new Object[]{parsed});
+                stored.append(parsed);
             }
         } else
         {
@@ -683,7 +683,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             }
             List<Object> trade = (List<Object>) this.safeList(message, 2, new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (trade), market);
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
         }
         client.resolve(stored, messageHash);
     }

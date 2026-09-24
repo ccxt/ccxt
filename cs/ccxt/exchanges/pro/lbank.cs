@@ -155,10 +155,10 @@ public partial class lbank : ccxt.lbank
             { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
-        object ohlcv = await this.watch(url, messageHash, request, messageHash);
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)await this.watch(url, messageHash, request, messageHash));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar}));
+            limitVar = ((Int64?)ohlcv.getLimit(symbol, limitVar));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
@@ -235,7 +235,7 @@ public partial class lbank : ccxt.lbank
                 stored = new ArrayCacheByTimestamp(limit);
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
             }
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
             string messageHash = ((("fetchOHLCV:" + symbol) + ":") + timeframeId);
             client.resolve(stored, messageHash);
         } else
@@ -253,7 +253,7 @@ public partial class lbank : ccxt.lbank
                 stored = new ArrayCacheByTimestamp(limit);
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
             }
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
             string messageHash = ((("ohlcv:" + symbol) + ":") + timeframeId);
             client.resolve(stored, messageHash);
         }
@@ -517,7 +517,7 @@ public partial class lbank : ccxt.lbank
         {
             Dictionary<string, object> trade = this.parseWsTrade(rawTrades[i], market);
             trade["symbol"] = symbol;
-            callDynamically(stored, "append", new object[] {trade});
+            stored.append(trade);
         }
         ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         string messageHash = ("trades:" + symbol);
@@ -657,7 +657,7 @@ public partial class lbank : ccxt.lbank
         {
             return;
         }
-        callDynamically(myOrders, "append", new object[] {order});
+        myOrders.append(order);
         this.orders = myOrders;
         client.resolve(myOrders, "orders");
         string messageHash = ("orders:" + symbol);

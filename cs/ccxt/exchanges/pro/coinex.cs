@@ -497,10 +497,10 @@ public partial class coinex : ccxt.coinex
             { "id", this.requestId() },
         };
         Dictionary<string, object> request = this.deepExtend(message, parameters);
-        object trades = await this.watch(url, messageHash, request, messageHash);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, request, messageHash));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)trades.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }
@@ -546,7 +546,7 @@ public partial class coinex : ccxt.coinex
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
         Dictionary<string, object> parsed = this.parseWsTrade(data, market);
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         client.resolve(getValue(this.trades, symbol), messageWithType);
         client.resolve(getValue(this.trades, symbol), messageHash);
@@ -616,7 +616,7 @@ public partial class coinex : ccxt.coinex
         {
             object trade = trades[i];
             Dictionary<string, object> parsed = this.parseWsTrade(trade, market);
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
         }
         ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         client.resolve(getValue(this.trades, symbol), messageHash);
@@ -1104,10 +1104,10 @@ public partial class coinex : ccxt.coinex
         };
         object url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), type);
         Dictionary<string, object> request = this.deepExtend(message, parameters);
-        object orders = await this.watch(url, messageHash, request, messageHash, request);
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, request, messageHash, request));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)orders.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -1243,7 +1243,7 @@ public partial class coinex : ccxt.coinex
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache orders = this.orders;
-        callDynamically(orders, "append", new object[] {parsedOrder});
+        orders.append(parsedOrder);
         string messageHash = "orders";
         string messageWithType = ((messageHash + ":") + ((market.ContainsKey("type") ? market["type"] : null)));
         client.resolve(this.orders, messageWithType);

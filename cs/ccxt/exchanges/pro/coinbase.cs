@@ -851,7 +851,7 @@ public partial class coinbase : ccxt.coinbase
             for (object j = 0; isLessThan(j, tradesLength); postFixIncrement(ref j))
             {
                 object item = getValue(currentTrades, subtract(subtract(tradesLength, j), 1));
-                callDynamically(tradesArray, "append", new object[] {this.parseTrade(item)});
+                tradesArray.append(this.parseTrade(item));
             }
         }
         client.resolve(tradesArray, messageHash);
@@ -920,7 +920,7 @@ public partial class coinbase : ccxt.coinbase
                         marketIds.Add(marketId);
                     }
                 }
-                callDynamically(cachedOrders, "append", new object[] {parsed});
+                cachedOrders.append(parsed);
             }
         }
         for (int i = 0; i < (marketIds?.Count ?? 0); i++)

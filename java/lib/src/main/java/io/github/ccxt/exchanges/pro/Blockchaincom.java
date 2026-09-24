@@ -275,7 +275,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
                 Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), stored);
             }
-            Helpers.callDynamically(stored, "append", new Object[]{ohlcv});
+            stored.append(ohlcv);
             client.resolve(stored, messageHash);
         } else if (!java.util.Objects.equals(eventVar, "subscribed"))
         {
@@ -513,7 +513,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
         Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (message), market);
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        stored.append(parsed);
         Helpers.addElementToObject(this.trades, symbol, stored);
         client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
     }
@@ -850,7 +850,7 @@ final String finalTradeId = tradeId;
             }};
             Map<String,Object> request = this.deepExtend(subscribe, parameters);
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, request, messageHash, null)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -925,7 +925,7 @@ final String finalTradeId = tradeId;
         if (java.util.Objects.equals(eventVar, "snapshot"))
         {
             Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "px", "qty", "num");
-            Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+            orderbook.reset(snapshot);
         } else if (java.util.Objects.equals(eventVar, "updated"))
         {
             List<Object> asks = (List<Object>) this.safeList(message, "asks", new ArrayList<Object>(Arrays.asList()));

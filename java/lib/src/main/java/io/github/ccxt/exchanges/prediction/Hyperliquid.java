@@ -1873,7 +1873,7 @@ public class Hyperliquid extends HyperliquidApi
         final String outcome3 = outcome2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             Map<String, Object> parameters = parameters3;
             this.checkRequiredCredentials();
             if (java.util.Objects.equals(outcome, null))
@@ -2017,7 +2017,7 @@ public class Hyperliquid extends HyperliquidApi
         final String outcome3 = outcome2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             Map<String, Object> parameters = parameters3;
             Object userAddress = null;
             List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("fetchOpenOrders", (Map<String, Object>) (parameters));
@@ -2094,7 +2094,7 @@ public class Hyperliquid extends HyperliquidApi
         final String outcome3 = outcome2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             Map<String, Object> parameters = parameters3;
             Object userAddress = null;
             List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("fetchOrders", (Map<String, Object>) (parameters));
@@ -2185,7 +2185,7 @@ public class Hyperliquid extends HyperliquidApi
         final String outcome3 = outcome2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             Map<String, Object> parameters = parameters3;
             Object userAddress = null;
             List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("fetchOrder", (Map<String, Object>) (parameters));

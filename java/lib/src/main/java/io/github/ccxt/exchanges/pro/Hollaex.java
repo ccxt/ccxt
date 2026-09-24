@@ -247,7 +247,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         List<Object> parsedTrades = this.parseTrades(data, market);
         for (var j = 0; j < ((List<?>)parsedTrades).size(); j++)
         {
-            Helpers.callDynamically(stored, "append", new Object[]{(parsedTrades == null || j < 0 || j >= parsedTrades.size() ? null : parsedTrades.get(j))});
+            stored.append((parsedTrades == null || j < 0 || j >= parsedTrades.size() ? null : parsedTrades.get(j)));
         }
         String messageHash = Helpers.add((channel + ":"), marketId);
         client.resolve(stored, messageHash);

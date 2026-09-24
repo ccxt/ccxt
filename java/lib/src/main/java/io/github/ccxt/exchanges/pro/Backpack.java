@@ -906,7 +906,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         }
         io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
         Object parsed = this.parseWsOHLCV(data);
-        Helpers.callDynamically(ohlcv, "append", new Object[]{parsed});
+        ohlcv.append(parsed);
         String messageHash = ((("candles:" + symbol) + ":") + timeframe);
         client.resolve(new ArrayList<Object>(Arrays.asList(symbol, timeframe, ohlcv)), messageHash);
     }
@@ -1159,7 +1159,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         }
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
         Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data), market);
-        Helpers.callDynamically(cache, "append", new Object[]{trade});
+        cache.append(trade);
         String messageHash = ("trades:" + symbol);
         client.resolve(cache, messageHash);
         client.resolve(cache, "trades");

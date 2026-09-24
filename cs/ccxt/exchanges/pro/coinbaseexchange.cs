@@ -495,7 +495,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                     ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
                 }
             }
-            callDynamically(tradesArray, "append", new object[] {trade});
+            tradesArray.append(trade);
             client.resolve(tradesArray, messageHash);
         }
         return message;
@@ -516,7 +516,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                 tradesArray = new ArrayCacheBySymbolById(limit);
                 this.myTrades = tradesArray;
             }
-            callDynamically(tradesArray, "append", new object[] {trade});
+            tradesArray.append(trade);
             client.resolve(tradesArray, messageHash);
         }
         return message;
@@ -735,7 +735,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             if ((previousOrder == null))
             {
                 Dictionary<string, object> parsed = this.parseWsOrder(message);
-                callDynamically(orders, "append", new object[] {parsed});
+                orders.append(parsed);
                 client.resolve(orders, messageHash);
             } else
             {
@@ -795,7 +795,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                             ((IDictionary<string,object>)getValue(previousOrder, "fee"))["cost"] = this.parseNumber(Precise.stringAdd(this.safeString(previousOrderFee, "cost"), this.safeString(tradeFee, "cost")));
                         }
                         // update the newUpdates count
-                        callDynamically(orders, "append", new object[] {previousOrder});
+                        orders.append(previousOrder);
                         client.resolve(orders, messageHash);
                     } else if ((type == "received") || (type == "done"))
                     {
@@ -816,7 +816,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                         {
                             return;
                         }
-                        callDynamically(orders, "append", new object[] {previousOrder});
+                        orders.append(previousOrder);
                         client.resolve(orders, messageHash);
                     }
                 }

@@ -532,7 +532,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 stored = new ArrayCache(((Number)tradesLimit).intValue());
                 Helpers.addElementToObject(this.trades, symbol, stored);
             }
-            Helpers.callDynamically(stored, "append", new Object[]{trade});
+            stored.append(trade);
             client.resolve(stored, messageHash);
         }
     }
@@ -1845,7 +1845,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                     Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
                 }
             }
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
             String messageHash = ((channel + ":") + ((Map<String, Object>)market).get("id"));
             client.resolve(stored, messageHash);
             // for multiOHLCV we need special object, as opposed to other "multi"
@@ -1971,7 +1971,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             }};
             String url = this.getUrl((String) (depth), "public");
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -2355,7 +2355,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                     Object update = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                     Long timestamp = this.safeInteger(update, "ts");
                     Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(update, symbol, timestamp, "bids", "asks", 0, 1);
-                    Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+                    orderbook.reset(snapshot);
                     client.resolve(orderbook, messageHash);
                 }
             }

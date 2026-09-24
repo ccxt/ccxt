@@ -744,7 +744,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         }
         for (var j = 0; j < ((List<?>)trades).size(); j++)
         {
-            Helpers.callDynamically(stored, "append", new Object[]{(trades == null || j < 0 || j >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(j))});
+            stored.append((trades == null || j < 0 || j >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(j)));
         }
         client.resolve(stored, messageHash);
     }
@@ -821,7 +821,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 }};
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, this.deepExtend(request, parameters), subscriptionHash, subscriptionArgs)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -1007,7 +1007,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         }
         Long nonce = this.safeInteger(data, "lastUpdateId");
         Helpers.addElementToObject(snapshot, "nonce", nonce);
-        Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+        orderbook.reset(snapshot);
         String messageHash = this.getMessageHash("orderbook", symbol);
         client.resolve(orderbook, messageHash);
         // resolve for "all"
@@ -1165,7 +1165,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         {
             Object candle = (candles == null || i < 0 || i >= candles.size() ? null : candles.get(i));
             Object parsed = this.parseWsOHLCV(candle, market);
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
         }
         List<Object> resolveData = new ArrayList<Object>(Arrays.asList(symbol, unifiedTimeframe, stored));
         String messageHash = this.getMessageHash("ohlcv", symbol, unifiedTimeframe);

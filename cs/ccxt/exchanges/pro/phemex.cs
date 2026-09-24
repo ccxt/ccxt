@@ -478,7 +478,7 @@ public partial class phemex : ccxt.phemex
         IList<object> parsed = this.parseTrades(trades, market);
         for (int i = 0; i < (parsed?.Count ?? 0); i++)
         {
-            callDynamically(stored, "append", new object[] {parsed[i]});
+            stored.append(parsed[i]);
         }
         client.resolve(stored, messageHash);
     }
@@ -538,7 +538,7 @@ public partial class phemex : ccxt.phemex
             for (int i = 0; i < (ohlcvs?.Count ?? 0); i++)
             {
                 object candle = ohlcvs[i];
-                callDynamically(stored, "append", new object[] {candle});
+                stored.append(candle);
             }
             client.resolve(stored, messageHash);
         }
@@ -680,10 +680,10 @@ public partial class phemex : ccxt.phemex
             { "params", new List<object>() {(market.ContainsKey("id") ? market["id"] : null)} },
         };
         Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
-        object trades = await this.watch(url, messageHash, request, messageHash);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, request, messageHash));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)trades.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -778,10 +778,10 @@ public partial class phemex : ccxt.phemex
             { "params", new List<object>() {(market.ContainsKey("id") ? market["id"] : null), this.safeInteger(this.timeframes, timeframeVar)} },
         };
         Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
-        object ohlcv = await this.watch(url, messageHash, request, messageHash);
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)await this.watch(url, messageHash, request, messageHash));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)ohlcv.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
@@ -1045,7 +1045,7 @@ public partial class phemex : ccxt.phemex
             string? marketId = this.safeString(rawTrade, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
             Dictionary<string, object> parsed = this.parseTrade(rawTrade);
-            callDynamically(cachedTrades, "append", new object[] {parsed});
+            cachedTrades.append(parsed);
             string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
             if ((type == null))
             {
@@ -1328,7 +1328,7 @@ public partial class phemex : ccxt.phemex
         for (int i = 0; i < (parsedOrders?.Count ?? 0); i++)
         {
             Dictionary<string, object> parsed = ((Dictionary<string, object>)parsedOrders[i]);
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
             object symbol = (parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null);
             Dictionary<string, object> market = this.market(symbol);
             if ((type == null))

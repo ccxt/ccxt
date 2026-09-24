@@ -548,10 +548,10 @@ public partial class hyperliquid : ccxt.hyperliquid
             throw new ArgumentsRequired ((this.id + " watchMyTrades() requires a user address")) ;
         }
         string subscribeHash = ("subscribe:userFills::" + userAddress.ToLower());
-        object trades = await this.watch(url, messageHash, message, subscribeHash);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, message, subscribeHash));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)trades.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }
@@ -730,7 +730,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             Dictionary<string, object> parsed = this.parseWsTrade(rawTrade);
             string? symbol = ((string)(parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
             symbols[(string)symbol] = true;
-            callDynamically(trades, "append", new object[] {parsed});
+            trades.append(parsed);
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
         for (int i = 0; i < keys.Count; i++)
@@ -775,10 +775,10 @@ public partial class hyperliquid : ccxt.hyperliquid
             } },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        object trades = await this.watch(url, messageHash, message, messageHash);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, message, messageHash));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)trades.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -856,7 +856,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         {
             IDictionary<string, object> data = this.safeDict(entry, i, new Dictionary<string, object>() {});
             Dictionary<string, object> trade = this.parseWsTrade(data);
-            callDynamically(trades, "append", new object[] {trade});
+            trades.append(trade);
         }
         string messageHash = ("trade:" + symbol);
         client.resolve(trades, messageHash);
@@ -967,10 +967,10 @@ public partial class hyperliquid : ccxt.hyperliquid
         };
         string messageHash = ((("candles:" + (timeframeVar)) + ":") + (symbolVar));
         Dictionary<string, object> message = this.extend(request, parameters);
-        object ohlcv = await this.watch(url, messageHash, message, messageHash);
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)await this.watch(url, messageHash, message, messageHash));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)ohlcv.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
@@ -1047,7 +1047,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
         ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)getValue(getValue(this.ohlcvs, symbol), timeframe));
         IList<object> parsed = this.parseOHLCV(data);
-        callDynamically(ohlcv, "append", new object[] {parsed});
+        ohlcv.append(parsed);
         string messageHash = ((("candles:" + timeframe) + ":") + symbol);
         client.resolve(ohlcv, messageHash);
     }
@@ -1422,7 +1422,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             object rawPosition = rawPositions[i];
             Dictionary<string, object> position = this.parsePosition(rawPosition);
             newPositions.Add(position);
-            callDynamically(cache, "append", new object[] {position});
+            cache.append(position);
         }
         string baseMessageHash = "clearinghouseState::positions";
         List<object> messageHashes = this.findMessageHashes(client, baseMessageHash);
@@ -1535,10 +1535,10 @@ public partial class hyperliquid : ccxt.hyperliquid
             throw new ArgumentsRequired ((this.id + " watchOrders() requires a user address")) ;
         }
         string subscribeHash = ("subscribe:orderUpdates::" + userAddress.ToLower());
-        object orders = await this.watch(url, messageHash, message, subscribeHash);
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, message, subscribeHash));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)orders.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -1621,7 +1621,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         {
             object rawOrder = data[i];
             Dictionary<string, object> order = this.parseOrder(rawOrder);
-            callDynamically(stored, "append", new object[] {order});
+            stored.append(order);
             string? symbol = this.safeString(order, "symbol");
             marketSymbols[(string)symbol] = true;
         }

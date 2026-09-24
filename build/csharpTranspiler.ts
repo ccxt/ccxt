@@ -703,6 +703,66 @@ export function nativeDeclaredWsCalls (content: string): string {
     return out + content.slice (cursor)
 }
 
+// `callDynamically(x, "append"|"getLimit", ...)` on a receiver whose C# declaration (the last one in
+// the same member) or base field names a ws cache class binds the method that class declares
+// (cs/ccxt/ws/ArrayCache.cs: `void append(object)`, `Int64? getLimit(object, object)`).
+const WS_CACHE_CLASSES = /^(?:ccxt\.pro\.)?ArrayCache(?:ByTimestamp|BySymbolById|BySymbolBySide|ByOutcomeById)?\??$/
+const WS_CACHE_FIELDS = [ 'this.orders', 'this.myTrades', 'this.liquidations' ]
+const WS_CACHE_METHOD_ARITY: { [method: string]: number } = { 'append': 1, 'getLimit': 2 }
+const CSHARP_MEMBER_START_RE = /^    (?:public|private|protected|internal)\b/
+
+function csharpWsCacheReceiverDeclared (lines: string[], lineIndex: number, receiver: string): boolean {
+    if (WS_CACHE_FIELDS.includes (receiver)) {
+        return true
+    }
+    const declaration = new RegExp ('^\\s*([A-Za-z_][\\w.]*\\??)\\s+' + receiver + '\\s*(?:=|;)')
+    for (let i = lineIndex; i >= 0; i--) {
+        const m = declaration.exec (lines[i])
+        if (m) {
+            return WS_CACHE_CLASSES.test (m[1])
+        }
+        if (CSHARP_MEMBER_START_RE.test (lines[i])) {
+            return false
+        }
+    }
+    return false
+}
+
+export function nativeWsCacheCalls (content: string): string {
+    const lines = content.split ('\n')
+    const call = /callDynamically\(((?:this\.)?\w+), "(append|getLimit)", new object\[\] \{/g
+    let changed = false
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i]
+        if (!line.includes ('callDynamically(')) {
+            continue
+        }
+        let out = ''
+        let cursor = 0
+        call.lastIndex = 0
+        let m
+        while ((m = call.exec (line)) !== null) {
+            const argsAt = m.index + m[0].length
+            const argsEnd = csharpBalancedBraceEnd (line, argsAt - 1)
+            if (argsEnd < 0 || line[argsEnd + 1] !== ')') {
+                continue
+            }
+            const args = line.slice (argsAt, argsEnd)
+            if (csharpArgumentCount (args) !== WS_CACHE_METHOD_ARITY[m[2]] || !csharpWsCacheReceiverDeclared (lines, i, m[1])) {
+                continue
+            }
+            out += line.slice (cursor, m.index) + m[1] + '.' + m[2] + '(' + args.trim () + ')'
+            cursor = argsEnd + 2
+            call.lastIndex = cursor
+        }
+        if (cursor > 0) {
+            lines[i] = out + line.slice (cursor)
+            changed = true
+        }
+    }
+    return changed ? lines.join ('\n') : content
+}
+
 // watchOHLCVForSymbols returns `{ symbol: { timeframe: OHLCV[] } }`. That nested map is not a
 // types.ts struct, so it has no generated To*/From* pair — the hand-written
 // ToOHLCVDict / FromOHLCVDict in Exchange.TranspileHelpers.cs (built on ToOHLCVList /
@@ -7823,6 +7883,9 @@ class NewTranspiler {
         content = this.retypeCacheElementWriteCasts (content);
         content = this.retypeIdentifierCopies (content);
         content = this.dropIdentityStringCasts (content);
+        if (ws || this.isPrediction) {
+            content = nativeWsCacheCalls (content);
+        }
         this.currentVenue = '';
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
         return csharpImports + content;

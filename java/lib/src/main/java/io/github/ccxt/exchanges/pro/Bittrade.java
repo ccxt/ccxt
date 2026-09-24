@@ -276,7 +276,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Map<String, Object> trade = (Map<String, Object>) this.parseTrade((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
-            Helpers.callDynamically(tradesCache, "append", new Object[]{trade});
+            tradesCache.append(trade);
         }
         client.resolve(tradesCache, ch);
         return message;
@@ -390,7 +390,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         }
         Object tick = this.safeValue(message, "tick");
         List<Object> parsed = (List<Object>) this.parseOHLCV(tick, market);
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        stored.append(parsed);
         client.resolve(stored, ch);
     }
 
@@ -444,7 +444,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                 put( "method", "handleOrderBookSubscription");
             }};
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -494,7 +494,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         ((Map<String, Object>)snapshot).put("nonce", this.safeInteger(data, "seqNum"));
         ((Map<String, Object>)snapshot).put("timestamp", timestamp);
         ((Map<String, Object>)snapshot).put("datetime", this.iso8601(timestamp));
-        Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+        orderbook.reset(snapshot);
         // unroll the accumulated deltas
         Object messages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));
         for (var i = 0; i < ((List<?>)messages).size(); i++)
@@ -537,7 +537,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                     put( "method", "handleOrderBookSnapshot");
                 }};
                 io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, requestId, request, requestId, snapshotSubscription)).join();
-                return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+                return orderbook.limit();
             } catch(Exception e)
             {
                 ((Map<String,Object>)client.subscriptions).remove((String)((String)messageHash));

@@ -518,7 +518,7 @@ public partial class binance : ccxt.binance
             this.liquidations = new ArrayCache(limit);
         }
         ccxt.pro.ArrayCache cache = this.liquidations;
-        callDynamically(cache, "append", new object[] {liquidation});
+        cache.append(liquidation);
         client.resolve(new List<object>() {liquidation}, "liquidations");
         client.resolve(new List<object>() {liquidation}, ("liquidations::" + symbol));
     }
@@ -1448,12 +1448,12 @@ public partial class binance : ccxt.binance
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", requestId },
         };
-        object trades = await this.watchMultiple(url, messageHashes, this.extend(request, query), messageHashes, subscribe);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watchMultiple(url, messageHashes, this.extend(request, query), messageHashes, subscribe));
         if (this.newUpdates)
         {
             IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar}));
+            limitVar = ((Int64?)trades.getLimit(tradeSymbol, limitVar));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -1803,7 +1803,7 @@ public partial class binance : ccxt.binance
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCache(limit);
         }
-        callDynamically(tradesArray, "append", new object[] {trade});
+        tradesArray.append(trade);
         ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
         client.resolve(tradesArray, messageHash);
     }
@@ -2178,7 +2178,7 @@ public partial class binance : ccxt.binance
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)unifiedTimeframe] = stored;
             }
         }
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         List<object> resolveData = new List<object>() {symbol, unifiedTimeframe, stored};
         client.resolve(resolveData, messageHash);
     }
@@ -5004,10 +5004,10 @@ public partial class binance : ccxt.binance
             Dictionary<string, object> stockSubscribe = new Dictionary<string, object>() {
                 { "id", stockRequestId },
             };
-            object stockOrders = await this.watch(stockUrl, stockMessageHash, this.extend(stockRequest, stockQuery), stockMessageHash, stockSubscribe);
+            ccxt.pro.ArrayCache stockOrders = ((ccxt.pro.ArrayCache)await this.watch(stockUrl, stockMessageHash, this.extend(stockRequest, stockQuery), stockMessageHash, stockSubscribe));
             if (this.newUpdates)
             {
-                limitVar = ((Int64?)callDynamically(stockOrders, "getLimit", new object[] {symbolVar, limitVar}));
+                limitVar = ((Int64?)stockOrders.getLimit(symbolVar, limitVar));
             }
             return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(stockOrders, symbolVar, since, limitVar, true));
         }
@@ -5069,10 +5069,10 @@ public partial class binance : ccxt.binance
         this.setBalanceCache(client, type, isPortfolioMargin);
         this.setPositionsCache(client, type, null, isPortfolioMargin);
         object message = null;
-        object orders = await this.watch(url, messageHash, message, type);
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, message, type));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)orders.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -5787,7 +5787,7 @@ public partial class binance : ccxt.binance
             double? contracts = this.safeNumber(position, "contracts", 0);
             if (((contracts != null)) && (isGreaterThan(contracts, 0)))
             {
-                callDynamically(cache, "append", new object[] {position});
+                cache.append(position);
             }
         }
         // don't remove the future from the .futures cache
@@ -5853,7 +5853,7 @@ public partial class binance : ccxt.binance
             position["timestamp"] = timestamp;
             position["datetime"] = this.iso8601(timestamp);
             newPositions.Add(position);
-            callDynamically(cache, "append", new object[] {position});
+            cache.append(position);
         }
         List<object> messageHashes = this.findMessageHashes(client, add(accountType, ":positions::"));
         for (int i = 0; i < (messageHashes?.Count ?? 0); i++)
@@ -6236,10 +6236,10 @@ public partial class binance : ccxt.binance
         this.setBalanceCache(client, type, isPortfolioMargin);
         this.setPositionsCache(client, type, null, isPortfolioMargin);
         object message = null;
-        object trades = await this.watch(url, messageHash, message, type);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, message, type));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)trades.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }
@@ -6333,7 +6333,7 @@ public partial class binance : ccxt.binance
                 this.myTrades = new ArrayCacheBySymbolById(limit);
             }
             ccxt.pro.ArrayCache myTrades = this.myTrades;
-            callDynamically(myTrades, "append", new object[] {trade});
+            myTrades.append(trade);
             client.resolve(this.myTrades, messageHash);
             string messageHashSymbol = ((messageHash + ":") + symbol);
             client.resolve(this.myTrades, messageHashSymbol);
@@ -6375,7 +6375,7 @@ public partial class binance : ccxt.binance
                     parsed["datetime"] = this.safeString(order, "datetime");
                 }
             }
-            callDynamically(cachedOrders, "append", new object[] {parsed});
+            cachedOrders.append(parsed);
             string messageHash = "orders";
             string symbolSpecificMessageHash = ("orders:" + symbol);
             client.resolve(cachedOrders, messageHash);
@@ -6460,7 +6460,7 @@ public partial class binance : ccxt.binance
             position["timestamp"] = timestamp;
             position["datetime"] = this.iso8601(timestamp);
             newPositions.Add(position);
-            callDynamically(cache, "append", new object[] {position});
+            cache.append(position);
         }
         List<object> messageHashes = this.findMessageHashes(client, (accountType + ":positions::"));
         for (int i = 0; i < (messageHashes?.Count ?? 0); i++)

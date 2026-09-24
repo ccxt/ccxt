@@ -394,7 +394,7 @@ public partial class extended : ccxt.extended
             Dictionary<string, object> trade = this.parseTrade(rawTrades[i]);
             string? symbol = this.safeString(trade, "symbol");
             symbols[(string)symbol] = true;
-            callDynamically(stored, "append", new object[] {trade});
+            stored.append(trade);
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
         for (int i = 0; i < keys.Count; i++)
@@ -497,7 +497,7 @@ public partial class extended : ccxt.extended
             }
             Dictionary<string, object> position = this.parsePosition(rawPosition);
             newPositions.Add(position);
-            callDynamically(stored, "append", new object[] {position});
+            stored.append(position);
         }
         List<object> messageHashes = this.findMessageHashes(client, "positions::");
         for (int i = 0; i < (messageHashes?.Count ?? 0); i++)
@@ -566,7 +566,7 @@ public partial class extended : ccxt.extended
             Dictionary<string, object> order = this.parseOrder(getValue((IList<object>)(rawOrders), i));
             string? symbol = this.safeString(order, "symbol");
             symbols[(string)symbol] = true;
-            callDynamically(orders, "append", new object[] {order});
+            orders.append(order);
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
         for (int i = 0; i < keys.Count; i++)
@@ -757,13 +757,13 @@ public partial class extended : ccxt.extended
         {
             url = add(url, ("?" + query));
         }
-        object trades = await this.watch(url, messageHash, null, messageHash, new Dictionary<string, object>() {
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, null, messageHash, new Dictionary<string, object>() {
             { "symbol", symbolVar },
             { "limit", limitVar },
-        });
+        }));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)trades.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -816,7 +816,7 @@ public partial class extended : ccxt.extended
         for (int i = 0; i < data.Count; i++)
         {
             Dictionary<string, object> trade = this.parseTrade(data[i], market);
-            callDynamically(stored, "append", new object[] {trade});
+            stored.append(trade);
         }
         client.resolve(stored, messageHash);
     }
@@ -870,17 +870,17 @@ public partial class extended : ccxt.extended
             { "interval", interval },
         }, parameters));
         string? url = ((string)add(add(add(add(add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/candles/"), (market.ContainsKey("id") ? market["id"] : null)), "/"), candleType), "?"), query));
-        object ohlcv = await this.watch(url, messageHash, null, messageHash, new Dictionary<string, object>() {
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)await this.watch(url, messageHash, null, messageHash, new Dictionary<string, object>() {
             { "name", "ohlcv" },
             { "symbol", symbolVar },
             { "timeframe", timeframeVar },
             { "candleType", candleType },
             { "limit", limitVar },
             { "messageHash", messageHash },
-        });
+        }));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)ohlcv.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
@@ -940,7 +940,7 @@ public partial class extended : ccxt.extended
         for (int i = 0; i < data.Count; i++)
         {
             IList<object> parsed = this.parseOHLCV(data[i]);
-            callDynamically(stored, "append", new object[] {parsed});
+            stored.append(parsed);
         }
         client.resolve(stored, messageHash);
     }

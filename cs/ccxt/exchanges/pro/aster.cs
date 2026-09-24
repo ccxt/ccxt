@@ -750,12 +750,12 @@ public partial class aster : ccxt.aster
             subscriptionArgs.Add(add(marketId, "@aggTrade"));
             messageHashes.Add(("trade::" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
         }
-        object trades = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes));
         if (this.newUpdates)
         {
             IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar}));
+            limitVar = ((Int64?)trades.getLimit(tradeSymbol, limitVar));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -839,7 +839,7 @@ public partial class aster : ccxt.aster
             ((IDictionary<string,object>)this.trades)[(string)symbol] = new ArrayCache(limit);
         }
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         client.resolve(stored, ("trade::" + symbol));
     }
 
@@ -1440,7 +1440,7 @@ public partial class aster : ccxt.aster
         }
         ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue(getValue(this.ohlcvs, symbol), timeframe));
         List<object> parsed = this.parseWsOHLCV(kline);
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         string messageHash = ((("ohlcv:" + symbol) + ":") + timeframe);
         List<object> resolveData = new List<object>() {symbol, timeframe, stored};
         client.resolve(resolveData, messageHash);
@@ -1813,7 +1813,7 @@ public partial class aster : ccxt.aster
             double? contracts = this.safeNumber(position, "contracts", 0);
             if (((contracts != null)) && (isGreaterThan(contracts, 0)))
             {
-                callDynamically(cache, "append", new object[] {position});
+                cache.append(position);
             }
         }
         // don't remove the future from the .futures cache
@@ -1875,7 +1875,7 @@ public partial class aster : ccxt.aster
             position["timestamp"] = timestamp;
             position["datetime"] = this.iso8601(timestamp);
             newPositions.Add(position);
-            callDynamically(cache, "append", new object[] {position});
+            cache.append(position);
         }
         List<object> messageHashes = this.findMessageHashes(client, messageHash);
         if (!this.isEmpty(messageHashes))
@@ -1992,10 +1992,10 @@ public partial class aster : ccxt.aster
         string? url = this.getPrivateUrl(type);
         var client = this.client(url);
         this.setBalanceCache(client, type);
-        object orders = await this.watchMultiple(url, new List<object>() {messageHash}, null, new List<object>() {type});
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watchMultiple(url, new List<object>() {messageHash}, null, new List<object>() {type}));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)orders.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -2041,10 +2041,10 @@ public partial class aster : ccxt.aster
         string? url = this.getPrivateUrl(type);
         var client = this.client(url);
         this.setBalanceCache(client, type);
-        object trades = await this.watchMultiple(url, new List<object>() {messageHash}, null, new List<object>() {type});
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watchMultiple(url, new List<object>() {messageHash}, null, new List<object>() {type}));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)trades.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }
@@ -2144,7 +2144,7 @@ public partial class aster : ccxt.aster
                 this.myTrades = new ArrayCacheBySymbolById(limit);
             }
             ccxt.pro.ArrayCache myTrades = this.myTrades;
-            callDynamically(myTrades, "append", new object[] {trade});
+            myTrades.append(trade);
             client.resolve(this.myTrades, messageHash);
             string messageHashSymbol = ((messageHash + "::") + symbol);
             client.resolve(this.myTrades, messageHashSymbol);
@@ -2237,7 +2237,7 @@ public partial class aster : ccxt.aster
         ccxt.pro.ArrayCache cache = this.orders;
         Dictionary<string, object> parsed = this.parseWsOrder(message, market);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        callDynamically(cache, "append", new object[] {parsed});
+        cache.append(parsed);
         List<object> messageHashes = this.findMessageHashes(client, messageHash);
         if (!this.isEmpty(messageHashes))
         {

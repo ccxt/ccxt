@@ -407,7 +407,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             if (java.util.Objects.equals(type, "snapshot"))
             {
                 Map<String, Object> parsedSnapshot = (Map<String, Object>) this.parseOrderBook(item, symbol, timestamp, "b", "a");
-                Helpers.callDynamically(orderbook, "reset", new Object[]{parsedSnapshot});
+                orderbook.reset(parsedSnapshot);
             } else
             {
                 List<Object> asks = (List<Object>) this.safeList(item, "a", new ArrayList<Object>(Arrays.asList()));
@@ -920,7 +920,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Object trades = this.parseWsTrades((data == null || marketId == null ? null : data.get(marketId)), market);
             for (var j = 0; j < ((List<?>)trades).size(); j++)
             {
-                Helpers.callDynamically(stored, "append", new Object[]{(trades == null || j < 0 || j >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(j))});
+                stored.append((trades == null || j < 0 || j >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(j)));
             }
             String messageHash = ("trades::" + symbol);
             client.resolve(stored, messageHash);
@@ -1095,7 +1095,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Object ohlcvs = this.parseWsOHLCVs((data == null || marketId == null ? null : data.get(marketId)), market);
             for (var j = 0; j < ((List<?>)ohlcvs).size(); j++)
             {
-                Helpers.callDynamically(stored, "append", new Object[]{(ohlcvs == null || j < 0 || j >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(j))});
+                stored.append((ohlcvs == null || j < 0 || j >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(j)));
             }
             String messageHash = ("candles::" + symbol);
             client.resolve(stored, messageHash);

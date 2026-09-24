@@ -649,10 +649,10 @@ public partial class bithumb : ccxt.bithumb
         {
             request = this.extend(request, parameters);
         }
-        object trades = await this.watch(url, messageHash, request, messageHash);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, request, messageHash));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)trades.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -731,7 +731,7 @@ public partial class bithumb : ccxt.bithumb
                 ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
             }
             ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
-            callDynamically(trades, "append", new object[] {parsed});
+            trades.append(parsed);
             string messageHash = (("trade" + ":") + symbol);
             client.resolve(trades, messageHash);
         }
@@ -1030,10 +1030,10 @@ public partial class bithumb : ccxt.bithumb
             symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             messageHash = ((messageHash + ":") + (symbolVar));
         }
-        object orders = await this.watch(url, messageHash, request, messageHash);
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, request, messageHash));
         if (this.newUpdates)
         {
-            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = ((Int64?)orders.getLimit(symbolVar, limitVar));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -1074,7 +1074,7 @@ public partial class bithumb : ccxt.bithumb
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache cachedOrders = this.orders;
-        callDynamically(cachedOrders, "append", new object[] {parsed});
+        cachedOrders.append(parsed);
         client.resolve(cachedOrders, messageHash);
         string symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(cachedOrders, symbolSpecificMessageHash);

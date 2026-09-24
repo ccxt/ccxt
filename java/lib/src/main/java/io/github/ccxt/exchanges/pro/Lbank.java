@@ -298,7 +298,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
                 Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), stored);
             }
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
             String messageHash = ((("fetchOHLCV:" + symbol) + ":") + timeframeId);
             client.resolve(stored, messageHash);
         } else
@@ -316,7 +316,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
                 Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), stored);
             }
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
             String messageHash = ((("ohlcv:" + symbol) + ":") + timeframeId);
             client.resolve(stored, messageHash);
         }
@@ -657,7 +657,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         {
             Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) ((rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i))), market);
             Helpers.addElementToObject(trade, "symbol", symbol);
-            Helpers.callDynamically(stored, "append", new Object[]{trade});
+            stored.append(trade);
         }
         Helpers.addElementToObject(this.trades, symbol, stored);
         String messageHash = ("trades:" + symbol);
@@ -1052,7 +1052,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             }};
             Map<String,Object> request = this.deepExtend(subscribe, parameters);
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, request, messageHash, null)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -1110,7 +1110,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             }};
             Map<String,Object> request = this.deepExtend(subscribe, parameters);
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, request, messageHash, null)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -1199,7 +1199,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderBook, symbol, timestamp, "bids", "asks");
-        Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+        orderbook.reset(snapshot);
         String messageHash = ("orderbook:" + symbol);
         client.resolve(orderbook, messageHash);
         messageHash = ("fetchOrderbook:" + symbol);

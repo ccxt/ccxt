@@ -1930,7 +1930,7 @@ public class Limitless extends LimitlessApi
         final String outcome3 = outcome2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             Long limit = limit3;
             if (java.util.Objects.equals(outcome, null))
             {
@@ -3110,7 +3110,7 @@ public class Limitless extends LimitlessApi
     {
         final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             String conditionId = this.safeString2(parameters, "conditionId", "condition_id");
             if (java.util.Objects.equals(conditionId, null))
             {

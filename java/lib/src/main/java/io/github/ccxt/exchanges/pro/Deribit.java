@@ -625,7 +625,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         {
             Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
             Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(trade, market);
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
         }
         Helpers.addElementToObject(this.trades, symbol, stored);
         String messageHash = ((("trades|" + symbol) + "|") + interval);
@@ -1237,7 +1237,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         Map<String, Object> ohlcv = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         // data contains a single OHLCV candle
         Object parsed = this.parseWsOHLCV(ohlcv, market);
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        stored.append(parsed);
         Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)unifiedTimeframe), stored);
         List<Object> resolveData = new ArrayList<Object>(Arrays.asList(symbol, unifiedTimeframe, stored));
         String messageHash = ((("chart.trades|" + symbol) + "|") + rawTimeframe);

@@ -1155,7 +1155,7 @@ public partial class mexc : ccxt.mexc
             {
                 parsedTrade = this.parseTrade(trades[j], market);
             }
-            callDynamically(stored, "append", new object[] {parsedTrade});
+            stored.append(parsedTrade);
         }
         client.resolve(stored, messageHash);
     }
@@ -1270,7 +1270,7 @@ public partial class mexc : ccxt.mexc
             trades = new ArrayCacheBySymbolById(limit);
             this.myTrades = trades;
         }
-        callDynamically(trades, "append", new object[] {trade});
+        trades.append(trade);
         client.resolve(trades, messageHash);
         string symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(trades, symbolSpecificMessageHash);
@@ -1519,7 +1519,7 @@ public partial class mexc : ccxt.mexc
             orders = new ArrayCacheBySymbolById(limit);
             this.orders = orders;
         }
-        callDynamically(orders, "append", new object[] {parsed});
+        orders.append(parsed);
         client.resolve(orders, messageHash);
         string symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(orders, symbolSpecificMessageHash);

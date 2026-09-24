@@ -840,7 +840,7 @@ public partial class woo : ccxt.woo
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
             }
         }
-        callDynamically(stored, "append", new object[] {parsed});
+        stored.append(parsed);
         client.resolve(stored, topic);
     }
 
@@ -932,7 +932,7 @@ public partial class woo : ccxt.woo
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCache(limit);
         }
-        callDynamically(tradesArray, "append", new object[] {trade});
+        tradesArray.append(trade);
         ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
         client.resolve(tradesArray, topic);
     }
@@ -1398,7 +1398,7 @@ public partial class woo : ccxt.woo
                 parsed["timestamp"] = this.safeInteger(order, "timestamp");
                 parsed["datetime"] = this.safeString(order, "datetime");
             }
-            callDynamically(cachedOrders, "append", new object[] {parsed});
+            cachedOrders.append(parsed);
             client.resolve(this.orders, topic);
             object messageHashSymbol = add(add(topic, ":"), symbol);
             client.resolve(this.orders, messageHashSymbol);
@@ -1444,7 +1444,7 @@ public partial class woo : ccxt.woo
             myTrades = new ArrayCacheBySymbolById(limit);
         }
         Dictionary<string, object> trade = this.parseWsTrade(message);
-        callDynamically(myTrades, "append", new object[] {trade});
+        myTrades.append(trade);
         string messageHash = ("myTrades:" + ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null)));
         client.resolve(myTrades, messageHash);
         messageHash = "myTrades";
@@ -1540,7 +1540,7 @@ public partial class woo : ccxt.woo
             double? contracts = this.safeNumber(position, "contracts", 0);
             if (((contracts != null)) && (isGreaterThan(contracts, 0)))
             {
-                callDynamically(cache, "append", new object[] {position});
+                cache.append(position);
             }
         }
         // don't remove the future from the .futures cache
@@ -1595,7 +1595,7 @@ public partial class woo : ccxt.woo
             object rawPosition = getValue(rawPositions, marketId);
             Dictionary<string, object> position = this.parsePosition(rawPosition, market);
             newPositions.Add(position);
-            callDynamically(cache, "append", new object[] {position});
+            cache.append(position);
             string messageHash = ("positions::" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
             client.resolve(position, messageHash);
         }
