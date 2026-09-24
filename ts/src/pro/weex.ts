@@ -612,7 +612,7 @@ export default class weex extends weexRest {
             if (market['type'] !== firstMarket['type']) {
                 throw new BadRequest (this.id + ' ' + callerMethodName + ' market symbols must be of the same type');
             }
-            symbolString = market['symbol'];
+            symbolString = this.safeString (market, 'symbol');
             const unifiedTimeframe = this.safeString (data, 1, '1');
             const interval = this.safeString (this.timeframes, unifiedTimeframe, unifiedTimeframe);
             const channel = market['id'] + '@kline_' + interval + '_' + priceType;
@@ -678,7 +678,7 @@ export default class weex extends weexRest {
             if (market['type'] !== firstMarket['type']) {
                 throw new BadRequest (this.id + ' ' + callerMethodName + ' market symbols must be of the same type');
             }
-            symbolString = market['symbol'];
+            symbolString = this.safeString (market, 'symbol');
             const unifiedTimeframe = this.safeString (data, 1, '1');
             const interval = this.safeString (this.timeframes, unifiedTimeframe, unifiedTimeframe);
             const channel = market['id'] + '@kline_' + interval + '_' + priceType;
@@ -1254,9 +1254,9 @@ export default class weex extends weexRest {
             let feeCurrency = this.safeCurrencyCode (commissionAsset);
             if (marketType === 'spot') {
                 if (side === 'buy') {
-                    feeCurrency = marketResolved['base'];
+                    feeCurrency = this.safeString (marketResolved, 'base');
                 } else {
-                    feeCurrency = marketResolved['quote'];
+                    feeCurrency = this.safeString (marketResolved, 'quote');
                 }
             }
             fee = {
@@ -1530,9 +1530,9 @@ export default class weex extends weexRest {
             let feeCurrency = this.safeCurrencyCode (commissionAsset);
             if (marketType === 'spot') {
                 if (side === 'buy') {
-                    feeCurrency = marketResolved['base'];
+                    feeCurrency = this.safeString (marketResolved, 'base');
                 } else {
-                    feeCurrency = marketResolved['quote'];
+                    feeCurrency = this.safeString (marketResolved, 'quote');
                 }
             }
             fee = {

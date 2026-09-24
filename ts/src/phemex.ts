@@ -3890,7 +3890,7 @@ export default class phemex extends Exchange {
         const firstSymbol = this.safeString (symbols, 0);
         if (firstSymbol !== undefined) {
             market = this.market (firstSymbol);
-            settle = market['settle'];
+            settle = this.safeString (market, 'settle');
             code = market['settle'];
         } else {
             [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', code);
@@ -5532,7 +5532,7 @@ export default class phemex extends Exchange {
         const firstSymbol = this.safeString (symbols, 0);
         if (firstSymbol !== undefined) {
             market = this.market (firstSymbol);
-            settle = market['settle'];
+            settle = this.safeString (market, 'settle');
             code = market['settle'];
         } else {
             [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositionsADLRank', 'settle', code);

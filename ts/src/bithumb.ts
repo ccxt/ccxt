@@ -2263,7 +2263,7 @@ export default class bithumb extends Exchange {
         if (feeCost !== undefined) {
             let currency: Str = undefined;
             if (market !== undefined) {
-                currency = market['quote'];
+                currency = this.safeString (market, 'quote');
             }
             fee = {
                 'currency': currency,

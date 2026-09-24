@@ -1144,7 +1144,7 @@ export default class aster extends asterRest {
                 continue;
             }
             const market = this.market (symbolString);
-            symbolString = market['symbol'];
+            symbolString = this.safeString (market, 'symbol');
             const unfiedTimeframe = this.safeString (data, 1);
             const timeframeId = (unfiedTimeframe === undefined) ? undefined : this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@kline_' + timeframeId);
@@ -1197,7 +1197,7 @@ export default class aster extends asterRest {
                 continue;
             }
             const market = this.market (symbolString);
-            symbolString = market['symbol'];
+            symbolString = this.safeString (market, 'symbol');
             const unfiedTimeframe = this.safeString (data, 1);
             const timeframeId = (unfiedTimeframe === undefined) ? undefined : this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@kline_' + timeframeId);

@@ -2314,7 +2314,7 @@ export default class ndax extends Exchange {
         const tag = this.safeString (parts, 1);
         let code: Str = undefined;
         if (currency !== undefined) {
-            code = currency['code'];
+            code = this.safeString (currency, 'code');
         }
         this.checkAddress (address);
         return {

@@ -1585,7 +1585,7 @@ export default class bitget extends bitgetRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
-            marketId = market['id'];
+            marketId = this.safeString (market, 'id');
             messageHash = messageHash + ':' + symbol;
         }
         let uta: Bool = undefined;

@@ -829,7 +829,7 @@ export default class coinbase extends Exchange {
             for (let i = 0; i < this.accounts.length; i++) {
                 const account = this.accounts[i];
                 if (account['code'] === code && account['type'] === 'wallet') {
-                    accountId = account['id'];
+                    accountId = this.safeString (account, 'id');
                     break;
                 }
             }
@@ -1352,7 +1352,7 @@ export default class coinbase extends Exchange {
         let feeCurrencyId = this.safeString (feeObject, 'currency');
         const feeCost = this.safeNumber (feeObject, 'amount', this.parseNumber (v3FeeCost));
         if ((feeCurrencyId === undefined) && (market !== undefined) && (feeCost !== undefined)) {
-            feeCurrencyId = market['quote'];
+            feeCurrencyId = this.safeString (market, 'quote');
         }
         const datetime = this.safeStringN (trade, [ 'created_at', 'trade_time', 'time' ]);
         const side = this.safeStringLower2 (trade, 'resource', 'side');
@@ -3413,7 +3413,7 @@ export default class coinbase extends Exchange {
         const totalFees = this.safeString (order, 'total_fees');
         let currencyFee: Str = undefined;
         if ((totalFees !== undefined) && (market !== undefined)) {
-            currencyFee = market['quote'];
+            currencyFee = this.safeString (market, 'quote');
         }
         return this.safeOrder ({
             'info': order,

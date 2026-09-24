@@ -5771,7 +5771,7 @@ export default class kucoin extends Exchange {
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            marketType = market['type'];
+            marketType = this.safeString (market, 'type');
             request['symbol'] = market['id'];
         } else {
             marketType = this.safeString (params, 'marketType');
@@ -5974,7 +5974,7 @@ export default class kucoin extends Exchange {
             [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrder', undefined, params);
         } else {
             const market = this.market (symbol);
-            marketType = market['type'];
+            marketType = this.safeString (market, 'type');
         }
         if ((marketType === 'spot') || (marketType === 'margin')) {
             return await this.fetchSpotOrder (id, symbol, params);

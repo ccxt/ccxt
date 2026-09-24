@@ -2596,7 +2596,7 @@ export default class bitfinex extends Exchange {
             const data = this.safeList (transaction, 4, []);
             timestamp = this.safeInteger (transaction, 0);
             if (currency !== undefined) {
-                code = currency['code'];
+                code = this.safeString (currency, 'code');
             }
             feeCost = this.safeString (data, 8);
             if (feeCost !== undefined) {

@@ -1230,28 +1230,28 @@ export default class bigone extends Exchange {
         if (takerOrMaker !== undefined) {
             if (side === 'buy') {
                 if (takerOrMaker === 'maker') {
-                    makerCurrencyCode = market['base'];
-                    takerCurrencyCode = market['quote'];
+                    makerCurrencyCode = this.safeString (market, 'base');
+                    takerCurrencyCode = this.safeString (market, 'quote');
                 } else {
-                    makerCurrencyCode = market['quote'];
-                    takerCurrencyCode = market['base'];
+                    makerCurrencyCode = this.safeString (market, 'quote');
+                    takerCurrencyCode = this.safeString (market, 'base');
                 }
             } else {
                 if (takerOrMaker === 'maker') {
-                    makerCurrencyCode = market['quote'];
-                    takerCurrencyCode = market['base'];
+                    makerCurrencyCode = this.safeString (market, 'quote');
+                    takerCurrencyCode = this.safeString (market, 'base');
                 } else {
-                    makerCurrencyCode = market['base'];
-                    takerCurrencyCode = market['quote'];
+                    makerCurrencyCode = this.safeString (market, 'base');
+                    takerCurrencyCode = this.safeString (market, 'quote');
                 }
             }
         } else if (side === 'SELF_TRADING') {
             if (takerSide === 'BID') {
-                makerCurrencyCode = market['quote'];
-                takerCurrencyCode = market['base'];
+                makerCurrencyCode = this.safeString (market, 'quote');
+                takerCurrencyCode = this.safeString (market, 'base');
             } else if (takerSide === 'ASK') {
-                makerCurrencyCode = market['base'];
-                takerCurrencyCode = market['quote'];
+                makerCurrencyCode = this.safeString (market, 'base');
+                takerCurrencyCode = this.safeString (market, 'quote');
             }
         }
         const makerFeeCost = this.safeString (trade, 'maker_fee');
