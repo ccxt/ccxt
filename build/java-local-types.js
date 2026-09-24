@@ -11786,3 +11786,68 @@ export function patchJavaStringAccumulatorLists (transpiler) {
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => typed.has (declaration) ? 'java.util.List<String>' : undefined);
 }
+
+// ===== 28. element-read locals of handle* tuple holders =====
+// `const x = holder[k]` where holder is a local initialised by an audited tuple producer
+// (handleElementType) prints `((List<Object>)holder).get(k)`: the element box is proven.
+function javaTupleHolderElementLocalType (printer, declaration) {
+    const read = unwrapParens (declaration.initializer);
+    if (read === undefined || !ts.isElementAccessExpression (read) || !ts.isIdentifier (read.expression)
+        || !ts.isNumericLiteral (read.argumentExpression)) {
+        return undefined;
+    }
+    const holder = printer.getChecker ().getSymbolAtLocation (read.expression)?.valueDeclaration;
+    if (holder === undefined || !ts.isVariableDeclaration (holder) || !ts.isIdentifier (holder.name)
+        || holder.initializer === undefined || (ts.getCombinedNodeFlags (holder) & ts.NodeFlags.Const) === 0
+        || enclosingFunction (holder) !== enclosingFunction (declaration)) {
+        return undefined;
+    }
+    const type = handleElementType (printer, unwrapParens (holder.initializer), Number (read.argumentExpression.text));
+    if (type === undefined) {
+        return undefined;
+    }
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    const scope = enclosingFunction (declaration);
+    if (!handleTupleIsSafeToNarrow (printer, scope, declaration.name, declaration.name.escapedText, type, isProFile)) {
+        return undefined;
+    }
+    const list = printer.printNode (read.expression, 0);
+    return { type, rhs: `((List<Object>)${list}).get(${read.argumentExpression.text})` };
+}
+
+export function patchJavaTupleHolderElementLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaTupleHolderElementPatched) {
+        return;
+    }
+    printer._javaTupleHolderElementPatched = true;
+    const retyped = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || declaration.initializer === undefined
+            || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        let found;
+        try {
+            found = javaTupleHolderElementLocalType (printer, declaration);
+        } catch (e) {
+            return printed;
+        }
+        if (found === undefined) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const name = printer.printNode (declaration.name, 0);
+        const marker = `${iden}${printer.VAR_TOKEN} ${name} = `;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1 || printed.slice (at + marker.length).trim ().replace (/;$/, '') !== found.rhs) {
+            return printed;
+        }
+        retyped.set (declaration, found.type);
+        return printed.slice (0, at) + `${iden}${found.type} ${name} = (${found.type}) ` + printed.slice (at + marker.length);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => retyped.get (declaration));
+}
