@@ -5633,6 +5633,55 @@ function ccxtGoWsListStreamReceive (goTranspiler, awaitNode) {
     return { goType: 'ArrayCacheInterface', wrap: (recv) => 'AsArrayCache(PanicOnError(' + recv.trim () + '))' };
 }
 
+// Promise<scalar> cores: the declared T of the override the checker resolves names the pointer
+// the local takes; absent stays a nil pointer. Only reads that store the value qualify.
+const CCXT_GO_ASYNC_SCALAR_TYPES = {
+    'string': [ '*string', 'SafeStringPtr' ], 'Str': [ '*string', 'SafeStringPtr' ],
+    'boolean': [ '*bool', 'SafeBoolPtr' ], 'Bool': [ '*bool', 'SafeBoolPtr' ],
+    'int': [ '*int64', 'Int64PtrTyped' ], 'Int': [ '*int64', 'Int64PtrTyped' ],
+    'number': [ '*float64', 'Float64PtrTyped' ], 'Num': [ '*float64', 'Float64PtrTyped' ],
+};
+
+function ccxtGoAsyncScalarRead (n) {
+    let node = n;
+    while (node.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        node = node.parent;
+    }
+    const parent = node.parent;
+    if ((parent?.kind === ts.SyntaxKind.PropertyAssignment) && (parent.initializer === node)) {
+        return true;                            // { 'k': x }
+    }
+    if (parent?.kind === ts.SyntaxKind.ArrayLiteralExpression) {
+        return true;                            // [ x ]
+    }
+    return (parent?.kind === ts.SyntaxKind.BinaryExpression) && (parent.right === node)
+        && (parent.operatorToken.kind === ts.SyntaxKind.EqualsToken)
+        && (parent.left.kind === ts.SyntaxKind.ElementAccessExpression)
+        && (parent.parent?.kind === ts.SyntaxKind.ExpressionStatement);   // r[k] = x
+}
+
+function ccxtGoAsyncScalarReceive (goTranspiler, awaitNode, call) {
+    const declaration = ccxtGoAsyncReceiveDeclaration (awaitNode);
+    if ((declaration === undefined) || (declaration.initializer !== awaitNode)
+        || (declaration.name?.kind !== ts.SyntaxKind.Identifier)
+        || (typeof goTranspiler.goDeclaredLocalTypeIfSafe !== 'function')) {
+        return undefined;
+    }
+    let text = undefined;
+    try {
+        const method = goTranspiler.getChecker ().getResolvedSignature (call)?.declaration;
+        text = ((method?.kind === ts.SyntaxKind.MethodDeclaration) && (method.body !== undefined)) ? method.type?.getText?. () : undefined;
+    } catch (e) {
+        return undefined;
+    }
+    const m = /^Promise<\s*(\w+)\s*>$/.exec ((text ?? '').trim ());
+    const scalar = (m === null) ? undefined : CCXT_GO_ASYNC_SCALAR_TYPES[m[1]];
+    if ((scalar === undefined) || (goTranspiler.goDeclaredLocalTypeIfSafe (declaration, scalar[0], ccxtGoAsyncScalarRead) === undefined)) {
+        return undefined;
+    }
+    return { goType: scalar[0], wrap: (recv) => scalar[1] + '(PanicOnError(' + recv.trim () + '))' };
+}
+
 // The hook the printer consults for all three await shapes.  Fail closed: undefined keeps the
 // boxed `x := (<-...)` + `PanicOnError(x)` emission byte-for-byte.
 export function ccxtGoAwaitReceiveUnbox (goTranspiler, awaitNode, printedInitializer) {
@@ -5675,7 +5724,7 @@ export function ccxtGoAwaitReceiveUnbox (goTranspiler, awaitNode, printedInitial
     }
     const goType = (endpoint !== undefined) ? endpoint : CCXT_GO_ASYNC_ELEM_TYPES[printed[1]];
     if (goType === undefined) {
-        return undefined;
+        return (endpoint === undefined) ? ccxtGoAsyncScalarReceive (goTranspiler, awaitNode, call) : undefined;
     }
     if ((endpoint !== undefined) && (ccxtGoAsyncReceiveDeclaration (awaitNode) === undefined)) {
         return undefined;                       // a statement or a forwarded endpoint value stays boxed
