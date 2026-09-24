@@ -2702,7 +2702,7 @@ export default class aster extends Exchange {
     override async createOrders (orders: OrderRequest[], params: Dict = {}): Promise<Order[]> {
         await this.loadMarketsAndSignIn ();
         const ordersRequests: List = [];
-        let orderSymbols: List = [];
+        let orderSymbols: string[] = [];
         if (orders.length > 5) {
             throw new InvalidOrder (this.id + ' createOrders() order list max 5 orders');
         }

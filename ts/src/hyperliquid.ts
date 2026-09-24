@@ -1649,7 +1649,7 @@ export default class hyperliquid extends Exchange {
         //         }
         //     ]
         //
-        let fills: List = [];
+        let fills: Dict[] = [];
         if (Array.isArray (response)) {
             fills = response;
         }
@@ -3115,7 +3115,7 @@ export default class hyperliquid extends Exchange {
         //     ]
         //
         const result: List = [];
-        let fundings: List = [];
+        let fundings: Dict[] = [];
         if (Array.isArray (response)) {
             fundings = response;
         }
@@ -3195,7 +3195,7 @@ export default class hyperliquid extends Exchange {
         //     ]
         //
         const orderWithStatus: List = [];
-        let rawOrders: List = [];
+        let rawOrders: Dict[] = [];
         if (Array.isArray (response)) {
             rawOrders = response;
         }
@@ -3324,7 +3324,7 @@ export default class hyperliquid extends Exchange {
         // so a canceled order appears twice: once as 'open' and once as 'canceled'.
         // Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
         const deduplicatedByOid: Dict = {};
-        let historicalOrders: List = [];
+        let historicalOrders: Dict[] = [];
         if (Array.isArray (response)) {
             historicalOrders = response;
         }
@@ -3685,7 +3685,7 @@ export default class hyperliquid extends Exchange {
         //         }
         //     ]
         //
-        let myFills: List = [];
+        let myFills: Dict[] = [];
         if (Array.isArray (response)) {
             myFills = response;
         }
@@ -4691,7 +4691,7 @@ export default class hyperliquid extends Exchange {
         //     }
         // ]
         //
-        let depositLedger: List = [];
+        let depositLedger: Dict[] = [];
         if (Array.isArray (response)) {
             depositLedger = response;
         }
@@ -4761,7 +4761,7 @@ export default class hyperliquid extends Exchange {
         //     }
         // ]
         //
-        let withdrawalLedger: List = [];
+        let withdrawalLedger: Dict[] = [];
         if (Array.isArray (response)) {
             withdrawalLedger = response;
         }

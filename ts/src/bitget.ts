@@ -9014,7 +9014,7 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
-        let position: List = [];
+        let position: Dict[] = [];
         if ((uta === true) || isHistory) {
             const data = this.safeDict (response, 'data', {});
             position = this.safeList (data, 'list', []);

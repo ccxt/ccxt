@@ -1461,7 +1461,7 @@ export default class bitteam extends Exchange {
         //     ]
         //
         const tickers: List = [];
-        let rawTickers: List = [];
+        let rawTickers: Dict[] = [];
         if (Array.isArray (response)) {
             rawTickers = response;
         }

@@ -1234,7 +1234,7 @@ export default class dydx extends Exchange {
 
     signOnboardingAction (): object {
         const message: Dict = { 'action': 'dYdX Chain Onboarding' };
-        const chainId = this.options['chainId'];
+        const chainId = this.safeInteger (this.options, 'chainId');
         const domain: Dict = {
             'chainId': chainId,
             'name': 'dYdX Chain',
@@ -1530,7 +1530,7 @@ export default class dydx extends Exchange {
         const orderRequestRes = this.createOrderRequest (symbol, type, side, amount, price, newParams);
         const orderId = orderRequestRes[0];
         const orderRequest = orderRequestRes[1];
-        const chainName = this.options['chainName'];
+        const chainName = this.safeString (this.options, 'chainName');
         const signedTx = this.signDydxTx (credentials['privateKey'], orderRequest, '', chainName, account, undefined);
         const request: Dict = {
             'tx': signedTx,
@@ -1637,7 +1637,7 @@ export default class dydx extends Exchange {
             'typeUrl': '/dydxprotocol.clob.MsgCancelOrder',
             'value': cancelPayload,
         };
-        const chainName = this.options['chainName'];
+        const chainName = this.safeString (this.options, 'chainName');
         const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, '', chainName, account, undefined);
         const request: Dict = {
             'tx': signedTx,
@@ -1709,7 +1709,7 @@ export default class dydx extends Exchange {
             'typeUrl': '/dydxprotocol.clob.MsgBatchCancel',
             'value': cancelPayload,
         };
-        const chainName = this.options['chainName'];
+        const chainName = this.safeString (this.options, 'chainName');
         const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, '', chainName, account, undefined);
         const request: Dict = {
             'tx': signedTx,
@@ -1990,7 +1990,7 @@ export default class dydx extends Exchange {
             };
         }
         const txFee = await this.estimateTxFee (signingPayload, '', account);
-        const chainName = this.options['chainName'];
+        const chainName = this.safeString (this.options, 'chainName');
         const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, '', chainName, account, undefined, txFee);
         const request: Dict = {
             'tx': signedTx,
@@ -2179,7 +2179,7 @@ export default class dydx extends Exchange {
             'value': payload,
         };
         const txFee = await this.estimateTxFee (signingPayload, tag, account);
-        const chainName = this.options['chainName'];
+        const chainName = this.safeString (this.options, 'chainName');
         const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, tag, chainName, account, undefined, txFee);
         const request: Dict = {
             'tx': signedTx,

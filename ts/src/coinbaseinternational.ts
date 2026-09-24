@@ -1602,7 +1602,7 @@ export default class coinbaseinternational extends Exchange {
         symbols = this.marketSymbols (symbols);
         const instruments = await this.v1PublicGetInstruments (params);
         const tickers: Dict = {};
-        let rows: List = [];
+        let rows: Dict[] = [];
         if (Array.isArray (instruments)) {
             rows = instruments;
         }
