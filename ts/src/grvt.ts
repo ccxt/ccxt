@@ -1771,7 +1771,7 @@ export default class grvt extends Exchange {
         const nonMatchedResults: List = [];
         for (let i = 0; i < transfers.length; i++) {
             const transfer = transfers[i];
-            if ((onlyMainAccount && transfer['fromAccount'] === '0' && transfer['toAccount'] === '0') || (!onlyMainAccount && (transfer['fromAccount'] !== '0' || transfer['toAccount'] !== '0'))) {
+            if ((onlyMainAccount && this.safeString (transfer, 'fromAccount') === '0' && this.safeString (transfer, 'toAccount') === '0') || (!onlyMainAccount && (this.safeString (transfer, 'fromAccount') !== '0' || this.safeString (transfer, 'toAccount') !== '0'))) {
                 const metadata = this.safeString (transfer['info'], 'transfer_metadata');
                 const parsedMetadata = this.parseJson (metadata);
                 const direction = this.safeString (parsedMetadata, 'direction');
@@ -3358,7 +3358,7 @@ export default class grvt extends Exchange {
                 const cookieValue = cookie.split (';')[0];
                 this.options['AuthCookieValue'] = cookieValue;
             }
-            if (this.options['AuthCookieValue'] === undefined || this.options['AuthAccountId'] === undefined) {
+            if (this.safeString (this.options, 'AuthCookieValue') === undefined || this.safeString (this.options, 'AuthAccountId') === undefined) {
                 throw new AuthenticationError (this.id + ' signIn() failed to receive auth-cookie or account-id');
             }
         } else {

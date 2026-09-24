@@ -1470,10 +1470,10 @@ export default class gemini extends Exchange {
         const remaining = this.safeString (order, 'remaining_amount');
         const filled = this.safeString (order, 'executed_amount');
         let status = 'closed';
-        if (order['is_live'] === true) {
+        if (this.safeBool (order, 'is_live') === true) {
             status = 'open';
         }
-        if (order['is_cancelled'] === true) {
+        if (this.safeBool (order, 'is_cancelled') === true) {
             status = 'canceled';
         }
         const price = this.safeString (order, 'price');
