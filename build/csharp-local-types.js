@@ -2598,6 +2598,8 @@ export const CSHARP_LOCAL_AWAIT_RETURN_TYPES = {
     // `string?` local), so the pro tree's `object token = await this.authenticateRest ()` takes
     // the string? box; the name is declared in the REST file only, hence this table
     'authenticateRest': 'string?',
+    // nado's queryContracts (CSHARP_AWAITED_CORE_RETURNS), awaited from the pro subclass too
+    'queryContracts': 'IDictionary<string, object>',
     // cs/ccxt/base/PredictionExchange.cs, retyped from Task<object> by
     // installCsharpAsyncCoreReturns() (CSHARP_ASYNC_CORE_RETURNS above); the awaited value is
     // the outcome row the accessor returned — the same IDictionary box the call site used to
@@ -13876,6 +13878,22 @@ export const CSHARP_AWAITED_CORE_RETURNS = {
     // 'jwt_token')), so the one `object token = await this.authenticateRest ()` local (pro tree)
     // takes the string? box; the six other call sites ignore the result
     'authenticateRest': 'string?',
+    // venue helpers whose every path hands back a safeDict() result or a safeDict() local
+    // (nado, prediction sxbet/opinion: cached-or-fetched config rows)
+    'queryContracts': 'IDictionary<string, object>',
+    'loadSxObv3Metadata': 'IDictionary<string, object>',
+    'fetchSxbetBookSnapshot': 'IDictionary<string, object>',
+    'fetchSxbetProxy': 'IDictionary<string, object>',
+    'loadQuoteToken': 'IDictionary<string, object>',
+    // a List<object> local or safeList() on every path (grvt, prediction sxbet/kalshi)
+    'internalFetchTransfers': 'List<object>',
+    'fetchRawMarketsPaged': 'List<object>',
+    'resolveEventSeriesTickers': 'List<object>',
+    'fetchSxbetBestOdds': 'List<object>',
+    // string helpers: safeString2 / decode / a string-literal-left concatenation
+    'fetchSxbetRealtimeToken': 'string?',
+    'fetchErc20Name': 'string?',
+    'walletEventsTopic': [ 'string', 'string?' ],
 };
 
 const awaitedCoreProofs = new WeakMap ();
