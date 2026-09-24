@@ -2,12 +2,243 @@
     "exchange": "umx",
     "skipKeys": [
         "accountName",
+        "timestamp",
         "pid",
         "uid",
         "cid"
     ],
     "options": {},
     "methods": {
+        "cancelOrder": [
+            {
+                "description": "cancel a trigger order",
+                "method": "cancelOrder",
+                "url": "https://api.umx.com/api/v1/trade/cancelComplex",
+                "input": [
+                    "1552711983719727104",
+                    "ETH/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": "{\"complexOId\":\"1552711983719727104\",\"symbol\":\"ETH-USDT-PERP\"}"
+            },
+            {
+                "description": "cancel a swap limit order",
+                "method": "cancelOrder",
+                "url": "https://api.umx.com/api/v1/trade/cancelOrder",
+                "input": [
+                    "3538113582066216960",
+                    "ETH/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"ETH-USDT-PERP\",\"orderId\":\"3538113582066216960\"}"
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "open trigger orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.umx.com/api/v2/trade/openOrderComplex?symbol=ETH-USDT-PERP&complexType=trigger",
+                "input": [
+                    "ETH/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "open swap orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.umx.com/api/v2/trade/openOrders?symbol=ETH-USDT-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "order info of a canceled order",
+                "method": "fetchOrder",
+                "url": "https://api.umx.com/api/v2/trade/order/info?orderId=3538113582066216960",
+                "input": [
+                    "3538113582066216960"
+                ],
+                "output": null
+            },
+            {
+                "description": "order info of an open swap limit order",
+                "method": "fetchOrder",
+                "url": "https://api.umx.com/api/v2/trade/order/info?orderId=3538113582066216960",
+                "input": [
+                    "3538113582066216960"
+                ],
+                "output": null
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "option limit order",
+                "method": "createOrder",
+                "url": "https://api.umx.com/api/v2/trade/order",
+                "input": [
+                    "ETH/USDT:USDT-260927-2560-C",
+                    "limit",
+                    "buy",
+                    0.1,
+                    66
+                ],
+                "output": "{\"symbol\":\"ETH-USDT-27SEP26-2560-C\",\"side\":\"buy\",\"orderType\":\"limit\",\"price\":\"66\",\"qty\":\"0.1\"}"
+            },
+            {
+                "description": "future limit order",
+                "method": "createOrder",
+                "url": "https://api.umx.com/api/v2/trade/order",
+                "input": [
+                    "ETH/USDT:USDT-260925",
+                    "limit",
+                    "buy",
+                    0.001,
+                    1900
+                ],
+                "output": "{\"symbol\":\"ETH-USDT-25SEP26\",\"side\":\"buy\",\"orderType\":\"limit\",\"price\":\"1900\",\"qty\":\"0.001\"}"
+            },
+            {
+                "description": "spot market order",
+                "method": "createOrder",
+                "url": "https://api.umx.com/api/v2/trade/order",
+                "input": [
+                    "ETH/USDT",
+                    "market",
+                    "sell",
+                    0.002
+                ],
+                "output": "{\"symbol\":\"ETH-USDT\",\"side\":\"sell\",\"orderType\":\"market\",\"qty\":\"0.002\",\"isLeverage\":false}"
+            },
+            {
+                "description": "spot market order by cost",
+                "method": "createOrder",
+                "url": "https://api.umx.com/api/v2/trade/order",
+                "input": [
+                    "ETH/USDT",
+                    "market",
+                    "buy",
+                    0,
+                    null,
+                    {
+                        "cost": 6
+                    }
+                ],
+                "output": "{\"symbol\":\"ETH-USDT\",\"side\":\"buy\",\"orderType\":\"market\",\"qty\":\"6\",\"marketUnit\":\"quoteCoin\",\"isLeverage\":false}"
+            },
+            {
+                "description": "spot limit order",
+                "method": "createOrder",
+                "url": "https://api.umx.com/api/v2/trade/order",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.003,
+                    1900
+                ],
+                "output": "{\"symbol\":\"ETH-USDT\",\"side\":\"buy\",\"orderType\":\"limit\",\"price\":\"1900\",\"qty\":\"0.003\",\"isLeverage\":false}"
+            },
+            {
+                "description": "swap trigger order",
+                "method": "createOrder",
+                "url": "https://api.umx.com/api/v2/trade/orderComplex",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    3400,
+                    {
+                        "triggerPrice": 3500,
+                        "triggerDirection": "above"
+                    }
+                ],
+                "output": "{\"symbol\":\"ETH-USDT-PERP\",\"side\":\"buy\",\"complexType\":\"trigger\",\"qty\":\"0.001\",\"triggerOrder\":{\"triggerDirection\":\"rising\",\"triggerPriceType\":\"last_price\",\"triggerPrice\":\"3500\",\"triggerOrderType\":\"limit\",\"triggerOrderPrice\":\"3400\"}}"
+            },
+            {
+                "description": "swap reduce only market order",
+                "method": "createOrder",
+                "url": "https://api.umx.com/api/v2/trade/order",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.001,
+                    null,
+                    {
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "{\"symbol\":\"ETH-USDT-PERP\",\"side\":\"sell\",\"orderType\":\"market\",\"qty\":\"0.001\",\"reduceOnly\":true}"
+            },
+            {
+                "description": "swap market order",
+                "method": "createOrder",
+                "url": "https://api.umx.com/api/v2/trade/order",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.001
+                ],
+                "output": "{\"symbol\":\"ETH-USDT-PERP\",\"side\":\"buy\",\"orderType\":\"market\",\"qty\":\"0.001\"}"
+            },
+            {
+                "description": "swap post only order",
+                "method": "createOrder",
+                "url": "https://api.umx.com/api/v2/trade/order",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    1900,
+                    {
+                        "postOnly": true
+                    }
+                ],
+                "output": "{\"symbol\":\"ETH-USDT-PERP\",\"side\":\"buy\",\"orderType\":\"post_only\",\"price\":\"1900\",\"qty\":\"0.001\"}"
+            },
+            {
+                "description": "swap limit order",
+                "method": "createOrder",
+                "url": "https://api.umx.com/api/v2/trade/order",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    1900
+                ],
+                "output": "{\"symbol\":\"ETH-USDT-PERP\",\"side\":\"buy\",\"orderType\":\"limit\",\"price\":\"1900\",\"qty\":\"0.001\"}"
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw",
+                "method": "withdraw",
+                "url": "https://api.umx.com/api/v1/asset/withdrawal",
+                "input": [
+                    "USDT",
+                    10,
+                    "0x85af46a0b2d90a3d963f5384ffa6e07822caa5e6",
+                    null,
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "output": "{\"currency\":\"USDT\",\"chainType\":\"eth\",\"address\":\"0x85af46a0b2d90a3d963f5384ffa6e07822caa5e6\",\"amount\":\"10\",\"timestamp\":\"1790235602460\"}"
+            }
+        ],
         "fetchMarginMode": [
             {
                 "description": "margin mode of the account",

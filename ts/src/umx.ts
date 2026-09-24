@@ -5,7 +5,7 @@ import Exchange from './abstract/umx.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, NotSupported, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, DepositAddresses, Dict, Endpoint, Fee, FundingRate, FundingRateHistory, FundingRates, Int, Leverage, List, MarginMode, Market, MarketInterface, NullableDict, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, Bool, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, DepositAddresses, Dict, Endpoint, Fee, FundingRate, FundingRateHistory, FundingRates, Int, Leverage, List, MarginMode, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -35,21 +35,24 @@ export default class umx extends Exchange {
                 'addMargin': false,
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
-                'cancelAllOrders': false,
+                'cancelAllOrders': true,
                 'cancelAllOrdersAfter': false,
-                'cancelOrder': false,
+                'cancelOrder': true,
                 'cancelOrders': false,
                 'closeAllPositions': false,
                 'closePosition': false,
-                'createMarketBuyOrderWithCost': false,
-                'createMarketOrderWithCost': false,
-                'createMarketSellOrderWithCost': false,
-                'createOrder': false,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': true,
+                'createMarketSellOrderWithCost': true,
+                'createOrder': true,
                 'createOrders': false,
-                'createOrderWithTakeProfitAndStopLoss': false,
-                'createReduceOnlyOrder': false,
-                'createStopOrder': false,
-                'createTriggerOrder': false,
+                'createPostOnlyOrder': true,
+                'createOrderWithTakeProfitAndStopLoss': true,
+                'createReduceOnlyOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
+                'createTriggerOrder': true,
                 'editOrder': false,
                 'fetchAccounts': false,
                 'fetchBalance': true,
@@ -77,8 +80,8 @@ export default class umx extends Exchange {
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': false,
                 'fetchOHLCV': true,
-                'fetchOpenOrders': false,
-                'fetchOrder': false,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchPosition': false,
@@ -472,36 +475,57 @@ export default class umx extends Exchange {
                     'fetchCurrencies': {
                         'private': true, // /v2/asset/currencies requires an api key
                     },
-                    // createOrder is not implemented yet, so every capability below is false, and
-                    // the block cannot be omitted or set to undefined: test.features.ts requires the
-                    // key to be present and the base featuresMapper dereferences it unconditionally
+                    // the trigger family lives on the orderComplex endpoint, which is not wired
+                    // up yet, so every trigger capability stays false for now
                     'createOrder': {
-                        'marginMode': false,
-                        'triggerPrice': false,
-                        'triggerPriceType': undefined,
-                        'triggerDirection': false,
+                        'marginMode': true,
+                        'triggerPrice': true,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': true,
+                        },
+                        'triggerDirection': true,
                         'stopLossPrice': false,
                         'takeProfitPrice': false,
-                        'attachedStopLossTakeProfit': undefined,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': true,
+                                'mark': true,
+                                'index': true,
+                            },
+                            'price': true,
+                        },
                         'timeInForce': {
-                            'GTC': false,
-                            'IOC': false,
-                            'FOK': false,
-                            'PO': false,
+                            'GTC': true,
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
                             'GTD': false,
                         },
                         'hedged': false,
                         'trailing': false,
                         'leverage': false,
-                        'marketBuyByCost': false,
+                        'marketBuyByCost': true,
                         'marketBuyRequiresPrice': false,
-                        'selfTradePrevention': false,
+                        'selfTradePrevention': true,
                         'iceberg': false,
                     },
                     'createOrders': undefined,
                     'fetchMyTrades': undefined,
-                    'fetchOrder': undefined,
-                    'fetchOpenOrders': undefined,
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': undefined,
                     'fetchOHLCV': {
@@ -603,6 +627,7 @@ export default class umx extends Exchange {
                     '60113': InvalidOrder, // Below minimum order amount per order
                     '60116': InvalidOrder, // Price decimal places exceed limit
                     '60117': InvalidOrder, // Quantity decimal places exceed limit
+                    '60122': OperationRejected, // Options trading is only available in portfolio margin mode
                     '60126': InvalidOrder, // No open positions, reduce-only order not allowed
                     '60136': InvalidOrder, // Input price is not a multiple of tickSize
                     '60142': OrderImmediatelyFillable, // Order price would execute immediately, does not meet post_only condition
@@ -2729,6 +2754,763 @@ export default class umx extends Exchange {
             'symbol': this.safeString (market, 'symbol'),
             'marginMode': marginMode,
         } as MarginMode;
+    }
+
+    /**
+     * @method
+     * @name umx#createOrderRequest
+     * @ignore
+     * @description build the request body of createOrder, choosing between the regular and the trigger endpoint shapes
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type "market" or "limit"
+     * @param {string} side "buy" or "sell"
+     * @param {float} amount how much of the base currency to trade
+     * @param {float} [price] the price the order fills at, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the request body, carrying complexType when it belongs on the trigger endpoint
+     */
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Dict {
+        const market = this.market (symbol);
+        // a standalone protective order cannot be expressed on this venue: the trigger endpoint
+        // has no reduceOnly, so such an order could grow the position instead of only closing it
+        const protectivePrice = this.safeString2 (params, 'stopLossPrice', 'takeProfitPrice');
+        if (protectivePrice !== undefined) {
+            throw new NotSupported (this.id + ' createOrder() does not support standalone stopLossPrice or takeProfitPrice orders, attach the protection to an order with params.takeProfit and params.stopLoss instead');
+        }
+        const isMarket = (type === 'market');
+        let postOnly = false;
+        [ postOnly, params ] = this.handlePostOnly (isMarket, false, params);
+        const timeInForce = this.safeStringLower (params, 'timeInForce');
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const takeProfitObject = this.safeDict (params, 'takeProfit');
+        const stopLossObject = this.safeDict (params, 'stopLoss');
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        let cost: Str = undefined;
+        [ cost, params ] = this.handleOptionAndParams (params, 'createOrder', 'cost');
+        params = this.omit (params, [ 'timeInForce', 'triggerPrice', 'stopPrice', 'takeProfit', 'stopLoss', 'clientOrderId' ]);
+        const priceTypes: Dict = {
+            'last': 'last_price',
+            'mark': 'mark_price',
+            'index': 'index_price',
+        };
+        // the attached take profit and stop loss go into the venue's own tpslOrder object, which
+        // both endpoints accept next to the main order
+        const tpslOrder: Dict = {};
+        if (takeProfitObject !== undefined) {
+            const tpTriggerPrice = this.safeString (takeProfitObject, 'triggerPrice');
+            const tpPriceType = this.safeString (takeProfitObject, 'triggerPriceType', 'last');
+            const tpLimitPrice = this.safeString (takeProfitObject, 'price');
+            tpslOrder['takeProfit'] = this.priceToPrecision (symbol, tpTriggerPrice);
+            tpslOrder['takeProfitType'] = this.safeString (priceTypes, tpPriceType, tpPriceType);
+            if (tpLimitPrice !== undefined) {
+                tpslOrder['tpOrderType'] = 'limit';
+                tpslOrder['tpLimitPrice'] = this.priceToPrecision (symbol, tpLimitPrice);
+            } else {
+                tpslOrder['tpOrderType'] = 'market';
+            }
+        }
+        if (stopLossObject !== undefined) {
+            const slTriggerPrice = this.safeString (stopLossObject, 'triggerPrice');
+            const slPriceType = this.safeString (stopLossObject, 'triggerPriceType', 'last');
+            const slLimitPrice = this.safeString (stopLossObject, 'price');
+            tpslOrder['stopLoss'] = this.priceToPrecision (symbol, slTriggerPrice);
+            tpslOrder['stopLossType'] = this.safeString (priceTypes, slPriceType, slPriceType);
+            if (slLimitPrice !== undefined) {
+                tpslOrder['slOrderType'] = 'limit';
+                tpslOrder['slLimitPrice'] = this.priceToPrecision (symbol, slLimitPrice);
+            } else {
+                tpslOrder['slOrderType'] = 'market';
+            }
+        }
+        const tpslKeys = Object.keys (tpslOrder);
+        const tpslKeysLength = tpslKeys.length;
+        const request: Dict = {
+            'symbol': market['id'],
+            'side': side,
+        };
+        if (triggerPrice !== undefined) {
+            // the trigger endpoint knows no post only, no time in force, no cost and no reduce only
+            if ((postOnly) || (timeInForce !== undefined)) {
+                throw new NotSupported (this.id + ' createOrder() does not support postOnly or timeInForce on trigger orders');
+            }
+            if (cost !== undefined) {
+                throw new NotSupported (this.id + ' createOrder() does not support the cost parameter on trigger orders');
+            }
+            const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+            if (reduceOnly) {
+                throw new NotSupported (this.id + ' createOrder() does not support reduceOnly on trigger orders, the venue has no such flag there');
+            }
+            let triggerDirection: Str = undefined;
+            [ triggerDirection, params ] = this.handleOptionAndParams (params, 'createOrder', 'triggerDirection');
+            const directions: Dict = {
+                'above': 'rising',
+                'ascending': 'rising',
+                'up': 'rising',
+                'rising': 'rising',
+                'below': 'falling',
+                'descending': 'falling',
+                'down': 'falling',
+                'falling': 'falling',
+            };
+            const direction = this.safeString (directions, triggerDirection);
+            if (direction === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires params.triggerDirection, "above" or "below", for a trigger order');
+            }
+            let triggerPriceType: Str = undefined;
+            [ triggerPriceType, params ] = this.handleOptionAndParams (params, 'createOrder', 'triggerPriceType', 'last');
+            const triggerOrder: Dict = {
+                'triggerDirection': direction,
+                'triggerPriceType': this.safeString (priceTypes, triggerPriceType, triggerPriceType),
+                'triggerPrice': this.priceToPrecision (symbol, triggerPrice),
+                'triggerOrderType': type,
+            };
+            if (!isMarket) {
+                if (price === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + type + ' trigger order');
+                }
+                triggerOrder['triggerOrderPrice'] = this.priceToPrecision (symbol, price);
+            }
+            request['complexType'] = 'trigger';
+            request['qty'] = this.amountToPrecision (symbol, amount);
+            request['triggerOrder'] = triggerOrder;
+            if (clientOrderId !== undefined) {
+                request['complexClOrdId'] = clientOrderId;
+            }
+        } else {
+            if (postOnly) {
+                request['orderType'] = 'post_only';
+            } else {
+                request['orderType'] = type;
+            }
+            if ((timeInForce !== undefined) && (timeInForce !== 'po')) {
+                request['timeInForce'] = timeInForce;
+            }
+            if (!isMarket) {
+                if (price === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
+                }
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+            if (cost !== undefined) {
+                if (!isMarket) {
+                    throw new NotSupported (this.id + ' createOrder() supports the cost parameter for market orders only');
+                }
+                // the venue trades quote denominated market orders natively
+                request['qty'] = this.costToPrecision (symbol, cost);
+                request['marketUnit'] = 'quoteCoin';
+            } else {
+                request['qty'] = this.amountToPrecision (symbol, amount);
+            }
+            const isSpot = this.safeBool (market, 'spot', false);
+            if (isSpot) {
+                // the venue defaults isLeverage to true, which borrows on a shortfall on a margin
+                // enabled account, so the flag is inverted here and margin has to be asked for
+                let marginMode: Str = undefined;
+                [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+                let isMargin = false;
+                [ isMargin, params ] = this.handleOptionAndParams (params, 'createOrder', 'margin', false);
+                request['isLeverage'] = (isMargin) || (marginMode !== undefined);
+            }
+            if (clientOrderId !== undefined) {
+                request['clientOrderId'] = clientOrderId;
+            }
+        }
+        if (tpslKeysLength > 0) {
+            request['tpslOrder'] = tpslOrder;
+        }
+        return this.extend (request, params);
+    }
+
+    /**
+     * @method
+     * @name umx#createOrder
+     * @description create a regular or a trigger trade order
+     * @see https://www.umx.com/docs/coin-apis/trading/regular-trading/place-order
+     * @see https://www.umx.com/docs/coin-apis/trading/complex-order-trading/place-complex-orders
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type "market" or "limit"
+     * @param {string} side "buy" or "sell"
+     * @param {float} amount how much of the base currency to trade
+     * @param {float} [price] the price the order fills at, in units of the quote currency, market orders leave it out
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.postOnly] true to place a post only order, regular orders only
+     * @param {string} [params.timeInForce] "GTC", "IOC", "FOK" or "PO", regular orders only, the venue fills market orders as "IOC"
+     * @param {boolean} [params.reduceOnly] true to reduce a contract position only, regular orders only
+     * @param {string} [params.clientOrderId] a client supplied order id, 1 to 32 letters and digits
+     * @param {float} [params.cost] the quote currency quantity a market order trades, replaces amount, regular orders only
+     * @param {boolean} [params.margin] true to place a leveraged spot margin order. the venue turns leverage on by default and borrows on a shortfall, so spot orders are sent unleveraged here unless this or params.marginMode asks otherwise
+     * @param {string} [params.marginMode] "cross", the venue has no isolated margin, implies params.margin
+     * @param {float} [params.triggerPrice] the price a trigger order activates at, sends the order to the trigger endpoint
+     * @param {string} [params.triggerDirection] "above" or "below", required for a trigger order
+     * @param {string} [params.triggerPriceType] "last", "mark" or "index", the price the trigger watches, default "last"
+     * @param {object} [params.takeProfit] a take profit to attach, with triggerPrice, and optionally price for a limit execution and triggerPriceType
+     * @param {object} [params.stopLoss] a stop loss to attach, with triggerPrice, and optionally price for a limit execution and triggerPriceType
+     * @param {string} [params.stpMode] self trade prevention mode, "cancel_maker", "cancel_taker" or "cancel_both", the venue requires params.stpId with it
+     * @param {string} [params.stpId] self trade prevention id, 6 to 8 letters and digits
+     * @param {string} [params.tag] an order tag, 1 to 16 letters and digits
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = this.createOrderRequest (symbol, type, side, amount, price, params);
+        const isTrigger = ('complexType' in request);
+        let response = undefined;
+        if (isTrigger) {
+            response = await this.privatePostV2TradeOrderComplex (request);
+            //
+            //     {
+            //         "code": "0",
+            //         "msg": "Success",
+            //         "data": {
+            //             "accountName": "1000000000000000000",
+            //             "complexOId": "1369970333708804096",
+            //             "complexClOrdId": "66"
+            //         },
+            //         "ts": "1746667980576"
+            //     }
+            //
+        } else {
+            response = await this.privatePostV2TradeOrder (request);
+            //
+            //     {
+            //         "code": "0",
+            //         "msg": "Success",
+            //         "data": {
+            //             "orderId": "1322590062927904769",
+            //             "tag": "",
+            //             "clientOrderId": "Client1001"
+            //         },
+            //         "ts": "1732158178000"
+            //     }
+            //
+        }
+        const data = this.safeDict (response, 'data', {});
+        const order = this.extend (data, {
+            'ts': this.safeInteger (response, 'ts'),
+        });
+        return this.parseOrder (order, market);
+    }
+
+    /**
+     * @method
+     * @name umx#createMarketBuyOrderWithCost
+     * @description create a market buy order by providing the symbol and the cost in the quote currency
+     * @see https://www.umx.com/docs/coin-apis/trading/regular-trading/place-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params: Dict = {}): Promise<Order> {
+        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, this.extend (params, { 'cost': cost }));
+    }
+
+    /**
+     * @method
+     * @name umx#createMarketSellOrderWithCost
+     * @description create a market sell order by providing the symbol and the cost in the quote currency
+     * @see https://www.umx.com/docs/coin-apis/trading/regular-trading/place-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    override async createMarketSellOrderWithCost (symbol: string, cost: number, params: Dict = {}): Promise<Order> {
+        return await this.createOrder (symbol, 'market', 'sell', cost, undefined, this.extend (params, { 'cost': cost }));
+    }
+
+    /**
+     * @method
+     * @name umx#createMarketOrderWithCost
+     * @description create a market order by providing the symbol, the side and the cost in the quote currency
+     * @see https://www.umx.com/docs/coin-apis/trading/regular-trading/place-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} side "buy" or "sell"
+     * @param {float} cost how much to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    override async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params: Dict = {}): Promise<Order> {
+        return await this.createOrder (symbol, 'market', side, cost, undefined, this.extend (params, { 'cost': cost }));
+    }
+
+    override parseOrder (order: Dict, market: Market = undefined): Order {
+        //
+        // createOrder and cancelOrder answer bare id acknowledgements, the fetch methods answer
+        // full rows, and the trigger rows nest their prices inside a triggerOrder object. every
+        // sample below is a live capture with the account ids masked
+        //
+        // createOrder
+        //
+        //     {
+        //         "orderId": "3538113582066216960",
+        //         "clientOrderId": "3538113582066216960",
+        //         "tag": ""
+        //     }
+        //
+        // createOrder, trigger
+        //
+        //     {
+        //         "accountName": "1000000000000000000",
+        //         "complexOId": "1552711983719727104",
+        //         "complexClOrdId": "1552711983719727104",
+        //         "tag": null
+        //     }
+        //
+        // cancelOrder
+        //
+        //     {
+        //         "orderId": "3538113582066216960"
+        //     }
+        //
+        // fetchOrder, fetchOpenOrders
+        //
+        //     {
+        //         "accountName": "1000000000000000000",
+        //         "businessType": "linear_perpetual",
+        //         "symbol": "ETH-USDT-PERP",
+        //         "orderId": "3538113582066216960",
+        //         "clientOrderId": "3538113582066216960",
+        //         "price": "1900",
+        //         "qty": "0.001",
+        //         "pnl": "",
+        //         "orderType": "limit",
+        //         "side": "buy",
+        //         "totalFillQty": "",
+        //         "avgPrice": "",
+        //         "status": "new",
+        //         "lever": "10",
+        //         "baseFee": "",
+        //         "quoteFee": "",
+        //         "uid": "100000000000001",
+        //         "source": "api",
+        //         "cancelSource": null,
+        //         "cancelUid": null,
+        //         "createTime": "1790236812939",
+        //         "updateTime": "1790236812940",
+        //         "reduceOnly": false,
+        //         "timeInForce": "gtc",
+        //         "category": "normal",
+        //         "massQuoteOrder": {
+        //             "quoteId": "",
+        //             "quote": false,
+        //             "mmpGroup": "",
+        //             "quoteSetId": "",
+        //             "priceAdjustment": false
+        //         },
+        //         "eventId": "0",
+        //         "parentOrderId": "",
+        //         "tpslOrder": null,
+        //         "orderFilter": "order",
+        //         "riskReducing": false,
+        //         "isLeverage": "",
+        //         "tag": "",
+        //         "stpId": "",
+        //         "stpMode": "",
+        //         "marketUnit": "baseCoin",
+        //         "cid": "100000000000002",
+        //         "pid": "1000000000000000000"
+        //     }
+        //
+        // fetchOpenOrders, trigger
+        //
+        //     {
+        //         "businessType": "linear_perpetual",
+        //         "symbol": "ETH-USDT-PERP",
+        //         "complexOId": "1552711983719727104",
+        //         "complexClOrdId": "1552711983719727104",
+        //         "side": "buy",
+        //         "complexType": "trigger",
+        //         "qty": "0.001",
+        //         "triggerOrder": {
+        //             "triggerClOrdId": "1552711983719727104",
+        //             "triggerDirection": "rising",
+        //             "triggerPriceType": "last_price",
+        //             "triggerPrice": "3500.00",
+        //             "triggerOrderType": "limit",
+        //             "triggerOrderPrice": "3400.00"
+        //         },
+        //         "tpslOrder": null,
+        //         "status": "live",
+        //         "accountName": "1000000000000000000",
+        //         "pid": "1000000000000000000",
+        //         "uid": "100000000000001",
+        //         "cid": "100000000000002",
+        //         "createTime": "1790236984996",
+        //         "updateTime": "1790236984996",
+        //         "tag": null,
+        //         "positionId": null,
+        //         "parentOrderId": null
+        //     }
+        //
+        const timestamp = this.safeInteger2 (order, 'createTime', 'ts');
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const triggerOrder = this.safeDict (order, 'triggerOrder', {});
+        let type = this.safeString (order, 'orderType');
+        if (type === undefined) {
+            type = this.safeString (triggerOrder, 'triggerOrderType');
+        }
+        let postOnly: Bool = undefined;
+        if (type !== undefined) {
+            postOnly = (type === 'post_only');
+            if (postOnly) {
+                type = 'limit';
+            }
+        }
+        let timeInForce = this.safeStringUpper (order, 'timeInForce');
+        if (postOnly === true) {
+            timeInForce = 'PO';
+        }
+        let price = this.omitZero (this.safeString (order, 'price'));
+        if (price === undefined) {
+            price = this.safeString (triggerOrder, 'triggerOrderPrice');
+        }
+        // the venue reports qty in the quote currency when the order traded by cost
+        const marketUnit = this.safeString (order, 'marketUnit', 'baseCoin');
+        const qty = this.safeString (order, 'qty');
+        let amount: Str = undefined;
+        let cost: Str = undefined;
+        if (marketUnit === 'quoteCoin') {
+            cost = qty;
+        } else {
+            amount = qty;
+        }
+        // the venue signs fees the other way around, a positive fee is a rebate
+        let fee = undefined;
+        const quoteFee = this.safeString (order, 'quoteFee');
+        const baseFee = this.safeString (order, 'baseFee');
+        if ((quoteFee !== undefined) && (!Precise.stringEq (quoteFee, '0'))) {
+            fee = {
+                'currency': market['quote'],
+                'cost': Precise.stringNeg (quoteFee),
+            };
+        } else if ((baseFee !== undefined) && (!Precise.stringEq (baseFee, '0'))) {
+            fee = {
+                'currency': market['base'],
+                'cost': Precise.stringNeg (baseFee),
+            };
+        }
+        return this.safeOrder ({
+            'info': order,
+            'id': this.safeString2 (order, 'orderId', 'complexOId'),
+            'clientOrderId': this.safeString2 (order, 'clientOrderId', 'complexClOrdId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeInteger (order, 'updateTime'),
+            'symbol': market['symbol'],
+            'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
+            'reduceOnly': this.safeBool (order, 'reduceOnly'),
+            'side': this.safeString (order, 'side'),
+            'price': price,
+            'triggerPrice': this.safeString (triggerOrder, 'triggerPrice'),
+            'amount': amount,
+            'cost': cost,
+            'average': this.omitZero (this.safeString (order, 'avgPrice')),
+            'filled': this.safeString (order, 'totalFillQty'),
+            'remaining': undefined,
+            'status': status,
+            'fee': fee,
+            'trades': undefined,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name umx#fetchOrder
+     * @description fetch a regular order by its id, the venue serves trigger orders through fetchOpenOrders with params.trigger instead
+     * @see https://www.umx.com/docs/coin-apis/trading/regular-trading/get-order-information
+     * @param {string} id the order id, params.clientOrderId replaces it when given
+     * @param {string} [symbol] not used by umx.fetchOrder, the venue resolves the order by its id alone
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] fetch the order by the client order id instead, the newest one when several share it
+     * @param {string} [params.orderFilter] "order" (default) or "oco"
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
+        await this.loadMarkets ();
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
+        if (isTrigger) {
+            throw new NotSupported (this.id + ' fetchOrder() does not support trigger orders, the venue only lists them, use fetchOpenOrders() with params.trigger set to true');
+        }
+        const request: Dict = {};
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId === undefined) {
+            request['orderId'] = id;
+        }
+        const response = await this.privateGetV2TradeOrderInfo (this.extend (request, params));
+        //
+        // the row below is a live capture, with the account ids masked
+        //
+        //     {
+        //         "accountName": "1000000000000000000",
+        //         "businessType": "linear_perpetual",
+        //         "symbol": "ETH-USDT-PERP",
+        //         "orderId": "3538113582066216960",
+        //         "clientOrderId": "3538113582066216960",
+        //         "price": "1900",
+        //         "qty": "0.001",
+        //         "pnl": "",
+        //         "orderType": "limit",
+        //         "side": "buy",
+        //         "totalFillQty": "",
+        //         "avgPrice": "",
+        //         "status": "new",
+        //         "lever": "10",
+        //         "baseFee": "",
+        //         "quoteFee": "",
+        //         "uid": "100000000000001",
+        //         "source": "api",
+        //         "cancelSource": null,
+        //         "cancelUid": null,
+        //         "createTime": "1790236812939",
+        //         "updateTime": "1790236812940",
+        //         "reduceOnly": false,
+        //         "timeInForce": "gtc",
+        //         "category": "normal",
+        //         "massQuoteOrder": {
+        //             "quoteId": "",
+        //             "quote": false,
+        //             "mmpGroup": "",
+        //             "quoteSetId": "",
+        //             "priceAdjustment": false
+        //         },
+        //         "eventId": "0",
+        //         "parentOrderId": "",
+        //         "tpslOrder": null,
+        //         "orderFilter": "order",
+        //         "riskReducing": false,
+        //         "isLeverage": "",
+        //         "tag": "",
+        //         "stpId": "",
+        //         "stpMode": "",
+        //         "marketUnit": "baseCoin",
+        //         "cid": "100000000000002",
+        //         "pid": "1000000000000000000"
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseOrder (data, market);
+    }
+
+    /**
+     * @method
+     * @name umx#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://www.umx.com/docs/coin-apis/trading/regular-trading/get-current-open-orders
+     * @see https://www.umx.com/docs/coin-apis/trading/complex-order-trading/get-current-complex-orders
+     * @param {string} [symbol] unified market symbol to narrow the answer to a single market
+     * @param {int} [since] timestamp in ms of the earliest order to keep, the endpoint itself has no time filter
+     * @param {int} [limit] the maximum amount of entries to return, applied to the parsed result, the endpoint has no limit of its own
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] true fetches the open trigger orders instead
+     * @param {string} [params.complexType] "trigger" (default) or "tpsl", the flavour the trigger listing serves
+     * @param {string} [params.orderFilter] "order" (default) or "oco", regular orders only
+     * @param {string} [params.businessType] the exchange instrument type to narrow the answer to, e.g. "spot"
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        let market: Market = undefined;
+        const request: Dict = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        let isTrigger = false;
+        [ isTrigger, params ] = this.handleOptionAndParams2 (params, 'fetchOpenOrders', 'trigger', 'stop', false);
+        let response = undefined;
+        if (isTrigger) {
+            let complexType: Str = undefined;
+            [ complexType, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'complexType', 'trigger');
+            request['complexType'] = complexType;
+            response = await this.privateGetV2TradeOpenOrderComplex (this.extend (request, params));
+            //
+            //     {
+            //         "code": "0",
+            //         "msg": "Success",
+            //         "data": [
+            //             {
+            //                 "businessType": "linear_perpetual",
+            //                 "symbol": "BTC-USDT-PERP",
+            //                 "complexOId": "1509944814962728960",
+            //                 "complexClOrdId": "1509944814962728960",
+            //                 "side": "buy",
+            //                 "complexType": "trigger",
+            //                 "qty": "0.01",
+            //                 "triggerOrder": {
+            //                     "triggerClOrdId": "1509944814962728960",
+            //                     "triggerDirection": "rising",
+            //                     "triggerPriceType": "last_price",
+            //                     "triggerPrice": "100000.0",
+            //                     "triggerOrderType": "limit",
+            //                     "triggerOrderPrice": "100000.0"
+            //                 },
+            //                 "tpslOrder": null,
+            //                 "status": "live",
+            //                 "accountName": "1000000000000000000",
+            //                 "pid": "1000000000000000000",
+            //                 "uid": "100000000000001",
+            //                 "cid": "100000000000002",
+            //                 "createTime": "1780040497317",
+            //                 "updateTime": "1780040497317",
+            //                 "positionId": null,
+            //                 "parentOrderId": null
+            //             }
+            //         ],
+            //         "ts": "1790235602460"
+            //     }
+            //
+        } else {
+            response = await this.privateGetV2TradeOpenOrders (this.extend (request, params));
+            // the rows share the shape fetchOrder documents
+        }
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name umx#cancelOrder
+     * @description cancel an open order. the venue only acknowledges that the cancellation was accepted, confirm it through fetchOrder or fetchOpenOrders
+     * @see https://www.umx.com/docs/coin-apis/trading/regular-trading/cancel-order
+     * @see https://www.umx.com/docs/coin-apis/trading/complex-order-trading/cancel-complex-orders
+     * @param {string} id the order id, params.clientOrderId replaces it when given
+     * @param {string} symbol unified symbol of the market the order was placed in, required for regular orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] true cancels a trigger order instead
+     * @param {string} [params.complexType] "trigger" (default) or "tpsl" when cancelling a trigger order
+     * @param {string} [params.clientOrderId] cancel by the client order id instead of the order id
+     * @param {string} [params.orderFilter] "order" (default) or "oco", regular orders only
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
+        await this.loadMarkets ();
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let isTrigger = false;
+        [ isTrigger, params ] = this.handleOptionAndParams2 (params, 'cancelOrder', 'trigger', 'stop', false);
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        params = this.omit (params, 'clientOrderId');
+        const request: Dict = {};
+        let response = undefined;
+        if (isTrigger) {
+            if (clientOrderId !== undefined) {
+                request['complexClOrdId'] = clientOrderId;
+            } else {
+                request['complexOId'] = id;
+            }
+            if (market !== undefined) {
+                request['symbol'] = market['id'];
+            }
+            response = await this.privatePostV1TradeCancelComplex (this.extend (request, params));
+            //
+            //     {
+            //         "code": "0",
+            //         "msg": "Success",
+            //         "data": {
+            //             "accountName": "1000000000000000000",
+            //             "complexOId": "1370410319314329600",
+            //             "complexClOrdId": ""
+            //         },
+            //         "ts": "1732158178000"
+            //     }
+            //
+        } else {
+            if (market === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument for a regular order');
+            }
+            request['symbol'] = market['id'];
+            if (clientOrderId !== undefined) {
+                request['clientOrderId'] = clientOrderId;
+            } else {
+                request['orderId'] = id;
+            }
+            response = await this.privatePostV1TradeCancelOrder (this.extend (request, params));
+            //
+            //     {
+            //         "code": "0",
+            //         "msg": "Success",
+            //         "data": {
+            //             "orderId": "1322590062927904769"
+            //         },
+            //         "ts": "1732158178000"
+            //     }
+            //
+        }
+        const data = this.safeDict (response, 'data', {});
+        const order = this.extend (data, {
+            'ts': this.safeInteger (response, 'ts'),
+        });
+        return this.parseOrder (order, market);
+    }
+
+    /**
+     * @method
+     * @name umx#cancelAllOrders
+     * @description cancel every open order, of one market or of the whole account. the venue only acknowledges that the cancellation was accepted
+     * @see https://www.umx.com/docs/coin-apis/trading/regular-trading/cancel-all-orders
+     * @see https://www.umx.com/docs/coin-apis/trading/complex-order-trading/cancel-all-strategy-orders
+     * @param {string} [symbol] unified symbol of the market to cancel the orders of, every market without it
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] true cancels the open trigger orders instead
+     * @param {string} [params.complexType] "trigger" (default) or "tpsl" when cancelling trigger orders
+     * @param {string} [params.orderFilter] "order" (default) or "oco", regular orders only
+     * @param {string} [params.businessType] the exchange instrument type to narrow the sweep to, e.g. "spot"
+     * @returns {object[]} a list with the raw response, the venue answers no order details
+     */
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<any> {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        let isTrigger = false;
+        [ isTrigger, params ] = this.handleOptionAndParams2 (params, 'cancelAllOrders', 'trigger', 'stop', false);
+        let response = undefined;
+        if (isTrigger) {
+            let complexType: Str = undefined;
+            [ complexType, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'complexType', 'trigger');
+            request['complexType'] = complexType;
+            response = await this.privatePostV1TradeCancelAllOrderComplexs (this.extend (request, params));
+        } else {
+            response = await this.privatePostV1TradeCancelAllOrder (this.extend (request, params));
+        }
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Success",
+        //         "data": "",
+        //         "ts": "1732158178000"
+        //     }
+        //
+        return [ this.safeOrder ({ 'info': response }) ];
+    }
+
+    parseOrderStatus (status: Str): Str {
+        const statuses: Dict = {
+            // an untriggered conditional order and a live complex order sit in the book waiting
+            'untrigger': 'open',
+            'live': 'open',
+            'new': 'open',
+            'partially_filled': 'open',
+            'partially_canceled': 'canceled',
+            'canceled': 'canceled',
+            'filled': 'closed',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     /**

@@ -8,6 +8,1183 @@
     ],
     "options": {},
     "methods": {
+        "cancelOrder": [
+            {
+                "description": "cancel a trigger order",
+                "method": "cancelOrder",
+                "input": [
+                    "1552711983719727104",
+                    "ETH/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": {
+                        "accountName": "1000000000000000000",
+                        "complexOId": "1552711983719727104",
+                        "complexClOrdId": "1552711983719727104"
+                    },
+                    "ts": "1790236999014"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "accountName": "1000000000000000000",
+                        "complexOId": "1552711983719727104",
+                        "complexClOrdId": "1552711983719727104",
+                        "ts": 1790236999014
+                    },
+                    "id": "1552711983719727104",
+                    "clientOrderId": "1552711983719727104",
+                    "timestamp": 1790236999014,
+                    "datetime": "2026-09-24T08:03:19.014Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "ETH/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "cancel a swap limit order",
+                "method": "cancelOrder",
+                "input": [
+                    "3538113582066216960",
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": {
+                        "orderId": "3538113582066216960"
+                    },
+                    "ts": "1790236897117"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "3538113582066216960",
+                        "ts": 1790236897117
+                    },
+                    "id": "3538113582066216960",
+                    "clientOrderId": null,
+                    "timestamp": 1790236897117,
+                    "datetime": "2026-09-24T08:01:37.117Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "ETH/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "open trigger orders",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "ETH/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "businessType": "linear_perpetual",
+                            "symbol": "ETH-USDT-PERP",
+                            "complexOId": "1552711983719727104",
+                            "complexClOrdId": "1552711983719727104",
+                            "side": "buy",
+                            "complexType": "trigger",
+                            "qty": "0.001",
+                            "triggerOrder": {
+                                "triggerClOrdId": "1552711983719727104",
+                                "triggerDirection": "rising",
+                                "triggerPriceType": "last_price",
+                                "triggerPrice": "3500.00",
+                                "triggerOrderType": "limit",
+                                "triggerOrderPrice": "3400.00"
+                            },
+                            "tpslOrder": null,
+                            "status": "live",
+                            "accountName": "1000000000000000000",
+                            "pid": "1000000000000000000",
+                            "uid": "100000000000001",
+                            "cid": "100000000000002",
+                            "createTime": "1790236984996",
+                            "updateTime": "1790236984996",
+                            "tag": null,
+                            "positionId": null,
+                            "parentOrderId": null
+                        }
+                    ],
+                    "ts": "1790236987892"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "businessType": "linear_perpetual",
+                            "symbol": "ETH-USDT-PERP",
+                            "complexOId": "1552711983719727104",
+                            "complexClOrdId": "1552711983719727104",
+                            "side": "buy",
+                            "complexType": "trigger",
+                            "qty": "0.001",
+                            "triggerOrder": {
+                                "triggerClOrdId": "1552711983719727104",
+                                "triggerDirection": "rising",
+                                "triggerPriceType": "last_price",
+                                "triggerPrice": "3500.00",
+                                "triggerOrderType": "limit",
+                                "triggerOrderPrice": "3400.00"
+                            },
+                            "tpslOrder": null,
+                            "status": "live",
+                            "accountName": "1000000000000000000",
+                            "pid": "1000000000000000000",
+                            "uid": "100000000000001",
+                            "cid": "100000000000002",
+                            "createTime": "1790236984996",
+                            "updateTime": "1790236984996",
+                            "tag": null,
+                            "positionId": null,
+                            "parentOrderId": null
+                        },
+                        "id": "1552711983719727104",
+                        "clientOrderId": "1552711983719727104",
+                        "timestamp": 1790236984996,
+                        "datetime": "2026-09-24T08:03:04.996Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1790236984996,
+                        "symbol": "ETH/USDT:USDT",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "postOnly": false,
+                        "reduceOnly": null,
+                        "side": "buy",
+                        "price": 3400,
+                        "triggerPrice": 3500,
+                        "amount": 0.001,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": 3500,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "open swap orders",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "accountName": "1000000000000000000",
+                            "businessType": "linear_perpetual",
+                            "symbol": "ETH-USDT-PERP",
+                            "orderId": "3538113582066216960",
+                            "clientOrderId": "3538113582066216960",
+                            "price": "1900",
+                            "qty": "0.001",
+                            "pnl": "",
+                            "orderType": "limit",
+                            "side": "buy",
+                            "totalFillQty": "",
+                            "avgPrice": "",
+                            "status": "new",
+                            "lever": "10",
+                            "baseFee": "",
+                            "quoteFee": "",
+                            "uid": "100000000000001",
+                            "source": "api",
+                            "category": "normal",
+                            "createType": "normal",
+                            "reduceOnly": false,
+                            "timeInForce": "gtc",
+                            "createTime": "1790236812939",
+                            "updateTime": "1790236812940",
+                            "massQuoteOrder": {
+                                "quoteId": "",
+                                "quote": false,
+                                "mmpGroup": "",
+                                "quoteSetId": "",
+                                "priceAdjustment": false
+                            },
+                            "eventId": "0",
+                            "parentOrderId": "",
+                            "tpslOrder": null,
+                            "orderFilter": "order",
+                            "riskReducing": false,
+                            "isLeverage": "",
+                            "tag": "",
+                            "stpId": "",
+                            "stpMode": "",
+                            "marketUnit": "baseCoin",
+                            "cid": "100000000000002",
+                            "pid": "1000000000000000000"
+                        }
+                    ],
+                    "ts": "1790236839762"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "accountName": "1000000000000000000",
+                            "businessType": "linear_perpetual",
+                            "symbol": "ETH-USDT-PERP",
+                            "orderId": "3538113582066216960",
+                            "clientOrderId": "3538113582066216960",
+                            "price": "1900",
+                            "qty": "0.001",
+                            "pnl": "",
+                            "orderType": "limit",
+                            "side": "buy",
+                            "totalFillQty": "",
+                            "avgPrice": "",
+                            "status": "new",
+                            "lever": "10",
+                            "baseFee": "",
+                            "quoteFee": "",
+                            "uid": "100000000000001",
+                            "source": "api",
+                            "category": "normal",
+                            "createType": "normal",
+                            "reduceOnly": false,
+                            "timeInForce": "gtc",
+                            "createTime": "1790236812939",
+                            "updateTime": "1790236812940",
+                            "massQuoteOrder": {
+                                "quoteId": "",
+                                "quote": false,
+                                "mmpGroup": "",
+                                "quoteSetId": "",
+                                "priceAdjustment": false
+                            },
+                            "eventId": "0",
+                            "parentOrderId": "",
+                            "tpslOrder": null,
+                            "orderFilter": "order",
+                            "riskReducing": false,
+                            "isLeverage": "",
+                            "tag": "",
+                            "stpId": "",
+                            "stpMode": "",
+                            "marketUnit": "baseCoin",
+                            "cid": "100000000000002",
+                            "pid": "1000000000000000000"
+                        },
+                        "id": "3538113582066216960",
+                        "clientOrderId": "3538113582066216960",
+                        "timestamp": 1790236812939,
+                        "datetime": "2026-09-24T08:00:12.939Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1790236812940,
+                        "symbol": "ETH/USDT:USDT",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 1900,
+                        "triggerPrice": null,
+                        "amount": 0.001,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "order info of a canceled order",
+                "method": "fetchOrder",
+                "input": [
+                    "3538113582066216960"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": {
+                        "accountName": "1000000000000000000",
+                        "businessType": "linear_perpetual",
+                        "symbol": "ETH-USDT-PERP",
+                        "orderId": "3538113582066216960",
+                        "clientOrderId": "3538113582066216960",
+                        "price": "1900",
+                        "qty": "0.001",
+                        "pnl": "0",
+                        "orderType": "limit",
+                        "side": "buy",
+                        "totalFillQty": "0",
+                        "avgPrice": "0",
+                        "status": "canceled",
+                        "lever": "10",
+                        "baseFee": "0",
+                        "quoteFee": "0",
+                        "uid": "100000000000001",
+                        "source": "api",
+                        "cancelSource": "api",
+                        "cancelUid": "100000000000001",
+                        "createTime": "1790236812939",
+                        "updateTime": "1790236897118",
+                        "reduceOnly": false,
+                        "timeInForce": "gtc",
+                        "category": "normal",
+                        "massQuoteOrder": {
+                            "quoteId": "",
+                            "quote": null,
+                            "mmpGroup": "",
+                            "quoteSetId": "",
+                            "priceAdjustment": false
+                        },
+                        "eventId": "1",
+                        "parentOrderId": "",
+                        "tpslOrder": null,
+                        "orderFilter": "order",
+                        "riskReducing": null,
+                        "isLeverage": "",
+                        "tag": "",
+                        "stpId": "",
+                        "stpMode": "",
+                        "marketUnit": "baseCoin",
+                        "cid": "100000000000002",
+                        "pid": "1000000000000000000"
+                    },
+                    "ts": "1790236900151"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "accountName": "1000000000000000000",
+                        "businessType": "linear_perpetual",
+                        "symbol": "ETH-USDT-PERP",
+                        "orderId": "3538113582066216960",
+                        "clientOrderId": "3538113582066216960",
+                        "price": "1900",
+                        "qty": "0.001",
+                        "pnl": "0",
+                        "orderType": "limit",
+                        "side": "buy",
+                        "totalFillQty": "0",
+                        "avgPrice": "0",
+                        "status": "canceled",
+                        "lever": "10",
+                        "baseFee": "0",
+                        "quoteFee": "0",
+                        "uid": "100000000000001",
+                        "source": "api",
+                        "cancelSource": "api",
+                        "cancelUid": "100000000000001",
+                        "createTime": "1790236812939",
+                        "updateTime": "1790236897118",
+                        "reduceOnly": false,
+                        "timeInForce": "gtc",
+                        "category": "normal",
+                        "massQuoteOrder": {
+                            "quoteId": "",
+                            "quote": null,
+                            "mmpGroup": "",
+                            "quoteSetId": "",
+                            "priceAdjustment": false
+                        },
+                        "eventId": "1",
+                        "parentOrderId": "",
+                        "tpslOrder": null,
+                        "orderFilter": "order",
+                        "riskReducing": null,
+                        "isLeverage": "",
+                        "tag": "",
+                        "stpId": "",
+                        "stpMode": "",
+                        "marketUnit": "baseCoin",
+                        "cid": "100000000000002",
+                        "pid": "1000000000000000000"
+                    },
+                    "id": "3538113582066216960",
+                    "clientOrderId": "3538113582066216960",
+                    "timestamp": 1790236812939,
+                    "datetime": "2026-09-24T08:00:12.939Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1790236897118,
+                    "symbol": "ETH/USDT:USDT",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": 1900,
+                    "triggerPrice": null,
+                    "amount": 0.001,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 0.001,
+                    "status": "canceled",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "order info of an open swap limit order",
+                "method": "fetchOrder",
+                "input": [
+                    "3538113582066216960"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": {
+                        "accountName": "1000000000000000000",
+                        "businessType": "linear_perpetual",
+                        "symbol": "ETH-USDT-PERP",
+                        "orderId": "3538113582066216960",
+                        "clientOrderId": "3538113582066216960",
+                        "price": "1900",
+                        "qty": "0.001",
+                        "pnl": "",
+                        "orderType": "limit",
+                        "side": "buy",
+                        "totalFillQty": "",
+                        "avgPrice": "",
+                        "status": "new",
+                        "lever": "10",
+                        "baseFee": "",
+                        "quoteFee": "",
+                        "uid": "100000000000001",
+                        "source": "api",
+                        "cancelSource": null,
+                        "cancelUid": null,
+                        "createTime": "1790236812939",
+                        "updateTime": "1790236812940",
+                        "reduceOnly": false,
+                        "timeInForce": "gtc",
+                        "category": "normal",
+                        "massQuoteOrder": {
+                            "quoteId": "",
+                            "quote": false,
+                            "mmpGroup": "",
+                            "quoteSetId": "",
+                            "priceAdjustment": false
+                        },
+                        "eventId": "0",
+                        "parentOrderId": "",
+                        "tpslOrder": null,
+                        "orderFilter": "order",
+                        "riskReducing": false,
+                        "isLeverage": "",
+                        "tag": "",
+                        "stpId": "",
+                        "stpMode": "",
+                        "marketUnit": "baseCoin",
+                        "cid": "100000000000002",
+                        "pid": "1000000000000000000"
+                    },
+                    "ts": "1790236826468"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "accountName": "1000000000000000000",
+                        "businessType": "linear_perpetual",
+                        "symbol": "ETH-USDT-PERP",
+                        "orderId": "3538113582066216960",
+                        "clientOrderId": "3538113582066216960",
+                        "price": "1900",
+                        "qty": "0.001",
+                        "pnl": "",
+                        "orderType": "limit",
+                        "side": "buy",
+                        "totalFillQty": "",
+                        "avgPrice": "",
+                        "status": "new",
+                        "lever": "10",
+                        "baseFee": "",
+                        "quoteFee": "",
+                        "uid": "100000000000001",
+                        "source": "api",
+                        "cancelSource": null,
+                        "cancelUid": null,
+                        "createTime": "1790236812939",
+                        "updateTime": "1790236812940",
+                        "reduceOnly": false,
+                        "timeInForce": "gtc",
+                        "category": "normal",
+                        "massQuoteOrder": {
+                            "quoteId": "",
+                            "quote": false,
+                            "mmpGroup": "",
+                            "quoteSetId": "",
+                            "priceAdjustment": false
+                        },
+                        "eventId": "0",
+                        "parentOrderId": "",
+                        "tpslOrder": null,
+                        "orderFilter": "order",
+                        "riskReducing": false,
+                        "isLeverage": "",
+                        "tag": "",
+                        "stpId": "",
+                        "stpMode": "",
+                        "marketUnit": "baseCoin",
+                        "cid": "100000000000002",
+                        "pid": "1000000000000000000"
+                    },
+                    "id": "3538113582066216960",
+                    "clientOrderId": "3538113582066216960",
+                    "timestamp": 1790236812939,
+                    "datetime": "2026-09-24T08:00:12.939Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1790236812940,
+                    "symbol": "ETH/USDT:USDT",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": 1900,
+                    "triggerPrice": null,
+                    "amount": 0.001,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "option limit order",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT:USDT-260927-2560-C",
+                    "limit",
+                    "buy",
+                    0.1,
+                    66
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": {
+                        "orderId": "3538115185699622912",
+                        "clientOrderId": "3538115185699622912",
+                        "tag": ""
+                    },
+                    "ts": "1790237195274"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "3538115185699622912",
+                        "clientOrderId": "3538115185699622912",
+                        "tag": "",
+                        "ts": 1790237195274
+                    },
+                    "id": "3538115185699622912",
+                    "clientOrderId": "3538115185699622912",
+                    "timestamp": 1790237195274,
+                    "datetime": "2026-09-24T08:06:35.274Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "ETH/USDT:USDT-260927-2560-C",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "future limit order",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT:USDT-260925",
+                    "limit",
+                    "buy",
+                    0.001,
+                    1900
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": {
+                        "orderId": "3538114823110410240",
+                        "clientOrderId": "3538114823110410240",
+                        "tag": ""
+                    },
+                    "ts": "1790237108823"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "3538114823110410240",
+                        "clientOrderId": "3538114823110410240",
+                        "tag": "",
+                        "ts": 1790237108823
+                    },
+                    "id": "3538114823110410240",
+                    "clientOrderId": "3538114823110410240",
+                    "timestamp": 1790237108823,
+                    "datetime": "2026-09-24T08:05:08.823Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "ETH/USDT:USDT-260925",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "spot market order",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT",
+                    "market",
+                    "sell",
+                    0.002
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": {
+                        "orderId": "3538114735936016384",
+                        "clientOrderId": "3538114735936016384",
+                        "tag": ""
+                    },
+                    "ts": "1790237088043"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "3538114735936016384",
+                        "clientOrderId": "3538114735936016384",
+                        "tag": "",
+                        "ts": 1790237088043
+                    },
+                    "id": "3538114735936016384",
+                    "clientOrderId": "3538114735936016384",
+                    "timestamp": 1790237088043,
+                    "datetime": "2026-09-24T08:04:48.043Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "ETH/USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "spot market order by cost",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT",
+                    "market",
+                    "buy",
+                    0,
+                    null,
+                    {
+                        "cost": 6
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": {
+                        "orderId": "3538114630709338112",
+                        "clientOrderId": "3538114630709338112",
+                        "tag": ""
+                    },
+                    "ts": "1790237062962"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "3538114630709338112",
+                        "clientOrderId": "3538114630709338112",
+                        "tag": "",
+                        "ts": 1790237062962
+                    },
+                    "id": "3538114630709338112",
+                    "clientOrderId": "3538114630709338112",
+                    "timestamp": 1790237062962,
+                    "datetime": "2026-09-24T08:04:22.962Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "ETH/USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "spot limit order",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.003,
+                    1900
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": {
+                        "orderId": "3538114516422918144",
+                        "clientOrderId": "3538114516422918144",
+                        "tag": ""
+                    },
+                    "ts": "1790237035705"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "3538114516422918144",
+                        "clientOrderId": "3538114516422918144",
+                        "tag": "",
+                        "ts": 1790237035705
+                    },
+                    "id": "3538114516422918144",
+                    "clientOrderId": "3538114516422918144",
+                    "timestamp": 1790237035705,
+                    "datetime": "2026-09-24T08:03:55.705Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "ETH/USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "swap trigger order",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    3400,
+                    {
+                        "triggerPrice": 3500,
+                        "triggerDirection": "above"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": {
+                        "accountName": "1000000000000000000",
+                        "complexOId": "1552711983719727104",
+                        "complexClOrdId": "1552711983719727104",
+                        "tag": null
+                    },
+                    "ts": "1790236985024"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "accountName": "1000000000000000000",
+                        "complexOId": "1552711983719727104",
+                        "complexClOrdId": "1552711983719727104",
+                        "tag": null,
+                        "ts": 1790236985024
+                    },
+                    "id": "1552711983719727104",
+                    "clientOrderId": "1552711983719727104",
+                    "timestamp": 1790236985024,
+                    "datetime": "2026-09-24T08:03:05.024Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "ETH/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "swap reduce only market order",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.001,
+                    null,
+                    {
+                        "reduceOnly": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": {
+                        "orderId": "3538114212218449920",
+                        "clientOrderId": "3538114212218449920",
+                        "tag": ""
+                    },
+                    "ts": "1790236963180"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "3538114212218449920",
+                        "clientOrderId": "3538114212218449920",
+                        "tag": "",
+                        "ts": 1790236963180
+                    },
+                    "id": "3538114212218449920",
+                    "clientOrderId": "3538114212218449920",
+                    "timestamp": 1790236963180,
+                    "datetime": "2026-09-24T08:02:43.180Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "ETH/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "swap market order",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.001
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": {
+                        "orderId": "3538114131016687616",
+                        "clientOrderId": "3538114131016687616",
+                        "tag": ""
+                    },
+                    "ts": "1790236943811"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "3538114131016687616",
+                        "clientOrderId": "3538114131016687616",
+                        "tag": "",
+                        "ts": 1790236943811
+                    },
+                    "id": "3538114131016687616",
+                    "clientOrderId": "3538114131016687616",
+                    "timestamp": 1790236943811,
+                    "datetime": "2026-09-24T08:02:23.811Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "ETH/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "swap post only order",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    1900,
+                    {
+                        "postOnly": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": {
+                        "orderId": "3538114042030370816",
+                        "clientOrderId": "3538114042030370816",
+                        "tag": ""
+                    },
+                    "ts": "1790236922604"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "3538114042030370816",
+                        "clientOrderId": "3538114042030370816",
+                        "tag": "",
+                        "ts": 1790236922604
+                    },
+                    "id": "3538114042030370816",
+                    "clientOrderId": "3538114042030370816",
+                    "timestamp": 1790236922604,
+                    "datetime": "2026-09-24T08:02:02.604Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "ETH/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "swap limit order",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    1900
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": {
+                        "orderId": "3538113582066216960",
+                        "clientOrderId": "3538113582066216960",
+                        "tag": ""
+                    },
+                    "ts": "1790236812940"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "3538113582066216960",
+                        "clientOrderId": "3538113582066216960",
+                        "tag": "",
+                        "ts": 1790236812940
+                    },
+                    "id": "3538113582066216960",
+                    "clientOrderId": "3538113582066216960",
+                    "timestamp": 1790236812940,
+                    "datetime": "2026-09-24T08:00:12.940Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "ETH/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
         "fetchMarginMode": [
             {
                 "description": "margin mode of the account",
