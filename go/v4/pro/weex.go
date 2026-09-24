@@ -820,12 +820,12 @@ func (this *Weex) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 	}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
 		var data []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
-		var symbolString any = ccxt.DerefScalar(this.SafeString(data, 0))
+		var symbolString *string = this.SafeString(data, 0)
 		var market map[string]any = this.Market(symbolString)
 		if market["type"] != ccxt.GetValue(firstMarket, "type") {
 			panic(ccxt.BadRequest(this.Id + " " + *callerMethodName + " market symbols must be of the same type"))
 		}
-		symbolString = market["symbol"]
+		symbolString = this.SafeString(market, "symbol")
 		var unifiedTimeframe *string = this.SafeString(data, 1, "1")
 		var interval *string = this.SafeString(this.Timeframes, unifiedTimeframe, unifiedTimeframe)
 		var channel any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(market["id"], "@kline_"), interval), "_"), priceType)
@@ -916,12 +916,12 @@ func (this *Weex) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes a
 	}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
 		var data []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
-		var symbolString any = ccxt.DerefScalar(this.SafeString(data, 0))
+		var symbolString *string = this.SafeString(data, 0)
 		var market map[string]any = this.Market(symbolString)
 		if market["type"] != ccxt.GetValue(firstMarket, "type") {
 			panic(ccxt.BadRequest(this.Id + " " + *callerMethodName + " market symbols must be of the same type"))
 		}
-		symbolString = market["symbol"]
+		symbolString = this.SafeString(market, "symbol")
 		var unifiedTimeframe *string = this.SafeString(data, 1, "1")
 		var interval *string = this.SafeString(this.Timeframes, unifiedTimeframe, unifiedTimeframe)
 		var channel any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(market["id"], "@kline_"), interval), "_"), priceType)
@@ -1625,12 +1625,12 @@ func (this *Weex) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) any 
 	var commission *string = this.SafeString(trade, "fillFee")
 	if commission != nil {
 		var commissionAsset *string = this.SafeString(trade, "coin")
-		var feeCurrency any = ccxt.DerefScalar(this.SafeCurrencyCode(commissionAsset))
+		var feeCurrency *string = this.SafeCurrencyCode(commissionAsset)
 		if marketType == "spot" {
 			if side != nil && *side == "buy" {
-				feeCurrency = marketResolved["base"]
+				feeCurrency = this.SafeString(marketResolved, "base")
 			} else {
-				feeCurrency = marketResolved["quote"]
+				feeCurrency = this.SafeString(marketResolved, "quote")
 			}
 		}
 		fee = map[string]any{
@@ -1947,12 +1947,12 @@ func (this *Weex) ParseWsOrder(order any, optionalArgs ...any) any {
 	var commission *string = this.SafeString(order, "cumFillFee")
 	if commission != nil {
 		var commissionAsset *string = this.SafeString(order, "coin")
-		var feeCurrency any = ccxt.DerefScalar(this.SafeCurrencyCode(commissionAsset))
+		var feeCurrency *string = this.SafeCurrencyCode(commissionAsset)
 		if marketType == "spot" {
 			if side != nil && *side == "buy" {
-				feeCurrency = marketResolved["base"]
+				feeCurrency = this.SafeString(marketResolved, "base")
 			} else {
-				feeCurrency = marketResolved["quote"]
+				feeCurrency = this.SafeString(marketResolved, "quote")
 			}
 		}
 		fee = map[string]any{

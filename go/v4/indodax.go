@@ -972,9 +972,9 @@ func (this *Indodax) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var side any = nil
+	var side *string = nil
 	if InOp(order, "type") {
-		side = GetValue(order, "type")
+		side = this.SafeString(order, "type")
 	}
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status", "open"))
 	var symbol any = nil

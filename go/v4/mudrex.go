@@ -1850,7 +1850,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var rows []any = []any{}
 	for i := 0; i < len(transactions); i++ {
-		var rebate any = nil
+		var rebate *string = nil
 		for j := 0; j < len(rebateKeys); j++ {
 			if IsEqual(func() any {
 				if j >= 0 && j < len(rebateKeys) {
@@ -1863,18 +1863,13 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 				}
 				return nil
 			}()) {
-				rebate = func() any {
-					if j >= 0 && j < len(rebateAmounts) {
-						return DerefScalar(rebateAmounts[j])
-					}
-					return nil
-				}()
+				rebate = this.SafeString(rebateAmounts, j)
 				// blank the consumed key so the next equal fill matches the next rebate, never the same one twice
 				AddElementToObject(rebateKeys, j, nil)
 				break
 			}
 		}
-		if rebate == nil {
+		if IsEqual(rebate, nil) {
 			rows = append(rows, func() any {
 				if i >= 0 && i < len(transactions) {
 					return DerefScalar(transactions[i])

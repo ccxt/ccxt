@@ -797,7 +797,7 @@ func (this *Bitso) ParseCurrency(rawCurrency any) any {
 	})
 }
 func (this *Bitso) ParseBalance(response any) any {
-	var payload any = this.SafeValue(response, "payload", map[string]any{})
+	var payload map[string]any = SafeMapTyped(response, "payload")
 	var balances []any = SafeListTyped(payload, "balances")
 	var result map[string]any = map[string]any{
 		"info":      response,

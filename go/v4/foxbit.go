@@ -2341,12 +2341,12 @@ func (this *Foxbit) ParseOrderStatus(status *string) *string {
 func (this *Foxbit) ParseOrder(order any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var symbol any = DerefScalar(this.SafeString(order, "market_symbol"))
-	if (market == nil) && !IsEqual(symbol, nil) {
+	var symbol *string = this.SafeString(order, "market_symbol")
+	if (market == nil) && (symbol != nil) {
 		market = this.Market(symbol)
 	}
 	if market != nil {
-		symbol = GetValue(market, "symbol")
+		symbol = this.SafeString(market, "symbol")
 	}
 	var timestamp any = this.ParseDate(this.SafeString(order, "created_at"))
 	var price *string = this.SafeString(order, "price")

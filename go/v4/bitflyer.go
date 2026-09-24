@@ -745,15 +745,15 @@ func (this *Bitflyer) ParseTrade(trade any, optionalArgs ...any) any {
 			side = nil
 		}
 	}
-	var order any = nil
+	var order *string = nil
 	if side != nil {
 		var idInner string = *side + "_child_order_acceptance_id"
 		if InOp(trade, idInner) {
-			order = GetValue(trade, idInner)
+			order = this.SafeString(trade, idInner)
 		}
 	}
 	if IsEqual(order, nil) {
-		order = DerefScalar(this.SafeString(trade, "child_order_acceptance_id"))
+		order = this.SafeString(trade, "child_order_acceptance_id")
 	}
 	var timestamp *int64 = this.Parse8601(this.SafeString(trade, "exec_date"))
 	var priceString *string = this.SafeString(trade, "price")

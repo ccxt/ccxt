@@ -1820,10 +1820,10 @@ func (this *Luno) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-this.LoadAccountsAsync()))
 	var currency map[string]any = nil
-	var id any = DerefScalar(this.SafeString(params, "id")) // account id
+	var id *string = this.SafeString(params, "id") // account id
 	var min_row any = this.SafeValue(params, "min_row")
 	var max_row any = this.SafeValue(params, "max_row")
-	if IsEqual(id, nil) {
+	if id == nil {
 		if code == nil {
 			panic(ArgumentsRequired(this.Id + " fetchLedger() requires a currency code argument if no account id specified in params"))
 		}
@@ -1833,7 +1833,7 @@ func (this *Luno) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		if IsEqual(account, nil) {
 			panic(ExchangeError(Add(this.Id+" fetchLedger() could not find account id for ", code)))
 		}
-		id = account["id"]
+		id = this.SafeString(account, "id")
 	}
 	if IsEqual(min_row, nil) && IsEqual(max_row, nil) {
 		max_row = 0           // Default to most recent transactions
