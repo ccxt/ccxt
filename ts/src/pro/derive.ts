@@ -779,9 +779,9 @@ export default class derive extends deriveRest {
             const subscriptionsById = this.indexBy (client.subscriptions, 'id');
             const subscription = (id === undefined) ? {} : this.safeDict (subscriptionsById, id, {});
             if ('method' in subscription) {
-                if (subscription['method'] === 'public/login') {
+                if (this.safeString (subscription, 'method') === 'public/login') {
                     this.handleAuth (client, message);
-                } else if (subscription['method'] === 'unsubscribe') {
+                } else if (this.safeString (subscription, 'method') === 'unsubscribe') {
                     this.handleUnSubscribe (client, message);
                 }
                 // could handleSubscribe

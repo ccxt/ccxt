@@ -115,8 +115,8 @@ export default class deepcoin extends deepcoinRest {
     }
 
     createPublicRequest (market: any, requestId: number, topicID: string, suffix: string = '', unWatch: boolean = false) {
-        let marketId = market['symbol']; // spot markets use symbol with slash
-        if (market['type'] === 'swap') {
+        let marketId = this.safeString (market, 'symbol'); // spot markets use symbol with slash
+        if (this.safeString (market, 'type') === 'swap') {
             marketId = this.safeString (market, 'baseId', '') + this.safeString (market, 'quoteId', ''); // swap markets use symbol without slash
         }
         let action = '1'; // subscribe
@@ -168,7 +168,7 @@ export default class deepcoin extends deepcoinRest {
 
     async watchPrivate (messageHash: string, params: Dict = {}): Promise<any> {
         const listenKey = await this.authenticate ();
-        const url = this.urls['api']['ws']['private'] + '?listenKey=' + listenKey;
+        const url = this.safeString (this.urls['api']['ws'], 'private') + '?listenKey=' + listenKey;
         return await this.watch (url, messageHash, undefined, 'private', params);
     }
 
@@ -1119,7 +1119,7 @@ export default class deepcoin extends deepcoinRest {
         } else {
             messageHashes.push (messageHash);
         }
-        const url = this.urls['api']['ws']['private'] + '?listenKey=' + listenKey;
+        const url = this.safeString (this.urls['api']['ws'], 'private') + '?listenKey=' + listenKey;
         const positions = await this.watchMultiple (url, messageHashes, params, [ 'private' ]);
         if (this.newUpdates) {
             return positions;
