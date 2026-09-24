@@ -14685,10 +14685,7 @@ export default class binance extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let symbolsNormalized: Strings = symbols;
-        if (symbols !== undefined) {
-            symbolsNormalized = this.marketSymbols (symbols);
-        }
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         let market: Market = undefined;
         if (symbolsNormalized !== undefined) {
             market = this.market (symbolsNormalized[0]);
@@ -15439,10 +15436,7 @@ export default class binance extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let symbolsNormalized: Strings = symbols;
-        if (symbols !== undefined) {
-            symbolsNormalized = this.marketSymbols (symbols);
-        }
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         let market: Market = undefined;
         if (symbolsNormalized !== undefined) {
             market = this.market (symbolsNormalized[0]);

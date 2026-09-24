@@ -361,11 +361,10 @@ export default class coinbase extends coinbaseRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let symbolsResolved: Strings = symbols;
         if (symbols === undefined) {
-            symbolsResolved = this.symbols;
+            return await this.unSubscribeMultiple ('ticker', 'ticker_batch', false, this.symbols);
         }
-        return await this.unSubscribeMultiple ('ticker', 'ticker_batch', false, symbolsResolved);
+        return await this.unSubscribeMultiple ('ticker', 'ticker_batch', false, symbols);
     }
 
     handleTickers (client: Client, message: Dict) {

@@ -6661,6 +6661,30 @@ function installCcxtGoElement1Params (goTranspiler) {
         const re = new RegExp ('^([ \\t]*)' + name + ' := (GetValue\\(\\w+Variable, 1\\))$', 'm');
         return printed.replace (re, (all, indent, read) => indent + 'var ' + name + ' map[string]any = MapTyped(' + read + ')');
     };
+    // `[ v, p ] = f (…)` into a local already declared map[string]any: the element read needs the map view
+    if (typeof goTranspiler.printCustomBinaryExpressionIfAny === 'function') {
+        const upstreamBinary = goTranspiler.printCustomBinaryExpressionIfAny;
+        goTranspiler.printCustomBinaryExpressionIfAny = function (node, identation) {
+            const printed = upstreamBinary.call (this, node, identation);
+            if ((typeof printed !== 'string') || (node?.operatorToken?.kind !== ts.SyntaxKind.EqualsToken)
+                || (node.left?.kind !== ts.SyntaxKind.ArrayLiteralExpression) || (typeof this.goDeclaredTypeOfIdentifier !== 'function')) {
+                return printed;
+            }
+            const mapped = new Set ();
+            for (const element of node.left.elements) {
+                if ((element.kind === ts.SyntaxKind.Identifier) && (this.goDeclaredTypeOfIdentifier (element) === 'map[string]any')) {
+                    mapped.add (this.printNode (element, 0));
+                }
+            }
+            if (mapped.size === 0) {
+                return printed;
+            }
+            return printed.split ('\n').map ((line) => {
+                const match = /^([ \t]*)([A-Za-z_]\w*) = (GetValue\([A-Za-z_]\w*, \d+\))$/.exec (line);
+                return ((match !== null) && mapped.has (match[2])) ? match[1] + match[2] + ' = MapTyped(' + match[3] + ')' : line;
+            }).join ('\n');
+        };
+    }
     goTranspiler.__ccxtGoElement1ParamsInstalled = true;
 }
 
