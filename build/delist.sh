@@ -113,6 +113,8 @@ filter_lines() {
 # module declarations: `pub mod <id>;` plus `pub mod <id>_api;` for the REST crate
 filter_lines rust/ccxt-base/src/exchanges/mod.rs "^pub mod ${EXCHANGE}(_api)?;\$"
 filter_lines rust/ccxt-pro/src/pro/mod.rs "^pub mod ${EXCHANGE};\$"
+filter_lines rust/ccxt/src/exchanges/mod.rs "^pub mod ${EXCHANGE}_typed;\$"
+filter_lines rust/ccxt-pro/src/pro_typed/mod.rs "^pub mod ${EXCHANGE}_typed;\$"
 # the test registry lists every core twice (REST + WS): as a `<id>::<Id>Core,`
 # import and as a `$cb!(<id>, <Id>Core);` macro arm
 filter_lines rust/tests/src/generated_cores.rs "^[[:space:]]*(${EXCHANGE}::|\\\$cb!\\(${EXCHANGE},)"
