@@ -26,7 +26,11 @@ export default class umx extends umxRest {
                 'unWatchOrderBook': true,
                 'unWatchOrderBookForSymbols': true,
                 'watchOrders': true,
+                'unWatchOrders': true,
+                'unWatchMyTrades': true,
+                'unWatchBalance': true,
                 'watchPositions': true,
+                'unWatchPositions': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'unWatchTicker': true,
@@ -1383,6 +1387,176 @@ export default class umx extends umxRest {
     }
 
     /**
+     * @method
+     * @name umx#unWatchOrders
+     * @description unsubscribes from the orders channel
+     * @see https://www.umx.com/docs/coin-apis/websocket-stream/private-channel/order-channel
+     * @param {string} [symbol] unified market symbol, the subscription opened for it by watchOrders is dropped, the all markets one when left out
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} the result of the unwatch operation
+     */
+    override async unWatchOrders (symbol: Str = undefined, params: Dict = {}): Promise<any> {
+        return await this.unWatchPrivate ('order', 'orders', symbol, [ 'spot', 'linear_perpetual', 'linear_futures' ], params);
+    }
+
+    /**
+     * @method
+     * @name umx#unWatchMyTrades
+     * @description unsubscribes from the trades channel of the account
+     * @see https://www.umx.com/docs/coin-apis/websocket-stream/private-channel/account-trade-channel
+     * @param {string} [symbol] unified market symbol, the subscription opened for it by watchMyTrades is dropped, the all markets one when left out
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} the result of the unwatch operation
+     */
+    override async unWatchMyTrades (symbol: Str = undefined, params: Dict = {}): Promise<any> {
+        return await this.unWatchPrivate ('trade', 'myTrades', symbol, [ 'spot', 'linear_perpetual', 'linear_futures' ], params);
+    }
+
+    /**
+     * @method
+     * @name umx#unWatchBalance
+     * @description unsubscribes from the trading account balance channel
+     * @see https://www.umx.com/docs/coin-apis/websocket-stream/private-channel/trading-account-channel
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} the result of the unwatch operation
+     */
+    async unWatchBalance (params: Dict = {}): Promise<any> {
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const url = this.urls['api']['ws']['private'];
+        const messageHash = 'unsubscribe::balance';
+        const message: Dict = {
+            'event': 'unsubscribe',
+            'data': [
+                {
+                    'stream': 'trading_account',
+                },
+            ],
+        };
+        const subscription: Dict = {
+            'unsubscribe': true,
+            'messageHashes': [ messageHash ],
+            'subMessageHashes': [ 'balance' ],
+            'topic': 'balance',
+        };
+        return await this.watch (url, messageHash, this.deepExtend (message, params), messageHash, subscription);
+    }
+
+    /**
+     * @method
+     * @name umx#unWatchPositions
+     * @description unsubscribes from the positions channel
+     * @see https://www.umx.com/docs/coin-apis/websocket-stream/private-channel/position-channel
+     * @param {string[]} [symbols] unified market symbols, the subscriptions opened for them by watchPositions are dropped, the all markets one when left out
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} the result of the unwatch operation
+     */
+    override async unWatchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        if (symbols === undefined) {
+            return await this.unWatchPrivate ('position', 'positions', undefined, [ 'linear_perpetual', 'linear_futures' ], params);
+        }
+        await this.authenticate ();
+        const subMessageHashes = [];
+        const messageHashes = [];
+        const topics = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const subMessageHash = 'positions::' + symbol;
+            if (!this.inArray (subMessageHash, subMessageHashes)) {
+                subMessageHashes.push (subMessageHash);
+                messageHashes.push ('unsubscribe::' + subMessageHash);
+                topics.push (this.subscriptionTopic ('position', symbol));
+            }
+        }
+        const url = this.urls['api']['ws']['private'];
+        const message: Dict = {
+            'event': 'unsubscribe',
+            'data': topics,
+        };
+        const subscription: Dict = {
+            'unsubscribe': true,
+            'symbols': symbols,
+            'messageHashes': messageHashes,
+            'subMessageHashes': subMessageHashes,
+            'topic': 'positions',
+        };
+        return await this.watchMultiple (url, messageHashes, this.deepExtend (message, params), messageHashes, subscription);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name umx#unWatchPrivate
+     * @description unsubscribes from a private channel opened for one market or for every market of the given instrument types
+     * @param {string} stream the venue channel name
+     * @param {string} channel the prefix of the watcher message hashes
+     * @param {string} [symbol] unified market symbol
+     * @param {string[]} businessTypes the instrument types the symbolless subscription covered
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} the result of the unwatch operation
+     */
+    async unWatchPrivate (stream: string, channel: string, symbol: Str = undefined, businessTypes: string[] = [], params: Dict = {}): Promise<any> {
+        await this.loadMarkets ();
+        await this.authenticate ();
+        let subMessageHash = channel;
+        const symbols = [];
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            symbol = market['symbol'];
+            subMessageHash = channel + '::' + symbol;
+            symbols.push (symbol);
+        }
+        const messageHash = 'unsubscribe::' + subMessageHash;
+        const url = this.urls['api']['ws']['private'];
+        const message: Dict = {
+            'event': 'unsubscribe',
+            'data': this.privateTopics (stream, symbol, businessTypes),
+        };
+        const subscription: Dict = {
+            'unsubscribe': true,
+            'symbols': symbols,
+            'messageHashes': [ messageHash ],
+            'subMessageHashes': [ subMessageHash ],
+            'topic': channel,
+        };
+        return await this.watch (url, messageHash, this.deepExtend (message, params), messageHash, subscription);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name umx#cleanPrivateCache
+     * @description drop the cache a private channel fills once no subscription of that channel is left, the cache is shared by every market
+     * @param {object} client the private websocket client
+     * @param {string} channel the prefix of the watcher message hashes
+     */
+    cleanPrivateCache (client: Client, channel: string) {
+        const keys = Object.keys (client.subscriptions);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if ((key === channel) || key.startsWith (channel + '::')) {
+                // another watcher of the channel is still subscribed and reads the cache
+                return;
+            }
+        }
+        if (channel === 'balance') {
+            // emptied in place, a consumer can hold a reference to the balance object
+            const balanceKeys = Object.keys (this.balance);
+            for (let i = 0; i < balanceKeys.length; i++) {
+                delete this.balance[balanceKeys[i]];
+            }
+        } else {
+            const everyMarket: Dict = {
+                'topic': channel,
+                'symbols': [],
+            };
+            this.cleanCache (everyMarket);
+        }
+    }
+
+    /**
      * @ignore
      * @method
      * @name umx#subscriptionTopic
@@ -1523,10 +1697,15 @@ export default class umx extends umxRest {
             } else if (event === 'unsubscribe') {
                 const unsubHash = 'unsubscribe::' + messageHash;
                 const subscription = this.safeDict (client.subscriptions, unsubHash);
-                if (subscription !== undefined) {
-                    this.cleanCache (subscription);
+                if (isPrivate) {
+                    this.cleanUnsubscription (client, messageHash, unsubHash);
+                    this.cleanPrivateCache (client, channel);
+                } else {
+                    if (subscription !== undefined) {
+                        this.cleanCache (subscription);
+                    }
+                    this.cleanUnsubscription (client, messageHash, unsubHash);
                 }
-                this.cleanUnsubscription (client, messageHash, unsubHash);
             }
         }
     }
