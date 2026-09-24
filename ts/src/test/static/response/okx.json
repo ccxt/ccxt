@@ -8,20 +8,32 @@
                 "description": "linear swap leverage tiers",
                 "method": "fetchMarketLeverageTiers",
                 "input": ["BTC/USDT:USDT"],
-                "httpResponse": {
-                    "code": "0",
-                    "data": [
-                        {
-                            "tier": "1",
-                            "instId": "BTC-USDT-SWAP",
-                            "instType": "SWAP",
-                            "markPx": "0.123456789123456789",
-                            "minSz": "0",
-                            "maxSz": "1000000000000000000",
-                            "mmr": "0.01",
-                            "maxLever": "5"
-                        }
-                    ]
+                "httpResponseByUrl": {
+                    "/api/v5/public/mark-price?instId=BTC-USDT-SWAP": {
+                        "code": "0",
+                        "data": [
+                            {
+                                "instId": "BTC-USDT-SWAP",
+                                "instType": "SWAP",
+                                "markPx": "0.123456789123456789",
+                                "ts": "1784340000000"
+                            }
+                        ]
+                    },
+                    "instFamily=BTC-USDT": {
+                        "code": "0",
+                        "data": [
+                            {
+                                "tier": "1",
+                                "instId": "BTC-USDT-SWAP",
+                                "instType": "SWAP",
+                                "minSz": "0",
+                                "maxSz": "1000000000000000000",
+                                "mmr": "0.01",
+                                "maxLever": "5"
+                            }
+                        ]
+                    }
                 },
                 "parsedResponse": [
                     {
@@ -36,7 +48,6 @@
                             "tier": "1",
                             "instId": "BTC-USDT-SWAP",
                             "instType": "SWAP",
-                            "markPx": "0.123456789123456789",
                             "minSz": "0",
                             "maxSz": "1000000000000000000",
                             "mmr": "0.01",
@@ -46,25 +57,53 @@
                 ]
             },
             {
-                "description": "linear USD future leverage tiers preserve raw contract value",
+                "description": "linear USD future leverage tiers use exact instrument family and raw contract value",
                 "method": "fetchMarketLeverageTiers",
                 "input": ["BTC/USD:USD-310404"],
-                "httpResponse": {
-                    "code": "0",
-                    "data": [
-                        {
-                            "tier": "1",
-                            "instFamily": "BTC-USD_UM_XPERP",
-                            "instId": "",
-                            "instType": "FUTURES",
-                            "markPx": "64000",
-                            "minSz": "0",
-                            "maxSz": "25000",
-                            "mmr": "0.01",
-                            "maxLever": "50",
-                            "uly": "BTC-USD"
-                        }
-                    ]
+                "httpResponseByUrl": {
+                    "/api/v5/public/mark-price?instId=BTC-USD_UM_XPERP-310404": {
+                        "code": "0",
+                        "data": [
+                            {
+                                "instId": "BTC-USD_UM_XPERP-310404",
+                                "instType": "FUTURES",
+                                "markPx": "64000",
+                                "ts": "1784340000000"
+                            }
+                        ]
+                    },
+                    "instFamily=BTC-USD_UM_XPERP": {
+                        "code": "0",
+                        "data": [
+                            {
+                                "tier": "1",
+                                "instFamily": "BTC-USD_UM_XPERP",
+                                "instId": "",
+                                "instType": "FUTURES",
+                                "minSz": "0",
+                                "maxSz": "25000",
+                                "mmr": "0.01",
+                                "maxLever": "50",
+                                "uly": "BTC-USD"
+                            }
+                        ]
+                    },
+                    "uly=BTC-USD": {
+                        "code": "0",
+                        "data": [
+                            {
+                                "tier": "1",
+                                "instFamily": "BTC-USD",
+                                "instId": "",
+                                "instType": "FUTURES",
+                                "minSz": "0",
+                                "maxSz": "2000",
+                                "mmr": "0.01",
+                                "maxLever": "50",
+                                "uly": "BTC-USD"
+                            }
+                        ]
+                    }
                 },
                 "parsedResponse": [
                     {
@@ -80,7 +119,6 @@
                             "instFamily": "BTC-USD_UM_XPERP",
                             "instId": "",
                             "instType": "FUTURES",
-                            "markPx": "64000",
                             "minSz": "0",
                             "maxSz": "25000",
                             "mmr": "0.01",

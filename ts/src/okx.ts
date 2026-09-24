@@ -7696,7 +7696,7 @@ export default class okx extends Exchange {
     /**
      * @method
      * @name okx#fetchMarketLeverageTiers
-     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market; linear contracts require an additional mark-price request and return quote-notional boundaries at that price, so cached tiers must be refreshed as the price changes
      * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-position-tiers
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -7732,19 +7732,34 @@ export default class okx extends Exchange {
             request['instFamily'] = instFamily;
         }
         const isFutureOrSwap = this.safeBool (market, 'future', false) || this.safeBool (market, 'swap', false);
-        let contractSize = '1';
+        let contractSize: Str = '1';
         if (isFutureOrSwap) {
             contractSize = this.safeString (marketInfo, 'ctVal');
-            if (!Precise.stringGt (contractSize, '0')) {
+            let validContractSize = false;
+            try {
+                const parsedContractSize = (contractSize === undefined) ? undefined : JSON.parse (contractSize);
+                validContractSize = (typeof parsedContractSize === 'number') && Precise.stringGt (contractSize, '0');
+            } catch (error) {
+                validContractSize = false;
+            }
+            if (!validContractSize) {
                 throw new ExchangeError (this.id + ' fetchMarketLeverageTiers() could not determine a valid contract size for ' + symbol);
             }
         }
-        let notionalMultiplier = contractSize;
+        let notionalMultiplier: Str = contractSize;
         if (isFutureOrSwap && this.safeBool (market, 'linear', false)) {
-            const ticker = await this.fetchMarkPrice (symbol);
-            const tickerInfo = this.safeDict (ticker, 'info', {});
-            const quoteConversionRate = this.safeString (tickerInfo, 'markPx');
-            if (!Precise.stringGt (quoteConversionRate, '0')) {
+            const markPriceResponse = await this.publicGetPublicMarkPrice ({ 'instId': market['id'] });
+            const markPrices = this.safeList (markPriceResponse, 'data', []);
+            const markPrice = this.safeDict (markPrices, 0, {});
+            const quoteConversionRate = this.safeString (markPrice, 'markPx');
+            let validMarkPrice = false;
+            try {
+                const parsedMarkPrice = (quoteConversionRate === undefined) ? undefined : JSON.parse (quoteConversionRate);
+                validMarkPrice = (typeof parsedMarkPrice === 'number') && Precise.stringGt (quoteConversionRate, '0');
+            } catch (error) {
+                validMarkPrice = false;
+            }
+            if (!validMarkPrice) {
                 throw new ExchangeError (this.id + ' fetchMarketLeverageTiers() could not determine a valid mark price for ' + symbol);
             }
             notionalMultiplier = Precise.stringMul (contractSize, quoteConversionRate);
