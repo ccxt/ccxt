@@ -289,7 +289,7 @@ export default class whitebit extends whitebitRest {
         symbols = this.marketSymbols (symbols, undefined, false);
         const method = 'market_subscribe';
         const url = this.urls['api']['ws'];
-        const id = this.nonce ();
+        const id = this.incrementingNonce ();
         const messageHashes: string[] = [];
         const args: List = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -883,7 +883,7 @@ export default class whitebit extends whitebitRest {
 
     async watchPublic (messageHash: string , method: string , reqParams: any[] = [], params: Dict = {}) {
         const url = this.urls['api']['ws'];
-        const id = this.nonce ();
+        const id = this.incrementingNonce ();
         const request: Dict = {
             'id': id,
             'method': method,
@@ -898,7 +898,7 @@ export default class whitebit extends whitebitRest {
             await this.loadMarkets ();
         }
         const url = this.urls['api']['ws'];
-        const id = this.nonce ();
+        const id = this.incrementingNonce ();
         const client = this.safeValue (this.clients, url);
         let request: NullableDict = undefined;
         let marketIds: List = [];
@@ -959,7 +959,7 @@ export default class whitebit extends whitebitRest {
         this.checkRequiredCredentials ();
         await this.authenticate ();
         const url = this.urls['api']['ws'];
-        const id = this.nonce ();
+        const id = this.incrementingNonce ();
         const request: Dict = {
             'id': id,
             'method': method,
@@ -1016,7 +1016,7 @@ export default class whitebit extends whitebitRest {
                 // venue answers that with an opaque socket drop
                 throw new AuthenticationError (this.id + ' authenticate() received an empty websocket_token');
             }
-            const id = this.nonce ();
+            const id = this.incrementingNonce ();
             const request: Dict = {
                 'id': id,
                 'method': 'authorize',

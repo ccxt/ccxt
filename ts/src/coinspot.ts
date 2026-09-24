@@ -756,6 +756,11 @@ export default class coinspot extends Exchange {
         return undefined;
     }
 
+    override nonce () {
+        // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return this.milliseconds ();
+    }
+
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const isVersionedApi = Array.isArray (api);
         const version = isVersionedApi ? api[0] : undefined;
@@ -765,7 +770,8 @@ export default class coinspot extends Exchange {
         const url = this.urls['api'][accessType] + fullPath;
         if (accessType === 'private') {
             this.checkRequiredCredentials ();
-            const nonce = this.nonce ();
+            // coinspot requires an increasing nonce
+            const nonce = this.incrementingNonce ();
             body = this.json (this.extend ({ 'nonce': nonce }, params));
             headers = {
                 'Content-Type': 'application/json',
