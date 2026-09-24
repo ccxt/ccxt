@@ -565,7 +565,7 @@ export default class bitfinex extends Exchange {
         return (code in this.options['fiat']);
     }
 
-    getCurrencyName (code: any) {
+    getCurrencyName (code: string) {
         // temporary fix for transpiler recognition, even though this is in parent class
         if (code in this.options['currencyNames']) {
             return this.options['currencyNames'][code];

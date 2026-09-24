@@ -2906,7 +2906,7 @@ export default class binance extends Exchange {
             if ((this.markets !== undefined) && (symbol in this.markets)) {
                 const market = this.markets[symbol];
                 // begin diff
-                if (isLegacy && (market['spot'] === true)) {
+                if (isLegacy && (this.safeBool (market, 'spot') === true)) {
                     const settle = isLegacyLinear ? market['quote'] : market['base'];
                     const futuresSymbol = symbol + ':' + settle;
                     if ((this.markets !== undefined) && (futuresSymbol in this.markets)) {
@@ -3736,7 +3736,7 @@ export default class binance extends Exchange {
         //         ]
         //     }
         //
-        if (this.options['adjustForTimeDifference'] === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference') === true) {
             await this.loadTimeDifference ();
         }
         const result: List = [];
@@ -5472,7 +5472,7 @@ export default class binance extends Exchange {
             side = this.safeStringLower (trade, 'side');
         } else {
             if ('isBuyer' in trade) {
-                side = (trade['isBuyer'] === true) ? 'buy' : 'sell'; // this is a true side
+                side = (this.safeBool (trade, 'isBuyer') === true) ? 'buy' : 'sell'; // this is a true side
             }
         }
         let fee: FeeString = undefined;
@@ -5483,10 +5483,10 @@ export default class binance extends Exchange {
             };
         }
         if ('isMaker' in trade) {
-            takerOrMaker = (trade['isMaker'] === true) ? 'maker' : 'taker';
+            takerOrMaker = (this.safeBool (trade, 'isMaker') === true) ? 'maker' : 'taker';
         }
         if ('maker' in trade) {
-            takerOrMaker = (trade['maker'] === true) ? 'maker' : 'taker';
+            takerOrMaker = (this.safeBool (trade, 'maker') === true) ? 'maker' : 'taker';
         }
         if (('optionSide' in trade) || (market['option'] === true)) {
             const settle = this.safeCurrencyCode (this.safeString (trade, 'quoteAsset', 'USDT'));
@@ -9906,8 +9906,8 @@ export default class binance extends Exchange {
                 market = this.market (symbol);
                 params = this.omit (params, 'symbol');
             }
-            let fromId = this.convertTypeToAccount (fromAccount).toUpperCase ();
-            let toId = this.convertTypeToAccount (toAccount).toUpperCase ();
+            let fromId: string = this.convertTypeToAccount (fromAccount).toUpperCase ();
+            let toId: string = this.convertTypeToAccount (toAccount).toUpperCase ();
             let isolatedSymbol: Str = undefined;
             if (market !== undefined) {
                 isolatedSymbol = market['id'];
@@ -10737,7 +10737,7 @@ export default class binance extends Exchange {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = markets[symbol];
-                if (market['linear'] === true) {
+                if (this.safeBool (market, 'linear') === true) {
                     result[symbol] = {
                         'info': {
                             'feeTier': feeTier,
@@ -10772,7 +10772,7 @@ export default class binance extends Exchange {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = markets[symbol];
-                if (market['inverse'] === true) {
+                if (this.safeBool (market, 'inverse') === true) {
                     result[symbol] = {
                         'info': {
                             'feeTier': feeTier,
@@ -10801,7 +10801,7 @@ export default class binance extends Exchange {
      * @param {float} params.recvWindow
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=futures-transfer-structure}
      */
-    async futuresTransfer (code: string, amount: any, type: any, params: Dict = {}): Promise<TransferEntry> {
+    async futuresTransfer (code: string, amount: any, type: number, params: Dict = {}): Promise<TransferEntry> {
         if ((type < 1) || (type > 4)) {
             throw new ArgumentsRequired (this.id + ' type must be between 1 and 4');
         }
@@ -13286,7 +13286,7 @@ export default class binance extends Exchange {
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
-            if ((error === '-2015') && (this.options['hasAlreadyAuthenticatedSuccessfully'] === true)) {
+            if ((error === '-2015') && (this.safeBool (this.options, 'hasAlreadyAuthenticatedSuccessfully') === true)) {
                 throw new DDoSProtection (this.id + ' ' + body);
             }
             const feedback = this.id + ' ' + body;
