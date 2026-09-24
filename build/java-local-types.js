@@ -1515,7 +1515,7 @@ function javaCoreDeclarationTable (node) {
     return table;
 }
 
-function syncCoreCallType (node) {
+function syncCoreCallType (printer, node) {
     if (node?.kind !== ts.SyntaxKind.CallExpression || !isThisOrSuperCall (node)) {
         return undefined;
     }
@@ -1528,7 +1528,32 @@ function syncCoreCallType (node) {
         return undefined;
     }
     const type = [ ...entry.types ][0];
-    return type !== 'Object' && JAVA_CORE_TYPE_OK.test (type) ? type : undefined;
+    if (type === 'Object' || !JAVA_CORE_TYPE_OK.test (type)) {
+        return undefined;
+    }
+    // the on-disk file is the previous generation: a callee this run prints must print the same type
+    return printedDeclarationAgrees (printer, node, type) ? type : undefined;
+}
+
+function printedDeclarationAgrees (printer, call, type) {
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getResolvedSignature (call)?.declaration;
+    } catch (e) {
+        return false;
+    }
+    // base-tier declarations have hand-written Java counterparts: the on-disk read stays the proof
+    if (declaration === undefined || declaration.kind !== ts.SyntaxKind.MethodDeclaration || declaration.body === undefined
+        || !/(^|[\\/])ts[\\/]src[\\/](?:pro[\\/]|prediction[\\/])?[a-z0-9_]+\.ts$/.test (declaration.getSourceFile ().fileName)) {
+        return true;
+    }
+    let printed;
+    try {
+        printed = printer.printFunctionType (declaration);
+    } catch (e) {
+        return false;
+    }
+    return typeof printed === 'string' && qualifyApiReturnType (printed.replace (/\s+/g, '')) === type;
 }
 
 
@@ -2723,7 +2748,7 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
     // read over the class chain has the static type of the call. Last in the function so
     // every name a family above already covers keeps that family's audit.
     if (!asserted) {
-        const sync = syncCoreCallType (assertedCall);
+        const sync = syncCoreCallType (printer, assertedCall);
         if (sync !== undefined) {
             return { type: sync };
         }
@@ -2857,7 +2882,7 @@ function isProvablyOfType (printer, node, javaType, selfName) {
             }
             // a later sync core write (`x = this.<m>(...)`): the same on-disk declaration
             // the initialiser read proves the box
-            if (syncCoreCallType (node) === javaType) {
+            if (syncCoreCallType (printer, node) === javaType) {
                 return true;
             }
             return false;

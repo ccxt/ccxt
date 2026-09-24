@@ -687,9 +687,6 @@ export default class kraken extends Exchange {
             let precisionAmount: Num = this.parseNumber (this.parsePrecision (this.safeString (market, 'lot_decimals')));
             const spot = true;
             // fix https://github.com/freqtrade/freqtrade/issues/11765#issuecomment-2894224103
-            if (base === undefined) {
-                throw new ExchangeError (this.id + ' method() missing base');
-            }
             if (spot && (base in cachedCurrencies)) {
                 const currency = this.safeDict (cachedCurrencies, base);
                 const currencyPrecision = this.safeNumber (currency, 'precision');

@@ -3,7 +3,7 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bitflyer.js';
-import { BadResponse, ExchangeError, ArgumentsRequired, OrderNotFound, OnMaintenance } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, OrderNotFound, OnMaintenance } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Balances, Currency, Dict, Fee, FundingRate, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFeeInterface, Transaction, Position, int, List, NullableDict, Endpoint } from './base/types.js';
 import { Precise } from './base/Precise.js';
@@ -226,7 +226,7 @@ export default class bitflyer extends Exchange {
         });
     }
 
-    parseExpiryDate (expiry: string) {
+    parseExpiryDate (expiry: string): Int {
         const day = expiry.slice (0, 2);
         const monthName = expiry.slice (2, 5);
         const year = expiry.slice (5, 9);
@@ -246,7 +246,7 @@ export default class bitflyer extends Exchange {
         };
         const month = this.safeString (months, monthName);
         if (month === undefined) {
-            throw new BadResponse (this.id + ' parseExpiryDate() unknown month in ' + expiry);
+            return undefined;
         }
         return this.parse8601 (year + '-' + month + '-' + day + 'T00:00:00Z');
     }
@@ -340,9 +340,12 @@ export default class bitflyer extends Exchange {
                     const splitId = (id as string).split (currencyIds as string);
                     const expiryDate = this.safeString (splitId, 1);
                     if (expiryDate === undefined) {
-                        throw new BadResponse (this.id + ' fetchMarkets() cannot find the expiry date in ' + id);
+                        continue;
                     }
                     expiry = this.parseExpiryDate (expiryDate);
+                }
+                if (expiry === undefined) {
+                    continue;
                 }
                 type = 'future';
             }

@@ -3,7 +3,7 @@
 
 import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bit2c.js';
-import { ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied, NotSupported, OrderNotFound, ArgumentsRequired, BadResponse } from './base/errors.js';
+import { ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied, NotSupported, OrderNotFound, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, int, DepositAddress, NullableDict, FeeString, Endpoint, List } from './base/types.js';
@@ -939,10 +939,9 @@ export default class bit2c extends Exchange {
             id = reference;
             timestamp = this.safeTimestamp (trade, 'ticks');
             const rawPrice = this.safeString (trade, 'price');
-            if (rawPrice === undefined) {
-                throw new BadResponse (this.id + ' parseTrade() missing price in ' + this.json (trade));
+            if (rawPrice !== undefined) {
+                price = this.removeCommaFromValue (rawPrice);
             }
-            price = this.removeCommaFromValue (rawPrice);
             amount = this.safeString (trade, 'firstAmount');
             const reference_parts = reference.split ('|'); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             const marketId = this.safeString (trade, 'pair');
