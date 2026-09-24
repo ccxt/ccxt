@@ -3505,7 +3505,7 @@ function ccxtGoNilDeclaredContainerJoinTypeUncached (goTranspiler, declaration) 
         case ts.SyntaxKind.ReturnStatement:
         case ts.SyntaxKind.ThrowStatement: {
             readExpression (node.expression, assigned);
-            return assigned;
+            return true;                                  // no read after it on this path
         }
         case ts.SyntaxKind.EmptyStatement:
         case ts.SyntaxKind.BreakStatement:
