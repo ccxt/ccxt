@@ -261,7 +261,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             }
             if (!java.util.Objects.equals(symbol, null))
             {
-                ((Map<String, Object>)updates).put((String)symbol, true);
+                updates.put((String)symbol, true);
             }
         }
         List<String> symbols = new ArrayList<String>(updates.keySet());
@@ -381,7 +381,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             String symbol = (String) ((Map<String, Object>)market).get("symbol");
             if (!java.util.Objects.equals(marketId, null))
             {
-                ((Map<String, Object>)updates).put((String)marketId, new HashMap<String, Object>() {{}});
+                updates.put((String)marketId, new HashMap<String, Object>() {{}});
             }
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
             List<Object> keys = Helpers.objectKeys(this.timeframes);
@@ -420,7 +420,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                     Helpers.addElementToObject(stored, Helpers.subtract(length, 1), new ArrayList<Object>(Arrays.asList((parsed == null || 0 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(0)), Helpers.GetValue(previous, 1), high, low, (parsed == null || 4 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(4)), this.sum((parsed == null || 5 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(5)), Helpers.GetValue(previous, 5)))));
                     if (!java.util.Objects.equals(marketId, null))
                     {
-                        Helpers.addElementToObject(Helpers.GetValue(updates, marketId), timeframe, true);
+                        Helpers.addElementToObject((updates == null || marketId == null ? null : updates.get(marketId)), timeframe, true);
                     }
                 } else
                 {
@@ -437,7 +437,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                         }
                         if (!java.util.Objects.equals(marketId, null))
                         {
-                            Helpers.addElementToObject(Helpers.GetValue(updates, marketId), timeframe, true);
+                            Helpers.addElementToObject((updates == null || marketId == null ? null : updates.get(marketId)), timeframe, true);
                         }
                     }
                 }

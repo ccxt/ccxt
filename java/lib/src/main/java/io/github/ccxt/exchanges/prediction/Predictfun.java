@@ -470,7 +470,7 @@ public class Predictfun extends PredictfunApi
                 if (Helpers.isGreaterThan(tagsLength, 0))
                 {
                     String tagsString = String.join(",", (List<String>)tags);
-                    ((Map<String, Object>)request).put("tagIds", tagsString);
+                    request.put("tagIds", tagsString);
                 }
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit", "tags")));
                 Map<String, Object> extendedRequest = this.extend(request, parameters);
@@ -650,7 +650,7 @@ public class Predictfun extends PredictfunApi
                     {
                         break;
                     }
-                    Helpers.addElementToObject(extendedRequest, "after", nextPageToken);
+                    extendedRequest.put("after", nextPageToken);
                     rawTopicsResponse = (this.predictfunGetV1Categories(extendedRequest)).join();
                     data = (List<Object>) this.safeList(rawTopicsResponse, "data", new ArrayList<Object>(Arrays.asList()));
                     rawTopics = this.arrayConcat(rawTopics, data);
@@ -834,7 +834,7 @@ public class Predictfun extends PredictfunApi
                         ((List<Object>)result).add(category);
                     } else if (!(seenSlugs.containsKey(categorySlug)))
                     {
-                        ((Map<String, Object>)seenSlugs).put((String)categorySlug, true);
+                        seenSlugs.put((String)categorySlug, true);
                         ((List<Object>)result).add(category);
                     }
                 }
@@ -855,10 +855,10 @@ public class Predictfun extends PredictfunApi
                             // AppendToArray reassigns only a local copy of a map-stored array
                             Object bucket = (orphanMarkets == null || marketSlug == null ? null : orphanMarkets.get(marketSlug));
                             ((List<Object>)bucket).add(rawMarket);
-                            ((Map<String, Object>)orphanMarkets).put((String)marketSlug, bucket);
+                            orphanMarkets.put((String)marketSlug, bucket);
                         } else
                         {
-                            ((Map<String, Object>)orphanMarkets).put((String)marketSlug, new ArrayList<Object>(Arrays.asList(rawMarket)));
+                            orphanMarkets.put((String)marketSlug, new ArrayList<Object>(Arrays.asList(rawMarket)));
                             ((List<Object>)orphanSlugs).add(marketSlug);
                         }
                     }
@@ -872,7 +872,7 @@ public class Predictfun extends PredictfunApi
                 Object orphanSlug = (orphanSlugs == null || i < 0 || i >= orphanSlugs.size() ? null : orphanSlugs.get(i));
                 if (!(seenSlugs.containsKey(orphanSlug)))
                 {
-                    ((Map<String, Object>)seenSlugs).put((String)orphanSlug, true);
+                    seenSlugs.put((String)orphanSlug, true);
                     Object markets = (orphanMarkets == null || orphanSlug == null ? null : orphanMarkets.get(orphanSlug));
                     Map<String, Object> first = (Map<String, Object>) this.safeDict(markets, 0, new HashMap<String, Object>() {{}});
                     // the market row's 'status' is the registration enum ('REGISTERED' /
@@ -1711,7 +1711,7 @@ final Object finalMarketSymbol = marketSymbol;
         // the venue quotes each outcome on its own side of the book, so no complement is needed
         Map<String, Object> bestBid = (Map<String, Object>) this.safeDict(rawOutcome, "bestBid", new HashMap<String, Object>() {{}});
         Map<String, Object> bestAsk = (Map<String, Object>) this.safeDict(rawOutcome, "bestAsk", new HashMap<String, Object>() {{}});
-        return (Map<String, Object>) (this.safePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safePredictionTicker(new HashMap<String, Object>() {{
             put( "outcome", Predictfun.this.safeOutcomeSymbol((String) (null), market) );
             put( "outcomeId", Predictfun.this.safeString(market, "outcomeId") );
             put( "label", Predictfun.this.safeString(market, "label") );
@@ -1734,7 +1734,7 @@ final Object finalMarketSymbol = marketSymbol;
             put( "baseVolume", null );
             put( "quoteVolume", null );
             put( "info", ticker );
-        }})));
+        }}));
     }
     /**
      * @ignore
@@ -1784,7 +1784,7 @@ final Object finalMarketSymbol = marketSymbol;
                 (this.loadOutcome((String) (outcome))).join();
                 outcomeObj = this.outcome((String) (outcome));
                 Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-                ((Map<String, Object>)request).put("marketId", this.safeString(info, "marketId"));
+                request.put("marketId", this.safeString(info, "marketId"));
             }
             Map<String, Object> query = (Map<String, Object>) this.omit(parameters, "signerAddress");
             // the endpoint carries no time filter, it pages back from the most recent match, so
@@ -2049,7 +2049,7 @@ final Object finalMarketSymbol = marketSymbol;
         final String finalPriceStr = priceStr;
         final String finalAmountStr = amountStr;
         final Map<String, Object> finalFee = fee;
-        return this.safePredictionTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePredictionTrade(new HashMap<String, Object>() {{
             put( "id", Predictfun.this.safeString(trade, "settlementId") );
             put( "order", finalOrder );
             put( "timestamp", timestamp );
@@ -2066,7 +2066,7 @@ final Object finalMarketSymbol = marketSymbol;
             put( "cost", null );
             put( "fee", finalFee );
             put( "info", Predictfun.this.omit(trade, "partyToParse") );
-        }}));
+        }});
     }
     /**
      * @ignore
@@ -2490,18 +2490,18 @@ final Object finalMarketSymbol = marketSymbol;
             parameters = (Map<String, Object>) ((List<Object>) postOnlyparametersVariable).get(1);
             if (Helpers.isTrue(postOnly))
             {
-                ((Map<String, Object>)data).put("isPostOnly", postOnly);
+                data.put("isPostOnly", postOnly);
             }
             String timeInForce = this.safeStringUpper(parameters, "timeInForce");
             if (java.util.Objects.equals(timeInForce, "FOK"))
             {
-                ((Map<String, Object>)data).put("isFillOrKill", true);
+                data.put("isFillOrKill", true);
             }
             // documented, and the venue takes it inside data rather than as a top level key
             String selfTradePrevention = this.safeStringUpper(parameters, "selfTradePrevention");
             if (!java.util.Objects.equals(selfTradePrevention, null))
             {
-                ((Map<String, Object>)data).put("selfTradePrevention", selfTradePrevention);
+                data.put("selfTradePrevention", selfTradePrevention);
             }
             // every param the method consumes itself has to come out, otherwise it survives into the
             // extend below and is posted as a top level key next to 'data'
@@ -2528,7 +2528,7 @@ final Object finalMarketSymbol = marketSymbol;
             // the identifiers taken from the response
             final String finalType = type;
             final String finalSide = side;
-            return this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return this.safePredictionOrder(new HashMap<String, Object>() {{
                 put( "id", Predictfun.this.safeString2(result, "orderHash", "hash") );
                 put( "clientOrderId", null );
                 put( "info", response );
@@ -2549,7 +2549,7 @@ final Object finalMarketSymbol = marketSymbol;
                 put( "cost", null );
                 put( "fee", null );
                 put( "trades", new ArrayList<Object>(Arrays.asList()) );
-            }}));
+            }});
         }).thenApply(PredictionOrder::new);
 
     }
@@ -2663,7 +2663,7 @@ final Object finalMarketSymbol = marketSymbol;
             {
                 Map<String, Object> outcomeObj = this.outcome((String) ((wantedOutcomes == null || i < 0 || i >= wantedOutcomes.size() ? null : wantedOutcomes.get(i))));
                 String wantedId = this.safeString(outcomeObj, "outcomeId", "");
-                ((Map<String, Object>)wanted).put((String)wantedId, true);
+                wanted.put((String)wantedId, true);
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Integer parsedLength = ((List<?>)parsed).size();
@@ -2812,7 +2812,7 @@ final Object finalMarketSymbol = marketSymbol;
         final Boolean finalWon = won;
         final String finalSettleFraction = settleFraction;
         final String finalPayout = payout;
-        return this.safePredictionPosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePredictionPosition(new HashMap<String, Object>() {{
             put( "id", Predictfun.this.safeString(position, "id") );
             put( "timestamp", null );
             put( "datetime", null );
@@ -2837,7 +2837,7 @@ final Object finalMarketSymbol = marketSymbol;
             put( "market", Predictfun.this.safeString(outcomeObj, "market") );
             put( "event", Predictfun.this.safeString(outcomeObj, "event") );
             put( "info", position );
-        }}));
+        }});
     }
     /**
      * @ignore
@@ -3328,7 +3328,7 @@ final Object finalMarketSymbol = marketSymbol;
         String filledCost = Precise.stringMul(filled, price);
         final String finalSide = side;
         final String finalPrice = price;
-        return this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePredictionOrder(new HashMap<String, Object>() {{
             put( "id", orderHash );
             put( "clientOrderId", null );
             put( "timestamp", null );
@@ -3351,7 +3351,7 @@ final Object finalMarketSymbol = marketSymbol;
             put( "market", Predictfun.this.safeString(outcomeObj, "market") );
             put( "event", Predictfun.this.safeString(outcomeObj, "event") );
             put( "info", order );
-        }}));
+        }});
     }
     /**
      * @ignore
@@ -4789,7 +4789,7 @@ final Object finalBids = bids;
         final String finalAmount = amount;
         final String finalFilled = filled;
         final String finalRemaining = remaining;
-        return this.safePredictionOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePredictionOrder(new HashMap<String, Object>() {{
             put( "id", Predictfun.this.safeString2(eventVar, "orderHash", "orderId") );
             put( "clientOrderId", null );
             put( "timestamp", timestamp );
@@ -4816,7 +4816,7 @@ final Object finalBids = bids;
             put( "market", Predictfun.this.safeString(outcomeObj, "market") );
             put( "event", Predictfun.this.safeString(outcomeObj, "event") );
             put( "info", eventVar );
-        }}));
+        }});
     }
 
     /**
@@ -4857,7 +4857,7 @@ final Object finalBids = bids;
         Long timestamp = this.safeInteger(eventVar, "timestamp");
         final String finalTakerOrMaker = takerOrMaker;
         final Map<String, Object> finalFee = fee;
-        return this.safePredictionTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePredictionTrade(new HashMap<String, Object>() {{
             put( "id", Predictfun.this.safeString(eventVar, "settlementId") );
             put( "order", Predictfun.this.safeString(eventVar, "orderHash") );
             put( "timestamp", timestamp );
@@ -4874,7 +4874,7 @@ final Object finalBids = bids;
             put( "cost", Predictfun.this.parseNumber(cost) );
             put( "fee", finalFee );
             put( "info", eventVar );
-        }}));
+        }});
     }
 
     /**
@@ -5027,7 +5027,7 @@ final Object finalBids = bids;
             // the php transpiler prefixes every standalone 'api' with a $, string literals included,
             // since sign () has a parameter of that name - ending the literal right after it avoids that
             String apiKeyHeader = ("x-api" + "-key");
-            ((Map<String, Object>)authHeaders).put((String)apiKeyHeader, apiKey);
+            authHeaders.put((String)apiKeyHeader, apiKey);
         }
         // the API key authorises the request, the JWT authorises acting for a wallet - authenticate ()
         // caches it, so it is attached to every call once an order action has asked for one
@@ -5041,7 +5041,7 @@ final Object finalBids = bids;
         // 401 without it, so it is attached on both hosts
         if ((!java.util.Objects.equals(jwtToken, null)) && this.inArray(path, walletPaths))
         {
-            ((Map<String, Object>)authHeaders).put("Authorization", ("Bearer " + jwtToken));
+            authHeaders.put("Authorization", ("Bearer " + jwtToken));
         }
         if (!java.util.Objects.equals(method, "GET"))
         {
@@ -5049,7 +5049,7 @@ final Object finalBids = bids;
             {
                 this.checkRequiredCredentials();
             }
-            ((Map<String, Object>)authHeaders).put("Content-Type", "application/json");
+            authHeaders.put("Content-Type", "application/json");
             body = this.json(parameters);
         }
         headers = this.extend(headers, authHeaders);

@@ -339,7 +339,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderbookData, symbol, timestamp, "bids", "asks");
-        ((Map<String, Object>)snapshot).put("nonce", this.safeInteger(data, "seq_no"));
+        snapshot.put("nonce", this.safeInteger(data, "seq_no"));
         orderbook.reset(snapshot);
         String messageHash = this.safeString(parameters, "channel");
         client.resolve(orderbook, messageHash);

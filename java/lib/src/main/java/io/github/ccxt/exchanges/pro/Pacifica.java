@@ -96,12 +96,12 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         Map<String, Object> headers = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(key, null))
         {
-            ((Map<String, Object>)headers).put("PF-API-KEY", key);
+            headers.put("PF-API-KEY", key);
         } else
         {
             if (!java.util.Objects.equals(this.handleOption("setupApiKeyHeaders", "apiKey"), null))
             {
-                ((Map<String, Object>)headers).put("PF-API-KEY", ((Map<String, Object>)this.options).get("apiKey"));
+                headers.put("PF-API-KEY", ((Map<String, Object>)this.options).get("apiKey"));
             }
         }
         Helpers.addElementToObject(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "options"), "headers", headers);
@@ -209,13 +209,13 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             String orderId = this.safeString(order, "i");
             String clientOrderId = this.safeString(order, "I");
             final String finalStatus = status;
-            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return this.safeOrder(new HashMap<String, Object>() {{
                 put( "id", orderId );
                 put( "clientOrderId", clientOrderId );
                 put( "status", finalStatus );
                 put( "info", response );
                 put( "symbol", symbol );
-            }}));
+            }});
         }).thenApply(Order::new);
 
     }
@@ -317,13 +317,13 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             String orderId = this.safeString(order, "i");
             String clientOrderId = this.safeString(order, "I");
             final String finalStatus = status;
-            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return this.safeOrder(new HashMap<String, Object>() {{
                 put( "id", orderId );
                 put( "clientOrderId", clientOrderId );
                 put( "status", finalStatus );
                 put( "info", response );
                 put( "symbol", symbol );
-            }}));
+            }});
         }).thenApply(Order::new);
 
     }
@@ -437,13 +437,13 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                     status = "canceled";
                 }
     final String finalStatus = status;
-                            ((List<Object>)ordersToReturn).add(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+                            ((List<Object>)ordersToReturn).add(this.safeOrder(new HashMap<String, Object>() {{
                     put( "id", orderId );
                     put( "clientOrderId", clientOrderId );
                     put( "status", finalStatus );
                     put( "info", response );
                     put( "symbol", ((Map<String, Object>)market).get("symbol") );
-                }})));
+                }}));
             }
             return ordersToReturn;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -544,13 +544,13 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             String clientOrderId = this.safeString(order, "I");
             final String finalStatus = status;
             final String finalSymbol = symbol;
-            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return this.safeOrder(new HashMap<String, Object>() {{
                 put( "id", orderId );
                 put( "clientOrderId", clientOrderId );
                 put( "status", finalStatus );
                 put( "info", response );
                 put( "symbol", finalSymbol );
-            }}));
+            }});
         }).thenApply(Order::new);
 
     }
@@ -619,9 +619,9 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             //   "type": "cancel_all_orders"
             // }
             //
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", response );
-    }}))));
+    }})));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -823,7 +823,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         Long nonce = this.safeInteger(entry, "li");
         if ((!java.util.Objects.equals(nonce, null)) && ((nonce == null || nonce != 0)))
         {
-            ((Map<String, Object>)snapshot).put("nonce", nonce);
+            snapshot.put("nonce", nonce);
         }
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
@@ -1222,7 +1222,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             String symbol = (String) ((Map<String, Object>)parsed).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                ((Map<String, Object>)symbols).put((String)symbol, true);
+                symbols.put((String)symbol, true);
             }
             Helpers.callDynamically(trades, "append", new Object[]{parsed});
         }
@@ -1474,7 +1474,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         }
         final String finalSide = side;
         final String finalTakerOrMaker = takerOrMaker;
-        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Pacifica.this.iso8601(timestamp) );
@@ -1491,7 +1491,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                 put( "cost", fee );
                 put( "currency", "USDC" );
             }} );
-        }}), market));
+        }}, market));
     }
     public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
@@ -1667,7 +1667,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             ohlcv = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            ((Map<String, Object>)symbolOhlcvs).put((String)timeframe, ohlcv);
+            symbolOhlcvs.put((String)timeframe, ohlcv);
         }
         List<Object> parsed = (List<Object>) this.parseOHLCV(data);
         Helpers.callDynamically(ohlcv, "append", new Object[]{parsed});
@@ -1874,7 +1874,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             String symbol = this.safeString(order, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                ((Map<String, Object>)marketSymbols).put((String)symbol, true);
+                marketSymbols.put((String)symbol, true);
             }
         }
         List<String> keys = new ArrayList<String>(marketSymbols.keySet());

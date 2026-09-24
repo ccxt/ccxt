@@ -707,7 +707,7 @@ public class Bittrade extends BittradeApi
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                ((Map<String, Object>)result).put((String)symbol, (this.fetchTradingLimitsById((String) (this.marketId(symbol)), parameters)).join());
+                result.put((String)symbol, (this.fetchTradingLimitsById((String) (this.marketId(symbol)), parameters)).join());
             }
             return result;
         });
@@ -1098,7 +1098,7 @@ public class Bittrade extends BittradeApi
                 Map<String, Object> tick = (Map<String, Object>) this.safeDict(response, "tick");
                 Long timestamp = this.safeInteger(tick, "ts", this.safeInteger(response, "ts"));
                 Map<String, Object> result = (Map<String, Object>) this.parseOrderBook(tick, symbol, timestamp);
-                ((Map<String, Object>)result).put("nonce", this.safeInteger(tick, "version"));
+                result.put("nonce", this.safeInteger(tick, "version"));
                 return result;
             }
             throw new ExchangeError(((this.id + " fetchOrderBook() returned unrecognized response: ") + this.json(response))) ;
@@ -1213,7 +1213,7 @@ public class Bittrade extends BittradeApi
                 Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i)), market);
                 Helpers.addElementToObject(ticker, "timestamp", timestamp);
                 Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
-                ((Map<String, Object>)result).put((String)symbol, ticker);
+                result.put((String)symbol, ticker);
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
         }).thenApply(Tickers::new);
@@ -1308,7 +1308,7 @@ public class Bittrade extends BittradeApi
         final String finalType = type;
         final String finalSide = side;
         final Map<String, Object> finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", id );
             put( "symbol", symbol );
@@ -1322,7 +1322,7 @@ public class Bittrade extends BittradeApi
             put( "amount", amount );
             put( "cost", cost );
             put( "fee", finalFee );
-        }}));
+        }});
     }
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
@@ -1402,15 +1402,15 @@ public class Bittrade extends BittradeApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("size", limit); // 1-100 orders, default is 100
+                request.put("size", limit); // 1-100 orders, default is 100
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start-time", since); // a date within 120 days from today
+                request.put("start-time", since); // a date within 120 days from today
             }
             Map<String, Object> response = (this.privateGetOrderMatchresults(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
@@ -1458,7 +1458,7 @@ public class Bittrade extends BittradeApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("size", Helpers.mathMin(limit, 2000));
+                request.put("size", Helpers.mathMin(limit, 2000));
             }
             Map<String, Object> response = (this.marketGetHistoryTrade(this.extend(request, parameters))).join();
             //
@@ -1564,7 +1564,7 @@ public class Bittrade extends BittradeApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("size", Helpers.mathMin(limit, 2000));
+                request.put("size", Helpers.mathMin(limit, 2000));
             }
             Map<String, Object> response = (this.marketGetHistoryKline(this.extend(request, parameters))).join();
             //
@@ -1720,7 +1720,7 @@ public class Bittrade extends BittradeApi
         Double precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "withdraw-precision")));
         final Boolean finalDepositEnabled = depositEnabled;
         final Boolean finalWithdrawEnabled = withdrawEnabled;
-        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "code", code );
             put( "type", "crypto" );
@@ -1746,7 +1746,7 @@ public class Bittrade extends BittradeApi
                 }} );
             }} );
             put( "info", currency );
-        }}));
+        }});
     }
 
     public Object parseBalance(Object response)
@@ -1786,7 +1786,7 @@ public class Bittrade extends BittradeApi
             }
             if (!java.util.Objects.equals(code, null))
             {
-                ((Map<String, Object>)result).put((String)code, account);
+                result.put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -1853,7 +1853,7 @@ public class Bittrade extends BittradeApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             Object method = this.handleOption("fetchOrdersByStates", "method", "private_get_order_orders");
             Map<String, Object> response = null;
@@ -2072,7 +2072,7 @@ public class Bittrade extends BittradeApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             String accountId = this.safeString(parameters, "account-id");
             if (java.util.Objects.equals(accountId, null))
@@ -2092,10 +2092,10 @@ public class Bittrade extends BittradeApi
                     }
                 }
             }
-            ((Map<String, Object>)request).put("account-id", accountId);
+            request.put("account-id", accountId);
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("size", limit);
+                request.put("size", limit);
             }
             Object omitted = this.omit(parameters, "account-id");
             Map<String, Object> response = (this.privateGetOrderOpenOrders(this.extend(request, omitted))).join();
@@ -2218,7 +2218,7 @@ public class Bittrade extends BittradeApi
         final Object finalSide = side;
         final String finalStatus = status;
         final Map<String, Object> finalFee = fee;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
             put( "clientOrderId", clientOrderId );
@@ -2240,7 +2240,7 @@ public class Bittrade extends BittradeApi
             put( "status", finalStatus );
             put( "fee", finalFee );
             put( "trades", null );
-        }}), market);
+        }}, market);
     }
     public Object parseOrder(Object order, Object... optionalArgs)
     {
@@ -2330,10 +2330,10 @@ public class Bittrade extends BittradeApi
             {
                 Map<String, Object> broker = (Map<String, Object>) this.safeDict(this.options, "broker", new HashMap<String, Object>() {{}});
                 String brokerId = this.safeString(broker, "id");
-                ((Map<String, Object>)request).put("client-order-id", (brokerId + this.uuid()));
+                request.put("client-order-id", (brokerId + this.uuid()));
             } else
             {
-                ((Map<String, Object>)request).put("client-order-id", clientOrderId);
+                request.put("client-order-id", clientOrderId);
             }
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client-order-id")));
             if ((java.util.Objects.equals(type, "market")) && (java.util.Objects.equals(side, "buy")))
@@ -2369,14 +2369,14 @@ public class Bittrade extends BittradeApi
                 {
                     quoteAmount = this.amountToPrecision(symbol, amount);
                 }
-                ((Map<String, Object>)request).put("amount", quoteAmount);
+                request.put("amount", quoteAmount);
             } else
             {
-                ((Map<String, Object>)request).put("amount", this.amountToPrecision(symbol, amount));
+                request.put("amount", this.amountToPrecision(symbol, amount));
             }
             if (java.util.Objects.equals(type, "limit") || java.util.Objects.equals(type, "ioc") || java.util.Objects.equals(type, "limit-maker") || java.util.Objects.equals(type, "stop-limit") || java.util.Objects.equals(type, "stop-limit-fok"))
             {
-                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+                request.put("price", this.priceToPrecision(symbol, price));
             }
             Object method = this.handleOption("createOrder", "method", "privatePostOrderOrdersPlace");
             Map<String, Object> response = null;
@@ -2390,7 +2390,7 @@ public class Bittrade extends BittradeApi
             String id = this.safeString(response, "data");
             final Map<String, Object> finalResponse = response;
             final Object finalPrice = price;
-            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", finalResponse );
                 put( "id", id );
                 put( "timestamp", null );
@@ -2409,7 +2409,7 @@ public class Bittrade extends BittradeApi
                 put( "fee", null );
                 put( "clientOrderId", null );
                 put( "average", null );
-            }}), market);
+            }}, market);
         }).thenApply(Order::new);
 
     }
@@ -2497,10 +2497,10 @@ public class Bittrade extends BittradeApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(clientOrderIds, null))
             {
-                ((Map<String, Object>)request).put("order-ids", ids);
+                request.put("order-ids", ids);
             } else
             {
-                ((Map<String, Object>)request).put("client-order-ids", clientOrderIds);
+                request.put("client-order-ids", clientOrderIds);
             }
             Map<String, Object> response = (this.privatePostOrderOrdersBatchcancel(this.extend(request, parameters))).join();
             //
@@ -2597,21 +2597,21 @@ public class Bittrade extends BittradeApi
         for (var i = 0; i < ((List<?>)success).size(); i++)
         {
             Object order = (success == null || i < 0 || i >= ((List<?>)success).size() ? null : ((List<?>)success).get(i));
-            ((List<Object>)result).add(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "id", order );
                 put( "status", "canceled" );
-            }})));
+            }}));
         }
         for (var i = 0; i < ((List<?>)failed).size(); i++)
         {
             Object order = (failed == null || i < 0 || i >= failed.size() ? null : failed.get(i));
-            ((List<Object>)result).add(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "id", Bittrade.this.safeString2(order, "order-id", "order_id") );
                 put( "status", "failed" );
                 put( "clientOrderId", Bittrade.this.safeString(order, "client-order-id") );
-            }})));
+            }}));
         }
         return result;
     }
@@ -2638,7 +2638,7 @@ public class Bittrade extends BittradeApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> response = (this.privatePostOrderOrdersBatchCancelOpenOrders(this.extend(request, parameters))).join();
             //
@@ -2652,9 +2652,9 @@ public class Bittrade extends BittradeApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", data );
-    }}))));
+    }})));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2741,11 +2741,11 @@ public class Bittrade extends BittradeApi
             }};
             if (!java.util.Objects.equals(currency, null))
             {
-                ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id"));
+                request.put("currency", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("size", limit); // max 100
+                request.put("size", limit); // max 100
             }
             Map<String, Object> response = (this.privateGetQueryDepositWithdraw(this.extend(request, parameters))).join();
             // return response
@@ -2805,11 +2805,11 @@ public class Bittrade extends BittradeApi
             }};
             if (!java.util.Objects.equals(currency, null))
             {
-                ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id"));
+                request.put("currency", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("size", limit); // max 100
+                request.put("size", limit); // max 100
             }
             Map<String, Object> response = (this.privateGetQueryDepositWithdraw(this.extend(request, parameters))).join();
             // return response
@@ -2979,7 +2979,7 @@ public class Bittrade extends BittradeApi
             }};
             if (!java.util.Objects.equals(tag, null))
             {
-                ((Map<String, Object>)request).put("addr-tag", tag); // only for XRP?
+                request.put("addr-tag", tag); // only for XRP?
             }
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
             String network = this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
@@ -2989,10 +2989,10 @@ public class Bittrade extends BittradeApi
                 // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
                 if (java.util.Objects.equals(network, "erc20"))
                 {
-                    ((Map<String, Object>)request).put("chain", (((Map<String, Object>)currency).get("id") + network));
+                    request.put("chain", (((Map<String, Object>)currency).get("id") + network));
                 } else
                 {
-                    ((Map<String, Object>)request).put("chain", (network + ((Map<String, Object>)currency).get("id")));
+                    request.put("chain", (network + ((Map<String, Object>)currency).get("id")));
                 }
                 parameters = (Map<String, Object>) this.omit(parameters, "network");
             }

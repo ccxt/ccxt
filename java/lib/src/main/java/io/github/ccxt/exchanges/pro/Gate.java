@@ -951,8 +951,8 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         if (java.util.Objects.equals(full, true))
         {
             Map<String, Object> snapshopt = (Map<String, Object>) this.parseOrderBook(result, symbol, null, "b", "a");
-            ((Map<String, Object>)snapshopt).put("nonce", this.safeInteger(result, "u"));
-            ((Map<String, Object>)snapshopt).put("timestamp", this.safeInteger(result, "t"));
+            snapshopt.put("nonce", this.safeInteger(result, "u"));
+            snapshopt.put("timestamp", this.safeInteger(result, "t"));
             orderbook.reset(snapshopt);
         } else
         {
@@ -1762,7 +1762,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 }
             }
             stored.append(parsed);
-            ((Map<String, Object>)marketIds).put((String)symbol, timeframe);
+            marketIds.put((String)symbol, timeframe);
         }
         List<String> keys = new ArrayList<String>(marketIds.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
@@ -1908,7 +1908,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String symbol = (String) ((Map<String, Object>)trade).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                ((Map<String, Object>)marketIds).put((String)symbol, true);
+                marketIds.put((String)symbol, true);
             }
         }
         List<String> keys = new ArrayList<String>(marketIds.keySet());
@@ -2059,9 +2059,9 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Long timestamp = (Long) this.safeInteger2(rawBalance, "time_ms", "timestamp_ms");
             Helpers.addElementToObject(this.balance, "timestamp", timestamp);
             Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));
-            ((Map<String, Object>)account).put("used", this.safeString(rawBalance, "freeze"));
-            ((Map<String, Object>)account).put("free", this.safeString(rawBalance, "available"));
-            ((Map<String, Object>)account).put("total", this.safeString2(rawBalance, "total", "balance"));
+            account.put("used", this.safeString(rawBalance, "freeze"));
+            account.put("free", this.safeString(rawBalance, "available"));
+            account.put("total", this.safeString2(rawBalance, "total", "balance"));
             if (!java.util.Objects.equals(code, null))
             {
                 Helpers.addElementToObject(this.balance, code, account);
@@ -2300,7 +2300,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 // if no prev position is found, default to long
                 if (java.util.Objects.equals(prevLongPosition, null) && java.util.Objects.equals(prevShortPosition, null))
                 {
-                    Helpers.addElementToObject(position, "side", "long");
+                    position.put("side", "long");
                     ((List<Object>)newPositions).add(position);
                     Helpers.callDynamically(cache, "append", new Object[]{position});
                 }
@@ -2529,7 +2529,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("id"), null))
             {
-                ((Map<String, Object>)marketIds).put((String)((Map<String, Object>)market).get("id"), true);
+                marketIds.put((String)((Map<String, Object>)market).get("id"), true);
             }
         }
         List<Object> keys = new ArrayList<Object>(marketIds.keySet());
@@ -2771,7 +2771,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         String left = this.safeString(liquidation, "left");
         String amount = Precise.stringAbs(Precise.stringSub(originalSize, left));
         final Map<String, Object> finalMarket = market;
-        return this.safeLiquidation((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeLiquidation(new HashMap<String, Object>() {{
             put( "info", liquidation );
             put( "symbol", Gate.this.safeSymbol(marketId, finalMarket) );
             put( "contracts", Gate.this.parseNumber(amount) );
@@ -2781,7 +2781,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             put( "quoteValue", null );
             put( "timestamp", timestamp );
             put( "datetime", Gate.this.iso8601(timestamp) );
-        }}));
+        }});
     }
     public Object parseWsLiquidation(Map<String, Object> liquidation, Object... optionalArgs)
     {
@@ -3320,7 +3320,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (java.util.Objects.equals(authenticated, null))
             {
-                return (this.requestPrivate((String) (url), (Map<String, Object>) (new HashMap<String, Object>() {{}}), channel, messageHash)).join();
+                return (this.requestPrivate((String) (url), new HashMap<String, Object>() {{}}, channel, messageHash)).join();
             }
             return future;
         });
@@ -3364,7 +3364,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }};
             if ((java.util.Objects.equals(channel, "spot.order_place")) || (java.util.Objects.equals(channel, "futures.order_place")))
             {
-                ((Map<String, Object>)payload).put("req_header", new HashMap<String, Object>() {{
+                payload.put("req_header", new HashMap<String, Object>() {{
         put( "X-Gate-Channel-Id", "ccxt" );
     }});
             }
@@ -3428,7 +3428,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }};
             if (!java.util.Objects.equals(payload, null))
             {
-                ((Map<String, Object>)request).put("payload", payload);
+                request.put("payload", payload);
             }
             Client client = this.client(url);
             if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))

@@ -12825,7 +12825,7 @@ func (this *Binance) FetchDepositWithdrawFeesAsync(optionalArgs ...any) <-chan a
 func (this *Binance) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	codes := GetArg(optionalArgs, 0, nil)
+	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = codes
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -14381,7 +14381,7 @@ func (this *Binance) FetchLeverageTiersAsync(optionalArgs ...any) <-chan any {
 func (this *Binance) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -14742,7 +14742,7 @@ func (this *Binance) FetchPositionsAsync(optionalArgs ...any) <-chan any {
 func (this *Binance) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -15464,7 +15464,7 @@ func (this *Binance) FetchLeveragesAsync(optionalArgs ...any) <-chan any {
 func (this *Binance) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -18108,7 +18108,7 @@ func (this *Binance) fetchTradingLimitsBody(ch chan any, optionalArgs ...any) an
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// this method should not be called directly, use loadTradingLimits () instead
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params

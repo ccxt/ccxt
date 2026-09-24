@@ -5804,7 +5804,7 @@ func (this *Xt) ParseLeverageTiers(response any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var marketIdKey *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = marketIdKey

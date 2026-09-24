@@ -3619,7 +3619,7 @@ func (this *Gate) FetchTransactionFeesAsync(optionalArgs ...any) <-chan any {
 func (this *Gate) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	codes := GetArg(optionalArgs, 0, nil)
+	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = codes
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3697,7 +3697,7 @@ func (this *Gate) FetchDepositWithdrawFeesAsync(optionalArgs ...any) <-chan any 
 func (this *Gate) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	codes := GetArg(optionalArgs, 0, nil)
+	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = codes
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -8605,7 +8605,7 @@ func (this *Gate) FetchLeverageTiersAsync(optionalArgs ...any) <-chan any {
 func (this *Gate) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -11051,7 +11051,7 @@ func (this *Gate) FetchPositionsHistoryAsync(optionalArgs ...any) <-chan any {
 func (this *Gate) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since

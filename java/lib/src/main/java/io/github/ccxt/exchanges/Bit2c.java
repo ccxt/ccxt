@@ -380,10 +380,10 @@ public class Bit2c extends Bit2cApi
             String uppercase = ((String)((Map<String, Object>)currency).get("id")).toUpperCase();
             if (Helpers.inOp(response, uppercase))
             {
-                ((Map<String, Object>)account).put("free", this.safeString(response, ("AVAILABLE_" + uppercase)));
-                ((Map<String, Object>)account).put("total", this.safeString(response, uppercase));
+                account.put("free", this.safeString(response, ("AVAILABLE_" + uppercase)));
+                account.put("total", this.safeString(response, uppercase));
             }
-            ((Map<String, Object>)result).put((String)code, account);
+            result.put((String)code, account);
         }
         return this.safeBalance(result);
     }
@@ -647,11 +647,11 @@ public class Bit2c extends Bit2cApi
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("date", this.parseToInt(since));
+                request.put("date", this.parseToInt(since));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit); // max 100000
+                request.put("limit", limit); // max 100000
             }
             List<Object> responseList = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(method, "public_get_exchanges_pair_trades"))
@@ -745,7 +745,7 @@ public class Bit2c extends Bit2cApi
                 String takerString = this.safeString(fee, "FeeTaker");
                 Double maker = this.parseNumber(Precise.stringDiv(makerString, "100"));
                 Double taker = this.parseNumber(Precise.stringDiv(takerString, "100"));
-                ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
+                result.put((String)symbol, new HashMap<String, Object>() {{
         put( "info", fee );
         put( "symbol", symbol );
         put( "taker", taker );
@@ -812,11 +812,11 @@ public class Bit2c extends Bit2cApi
                 }
             } else
             {
-                ((Map<String, Object>)request).put("Price", price);
+                request.put("Price", price);
                 String amountString = this.numberToString(amount);
                 String priceString = this.numberToString(price);
-                ((Map<String, Object>)request).put("Total", this.parseToNumeric(Precise.stringMul(amountString, priceString)));
-                ((Map<String, Object>)request).put("IsBid", (java.util.Objects.equals(side, "buy")));
+                request.put("Total", this.parseToNumeric(Precise.stringMul(amountString, priceString)));
+                request.put("IsBid", (java.util.Objects.equals(side, "buy")));
                 response = (this.privatePostOrderAddOrder(this.extend(request, parameters))).join();
             }
             return this.parseOrder(response, market);
@@ -1097,7 +1097,7 @@ public class Bit2c extends Bit2cApi
         final String finalSide = side;
         final String finalAmount = amount;
         final String finalRemaining = remaining;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
             put( "timestamp", timestamp );
@@ -1119,7 +1119,7 @@ public class Bit2c extends Bit2cApi
             put( "fee", null );
             put( "info", order );
             put( "average", null );
-        }}), market);
+        }}, market);
     }
     public Object parseOrder(Object order, Object... optionalArgs)
     {
@@ -1154,18 +1154,18 @@ public class Bit2c extends Bit2cApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("take", limit);
+                request.put("take", limit);
             }
-            ((Map<String, Object>)request).put("take", limit);
+            request.put("take", limit);
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("toTime", this.yyyymmdd(this.milliseconds(), "."));
-                ((Map<String, Object>)request).put("fromTime", this.yyyymmdd(since, "."));
+                request.put("toTime", this.yyyymmdd(this.milliseconds(), "."));
+                request.put("fromTime", this.yyyymmdd(since, "."));
             }
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("pair", ((Map<String, Object>)market).get("id"));
+                request.put("pair", ((Map<String, Object>)market).get("id"));
             }
             List<Object> response = (this.privateGetOrderOrderHistory(this.extend(request, parameters))).join();
             //
@@ -1344,7 +1344,7 @@ public class Bit2c extends Bit2cApi
         final Object finalPrice = price;
         final String finalAmount = amount;
         final Map<String, Object> finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", finalId );
             put( "timestamp", finalTimestamp );
@@ -1358,7 +1358,7 @@ public class Bit2c extends Bit2cApi
             put( "amount", finalAmount );
             put( "cost", null );
             put( "fee", finalFee );
-        }}), market);
+        }}, market);
     }
     public Object parseTrade(Object trade, Object... optionalArgs)
     {

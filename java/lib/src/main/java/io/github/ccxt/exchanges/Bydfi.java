@@ -759,7 +759,7 @@ public class Bydfi extends BydfiApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", this.getClosestLimit(limit));
+                request.put("limit", this.getClosestLimit(limit));
             }
             Map<String, Object> response = (this.publicGetV1FapiMarketDepth(this.extend(request, parameters))).join();
             //
@@ -790,7 +790,7 @@ public class Bydfi extends BydfiApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> orderBook = (Map<String, Object>) this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), null, "bids", "asks", "price", "amount");
-            ((Map<String, Object>)orderBook).put("nonce", this.safeInteger(data, "lastUpdateId"));
+            orderBook.put("nonce", this.safeInteger(data, "lastUpdateId"));
             return orderBook;
         }).thenApply(OrderBook::new);
 
@@ -857,7 +857,7 @@ public class Bydfi extends BydfiApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000));
+                request.put("limit", Helpers.mathMin(limit, 1000));
             }
             Map<String, Object> response = (this.publicGetV1FapiMarketTrades(this.extend(request, parameters))).join();
             //
@@ -950,12 +950,12 @@ public class Bydfi extends BydfiApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             parameters = this.handleSinceAndUntil("fetchMyTrades", since, parameters);
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.privateGetV1FapiTradeHistoryTrade(this.extend(request, parameters))).join();
             //
@@ -1067,7 +1067,7 @@ public class Bydfi extends BydfiApi
         final String finalOrderId = orderId;
         final String finalSide = side;
         final Map<String, Object> finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Bydfi.this.iso8601(timestamp) );
@@ -1081,7 +1081,7 @@ public class Bydfi extends BydfiApi
             put( "amount", Bydfi.this.safeString2(trade, "quantity", "dealVolume") );
             put( "cost", null );
             put( "fee", finalFee );
-        }}), market);
+        }}, market);
     }
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
@@ -1165,11 +1165,11 @@ public class Bydfi extends BydfiApi
             {
                 startTime = Helpers.subtract(until, timeDelta);
             }
-            ((Map<String, Object>)request).put("startTime", startTime);
-            ((Map<String, Object>)request).put("endTime", until);
+            request.put("startTime", startTime);
+            request.put("endTime", until);
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.publicGetV1FapiMarketKlines(this.extend(request, parameters))).join();
             //
@@ -1518,11 +1518,11 @@ public class Bydfi extends BydfiApi
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Long until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchFundingRateHistory", "until");
@@ -1530,7 +1530,7 @@ public class Bydfi extends BydfiApi
             parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("endTime", until);
+                request.put("endTime", until);
             }
             Map<String, Object> response = (this.publicGetV1FapiMarketFundingRateHistory(this.extend(request, parameters))).join();
             //
@@ -1736,18 +1736,18 @@ public class Bydfi extends BydfiApi
         {
             stopPrice = ((Boolean.TRUE.equals(isStopLossOrder))) ? stopLossPrice : takeProfitPrice;
             parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLossPrice", "takeProfitPrice"))));
-            ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision(symbol, stopPrice));
+            request.put("stopPrice", this.priceToPrecision(symbol, stopPrice));
         } else if (Boolean.TRUE.equals(isTailingStopOrder))
         {
             parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("trailingPercent"))));
-            ((Map<String, Object>)request).put("callbackRate", trailingPercent);
+            request.put("callbackRate", trailingPercent);
             String trailingTriggerPrice = this.numberToString(price);
             List<Object> trailingTriggerPriceparametersVariable = (List<Object>) this.handleParamString(parameters, "trailingTriggerPrice", trailingTriggerPrice);
             trailingTriggerPrice = (String) ((List<Object>) trailingTriggerPriceparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) trailingTriggerPriceparametersVariable).get(1);
             if (!java.util.Objects.equals(trailingTriggerPrice, null))
             {
-                ((Map<String, Object>)request).put("activationPrice", this.priceToPrecision(symbol, trailingTriggerPrice));
+                request.put("activationPrice", this.priceToPrecision(symbol, trailingTriggerPrice));
                 parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("trailingTriggerPrice"))));
             }
         }
@@ -1774,7 +1774,7 @@ public class Bydfi extends BydfiApi
             {
                 throw new ArgumentsRequired((((this.id + " createOrder() requires a price argument for a ") + type) + " order")) ;
             }
-            ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+            request.put("price", this.priceToPrecision(symbol, price));
             if (Boolean.TRUE.equals(isStopLossOrder))
             {
                 type = "STOP";
@@ -1783,7 +1783,7 @@ public class Bydfi extends BydfiApi
                 type = "TAKE_PROFIT";
             }
         }
-        ((Map<String, Object>)request).put("type", type);
+        request.put("type", type);
         Boolean hedged = false;
         List<Object> hedgedparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "createOrder", "hedged", hedged);
         hedged = (Boolean) ((List<Object>) hedgedparametersVariable).get(0);
@@ -1794,17 +1794,17 @@ public class Bydfi extends BydfiApi
             parameters = (Map<String, Object>) (this.omit(parameters, "reduceOnly"));
             if (java.util.Objects.equals(side, "buy"))
             {
-                ((Map<String, Object>)request).put("positionSide", (((java.util.Objects.equals(reduceOnly, true)))) ? "SHORT" : "LONG");
+                request.put("positionSide", (((java.util.Objects.equals(reduceOnly, true)))) ? "SHORT" : "LONG");
             } else if (java.util.Objects.equals(side, "sell"))
             {
-                ((Map<String, Object>)request).put("positionSide", (((java.util.Objects.equals(reduceOnly, true)))) ? "LONG" : "SHORT");
+                request.put("positionSide", (((java.util.Objects.equals(reduceOnly, true)))) ? "LONG" : "SHORT");
             }
         }
         Boolean closePosition = (Boolean) this.safeBool(parameters, "closePosition", false);
         if (!java.util.Objects.equals(closePosition, true))
         {
             parameters = (Map<String, Object>) (this.omit(parameters, "closePosition"));
-            ((Map<String, Object>)request).put("quantity", this.amountToPrecision(symbol, amount));
+            request.put("quantity", this.amountToPrecision(symbol, amount));
         } else if ((!java.util.Objects.equals(type, "STOP_MARKET")) && (!java.util.Objects.equals(type, "TAKE_PROFIT_MARKET")))
         {
             throw new NotSupported((this.id + " createOrder() closePosition is only supported for stopLoss and takeProfit market orders")) ;
@@ -1820,7 +1820,7 @@ public class Bydfi extends BydfiApi
         }
         if (!java.util.Objects.equals(timeInForce, null))
         {
-            ((Map<String, Object>)request).put("timeInForce", timeInForce);
+            request.put("timeInForce", timeInForce);
             parameters = (Map<String, Object>) (this.omit(parameters, "timeInForce"));
         }
         if (Boolean.TRUE.equals(isStopLossOrder) || Boolean.TRUE.equals(isTakeProfitOrder) || Boolean.TRUE.equals(isTailingStopOrder))
@@ -1829,7 +1829,7 @@ public class Bydfi extends BydfiApi
             List<Object> workingTypeparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "triggerPriceType", workingType);
             workingType = (String) ((List<Object>) workingTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) workingTypeparametersVariable).get(1);
-            ((Map<String, Object>)request).put("workingType", this.encodeWorkingType(workingType));
+            request.put("workingType", this.encodeWorkingType(workingType));
         }
         return (Map<String, Object>) (this.extend(request, parameters));
     }
@@ -2051,21 +2051,21 @@ public class Bydfi extends BydfiApi
             throw new ArgumentsRequired((this.id + " editOrder() requires an id argument or a clientOrderId parameter")) ;
         } else if (!java.util.Objects.equals(id, null))
         {
-            ((Map<String, Object>)request).put("orderId", id);
+            request.put("orderId", id);
         }
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+        request.put("symbol", ((Map<String, Object>)market).get("id"));
         if (!java.util.Objects.equals(side, null))
         {
-            ((Map<String, Object>)request).put("side", ((String)side).toUpperCase());
+            request.put("side", ((String)side).toUpperCase());
         }
         if (!java.util.Objects.equals(amount, null))
         {
-            ((Map<String, Object>)request).put("quantity", this.amountToPrecision(symbol, amount));
+            request.put("quantity", this.amountToPrecision(symbol, amount));
         }
         if (!java.util.Objects.equals(price, null))
         {
-            ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+            request.put("price", this.priceToPrecision(symbol, price));
         }
         return this.extend(request, parameters);
     }
@@ -2310,13 +2310,13 @@ public class Bydfi extends BydfiApi
                 throw new ArgumentsRequired((this.id + " fetchOpenOrder() requires an id argument or a clientOrderId parameter")) ;
             } else if (!java.util.Objects.equals(id, null))
             {
-                ((Map<String, Object>)request).put("orderId", id);
+                request.put("orderId", id);
             }
             String wallet = "W001";
             List<Object> walletparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchOpenOrder", "wallet", wallet);
             wallet = (String) ((List<Object>) walletparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) walletparametersVariable).get(1);
-            ((Map<String, Object>)request).put("wallet", wallet);
+            request.put("wallet", wallet);
             Map<String, Object> response = null;
             Boolean trigger = false;
             List<Object> triggerparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOpenOrder", "trigger", trigger);
@@ -2405,12 +2405,12 @@ public class Bydfi extends BydfiApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             parameters = this.handleSinceAndUntil("fetchCanceledAndClosedOrders", since, parameters);
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.privateGetV1FapiTradeHistoryOrder(this.extend(request, parameters))).join();
             //
@@ -2614,14 +2614,14 @@ public class Bydfi extends BydfiApi
         Double quoteFee = this.safeNumber(order, "quoteFee");
         if (!java.util.Objects.equals(quoteFee, null))
         {
-            ((Map<String, Object>)fee).put("cost", quoteFee);
-            ((Map<String, Object>)fee).put("currency", ((Map<String, Object>)market).get("quote"));
+            fee.put("cost", quoteFee);
+            fee.put("currency", ((Map<String, Object>)market).get("quote"));
         }
         final Map<String, Object> finalMarket = market;
         final String finalRawType = rawType;
         final String finalTimeInForce = timeInForce;
         final Boolean finalPostOnly = postOnly;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Bydfi.this.safeString(order, "orderId") );
             put( "clientOrderId", Bydfi.this.safeString(order, "clientOrderId") );
@@ -2647,7 +2647,7 @@ public class Bydfi extends BydfiApi
             put( "trades", null );
             put( "fee", fee );
             put( "average", Bydfi.this.omitZero(Bydfi.this.safeString(order, "avgPrice")) );
-        }}), market);
+        }}, market);
     }
     public Object parseOrder(Object order, Object... optionalArgs)
     {
@@ -3046,7 +3046,7 @@ public class Bydfi extends BydfiApi
         final Object finalPositionSide = positionSide;
         final String finalContracts = contracts;
         final Boolean finalHedged = hedged;
-        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePosition(new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", Bydfi.this.safeString(position, "id") );
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
@@ -3073,7 +3073,7 @@ public class Bydfi extends BydfiApi
             put( "marginRatio", null );
             put( "marginMode", null );
             put( "percentage", null );
-        }}));
+        }});
     }
     public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
@@ -3127,7 +3127,7 @@ public class Bydfi extends BydfiApi
             parameters = this.handleSinceAndUntil("fetchPositionsHistory", since, parameters);
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.privateGetV1FapiTradePositionHistory(this.extend(request, parameters))).join();
             //
@@ -3193,7 +3193,7 @@ public class Bydfi extends BydfiApi
             parameters = this.handleSinceAndUntil("fetchPositionsHistory", since, parameters);
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.privateGetV1FapiTradePositionHistory(this.extend(request, parameters))).join();
             //
@@ -3633,7 +3633,7 @@ public class Bydfi extends BydfiApi
             {
                 Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
                 String parsedAccountType = this.safeStringUpper(options, type, type);
-                ((Map<String, Object>)request).put("walletType", parsedAccountType);
+                request.put("walletType", parsedAccountType);
                 //
                 //     {
                 //         "code": 200,
@@ -3653,7 +3653,7 @@ public class Bydfi extends BydfiApi
                 response = (this.privateGetV1AccountAssets(this.extend(request, parameters))).join();
             } else
             {
-                ((Map<String, Object>)request).put("wallet", wallet);
+                request.put("wallet", wallet);
                 //
                 //     {
                 //         "code": 200,
@@ -3719,11 +3719,11 @@ public class Bydfi extends BydfiApi
             String symbol = this.safeString(balance, "asset");
             String code = this.safeCurrencyCode(symbol);
             Map<String, Object> account = (Map<String, Object>) this.account();
-            ((Map<String, Object>)account).put("total", this.safeString2(balance, "total", "balance"));
-            ((Map<String, Object>)account).put("free", this.safeString2(balance, "available", "availableBalance"));
+            account.put("total", this.safeString2(balance, "total", "balance"));
+            account.put("free", this.safeString2(balance, "available", "availableBalance"));
             if (!java.util.Objects.equals(code, null))
             {
-                ((Map<String, Object>)result).put((String)code, account);
+                result.put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -3857,11 +3857,11 @@ public class Bydfi extends BydfiApi
             {
                 since = 1L; // exchange requires startTime but allows any value
             }
-            ((Map<String, Object>)request).put("startTime", since);
-            ((Map<String, Object>)request).put("endTime", until);
+            request.put("startTime", since);
+            request.put("endTime", until);
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("rows", limit);
+                request.put("rows", limit);
             }
             Map<String, Object> response = (this.privateGetV1AccountTransferRecords(this.extend(request, parameters))).join();
             //
@@ -4104,11 +4104,11 @@ public class Bydfi extends BydfiApi
                     until = now;
                 }
             }
-            ((Map<String, Object>)request).put("startTime", startTime);
-            ((Map<String, Object>)request).put("endTime", until);
+            request.put("startTime", startTime);
+            request.put("endTime", until);
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "deposit"))

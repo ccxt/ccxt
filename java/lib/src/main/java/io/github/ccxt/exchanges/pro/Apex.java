@@ -251,7 +251,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         String side = this.safeStringLower2(trade, "S", "side");
         String price = this.safeString2(trade, "p", "price");
         String amount = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("q", "v", "size")));
-        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -265,7 +265,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             put( "amount", amount );
             put( "cost", null );
             put( "fee", null );
-        }}), market));
+        }}, market));
     }
     public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
@@ -1058,7 +1058,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             Object rawTrade = (lists == null || i < 0 || i >= ((List<?>)lists).size() ? null : ((List<?>)lists).get(i));
             Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (rawTrade));
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
-            ((Map<String, Object>)symbols).put((String)((String)symbol), true);
+            symbols.put((String)((String)symbol), true);
             Helpers.callDynamically(trades, "append", new Object[]{parsed});
         }
         List<Object> keys = new ArrayList<Object>(symbols.keySet());
@@ -1114,7 +1114,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         {
             Map<String, Object> parsed = (Map<String, Object>) this.parseOrder((lists == null || i < 0 || i >= ((List<?>)lists).size() ? null : ((List<?>)lists).get(i)));
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
-            ((Map<String, Object>)symbols).put((String)((String)symbol), true);
+            symbols.put((String)((String)symbol), true);
             Helpers.callDynamically(orders, "append", new Object[]{parsed});
         }
         List<Object> symbolsArray = new ArrayList<Object>(symbols.keySet());
@@ -1218,9 +1218,9 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             {
                 // closing update, adding both sides to "reset" both sides
                 // since we don't know which side is being closed
-                Helpers.addElementToObject(position, "side", "long");
+                position.put("side", "long");
                 Helpers.callDynamically(cache, "append", new Object[]{position});
-                Helpers.addElementToObject(position, "side", "short");
+                position.put("side", "short");
                 Helpers.callDynamically(cache, "append", new Object[]{position});
                 Helpers.addElementToObject(position, "side", null);
             } else

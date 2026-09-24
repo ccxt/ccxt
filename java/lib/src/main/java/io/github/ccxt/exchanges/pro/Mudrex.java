@@ -83,9 +83,9 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         Map<String, Object> wsOptions = (Map<String, Object>) this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
         Map<String, Object> innerOptions = (Map<String, Object>) this.safeDict(wsOptions, "options", new HashMap<String, Object>() {{}});
         Map<String, Object> headers = (Map<String, Object>) this.safeDict(innerOptions, "headers", new HashMap<String, Object>() {{}});
-        ((Map<String, Object>)headers).put("Partner-Id", brokerId);
-        ((Map<String, Object>)innerOptions).put("headers", headers);
-        ((Map<String, Object>)wsOptions).put("options", innerOptions);
+        headers.put("Partner-Id", brokerId);
+        innerOptions.put("headers", headers);
+        wsOptions.put("options", innerOptions);
         Helpers.addElementToObject(this.options, "ws", wsOptions);
     }
 

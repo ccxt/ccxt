@@ -1249,7 +1249,7 @@ public class Woo extends WooApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.v3PublicGetMarketTrades(this.extend(request, parameters))).join();
             //
@@ -1360,7 +1360,7 @@ public class Woo extends WooApi
         final Long finalTimestamp = timestamp;
         final String finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", id );
             put( "timestamp", finalTimestamp );
             put( "datetime", Woo.this.iso8601(finalTimestamp) );
@@ -1374,7 +1374,7 @@ public class Woo extends WooApi
             put( "type", null );
             put( "fee", finalFee );
             put( "info", trade );
-        }}), market);
+        }}, market);
     }
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
@@ -1534,7 +1534,7 @@ public class Woo extends WooApi
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
+                result.put((String)symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
         put( "maker", Woo.this.parseNumber(Precise.stringDiv(maker, "10000")) );
@@ -1669,7 +1669,7 @@ public class Woo extends WooApi
                 String code = this.safeString(parsed, "code");
                 if (!java.util.Objects.equals(code, null))
                 {
-                    ((Map<String, Object>)result).put((String)code, parsed);
+                    result.put((String)code, parsed);
                 }
             }
             return result;
@@ -1707,7 +1707,7 @@ public class Woo extends WooApi
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final String finalNetworkCode = networkCode;
-                ((Map<String, Object>)resultingNetworks).put((String)networkCode, new HashMap<String, Object>() {{
+                resultingNetworks.put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "currencyNetworkId", specialNetworkId );
     put( "network", finalNetworkCode );
@@ -1733,7 +1733,7 @@ public class Woo extends WooApi
 }});
             }
         }
-        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "id", currencyId );
             put( "name", null );
             put( "code", code );
@@ -1755,7 +1755,7 @@ public class Woo extends WooApi
                 }} );
             }} );
             put( "info", rawCurrency );
-        }}));
+        }});
     }
 
     /**
@@ -2009,7 +2009,7 @@ public class Woo extends WooApi
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if (!java.util.Objects.equals(marginMode, null))
             {
-                ((Map<String, Object>)request).put("marginMode", this.encodeMarginMode(marginMode));
+                request.put("marginMode", this.encodeMarginMode(marginMode));
             }
             String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
             Object stopLoss = this.safeValue(parameters, "stopLoss");
@@ -2032,27 +2032,27 @@ public class Woo extends WooApi
             {
                 clientOrderIdKey = "clientAlgoOrderId";
             }
-            ((Map<String, Object>)request).put("type", orderType); // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
+            request.put("type", orderType); // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
             if (!Boolean.TRUE.equals(isConditional))
             {
                 if (postOnly)
                 {
-                    ((Map<String, Object>)request).put("type", "POST_ONLY");
+                    request.put("type", "POST_ONLY");
                 } else if (java.util.Objects.equals(timeInForce, "fok"))
                 {
-                    ((Map<String, Object>)request).put("type", "FOK");
+                    request.put("type", "FOK");
                 } else if (java.util.Objects.equals(timeInForce, "ioc"))
                 {
-                    ((Map<String, Object>)request).put("type", "IOC");
+                    request.put("type", "IOC");
                 }
             }
             if (java.util.Objects.equals(reduceOnly, true))
             {
-                ((Map<String, Object>)request).put("reduceOnly", reduceOnly);
+                request.put("reduceOnly", reduceOnly);
             }
             if (!Boolean.TRUE.equals(isMarket) && !java.util.Objects.equals(price, null))
             {
-                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+                request.put("price", this.priceToPrecision(symbol, price));
             }
             if (Boolean.TRUE.equals(isMarket) && !Boolean.TRUE.equals(isConditional))
             {
@@ -2073,19 +2073,19 @@ public class Woo extends WooApi
                         String costRequest = Precise.stringMul(amountString, priceString);
                         quoteAmount = this.costToPrecision(symbol, costRequest);
                     }
-                    ((Map<String, Object>)request).put("amount", quoteAmount);
+                    request.put("amount", quoteAmount);
                 } else
                 {
-                    ((Map<String, Object>)request).put("quantity", this.amountToPrecision(symbol, amount));
+                    request.put("quantity", this.amountToPrecision(symbol, amount));
                 }
             } else if (!java.util.Objects.equals(algoType, "POSITIONAL_TP_SL"))
             {
-                ((Map<String, Object>)request).put("quantity", this.amountToPrecision(symbol, amount));
+                request.put("quantity", this.amountToPrecision(symbol, amount));
             }
             String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                ((Map<String, Object>)request).put((String)clientOrderIdKey, clientOrderId);
+                request.put((String)clientOrderIdKey, clientOrderId);
             }
             if (Boolean.TRUE.equals(isTrailing))
             {
@@ -2093,26 +2093,26 @@ public class Woo extends WooApi
                 {
                     throw new ArgumentsRequired((this.id + " createOrder() requires a trailingTriggerPrice parameter for trailing orders")) ;
                 }
-                ((Map<String, Object>)request).put("activatedPrice", this.priceToPrecision(symbol, trailingTriggerPrice));
-                ((Map<String, Object>)request).put("algoType", "TRAILING_STOP");
+                request.put("activatedPrice", this.priceToPrecision(symbol, trailingTriggerPrice));
+                request.put("algoType", "TRAILING_STOP");
                 if (Boolean.TRUE.equals(isTrailingAmountOrder))
                 {
-                    ((Map<String, Object>)request).put("callbackValue", trailingAmount);
+                    request.put("callbackValue", trailingAmount);
                 } else if (Boolean.TRUE.equals(isTrailingPercentOrder))
                 {
                     String convertedTrailingPercent = Precise.stringDiv(trailingPercent, "100");
-                    ((Map<String, Object>)request).put("callbackRate", convertedTrailingPercent);
+                    request.put("callbackRate", convertedTrailingPercent);
                 }
             } else if (!java.util.Objects.equals(triggerPrice, null))
             {
                 if (!java.util.Objects.equals(algoType, "TRAILING_STOP"))
                 {
-                    ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
-                    ((Map<String, Object>)request).put("algoType", "STOP");
+                    request.put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
+                    request.put("algoType", "STOP");
                 }
             } else if (Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit))
             {
-                ((Map<String, Object>)request).put("algoType", "BRACKET");
+                request.put("algoType", "BRACKET");
                 Map<String, Object> outterOrder = new HashMap<String, Object>() {{
                     put( "symbol", ((Map<String, Object>)market).get("id") );
                     put( "reduceOnly", false );
@@ -2151,7 +2151,7 @@ public class Woo extends WooApi
                     }};
                     ((List<Object>)childOrders).add(takeProfitOrder);
                 }
-                ((Map<String, Object>)request).put("childOrders", new ArrayList<Object>(Arrays.asList(outterOrder)));
+                request.put("childOrders", new ArrayList<Object>(Arrays.asList(outterOrder)));
             }
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "trailingPercent", "trailingAmount", "trailingTriggerPrice")));
             Map<String, Object> response = null;
@@ -2249,11 +2249,11 @@ public class Woo extends WooApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(price, null))
             {
-                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+                request.put("price", this.priceToPrecision(symbol, price));
             }
             if (!java.util.Objects.equals(amount, null))
             {
-                ((Map<String, Object>)request).put("quantity", this.amountToPrecision(symbol, amount));
+                request.put("quantity", this.amountToPrecision(symbol, amount));
             }
             String clientOrderIdUnified = this.safeString2(parameters, "clOrdID", "clientOrderId");
             String clientOrderIdExchangeSpecific = this.safeString(parameters, "client_order_id", clientOrderIdUnified);
@@ -2261,7 +2261,7 @@ public class Woo extends WooApi
             Double triggerPrice = this.safeNumberN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice")));
             if (!java.util.Objects.equals(triggerPrice, null))
             {
-                ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
+                request.put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
             }
             String trailingTriggerPrice = this.safeString2(parameters, "trailingTriggerPrice", "activatedPrice", this.numberToString(price));
             String trailingAmount = this.safeString2(parameters, "trailingAmount", "callbackValue");
@@ -2273,15 +2273,15 @@ public class Woo extends WooApi
             {
                 if (!java.util.Objects.equals(trailingTriggerPrice, null))
                 {
-                    ((Map<String, Object>)request).put("activatedPrice", this.priceToPrecision(symbol, trailingTriggerPrice));
+                    request.put("activatedPrice", this.priceToPrecision(symbol, trailingTriggerPrice));
                 }
                 if (Boolean.TRUE.equals(isTrailingAmountOrder))
                 {
-                    ((Map<String, Object>)request).put("callbackValue", trailingAmount);
+                    request.put("callbackValue", trailingAmount);
                 } else if (Boolean.TRUE.equals(isTrailingPercentOrder))
                 {
                     String convertedTrailingPercent = Precise.stringDiv(trailingPercent, "100");
-                    ((Map<String, Object>)request).put("callbackRate", convertedTrailingPercent);
+                    request.put("callbackRate", convertedTrailingPercent);
                 }
             }
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
@@ -2292,20 +2292,20 @@ public class Woo extends WooApi
             {
                 if (Boolean.TRUE.equals(isByClientOrder))
                 {
-                    ((Map<String, Object>)request).put("clientAlgoOrderId", clientOrderIdExchangeSpecific);
+                    request.put("clientAlgoOrderId", clientOrderIdExchangeSpecific);
                 } else
                 {
-                    ((Map<String, Object>)request).put("algoOrderId", id);
+                    request.put("algoOrderId", id);
                 }
                 response = (this.v3PrivatePutTradeAlgoOrder(this.extend(request, parameters))).join();
             } else
             {
                 if (Boolean.TRUE.equals(isByClientOrder))
                 {
-                    ((Map<String, Object>)request).put("clientOrderId", clientOrderIdExchangeSpecific);
+                    request.put("clientOrderId", clientOrderIdExchangeSpecific);
                 } else
                 {
-                    ((Map<String, Object>)request).put("orderId", id);
+                    request.put("orderId", id);
                 }
                 response = (this.v3PrivatePutTradeOrder(this.extend(request, parameters))).join();
             }
@@ -2322,10 +2322,10 @@ public class Woo extends WooApi
             Map<String, Object> order = this.extend(response, data);
             if (Boolean.TRUE.equals(isByClientOrder))
             {
-                Helpers.addElementToObject(order, "clientOrderId", clientOrderIdExchangeSpecific);
+                order.put("clientOrderId", clientOrderIdExchangeSpecific);
             } else
             {
-                Helpers.addElementToObject(order, "orderId", id);
+                order.put("orderId", id);
             }
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
@@ -2403,21 +2403,21 @@ public class Woo extends WooApi
             {
                 if (Boolean.TRUE.equals(isByClientOrder))
                 {
-                    ((Map<String, Object>)request).put("clientAlgoOrderId", clientOrderIdExchangeSpecific);
+                    request.put("clientAlgoOrderId", clientOrderIdExchangeSpecific);
                 } else
                 {
-                    ((Map<String, Object>)request).put("algoOrderId", id);
+                    request.put("algoOrderId", id);
                 }
                 response = (this.v3PrivateDeleteTradeAlgoOrder(this.extend(request, parameters))).join();
             } else
             {
-                ((Map<String, Object>)request).put("symbol", this.safeString(market, "id"));
+                request.put("symbol", this.safeString(market, "id"));
                 if (Boolean.TRUE.equals(isByClientOrder))
                 {
-                    ((Map<String, Object>)request).put("clientOrderId", clientOrderIdExchangeSpecific);
+                    request.put("clientOrderId", clientOrderIdExchangeSpecific);
                 } else
                 {
-                    ((Map<String, Object>)request).put("orderId", id);
+                    request.put("orderId", id);
                 }
                 response = (this.v3PrivateDeleteTradeOrder(this.extend(request, parameters))).join();
             }
@@ -2431,13 +2431,13 @@ public class Woo extends WooApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            ((Map<String, Object>)data).put("timestamp", this.safeString(response, "timestamp"));
+            data.put("timestamp", this.safeString(response, "timestamp"));
             if (Boolean.TRUE.equals(isByClientOrder))
             {
-                ((Map<String, Object>)data).put("clientOrderId", clientOrderIdExchangeSpecific);
+                data.put("clientOrderId", clientOrderIdExchangeSpecific);
             } else
             {
-                ((Map<String, Object>)data).put("orderId", id);
+                data.put("orderId", id);
             }
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
@@ -2488,7 +2488,7 @@ public class Woo extends WooApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> response = null;
             if (java.util.Objects.equals(trigger, true))
@@ -2509,9 +2509,9 @@ public class Woo extends WooApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", data );
-    }}))));
+    }})));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2617,20 +2617,20 @@ public class Woo extends WooApi
             {
                 if (!java.util.Objects.equals(clientOrderId, null))
                 {
-                    ((Map<String, Object>)request).put("clientAlgoOrderId", id);
+                    request.put("clientAlgoOrderId", id);
                 } else
                 {
-                    ((Map<String, Object>)request).put("algoOrderId", id);
+                    request.put("algoOrderId", id);
                 }
                 response = (this.v3PrivateGetTradeAlgoOrder(this.extend(request, parameters))).join();
             } else
             {
                 if (!java.util.Objects.equals(clientOrderId, null))
                 {
-                    ((Map<String, Object>)request).put("clientOrderId", clientOrderId);
+                    request.put("clientOrderId", clientOrderId);
                 } else
                 {
-                    ((Map<String, Object>)request).put("orderId", id);
+                    request.put("orderId", id);
                 }
                 response = (this.v3PrivateGetTradeOrder(this.extend(request, parameters))).join();
             }
@@ -2702,21 +2702,21 @@ public class Woo extends WooApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             Long until = this.safeInteger(parameters, "until"); // unified in milliseconds
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("endTime", until);
+                request.put("endTime", until);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("size", Helpers.mathMin(limit, 500));
+                request.put("size", Helpers.mathMin(limit, 500));
             }
             Map<String, Object> response = null;
             if (java.util.Objects.equals(trigger, true))
@@ -3010,7 +3010,7 @@ public class Woo extends WooApi
         final Long finalLastUpdateTimestamp = lastUpdateTimestamp;
         final String finalOrderType = orderType;
         final Boolean finalPostOnly = postOnly;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", orderId );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", finalTimestamp );
@@ -3039,7 +3039,7 @@ public class Woo extends WooApi
                 put( "currency", feeCurrency );
             }} );
             put( "info", order );
-        }}), market);
+        }}, market);
     }
     public Object parseOrder(Object order, Object... optionalArgs)
     {
@@ -3092,7 +3092,7 @@ public class Woo extends WooApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("maxLevel", limit);
+                request.put("maxLevel", limit);
             }
             Map<String, Object> response = (this.v3PublicGetOrderbook(this.extend(request, parameters))).join();
             //
@@ -3396,17 +3396,17 @@ public class Woo extends WooApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000));
+                request.put("limit", Helpers.mathMin(limit, 1000));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("after", Helpers.subtract(since, 1)); // #27793
+                request.put("after", Helpers.subtract(since, 1)); // #27793
             }
             Long until = this.safeInteger(parameters, "until");
             parameters = (Map<String, Object>) this.omit(parameters, "until");
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("before", until);
+                request.put("before", until);
             }
             Map<String, Object> response = (this.v3PublicGetKlineHistory(this.extend(request, parameters))).join();
             //
@@ -3574,21 +3574,21 @@ public class Woo extends WooApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             Long until = this.safeInteger(parameters, "until"); // unified in milliseconds
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("endTime", until);
+                request.put("endTime", until);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.v3PrivateGetTradeTransactionHistory(this.extend(request, parameters))).join();
             //
@@ -3841,11 +3841,11 @@ public class Woo extends WooApi
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i);
             String code = this.safeCurrencyCode(this.safeString(balance, "token"));
             Map<String, Object> account = (Map<String, Object>) this.account();
-            ((Map<String, Object>)account).put("total", this.safeString(balance, "holding"));
-            ((Map<String, Object>)account).put("free", this.safeString(balance, "availableBalance"));
+            account.put("total", this.safeString(balance, "holding"));
+            account.put("free", this.safeString(balance, "availableBalance"));
             if (!java.util.Objects.equals(code, null))
             {
-                ((Map<String, Object>)result).put((String)code, account);
+                result.put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -3967,7 +3967,7 @@ public class Woo extends WooApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
-                ((Map<String, Object>)request).put("token", ((Map<String, Object>)currency).get("id"));
+                request.put("token", ((Map<String, Object>)currency).get("id"));
             }
             String networkCode = null;
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
@@ -3975,21 +3975,21 @@ public class Woo extends WooApi
             parameters = ((List<Object>) networkCodeparametersVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                ((Map<String, Object>)request).put("network", this.networkCodeToId(networkCode, this.safeString(currency, "code")));
+                request.put("network", this.networkCodeToId(networkCode, this.safeString(currency, "code")));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("size", Helpers.mathMin(limit, 1000));
+                request.put("size", Helpers.mathMin(limit, 1000));
             }
             String transactionType = this.safeString(parameters, "type");
             parameters = this.omit(parameters, "type");
             if (!java.util.Objects.equals(transactionType, null))
             {
-                ((Map<String, Object>)request).put("type", transactionType);
+                request.put("type", transactionType);
             }
             Map<String, Object> response = (this.v3PrivateGetAssetWalletHistory(this.extend(request, parameters))).join();
             //
@@ -4402,9 +4402,9 @@ public class Woo extends WooApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            ((Map<String, Object>)data).put("timestamp", this.safeInteger(response, "timestamp"));
-            ((Map<String, Object>)data).put("token", ((Map<String, Object>)currency).get("id"));
-            ((Map<String, Object>)data).put("status", "ok");
+            data.put("timestamp", this.safeInteger(response, "timestamp"));
+            data.put("token", ((Map<String, Object>)currency).get("id"));
+            data.put("status", "ok");
             Object transfer = this.parseTransfer(data, currency);
             Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
@@ -4466,17 +4466,17 @@ public class Woo extends WooApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("size", limit);
+                request.put("size", limit);
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             Long until = this.safeInteger(parameters, "until"); // unified in milliseconds
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("endTime", until);
+                request.put("endTime", until);
             }
             Map<String, Object> response = (this.v3PrivateGetAssetTransferHistory(this.extend(request, parameters))).join();
             //
@@ -4634,7 +4634,7 @@ public class Woo extends WooApi
             }};
             if (!java.util.Objects.equals(tag, null))
             {
-                ((Map<String, Object>)request).put("extra", tag);
+                request.put("extra", tag);
             }
             String network = this.safeString(parameters, "network");
             if (java.util.Objects.equals(network, null))
@@ -4642,8 +4642,8 @@ public class Woo extends WooApi
                 throw new ArgumentsRequired(((this.id + " withdraw() requires a network parameter for ") + code)) ;
             }
             parameters = (Map<String, Object>) this.omit(parameters, "network");
-            ((Map<String, Object>)request).put("token", ((Map<String, Object>)currency).get("id"));
-            ((Map<String, Object>)request).put("network", this.networkCodeToId(network, ((Map<String, Object>)currency).get("code")));
+            request.put("token", ((Map<String, Object>)currency).get("id"));
+            request.put("network", this.networkCodeToId(network, ((Map<String, Object>)currency).get("code")));
             Map<String, Object> response = (this.v3PrivatePostAssetWalletWithdraw(this.extend(request, parameters))).join();
             //
             //     {
@@ -4981,21 +4981,21 @@ public class Woo extends WooApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             Long until = this.safeInteger(parameters, "until"); // unified in milliseconds
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("endTime", until);
+                request.put("endTime", until);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("size", Helpers.mathMin(limit, 500));
+                request.put("size", Helpers.mathMin(limit, 500));
             }
             Map<String, Object> response = (this.v3PrivateGetFuturesFundingFeeHistory(this.extend(request, parameters))).join();
             //
@@ -5314,7 +5314,7 @@ public class Woo extends WooApi
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
@@ -5469,7 +5469,7 @@ public class Woo extends WooApi
                 List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchLeverage", parameters, "cross");
                 marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
-                ((Map<String, Object>)request).put("marginMode", this.encodeMarginMode(marginMode));
+                request.put("marginMode", this.encodeMarginMode(marginMode));
                 response = (this.v3PrivateGetFuturesLeverage(this.extend(request, parameters))).join();
             } else
             {
@@ -5580,12 +5580,12 @@ public class Woo extends WooApi
                 return (this.v3PrivatePostSpotMarginLeverage(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(this.safeBool(market, "swap"), true))
             {
-                ((Map<String, Object>)request).put("symbol", this.safeString(market, "id"));
+                request.put("symbol", this.safeString(market, "id"));
                 String marginMode = null;
                 List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters, "cross");
                 marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
-                ((Map<String, Object>)request).put("marginMode", this.encodeMarginMode(marginMode));
+                request.put("marginMode", this.encodeMarginMode(marginMode));
                 return (this.v3PrivatePutFuturesLeverage(this.extend(request, parameters))).join();
             } else
             {
@@ -5810,7 +5810,7 @@ public class Woo extends WooApi
                 if (java.util.Objects.equals(symbolsLength, 1))
                 {
                     Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
-                    ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                    request.put("symbol", ((Map<String, Object>)market).get("id"));
                 }
             }
             Map<String, Object> response = (this.v3PrivateGetFuturesPositions(this.extend(request, parameters))).join();
@@ -5951,7 +5951,7 @@ public class Woo extends WooApi
         final String finalSize = size;
         final String finalSide = side;
         final String finalPositionSide = positionSide;
-        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePosition(new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", Woo.this.safeString(finalMarket, "symbol") );
@@ -5979,7 +5979,7 @@ public class Woo extends WooApi
             put( "hedged", !java.util.Objects.equals(finalPositionSide, "BOTH") );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
-        }}));
+        }});
     }
     public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
@@ -6210,11 +6210,11 @@ public class Woo extends WooApi
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("size", limit);
+                request.put("size", limit);
             }
             Map<String, Object> response = (this.v3PrivateGetConvertTrades(this.extend(request, parameters))).join();
             //
@@ -6361,7 +6361,7 @@ public class Woo extends WooApi
                 if (!java.util.Objects.equals(code, null))
                 {
                     final String finalCode = code;
-                    ((Map<String, Object>)result).put((String)code, new HashMap<String, Object>() {{
+                    result.put((String)code, new HashMap<String, Object>() {{
         put( "info", entry );
         put( "id", id );
         put( "code", finalCode );
@@ -6434,7 +6434,7 @@ public class Woo extends WooApi
                 if (java.util.Objects.equals(symbolsLength, 1))
                 {
                     Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
-                    ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                    request.put("symbol", ((Map<String, Object>)market).get("id"));
                 }
             }
             Map<String, Object> response = (this.v3PrivateGetFuturesPositions(this.extend(request, parameters))).join();

@@ -154,7 +154,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         //
         String datetime = this.safeString(trade, "TradeDate");
         String marketId = this.safeString(market, "Pair");
-        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Independentreserve.this.safeString(trade, "TradeGuid") );
             put( "order", Independentreserve.this.safeString(trade, "orderNo") );
@@ -168,7 +168,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             put( "fee", null );
             put( "timestamp", Independentreserve.this.parse8601(datetime) );
             put( "datetime", datetime );
-        }}), market));
+        }}, market));
     }
     public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {

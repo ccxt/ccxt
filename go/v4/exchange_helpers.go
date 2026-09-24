@@ -2000,11 +2000,10 @@ func GetArgStringSlice(args []any, index int, def []string) []string {
 	if res, isStrs := val.([]string); isStrs {
 		return res
 	}
-	// dynamic callers and MarketSymbols pass a []any of string / non-nil *string
+	// dynamic callers pass a []any of strings or non-nil *string (typed SafeString results)
 	if list, isList := val.([]any); isList {
 		res := make([]string, 0, len(list))
 		for _, item := range list {
-			// MarketSymbols returns a []any of *string (SafeString results)
 			str, isStr := derefScalar(item).(string)
 			if !isStr {
 				goArgPanic("GetArgStringSlice", index, val)

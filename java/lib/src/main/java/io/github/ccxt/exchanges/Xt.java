@@ -1388,7 +1388,7 @@ public class Xt extends XtApi
                     if (!java.util.Objects.equals(networkCode, null))
                     {
                         final String finalNetworkCode = networkCode;
-                        ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
+                        networks.put((String)networkCode, new HashMap<String, Object>() {{
         put( "info", rawNetwork );
         put( "id", networkId );
         put( "network", finalNetworkCode );
@@ -1428,7 +1428,7 @@ public class Xt extends XtApi
                 {
                     final String finalCode = code;
                     final String finalType = type;
-                    ((Map<String, Object>)result).put((String)code, this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+                    result.put((String)code, this.safeCurrencyStructure(new HashMap<String, Object>() {{
         put( "info", entry );
         put( "id", currencyId );
         put( "code", finalCode );
@@ -1454,7 +1454,7 @@ public class Xt extends XtApi
                 put( "max", null );
             }} );
         }} );
-    }})));
+    }}));
                 }
             }
             return result;
@@ -2008,7 +2008,7 @@ public class Xt extends XtApi
                 // window start return one pre-since candle, shifting paginated windows and
                 // dropping one candle per page - align up so the rounding is a no-op, see https://github.com/ccxt/ccxt/issues/25285
                 Long duration = (((long) this.parseTimeframe(timeframe)) * 1000L);
-                ((Map<String, Object>)request).put("startTime", Helpers.multiply(Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide(since, duration)))), duration));
+                request.put("startTime", Helpers.multiply(Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide(since, duration)))), duration));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -2019,16 +2019,16 @@ public class Xt extends XtApi
                 {
                     limit = Helpers.mathMin(limit, 1500); // derivatives max limit
                 }
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             } else
             {
-                ((Map<String, Object>)request).put("limit", 1000);
+                request.put("limit", 1000);
             }
             Long until = this.safeInteger(parameters, "until");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("endTime", until);
+                request.put("endTime", until);
             }
             Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
@@ -2178,17 +2178,17 @@ public class Xt extends XtApi
             {
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 500));
+                    request.put("limit", Helpers.mathMin(limit, 500));
                 }
                 response = (this.publicSpotGetDepth(this.extend(request, parameters))).join();
             } else
             {
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    ((Map<String, Object>)request).put("level", Helpers.mathMin(limit, 50));
+                    request.put("level", Helpers.mathMin(limit, 50));
                 } else
                 {
-                    ((Map<String, Object>)request).put("level", 50);
+                    request.put("level", 50);
                 }
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
                 {
@@ -2249,11 +2249,11 @@ public class Xt extends XtApi
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 Map<String, Object> ob = (Map<String, Object>) this.parseOrderBook(orderBook, symbol, timestamp);
-                ((Map<String, Object>)ob).put("nonce", this.safeInteger(orderBook, "lastUpdateId"));
+                ob.put("nonce", this.safeInteger(orderBook, "lastUpdateId"));
                 return ob;
             }
             Map<String, Object> swapOb = (Map<String, Object>) this.parseOrderBook(orderBook, symbol, timestamp, "b", "a");
-            ((Map<String, Object>)swapOb).put("nonce", this.safeInteger2(orderBook, "u", "lastUpdateId"));
+            swapOb.put("nonce", this.safeInteger2(orderBook, "u", "lastUpdateId"));
             return swapOb;
         }).thenApply(OrderBook::new);
 
@@ -2481,7 +2481,7 @@ public class Xt extends XtApi
                 String symbol = (String) ((Map<String, Object>)ticker).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    ((Map<String, Object>)result).put((String)symbol, ticker);
+                    result.put((String)symbol, ticker);
                 }
             }
             return this.filterByArray(result, "symbol", symbols);
@@ -2608,7 +2608,7 @@ public class Xt extends XtApi
                 String symbol = (String) ((Map<String, Object>)ticker).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    ((Map<String, Object>)result).put((String)symbol, ticker);
+                    result.put((String)symbol, ticker);
                 }
             }
             return this.filterByArray(result, "symbol", symbols);
@@ -2751,14 +2751,14 @@ public class Xt extends XtApi
             {
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000));
+                    request.put("limit", Helpers.mathMin(limit, 1000));
                 }
                 response = (this.publicSpotGetTradeRecent(this.extend(request, parameters))).join();
             } else
             {
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    ((Map<String, Object>)request).put("num", Helpers.mathMin(limit, 1000));
+                    request.put("num", Helpers.mathMin(limit, 1000));
                 }
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
                 {
@@ -2858,11 +2858,11 @@ public class Xt extends XtApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             String type = null;
             String subType = null;
@@ -2877,7 +2877,7 @@ public class Xt extends XtApi
             {
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    ((Map<String, Object>)request).put("size", limit);
+                    request.put("size", limit);
                 }
                 if (java.util.Objects.equals(subType, "inverse"))
                 {
@@ -2897,10 +2897,10 @@ public class Xt extends XtApi
                 {
                     marginOrSpotRequest = "LEVER";
                 }
-                ((Map<String, Object>)request).put("bizType", marginOrSpotRequest);
+                request.put("bizType", marginOrSpotRequest);
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    ((Map<String, Object>)request).put("limit", limit);
+                    request.put("limit", limit);
                 }
                 response = (this.privateSpotGetTrade(this.extend(request, parameters))).join();
             }
@@ -3156,7 +3156,7 @@ public class Xt extends XtApi
         final String finalSide = side;
         final String finalTakerOrMaker = takerOrMaker;
         final String finalAmount = amount;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Xt.this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("i", "tradeId", "execId"))) );
             put( "timestamp", timestamp );
@@ -3173,7 +3173,7 @@ public class Xt extends XtApi
                 put( "currency", Xt.this.safeCurrencyCode(Xt.this.safeString2(trade, "feeCurrency", "feeCoin")) );
                 put( "cost", Xt.this.safeString(trade, "fee") );
             }} );
-        }}), market);
+        }}, market);
     }
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
@@ -3334,12 +3334,12 @@ public class Xt extends XtApi
                 String crossedAndIsolatedMargin = Precise.stringAdd(this.safeString(balance, "crossedMargin"), this.safeString(balance, "isolatedMargin"));
                 used = Precise.stringAdd(this.safeString(balance, "openOrderMarginFrozen"), crossedAndIsolatedMargin);
             }
-            ((Map<String, Object>)account).put("free", free);
-            ((Map<String, Object>)account).put("used", used);
-            ((Map<String, Object>)account).put("total", total);
+            account.put("free", free);
+            account.put("used", used);
+            account.put("total", total);
             if (!java.util.Objects.equals(code, null))
             {
-                ((Map<String, Object>)result).put((String)code, account);
+                result.put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -3510,7 +3510,7 @@ public class Xt extends XtApi
             {
                 marginOrSpotRequest = "LEVER";
             }
-            ((Map<String, Object>)request).put("bizType", marginOrSpotRequest);
+            request.put("bizType", marginOrSpotRequest);
             if (java.util.Objects.equals(type, "market"))
             {
                 timeInForce = this.safeStringUpper(parameters, "timeInForce", "FOK");
@@ -3536,18 +3536,18 @@ public class Xt extends XtApi
                             {
                                 costCalculated = cost;
                             }
-                            ((Map<String, Object>)request).put("quoteQty", this.costToPrecision(symbol, costCalculated));
+                            request.put("quoteQty", this.costToPrecision(symbol, costCalculated));
                         }
                     } else
                     {
                         Object amountCost = (((!java.util.Objects.equals(cost, null)))) ? cost : amount;
-                        ((Map<String, Object>)request).put("quoteQty", this.costToPrecision(symbol, amountCost));
+                        request.put("quoteQty", this.costToPrecision(symbol, amountCost));
                     }
                 }
             } else
             {
                 timeInForce = this.safeStringUpper(parameters, "timeInForce", "GTC");
-                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+                request.put("price", this.priceToPrecision(symbol, price));
             }
             Boolean postOnly = null;
             List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(timeInForce, "GTX"), parameters);
@@ -3560,9 +3560,9 @@ public class Xt extends XtApi
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "postOnly")));
             if ((java.util.Objects.equals(side, "sell")) || (java.util.Objects.equals(type, "limit")))
             {
-                ((Map<String, Object>)request).put("quantity", this.amountToPrecision(symbol, amount));
+                request.put("quantity", this.amountToPrecision(symbol, amount));
             }
-            ((Map<String, Object>)request).put("timeInForce", timeInForce);
+            request.put("timeInForce", timeInForce);
             Map<String, Object> response = (this.privateSpotPostOrder(this.extend(request, parameters))).join();
             //
             //     {
@@ -3616,7 +3616,7 @@ public class Xt extends XtApi
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "postOnly")));
             if (!java.util.Objects.equals(timeInForce, null))
             {
-                ((Map<String, Object>)request).put("timeInForce", timeInForce);
+                request.put("timeInForce", timeInForce);
             }
             Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
             if (java.util.Objects.equals(side, "buy"))
@@ -3626,7 +3626,7 @@ public class Xt extends XtApi
                 {
                     requestType = "SHORT";
                 }
-                ((Map<String, Object>)request).put("positionSide", requestType);
+                request.put("positionSide", requestType);
             } else
             {
                 String requestType = "SHORT";
@@ -3634,7 +3634,7 @@ public class Xt extends XtApi
                 {
                     requestType = "LONG";
                 }
-                ((Map<String, Object>)request).put("positionSide", requestType);
+                request.put("positionSide", requestType);
             }
             Map<String, Object> response = new HashMap<String, Object>() {{}};
             Double triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
@@ -3659,30 +3659,30 @@ public class Xt extends XtApi
             {
                 if (!Boolean.TRUE.equals(isStopLoss) && !Boolean.TRUE.equals(isTakeProfit) && !Boolean.TRUE.equals(isTrailing))
                 {
-                    ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+                    request.put("price", this.priceToPrecision(symbol, price));
                 }
             }
             if (Boolean.TRUE.equals(isTrailing))
             {
-                ((Map<String, Object>)request).put("orderSide", ((String)side).toUpperCase());
-                ((Map<String, Object>)request).put("triggerPriceType", this.safeString(parameters, "triggerPriceType", "LATEST_PRICE"));
+                request.put("orderSide", ((String)side).toUpperCase());
+                request.put("triggerPriceType", this.safeString(parameters, "triggerPriceType", "LATEST_PRICE"));
                 String marginMode = null;
                 List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters, "cross");
                 marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
-                ((Map<String, Object>)request).put("positionType", (((java.util.Objects.equals(marginMode, "isolated")))) ? "ISOLATED" : "CROSSED");
+                request.put("positionType", (((java.util.Objects.equals(marginMode, "isolated")))) ? "ISOLATED" : "CROSSED");
                 if (!java.util.Objects.equals(trailingPercent, null))
                 {
-                    ((Map<String, Object>)request).put("callback", "PROPORTION");
-                    ((Map<String, Object>)request).put("callbackVal", this.parseToNumeric(Precise.stringDiv(trailingPercent, "100")));
+                    request.put("callback", "PROPORTION");
+                    request.put("callbackVal", this.parseToNumeric(Precise.stringDiv(trailingPercent, "100")));
                 } else
                 {
-                    ((Map<String, Object>)request).put("callback", "FIXED");
-                    ((Map<String, Object>)request).put("callbackVal", this.parseToNumeric(trailingAmount));
+                    request.put("callback", "FIXED");
+                    request.put("callbackVal", this.parseToNumeric(trailingAmount));
                 }
                 if (!java.util.Objects.equals(trailingTriggerPrice, null))
                 {
-                    ((Map<String, Object>)request).put("activationPrice", this.priceToPrecision(symbol, trailingTriggerPrice));
+                    request.put("activationPrice", this.priceToPrecision(symbol, trailingTriggerPrice));
                 }
                 parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("trailingPercent", "trailingAmount", "trailingTriggerPrice")));
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
@@ -3694,16 +3694,16 @@ public class Xt extends XtApi
                 }
             } else if (Boolean.TRUE.equals(isTrigger))
             {
-                ((Map<String, Object>)request).put("timeInForce", (((java.util.Objects.equals(timeInForce, null)))) ? "GTC" : timeInForce);
-                ((Map<String, Object>)request).put("triggerPriceType", this.safeString(parameters, "triggerPriceType", "LATEST_PRICE"));
-                ((Map<String, Object>)request).put("orderSide", ((String)side).toUpperCase());
-                ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision(symbol, triggerPrice));
+                request.put("timeInForce", (((java.util.Objects.equals(timeInForce, null)))) ? "GTC" : timeInForce);
+                request.put("triggerPriceType", this.safeString(parameters, "triggerPriceType", "LATEST_PRICE"));
+                request.put("orderSide", ((String)side).toUpperCase());
+                request.put("stopPrice", this.priceToPrecision(symbol, triggerPrice));
                 String entrustType = "STOP";
                 if (java.util.Objects.equals(type, "market"))
                 {
                     entrustType = "STOP_MARKET";
                 }
-                ((Map<String, Object>)request).put("entrustType", entrustType);
+                request.put("entrustType", entrustType);
                 parameters = (Map<String, Object>) this.omit(parameters, "triggerPrice");
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
                 {
@@ -3716,10 +3716,10 @@ public class Xt extends XtApi
             {
                 if (Boolean.TRUE.equals(isStopLoss))
                 {
-                    ((Map<String, Object>)request).put("triggerStopPrice", this.priceToPrecision(symbol, stopLoss));
+                    request.put("triggerStopPrice", this.priceToPrecision(symbol, stopLoss));
                 } else
                 {
-                    ((Map<String, Object>)request).put("triggerProfitPrice", this.priceToPrecision(symbol, takeProfit));
+                    request.put("triggerProfitPrice", this.priceToPrecision(symbol, takeProfit));
                 }
                 parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit")));
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
@@ -3731,8 +3731,8 @@ public class Xt extends XtApi
                 }
             } else
             {
-                ((Map<String, Object>)request).put("orderSide", ((String)side).toUpperCase());
-                ((Map<String, Object>)request).put("orderType", ((String)type).toUpperCase());
+                request.put("orderSide", ((String)side).toUpperCase());
+                request.put("orderType", ((String)type).toUpperCase());
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
                 {
                     response = (this.privateLinearPostFutureTradeV1OrderCreate(this.extend(request, parameters))).join();
@@ -3814,16 +3814,16 @@ public class Xt extends XtApi
             }
             if (java.util.Objects.equals(trigger, true))
             {
-                ((Map<String, Object>)request).put("entrustId", id);
+                request.put("entrustId", id);
             } else if (java.util.Objects.equals(stopLossTakeProfit, true))
             {
-                ((Map<String, Object>)request).put("profitId", id);
+                request.put("profitId", id);
             } else if (java.util.Objects.equals(trailing, true))
             {
-                ((Map<String, Object>)request).put("trackId", id);
+                request.put("trackId", id);
             } else
             {
-                ((Map<String, Object>)request).put("orderId", id);
+                request.put("orderId", id);
             }
             if (java.util.Objects.equals(trigger, true))
             {
@@ -4045,15 +4045,15 @@ public class Xt extends XtApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             String type = null;
             String subType = null;
@@ -4111,7 +4111,7 @@ public class Xt extends XtApi
                 {
                     marginOrSpotRequest = "LEVER";
                 }
-                ((Map<String, Object>)request).put("bizType", marginOrSpotRequest);
+                request.put("bizType", marginOrSpotRequest);
                 response = (this.privateSpotGetHistoryOrder(this.extend(request, parameters))).join();
             }
             //
@@ -4839,16 +4839,16 @@ public class Xt extends XtApi
             }
             if (java.util.Objects.equals(trigger, true))
             {
-                ((Map<String, Object>)request).put("entrustId", id);
+                request.put("entrustId", id);
             } else if (java.util.Objects.equals(stopLossTakeProfit, true))
             {
-                ((Map<String, Object>)request).put("profitId", id);
+                request.put("profitId", id);
             } else if (java.util.Objects.equals(trailing, true))
             {
-                ((Map<String, Object>)request).put("trackId", id);
+                request.put("trackId", id);
             } else
             {
-                ((Map<String, Object>)request).put("orderId", id);
+                request.put("orderId", id);
             }
             if (java.util.Objects.equals(trigger, true))
             {
@@ -4971,7 +4971,7 @@ public class Xt extends XtApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             String type = null;
             String subType = null;
@@ -5040,7 +5040,7 @@ public class Xt extends XtApi
                 {
                     marginOrSpotRequest = "LEVER";
                 }
-                ((Map<String, Object>)request).put("bizType", marginOrSpotRequest);
+                request.put("bizType", marginOrSpotRequest);
                 response = (this.privateSpotDeleteOpenOrder(this.extend(request, parameters))).join();
             }
             //
@@ -5325,7 +5325,7 @@ public class Xt extends XtApi
         final String finalTimeInForce = timeInForce;
         final Boolean finalPostOnly = postOnly;
         final String finalSide = side;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Xt.this.safeStringN(order, new ArrayList<Object>(Arrays.asList("orderId", "result", "cancelId", "entrustId", "profitId", "trackId"))) );
             put( "clientOrderId", Xt.this.safeString2(order, "clientOrderId", "clientModifyId") );
@@ -5353,7 +5353,7 @@ public class Xt extends XtApi
                 put( "cost", Xt.this.safeNumber(order, "fee") );
             }} );
             put( "trades", null );
-        }}), market);
+        }}, market);
     }
     public Object parseOrder(Object order, Object... optionalArgs)
     {
@@ -5416,11 +5416,11 @@ public class Xt extends XtApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             String type = null;
             String subType = null;
@@ -5666,15 +5666,15 @@ public class Xt extends XtApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
-                ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id"));
+                request.put("currency", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit); // default 10, max 200
+                request.put("limit", limit); // default 10, max 200
             }
             Map<String, Object> response = (this.privateSpotGetDepositHistory(this.extend(request, parameters))).join();
             //
@@ -5754,15 +5754,15 @@ public class Xt extends XtApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
-                ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id"));
+                request.put("currency", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit); // default 10, max 200
+                request.put("limit", limit); // default 10, max 200
             }
             Map<String, Object> response = (this.privateSpotGetWithdrawHistory(this.extend(request, parameters))).join();
             //
@@ -5855,7 +5855,7 @@ public class Xt extends XtApi
             }};
             if (!java.util.Objects.equals(tag, null))
             {
-                ((Map<String, Object>)request).put("memo", tag);
+                request.put("memo", tag);
             }
             Map<String, Object> response = (this.privateSpotPostWithdraw(this.extend(request, parameters))).join();
             //
@@ -6324,11 +6324,11 @@ public class Xt extends XtApi
             {
                 if (this.inArray(symbol, symbols))
                 {
-                    ((Map<String, Object>)result).put((String)symbol, this.parseMarketLeverageTiers(entry, market));
+                    result.put((String)symbol, this.parseMarketLeverageTiers(entry, market));
                 }
             } else
             {
-                ((Map<String, Object>)result).put((String)symbol, this.parseMarketLeverageTiers(Helpers.GetValue(response, i), market));
+                result.put((String)symbol, this.parseMarketLeverageTiers(Helpers.GetValue(response, i), market));
             }
         }
         return result;
@@ -6506,10 +6506,10 @@ final Map<String, Object> finalMarket = market;
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             } else
             {
-                ((Map<String, Object>)request).put("limit", 200); // max
+                request.put("limit", 200); // max
             }
             String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingRateHistory", market, parameters);
@@ -6942,7 +6942,7 @@ final Map<String, Object> finalMarket = market;
                 Object matchesSubType = ((Boolean.TRUE.equals(isInverse))) ? ((Map<String, Object>)market).get("inverse") : ((Map<String, Object>)market).get("linear");
                 if ((java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true)) && (java.util.Objects.equals(matchesSubType, true)))
                 {
-                    ((Map<String, Object>)result).put((String)symbol, this.parseTradingFee((Map<String, Object>) (fee), market));
+                    result.put((String)symbol, this.parseTradingFee((Map<String, Object>) (fee), market));
                 }
             }
             return result;
@@ -7014,11 +7014,11 @@ final Map<String, Object> finalMarket = market;
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             String subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingHistory", market, parameters);
@@ -7130,7 +7130,7 @@ final Map<String, Object> finalMarket = market;
             // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
             // both validate positionSide against exactly ['LONG', 'SHORT'])
             String key = ((this.safeString(breakEntry, "symbol") + "_") + this.safeString(breakEntry, "positionSide"));
-            ((Map<String, Object>)breakBySymbolSide).put((String)key, breakEntry);
+            breakBySymbolSide.put((String)key, breakEntry);
         }
         return breakBySymbolSide;
     }
@@ -7413,16 +7413,16 @@ final Map<String, Object> finalMarket = market;
                 if (java.util.Objects.equals(symbolsLength, 1))
                 {
                     market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
-                    ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                    request.put("symbol", ((Map<String, Object>)market).get("id"));
                 }
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
@@ -7570,7 +7570,7 @@ final Map<String, Object> finalMarket = market;
         Long timestamp = this.safeInteger(position, "closeTime");
         final Map<String, Object> finalMarket = market;
         final String finalMarginMode = marginMode;
-        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePosition(new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", Xt.this.safeString(position, "id") );
             put( "symbol", symbol );
@@ -7596,7 +7596,7 @@ final Map<String, Object> finalMarket = market;
             put( "marginMode", finalMarginMode );
             put( "percentage", null );
             put( "marginRatio", null );
-        }}));
+        }});
     }
     public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
@@ -7829,24 +7829,24 @@ final Map<String, Object> finalMarket = market;
             Boolean isTakeProfit = (!java.util.Objects.equals(takeProfit, null));
             if (Boolean.TRUE.equals(isStopLoss) || Boolean.TRUE.equals(isTakeProfit))
             {
-                ((Map<String, Object>)request).put("profitId", id);
+                request.put("profitId", id);
             } else
             {
-                ((Map<String, Object>)request).put("orderId", id);
-                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+                request.put("orderId", id);
+                request.put("price", this.priceToPrecision(symbol, price));
             }
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 if (Boolean.TRUE.equals(isStopLoss))
                 {
-                    ((Map<String, Object>)request).put("triggerStopPrice", this.priceToPrecision(symbol, stopLoss));
+                    request.put("triggerStopPrice", this.priceToPrecision(symbol, stopLoss));
                 } else if (!java.util.Objects.equals(takeProfit, null))
                 {
-                    ((Map<String, Object>)request).put("triggerProfitPrice", this.priceToPrecision(symbol, takeProfit));
+                    request.put("triggerProfitPrice", this.priceToPrecision(symbol, takeProfit));
                 } else
                 {
-                    ((Map<String, Object>)request).put("origQty", this.amountToPrecision(symbol, amount));
+                    request.put("origQty", this.amountToPrecision(symbol, amount));
                 }
                 String subType = null;
                 List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("editOrder", market, parameters);
@@ -7873,7 +7873,7 @@ final Map<String, Object> finalMarket = market;
                 }
             } else
             {
-                ((Map<String, Object>)request).put("quantity", this.amountToPrecision(symbol, amount));
+                request.put("quantity", this.amountToPrecision(symbol, amount));
                 response = (this.privateSpotPutOrderOrderId(this.extend(request, parameters))).join();
             }
             Object result = (((java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)))) ? response : this.safeDict(response, "result", new HashMap<String, Object>() {{}});

@@ -777,7 +777,7 @@ public class Gemini extends GeminiApi
             {
                 final String finalNetworkId = networkId;
                 final Object finalNetworkCode = networkCode;
-                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
+                networks.put((String)networkCode, new HashMap<String, Object>() {{
     put( "info", rawCurrency );
     put( "id", finalNetworkId );
     put( "network", finalNetworkCode );
@@ -800,7 +800,7 @@ public class Gemini extends GeminiApi
             }
         }
         final String finalType = type;
-        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "info", rawCurrency );
             put( "id", id );
             put( "code", code );
@@ -822,7 +822,7 @@ public class Gemini extends GeminiApi
                 }} );
             }} );
             put( "networks", networks );
-        }}));
+        }});
     }
 
     /**
@@ -1321,8 +1321,8 @@ public class Gemini extends GeminiApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit_bids", limit);
-                ((Map<String, Object>)request).put("limit_asks", limit);
+                request.put("limit_bids", limit);
+                request.put("limit_asks", limit);
             }
             Map<String, Object> response = (this.publicGetV1BookSymbol(this.extend(request, parameters))).join();
             return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), null, "bids", "asks", "price", "amount");
@@ -1692,7 +1692,7 @@ public class Gemini extends GeminiApi
         String amountString = this.safeString(trade, "amount");
         String side = this.safeStringLower(trade, "type");
         String symbol = this.safeSymbol(null, market);
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", id );
             put( "order", orderId );
             put( "info", trade );
@@ -1706,7 +1706,7 @@ public class Gemini extends GeminiApi
             put( "cost", null );
             put( "amount", amountString );
             put( "fee", fee );
-        }}), market);
+        }}, market);
     }
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
@@ -1741,11 +1741,11 @@ public class Gemini extends GeminiApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit_trades", Helpers.mathMin(limit, 500));
+                request.put("limit_trades", Helpers.mathMin(limit, 500));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("timestamp", since);
+                request.put("timestamp", since);
             }
             List<Object> response = (this.publicGetV1TradesSymbol(this.extend(request, parameters))).join();
             //
@@ -1792,11 +1792,11 @@ public class Gemini extends GeminiApi
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
-            ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
-            ((Map<String, Object>)account).put("total", this.safeString(balance, "amount"));
+            account.put("free", this.safeString(balance, "available"));
+            account.put("total", this.safeString(balance, "amount"));
             if (!java.util.Objects.equals(code, null))
             {
-                ((Map<String, Object>)result).put((String)code, account);
+                result.put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -1859,7 +1859,7 @@ public class Gemini extends GeminiApi
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
+                result.put((String)symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
         put( "maker", maker );
@@ -2074,7 +2074,7 @@ public class Gemini extends GeminiApi
         final String finalType = type;
         final String finalTimeInForce = timeInForce;
         final Boolean finalPostOnly = postOnly;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", clientOrderId );
             put( "info", order );
@@ -2096,7 +2096,7 @@ public class Gemini extends GeminiApi
             put( "remaining", remaining );
             put( "fee", fee );
             put( "trades", null );
-        }}), market);
+        }}, market);
     }
     public Object parseOrder(Object order, Object... optionalArgs)
     {
@@ -2295,8 +2295,8 @@ public class Gemini extends GeminiApi
             }
             if (!java.util.Objects.equals(triggerPrice, null))
             {
-                ((Map<String, Object>)request).put("stop_price", this.priceToPrecision(symbol, triggerPrice));
-                ((Map<String, Object>)request).put("type", "exchange stop limit");
+                request.put("stop_price", this.priceToPrecision(symbol, triggerPrice));
+                request.put("type", "exchange stop limit");
             } else
             {
                 // No options can be applied to stop-limit orders at this time.
@@ -2306,26 +2306,26 @@ public class Gemini extends GeminiApi
                 {
                     if ((java.util.Objects.equals(timeInForce, "IOC")) || (java.util.Objects.equals(timeInForce, "immediate-or-cancel")))
                     {
-                        ((Map<String, Object>)request).put("options", new ArrayList<Object>(Arrays.asList("immediate-or-cancel")));
+                        request.put("options", new ArrayList<Object>(Arrays.asList("immediate-or-cancel")));
                     } else if ((java.util.Objects.equals(timeInForce, "FOK")) || (java.util.Objects.equals(timeInForce, "fill-or-kill")))
                     {
-                        ((Map<String, Object>)request).put("options", new ArrayList<Object>(Arrays.asList("fill-or-kill")));
+                        request.put("options", new ArrayList<Object>(Arrays.asList("fill-or-kill")));
                     } else if (java.util.Objects.equals(timeInForce, "PO"))
                     {
-                        ((Map<String, Object>)request).put("options", new ArrayList<Object>(Arrays.asList("maker-or-cancel")));
+                        request.put("options", new ArrayList<Object>(Arrays.asList("maker-or-cancel")));
                     }
                 }
                 Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
                 parameters = (Map<String, Object>) this.omit(parameters, "postOnly");
                 if (java.util.Objects.equals(postOnly, true))
                 {
-                    ((Map<String, Object>)request).put("options", new ArrayList<Object>(Arrays.asList("maker-or-cancel")));
+                    request.put("options", new ArrayList<Object>(Arrays.asList("maker-or-cancel")));
                 }
                 // allowing override for auction-only and indication-of-interest order options
                 String options = this.safeString(parameters, "options");
                 if (!java.util.Objects.equals(options, null))
                 {
-                    ((Map<String, Object>)request).put("options", new ArrayList<Object>(Arrays.asList(options)));
+                    request.put("options", new ArrayList<Object>(Arrays.asList(options)));
                 }
             }
             Map<String, Object> response = (this.privatePostV1OrderNew(this.extend(request, parameters))).join();
@@ -2474,11 +2474,11 @@ public class Gemini extends GeminiApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit_trades", limit);
+                request.put("limit_trades", limit);
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("timestamp", this.parseToInt(Helpers.divide(since, 1000)));
+                request.put("timestamp", this.parseToInt(Helpers.divide(since, 1000)));
             }
             List<Object> response = (this.privatePostV1Mytrades(this.extend(request, parameters))).join();
             return this.parseTrades(response, market, since, limit);
@@ -2619,11 +2619,11 @@ public class Gemini extends GeminiApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit_transfers", limit);
+                request.put("limit_transfers", limit);
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("timestamp", since);
+                request.put("timestamp", since);
             }
             List<Object> response = (this.privatePostV1Transfers(this.extend(request, parameters))).join();
             return this.parseTransactions(response);

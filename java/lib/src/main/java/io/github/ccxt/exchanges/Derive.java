@@ -886,7 +886,7 @@ public class Derive extends DeriveApi
     {
         String currencyId = this.safeString(rawCurrency, "currency");
         String code = this.safeCurrencyCode(currencyId);
-        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "id", currencyId );
             put( "name", null );
             put( "code", code );
@@ -907,7 +907,7 @@ public class Derive extends DeriveApi
                 }} );
             }} );
             put( "info", rawCurrency );
-        }}));
+        }});
     }
 
     /**
@@ -1410,7 +1410,7 @@ public class Derive extends DeriveApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("instrument_name", ((Map<String, Object>)market).get("id"));
+                request.put("instrument_name", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -1418,17 +1418,17 @@ public class Derive extends DeriveApi
                 {
                     limit = 1000L;
                 }
-                ((Map<String, Object>)request).put("page_size", limit); // default 100, max 1000
+                request.put("page_size", limit); // default 100, max 1000
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("from_timestamp", since);
+                request.put("from_timestamp", since);
             }
             Long until = this.safeInteger(parameters, "until");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("to_timestamp", until);
+                request.put("to_timestamp", until);
             }
             Map<String, Object> response = (this.publicPostGetTradeHistory(this.extend(request, parameters))).join();
             //
@@ -1551,7 +1551,7 @@ public class Derive extends DeriveApi
             put( "currency", "USDC" );
             put( "cost", Derive.this.safeString(trade, "trade_fee") );
         }};
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Derive.this.safeString(trade, "trade_id") );
             put( "order", Derive.this.safeString(trade, "order_id") );
@@ -1565,7 +1565,7 @@ public class Derive extends DeriveApi
             put( "timestamp", timestamp );
             put( "datetime", Derive.this.iso8601(timestamp) );
             put( "fee", fee );
-        }}), market);
+        }}, market);
     }
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
@@ -1600,13 +1600,13 @@ public class Derive extends DeriveApi
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_timestamp", since);
+                request.put("start_timestamp", since);
             }
             Long until = this.safeInteger(parameters, "until");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("to_timestamp", until);
+                request.put("to_timestamp", until);
             }
             Map<String, Object> response = (this.publicPostGetFundingRateHistory(this.extend(request, parameters))).join();
             //
@@ -1885,7 +1885,7 @@ public class Derive extends DeriveApi
             }};
             if (!java.util.Objects.equals(reduceOnly, null))
             {
-                ((Map<String, Object>)request).put("reduce_only", reduceOnly);
+                request.put("reduce_only", reduceOnly);
                 if (Boolean.TRUE.equals(reduceOnly) && (java.util.Objects.equals(postOnly, true)))
                 {
                     throw new InvalidOrder((this.id + " cannot use reduce only with post only time in force")) ;
@@ -1893,10 +1893,10 @@ public class Derive extends DeriveApi
             }
             if (!java.util.Objects.equals(postOnly, null))
             {
-                ((Map<String, Object>)request).put("time_in_force", "post_only");
+                request.put("time_in_force", "post_only");
             } else if (!java.util.Objects.equals(timeInForce, null))
             {
-                ((Map<String, Object>)request).put("time_in_force", timeInForce);
+                request.put("time_in_force", timeInForce);
             }
             Object stopLoss = this.safeValue(parameters, "stopLoss");
             Object takeProfit = this.safeValue(parameters, "takeProfit");
@@ -1904,22 +1904,22 @@ public class Derive extends DeriveApi
             if (!java.util.Objects.equals(stopLoss, null))
             {
                 String stopLossPrice = this.safeString(stopLoss, "triggerPrice", stopLoss);
-                ((Map<String, Object>)request).put("trigger_price", stopLossPrice);
-                ((Map<String, Object>)request).put("trigger_type", "stoploss");
-                ((Map<String, Object>)request).put("trigger_price_type", triggerPriceType);
+                request.put("trigger_price", stopLossPrice);
+                request.put("trigger_type", "stoploss");
+                request.put("trigger_price_type", triggerPriceType);
             } else if (!java.util.Objects.equals(takeProfit, null))
             {
                 String takeProfitPrice = this.safeString(takeProfit, "triggerPrice", takeProfit);
-                ((Map<String, Object>)request).put("trigger_price", takeProfitPrice);
-                ((Map<String, Object>)request).put("trigger_type", "takeprofit");
-                ((Map<String, Object>)request).put("trigger_price_type", triggerPriceType);
+                request.put("trigger_price", takeProfitPrice);
+                request.put("trigger_type", "takeprofit");
+                request.put("trigger_price_type", triggerPriceType);
             }
             String clientOrderId = this.safeString(parameters, "clientOrderId");
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                ((Map<String, Object>)request).put("label", clientOrderId);
+                request.put("label", clientOrderId);
             }
-            ((Map<String, Object>)request).put("signature", signature);
+            request.put("signature", signature);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "test", "clientOrderId", "stopPrice", "triggerPrice", "trigger_price", "stopLoss", "takeProfit", "trigger_price_type")));
             Map<String, Object> response = null;
             if (java.util.Objects.equals(test, true))
@@ -2108,7 +2108,7 @@ public class Derive extends DeriveApi
             }};
             if (!java.util.Objects.equals(reduceOnly, null))
             {
-                ((Map<String, Object>)request).put("reduce_only", reduceOnly);
+                request.put("reduce_only", reduceOnly);
                 if (Boolean.TRUE.equals(reduceOnly) && (java.util.Objects.equals(postOnly, true)))
                 {
                     throw new InvalidOrder((this.id + " cannot use reduce only with post only time in force")) ;
@@ -2116,17 +2116,17 @@ public class Derive extends DeriveApi
             }
             if (!java.util.Objects.equals(postOnly, null))
             {
-                ((Map<String, Object>)request).put("time_in_force", "post_only");
+                request.put("time_in_force", "post_only");
             } else if (!java.util.Objects.equals(timeInForce, null))
             {
-                ((Map<String, Object>)request).put("time_in_force", timeInForce);
+                request.put("time_in_force", timeInForce);
             }
             String clientOrderId = this.safeString(parameters, "clientOrderId");
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                ((Map<String, Object>)request).put("label", clientOrderId);
+                request.put("label", clientOrderId);
             }
-            ((Map<String, Object>)request).put("signature", signature);
+            request.put("signature", signature);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "clientOrderId")));
             Map<String, Object> response = (this.privatePostReplace(this.extend(request, parameters))).join();
             //
@@ -2279,12 +2279,12 @@ public class Derive extends DeriveApi
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isByClientOrder))
             {
-                ((Map<String, Object>)request).put("label", clientOrderIdExchangeSpecific);
+                request.put("label", clientOrderIdExchangeSpecific);
                 parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "label")));
                 response = (this.privatePostCancelByLabel(this.extend(request, parameters))).join();
             } else
             {
-                ((Map<String, Object>)request).put("order_id", id);
+                request.put("order_id", id);
                 if (java.util.Objects.equals(isTrigger, true))
                 {
                     response = (this.privatePostCancelTriggerOrder(this.extend(request, parameters))).join();
@@ -2343,7 +2343,7 @@ public class Derive extends DeriveApi
             Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             if (Boolean.TRUE.equals(isByClientOrder))
             {
-                ((Map<String, Object>)extendParams).put("client_order_id", clientOrderIdExchangeSpecific);
+                extendParams.put("client_order_id", clientOrderIdExchangeSpecific);
             }
             return this.extend(this.parseOrder(order, market), extendParams);
         }).thenApply(Order::new);
@@ -2404,7 +2404,7 @@ public class Derive extends DeriveApi
             Map<String, Object> response = null;
             if (!java.util.Objects.equals(market, null))
             {
-                ((Map<String, Object>)request).put("instrument_name", ((Map<String, Object>)market).get("id"));
+                request.put("instrument_name", ((Map<String, Object>)market).get("id"));
                 response = (this.privatePostCancelByInstrument(this.extend(request, parameters))).join();
             } else
             {
@@ -2424,9 +2424,9 @@ public class Derive extends DeriveApi
             // }
             //
             final Map<String, Object> finalResponse = response;
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", finalResponse );
-    }}))));
+    }})));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2495,18 +2495,18 @@ public class Derive extends DeriveApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("instrument_name", ((Map<String, Object>)market).get("id"));
+                request.put("instrument_name", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("page_size", limit);
+                request.put("page_size", limit);
             } else
             {
-                ((Map<String, Object>)request).put("page_size", 500);
+                request.put("page_size", 500);
             }
             if (java.util.Objects.equals(isTrigger, true))
             {
-                ((Map<String, Object>)request).put("status", "untriggered");
+                request.put("status", "untriggered");
             }
             Map<String, Object> response = (this.privatePostGetOrders(this.extend(request, parameters))).join();
             //
@@ -2858,7 +2858,7 @@ public class Derive extends DeriveApi
         final String finalTriggerPrice = triggerPrice;
         final String finalTakeProfitPrice = takeProfitPrice;
         final String finalStopLossPrice = stopLossPrice;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", orderId );
             put( "clientOrderId", Derive.this.safeString(finalOrder, "label") );
             put( "timestamp", timestamp );
@@ -2887,7 +2887,7 @@ public class Derive extends DeriveApi
                 put( "currency", "USDC" );
             }} );
             put( "info", finalOrder );
-        }}), market);
+        }}, market);
     }
     public Object parseOrder(Object rawOrder, Object... optionalArgs)
     {
@@ -2935,15 +2935,15 @@ public class Derive extends DeriveApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("instrument_name", ((Map<String, Object>)market).get("id"));
+                request.put("instrument_name", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("page_size", limit);
+                request.put("page_size", limit);
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("from_timestamp", since);
+                request.put("from_timestamp", since);
             }
             Map<String, Object> response = (this.privatePostGetTradeHistory(this.extend(request, parameters))).join();
             //
@@ -3054,15 +3054,15 @@ public class Derive extends DeriveApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("instrument_name", ((Map<String, Object>)market).get("id"));
+                request.put("instrument_name", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("page_size", limit);
+                request.put("page_size", limit);
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("from_timestamp", since);
+                request.put("from_timestamp", since);
             }
             Map<String, Object> response = (this.privatePostGetTradeHistory(this.extend(request, parameters))).join();
             //
@@ -3275,7 +3275,7 @@ public class Derive extends DeriveApi
         final Map<String, Object> finalMarket = market;
         final String finalSize = size;
         final String finalSide = side;
-        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePosition(new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", Derive.this.safeString(finalMarket, "symbol") );
@@ -3303,7 +3303,7 @@ public class Derive extends DeriveApi
             put( "hedged", null );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
-        }}));
+        }});
     }
     public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
@@ -3357,15 +3357,15 @@ public class Derive extends DeriveApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("instrument_name", ((Map<String, Object>)market).get("id"));
+                request.put("instrument_name", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_timestamp", since);
+                request.put("start_timestamp", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("page_size", limit);
+                request.put("page_size", limit);
             }
             Map<String, Object> response = (this.privatePostGetFundingHistory(this.extend(request, parameters))).join();
             //
@@ -3576,15 +3576,15 @@ public class Derive extends DeriveApi
                 if (java.util.Objects.equals(account, null))
                 {
                     account = (Map<String, Object>) this.account();
-                    ((Map<String, Object>)account).put("total", this.safeString(balance, "amount"));
+                    account.put("total", this.safeString(balance, "amount"));
                 } else
                 {
                     String amount = this.safeString(balance, "amount");
-                    ((Map<String, Object>)account).put("total", Precise.stringAdd(((Map<String, Object>)account).get("total"), amount));
+                    account.put("total", Precise.stringAdd(((Map<String, Object>)account).get("total"), amount));
                 }
                 if (!java.util.Objects.equals(code, null))
                 {
-                    ((Map<String, Object>)result).put((String)code, account);
+                    result.put((String)code, account);
                 }
             }
         }
@@ -3624,7 +3624,7 @@ public class Derive extends DeriveApi
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_timestamp", since);
+                request.put("start_timestamp", since);
             }
             Map<String, Object> response = (this.privatePostGetDepositHistory(this.extend(request, parameters))).join();
             //
@@ -3702,7 +3702,7 @@ public class Derive extends DeriveApi
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_timestamp", since);
+                request.put("start_timestamp", since);
             }
             Map<String, Object> response = (this.privatePostGetWithdrawalHistory(this.extend(request, parameters))).join();
             //

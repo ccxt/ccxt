@@ -1443,7 +1443,7 @@ public class Hashkey extends HashkeyApi
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final Object finalNetworkCode = networkCode;
-                ((Map<String, Object>)parsedNetworks).put((String)networkCode, new HashMap<String, Object>() {{
+                parsedNetworks.put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", finalNetworkCode );
     put( "limits", new HashMap<String, Object>() {{
@@ -1472,7 +1472,7 @@ public class Hashkey extends HashkeyApi
             type = "fiat";
         }
         final String finalType = type;
-        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "id", currencyId );
             put( "code", code );
             put( "precision", null );
@@ -1494,7 +1494,7 @@ public class Hashkey extends HashkeyApi
             }} );
             put( "networks", parsedNetworks );
             put( "info", rawCurrency );
-        }}));
+        }});
     }
 
     /**
@@ -1522,7 +1522,7 @@ public class Hashkey extends HashkeyApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.publicGetQuoteV1Depth(this.extend(request, parameters))).join();
             //
@@ -1586,7 +1586,7 @@ public class Hashkey extends HashkeyApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             List<Object> response = (this.publicGetQuoteV1Trades(this.extend(request, parameters))).join();
             //
@@ -1667,11 +1667,11 @@ public class Hashkey extends HashkeyApi
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Object until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "until");
@@ -1679,7 +1679,7 @@ public class Hashkey extends HashkeyApi
             parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("endTime", until);
+                request.put("endTime", until);
             }
             String accountId = null;
             List<Object> accountIdparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, methodName, "accountId");
@@ -1690,11 +1690,11 @@ public class Hashkey extends HashkeyApi
             {
                 if (!java.util.Objects.equals(market, null))
                 {
-                    ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                    request.put("symbol", ((Map<String, Object>)market).get("id"));
                 }
                 if (!java.util.Objects.equals(accountId, null))
                 {
-                    ((Map<String, Object>)request).put("accountId", accountId);
+                    request.put("accountId", accountId);
                 }
                 response = (this.privateGetApiV1AccountTrades(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(marketType, "swap"))
@@ -1703,10 +1703,10 @@ public class Hashkey extends HashkeyApi
                 {
                     throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a symbol argument for swap markets")) ;
                 }
-                ((Map<String, Object>)request).put("symbol", this.safeString(market, "id"));
+                request.put("symbol", this.safeString(market, "id"));
                 if (!java.util.Objects.equals(accountId, null))
                 {
-                    ((Map<String, Object>)request).put("subAccountId", accountId);
+                    request.put("subAccountId", accountId);
                     response = (this.privateGetApiV1FuturesSubAccountUserTrades(this.extend(request, parameters))).join();
                 } else
                 {
@@ -1847,7 +1847,7 @@ public class Hashkey extends HashkeyApi
         final String finalSide = side;
         final String finalTakerOrMaker = takerOrMaker;
         final Map<String, Object> finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", Hashkey.this.safeString2(trade, "id", "tradeId") );
             put( "timestamp", timestamp );
             put( "datetime", Hashkey.this.iso8601(timestamp) );
@@ -1861,7 +1861,7 @@ public class Hashkey extends HashkeyApi
             put( "order", Hashkey.this.safeString(trade, "orderId") );
             put( "fee", finalFee );
             put( "info", trade );
-        }}), market);
+        }}, market);
     }
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
@@ -1915,11 +1915,11 @@ public class Hashkey extends HashkeyApi
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Object until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "until");
@@ -1927,7 +1927,7 @@ public class Hashkey extends HashkeyApi
             parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("endTime", until);
+                request.put("endTime", until);
             }
             List<Object> response = (this.publicGetQuoteV1Klines(this.extend(request, parameters))).join();
             //
@@ -2325,12 +2325,12 @@ public class Hashkey extends HashkeyApi
             String currencyId = this.safeString(balanceEntry, "asset");
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
-            ((Map<String, Object>)account).put("total", this.safeString(balanceEntry, "total"));
-            ((Map<String, Object>)account).put("free", this.safeString(balanceEntry, "free"));
-            ((Map<String, Object>)account).put("used", this.safeString(balanceEntry, "locked"));
+            account.put("total", this.safeString(balanceEntry, "total"));
+            account.put("free", this.safeString(balanceEntry, "free"));
+            account.put("used", this.safeString(balanceEntry, "locked"));
             if (!java.util.Objects.equals(code, null))
             {
-                ((Map<String, Object>)result).put((String)code, account);
+                result.put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -2351,16 +2351,16 @@ public class Hashkey extends HashkeyApi
         String currencyId = this.safeString(balance, "asset");
         String code = this.safeCurrencyCode(currencyId);
         Map<String, Object> account = (Map<String, Object>) this.account();
-        ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
+        account.put("total", this.safeString(balance, "balance"));
         String positionMargin = this.safeString(balance, "positionMargin");
         String orderMargin = this.safeString(balance, "orderMargin");
-        ((Map<String, Object>)account).put("used", Precise.stringAdd(positionMargin, orderMargin));
+        account.put("used", Precise.stringAdd(positionMargin, orderMargin));
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", balance );
         }};
         if (!java.util.Objects.equals(code, null))
         {
-            ((Map<String, Object>)result).put((String)code, account);
+            result.put((String)code, account);
         }
         return this.safeBalance(result);
     }
@@ -2396,7 +2396,7 @@ public class Hashkey extends HashkeyApi
             {
                 networkCode = this.defaultNetworkCode(code);
             }
-            ((Map<String, Object>)request).put("chainType", this.networkCodeToId((String) (networkCode), code));
+            request.put("chainType", this.networkCodeToId((String) (networkCode), code));
             Map<String, Object> response = (this.privateGetApiV1AccountDepositAddress(this.extend(request, parameters))).join();
             //
             //     {
@@ -2500,15 +2500,15 @@ public class Hashkey extends HashkeyApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
-                ((Map<String, Object>)request).put("coin", ((Map<String, Object>)currency).get("id"));
+                request.put("coin", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Object until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "until");
@@ -2516,7 +2516,7 @@ public class Hashkey extends HashkeyApi
             parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("endTime", until);
+                request.put("endTime", until);
             }
             List<Object> response = (this.privateGetApiV1AccountDepositOrders(this.extend(request, parameters))).join();
             //
@@ -2590,15 +2590,15 @@ public class Hashkey extends HashkeyApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
-                ((Map<String, Object>)request).put("coin", ((Map<String, Object>)currency).get("id"));
+                request.put("coin", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Object until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "until");
@@ -2606,7 +2606,7 @@ public class Hashkey extends HashkeyApi
             parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("endTime", until);
+                request.put("endTime", until);
             }
             List<Object> response = (this.privateGetApiV1AccountWithdrawOrders(this.extend(request, parameters))).join();
             //
@@ -2690,7 +2690,7 @@ public class Hashkey extends HashkeyApi
             }};
             if (!java.util.Objects.equals(tag, null))
             {
-                ((Map<String, Object>)request).put("addressExt", tag);
+                request.put("addressExt", tag);
             }
             String networkCode = null;
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
@@ -2698,7 +2698,7 @@ public class Hashkey extends HashkeyApi
             parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                ((Map<String, Object>)request).put("chainType", this.networkCodeToId(networkCode, ((Map<String, Object>)currency).get("code")));
+                request.put("chainType", this.networkCodeToId(networkCode, ((Map<String, Object>)currency).get("code")));
             }
             Map<String, Object> response = (this.privatePostApiV1AccountWithdraw(this.extend(request, parameters))).join();
             //
@@ -3089,19 +3089,19 @@ public class Hashkey extends HashkeyApi
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            ((Map<String, Object>)request).put("startTime", since);
+            request.put("startTime", since);
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
-            ((Map<String, Object>)request).put("endTime", until);
+            request.put("endTime", until);
             String flowType = null;
             List<Object> flowTypeparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, methodName, "flowType");
             flowType = (String) ((List<Object>) flowTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) flowTypeparametersVariable).get(1);
             if (!java.util.Objects.equals(flowType, null))
             {
-                ((Map<String, Object>)request).put("flowType", this.encodeFlowType(flowType));
+                request.put("flowType", this.encodeFlowType(flowType));
             }
             String accountType = null;
             List<Object> accountTypeparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, methodName, "accountType");
@@ -3109,7 +3109,7 @@ public class Hashkey extends HashkeyApi
             parameters = (Map<String, Object>) ((List<Object>) accountTypeparametersVariable).get(1);
             if (!java.util.Objects.equals(accountType, null))
             {
-                ((Map<String, Object>)request).put("accountType", this.encodeAccountType(accountType));
+                request.put("accountType", this.encodeAccountType(accountType));
             }
             List<Object> response = (this.privateGetApiV1AccountBalanceFlow(this.extend(request, parameters))).join();
             //
@@ -3489,7 +3489,7 @@ public class Hashkey extends HashkeyApi
         }};
         if (!java.util.Objects.equals(amount, null))
         {
-            ((Map<String, Object>)request).put("quantity", this.amountToPrecision(symbol, amount));
+            request.put("quantity", this.amountToPrecision(symbol, amount));
         }
         String cost = null;
         List<Object> costparametersVariable = (List<Object>) this.handleParamString(parameters, "cost");
@@ -3497,11 +3497,11 @@ public class Hashkey extends HashkeyApi
         parameters = (Map<String, Object>) ((List<Object>) costparametersVariable).get(1);
         if (!java.util.Objects.equals(cost, null))
         {
-            ((Map<String, Object>)request).put("quantity", this.costToPrecision(symbol, cost));
+            request.put("quantity", this.costToPrecision(symbol, cost));
         }
         if (!java.util.Objects.equals(price, null))
         {
-            ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+            request.put("price", this.priceToPrecision(symbol, price));
         }
         Boolean isMarketOrder = java.util.Objects.equals(type, "MARKET");
         Boolean postOnly = false;
@@ -3510,7 +3510,7 @@ public class Hashkey extends HashkeyApi
         parameters = (Map<String, Object>) ((List<Object>) postOnlyparametersVariable).get(1);
         if (Boolean.TRUE.equals(postOnly) && (java.util.Objects.equals(type, "LIMIT")))
         {
-            ((Map<String, Object>)request).put("type", "LIMIT_MAKER");
+            request.put("type", "LIMIT_MAKER");
         }
         String clientOrderId = null;
         List<Object> clientOrderIdparametersVariable = (List<Object>) this.handleParamString(parameters, "clientOrderId");
@@ -3556,12 +3556,12 @@ public class Hashkey extends HashkeyApi
         Boolean isMarketOrder = java.util.Objects.equals(type, "market");
         if (Boolean.TRUE.equals(isMarketOrder))
         {
-            ((Map<String, Object>)request).put("priceType", "MARKET");
+            request.put("priceType", "MARKET");
         }
         if (!java.util.Objects.equals(price, null))
         {
-            ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
-            ((Map<String, Object>)request).put("priceType", "INPUT");
+            request.put("price", this.priceToPrecision(symbol, price));
+            request.put("priceType", "INPUT");
         }
         Object reduceOnly = false;
         List<Object> reduceOnlyparametersVariable = (List<Object>) this.handleParamBool(parameters, "reduceOnly", reduceOnly);
@@ -3572,7 +3572,7 @@ public class Hashkey extends HashkeyApi
         {
             suffix = "_CLOSE";
         }
-        ((Map<String, Object>)request).put("side", (((String)((String)side)).toUpperCase() + suffix));
+        request.put("side", (((String)((String)side)).toUpperCase() + suffix));
         String timeInForce = null;
         List<Object> timeInForceparametersVariable = (List<Object>) this.handleParamString(parameters, "timeInForce");
         timeInForce = (String) ((List<Object>) timeInForceparametersVariable).get(0);
@@ -3587,18 +3587,18 @@ public class Hashkey extends HashkeyApi
         }
         if (!java.util.Objects.equals(timeInForce, null))
         {
-            ((Map<String, Object>)request).put("timeInForce", timeInForce);
+            request.put("timeInForce", timeInForce);
         }
         String clientOrderId = this.safeString(parameters, "clientOrderId");
         if (java.util.Objects.equals(clientOrderId, null))
         {
-            ((Map<String, Object>)request).put("clientOrderId", this.uuid());
+            request.put("clientOrderId", this.uuid());
         }
         String triggerPrice = this.safeString(parameters, "triggerPrice");
         if (!java.util.Objects.equals(triggerPrice, null))
         {
-            ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision(symbol, triggerPrice));
-            ((Map<String, Object>)request).put("type", "STOP");
+            request.put("stopPrice", this.priceToPrecision(symbol, triggerPrice));
+            request.put("type", "STOP");
             parameters = (Map<String, Object>) (this.omit(parameters, "triggerPrice"));
         }
         return (Map<String, Object>) (this.extend(request, parameters));
@@ -3719,7 +3719,7 @@ public class Hashkey extends HashkeyApi
                 String clientOrderId = this.safeString(orderRequest, "clientOrderId");
                 if (java.util.Objects.equals(clientOrderId, null))
                 {
-                    ((Map<String, Object>)orderRequest).put("clientOrderId", this.uuid()); // both spot and swap endpoints require clientOrderId
+                    orderRequest.put("clientOrderId", this.uuid()); // both spot and swap endpoints require clientOrderId
                 }
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
@@ -3799,7 +3799,7 @@ public class Hashkey extends HashkeyApi
             String clientOrderId = this.safeString(parameters, "clientOrderId");
             if (java.util.Objects.equals(clientOrderId, null))
             {
-                ((Map<String, Object>)request).put("orderId", id);
+                request.put("orderId", id);
             }
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -3822,14 +3822,14 @@ public class Hashkey extends HashkeyApi
                 parameters = (Map<String, Object>) ((List<Object>) isTriggerparametersVariable).get(1);
                 if (java.util.Objects.equals(isTrigger, true))
                 {
-                    ((Map<String, Object>)request).put("type", "STOP");
+                    request.put("type", "STOP");
                 } else
                 {
-                    ((Map<String, Object>)request).put("type", "LIMIT");
+                    request.put("type", "LIMIT");
                 }
                 if (!java.util.Objects.equals(market, null))
                 {
-                    ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                    request.put("symbol", ((Map<String, Object>)market).get("id"));
                 }
                 response = (this.privateDeleteApiV1FuturesOrder(this.extend(request, parameters))).join();
             } else
@@ -3893,7 +3893,7 @@ public class Hashkey extends HashkeyApi
             String side = this.safeString(parameters, "side");
             if (!java.util.Objects.equals(side, null))
             {
-                ((Map<String, Object>)request).put("side", side);
+                request.put("side", side);
             }
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
@@ -3954,7 +3954,7 @@ public class Hashkey extends HashkeyApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String orderIds = String.join(",", (List<String>)ids);
-            ((Map<String, Object>)request).put("ids", orderIds);
+            request.put("ids", orderIds);
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -4034,7 +4034,7 @@ public class Hashkey extends HashkeyApi
             parameters = (Map<String, Object>) ((List<Object>) clientOrderIdparametersVariable).get(1);
             if (java.util.Objects.equals(clientOrderId, null))
             {
-                ((Map<String, Object>)request).put("orderId", id);
+                request.put("orderId", id);
             }
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -4050,7 +4050,7 @@ public class Hashkey extends HashkeyApi
             {
                 if (!java.util.Objects.equals(clientOrderId, null))
                 {
-                    ((Map<String, Object>)request).put("origClientOrderId", clientOrderId);
+                    request.put("origClientOrderId", clientOrderId);
                 }
                 response = (this.privateGetApiV1SpotOrder(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(marketType, "swap"))
@@ -4061,7 +4061,7 @@ public class Hashkey extends HashkeyApi
                 parameters = (Map<String, Object>) ((List<Object>) isTriggerparametersVariable).get(1);
                 if (java.util.Objects.equals(isTrigger, true))
                 {
-                    ((Map<String, Object>)request).put("type", "STOP");
+                    request.put("type", "STOP");
                 }
                 response = (this.privateGetApiV1FuturesOrder(this.extend(request, parameters))).join();
             } else
@@ -4220,18 +4220,18 @@ public class Hashkey extends HashkeyApi
             parameters = (Map<String, Object>) ((List<Object>) accountIdparametersVariable).get(1);
             if (!java.util.Objects.equals(accountId, null))
             {
-                ((Map<String, Object>)request).put("subAccountId", accountId);
+                request.put("subAccountId", accountId);
                 response = (this.privateGetApiV1SpotSubAccountOpenOrders(this.extend(request, parameters))).join();
             } else
             {
                 if (!java.util.Objects.equals(symbol, null))
                 {
                     market = (Map<String, Object>) this.market(symbol);
-                    ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                    request.put("symbol", ((Map<String, Object>)market).get("id"));
                 }
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    ((Map<String, Object>)request).put("limit", limit);
+                    request.put("limit", limit);
                 }
                 response = (this.privateGetApiV1SpotOpenOrders(this.extend(request, parameters))).join();
             }
@@ -4304,14 +4304,14 @@ public class Hashkey extends HashkeyApi
             parameters = (Map<String, Object>) ((List<Object>) isTriggerparametersVariable).get(1);
             if (java.util.Objects.equals(isTrigger, true))
             {
-                ((Map<String, Object>)request).put("type", "STOP");
+                request.put("type", "STOP");
             } else
             {
-                ((Map<String, Object>)request).put("type", "LIMIT");
+                request.put("type", "LIMIT");
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             List<Object> response = null;
             String accountId = null;
@@ -4320,7 +4320,7 @@ public class Hashkey extends HashkeyApi
             parameters = (Map<String, Object>) ((List<Object>) accountIdparametersVariable).get(1);
             if (!java.util.Objects.equals(accountId, null))
             {
-                ((Map<String, Object>)request).put("subAccountId", accountId);
+                request.put("subAccountId", accountId);
                 response = (this.privateGetApiV1FuturesSubAccountOpenOrders(this.extend(request, parameters))).join();
             } else
             {
@@ -4393,11 +4393,11 @@ public class Hashkey extends HashkeyApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             Object until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "until");
@@ -4405,7 +4405,7 @@ public class Hashkey extends HashkeyApi
             parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("endTime", until);
+                request.put("endTime", until);
             }
             String accountId = null;
             List<Object> accountIdparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, methodName, "accountId");
@@ -4425,11 +4425,11 @@ public class Hashkey extends HashkeyApi
             {
                 if (!java.util.Objects.equals(market, null))
                 {
-                    ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                    request.put("symbol", ((Map<String, Object>)market).get("id"));
                 }
                 if (!java.util.Objects.equals(accountId, null))
                 {
-                    ((Map<String, Object>)request).put("accountId", accountId);
+                    request.put("accountId", accountId);
                 }
                 response = (this.privateGetApiV1SpotTradeOrders(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(marketType, "swap"))
@@ -4438,21 +4438,21 @@ public class Hashkey extends HashkeyApi
                 {
                     throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a symbol argument for swap markets")) ;
                 }
-                ((Map<String, Object>)request).put("symbol", this.safeString(market, "id"));
+                request.put("symbol", this.safeString(market, "id"));
                 Object isTrigger = false;
                 List<Object> isTriggerparametersVariable = (List<Object>) this.handleTriggerOptionAndParams(parameters, methodName, isTrigger);
                 isTrigger = ((List<Object>) isTriggerparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) isTriggerparametersVariable).get(1);
                 if (java.util.Objects.equals(isTrigger, true))
                 {
-                    ((Map<String, Object>)request).put("type", "STOP");
+                    request.put("type", "STOP");
                 } else
                 {
-                    ((Map<String, Object>)request).put("type", "LIMIT");
+                    request.put("type", "LIMIT");
                 }
                 if (!java.util.Objects.equals(accountId, null))
                 {
-                    ((Map<String, Object>)request).put("subAccountId", accountId);
+                    request.put("subAccountId", accountId);
                     response = (this.privateGetApiV1FuturesSubAccountHistoryOrders(this.extend(request, parameters))).join();
                 } else
                 {
@@ -4678,7 +4678,7 @@ public class Hashkey extends HashkeyApi
         final String finalFeeCurrncyId = feeCurrncyId;
         final Object finalReduceOnly = reduceOnly;
         final Object finalPostOnly = postOnly;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", Hashkey.this.safeString(order, "orderId") );
             put( "clientOrderId", Hashkey.this.safeString(order, "clientOrderId") );
             put( "datetime", Hashkey.this.iso8601(timestamp) );
@@ -4707,7 +4707,7 @@ public class Hashkey extends HashkeyApi
             put( "reduceOnly", finalReduceOnly );
             put( "postOnly", finalPostOnly );
             put( "info", order );
-        }}), market);
+        }}, market);
     }
     public Object parseOrder(Object order, Object... optionalArgs)
     {
@@ -4948,7 +4948,7 @@ public class Hashkey extends HashkeyApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             List<Object> response = (this.publicGetApiV1FuturesHistoryFundingRate(this.extend(request, parameters))).join();
             //
@@ -5132,7 +5132,7 @@ public class Hashkey extends HashkeyApi
         String marketId = this.safeString(position, "symbol");
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
-        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePosition(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "id", null );
             put( "timestamp", null );
@@ -5161,7 +5161,7 @@ public class Hashkey extends HashkeyApi
             put( "takeProfitPrice", null );
             put( "percentage", null );
             put( "info", position );
-        }}));
+        }});
     }
     public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
@@ -5263,7 +5263,7 @@ public class Hashkey extends HashkeyApi
                 put( "leverage", leverage );
             }};
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+            request.put("symbol", ((Map<String, Object>)market).get("id"));
             Map<String, Object> response = (this.privatePostApiV1FuturesLeverage(this.extend(request, parameters))).join();
             //
             //     {
@@ -5762,7 +5762,7 @@ final Object finalI = i;
             {
                 Map<String, Object> fee = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
                 Map<String, Object> parsedFee = this.parseTradingFee((Map<String, Object>) (fee));
-                ((Map<String, Object>)result).put((String)((String)((Map<String, Object>)parsedFee).get("symbol")), parsedFee);
+                result.put((String)((String)((Map<String, Object>)parsedFee).get("symbol")), parsedFee);
             }
             return result;
         }).thenApply(TradingFees::new);
@@ -5835,7 +5835,7 @@ final Object finalI = i;
             Long recvWindow = this.safeInteger(this.options, "recvWindow");
             if (!java.util.Objects.equals(recvWindow, null))
             {
-                ((Map<String, Object>)additionalParams).put("recvWindow", recvWindow);
+                additionalParams.put("recvWindow", recvWindow);
             }
             headers = new HashMap<String, Object>() {{
                 put( "X-HK-APIKEY", Hashkey.this.apiKey );
@@ -5856,7 +5856,7 @@ final Object finalI = i;
             {
                 Map<String, Object> totalParams = this.extend(additionalParams, parameters);
                 signature = this.hmac(this.encode(((String)this.customUrlencode(totalParams))), this.encode(this.secret), sha256());
-                Helpers.addElementToObject(totalParams, "signature", signature);
+                totalParams.put("signature", signature);
                 query = this.customUrlencode(totalParams);
                 if (java.util.Objects.equals(method, "GET"))
                 {

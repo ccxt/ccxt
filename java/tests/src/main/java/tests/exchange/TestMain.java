@@ -621,15 +621,15 @@ public class TestMain extends BaseTest
             {
                 if (java.util.Objects.equals(isSpot, true))
                 {
-                    Helpers.addElementToObject(tests, "fetchCurrencies", new ArrayList<Object>(Arrays.asList()));
+                    tests.put("fetchCurrencies", new ArrayList<Object>(Arrays.asList()));
                 } else
                 {
-                    Helpers.addElementToObject(tests, "fetchFundingRates", new ArrayList<Object>(Arrays.asList(primarySymbol)));
-                    Helpers.addElementToObject(tests, "fetchFundingRate", new ArrayList<Object>(Arrays.asList(primarySymbol)));
-                    Helpers.addElementToObject(tests, "fetchFundingRateHistory", new ArrayList<Object>(Arrays.asList(primarySymbol)));
-                    Helpers.addElementToObject(tests, "fetchIndexOHLCV", new ArrayList<Object>(Arrays.asList(primarySymbol)));
-                    Helpers.addElementToObject(tests, "fetchMarkOHLCV", new ArrayList<Object>(Arrays.asList(primarySymbol)));
-                    Helpers.addElementToObject(tests, "fetchPremiumIndexOHLCV", new ArrayList<Object>(Arrays.asList(primarySymbol)));
+                    tests.put("fetchFundingRates", new ArrayList<Object>(Arrays.asList(primarySymbol)));
+                    tests.put("fetchFundingRate", new ArrayList<Object>(Arrays.asList(primarySymbol)));
+                    tests.put("fetchFundingRateHistory", new ArrayList<Object>(Arrays.asList(primarySymbol)));
+                    tests.put("fetchIndexOHLCV", new ArrayList<Object>(Arrays.asList(primarySymbol)));
+                    tests.put("fetchMarkOHLCV", new ArrayList<Object>(Arrays.asList(primarySymbol)));
+                    tests.put("fetchPremiumIndexOHLCV", new ArrayList<Object>(Arrays.asList(primarySymbol)));
                 }
             }
             this.publicTests = tests;
@@ -923,8 +923,8 @@ public class TestMain extends BaseTest
                         if (Helpers.isGreaterThan(volume, 0))
                         {
                             Map<String, Object> entry = new HashMap<String, Object>() {{}};
-                            ((Map<String, Object>)entry).put("symbol", tickerSymbol);
-                            ((Map<String, Object>)entry).put("volume", volume);
+                            entry.put("symbol", tickerSymbol);
+                            entry.put("volume", volume);
                             ((List<Object>)candidates).add(entry);
                         }
                     }
@@ -1170,7 +1170,7 @@ public class TestMain extends BaseTest
                     Map<String, Object> eventParams = new HashMap<String, Object>() {{}};
                     if (!java.util.Objects.equals(eventQuery, null))
                     {
-                        ((Map<String, Object>)eventParams).put("query", eventQuery);
+                        eventParams.put("query", eventQuery);
                     }
                     Object events = (callExchangeMethodDynamically(exchange, "fetchEvents", new ArrayList<Object>(Arrays.asList(eventParams)))).join();
                     Assert(!java.util.Objects.equals(events, null), Helpers.add(exchange.id, " fetchEvents returned undefined"));
@@ -1527,7 +1527,7 @@ public class TestMain extends BaseTest
             }};
             if (Helpers.isTrue(getCliArgValue("--fundedTests")))
             {
-                Helpers.addElementToObject(tests, "createOrder", new ArrayList<Object>(Arrays.asList(symbol)));
+                tests.put("createOrder", new ArrayList<Object>(Arrays.asList(symbol)));
             }
             if (Helpers.isTrue(this.wsTests))
             {
@@ -1545,18 +1545,18 @@ public class TestMain extends BaseTest
             {
                 if (java.util.Objects.equals(isSpot, true))
                 {
-                    Helpers.addElementToObject(tests, "fetchCurrencies", new ArrayList<Object>(Arrays.asList()));
+                    tests.put("fetchCurrencies", new ArrayList<Object>(Arrays.asList()));
                 } else
                 {
                     // derivatives only
-                    Helpers.addElementToObject(tests, "fetchPositions", new ArrayList<Object>(Arrays.asList(symbol))); // this test fetches all positions for 1 symbol
-                    Helpers.addElementToObject(tests, "fetchPosition", new ArrayList<Object>(Arrays.asList(symbol)));
-                    Helpers.addElementToObject(tests, "fetchPositionRisk", new ArrayList<Object>(Arrays.asList(symbol)));
-                    Helpers.addElementToObject(tests, "setPositionMode", new ArrayList<Object>(Arrays.asList(symbol)));
-                    Helpers.addElementToObject(tests, "setMarginMode", new ArrayList<Object>(Arrays.asList(symbol)));
-                    Helpers.addElementToObject(tests, "fetchOpenInterestHistory", new ArrayList<Object>(Arrays.asList(symbol)));
-                    Helpers.addElementToObject(tests, "fetchFundingRateHistory", new ArrayList<Object>(Arrays.asList(symbol)));
-                    Helpers.addElementToObject(tests, "fetchFundingHistory", new ArrayList<Object>(Arrays.asList(symbol)));
+                    tests.put("fetchPositions", new ArrayList<Object>(Arrays.asList(symbol))); // this test fetches all positions for 1 symbol
+                    tests.put("fetchPosition", new ArrayList<Object>(Arrays.asList(symbol)));
+                    tests.put("fetchPositionRisk", new ArrayList<Object>(Arrays.asList(symbol)));
+                    tests.put("setPositionMode", new ArrayList<Object>(Arrays.asList(symbol)));
+                    tests.put("setMarginMode", new ArrayList<Object>(Arrays.asList(symbol)));
+                    tests.put("fetchOpenInterestHistory", new ArrayList<Object>(Arrays.asList(symbol)));
+                    tests.put("fetchFundingRateHistory", new ArrayList<Object>(Arrays.asList(symbol)));
+                    tests.put("fetchFundingHistory", new ArrayList<Object>(Arrays.asList(symbol)));
                 }
             }
             // const combinedTests = exchange.deepExtend (this.publicTests, privateTests);
@@ -1799,7 +1799,7 @@ public class TestMain extends BaseTest
             }
             String exchangeName = Helpers.replace(((String)file), ".json", "");
             Object content = ioFileRead(Helpers.add(folder, file));
-            ((Map<String, Object>)result).put((String)exchangeName, content);
+            result.put((String)exchangeName, content);
         }
         return result;
     }
@@ -1856,7 +1856,7 @@ public class TestMain extends BaseTest
                 // some exchanges might return something like this: timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI
                 value = jsonParse(value);
             }
-            ((Map<String, Object>)result).put((String)key, value);
+            result.put((String)key, value);
         }
         return result;
     }
@@ -2723,8 +2723,8 @@ public class TestMain extends BaseTest
         }};
         if (java.util.Objects.equals(exchangeName, "grvt"))
         {
-            ((Map<String, Object>)options).put("apiKey", "");
-            ((Map<String, Object>)options).put("secret", "");
+            options.put("apiKey", "");
+            options.put("secret", "");
         }
         BaseExchange exchange = initExchange(exchangeName, options, isWs);
         if (!java.util.Objects.equals(currencies, null))

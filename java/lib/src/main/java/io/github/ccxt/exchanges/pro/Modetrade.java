@@ -320,7 +320,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         String marketId = this.safeString(data, "symbol");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Long timestamp = this.safeInteger(message, "ts");
-        ((Map<String, Object>)data).put("date", timestamp);
+        data.put("date", timestamp);
         Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data, market);
         Helpers.addElementToObject(ticker, "symbol", ((Map<String, Object>)market).get("symbol"));
         Helpers.addElementToObject(this.tickers, ((Map<String, Object>)market).get("symbol"), ticker);
@@ -775,7 +775,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         }
         final String finalTakerOrMaker = takerOrMaker;
         final Map<String, Object> finalFee = fee;
-        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
             put( "id", Modetrade.this.safeString(trade, "tradeId") );
             put( "timestamp", timestamp );
             put( "datetime", Modetrade.this.iso8601(timestamp) );
@@ -789,7 +789,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             put( "type", Modetrade.this.safeStringLower(trade, "type") );
             put( "fee", finalFee );
             put( "info", trade );
-        }}), market));
+        }}, market));
     }
     public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
@@ -1155,7 +1155,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         Double triggerPrice = this.safeNumber(order, "triggerPrice");
         final Double finalPrice = price;
         final String finalRemaining = remaining;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "symbol", symbol );
             put( "id", orderId );
@@ -1178,7 +1178,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             put( "status", status );
             put( "fee", fee );
             put( "trades", trades );
-        }}));
+        }});
     }
     public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
     {
@@ -1555,7 +1555,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         final Map<String, Object> finalMarket = market;
         final String finalSize = size;
         final String finalSide = side;
-        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePosition(new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", Modetrade.this.safeString(finalMarket, "symbol") );
@@ -1584,7 +1584,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             put( "hedged", null );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
-        }}));
+        }});
     }
     public Object parseWsPosition(Object position, Object... optionalArgs)
     {

@@ -798,7 +798,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             type = "limit";
         }
         final String finalType = type;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", Alpaca.this.safeString(trade, "i") );
             put( "info", trade );
             put( "timestamp", Alpaca.this.parse8601(datetime) );
@@ -812,7 +812,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             put( "amount", Alpaca.this.safeString(trade, "filled_qty") );
             put( "cost", null );
             put( "fee", null );
-        }}), market);
+        }}, market);
     }
     public Object parseMyTrade(Map<String, Object> trade, Object... optionalArgs)
     {

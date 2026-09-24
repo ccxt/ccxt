@@ -4505,7 +4505,7 @@ public class Bitget extends BitgetApi
             withdraw = (((java.util.Objects.equals(withdraw, null)))) ? withdrawable : (Boolean.TRUE.equals(withdraw) || Boolean.TRUE.equals(withdrawable));
             deposit = (((java.util.Objects.equals(deposit, null)))) ? rechargeable : (Boolean.TRUE.equals(deposit) || Boolean.TRUE.equals(rechargeable));
             final Object finalNetwork = network;
-            ((Map<String, Object>)networks).put((String)network, new HashMap<String, Object>() {{
+            networks.put((String)network, new HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", networkId );
     put( "network", finalNetwork );
@@ -4530,7 +4530,7 @@ public class Bitget extends BitgetApi
         boolean isFiat = this.inArray(code, fiatCurrencies);
         final Object finalDeposit = deposit;
         final Object finalWithdraw = withdraw;
-        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "info", entry );
             put( "id", id );
             put( "code", code );
@@ -4557,7 +4557,7 @@ public class Bitget extends BitgetApi
                 }} );
             }} );
             put( "created", null );
-        }}));
+        }});
     }
 
     /**
@@ -4609,17 +4609,17 @@ public class Bitget extends BitgetApi
                         productType = "MARGIN";
                     }
                 }
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
-                ((Map<String, Object>)request).put("category", productType);
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("category", productType);
                 response = (this.publicUtaGetV3MarketPositionTier(this.extend(request, parameters))).join();
             } else if ((java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("future"), true)))
             {
-                ((Map<String, Object>)request).put("productType", productType);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("productType", productType);
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
                 response = (this.publicMixGetV2MixMarketQueryPositionLever(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(marginMode, "isolated"))
             {
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
                 response = (this.privateMarginGetV2MarginIsolatedTierData(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(marginMode, "cross"))
             {
@@ -4630,7 +4630,7 @@ public class Bitget extends BitgetApi
                 }
                 parameters = (Map<String, Object>) this.omit(parameters, "code");
                 Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-                ((Map<String, Object>)request).put("coin", ((Map<String, Object>)currency).get("id"));
+                request.put("coin", ((Map<String, Object>)currency).get("id"));
                 response = (this.privateMarginGetV2MarginCrossedTierData(this.extend(request, parameters))).join();
             } else
             {
@@ -4884,11 +4884,11 @@ final Object finalMinNotional = minNotional;
             if (!java.util.Objects.equals(code, null))
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
-                ((Map<String, Object>)request).put("coin", ((Map<String, Object>)currency).get("id"));
+                request.put("coin", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
@@ -5066,7 +5066,7 @@ final Object finalMinNotional = minNotional;
             }};
             if (!java.util.Objects.equals(tag, null))
             {
-                ((Map<String, Object>)request).put("tag", tag);
+                request.put("tag", tag);
             }
             Map<String, Object> response = null;
             if (java.util.Objects.equals(uta, true))
@@ -5194,14 +5194,14 @@ final Object finalMinNotional = minNotional;
             }};
             if (!java.util.Objects.equals(currency, null))
             {
-                ((Map<String, Object>)request).put("coin", ((Map<String, Object>)currency).get("id"));
+                request.put("coin", ((Map<String, Object>)currency).get("id"));
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = null;
             if (java.util.Objects.equals(uta, true))
@@ -5498,7 +5498,7 @@ final Object finalMinNotional = minNotional;
             }};
             if (!java.util.Objects.equals(networkCode, null))
             {
-                ((Map<String, Object>)request).put("chain", this.networkCodeToId(networkCode, code));
+                request.put("chain", this.networkCodeToId(networkCode, code));
             }
             Map<String, Object> response = null;
             if (java.util.Objects.equals(uta, true))
@@ -5606,7 +5606,7 @@ final Object finalMinNotional = minNotional;
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             String productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
@@ -5619,14 +5619,14 @@ final Object finalMinNotional = minNotional;
             parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             if (java.util.Objects.equals(uta, true))
             {
-                ((Map<String, Object>)request).put("category", productType);
+                request.put("category", productType);
                 response = (this.publicUtaGetV3MarketOrderbook(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 response = (this.publicSpotGetV2SpotMarketOrderbook(this.extend(request, parameters))).join();
             } else
             {
-                ((Map<String, Object>)request).put("productType", productType);
+                request.put("productType", productType);
                 response = (this.publicMixGetV2MixMarketMergeDepth(this.extend(request, parameters))).join();
             }
             //
@@ -5876,14 +5876,14 @@ final Object finalMinNotional = minNotional;
             parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             if (java.util.Objects.equals(uta, true))
             {
-                ((Map<String, Object>)request).put("category", productType);
+                request.put("category", productType);
                 response = (this.publicUtaGetV3MarketTickers(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 response = (this.publicSpotGetV2SpotMarketTickers(this.extend(request, parameters))).join();
             } else
             {
-                ((Map<String, Object>)request).put("productType", productType);
+                request.put("productType", productType);
                 response = (this.publicMixGetV2MixMarketTicker(this.extend(request, parameters))).join();
             }
             //
@@ -6063,7 +6063,7 @@ final Object finalMinNotional = minNotional;
                 List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
                 productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
-                ((Map<String, Object>)request).put("productType", productType);
+                request.put("productType", productType);
                 response = (this.publicMixGetV2MixMarketSymbolPrice(this.extend(request, parameters))).join();
             }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
@@ -6142,17 +6142,17 @@ final Object finalMinNotional = minNotional;
                     Integer symbolsLength = ((List<?>)symbols).size();
                     if (java.util.Objects.equals(symbolsLength, 1))
                     {
-                        ((Map<String, Object>)request).put("symbol", this.safeString(market, "id"));
+                        request.put("symbol", this.safeString(market, "id"));
                     }
                 }
-                ((Map<String, Object>)request).put("category", productType);
+                request.put("category", productType);
                 response = (this.publicUtaGetV3MarketTickers(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(type, "spot") && java.util.Objects.equals(passedSubType, null))
             {
                 response = (this.publicSpotGetV2SpotMarketTickers(this.extend(request, parameters))).join();
             } else
             {
-                ((Map<String, Object>)request).put("productType", productType);
+                request.put("productType", productType);
                 response = (this.publicMixGetV2MixMarketTickers(this.extend(request, parameters))).join();
             }
             //
@@ -6430,14 +6430,14 @@ final Object finalMinNotional = minNotional;
             Boolean deduction = ((java.util.Objects.equals(this.safeString(feeStructure, "deduction"), "yes"))) ? true : false;
             if (Boolean.TRUE.equals(deduction))
             {
-                ((Map<String, Object>)fee).put("cost", feeCostString);
+                fee.put("cost", feeCostString);
             } else
             {
-                ((Map<String, Object>)fee).put("cost", Precise.stringNeg(feeCostString));
+                fee.put("cost", Precise.stringNeg(feeCostString));
             }
         }
         final Map<String, Object> finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Bitget.this.safeString2(trade, "tradeId", "execId") );
             put( "order", Bitget.this.safeString(trade, "orderId") );
@@ -6451,7 +6451,7 @@ final Object finalMinNotional = minNotional;
             put( "timestamp", timestamp );
             put( "datetime", Bitget.this.iso8601(timestamp) );
             put( "fee", finalFee );
-        }}), market);
+        }}, market);
     }
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
@@ -6509,13 +6509,13 @@ final Object finalMinNotional = minNotional;
             {
                 if (java.util.Objects.equals(uta, true))
                 {
-                    ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 100));
+                    request.put("limit", Helpers.mathMin(limit, 100));
                 } else if (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
                 {
-                    ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000));
+                    request.put("limit", Helpers.mathMin(limit, 1000));
                 } else
                 {
-                    ((Map<String, Object>)request).put("limit", limit);
+                    request.put("limit", limit);
                 }
             }
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchTrades", new HashMap<String, Object>() {{}});
@@ -6537,7 +6537,7 @@ final Object finalMinNotional = minNotional;
                         productType = "MARGIN";
                     }
                 }
-                ((Map<String, Object>)request).put("category", productType);
+                request.put("category", productType);
                 response = (this.publicUtaGetV3MarketFills(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
@@ -6552,7 +6552,7 @@ final Object finalMinNotional = minNotional;
                     parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
                     if (!java.util.Objects.equals(since, null))
                     {
-                        ((Map<String, Object>)request).put("startTime", since);
+                        request.put("startTime", since);
                     }
                     response = (this.publicSpotGetV2SpotMarketFillsHistory(this.extend(request, parameters))).join();
                 } else if (java.util.Objects.equals(spotMethod, "publicSpotGetV2SpotMarketFills"))
@@ -6565,7 +6565,7 @@ final Object finalMinNotional = minNotional;
                 String defaultSwapMethod = this.safeString(swapOptions, "method", "publicMixGetV2MixMarketFillsHistory");
                 String swapMethod = this.safeString(parameters, "method", defaultSwapMethod);
                 parameters = (Map<String, Object>) this.omit(parameters, "method");
-                ((Map<String, Object>)request).put("productType", productType);
+                request.put("productType", productType);
                 if (java.util.Objects.equals(swapMethod, "publicMixGetV2MixMarketFillsHistory"))
                 {
                     List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
@@ -6573,7 +6573,7 @@ final Object finalMinNotional = minNotional;
                     parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
                     if (!java.util.Objects.equals(since, null))
                     {
-                        ((Map<String, Object>)request).put("startTime", since);
+                        request.put("startTime", since);
                     }
                     response = (this.publicMixGetV2MixMarketFillsHistory(this.extend(request, parameters))).join();
                 } else if (java.util.Objects.equals(swapMethod, "publicMixGetV2MixMarketFills"))
@@ -6698,7 +6698,7 @@ final Object finalMinNotional = minNotional;
                 List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
                 productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
-                ((Map<String, Object>)request).put("category", productType);
+                request.put("category", productType);
                 Map<String, Object> utaResponse = (this.privateUtaGetV3AccountFeeRate(this.extend(request, parameters))).join();
                 //
                 //     {
@@ -6722,14 +6722,14 @@ final Object finalMinNotional = minNotional;
             {
                 if (!java.util.Objects.equals(marginMode, null))
                 {
-                    ((Map<String, Object>)request).put("businessType", "margin");
+                    request.put("businessType", "margin");
                 } else
                 {
-                    ((Map<String, Object>)request).put("businessType", "spot");
+                    request.put("businessType", "spot");
                 }
             } else
             {
-                ((Map<String, Object>)request).put("businessType", "mix");
+                request.put("businessType", "mix");
             }
             Map<String, Object> response = (this.privateCommonGetV2CommonTradeRate(this.extend(request, parameters))).join();
             //
@@ -6810,10 +6810,10 @@ final Object finalMinNotional = minNotional;
                 {
                     if ((!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(utaMargin, true)))
                     {
-                        ((Map<String, Object>)request).put("category", "MARGIN");
+                        request.put("category", "MARGIN");
                     } else
                     {
-                        ((Map<String, Object>)request).put("category", "SPOT");
+                        request.put("category", "SPOT");
                     }
                 } else if ((java.util.Objects.equals(marketType, "swap")) || (java.util.Objects.equals(marketType, "future")))
                 {
@@ -6821,7 +6821,7 @@ final Object finalMinNotional = minNotional;
                     List<Object> utaProductTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(null, parameters);
                     utaProductType = (String) ((List<Object>) utaProductTypeparametersVariable).get(0);
                     parameters = (Map<String, Object>) ((List<Object>) utaProductTypeparametersVariable).get(1);
-                    ((Map<String, Object>)request).put("category", utaProductType);
+                    request.put("category", utaProductType);
                 } else
                 {
                     throw new NotSupported((((this.id + " does not support ") + marketType) + " market")) ;
@@ -6857,7 +6857,7 @@ final Object finalMinNotional = minNotional;
                     {
                         continue;
                     }
-                    ((Map<String, Object>)utaResult).put((String)entrySymbol, this.parseTradingFee((Map<String, Object>) (entry), entryMarket));
+                    utaResult.put((String)entrySymbol, this.parseTradingFee((Map<String, Object>) (entry), entryMarket));
                 }
                 return utaResult;
             }
@@ -6964,7 +6964,7 @@ final Object finalMinNotional = minNotional;
                 String symbol = this.safeSymbol(marketId, null, null, marketType);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) (entry), market);
-                ((Map<String, Object>)result).put((String)symbol, fee);
+                result.put((String)symbol, fee);
             }
             return result;
         }).thenApply(TradingFees::new);
@@ -7093,12 +7093,12 @@ final Object finalMinNotional = minNotional;
             if (java.util.Objects.equals(uta, true))
             {
                 timeframes = Helpers.GetValue(timeframesOption, "uta");
-                ((Map<String, Object>)request).put("interval", this.safeString(timeframes, timeframe, timeframe));
+                request.put("interval", this.safeString(timeframes, timeframe, timeframe));
             } else
             {
                 marketType = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? "spot" : "swap";
                 timeframes = Helpers.GetValue(timeframesOption, marketType);
-                ((Map<String, Object>)request).put("granularity", this.safeString(timeframes, timeframe, timeframe));
+                request.put("granularity", this.safeString(timeframes, timeframe, timeframe));
             }
             Integer msInDay = 86400000;
             Long now = this.milliseconds();
@@ -7138,7 +7138,7 @@ final Object finalMinNotional = minNotional;
             if (Boolean.TRUE.equals(sinceDefined))
             {
                 calculatedStartTime = since;
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
                 if (!Boolean.TRUE.equals(untilDefined))
                 {
                     calculatedEndTime = this.sum(calculatedStartTime, limitMultipliedDuration);
@@ -7146,7 +7146,7 @@ final Object finalMinNotional = minNotional;
                     {
                         calculatedEndTime = now;
                     }
-                    ((Map<String, Object>)request).put("endTime", calculatedEndTime);
+                    request.put("endTime", calculatedEndTime);
                 }
             }
             if (Boolean.TRUE.equals(untilDefined))
@@ -7156,7 +7156,7 @@ final Object finalMinNotional = minNotional;
                 {
                     calculatedEndTime = now;
                 }
-                ((Map<String, Object>)request).put("endTime", calculatedEndTime);
+                request.put("endTime", calculatedEndTime);
                 if (!Boolean.TRUE.equals(sinceDefined))
                 {
                     calculatedStartTime = Helpers.subtract(calculatedEndTime, limitMultipliedDuration);
@@ -7171,7 +7171,7 @@ final Object finalMinNotional = minNotional;
                 limit = Helpers.mathMin(limit, maxLimitForHistoryEndpoint);
                 limitMultipliedDuration = Helpers.multiply(limit, duration);
                 calculatedStartTime = Helpers.subtract(calculatedEndTime, limitMultipliedDuration);
-                ((Map<String, Object>)request).put("startTime", calculatedStartTime);
+                request.put("startTime", calculatedStartTime);
                 // for contract, maximum 90 days allowed between start-end times
                 if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
                 {
@@ -7180,12 +7180,12 @@ final Object finalMinNotional = minNotional;
                     if (Helpers.isGreaterThan(Helpers.subtract(calculatedEndTime, calculatedStartTime), (((long) maxDistanceDaysForContracts) * ((long) msInDay))))
                     {
                         calculatedEndTime = this.sum(calculatedStartTime, (((long) maxDistanceDaysForContracts) * ((long) msInDay)));
-                        ((Map<String, Object>)request).put("endTime", calculatedEndTime);
+                        request.put("endTime", calculatedEndTime);
                     }
                 }
             }
             // we need to set limit to safely cover the period
-            ((Map<String, Object>)request).put("limit", limit);
+            request.put("limit", limit);
             // make request
             Object response = null;
             String productType = null;
@@ -7202,13 +7202,13 @@ final Object finalMinNotional = minNotional;
                 {
                     if (java.util.Objects.equals(priceType, "mark"))
                     {
-                        ((Map<String, Object>)request).put("type", "MARK");
+                        request.put("type", "MARK");
                     } else if (java.util.Objects.equals(priceType, "index"))
                     {
-                        ((Map<String, Object>)request).put("type", "INDEX");
+                        request.put("type", "INDEX");
                     }
                 }
-                ((Map<String, Object>)request).put("category", productType);
+                request.put("category", productType);
                 response = (this.publicUtaGetV3MarketCandles(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
@@ -7220,20 +7220,20 @@ final Object finalMinNotional = minNotional;
                 {
                     if (!Boolean.TRUE.equals(limitDefined))
                     {
-                        ((Map<String, Object>)request).put("limit", 1000);
+                        request.put("limit", 1000);
                         limit = 1000;
                     }
                     response = (this.publicSpotGetV2SpotMarketCandles(this.extend(request, parameters))).join();
                 }
             } else
             {
-                ((Map<String, Object>)request).put("productType", productType);
+                request.put("productType", productType);
                 Map<String, Object> extended = this.extend(request, parameters);
                 if (!Boolean.TRUE.equals(historicalEndpointNeeded) && (java.util.Objects.equals(priceType, "mark") || java.util.Objects.equals(priceType, "index")))
                 {
                     if (!Boolean.TRUE.equals(limitDefined))
                     {
-                        Helpers.addElementToObject(extended, "limit", 1000);
+                        extended.put("limit", 1000);
                         limit = 1000;
                     }
                     // Recent endpoint for mark/index prices
@@ -7257,7 +7257,7 @@ final Object finalMinNotional = minNotional;
                     {
                         if (!Boolean.TRUE.equals(limitDefined))
                         {
-                            Helpers.addElementToObject(extended, "limit", 1000);
+                            extended.put("limit", 1000);
                             limit = 1000;
                         }
                         response = (this.publicMixGetV2MixMarketCandles(extended)).join();
@@ -7371,7 +7371,7 @@ final Object finalMinNotional = minNotional;
                 List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(null, parameters);
                 productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
-                ((Map<String, Object>)request).put("productType", productType);
+                request.put("productType", productType);
                 response = (this.privateMixGetV2MixAccountAccounts(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(marginMode, "isolated"))
             {
@@ -7540,13 +7540,13 @@ final Object finalMinNotional = minNotional;
             Map<String, Object> account = (Map<String, Object>) this.account();
             String currencyId = this.safeString(entry, "coin");
             String code = this.safeCurrencyCode(currencyId);
-            ((Map<String, Object>)account).put("debt", this.safeString(entry, "debt"));
-            ((Map<String, Object>)account).put("used", this.safeString2(entry, "locked", "frozen"));
-            ((Map<String, Object>)account).put("free", this.safeString(entry, "available"));
-            ((Map<String, Object>)account).put("total", this.safeString2(entry, "equity", "balance"));
+            account.put("debt", this.safeString(entry, "debt"));
+            account.put("used", this.safeString2(entry, "locked", "frozen"));
+            account.put("free", this.safeString(entry, "available"));
+            account.put("total", this.safeString2(entry, "equity", "balance"));
             if (!java.util.Objects.equals(code, null))
             {
-                ((Map<String, Object>)result).put((String)code, account);
+                result.put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -7614,9 +7614,9 @@ final Object finalMinNotional = minNotional;
             if (!java.util.Objects.equals(borrow, null))
             {
                 String interest = this.safeString(entry, "interest");
-                ((Map<String, Object>)account).put("free", this.safeString(entry, "transferable"));
-                ((Map<String, Object>)account).put("total", this.safeString(entry, "totalAmount"));
-                ((Map<String, Object>)account).put("debt", Precise.stringAdd(borrow, interest));
+                account.put("free", this.safeString(entry, "transferable"));
+                account.put("total", this.safeString(entry, "totalAmount"));
+                account.put("debt", Precise.stringAdd(borrow, interest));
             } else
             {
                 // Use transferable instead of available for swap and margin https://github.com/ccxt/ccxt/pull/19127
@@ -7624,19 +7624,19 @@ final Object finalMinNotional = minNotional;
                 String contractAccountFree = this.safeString(entry, "maxTransferOut");
                 if (!java.util.Objects.equals(contractAccountFree, null))
                 {
-                    ((Map<String, Object>)account).put("free", contractAccountFree);
-                    ((Map<String, Object>)account).put("total", this.safeString(entry, "accountEquity"));
+                    account.put("free", contractAccountFree);
+                    account.put("total", this.safeString(entry, "accountEquity"));
                 } else
                 {
-                    ((Map<String, Object>)account).put("free", spotAccountFree);
+                    account.put("free", spotAccountFree);
                     String frozen = this.safeString(entry, "frozen");
                     String locked = this.safeString(entry, "locked");
-                    ((Map<String, Object>)account).put("used", Precise.stringAdd(frozen, locked));
+                    account.put("used", Precise.stringAdd(frozen, locked));
                 }
             }
             if (!java.util.Objects.equals(code, null))
             {
-                ((Map<String, Object>)result).put((String)code, account);
+                result.put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -7882,12 +7882,12 @@ final Object finalMinNotional = minNotional;
         String errorMessage = this.safeString(order, "errorMsg");
         if (!java.util.Objects.equals(errorMessage, null))
         {
-            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "id", Bitget.this.safeString(order, "orderId") );
                 put( "clientOrderId", Bitget.this.safeString2(order, "clientOrderId", "clientOid") );
                 put( "status", "rejected" );
-            }}), market);
+            }}, market);
         }
         String posSide = this.safeString(order, "posSide");
         Boolean isContractOrder = (!java.util.Objects.equals(posSide, null));
@@ -8014,7 +8014,7 @@ final Object finalMinNotional = minNotional;
         final Boolean finalPostOnly = postOnly;
         final Boolean finalReduceOnly = reduceOnly;
         final Map<String, Object> finalFee = fee;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Bitget.this.safeString2(order, "orderId", "data") );
             put( "clientOrderId", Bitget.this.safeString2(order, "clientOrderId", "clientOid") );
@@ -8040,7 +8040,7 @@ final Object finalMinNotional = minNotional;
             put( "status", Bitget.this.parseOrderStatus(rawStatus) );
             put( "fee", finalFee );
             put( "trades", null );
-        }}), market);
+        }}, market);
     }
     public Object parseOrder(Object order, Object... optionalArgs)
     {
@@ -8313,7 +8313,7 @@ final Object finalMinNotional = minNotional;
         String clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
         if (!java.util.Objects.equals(clientOrderId, null))
         {
-            ((Map<String, Object>)request).put("clientOid", clientOrderId);
+            request.put("clientOid", clientOrderId);
             parameters = (Map<String, Object>) (this.omit(parameters, "clientOrderId"));
         }
         Double stopLossTriggerPrice = this.safeNumber(parameters, "stopLossPrice");
@@ -8330,28 +8330,28 @@ final Object finalMinNotional = minNotional;
             if (Boolean.TRUE.equals(isStopLossTrigger))
             {
                 String slType = this.safeString(parameters, "slTriggerBy", "mark");
-                ((Map<String, Object>)request).put("slTriggerBy", slType);
-                ((Map<String, Object>)request).put("stopLoss", this.priceToPrecision(symbol, stopLossTriggerPrice));
+                request.put("slTriggerBy", slType);
+                request.put("stopLoss", this.priceToPrecision(symbol, stopLossTriggerPrice));
                 if (!java.util.Objects.equals(price, null))
                 {
-                    ((Map<String, Object>)request).put("slLimitPrice", this.priceToPrecision(symbol, price));
-                    ((Map<String, Object>)request).put("slOrderType", this.safeString(parameters, "slOrderType", "limit"));
+                    request.put("slLimitPrice", this.priceToPrecision(symbol, price));
+                    request.put("slOrderType", this.safeString(parameters, "slOrderType", "limit"));
                 } else
                 {
-                    ((Map<String, Object>)request).put("slOrderType", this.safeString(parameters, "slOrderType", "market"));
+                    request.put("slOrderType", this.safeString(parameters, "slOrderType", "market"));
                 }
             } else if (Boolean.TRUE.equals(isTakeProfitTrigger))
             {
                 String tpType = this.safeString(parameters, "tpTriggerBy", "mark");
-                ((Map<String, Object>)request).put("tpTriggerBy", tpType);
-                ((Map<String, Object>)request).put("takeProfit", this.priceToPrecision(symbol, takeProfitTriggerPrice));
+                request.put("tpTriggerBy", tpType);
+                request.put("takeProfit", this.priceToPrecision(symbol, takeProfitTriggerPrice));
                 if (!java.util.Objects.equals(price, null))
                 {
-                    ((Map<String, Object>)request).put("tpLimitPrice", this.priceToPrecision(symbol, price));
-                    ((Map<String, Object>)request).put("tpOrderType", this.safeString(parameters, "tpOrderType", "limit"));
+                    request.put("tpLimitPrice", this.priceToPrecision(symbol, price));
+                    request.put("tpOrderType", this.safeString(parameters, "tpOrderType", "limit"));
                 } else
                 {
-                    ((Map<String, Object>)request).put("tpOrderType", this.safeString(parameters, "tpOrderType", "market"));
+                    request.put("tpOrderType", this.safeString(parameters, "tpOrderType", "market"));
                 }
             }
             parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLossPrice", "takeProfitPrice"))));
@@ -8361,36 +8361,36 @@ final Object finalMinNotional = minNotional;
             {
                 Double slTriggerPrice = this.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
                 Double slLimitPrice = this.safeNumber(stopLoss, "price");
-                ((Map<String, Object>)request).put("stopLoss", this.priceToPrecision(symbol, slTriggerPrice));
+                request.put("stopLoss", this.priceToPrecision(symbol, slTriggerPrice));
                 if (!java.util.Objects.equals(slLimitPrice, null))
                 {
-                    ((Map<String, Object>)request).put("slLimitPrice", this.priceToPrecision(symbol, slLimitPrice));
-                    ((Map<String, Object>)request).put("slOrderType", this.safeString(parameters, "slOrderType", "limit"));
+                    request.put("slLimitPrice", this.priceToPrecision(symbol, slLimitPrice));
+                    request.put("slOrderType", this.safeString(parameters, "slOrderType", "limit"));
                 } else
                 {
-                    ((Map<String, Object>)request).put("slOrderType", this.safeString(parameters, "slOrderType", "market"));
+                    request.put("slOrderType", this.safeString(parameters, "slOrderType", "market"));
                 }
             }
             if (Boolean.TRUE.equals(hasTakeProfit))
             {
                 Double tpTriggerPrice = this.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
                 Double tpLimitPrice = this.safeNumber(takeProfit, "price");
-                ((Map<String, Object>)request).put("takeProfit", this.priceToPrecision(symbol, tpTriggerPrice));
+                request.put("takeProfit", this.priceToPrecision(symbol, tpTriggerPrice));
                 if (!java.util.Objects.equals(tpLimitPrice, null))
                 {
-                    ((Map<String, Object>)request).put("tpLimitPrice", this.priceToPrecision(symbol, tpLimitPrice));
-                    ((Map<String, Object>)request).put("tpOrderType", this.safeString(parameters, "tpOrderType", "limit"));
+                    request.put("tpLimitPrice", this.priceToPrecision(symbol, tpLimitPrice));
+                    request.put("tpOrderType", this.safeString(parameters, "tpOrderType", "limit"));
                 } else
                 {
-                    ((Map<String, Object>)request).put("tpOrderType", this.safeString(parameters, "tpOrderType", "market"));
+                    request.put("tpOrderType", this.safeString(parameters, "tpOrderType", "market"));
                 }
             }
             Boolean isMarketOrder = java.util.Objects.equals(type, "market");
             if (!Boolean.TRUE.equals(isMarketOrder))
             {
-                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+                request.put("price", this.priceToPrecision(symbol, price));
             }
-            ((Map<String, Object>)request).put("orderType", type);
+            request.put("orderType", type);
             String exchangeSpecificTifParam = this.safeString(parameters, "timeInForce");
             Boolean postOnly = null;
             List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(exchangeSpecificTifParam, "post_only"), parameters);
@@ -8406,16 +8406,16 @@ final Object finalMinNotional = minNotional;
             }
             if (java.util.Objects.equals(postOnly, true))
             {
-                ((Map<String, Object>)request).put("timeInForce", "post_only");
+                request.put("timeInForce", "post_only");
             } else if (java.util.Objects.equals(timeInForce, "GTC"))
             {
-                ((Map<String, Object>)request).put("timeInForce", "gtc");
+                request.put("timeInForce", "gtc");
             } else if (java.util.Objects.equals(timeInForce, "FOK"))
             {
-                ((Map<String, Object>)request).put("timeInForce", "fok");
+                request.put("timeInForce", "fok");
             } else if (java.util.Objects.equals(timeInForce, "IOC"))
             {
-                ((Map<String, Object>)request).put("timeInForce", "ioc");
+                request.put("timeInForce", "ioc");
             }
         }
         Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
@@ -8432,10 +8432,10 @@ final Object finalMinNotional = minNotional;
                 {
                     reduceOnlyPosSide = "long";
                 }
-                ((Map<String, Object>)request).put("posSide", reduceOnlyPosSide);
+                request.put("posSide", reduceOnlyPosSide);
             } else if (!Boolean.TRUE.equals(isStopLossOrTakeProfitTrigger))
             {
-                ((Map<String, Object>)request).put("reduceOnly", "yes");
+                request.put("reduceOnly", "yes");
             }
         } else
         {
@@ -8446,7 +8446,7 @@ final Object finalMinNotional = minNotional;
                 {
                     posSide = "long";
                 }
-                ((Map<String, Object>)request).put("posSide", posSide);
+                request.put("posSide", posSide);
             }
         }
         parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit", "postOnly", "reduceOnly", "hedged"))));
@@ -8523,7 +8523,7 @@ final Object finalMinNotional = minNotional;
         }
         if (java.util.Objects.equals(type, "limit"))
         {
-            ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+            request.put("price", this.priceToPrecision(symbol, price));
         }
         String triggerPriceType = this.safeString2(parameters, "triggerPriceType", "triggerType", "mark_price");
         Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
@@ -8543,34 +8543,34 @@ final Object finalMinNotional = minNotional;
         }
         if (java.util.Objects.equals(postOnly, true))
         {
-            ((Map<String, Object>)request).put("force", "post_only");
+            request.put("force", "post_only");
         } else if (java.util.Objects.equals(timeInForce, "GTC"))
         {
-            ((Map<String, Object>)request).put("force", "GTC");
+            request.put("force", "GTC");
         } else if (java.util.Objects.equals(timeInForce, "FOK"))
         {
-            ((Map<String, Object>)request).put("force", "FOK");
+            request.put("force", "FOK");
         } else if (java.util.Objects.equals(timeInForce, "IOC"))
         {
-            ((Map<String, Object>)request).put("force", "IOC");
+            request.put("force", "IOC");
         }
         parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerType", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit", "postOnly", "reduceOnly", "clientOrderId", "trailingPercent", "trailingTriggerPrice"))));
         if ((java.util.Objects.equals(marketType, "swap")) || (java.util.Objects.equals(marketType, "future")))
         {
-            ((Map<String, Object>)request).put("marginCoin", ((Map<String, Object>)market).get("settleId"));
-            ((Map<String, Object>)request).put("size", this.amountToPrecision(symbol, amount));
+            request.put("marginCoin", ((Map<String, Object>)market).get("settleId"));
+            request.put("size", this.amountToPrecision(symbol, amount));
             String productType = null;
             List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
             productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
-            ((Map<String, Object>)request).put("productType", productType);
+            request.put("productType", productType);
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                ((Map<String, Object>)request).put("clientOid", clientOrderId);
+                request.put("clientOid", clientOrderId);
             }
             if (Boolean.TRUE.equals(isTriggerOrder) || Boolean.TRUE.equals(isStopLossOrTakeProfitTrigger) || Boolean.TRUE.equals(isTrailingPercentOrder))
             {
-                ((Map<String, Object>)request).put("triggerType", triggerPriceType);
+                request.put("triggerType", triggerPriceType);
             }
             if (Boolean.TRUE.equals(isTrailingPercentOrder))
             {
@@ -8582,40 +8582,40 @@ final Object finalMinNotional = minNotional;
                 {
                     throw new ArgumentsRequired((this.id + " createOrder() bitget trailing orders must have a trailingTriggerPrice param")) ;
                 }
-                ((Map<String, Object>)request).put("planType", "track_plan");
-                ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, trailingTriggerPrice));
-                ((Map<String, Object>)request).put("callbackRatio", trailingPercent);
+                request.put("planType", "track_plan");
+                request.put("triggerPrice", this.priceToPrecision(symbol, trailingTriggerPrice));
+                request.put("callbackRatio", trailingPercent);
             } else if (Boolean.TRUE.equals(isTriggerOrder))
             {
-                ((Map<String, Object>)request).put("planType", "normal_plan");
-                ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
+                request.put("planType", "normal_plan");
+                request.put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
                 if (!java.util.Objects.equals(price, null))
                 {
-                    ((Map<String, Object>)request).put("executePrice", this.priceToPrecision(symbol, price));
+                    request.put("executePrice", this.priceToPrecision(symbol, price));
                 }
                 if (Boolean.TRUE.equals(hasStopLoss))
                 {
                     String slTriggerPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice");
-                    ((Map<String, Object>)request).put("stopLossTriggerPrice", this.priceToPrecision(symbol, slTriggerPrice));
+                    request.put("stopLossTriggerPrice", this.priceToPrecision(symbol, slTriggerPrice));
                     String slPrice = this.safeString(stopLoss, "price");
-                    ((Map<String, Object>)request).put("stopLossExecutePrice", this.priceToPrecision(symbol, slPrice));
+                    request.put("stopLossExecutePrice", this.priceToPrecision(symbol, slPrice));
                     String slType = this.safeString(stopLoss, "type", "mark_price");
-                    ((Map<String, Object>)request).put("stopLossTriggerType", slType);
+                    request.put("stopLossTriggerType", slType);
                 }
                 if (Boolean.TRUE.equals(hasTakeProfit))
                 {
                     String tpTriggerPrice = this.safeString2(takeProfit, "triggerPrice", "stopPrice");
-                    ((Map<String, Object>)request).put("stopSurplusTriggerPrice", this.priceToPrecision(symbol, tpTriggerPrice));
+                    request.put("stopSurplusTriggerPrice", this.priceToPrecision(symbol, tpTriggerPrice));
                     String tpPrice = this.safeString(takeProfit, "price");
-                    ((Map<String, Object>)request).put("stopSurplusExecutePrice", this.priceToPrecision(symbol, tpPrice));
+                    request.put("stopSurplusExecutePrice", this.priceToPrecision(symbol, tpPrice));
                     String tpType = this.safeString(takeProfit, "type", "mark_price");
-                    ((Map<String, Object>)request).put("stopSurplusTriggerType", tpType);
+                    request.put("stopSurplusTriggerType", tpType);
                 }
             } else if (Boolean.TRUE.equals(isStopLossOrTakeProfitTrigger))
             {
                 if (!java.util.Objects.equals(price, null))
                 {
-                    ((Map<String, Object>)request).put("executePrice", this.priceToPrecision(symbol, price));
+                    request.put("executePrice", this.priceToPrecision(symbol, price));
                     if (request.containsKey("price"))
                     {
                         ((Map<String,Object>)request).remove("price");
@@ -8623,19 +8623,19 @@ final Object finalMinNotional = minNotional;
                 }
                 if (java.util.Objects.equals(hedged, true))
                 {
-                    ((Map<String, Object>)request).put("holdSide", (((java.util.Objects.equals(side, "sell")))) ? "long" : "short");
+                    request.put("holdSide", (((java.util.Objects.equals(side, "sell")))) ? "long" : "short");
                 } else
                 {
-                    ((Map<String, Object>)request).put("holdSide", (((java.util.Objects.equals(side, "sell")))) ? "buy" : "sell");
+                    request.put("holdSide", (((java.util.Objects.equals(side, "sell")))) ? "buy" : "sell");
                 }
                 if (Boolean.TRUE.equals(isStopLossTriggerOrder))
                 {
-                    ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, stopLossTriggerPrice));
-                    ((Map<String, Object>)request).put("planType", "pos_loss");
+                    request.put("triggerPrice", this.priceToPrecision(symbol, stopLossTriggerPrice));
+                    request.put("planType", "pos_loss");
                 } else if (Boolean.TRUE.equals(isTakeProfitTriggerOrder))
                 {
-                    ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, takeProfitTriggerPrice));
-                    ((Map<String, Object>)request).put("planType", "pos_profit");
+                    request.put("triggerPrice", this.priceToPrecision(symbol, takeProfitTriggerPrice));
+                    request.put("planType", "pos_profit");
                 }
             } else
             {
@@ -8646,13 +8646,13 @@ final Object finalMinNotional = minNotional;
                     {
                         throw new ArgumentsRequired((this.id + " createOrder() requires a triggerPrice or a stopPrice inside the stopLoss parameter")) ;
                     }
-                    ((Map<String, Object>)request).put("presetStopLossPrice", this.priceToPrecision(symbol, slTriggerPrice));
+                    request.put("presetStopLossPrice", this.priceToPrecision(symbol, slTriggerPrice));
                     Double slLimitPrice = this.safeNumber(stopLoss, "price");
                     if (!java.util.Objects.equals(slLimitPrice, null))
                     {
                         // without the execute price the exchange fills the attached stop loss
                         // at the market price, see https://github.com/ccxt/ccxt/issues/23459
-                        ((Map<String, Object>)request).put("presetStopLossExecutePrice", this.priceToPrecision(symbol, slLimitPrice));
+                        request.put("presetStopLossExecutePrice", this.priceToPrecision(symbol, slLimitPrice));
                     }
                 }
                 if (Boolean.TRUE.equals(hasTakeProfit))
@@ -8662,11 +8662,11 @@ final Object finalMinNotional = minNotional;
                     {
                         throw new ArgumentsRequired((this.id + " createOrder() requires a triggerPrice or a stopPrice inside the takeProfit parameter")) ;
                     }
-                    ((Map<String, Object>)request).put("presetStopSurplusPrice", this.priceToPrecision(symbol, tpTriggerPrice));
+                    request.put("presetStopSurplusPrice", this.priceToPrecision(symbol, tpTriggerPrice));
                     Double tpLimitPrice = this.safeNumber(takeProfit, "price");
                     if (!java.util.Objects.equals(tpLimitPrice, null))
                     {
-                        ((Map<String, Object>)request).put("presetStopSurplusExecutePrice", this.priceToPrecision(symbol, tpLimitPrice));
+                        request.put("presetStopSurplusExecutePrice", this.priceToPrecision(symbol, tpLimitPrice));
                     }
                 }
             }
@@ -8681,27 +8681,27 @@ final Object finalMinNotional = minNotional;
                 {
                     marginModeRequest = "crossed";
                 }
-                ((Map<String, Object>)request).put("marginMode", marginModeRequest);
+                request.put("marginMode", marginModeRequest);
                 String requestSide = side;
                 if (java.util.Objects.equals(reduceOnly, true))
                 {
                     if (!java.util.Objects.equals(hedged, true))
                     {
-                        ((Map<String, Object>)request).put("reduceOnly", "YES");
+                        request.put("reduceOnly", "YES");
                     } else
                     {
                         // on bitget hedge mode if the position is long the side is always buy, and if the position is short the side is always sell
                         requestSide = (((java.util.Objects.equals(side, "buy")))) ? "sell" : "buy";
-                        ((Map<String, Object>)request).put("tradeSide", "Close");
+                        request.put("tradeSide", "Close");
                     }
                 } else
                 {
                     if (java.util.Objects.equals(hedged, true))
                     {
-                        ((Map<String, Object>)request).put("tradeSide", "Open");
+                        request.put("tradeSide", "Open");
                     }
                 }
-                ((Map<String, Object>)request).put("side", requestSide);
+                request.put("side", requestSide);
             }
         } else if (java.util.Objects.equals(marketType, "spot"))
         {
@@ -8709,7 +8709,7 @@ final Object finalMinNotional = minNotional;
             {
                 throw new InvalidOrder((this.id + " createOrder() does not support stop loss/take profit orders on spot markets, only swap markets")) ;
             }
-            ((Map<String, Object>)request).put("side", side);
+            request.put("side", side);
             String quantity = null;
             String planType = null;
             Boolean createMarketBuyOrderRequiresPrice = true;
@@ -8747,32 +8747,32 @@ final Object finalMinNotional = minNotional;
             }
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                ((Map<String, Object>)request).put("clientOid", clientOrderId);
+                request.put("clientOid", clientOrderId);
             }
             if (!java.util.Objects.equals(marginMode, null))
             {
-                ((Map<String, Object>)request).put("loanType", "normal");
+                request.put("loanType", "normal");
                 if (Boolean.TRUE.equals(isMarketOrder) && (java.util.Objects.equals(side, "buy")))
                 {
-                    ((Map<String, Object>)request).put("quoteSize", quantity);
+                    request.put("quoteSize", quantity);
                 } else
                 {
-                    ((Map<String, Object>)request).put("baseSize", quantity);
+                    request.put("baseSize", quantity);
                 }
             } else
             {
                 if (!java.util.Objects.equals(quantity, null))
                 {
-                    ((Map<String, Object>)request).put("size", quantity);
+                    request.put("size", quantity);
                 }
                 if (!java.util.Objects.equals(triggerPrice, null))
                 {
-                    ((Map<String, Object>)request).put("planType", planType);
-                    ((Map<String, Object>)request).put("triggerType", triggerPriceType);
-                    ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
+                    request.put("planType", planType);
+                    request.put("triggerType", triggerPriceType);
+                    request.put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
                     if (!java.util.Objects.equals(price, null))
                     {
-                        ((Map<String, Object>)request).put("executePrice", this.priceToPrecision(symbol, price));
+                        request.put("executePrice", this.priceToPrecision(symbol, price));
                     }
                 }
             }
@@ -8949,13 +8949,13 @@ final Object finalMinNotional = minNotional;
                 {
                     marginModeRequest = "crossed";
                 }
-                ((Map<String, Object>)request).put("marginMode", marginModeRequest);
-                ((Map<String, Object>)request).put("marginCoin", ((Map<String, Object>)market).get("settleId"));
+                request.put("marginMode", marginModeRequest);
+                request.put("marginCoin", ((Map<String, Object>)market).get("settleId"));
                 String productType = null;
                 List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
                 productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
-                ((Map<String, Object>)request).put("productType", productType);
+                request.put("productType", productType);
                 response = (this.privateMixPostV2MixOrderBatchPlaceOrder(request)).join();
             } else if (java.util.Objects.equals(marginMode, "isolated"))
             {
@@ -9075,10 +9075,10 @@ final Object finalMinNotional = minNotional;
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
-                ((Map<String, Object>)request).put("clientOid", clientOrderId);
+                request.put("clientOid", clientOrderId);
             } else
             {
-                ((Map<String, Object>)request).put("orderId", id);
+                request.put("orderId", id);
             }
             Boolean isMarketOrder = java.util.Objects.equals(type, "market");
             Double triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
@@ -9118,35 +9118,35 @@ final Object finalMinNotional = minNotional;
             {
                 if (!java.util.Objects.equals(amount, null))
                 {
-                    ((Map<String, Object>)request).put("qty", this.amountToPrecision(symbol, amount));
+                    request.put("qty", this.amountToPrecision(symbol, amount));
                 }
                 if (Boolean.TRUE.equals(isStopLossOrder) || Boolean.TRUE.equals(isTakeProfitOrder))
                 {
                     if (Boolean.TRUE.equals(isStopLossOrder))
                     {
                         String slType = this.safeString(parameters, "slTriggerBy", "mark");
-                        ((Map<String, Object>)request).put("slTriggerBy", slType);
-                        ((Map<String, Object>)request).put("stopLoss", this.priceToPrecision(symbol, stopLossPrice));
+                        request.put("slTriggerBy", slType);
+                        request.put("stopLoss", this.priceToPrecision(symbol, stopLossPrice));
                         if (!java.util.Objects.equals(price, null))
                         {
-                            ((Map<String, Object>)request).put("slLimitPrice", this.priceToPrecision(symbol, price));
-                            ((Map<String, Object>)request).put("slOrderType", this.safeString(parameters, "slOrderType", "limit"));
+                            request.put("slLimitPrice", this.priceToPrecision(symbol, price));
+                            request.put("slOrderType", this.safeString(parameters, "slOrderType", "limit"));
                         } else
                         {
-                            ((Map<String, Object>)request).put("slOrderType", this.safeString(parameters, "slOrderType", "market"));
+                            request.put("slOrderType", this.safeString(parameters, "slOrderType", "market"));
                         }
                     } else if (Boolean.TRUE.equals(isTakeProfitOrder))
                     {
                         String tpType = this.safeString(parameters, "tpTriggerBy", "mark");
-                        ((Map<String, Object>)request).put("tpTriggerBy", tpType);
-                        ((Map<String, Object>)request).put("takeProfit", this.priceToPrecision(symbol, takeProfitPrice));
+                        request.put("tpTriggerBy", tpType);
+                        request.put("takeProfit", this.priceToPrecision(symbol, takeProfitPrice));
                         if (!java.util.Objects.equals(price, null))
                         {
-                            ((Map<String, Object>)request).put("tpLimitPrice", this.priceToPrecision(symbol, price));
-                            ((Map<String, Object>)request).put("tpOrderType", this.safeString(parameters, "tpOrderType", "limit"));
+                            request.put("tpLimitPrice", this.priceToPrecision(symbol, price));
+                            request.put("tpOrderType", this.safeString(parameters, "tpOrderType", "limit"));
                         } else
                         {
-                            ((Map<String, Object>)request).put("tpOrderType", this.safeString(parameters, "tpOrderType", "market"));
+                            request.put("tpOrderType", this.safeString(parameters, "tpOrderType", "market"));
                         }
                     }
                     parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLossPrice", "takeProfitPrice")));
@@ -9155,7 +9155,7 @@ final Object finalMinNotional = minNotional;
                 {
                     if (!java.util.Objects.equals(price, null))
                     {
-                        ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+                        request.put("price", this.priceToPrecision(symbol, price));
                     }
                     response = (this.privateUtaPostV3TradeModifyOrder(this.extend(request, parameters))).join();
                 }
@@ -9178,32 +9178,32 @@ final Object finalMinNotional = minNotional;
                         {
                             finalCost = (Precise.stringMul(amountString, priceString));
                         }
-                        ((Map<String, Object>)request).put("size", this.priceToPrecision(symbol, finalCost));
+                        request.put("size", this.priceToPrecision(symbol, finalCost));
                     }
                 } else
                 {
-                    ((Map<String, Object>)request).put("size", this.amountToPrecision(symbol, amount));
+                    request.put("size", this.amountToPrecision(symbol, amount));
                 }
-                ((Map<String, Object>)request).put("orderType", type);
+                request.put("orderType", type);
                 if (!java.util.Objects.equals(triggerPrice, null))
                 {
-                    ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
+                    request.put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
                     // market plan orders carry no execute price, follow up to
                     // https://github.com/ccxt/ccxt/issues/25427
                     if (!java.util.Objects.equals(price, null))
                     {
-                        ((Map<String, Object>)request).put("executePrice", this.priceToPrecision(symbol, price));
+                        request.put("executePrice", this.priceToPrecision(symbol, price));
                     }
                 } else
                 {
-                    ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+                    request.put("price", this.priceToPrecision(symbol, price));
                 }
                 if (!java.util.Objects.equals(triggerPrice, null))
                 {
                     response = (this.privateSpotPostV2SpotTradeModifyPlanOrder(this.extend(request, parameters))).join();
                 } else
                 {
-                    ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                    request.put("symbol", ((Map<String, Object>)market).get("id"));
                     response = (this.privateSpotPostV2SpotTradeCancelReplaceOrder(this.extend(request, parameters))).join();
                 }
             } else
@@ -9212,17 +9212,17 @@ final Object finalMinNotional = minNotional;
                 {
                     throw new NotSupported((((this.id + " editOrder() does not support ") + ((Map<String, Object>)market).get("type")) + " orders")) ;
                 }
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
-                ((Map<String, Object>)request).put("productType", productType);
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("productType", productType);
                 if (!Boolean.TRUE.equals(isTakeProfitOrder) && !Boolean.TRUE.equals(isStopLossOrder))
                 {
                     if (!java.util.Objects.equals(amount, null))
                     {
-                        ((Map<String, Object>)request).put("newSize", this.amountToPrecision(symbol, amount));
+                        request.put("newSize", this.amountToPrecision(symbol, amount));
                     }
                     if ((!java.util.Objects.equals(price, null)) && !Boolean.TRUE.equals(isTrailingPercentOrder))
                     {
-                        ((Map<String, Object>)request).put("newPrice", this.priceToPrecision(symbol, price));
+                        request.put("newPrice", this.priceToPrecision(symbol, price));
                     }
                 }
                 if (Boolean.TRUE.equals(isTrailingPercentOrder))
@@ -9233,46 +9233,46 @@ final Object finalMinNotional = minNotional;
                     }
                     if (!java.util.Objects.equals(trailingTriggerPrice, null))
                     {
-                        ((Map<String, Object>)request).put("newTriggerPrice", this.priceToPrecision(symbol, trailingTriggerPrice));
+                        request.put("newTriggerPrice", this.priceToPrecision(symbol, trailingTriggerPrice));
                     }
-                    ((Map<String, Object>)request).put("newCallbackRatio", trailingPercent);
+                    request.put("newCallbackRatio", trailingPercent);
                     response = (this.privateMixPostV2MixOrderModifyPlanOrder(this.extend(request, parameters))).join();
                 } else if (Boolean.TRUE.equals(isTakeProfitOrder) || Boolean.TRUE.equals(isStopLossOrder))
                 {
-                    ((Map<String, Object>)request).put("marginCoin", ((Map<String, Object>)market).get("settleId"));
-                    ((Map<String, Object>)request).put("size", this.amountToPrecision(symbol, amount));
+                    request.put("marginCoin", ((Map<String, Object>)market).get("settleId"));
+                    request.put("size", this.amountToPrecision(symbol, amount));
                     if (!java.util.Objects.equals(price, null))
                     {
-                        ((Map<String, Object>)request).put("executePrice", this.priceToPrecision(symbol, price));
+                        request.put("executePrice", this.priceToPrecision(symbol, price));
                     }
                     if (Boolean.TRUE.equals(isStopLossOrder))
                     {
-                        ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, stopLossPrice));
+                        request.put("triggerPrice", this.priceToPrecision(symbol, stopLossPrice));
                     } else if (Boolean.TRUE.equals(isTakeProfitOrder))
                     {
-                        ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, takeProfitPrice));
+                        request.put("triggerPrice", this.priceToPrecision(symbol, takeProfitPrice));
                     }
                     response = (this.privateMixPostV2MixOrderModifyTpslOrder(this.extend(request, parameters))).join();
                 } else if (Boolean.TRUE.equals(isTriggerOrder))
                 {
-                    ((Map<String, Object>)request).put("newTriggerPrice", this.priceToPrecision(symbol, triggerPrice));
+                    request.put("newTriggerPrice", this.priceToPrecision(symbol, triggerPrice));
                     if (Boolean.TRUE.equals(hasStopLoss))
                     {
                         Double slTriggerPrice = this.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
-                        ((Map<String, Object>)request).put("newStopLossTriggerPrice", this.priceToPrecision(symbol, slTriggerPrice));
+                        request.put("newStopLossTriggerPrice", this.priceToPrecision(symbol, slTriggerPrice));
                         Double slPrice = this.safeNumber(stopLoss, "price");
-                        ((Map<String, Object>)request).put("newStopLossExecutePrice", this.priceToPrecision(symbol, slPrice));
+                        request.put("newStopLossExecutePrice", this.priceToPrecision(symbol, slPrice));
                         String slType = this.safeString(stopLoss, "type", "mark_price");
-                        ((Map<String, Object>)request).put("newStopLossTriggerType", slType);
+                        request.put("newStopLossTriggerType", slType);
                     }
                     if (Boolean.TRUE.equals(hasTakeProfit))
                     {
                         Double tpTriggerPrice = this.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
-                        ((Map<String, Object>)request).put("newSurplusTriggerPrice", this.priceToPrecision(symbol, tpTriggerPrice));
+                        request.put("newSurplusTriggerPrice", this.priceToPrecision(symbol, tpTriggerPrice));
                         Double tpPrice = this.safeNumber(takeProfit, "price");
-                        ((Map<String, Object>)request).put("newStopSurplusExecutePrice", this.priceToPrecision(symbol, tpPrice));
+                        request.put("newStopSurplusExecutePrice", this.priceToPrecision(symbol, tpPrice));
                         String tpType = this.safeString(takeProfit, "type", "mark_price");
-                        ((Map<String, Object>)request).put("newStopSurplusTriggerType", tpType);
+                        request.put("newStopSurplusTriggerType", tpType);
                     }
                     response = (this.privateMixPostV2MixOrderModifyPlanOrder(this.extend(request, parameters))).join();
                 } else
@@ -9280,16 +9280,16 @@ final Object finalMinNotional = minNotional;
                     String defaultNewClientOrderId = this.uuid();
                     String newClientOrderId = this.safeString2(parameters, "newClientOid", "newClientOrderId", defaultNewClientOrderId);
                     parameters = (Map<String, Object>) this.omit(parameters, "newClientOrderId");
-                    ((Map<String, Object>)request).put("newClientOid", newClientOrderId);
+                    request.put("newClientOid", newClientOrderId);
                     if (Boolean.TRUE.equals(hasStopLoss))
                     {
                         Double slTriggerPrice = this.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
-                        ((Map<String, Object>)request).put("newPresetStopLossPrice", this.priceToPrecision(symbol, slTriggerPrice));
+                        request.put("newPresetStopLossPrice", this.priceToPrecision(symbol, slTriggerPrice));
                     }
                     if (Boolean.TRUE.equals(hasTakeProfit))
                     {
                         Double tpTriggerPrice = this.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
-                        ((Map<String, Object>)request).put("newPresetStopSurplusPrice", this.priceToPrecision(symbol, tpTriggerPrice));
+                        request.put("newPresetStopSurplusPrice", this.priceToPrecision(symbol, tpTriggerPrice));
                     }
                     response = (this.privateMixPostV2MixOrderModifyOrder(this.extend(request, parameters))).join();
                 }
@@ -9400,7 +9400,7 @@ final Object finalMinNotional = minNotional;
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "trailing")));
             if (!((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) && (java.util.Objects.equals(trigger, true))))
             {
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             Boolean uta = null;
             List<Object> utaparametersVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "cancelOrder", false)).join();
@@ -9417,22 +9417,22 @@ final Object finalMinNotional = minNotional;
                 if (!java.util.Objects.equals(clientOrderId, null))
                 {
                     parameters = (Map<String, Object>) this.omit(parameters, "clientOrderId");
-                    ((Map<String, Object>)orderId).put("clientOid", clientOrderId);
+                    orderId.put("clientOid", clientOrderId);
                 } else
                 {
-                    ((Map<String, Object>)orderId).put("orderId", id);
+                    orderId.put("orderId", id);
                 }
                 ((List<Object>)orderIdList).add(orderId);
-                ((Map<String, Object>)request).put("orderIdList", orderIdList);
+                request.put("orderIdList", orderIdList);
             } else
             {
                 if (!java.util.Objects.equals(clientOrderId, null))
                 {
                     parameters = (Map<String, Object>) this.omit(parameters, "clientOrderId");
-                    ((Map<String, Object>)request).put("clientOid", clientOrderId);
+                    request.put("clientOid", clientOrderId);
                 } else
                 {
-                    ((Map<String, Object>)request).put("orderId", id);
+                    request.put("orderId", id);
                 }
             }
             if (java.util.Objects.equals(uta, true))
@@ -9450,11 +9450,11 @@ final Object finalMinNotional = minNotional;
                 List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
                 productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
-                ((Map<String, Object>)request).put("productType", productType);
+                request.put("productType", productType);
                 if (java.util.Objects.equals(trailing, true))
                 {
                     String planType = this.safeString(parameters, "planType", "track_plan");
-                    ((Map<String, Object>)request).put("planType", planType);
+                    request.put("planType", planType);
                     response = (this.privateMixPostV2MixOrderCancelPlanOrder(this.extend(request, parameters))).join();
                 } else if (java.util.Objects.equals(trigger, true))
                 {
@@ -9704,10 +9704,10 @@ final Object finalMinNotional = minNotional;
             }};
             if ((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) && (java.util.Objects.equals(marginMode, null)))
             {
-                ((Map<String, Object>)request).put("orderList", orderIdList);
+                request.put("orderList", orderIdList);
             } else
             {
-                ((Map<String, Object>)request).put("orderIdList", orderIdList);
+                request.put("orderIdList", orderIdList);
             }
             Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
@@ -9731,7 +9731,7 @@ final Object finalMinNotional = minNotional;
                 List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
                 productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
-                ((Map<String, Object>)request).put("productType", productType);
+                request.put("productType", productType);
                 if (java.util.Objects.equals(trigger, true))
                 {
                     response = (this.privateMixPostV2MixOrderCancelPlanOrder(this.extend(request, parameters))).join();
@@ -9844,7 +9844,7 @@ final Object finalMinNotional = minNotional;
                         productType = "MARGIN";
                     }
                 }
-                ((Map<String, Object>)request).put("category", productType);
+                request.put("category", productType);
                 response = (this.privateUtaPostV3TradeCancelSymbolOrder(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
@@ -9877,16 +9877,16 @@ final Object finalMinNotional = minNotional;
                     Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "data");
                     String marketId = this.safeString(responseData, "symbol");
                     final Map<String, Object> finalResponse = response;
-                    return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+                    return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", finalResponse );
         put( "symbol", Bitget.this.safeSymbol(marketId, null, null, "spot") );
         put( "timestamp", timestamp );
         put( "datetime", Bitget.this.iso8601(timestamp) );
-    }}))));
+    }})));
                 }
             } else
             {
-                ((Map<String, Object>)request).put("productType", productType);
+                request.put("productType", productType);
                 if (java.util.Objects.equals(trigger, true))
                 {
                     response = (this.privateMixPostV2MixOrderCancelPlanOrder(this.extend(request, parameters))).join();
@@ -9966,10 +9966,10 @@ final Object finalMinNotional = minNotional;
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
-                ((Map<String, Object>)request).put("clientOid", clientOrderId);
+                request.put("clientOid", clientOrderId);
             } else
             {
-                ((Map<String, Object>)request).put("orderId", id);
+                request.put("orderId", id);
             }
             Object response = null;
             Boolean uta = null;
@@ -9984,12 +9984,12 @@ final Object finalMinNotional = minNotional;
                 response = (this.privateSpotGetV2SpotTradeOrderInfo(this.extend(request, parameters))).join();
             } else if ((java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("future"), true)))
             {
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
                 String productType = null;
                 List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
                 productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
-                ((Map<String, Object>)request).put("productType", productType);
+                request.put("productType", productType);
                 response = (this.privateMixGetV2MixOrderDetail(this.extend(request, parameters))).join();
             } else
             {
@@ -10201,7 +10201,7 @@ final Object finalMinNotional = minNotional;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
                 String defaultType = this.safeString2(this.options, "fetchOpenOrders", "defaultType", "spot");
                 Object marketType = defaultType;
                 if (market.containsKey("type"))
@@ -10250,11 +10250,11 @@ final Object finalMinNotional = minNotional;
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             if ((!java.util.Objects.equals(uta, true)) && ((java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future")) || (!java.util.Objects.equals(marginMode, null))))
             {
@@ -10262,7 +10262,7 @@ final Object finalMinNotional = minNotional;
                 parameters = (Map<String, Object>) this.omit(parameters, "clientOrderId");
                 if (!java.util.Objects.equals(clientOrderId, null))
                 {
-                    ((Map<String, Object>)request).put("clientOid", clientOrderId);
+                    request.put("clientOid", clientOrderId);
                 }
             }
             String productType = null;
@@ -10282,7 +10282,7 @@ final Object finalMinNotional = minNotional;
                         productType = "SPOT";
                     }
                 }
-                ((Map<String, Object>)request).put("category", productType);
+                request.put("category", productType);
                 if (java.util.Objects.equals(trigger, true))
                 {
                     response = (this.privateUtaGetV3TradeUnfilledStrategyOrders(this.extend(request, parameters))).join();
@@ -10297,7 +10297,7 @@ final Object finalMinNotional = minNotional;
                     if (java.util.Objects.equals(since, null))
                     {
                         since = (this.milliseconds() - 7776000000L);
-                        ((Map<String, Object>)request).put("startTime", since);
+                        request.put("startTime", since);
                     }
                     if (java.util.Objects.equals(marginMode, "isolated"))
                     {
@@ -10318,16 +10318,16 @@ final Object finalMinNotional = minNotional;
                 }
             } else
             {
-                ((Map<String, Object>)request).put("productType", productType);
+                request.put("productType", productType);
                 if (java.util.Objects.equals(trailing, true))
                 {
                     String planType = this.safeString(parameters, "planType", "track_plan");
-                    ((Map<String, Object>)request).put("planType", planType);
+                    request.put("planType", planType);
                     response = (this.privateMixGetV2MixOrderOrdersPlanPending(this.extend(request, parameters))).join();
                 } else if (Boolean.TRUE.equals(isTrigger))
                 {
                     String planType = this.safeString(parameters, "planType", "normal_plan");
-                    ((Map<String, Object>)request).put("planType", planType);
+                    request.put("planType", planType);
                     response = (this.privateMixGetV2MixOrderOrdersPlanPending(this.extend(request, parameters))).join();
                 } else
                 {
@@ -10826,7 +10826,7 @@ final Object finalMinNotional = minNotional;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             String marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, parameters);
@@ -10864,11 +10864,11 @@ final Object finalMinNotional = minNotional;
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             if ((java.util.Objects.equals(marketType, "swap")) || (java.util.Objects.equals(marketType, "future")) || (!java.util.Objects.equals(marginMode, null)))
             {
@@ -10876,7 +10876,7 @@ final Object finalMinNotional = minNotional;
                 parameters = (Map<String, Object>) this.omit(parameters, "clientOrderId");
                 if (!java.util.Objects.equals(clientOrderId, null))
                 {
-                    ((Map<String, Object>)request).put("clientOid", clientOrderId);
+                    request.put("clientOid", clientOrderId);
                 }
             }
             Long now = this.milliseconds();
@@ -10887,7 +10887,7 @@ final Object finalMinNotional = minNotional;
                     if (java.util.Objects.equals(since, null))
                     {
                         since = (now - 7776000000L);
-                        ((Map<String, Object>)request).put("startTime", since);
+                        request.put("startTime", since);
                     }
                     if (java.util.Objects.equals(marginMode, "isolated"))
                     {
@@ -10907,11 +10907,11 @@ final Object finalMinNotional = minNotional;
                     if (java.util.Objects.equals(since, null))
                     {
                         since = (now - 7776000000L);
-                        ((Map<String, Object>)request).put("startTime", since);
+                        request.put("startTime", since);
                     }
                     if (java.util.Objects.equals(endTime, null))
                     {
-                        ((Map<String, Object>)request).put("endTime", now);
+                        request.put("endTime", now);
                     }
                     response = (this.privateSpotGetV2SpotTradeHistoryPlanOrder(this.extend(request, parameters))).join();
                 } else
@@ -10924,17 +10924,17 @@ final Object finalMinNotional = minNotional;
                 List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
                 productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
-                ((Map<String, Object>)request).put("productType", productType);
+                request.put("productType", productType);
                 Boolean planTypeDefined = !java.util.Objects.equals(this.safeString(parameters, "planType"), null);
                 if (java.util.Objects.equals(trailing, true))
                 {
                     String planType = this.safeString(parameters, "planType", "track_plan");
-                    ((Map<String, Object>)request).put("planType", planType);
+                    request.put("planType", planType);
                     response = (this.privateMixGetV2MixOrderOrdersPlanHistory(this.extend(request, parameters))).join();
                 } else if ((java.util.Objects.equals(trigger, true)) || Boolean.TRUE.equals(planTypeDefined))
                 {
                     String planType = this.safeString(parameters, "planType", "normal_plan");
-                    ((Map<String, Object>)request).put("planType", planType);
+                    request.put("planType", planType);
                     response = (this.privateMixGetV2MixOrderOrdersPlanHistory(this.extend(request, parameters))).join();
                 } else
                 {
@@ -11221,11 +11221,11 @@ final Object finalMinNotional = minNotional;
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = null;
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
@@ -11427,18 +11427,18 @@ final Object finalMinNotional = minNotional;
             if (!java.util.Objects.equals(code, null))
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
-                ((Map<String, Object>)request).put("coin", ((Map<String, Object>)currency).get("id"));
+                request.put("coin", ((Map<String, Object>)currency).get("id"));
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = null;
             if (java.util.Objects.equals(uta, true))
@@ -11456,10 +11456,10 @@ final Object finalMinNotional = minNotional;
                     {
                         if (!java.util.Objects.equals(marginMode, null))
                         {
-                            ((Map<String, Object>)request).put("category", "MARGIN");
+                            request.put("category", "MARGIN");
                         } else
                         {
-                            ((Map<String, Object>)request).put("category", "SPOT");
+                            request.put("category", "SPOT");
                         }
                     } else
                     {
@@ -11467,11 +11467,11 @@ final Object finalMinNotional = minNotional;
                         List<Object> utaProductTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
                         utaProductType = (String) ((List<Object>) utaProductTypeparametersVariable).get(0);
                         parameters = ((List<Object>) utaProductTypeparametersVariable).get(1);
-                        ((Map<String, Object>)request).put("category", utaProductType);
+                        request.put("category", utaProductType);
                     }
                     if (!java.util.Objects.equals(symbol, null))
                     {
-                        ((Map<String, Object>)request).put("symbol", this.safeString(market, "id"));
+                        request.put("symbol", this.safeString(market, "id"));
                     }
                     response = (this.privateUtaGetV3AccountFinancialRecords(this.extend(request, parameters))).join();
                 }
@@ -11486,13 +11486,13 @@ final Object finalMinNotional = minNotional;
             {
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    ((Map<String, Object>)request).put("symbol", this.safeString(market, "id"));
+                    request.put("symbol", this.safeString(market, "id"));
                 }
                 String productType = null;
                 List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
                 productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
                 parameters = ((List<Object>) productTypeparametersVariable).get(1);
-                ((Map<String, Object>)request).put("productType", productType);
+                request.put("productType", productType);
                 response = (this.privateMixGetV2MixAccountBill(this.extend(request, parameters))).join();
             }
             //
@@ -11923,11 +11923,11 @@ final Object finalMinNotional = minNotional;
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Boolean paginate = false;
             String marginMode = null;
@@ -11965,14 +11965,14 @@ final Object finalMinNotional = minNotional;
                 response = (this.privateUtaGetV3TradeFills(this.extend(request, parameters))).join();
             } else
             {
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
                 {
                     if (!java.util.Objects.equals(marginMode, null))
                     {
                         if (java.util.Objects.equals(since, null))
                         {
-                            ((Map<String, Object>)request).put("startTime", (this.milliseconds() - 7776000000L));
+                            request.put("startTime", (this.milliseconds() - 7776000000L));
                         }
                         if (java.util.Objects.equals(marginMode, "isolated"))
                         {
@@ -11991,7 +11991,7 @@ final Object finalMinNotional = minNotional;
                     List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
                     productType = (String) ((List<Object>) productTypeparametersVariable).get(0);
                     parameters = (Map<String, Object>) ((List<Object>) productTypeparametersVariable).get(1);
-                    ((Map<String, Object>)request).put("productType", productType);
+                    request.put("productType", productType);
                     response = (this.privateMixGetV2MixOrderFills(this.extend(request, parameters))).join();
                 }
             }
@@ -12203,7 +12203,7 @@ final Object finalMinNotional = minNotional;
             parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             if (java.util.Objects.equals(uta, true))
             {
-                ((Map<String, Object>)request).put("category", productType);
+                request.put("category", productType);
                 response = (this.privateUtaGetV3PositionCurrentPosition(this.extend(request, parameters))).join();
                 //
                 //     {
@@ -12247,8 +12247,8 @@ final Object finalMinNotional = minNotional;
                 result = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             } else
             {
-                ((Map<String, Object>)request).put("marginCoin", ((Map<String, Object>)market).get("settleId"));
-                ((Map<String, Object>)request).put("productType", productType);
+                request.put("marginCoin", ((Map<String, Object>)market).get("settleId"));
+                request.put("productType", productType);
                 response = (this.privateMixGetV2MixPositionSinglePosition(this.extend(request, parameters))).join();
                 //
                 //     {
@@ -12373,7 +12373,7 @@ final Object finalMinNotional = minNotional;
             parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             if (java.util.Objects.equals(uta, true))
             {
-                ((Map<String, Object>)request).put("category", productType);
+                request.put("category", productType);
                 response = (this.privateUtaGetV3PositionCurrentPosition(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(method, "privateMixGetV2MixPositionAllPosition"))
             {
@@ -12400,17 +12400,17 @@ final Object finalMinNotional = minNotional;
                         throw new ArgumentsRequired((this.id + " fetchPositions() requires a marginCoin parameter that matches the productType")) ;
                     }
                 }
-                ((Map<String, Object>)request).put("marginCoin", marginCoin);
-                ((Map<String, Object>)request).put("productType", productType);
+                request.put("marginCoin", marginCoin);
+                request.put("productType", productType);
                 response = (this.privateMixGetV2MixPositionAllPosition(this.extend(request, parameters))).join();
             } else
             {
                 isHistory = true;
                 if (!java.util.Objects.equals(market, null))
                 {
-                    ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                    request.put("symbol", ((Map<String, Object>)market).get("id"));
                 }
-                ((Map<String, Object>)request).put("productType", productType);
+                request.put("productType", productType);
                 response = (this.privateMixGetV2MixPositionHistoryPosition(this.extend(request, parameters))).join();
             }
             //
@@ -12765,7 +12765,7 @@ final Object finalMinNotional = minNotional;
         final Boolean finalHedged = hedged;
         final String finalCollateral = collateral;
         final String finalInitialMargin = initialMargin;
-        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePosition(new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", Bitget.this.safeString2(position, "orderId", "positionId") );
             put( "symbol", symbol );
@@ -12794,7 +12794,7 @@ final Object finalMinNotional = minNotional;
             put( "marginRatio", Bitget.this.safeNumber2(position, "marginRatio", "mmr") );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
-        }}));
+        }});
     }
     public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
@@ -12850,9 +12850,9 @@ final Object finalMinNotional = minNotional;
             {
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    ((Map<String, Object>)request).put("limit", limit);
+                    request.put("limit", limit);
                 }
-                ((Map<String, Object>)request).put("category", productType);
+                request.put("category", productType);
                 response = (this.publicUtaGetV3MarketHistoryFundRate(this.extend(request, parameters))).join();
                 //
                 //     {
@@ -12884,9 +12884,9 @@ final Object finalMinNotional = minNotional;
                 }
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    ((Map<String, Object>)request).put("pageSize", limit);
+                    request.put("pageSize", limit);
                 }
-                ((Map<String, Object>)request).put("productType", productType);
+                request.put("productType", productType);
                 response = (this.publicMixGetV2MixMarketHistoryFundRate(this.extend(request, parameters))).join();
                 //
                 //     {
@@ -12987,7 +12987,7 @@ final Object finalMinNotional = minNotional;
                 response = (this.publicUtaGetV3MarketCurrentFundRate(this.extend(request, parameters))).join();
             } else
             {
-                ((Map<String, Object>)request).put("productType", productType);
+                request.put("productType", productType);
                 String method = null;
                 List<Object> methodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchFundingRate", "method", "publicMixGetV2MixMarketCurrentFundRate");
                 method = (String) ((List<Object>) methodparametersVariable).get(0);
@@ -13062,7 +13062,7 @@ final Object finalMinNotional = minNotional;
             method = (String) ((List<Object>) methodparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
             Map<String, Object> response = null;
-            ((Map<String, Object>)request).put("productType", productType);
+            request.put("productType", productType);
             if (java.util.Objects.equals(method, "publicMixGetV2MixMarketTickers"))
             {
                 // {
@@ -13343,24 +13343,24 @@ final Object finalMinNotional = minNotional;
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = null;
             if (java.util.Objects.equals(uta, true))
             {
-                ((Map<String, Object>)request).put("coin", ((Map<String, Object>)market).get("settleId"));
-                ((Map<String, Object>)request).put("category", productType);
+                request.put("coin", ((Map<String, Object>)market).get("settleId"));
+                request.put("category", productType);
                 response = (this.privateUtaGetV3AccountFinancialRecords(this.extend(request, parameters))).join();
             } else
             {
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
-                ((Map<String, Object>)request).put("marginCoin", ((Map<String, Object>)market).get("settleId"));
-                ((Map<String, Object>)request).put("businessType", "contract_settle_fee");
-                ((Map<String, Object>)request).put("productType", productType);
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("marginCoin", ((Map<String, Object>)market).get("settleId"));
+                request.put("businessType", "contract_settle_fee");
+                request.put("productType", productType);
                 response = (this.privateMixGetV2MixAccountBill(this.extend(request, parameters))).join();
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
@@ -13786,13 +13786,13 @@ final Object finalMinNotional = minNotional;
                         productType = "MARGIN";
                     }
                 }
-                ((Map<String, Object>)request).put("coin", ((Map<String, Object>)market).get("settleId"));
-                ((Map<String, Object>)request).put("category", productType);
+                request.put("coin", ((Map<String, Object>)market).get("settleId"));
+                request.put("category", productType);
                 response = (this.privateUtaPostV3AccountSetLeverage(this.extend(request, parameters))).join();
             } else
             {
-                ((Map<String, Object>)request).put("marginCoin", ((Map<String, Object>)market).get("settleId"));
-                ((Map<String, Object>)request).put("productType", productType);
+                request.put("marginCoin", ((Map<String, Object>)market).get("settleId"));
+                request.put("productType", productType);
                 response = (this.privateMixPostV2MixAccountSetLeverage(this.extend(request, parameters))).join();
             }
             return response;
@@ -13947,12 +13947,12 @@ final Object finalMinNotional = minNotional;
             parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             if (java.util.Objects.equals(uta, true))
             {
-                ((Map<String, Object>)request).put("holdMode", posMode);
+                request.put("holdMode", posMode);
                 response = (this.privateUtaPostV3AccountSetHoldMode(this.extend(request, parameters))).join();
             } else
             {
-                ((Map<String, Object>)request).put("posMode", posMode);
-                ((Map<String, Object>)request).put("productType", productType);
+                request.put("posMode", posMode);
+                request.put("productType", productType);
                 response = (this.privateMixPostV2MixAccountSetPositionMode(this.extend(request, parameters))).join();
             }
             return response;
@@ -14016,11 +14016,11 @@ final Object finalMinNotional = minNotional;
             parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             if (java.util.Objects.equals(uta, true))
             {
-                ((Map<String, Object>)request).put("category", productType);
+                request.put("category", productType);
                 response = (this.publicUtaGetV3MarketOpenInterest(this.extend(request, parameters))).join();
             } else
             {
-                ((Map<String, Object>)request).put("productType", productType);
+                request.put("productType", productType);
                 response = (this.publicMixGetV2MixMarketOpenInterest(this.extend(request, parameters))).join();
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
@@ -14135,11 +14135,11 @@ final Object finalMinNotional = minNotional;
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
@@ -14233,7 +14233,7 @@ final Object finalMinNotional = minNotional;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> response = null;
             if (java.util.Objects.equals(uta, true))
@@ -14255,7 +14255,7 @@ final Object finalMinNotional = minNotional;
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            ((Map<String, Object>)data).put("ts", this.safeInteger(response, "requestTime"));
+            data.put("ts", this.safeInteger(response, "requestTime"));
             return this.parseTransfer(data, currency);
         }).thenApply(TransferEntry::new);
 
@@ -14836,14 +14836,14 @@ final Object finalMinNotional = minNotional;
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             } else
             {
-                ((Map<String, Object>)request).put("startTime", (this.milliseconds() - 7776000000L));
+                request.put("startTime", (this.milliseconds() - 7776000000L));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = null;
             String marginMode = null;
@@ -14856,7 +14856,7 @@ final Object finalMinNotional = minNotional;
                 {
                     throw new ArgumentsRequired((this.id + " fetchMyLiquidations() requires a symbol argument")) ;
                 }
-                ((Map<String, Object>)request).put("symbol", this.safeString(market, "id"));
+                request.put("symbol", this.safeString(market, "id"));
                 response = (this.privateMarginGetV2MarginIsolatedLiquidationHistory(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(marginMode, "cross"))
             {
@@ -14977,7 +14977,7 @@ final Object finalMinNotional = minNotional;
         String liquidationFee = this.safeString2(liquidation, "LiqFee", "liqFee");
         String totalDebt = this.safeString(liquidation, "totalDebt");
         String quoteValueString = Precise.stringAdd(liquidationFee, totalDebt);
-        return this.safeLiquidation((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeLiquidation(new HashMap<String, Object>() {{
             put( "info", liquidation );
             put( "symbol", Bitget.this.safeSymbol(marketId, market) );
             put( "contracts", null );
@@ -14987,7 +14987,7 @@ final Object finalMinNotional = minNotional;
             put( "quoteValue", Bitget.this.parseNumber(quoteValueString) );
             put( "timestamp", timestamp );
             put( "datetime", Bitget.this.iso8601(timestamp) );
-        }}));
+        }});
     }
     public Object parseLiquidation(Object liquidation, Object... optionalArgs)
     {
@@ -15061,7 +15061,7 @@ final Object finalMinNotional = minNotional;
             Long timestamp = this.safeInteger(response, "requestTime");
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            ((Map<String, Object>)first).put("timestamp", timestamp);
+            first.put("timestamp", timestamp);
             return this.parseIsolatedBorrowRate((Map<String, Object>) (first), market);
         }).thenApply(IsolatedBorrowRate::new);
 
@@ -15217,7 +15217,7 @@ final Object finalMinNotional = minNotional;
                 result = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             }
             Long timestamp = this.safeInteger(response, "requestTime");
-            ((Map<String, Object>)result).put("timestamp", timestamp);
+            result.put("timestamp", timestamp);
             return this.parseBorrowRate(result, currency);
         }).thenApply(CrossBorrowRate::new);
 
@@ -15334,18 +15334,18 @@ final Object finalMinNotional = minNotional;
             if (!java.util.Objects.equals(code, null))
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
-                ((Map<String, Object>)request).put("coin", ((Map<String, Object>)currency).get("id"));
+                request.put("coin", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             } else
             {
-                ((Map<String, Object>)request).put("startTime", (this.milliseconds() - 7776000000L));
+                request.put("startTime", (this.milliseconds() - 7776000000L));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = null;
             String marginMode = null;
@@ -15358,7 +15358,7 @@ final Object finalMinNotional = minNotional;
                 {
                     throw new ArgumentsRequired((this.id + " fetchBorrowInterest() requires a symbol argument")) ;
                 }
-                ((Map<String, Object>)request).put("symbol", this.safeString(market, "id"));
+                request.put("symbol", this.safeString(market, "id"));
                 response = (this.privateMarginGetV2MarginIsolatedInterestHistory(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(marginMode, "cross"))
             {
@@ -15537,17 +15537,17 @@ final Object finalMinNotional = minNotional;
             {
                 if (!java.util.Objects.equals(side, null))
                 {
-                    ((Map<String, Object>)request).put("posSide", side);
+                    request.put("posSide", side);
                 }
-                ((Map<String, Object>)request).put("category", productType);
+                request.put("category", productType);
                 response = (this.privateUtaPostV3TradeClosePositions(this.extend(request, parameters))).join();
             } else
             {
                 if (!java.util.Objects.equals(side, null))
                 {
-                    ((Map<String, Object>)request).put("holdSide", side);
+                    request.put("holdSide", side);
                 }
-                ((Map<String, Object>)request).put("productType", productType);
+                request.put("productType", productType);
                 response = (this.privateMixPostV2MixOrderClosePositions(this.extend(request, parameters))).join();
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
@@ -15605,11 +15605,11 @@ final Object finalMinNotional = minNotional;
             parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             if (java.util.Objects.equals(uta, true))
             {
-                ((Map<String, Object>)request).put("category", productType);
+                request.put("category", productType);
                 response = (this.privateUtaPostV3TradeClosePositions(this.extend(request, parameters))).join();
             } else
             {
-                ((Map<String, Object>)request).put("productType", productType);
+                request.put("productType", productType);
                 response = (this.privateMixPostV2MixOrderClosePositions(this.extend(request, parameters))).join();
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
@@ -15771,16 +15771,16 @@ final Object finalMinNotional = minNotional;
                 if (Helpers.isGreaterThan(symbolsLength, 0))
                 {
                     market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
-                    ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                    request.put("symbol", ((Map<String, Object>)market).get("id"));
                 }
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
@@ -15793,7 +15793,7 @@ final Object finalMinNotional = minNotional;
             parameters = (Map<String, Object>) ((List<Object>) utaparametersVariable).get(1);
             if (java.util.Objects.equals(uta, true))
             {
-                ((Map<String, Object>)request).put("category", productType);
+                request.put("category", productType);
                 response = (this.privateUtaGetV3PositionHistoryPosition(this.extend(request, parameters))).join();
             } else
             {
@@ -16006,22 +16006,22 @@ final Object finalMinNotional = minNotional;
             Long now = this.milliseconds();
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             } else
             {
-                ((Map<String, Object>)request).put("startTime", (now - ((long) msInDay)));
+                request.put("startTime", (now - ((long) msInDay)));
             }
             String endTime = this.safeString2(parameters, "endTime", "until");
             if (!java.util.Objects.equals(endTime, null))
             {
-                ((Map<String, Object>)request).put("endTime", endTime);
+                request.put("endTime", endTime);
             } else
             {
-                ((Map<String, Object>)request).put("endTime", now);
+                request.put("endTime", now);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             parameters = (Map<String, Object>) this.omit(parameters, "until");
             Map<String, Object> response = (this.privateConvertGetV2ConvertConvertRecord(this.extend(request, parameters))).join();
@@ -16172,7 +16172,7 @@ final Object finalMinNotional = minNotional;
                 if (!java.util.Objects.equals(code, null))
                 {
                     final String finalCode = code;
-                    ((Map<String, Object>)result).put((String)code, new HashMap<String, Object>() {{
+                    result.put((String)code, new HashMap<String, Object>() {{
         put( "info", entry );
         put( "id", id );
         put( "code", finalCode );
@@ -16257,7 +16257,7 @@ final Object finalMinNotional = minNotional;
                 response = (this.publicUtaGetV3MarketCurrentFundRate(this.extend(request, parameters))).join();
             } else
             {
-                ((Map<String, Object>)request).put("productType", productType);
+                request.put("productType", productType);
                 response = (this.publicMixGetV2MixMarketFundingTime(this.extend(request, parameters))).join();
             }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
@@ -16314,7 +16314,7 @@ final Object finalMinNotional = minNotional;
             }};
             if (!java.util.Objects.equals(timeframe, null))
             {
-                ((Map<String, Object>)request).put("period", timeframe);
+                request.put("period", timeframe);
             }
             Map<String, Object> response = null;
             if ((java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("future"), true)))

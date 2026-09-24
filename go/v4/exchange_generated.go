@@ -3819,7 +3819,7 @@ func (this *BaseExchange) CurrencyIds(optionalArgs ...any) any {
 	return result
 }
 func (this *BaseExchange) MarketsForSymbols(optionalArgs ...any) any {
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	if symbols == nil {
 		return nil
@@ -7571,7 +7571,7 @@ func (this *BaseExchange) ParseDepositWithdrawFees(response any, optionalArgs ..
 	 * @param {str} currencyIdKey *should only be undefined when response is a dictionary* the object key that corresponds to the currency id
 	 * @returns {object} objects with withdraw and deposit fees, indexed by currency codes
 	 */
-	codes := GetArg(optionalArgs, 0, nil)
+	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = codes
 	var currencyIdKey *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = currencyIdKey
@@ -8580,7 +8580,7 @@ func (this *BaseExchange) ParseOptionChain(response any, optionalArgs ...any) an
 	return optionStructures
 }
 func (this *BaseExchange) ParseMarginModes(response any, optionalArgs ...any) any {
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var symbolKey *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = symbolKey
@@ -8613,7 +8613,7 @@ func (this *BaseExchange) ParseMarginMode(marginMode any, optionalArgs ...any) a
 	panic(NotSupported(this.Id + " parseMarginMode () is not supported yet"))
 }
 func (this *BaseExchange) ParseLeverages(response any, optionalArgs ...any) any {
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var symbolKey *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = symbolKey
@@ -8818,7 +8818,7 @@ func (this *BaseExchange) ParseMarginModification(data any, optionalArgs ...any)
 	panic(NotSupported(this.Id + " parseMarginModification() is not supported yet"))
 }
 func (this *BaseExchange) ParseMarginModifications(response any, optionalArgs ...any) any {
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var symbolKey *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = symbolKey
@@ -10506,7 +10506,7 @@ func (this *Exchange) WatchPositionForSymbolsAsync(optionalArgs ...any) <-chan a
 func (this *Exchange) watchPositionForSymbolsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since

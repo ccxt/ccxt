@@ -227,7 +227,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 messageHash = Helpers.add(messageHash, (":" + ((Map<String, Object>)market).get("id")));
-                ((Map<String, Object>)firstArgument).put("instId", ((Map<String, Object>)market).get("id"));
+                firstArgument.put("instId", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", "subscribe" );
@@ -621,7 +621,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    ((Map<String, Object>)result).put((String)symbol, fundingRate);
+                    result.put((String)symbol, fundingRate);
                 }
                 return result;
             }
@@ -1016,7 +1016,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         {
             Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((data == null || i < 0 || i >= data.size() ? null : data.get(i)));
             Helpers.addElementToObject(this.tickers, symbol, ticker);
-            ((Map<String, Object>)newTickers).put((String)symbol, ticker);
+            newTickers.put((String)symbol, ticker);
         }
         String messageHash = ((channel + "::") + symbol);
         client.resolve(newTickers, messageHash);
@@ -1504,7 +1504,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
         Long timestamp = this.safeInteger(firstPosData, "uTIme");
         final Map<String, Object> finalMarket = market;
-        return this.safeLiquidation((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeLiquidation(new HashMap<String, Object>() {{
             put( "info", liquidation );
             put( "symbol", Okx.this.safeSymbol(marketId, finalMarket) );
             put( "contracts", Okx.this.safeNumber(firstPosData, "pos") );
@@ -1514,7 +1514,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             put( "quoteValue", null );
             put( "timestamp", timestamp );
             put( "datetime", Okx.this.iso8601(timestamp) );
-        }}));
+        }});
     }
     public Object parseWsMyLiquidation(Map<String, Object> liquidation, Object... optionalArgs)
     {
@@ -1549,7 +1549,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
         Long timestamp = this.safeInteger(liquidationDetails, "ts");
         final Map<String, Object> finalMarket = market;
-        return this.safeLiquidation((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeLiquidation(new HashMap<String, Object>() {{
             put( "info", liquidation );
             put( "symbol", Okx.this.safeSymbol(marketId, finalMarket) );
             put( "contracts", Okx.this.safeNumber(liquidationDetails, "sz") );
@@ -1560,7 +1560,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             put( "quoteValue", null );
             put( "timestamp", timestamp );
             put( "datetime", Okx.this.iso8601(timestamp) );
-        }}));
+        }});
     }
     public Object parseWsLiquidation(Map<String, Object> liquidation, Object... optionalArgs)
     {
@@ -2401,7 +2401,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 // Only add params['access'] to prevent sending custom parameters, such as extraParams.
                 if (((Map<?, ?>)parameters).containsKey("access"))
                 {
-                    ((Map<String, Object>)request).put("access", ((Map<String, Object>)parameters).get("access"));
+                    request.put("access", ((Map<String, Object>)parameters).get("access"));
                 }
                 this.watch(url, messageHash, request, messageHash, null);
             }
@@ -2559,7 +2559,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         Long timestamp = this.safeInteger(info, "fillTime");
         String feeMarketId = this.safeString(info, "fillFeeCcy");
         Boolean isTaker = java.util.Objects.equals(this.safeString(info, "execType", ""), "T");
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", info );
             put( "timestamp", timestamp );
             put( "datetime", Okx.this.iso8601(timestamp) );
@@ -2576,7 +2576,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "cost", Okx.this.safeNumber(info, "fillFee") );
                 put( "currency", Okx.this.safeCurrencyCode((String) (feeMarketId)) );
             }} );
-        }}), market);
+        }}, market);
     }
     public Object orderToTrade(Map<String, Object> order, Object... optionalArgs)
     {
@@ -2846,7 +2846,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (rawPosition));
             if (Helpers.isEqual(((Map<String, Object>)position).get("contracts"), 0) && java.util.Objects.equals(Helpers.GetValue(rawPosition, "posSide"), "net"))
             {
-                Helpers.addElementToObject(position, "side", "long");
+                position.put("side", "long");
                 Object shortPosition = this.clone(position);
                 Helpers.addElementToObject(shortPosition, "side", "short");
                 Helpers.callDynamically(cache, "append", new Object[]{shortPosition});
@@ -3150,7 +3150,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             String symbol = (String) ((Map<String, Object>)trade).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                ((Map<String, Object>)symbols).put((String)symbol, true);
+                symbols.put((String)symbol, true);
             }
         }
         String messageHash = (channel + "::myTrades");
@@ -3392,10 +3392,10 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             }};
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                ((Map<String, Object>)arg).put("clOrdId", clientOrderId);
+                arg.put("clOrdId", clientOrderId);
             } else
             {
-                ((Map<String, Object>)arg).put("ordId", id);
+                arg.put("ordId", id);
             }
             final Map<String, Object> finalParameters = parameters;
             Map<String, Object> request = new HashMap<String, Object>() {{

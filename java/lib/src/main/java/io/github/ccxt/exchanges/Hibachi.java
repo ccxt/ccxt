@@ -492,7 +492,7 @@ public class Hibachi extends HibachiApi
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         String networkId = "ARBITRUM";
-        ((Map<String, Object>)networks).put((String)networkId, new HashMap<String, Object>() {{
+        networks.put((String)networkId, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", networkId );
     put( "limits", new HashMap<String, Object>() {{
@@ -514,7 +514,7 @@ public class Hibachi extends HibachiApi
         if (!java.util.Objects.equals(code, null))
         {
             final String finalCode = code;
-            ((Map<String, Object>)result).put((String)code, this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+            result.put((String)code, this.safeCurrencyStructure(new HashMap<String, Object>() {{
     put( "id", "USDT" );
     put( "name", "USDT" );
     put( "type", "fiat" );
@@ -536,7 +536,7 @@ public class Hibachi extends HibachiApi
         }} );
     }} );
     put( "info", new HashMap<String, Object>() {{}} );
-}})));
+}}));
         }
         return result;
     }
@@ -549,11 +549,11 @@ public class Hibachi extends HibachiApi
         // Hibachi only supports USDT on Arbitrum at this time
         String code = this.safeCurrencyCode("USDT");
         Map<String, Object> account = (Map<String, Object>) this.account();
-        ((Map<String, Object>)account).put("total", this.safeString(response, "balance"));
-        ((Map<String, Object>)account).put("free", this.safeString(response, "maximalWithdraw"));
+        account.put("total", this.safeString(response, "balance"));
+        account.put("free", this.safeString(response, "maximalWithdraw"));
         if (!java.util.Objects.equals(code, null))
         {
-            ((Map<String, Object>)result).put((String)code, account);
+            result.put((String)code, account);
         }
         return this.safeBalance(result);
     }
@@ -713,7 +713,7 @@ public class Hibachi extends HibachiApi
         final String finalTakerOrMaker = takerOrMaker;
         final String finalOrderType = orderType;
         final Map<String, Object> finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", finalId );
             put( "timestamp", timestamp );
             put( "datetime", Hibachi.this.iso8601(timestamp) );
@@ -727,7 +727,7 @@ public class Hibachi extends HibachiApi
             put( "type", finalOrderType );
             put( "fee", finalFee );
             put( "info", trade );
-        }}), market);
+        }}, market);
     }
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
@@ -941,7 +941,7 @@ public class Hibachi extends HibachiApi
         final String finalRemainingString = remainingString;
         final Boolean finalReduceOnly = reduceOnly;
         final Boolean finalPostOnly = postOnly;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Hibachi.this.safeString(order, "orderId") );
             put( "clientOrderId", null );
@@ -965,7 +965,7 @@ public class Hibachi extends HibachiApi
             put( "reduceOnly", finalReduceOnly );
             put( "postOnly", finalPostOnly );
             put( "triggerPrice", Hibachi.this.safeNumber(order, "triggerPrice") );
-        }}), market);
+        }}, market);
     }
     public Object parseOrder(Object order, Object... optionalArgs)
     {
@@ -1052,7 +1052,7 @@ public class Hibachi extends HibachiApi
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
+                result.put((String)symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
         put( "maker", makerFeeRate );
@@ -1193,17 +1193,17 @@ public class Hibachi extends HibachiApi
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         if (postOnly)
         {
-            ((Map<String, Object>)request).put("orderFlags", "POST_ONLY");
+            request.put("orderFlags", "POST_ONLY");
         } else if (java.util.Objects.equals(timeInForce, "ioc"))
         {
-            ((Map<String, Object>)request).put("orderFlags", "IOC");
+            request.put("orderFlags", "IOC");
         } else if (java.util.Objects.equals(reduceOnly, true))
         {
-            ((Map<String, Object>)request).put("orderFlags", "REDUCE_ONLY");
+            request.put("orderFlags", "REDUCE_ONLY");
         }
         if (!java.util.Objects.equals(triggerPrice, null))
         {
-            ((Map<String, Object>)request).put("triggerPrice", triggerPrice);
+            request.put("triggerPrice", triggerPrice);
         }
         parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "postOnly", "timeInForce", "stopPrice", "triggerPrice"))));
         return (Map<String, Object>) (this.extend(request, parameters));
@@ -1237,17 +1237,17 @@ public class Hibachi extends HibachiApi
             }
             Object nonce = this.incrementingNonce();
             Map<String, Object> request = this.createOrderRequest(nonce, (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-            ((Map<String, Object>)request).put("accountId", this.getAccountId());
+            request.put("accountId", this.getAccountId());
             Map<String, Object> response = (this.privatePostTradeOrder(request)).join();
             //
             // {
             //     "orderId": "578721673790138368"
             // }
             //
-            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return this.safeOrder(new HashMap<String, Object>() {{
                 put( "id", Hibachi.this.safeString(response, "orderId") );
                 put( "status", "pending" );
-            }}));
+            }});
         }).thenApply(Order::new);
 
     }
@@ -1299,7 +1299,7 @@ public class Hibachi extends HibachiApi
                 Double price = this.safeNumber(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> orderRequest = this.createOrderRequest(Helpers.add(nonce, i), symbol, type, side, amount, price, orderParams);
-                ((Map<String, Object>)orderRequest).put("action", "place");
+                orderRequest.put("action", "place");
                 ((List<Object>)requestOrders).add(orderRequest);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1315,11 +1315,11 @@ public class Hibachi extends HibachiApi
             for (var i = 0; i < ((List<?>)responseOrders).size(); i++)
             {
                 Object responseOrder = (responseOrders == null || i < 0 || i >= responseOrders.size() ? null : responseOrders.get(i));
-                ((List<Object>)ret).add(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+                ((List<Object>)ret).add(this.safeOrder(new HashMap<String, Object>() {{
                     put( "info", responseOrder );
                     put( "id", Hibachi.this.safeString(responseOrder, "orderId") );
                     put( "status", "pending" );
-                }})));
+                }}));
             }
             return ret;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -1397,16 +1397,16 @@ public class Hibachi extends HibachiApi
             }
             Object nonce = this.incrementingNonce();
             Map<String, Object> request = this.editOrderRequest(nonce, (String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-            ((Map<String, Object>)request).put("accountId", this.getAccountId());
+            request.put("accountId", this.getAccountId());
             (this.privatePutTradeOrder(request)).join();
             // At this time the response body is empty. A 200 response means the update request is accepted and sent to process
             //
             // {}
             //
-            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return this.safeOrder(new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "status", "pending" );
-            }}));
+            }});
         }).thenApply(Order::new);
 
     }
@@ -1460,7 +1460,7 @@ public class Hibachi extends HibachiApi
                 Double price = this.safeNumber(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> orderRequest = this.editOrderRequest(Helpers.add(nonce, i), id, symbol, type, side, amount, price, orderParams);
-                ((Map<String, Object>)orderRequest).put("action", "modify");
+                orderRequest.put("action", "modify");
                 ((List<Object>)requestOrders).add(orderRequest);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1476,11 +1476,11 @@ public class Hibachi extends HibachiApi
             for (var i = 0; i < ((List<?>)responseOrders).size(); i++)
             {
                 Object responseOrder = (responseOrders == null || i < 0 || i >= responseOrders.size() ? null : responseOrders.get(i));
-                ((List<Object>)ret).add(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+                ((List<Object>)ret).add(this.safeOrder(new HashMap<String, Object>() {{
                     put( "info", responseOrder );
                     put( "id", Hibachi.this.safeString(responseOrder, "orderId") );
                     put( "status", "pending" );
-                }})));
+                }}));
             }
             return ret;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -1535,11 +1535,11 @@ public class Hibachi extends HibachiApi
             //
             // {}
             //
-            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "id", id );
                 put( "status", "canceled" );
-            }}));
+            }});
         }).thenApply(Order::new);
 
     }
@@ -1593,11 +1593,11 @@ public class Hibachi extends HibachiApi
             for (var i = 0; i < ((List<?>)responseOrders).size(); i++)
             {
                 Object responseOrder = (responseOrders == null || i < 0 || i >= responseOrders.size() ? null : responseOrders.get(i));
-                ((List<Object>)ret).add(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+                ((List<Object>)ret).add(this.safeOrder(new HashMap<String, Object>() {{
                     put( "info", responseOrder );
                     put( "id", Hibachi.this.safeString(responseOrder, "orderId") );
                     put( "status", "canceled" );
-                }})));
+                }}));
             }
             return ret;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -1649,16 +1649,16 @@ public class Hibachi extends HibachiApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("contractId", this.safeInteger(market, "numericId"));
+                request.put("contractId", this.safeInteger(market, "numericId"));
             }
             Map<String, Object> response = (this.privateDeleteTradeOrders(this.extend(request, parameters))).join();
             // At this time the response body is empty. A 200 response means the cancel request is accepted and sent to process
             //
             // {}
             //
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", response );
-    }}))));
+    }})));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1846,8 +1846,8 @@ public class Hibachi extends HibachiApi
             }};
             Map<String, Object> response = (this.publicGetMarketDataOrderbook(this.extend(request, parameters))).join();
             Map<String, Object> formattedResponse = new HashMap<String, Object>() {{}};
-            ((Map<String, Object>)formattedResponse).put("ask", this.safeList(this.safeDict(response, "ask"), "levels"));
-            ((Map<String, Object>)formattedResponse).put("bid", this.safeList(this.safeDict(response, "bid"), "levels"));
+            formattedResponse.put("ask", this.safeList(this.safeDict(response, "ask"), "levels"));
+            formattedResponse.put("bid", this.safeList(this.safeDict(response, "bid"), "levels"));
             // {
             //     "ask": {
             //         "endPrice": "3512.63",
@@ -2120,11 +2120,11 @@ public class Hibachi extends HibachiApi
             }
             if (!java.util.Objects.equals(status, null))
             {
-                ((Map<String, Object>)request).put("status", status);
+                request.put("status", status);
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             Long until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOrdersByStatus", "until");
@@ -2132,7 +2132,7 @@ public class Hibachi extends HibachiApi
             parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("endTime", until);
+                request.put("endTime", until);
             }
             Map<String, Object> response = (this.privateGetTradeOrdersHistory(this.extend(request, parameters))).join();
             //
@@ -2306,7 +2306,7 @@ public class Hibachi extends HibachiApi
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("fromMs", since);
+                request.put("fromMs", since);
             }
             Long until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "until");
@@ -2314,7 +2314,7 @@ public class Hibachi extends HibachiApi
             parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("toMs", until);
+                request.put("toMs", until);
             }
             Map<String, Object> response = (this.publicGetMarketDataKlines(this.extend(request, parameters))).join();
             //
@@ -2458,7 +2458,7 @@ public class Hibachi extends HibachiApi
         String unrealizedFunding = this.safeString(position, "unrealizedFundingPnl", "0");
         String unrealizedTrading = this.safeString(position, "unrealizedTradingPnl", "0");
         String unrealizedPnl = Precise.stringAdd(unrealizedFunding, unrealizedTrading);
-        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePosition(new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", symbol );
@@ -2482,7 +2482,7 @@ public class Hibachi extends HibachiApi
             put( "marginRatio", null );
             put( "marginMode", null );
             put( "percentage", null );
-        }}));
+        }});
     }
     public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
     {
@@ -3096,16 +3096,16 @@ public class Hibachi extends HibachiApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
-                ((Map<String, Object>)request).put("contractId", ((Map<String, Object>)market).get("numericId"));
+                request.put("contractId", ((Map<String, Object>)market).get("numericId"));
                 symbol = (String) ((Map<String, Object>)market).get("symbol");
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", this.parseToInt(Helpers.divide(since, 1000)));
+                request.put("startTime", this.parseToInt(Helpers.divide(since, 1000)));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Long until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchMySettlementHistory", "until");
@@ -3113,7 +3113,7 @@ public class Hibachi extends HibachiApi
             parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("endTime", this.parseToInt((((double) until) / ((double) 1000))));
+                request.put("endTime", this.parseToInt((((double) until) / ((double) 1000))));
             }
             Map<String, Object> response = (this.privateGetTradeAccountSettlementsHistory(this.extend(request, parameters))).join();
             //

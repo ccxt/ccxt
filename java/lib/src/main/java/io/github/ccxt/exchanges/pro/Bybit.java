@@ -1578,7 +1578,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         {
             Object bidask = this.parseWsBidAsk(((Map<?, ?>)this.orderbooks).get(symbol), market);
             Map<String, Object> newBidsAsks = new HashMap<String, Object>() {{}};
-            ((Map<String, Object>)newBidsAsks).put((String)symbol, bidask);
+            newBidsAsks.put((String)symbol, bidask);
             Helpers.addElementToObject(this.bidsasks, symbol, bidask);
             client.resolve(newBidsAsks, ("bidask:" + symbol));
         }
@@ -1909,7 +1909,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         String orderId = this.safeString(trade, "o");
         final String finalSide = side;
         final Object finalTakerOrMaker = takerOrMaker;
-        return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -1923,7 +1923,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             put( "amount", amount );
             put( "cost", null );
             put( "fee", null );
-        }}), market));
+        }}, market));
     }
     public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
     {
@@ -2239,7 +2239,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 continue;
             }
-            ((Map<String, Object>)symbols).put((String)symbol, true);
+            symbols.put((String)symbol, true);
             Helpers.callDynamically(trades, "append", new Object[]{parsed});
         }
         List<Object> keys = new ArrayList<Object>(symbols.keySet());
@@ -2442,9 +2442,9 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 // closing update, adding both sides to "reset" both sides
                 // since we don't know which side is being closed
-                Helpers.addElementToObject(position, "side", "long");
+                position.put("side", "long");
                 Helpers.callDynamically(cache, "append", new Object[]{position});
-                Helpers.addElementToObject(position, "side", "short");
+                position.put("side", "short");
                 Helpers.callDynamically(cache, "append", new Object[]{position});
                 Helpers.addElementToObject(position, "side", null);
             } else
@@ -2671,7 +2671,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         market = (Map<String, Object>) (this.safeMarket(marketId, market, "", "contract"));
         Long timestamp = (Long) this.safeInteger2(liquidation, "updatedTime", "T");
         final Map<String, Object> finalMarket = market;
-        return this.safeLiquidation((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeLiquidation(new HashMap<String, Object>() {{
             put( "info", liquidation );
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
             put( "contracts", Bybit.this.safeNumber2(liquidation, "size", "v") );
@@ -2682,7 +2682,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             put( "quoteValue", null );
             put( "timestamp", timestamp );
             put( "datetime", Bybit.this.iso8601(timestamp) );
-        }}));
+        }});
     }
     public Object parseWsLiquidation(Object liquidation, Object... optionalArgs)
     {
@@ -2949,7 +2949,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 continue;
             }
-            ((Map<String, Object>)symbols).put((String)symbol, true);
+            symbols.put((String)symbol, true);
             Helpers.callDynamically(orders, "append", new Object[]{parsed});
         }
         List<Object> symbolsArray = new ArrayList<Object>(symbols.keySet());
@@ -3289,11 +3289,11 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         Map<String, Object> account = (Map<String, Object>) this.account();
         String currencyId = this.safeString2(balance, "a", "coin");
         String code = this.safeCurrencyCode((String) (currencyId));
-        ((Map<String, Object>)account).put("free", this.safeStringN(balance, new ArrayList<Object>(Arrays.asList("availableToWithdraw", "f", "free"))));
+        account.put("free", this.safeStringN(balance, new ArrayList<Object>(Arrays.asList("availableToWithdraw", "f", "free"))));
         String used = this.safeString2(balance, "l", "locked");
         if (!java.util.Objects.equals(used, null))
         {
-            ((Map<String, Object>)account).put("used", used);
+            account.put("used", used);
         } else
         {
             // the unified account wallet stream has no locked field, the margin
@@ -3301,12 +3301,12 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             // is derived from those, see https://github.com/ccxt/ccxt/issues/24365
             String totalPositionIm = this.safeString(balance, "totalPositionIM", "0");
             String totalOrderIm = this.safeString(balance, "totalOrderIM", "0");
-            ((Map<String, Object>)account).put("used", Precise.stringAdd(totalPositionIm, totalOrderIm));
+            account.put("used", Precise.stringAdd(totalPositionIm, totalOrderIm));
         }
         // on the unified rows the free amount and the margin are both measured
         // against the equity, which includes the unrealized pnl, so the equity
         // is the consistent total, the spot rows fall back to the wallet balance
-        ((Map<String, Object>)account).put("total", this.safeString2(balance, "equity", "walletBalance"));
+        account.put("total", this.safeString2(balance, "equity", "walletBalance"));
         if (!java.util.Objects.equals(accountType, null))
         {
             if (java.util.Objects.equals(this.safeDict(this.balance, accountType), null))
