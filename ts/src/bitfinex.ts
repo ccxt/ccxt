@@ -3077,7 +3077,11 @@ export default class bitfinex extends Exchange {
         } else {
             request = this.version + request;
         }
-        let url = this.urls['api'][api] + '/' + request;
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + request;
         if (api === 'public') {
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);

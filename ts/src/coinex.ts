@@ -6197,7 +6197,11 @@ export default class coinex extends Exchange {
         path = this.implodeParams (path, params);
         const version: string = api[0];
         const requestUrl: string = api[1];
-        let url = this.urls['api'][requestUrl] + '/' + version + '/' + path;
+        const apiUrl = this.safeString (this.urls['api'], requestUrl);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + version + '/' + path;
         let query = this.omit (params, this.extractParams (path));
         const nonce = this.nonce ().toString ();
         if (method === 'POST') {

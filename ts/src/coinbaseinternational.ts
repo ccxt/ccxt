@@ -2405,7 +2405,11 @@ export default class coinbaseinternational extends Exchange {
                 fullPath += '?' + this.urlencodeWithArrayRepeat (query);
             }
         }
-        const url = this.urls['api']['rest'] + fullPath;
+        const apiUrl = this.safeString (this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + fullPath;
         if (signed) {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();

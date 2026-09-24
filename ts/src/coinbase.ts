@@ -5321,7 +5321,11 @@ export default class coinbase extends Exchange {
     }
 
     override nonce (): number {
-        return this.milliseconds () - this.options['timeDifference'];
+        const timeDifference = this.safeInteger (this.options, 'timeDifference');
+        if (timeDifference === undefined) {
+            throw new ExchangeError (this.id + ' nonce() requires a numeric options["timeDifference"]');
+        }
+        return this.milliseconds () - timeDifference;
     }
 
     override sign (path: any, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
@@ -5337,7 +5341,11 @@ export default class coinbase extends Exchange {
                 fullPath += '?' + this.urlencodeWithArrayRepeat (query);
             }
         }
-        const url = this.urls['api']['rest'] + fullPath;
+        const apiUrl = this.safeString (this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + fullPath;
         if (signed) {
             const authorization = this.safeString (this.headers, 'Authorization');
             let authorizationString: Str = undefined;

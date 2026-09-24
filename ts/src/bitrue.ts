@@ -3264,9 +3264,17 @@ export default class bitrue extends Exchange {
         const access = this.safeString (api, 2);
         let url: Str = undefined;
         if ((type === 'api' && version === 'kline') || (type === 'open' && path.indexOf ('listenKey') >= 0)) {
-            url = this.urls['api'][type];
+            const apiUrl2 = this.safeString (this.urls['api'], type);
+            if (apiUrl2 === undefined) {
+                throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+            }
+            url = apiUrl2;
         } else {
-            url = this.urls['api'][type as string] + '/' + version;
+            const apiUrl = this.safeString (this.urls['api'], type);
+            if (apiUrl === undefined) {
+                throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+            }
+            url = apiUrl + '/' + version;
         }
         url = url + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));

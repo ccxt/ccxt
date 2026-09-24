@@ -3773,7 +3773,11 @@ export default class btse extends Exchange {
     }
 
     override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
-        const baseUrl = this.urls['api'][api];
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const baseUrl = apiUrl;
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         // the futures v3 trading api reads DELETE params from a signed json

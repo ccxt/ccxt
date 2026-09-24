@@ -4020,7 +4020,11 @@ export default class deribit extends Exchange {
                 'Authorization': 'deri-hmac-sha256 id=' + this.apiKey + ',ts=' + timestamp + ',sig=' + signature + ',' + 'nonce=' + nonce,
             };
         }
-        const url = this.urls['api']['rest'] + request;
+        const apiUrl = this.safeString (this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + request;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 

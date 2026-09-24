@@ -4494,7 +4494,11 @@ export default class digifinex extends Exchange {
         const pathPart = (endpoint === 'spot') ? '/v3' : '/swap/v2';
         const request = '/' + this.implodeParams (path, params);
         const payload = pathPart + request;
-        let url = this.urls['api']['rest'] + payload;
+        const apiUrl = this.safeString (this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + payload;
         const query = this.omit (params, this.extractParams (path));
         let urlencoded: Str = undefined;
         if (signed && (pathPart === '/swap/v2') && (method === 'POST')) {

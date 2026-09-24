@@ -2493,7 +2493,11 @@ export default class dydx extends Exchange {
     }
 
     override nonce (): number {
-        return this.milliseconds () - this.options['timeDifference'];
+        const timeDifference = this.safeInteger (this.options, 'timeDifference');
+        if (timeDifference === undefined) {
+            throw new ExchangeError (this.id + ' nonce() requires a numeric options["timeDifference"]');
+        }
+        return this.milliseconds () - timeDifference;
     }
 
     getWalletAddress () {
@@ -2513,7 +2517,11 @@ export default class dydx extends Exchange {
 
     override sign (path: any, section = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const pathWithParams = this.implodeParams (path, params);
-        let url: string = this.urls['api'][section];
+        const apiUrl = this.safeString (this.urls['api'], section);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url: string = apiUrl;
         params = this.omit (params, this.extractParams (path));
         params = this.keysort (params);
         url += '/' + pathWithParams;
