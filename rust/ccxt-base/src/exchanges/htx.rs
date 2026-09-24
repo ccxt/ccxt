@@ -5519,7 +5519,7 @@ impl HtxCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_value_k(response, "data", &[]);
+        let mut data: Value = self.safe_list_k(response, "data", &[]);
         return self.parse_accounts(data, &[]);
 
     Value::Null
@@ -5868,7 +5868,7 @@ impl HtxCore {
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), &[Value::Null, params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut subType: Value = Value::Null;
         let mut isMultiAssetMode: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params2(params.clone(), Value::Str("fetchBalance".into()), Value::Str("defaultSubType".into()), Value::Str("subType".into()), &[]); subType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params2(params.clone(), Value::Str("fetchBalance".into()), Value::Str("defaultSubType".into()), Value::Str("subType".into()), &[]); subType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (subType == Value::Null) {
             subType = Value::Str("linear".into());
         }
@@ -10214,7 +10214,7 @@ impl HtxCore {
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut defaultSubType: Value = Value::Str("linear".into());
         let mut subType: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingRates".into()), Value::Str("subType".into()), &[defaultSubType]); subType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("fetchFundingRates".into()), Value::Str("subType".into()), &[defaultSubType]); subType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (symbols != Value::Null) {
             let mut firstSymbol: Value = self.safe_string(symbols.clone(), Value::Int(0), &[]);
             let mut market: Value = self.market(firstSymbol);
@@ -11946,7 +11946,7 @@ impl HtxCore {
         //     }
         //
         let mut data: Value = self.safe_list_k(response, "Data", &[Value::from(vec![])]);
-        let mut loan: Value = self.safe_value(data, Value::Int(0), &[]);
+        let mut loan: Value = self.safe_dict(data, Value::Int(0), &[]);
         let mut transaction: Value = self.parse_margin_loan(loan, &[currency]);
         return self.extend(transaction, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -11999,7 +11999,7 @@ impl HtxCore {
         //     }
         //
         let mut data: Value = self.safe_list_k(response, "Data", &[Value::from(vec![])]);
-        let mut loan: Value = self.safe_value(data, Value::Int(0), &[]);
+        let mut loan: Value = self.safe_dict(data, Value::Int(0), &[]);
         let mut transaction: Value = self.parse_margin_loan(loan, &[currency]);
         return self.extend(transaction, &[Value::Map({
     let mut m = indexmap::IndexMap::new();

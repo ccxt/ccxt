@@ -2553,10 +2553,10 @@ impl DeribitCore {
         //         "testnet": false
         //     }
         //
-        let mut result: Value = self.safe_value_k(response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut ohlcvs: Value = self.convert_trading_view_to_ohlcv(result, &[Value::Str("ticks".into()), Value::Str("open".into()), Value::Str("high".into()), Value::Str("low".into()), Value::Str("close".into()), Value::Str("volume".into()), Value::Bool(true)]);
         return self.parse_ohlc_vs(ohlcvs, &[market, timeframe, since, limit]);
 

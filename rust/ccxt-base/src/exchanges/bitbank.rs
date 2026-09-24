@@ -1240,7 +1240,7 @@ impl BitbankCore {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_value_k(response, "data", &[]);
+        let mut data: Value = self.safe_dict_k(response, "data", &[]);
         return self.parse_order(data, &[]);
 
     Value::Null
