@@ -54,6 +54,10 @@ public partial class bybiteu : bybit
             } },
             { "options", new Dictionary<string, object>() {
                 { "mica", true },
+                { "defaultType", "spot" },
+                { "fetchMarkets", new Dictionary<string, object>() {
+                    { "types", new List<object>() {"spot"} },
+                } },
             } },
         });
     }
