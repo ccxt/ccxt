@@ -1499,7 +1499,6 @@ pub use crate::pro_typed::bingx_typed::Bingx;
 pub use crate::pro_typed::bitfinex_typed::Bitfinex;
 pub use crate::pro_typed::bitget_typed::Bitget;
 pub use crate::pro_typed::bithumb_typed::Bithumb;
-pub use crate::pro_typed::bitmex_typed::Bitmex;
 pub use crate::pro_typed::bitopro_typed::Bitopro;
 pub use crate::pro_typed::bitrue_typed::Bitrue;
 pub use crate::pro_typed::bitstamp_typed::Bitstamp;
@@ -1583,7 +1582,6 @@ pub fn from_id(id: &str, config: Option<crate::Value>) -> Option<Box<dyn TypedEx
         "bitfinex" => Some(Box::new(Bitfinex::new(config))),
         "bitget" => Some(Box::new(Bitget::new(config))),
         "bithumb" => Some(Box::new(Bithumb::new(config))),
-        "bitmex" => Some(Box::new(Bitmex::new(config))),
         "bitopro" => Some(Box::new(Bitopro::new(config))),
         "bitrue" => Some(Box::new(Bitrue::new(config))),
         "bitstamp" => Some(Box::new(Bitstamp::new(config))),

@@ -1304,7 +1304,6 @@ pub use crate::exchanges::bitfinex_typed::Bitfinex;
 pub use crate::exchanges::bitflyer_typed::Bitflyer;
 pub use crate::exchanges::bitget_typed::Bitget;
 pub use crate::exchanges::bithumb_typed::Bithumb;
-pub use crate::exchanges::bitmex_typed::Bitmex;
 pub use crate::exchanges::bitopro_typed::Bitopro;
 pub use crate::exchanges::bitrue_typed::Bitrue;
 pub use crate::exchanges::bitso_typed::Bitso;
@@ -1416,7 +1415,6 @@ pub fn from_id(id: &str, config: Option<crate::Value>) -> Option<Box<dyn TypedEx
         "bitflyer" => Some(Box::new(Bitflyer::new(config))),
         "bitget" => Some(Box::new(Bitget::new(config))),
         "bithumb" => Some(Box::new(Bithumb::new(config))),
-        "bitmex" => Some(Box::new(Bitmex::new(config))),
         "bitopro" => Some(Box::new(Bitopro::new(config))),
         "bitrue" => Some(Box::new(Bitrue::new(config))),
         "bitso" => Some(Box::new(Bitso::new(config))),

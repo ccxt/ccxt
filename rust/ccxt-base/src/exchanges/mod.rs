@@ -37,7 +37,6 @@ pub mod bitget;
 pub mod bitget_api;
 pub mod bithumb;
 pub mod bithumb_api;
-pub mod bitmex;
 pub mod bitmex_api;
 pub mod bitopro;
 pub mod bitopro_api;

@@ -115,6 +115,10 @@ filter_lines rust/ccxt-pro/src/pro/mod.rs "^pub mod ${EXCHANGE};\$"
 # rust/tests/src/generated_cores.rs lists every core twice (REST + WS): as a
 # `<id>::<Id>Core,` import and as a `$cb!(<id>, <Id>Core);` macro arm
 filter_lines rust/tests/src/generated_cores.rs "^[[:space:]]*(${EXCHANGE}::|\\\$cb!\\(${EXCHANGE},)"
+# the typed aggregators re-export the wrapper (`pub use ...::<id>_typed::<Id>;`)
+# and construct it by id in a `"<id>" => Some(Box::new(...))` match arm
+filter_lines rust/ccxt/src/typed.rs "(::${EXCHANGE}_typed::|^[[:space:]]*\"${EXCHANGE}\" =>)"
+filter_lines rust/ccxt-pro/src/typed.rs "(::${EXCHANGE}_typed::|^[[:space:]]*\"${EXCHANGE}\" =>)"
 
 # remove the id from exchanges.json (ids / ws / prediction / predictionWs)
 if [ -f exchanges.json ]; then
