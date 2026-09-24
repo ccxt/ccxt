@@ -2949,8 +2949,8 @@ export default class mexc extends Exchange {
             }
             let method = this.safeString (this.options, 'fetchOrders', 'contractPrivateGetOrderListHistoryOrders');
             method = this.safeString (query, 'method', method);
-            let ordersOfRegular = [];
-            let ordersOfTrigger = [];
+            let ordersOfRegular: List = [];
+            let ordersOfTrigger: List = [];
             if (method === 'contractPrivateGetOrderListHistoryOrders') {
                 const response = await this.contractPrivateGetOrderListHistoryOrders (this.extend (request, query));
                 //
