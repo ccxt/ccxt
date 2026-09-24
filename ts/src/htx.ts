@@ -2863,7 +2863,7 @@ export default class htx extends Exchange {
         //
         let trades = this.safeValue (response, 'data');
         if (!Array.isArray (trades)) {
-            trades = this.safeValue (trades, 'trades');
+            trades = this.safeList (trades, 'trades');
         }
         return this.parseTrades (trades, market, since, limit);
     }
@@ -3867,7 +3867,7 @@ export default class htx extends Exchange {
         //
         let order = this.safeValue (response, 'data');
         if (Array.isArray (order)) {
-            order = this.safeValue (order, 0);
+            order = this.safeDict (order, 0);
         }
         return this.parseOrder (order, market);
     }
@@ -7511,7 +7511,7 @@ export default class htx extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         const interest = this.parseBorrowInterests (data, market);
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
@@ -9341,7 +9341,7 @@ export default class htx extends Exchange {
             return this.sortBy (settlementsLinear, 'timestamp');
         }
         const data = this.safeDict (response, 'data');
-        const settlementRecord = this.safeValue (data, 'settlement_record');
+        const settlementRecord = this.safeList (data, 'settlement_record');
         const settlements = this.parseSettlements (settlementRecord, market);
         return this.sortBy (settlements, 'timestamp');
     }

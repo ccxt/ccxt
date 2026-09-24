@@ -5474,7 +5474,7 @@ export default class bitget extends Exchange {
                 let feeObject: NullableDict = undefined;
                 for (let i = 0; i < feeValues.length; i++) {
                     const feeValue = feeValues[i];
-                    if (this.safeValue (feeValue, 'feeCoinCode') !== undefined) {
+                    if (this.safeString (feeValue, 'feeCoinCode') !== undefined) {
                         feeObject = feeValue as Dict;
                         break;
                     }
