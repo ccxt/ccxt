@@ -124,7 +124,7 @@
                     null,
                     5
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"interval\":\"1h\",\"limit\":5}"
+                "output": "{\"symbol\":\"BTCUSDT\",\"timeframe\":\"1h\",\"limit\":5}"
             },
             {
                 "description": "swap candles",
@@ -136,7 +136,22 @@
                     null,
                     5
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"limit\":5,\"interval\":\"1h\"}"
+                "output": "{\"symbol\":\"BTCUSDT\",\"limit\":5,\"timeframe\":\"1h\"}"
+            },
+            {
+                "description": "swap candles with since and until",
+                "method": "fetchOHLCV",
+                "url": "https://dev-futuresbe.zebstage.com/api/v1/market/klines",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    1700000000000,
+                    5,
+                    {
+                        "until": 1700003600000
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"timeframe\":\"1h\",\"limit\":5,\"since\":1700000000000,\"until\":1700003600000}"
             }
         ],
         "fetchBalance": [
@@ -195,6 +210,16 @@
                 "url": "https://futuresbe.zebpay.com/api/v1/market/orderBook?symbol=BTCUSDT",
                 "input": [
                     "BTC/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "swap orderbook with limit",
+                "method": "fetchOrderBook",
+                "url": "https://futuresbe.zebpay.com/api/v1/market/orderBook?symbol=BTCUSDT&limit=5",
+                "input": [
+                    "BTC/USDT:USDT",
+                    5
                 ],
                 "output": null
             }
