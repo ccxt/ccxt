@@ -7475,6 +7475,18 @@ function ccxtGoProducerDeclaredShapeAgrees (goTranspiler, callee, family) {
     return (family === 'map') ? !isList : true;
 }
 
+// the resolved declaration is annotated as a list or tuple (no union, no any)
+function ccxtGoProducerDeclaredList (goTranspiler, callee) {
+    let declaration = undefined;
+    try {
+        declaration = goTranspiler.getChecker ().getSymbolAtLocation (callee.name)?.valueDeclaration;
+    } catch (e) {
+        return false;
+    }
+    const text = (declaration?.type?.getText?. () ?? '').replace (/\s+/g, ' ').trim ();
+    return !text.includes ('|') && (text.startsWith ('[') || text.endsWith ('[]') || /^(List|Array<[\s\S]*>)$/.test (text));
+}
+
 // the container type a producer declaration can carry, or undefined when the site keeps its box
 function ccxtGoProducerDeclarationType (goTranspiler, declaration, family) {
     if ((declaration === undefined) || (declaration.kind !== ts.SyntaxKind.VariableDeclaration)
@@ -7499,7 +7511,9 @@ function ccxtGoProducerDeclarationType (goTranspiler, declaration, family) {
     }
     // the table is keyed by the printed Go name; the ts callee is camelCase
     const goName = callee.name.text.charAt (0).toUpperCase () + callee.name.text.slice (1);
-    if (CCXT_GO_PRODUCER_DECLARATIONS['this.' + goName] !== family) {
+    // a map producer whose resolved override declares a list or tuple is read as that list
+    const tableFamily = CCXT_GO_PRODUCER_DECLARATIONS['this.' + goName];
+    if ((tableFamily !== family) && !((tableFamily === 'map') && (family === 'list') && ccxtGoProducerDeclaredList (goTranspiler, callee))) {
         return undefined;
     }
     // the override the checker resolves may declare another shape (a tuple): keep the box
