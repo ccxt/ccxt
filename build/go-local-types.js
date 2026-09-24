@@ -235,6 +235,13 @@ export const CCXT_GO_HELPER_RETURN_TYPES = {
     'exchange.SafeNumber2': '*float64',
     'exchange.SafeNumberN': '*float64',
     'exchange.SafeNumberOmitZero': '*float64',
+    // the printer's pointer-returning Safe* accessors (keyed `this.` upstream) on the test `exchange`:
+    // an `any` local would box a nil pointer, which the printed `x == nil` reads as defined
+    ...Object.fromEntries ([
+        [ '*string', [ 'SafeString', 'SafeString2', 'SafeStringN', 'SafeStringLower', 'SafeStringLower2', 'SafeStringLowerN', 'SafeStringUpper', 'SafeStringUpper2', 'SafeStringUpperN' ] ],
+        [ '*int64', [ 'SafeInteger', 'SafeInteger2', 'SafeIntegerN', 'SafeIntegerProduct', 'SafeIntegerProduct2', 'SafeIntegerProductN', 'SafeTimestamp', 'SafeTimestamp2', 'SafeTimestampN' ] ],
+        [ '*float64', [ 'SafeFloat', 'SafeFloat2', 'SafeFloatN' ] ],
+    ].flatMap (([ goType, names ]) => names.map ((name) => [ 'exchange.' + name, goType ]))),
     // --- numeric / time helpers (the U17 family) ------------------------------------
     // Each entry names the Go type every return path of the (hand-written or coerced)
     // method already produces, so a local that receives the call keeps the very same

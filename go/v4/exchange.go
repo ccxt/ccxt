@@ -2162,7 +2162,10 @@ func (this *BaseExchange) Spawn(method any, args ...any) *Future {
 
 func (this *BaseExchange) Delay(timeout any, method any, args ...any) {
 	var timeoutMs int64
-	switch v := timeout.(type) {
+	// generated callers may pass a typed pointer (SafeInteger's *int64); nil means no delay
+	switch v := derefScalar(timeout).(type) {
+	case nil:
+		timeoutMs = 0
 	case int:
 		timeoutMs = int64(v)
 	case int64:
