@@ -3925,7 +3925,14 @@ function ccxtGoWriteSiteLocalGoType (goTranspiler, node) {
     if (body === undefined) {
         return undefined;
     }
-    return goTranspiler.goGetArgLocalType (body, param, goTranspiler.printNode (param.initializer, 0));
+    // memoised per parameter; a re-entrant query during its own proof answers undefined (fail closed)
+    goTranspiler.ccxtGoWriteSiteParamTypes ??= new WeakMap ();
+    const cache = goTranspiler.ccxtGoWriteSiteParamTypes;
+    if (!cache.has (param)) {
+        cache.set (param, undefined);
+        cache.set (param, goTranspiler.goGetArgLocalType (body, param, goTranspiler.printNode (param.initializer, 0)));
+    }
+    return cache.get (param);
 }
 
 // the container join type of the nil-declared local an identifier binds to (same predicate the
