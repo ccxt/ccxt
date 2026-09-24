@@ -493,7 +493,7 @@ export default class bithumb extends bithumbRest {
         orderbook['symbol'] = symbol;
         const bids = orderbook['bids'];
         const asks = orderbook['asks'];
-        const units = this.safeList (message, 'orderbook_units', []);
+        const units: Dict[] = this.safeList (message, 'orderbook_units', []);
         for (let i = 0; i < units.length; i++) {
             const entry = units[i];
             const bidPrice = this.safeNumber (entry, 'bid_price');
@@ -810,7 +810,7 @@ export default class bithumb extends bithumbRest {
         //    }
         //
         const messageHash = 'myAsset';
-        const assets = this.safeList (message, 'assets', []);
+        const assets: Dict[] = this.safeList (message, 'assets', []);
         if (this.balance === undefined) {
             this.balance = {};
         }

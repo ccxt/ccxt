@@ -513,7 +513,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             this.ohlcvs[symbol][(timeframe as string)] = new ArrayCacheByTimestamp (limit);
         }
         const stored = this.ohlcvs[symbol][(timeframe as string)];
-        const data = this.safeList (message, 'candles', []);
+        const data: Dict[] = this.safeList (message, 'candles', []);
         for (let i = 0; i < data.length; i++) {
             const tick = data[i];
             const parsed = this.parseOHLCV (tick, market);

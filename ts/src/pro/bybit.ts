@@ -1660,7 +1660,7 @@ export default class bybit extends bybitRest {
         }
         const cache = this.positions;
         const newPositions: Position[] = [];
-        const rawPositions = this.safeList (message, 'data', []);
+        const rawPositions: Dict[] = this.safeList (message, 'data', []);
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parsePosition (rawPosition);
@@ -1782,7 +1782,7 @@ export default class bybit extends bybitRest {
         //     }
         //
         if (Array.isArray (message['data'])) {
-            const rawLiquidations = this.safeList (message, 'data', []);
+            const rawLiquidations: Dict[] = this.safeList (message, 'data', []);
             for (let i = 0; i < rawLiquidations.length; i++) {
                 const rawLiquidation = rawLiquidations[i];
                 const marketId = this.safeString (rawLiquidation, 's');

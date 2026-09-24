@@ -606,7 +606,7 @@ export default class cryptocom extends cryptocomRest {
         const messageHash = this.safeString (message, 'subscription');
         const marketId = this.safeString (message, 'instrument_name');
         const market = this.safeMarket (marketId);
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const ticker = data[i];
             const parsed = this.parseWsTicker (ticker, market);
@@ -1011,7 +1011,7 @@ export default class cryptocom extends cryptocomRest {
         // and has exactly one subscriptionhash which is the account type
         const data = this.safeList (message, 'data', []);
         const firstData = this.safeDict (data, 0, {});
-        const rawPositions = this.safeList (firstData, 'positions', []);
+        const rawPositions: Dict[] = this.safeList (firstData, 'positions', []);
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
