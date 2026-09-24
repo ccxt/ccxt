@@ -5707,6 +5707,7 @@ export function installCcxtGoLocalTypes (goTranspiler) {
     installCcxtGoStringConcatJoin (goTranspiler);
     installCcxtGoScalarElementReads (goTranspiler);
     installCcxtGoTupleStringJoin (goTranspiler);
+    installCcxtGoElement1Params (goTranspiler);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -6545,6 +6546,9 @@ function ccxtGoProducerArgIsMap (goTranspiler, arg) {
     if (arg.kind !== ts.SyntaxKind.Identifier) {
         return false;
     }
+    if (ccxtGoElement1BindingIsMap (goTranspiler, arg, 0)) {
+        return true;
+    }
     // a parameter bound through GetArgMap is a map[string]any local
     const decl = ccxtGoParamDeclarationOf (goTranspiler, arg);
     if ((decl?.kind === ts.SyntaxKind.Parameter) && (typeof goTranspiler.goGetArgParameterType === 'function')
@@ -6553,6 +6557,111 @@ function ccxtGoProducerArgIsMap (goTranspiler, arg) {
     }
     return (typeof goTranspiler.goDeclaredTypeOfIdentifier === 'function')
         && (goTranspiler.goDeclaredTypeOfIdentifier (arg) === CCXT_GO_PRODUCER_DICT_TYPE);
+}
+
+// ---------------------------------------------------------------------------------------------
+// Element 1 of the base params-tuple helpers: `const [ v, p ] = this.handleX (…, params, …)`.
+// Every base return path hands back the params argument, its omit or an extend, so a map
+// argument makes element 1 a map box and MapTyped is the identity on it.
+const CCXT_GO_ELEMENT_1_PARAMS_SLOT = {
+    'handleOptionAndParams': 0, 'handleOptionAndParams2': 0, 'handleMarketTypeAndParams': 2,
+    'handleSubTypeAndParams': 2, 'handleMarginModeAndParams': 1, 'handleUntilOption': 2,
+    'handleWithdrawTagAndParams': 1, 'handleMaxEntriesPerRequestAndParams': 2,
+    'handleTriggerAndParams': 0, 'handleTriggerDirectionAndParams': 0, 'handlePostOnly': 2,
+    'handleParamString': 0, 'handleParamString2': 0, 'handleParamInteger': 0, 'handleParamInteger2': 0,
+    'handleParamBool': 0, 'handleParamBool2': 0, 'handleNetworkCodeAndParams': 0,
+};
+const CCXT_GO_ELEMENT_1_BASE_FILE = /[\\/]base[\\/]Exchange(\.nooverloads\.\d+)?\.ts$/;
+const CCXT_GO_ELEMENT_1_CACHE = new WeakMap ();
+
+// the `const [ a, b ] = this.handleX (...)` declaration whose element 1 is a map box
+function ccxtGoElement1DeclarationIsMap (goTranspiler, declaration, depth) {
+    if (CCXT_GO_ELEMENT_1_CACHE.has (declaration)) {
+        return CCXT_GO_ELEMENT_1_CACHE.get (declaration);
+    }
+    CCXT_GO_ELEMENT_1_CACHE.set (declaration, false);
+    const call = declaration.initializer;
+    const callee = call?.expression;
+    let result = false;
+    if ((call?.kind === ts.SyntaxKind.CallExpression) && (callee?.kind === ts.SyntaxKind.PropertyAccessExpression)
+        && (callee.expression?.kind === ts.SyntaxKind.ThisKeyword) && (call.questionDotToken === undefined)) {
+        const slot = CCXT_GO_ELEMENT_1_PARAMS_SLOT[String (callee.name?.escapedText ?? '')];
+        let signature;
+        try {
+            signature = goTranspiler.getChecker ().getResolvedSignature (call)?.declaration;
+        } catch (e) {
+            signature = undefined;
+        }
+        const fileName = signature?.getSourceFile?.()?.fileName ?? '';
+        const arg = (slot === undefined) ? undefined : call.arguments[slot];
+        result = (arg !== undefined) && CCXT_GO_ELEMENT_1_BASE_FILE.test (fileName) && (depth < 16)
+            && ccxtGoElement1ArgIsMap (goTranspiler, arg, depth + 1);
+    }
+    CCXT_GO_ELEMENT_1_CACHE.set (declaration, result);
+    return result;
+}
+
+function ccxtGoElement1ArgIsMap (goTranspiler, arg, depth) {
+    if (arg.kind === ts.SyntaxKind.ObjectLiteralExpression) {
+        return true;
+    }
+    if (arg.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    if (ccxtGoElement1BindingIsMap (goTranspiler, arg, depth)) {
+        return true;
+    }
+    const decl = ccxtGoParamDeclarationOf (goTranspiler, arg);
+    return (decl?.kind === ts.SyntaxKind.Parameter) && (typeof goTranspiler.goGetArgParameterType === 'function')
+        && (goTranspiler.goGetArgParameterType (decl) === CCXT_GO_PRODUCER_DICT_TYPE);
+}
+
+// `p` names element 1 of a const destructuring the family types
+function ccxtGoElement1BindingIsMap (goTranspiler, identifier, depth) {
+    if ((identifier?.kind !== ts.SyntaxKind.Identifier) || (typeof goTranspiler.getChecker !== 'function')) {
+        return false;
+    }
+    const element = ccxtGoParamDeclarationOf (goTranspiler, identifier);
+    return (element?.kind === ts.SyntaxKind.BindingElement) && ccxtGoElement1ElementIsMap (goTranspiler, element, depth);
+}
+
+function ccxtGoElement1ElementIsMap (goTranspiler, element, depth) {
+    const pattern = element.parent;
+    const declaration = pattern?.parent;
+    if ((pattern?.kind !== ts.SyntaxKind.ArrayBindingPattern) || (pattern.elements.indexOf (element) !== 1)
+        || (element.dotDotDotToken !== undefined) || (element.initializer !== undefined)
+        || (element.name?.kind !== ts.SyntaxKind.Identifier) || (declaration?.kind !== ts.SyntaxKind.VariableDeclaration)
+        || ((declaration.parent?.flags & ts.NodeFlags.Const) === 0)) {
+        return false;
+    }
+    return ccxtGoElement1DeclarationIsMap (goTranspiler, declaration, depth);
+}
+
+// rewrite the printed `p := GetValue(<holder>, 1)` read of a typed element 1
+function installCcxtGoElement1Params (goTranspiler) {
+    if ((goTranspiler === undefined) || goTranspiler.__ccxtGoElement1ParamsInstalled
+        || (typeof goTranspiler.printVariableDeclarationList !== 'function')) {
+        return;
+    }
+    const upstream = goTranspiler.printVariableDeclarationList;
+    goTranspiler.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream.call (this, node, identation);
+        const declaration = node?.declarations?.[0];
+        const element = declaration?.name?.elements?.[1];
+        if ((typeof printed !== 'string') || (node.declarations.length !== 1)
+            || (declaration.name.kind !== ts.SyntaxKind.ArrayBindingPattern) || (element?.kind !== ts.SyntaxKind.BindingElement)
+            || !ccxtGoElement1ElementIsMap (this, element, 0)) {
+            return printed;
+        }
+        const scope = this.goEnclosingFunction (declaration);
+        if ((typeof this.goTypeNameIsShadowed === 'function') && this.goTypeNameIsShadowed (scope, 'map[string]any')) {
+            return printed;
+        }
+        const name = this.printNode (element.name, 0);
+        const re = new RegExp ('^([ \\t]*)' + name + ' := (GetValue\\(\\w+Variable, 1\\))$', 'm');
+        return printed.replace (re, (all, indent, read) => indent + 'var ' + name + ' map[string]any = MapTyped(' + read + ')');
+    };
+    goTranspiler.__ccxtGoElement1ParamsInstalled = true;
 }
 
 function ccxtGoProducerUseRebinds (n) {
