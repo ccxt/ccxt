@@ -72,8 +72,8 @@
 //
 // ===== 2. list-returning parse families -> java.util.List<Object> =====
 //
-// JAVA_LIST_RETURN_METHODS (11 names) retypes the parse/filter collection helpers whose
-// every return site yields a list (or null) at runtime:
+// JAVA_LIST_RETURN_METHODS retypes the parse/filter collection helpers whose every return
+// site yields a list (or null) at runtime; each name's return delegates are listed too:
 //
 //   * parseTrades / parseTradesHelper / parseOrders / parseOHLCVs / parseTransactions /
 //     parseLedger — the parse* bodies return `new java.util.ArrayList<Object>(...)` or
@@ -87,8 +87,14 @@
 //     (the parameter is reassigned from arraySlice results inside the body; a non-list
 //     input threw on the arraySlice path before, and a checkcast only moves that throw
 //     to the return site).
+//   * filterBySymbolsSinceLimit / parseConversions -> filterBySinceLimit;
+//     parseIncomes / parseLiquidations / parseFundingRateHistories /
+//     parseLongShortRatioHistory / parseOpenInterestsHistory -> filterBySymbolSinceLimit;
+//     marketIds / marketCodes -> own parameter or a List<Object> local; getListFromObjectValues /
+//     parseAccounts / parseBorrowInterests / parseMarginModifications -> a List<Object> local.
 //
-// Deliberately absent: parseTickers / parsePositions / parseFundingRates /
+// Deliberately absent: marketSymbols (`as string[]` call sites print a List<String> cast,
+// inconvertible from List<Object>); parseTickers / parsePositions / parseFundingRates /
 // parseOpenInterests (they funnel through filterByArray, which hands back a keyed
 // dictionary when `indexed` is true — argument-dependent, so not a list type; the C#
 // census reached the same conclusion), parseWsTrade / parseWsTrades (their ws overrides
@@ -355,6 +361,9 @@ export const JAVA_LIST_RETURN_METHODS = new Set ([
     'filterBySymbolSinceLimit', 'filterByCurrencySinceLimit',
     'parseTrades', 'parseTradesHelper', 'parseOrders', 'parseOHLCVs',
     'parseTransactions', 'parseLedger', 'marketIds',
+    'filterBySymbolsSinceLimit', 'marketCodes', 'getListFromObjectValues', 'parseAccounts',
+    'parseBorrowInterests', 'parseMarginModifications', 'parseConversions', 'parseIncomes',
+    'parseLiquidations', 'parseFundingRateHistories', 'parseLongShortRatioHistory', 'parseOpenInterestsHistory',
 ]);
 
 // one name in both tables is a hard bug: the fixed per-name return type would differ
