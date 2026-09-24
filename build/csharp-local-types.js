@@ -12333,8 +12333,9 @@ function retypeElement1Params (csharp, declaration, printed) {
         return printed;
     }
     const name = csharp.printNode (element.name, 0);
-    const re = new RegExp ('^([ \\t]*)var ' + name + ' = (\\w+Variable\\[1\\]);$', 'm');
-    return printed.replace (re, (all, indent, read) => indent + CSHARP_ELEMENT_1_TYPE + ' ' + name + ' = ((' + CSHARP_ELEMENT_1_TYPE + ')' + read + ');');
+    // the last tuple element is printed without its `;` (the statement printer adds it)
+    const re = new RegExp ('^([ \\t]*)var ' + name + ' = (\\w+Variable\\[1\\])(;?)$', 'm');
+    return printed.replace (re, (all, indent, read, semi) => indent + CSHARP_ELEMENT_1_TYPE + ' ' + name + ' = ((' + CSHARP_ELEMENT_1_TYPE + ')' + read + ')' + semi);
 }
 
 const DESTRUCTURING_TEMP_RE = /^([ \t]*)var ([A-Za-z_]\w*) = (.*);\n/;
