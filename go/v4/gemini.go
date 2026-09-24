@@ -2700,7 +2700,8 @@ func (this *Gemini) Sign(path any, optionalArgs ...any) any {
 		if GetIndexOf(apiKey, "account") < 0 {
 			panic(AuthenticationError(this.Id + " sign() requires an account-key, master-keys are not-supported"))
 		}
-		var nonce string = ToString(this.Nonce())
+		// gemini rejects a nonce that is not greater than the previously used one (InvalidNonce)
+		var nonce string = ToString(this.IncrementingNonce())
 		var finalUrl any = url
 		var request map[string]any = this.Extend(map[string]any{
 			"request": finalUrl,
@@ -2780,8 +2781,8 @@ func (this *Gemini) createDepositAddressBody(ch chan any, code any, optionalArgs
 	_ = params
 	if this.Markets == nil {
 
-		retRes210112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes210112)
+		retRes210212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes210212)
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
@@ -2833,8 +2834,8 @@ func (this *Gemini) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	_ = params
 	if this.Markets == nil {
 
-		retRes213312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes213312)
+		retRes213412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes213412)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var timeframeId *string = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -2882,8 +2883,8 @@ func (this *Gemini) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs 
 	_ = params
 	if this.Markets == nil {
 
-		retRes216712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes216712)
+		retRes216812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes216812)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{

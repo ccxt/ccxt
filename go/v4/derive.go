@@ -1743,7 +1743,7 @@ func (this *Derive) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	var orderType string = ToLower(typeVar)
 	var orderSide string = ToLower(side)
 	var orderSideIsBuy bool = (orderSide == "buy") // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
-	var nonce int64 = this.Milliseconds()
+	var nonce any = this.IncrementingNonce()
 	// Order signature expiry must be between 2592000 and 7776000 sec from now
 	var signatureExpiry *int64 = this.SafeInteger(params, "signature_expiry_sec", this.Seconds()+7776000)
 	var ACTION_TYPEHASH []byte = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
@@ -1948,7 +1948,7 @@ func (this *Derive) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	var orderType string = ToLower(typeVar)
 	var orderSide string = ToLower(side)
 	var orderSideIsBuy bool = (orderSide == "buy") // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
-	var nonce int64 = this.Milliseconds()
+	var nonce any = this.IncrementingNonce()
 	var signatureExpiry *float64 = this.SafeNumber(params, "signature_expiry_sec", this.Seconds()+7776000)
 	// TODO: subaccount id / trade module address
 	var ACTION_TYPEHASH []byte = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
@@ -3555,6 +3555,11 @@ func (this *Derive) HandleErrors(httpCode any, reason any, url any, method any, 
 		panic(ExchangeError(feedback))
 	}
 	return nil
+}
+func (this *Derive) Nonce() any {
+	// the order nonce is a millisecond timestamp and must be unique per wallet (error 11017), while staying a valid date (error 11018)
+	// incrementingNonce () reads this and bumps past the previous value when two orders share a millisecond
+	return this.Milliseconds()
 }
 func (this *Derive) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")

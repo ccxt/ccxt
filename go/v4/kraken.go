@@ -4591,7 +4591,8 @@ func (this *Kraken) Sign(path any, optionalArgs ...any) any {
 		var isCancelOrderBatch bool = (IsEqual(path, "CancelOrderBatch"))
 		var isBatchOrder bool = (IsEqual(path, "AddOrderBatch"))
 		this.CheckRequiredCredentials()
-		var nonce string = ToString(this.Nonce())
+		// kraken rejects a nonce that is not greater than the previous one for the key (EAPI:Invalid nonce)
+		var nonce string = ToString(this.IncrementingNonce())
 		if isCancelOrderBatch || isTriggerPercent || isBatchOrder {
 			body = this.Json(this.Extend(map[string]any{
 				"nonce": nonce,

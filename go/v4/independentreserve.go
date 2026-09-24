@@ -1511,6 +1511,10 @@ func (this *Independentreserve) ParseTransaction(transaction any, optionalArgs .
 		"internal": false,
 	}
 }
+func (this *Independentreserve) Nonce() any {
+	// the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+	return this.Milliseconds()
+}
 func (this *Independentreserve) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
@@ -1529,7 +1533,8 @@ func (this *Independentreserve) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		this.CheckRequiredCredentials()
-		var nonce any = this.Nonce()
+		// independentreserve requires an increasing nonce
+		var nonce any = this.IncrementingNonce()
 		var auth []any = []any{url, Add("apiKey=", this.ApiKey), "nonce=" + ToString(nonce)}
 		var keys []string = ObjectKeys(params)
 		for i := 0; i < len(keys); i++ {
