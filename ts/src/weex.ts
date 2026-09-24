@@ -893,7 +893,7 @@ export default class weex extends Exchange {
         const code = this.safeCurrencyCode (currencyId);
         const name = this.safeString (rawCurrency, 'name');
         const networks: Dict = {};
-        const chains = this.safeList (rawCurrency, 'networkList', []);
+        const chains: Dict[] = this.safeList (rawCurrency, 'networkList', []);
         for (let j = 0; j < chains.length; j++) {
             const chain = this.safeDict (chains, j);
             const networkId = this.safeString (chain, 'network');
@@ -1240,7 +1240,7 @@ export default class weex extends Exchange {
         if (!Array.isArray (response)) {
             response = [ response ];
         }
-        const results = [];
+        const results: Dict[] = [];
         for (let i = 0; i < response.length; i++) {
             const rawTicker = response[i];
             // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
@@ -2079,7 +2079,7 @@ export default class weex extends Exchange {
             'info': response,
         };
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-        const balances = this.safeList (response, 'balances', response);
+        const balances: Dict[] = this.safeList (response, 'balances', response);
         for (let i = 0; i < balances.length; i++) {
             const entry = this.safeDict (balances, i);
             let currencyId = this.safeString (entry, 'asset');

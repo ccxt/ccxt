@@ -1210,7 +1210,7 @@ export default class woofipro extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const rows: Dict[] = this.safeList (data, 'rows', []);
         const timestamp = this.safeInteger (response, 'timestamp');
-        const result = [];
+        const result: Dict[] = [];
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
             const marketId = this.safeString (row, 'symbol', '');
@@ -1323,7 +1323,7 @@ export default class woofipro extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const rows: Dict[] = this.safeList (data, 'rows', []);
         const timestamp = this.safeInteger (response, 'timestamp');
-        const result = [];
+        const result: Dict[] = [];
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
             const marketId = this.safeString (row, 'symbol', '');
@@ -1746,7 +1746,7 @@ export default class woofipro extends Exchange {
         const childOrders = this.safeList (order, 'childOrders');
         if (childOrders !== undefined) {
             const first = this.safeDict (childOrders, 0);
-            const innerChildOrders = this.safeList (first, 'childOrders', []);
+            const innerChildOrders: Dict[] = this.safeList (first, 'childOrders', []);
             const innerChildOrdersLength = innerChildOrders.length;
             if (innerChildOrdersLength > 0) {
                 const takeProfitOrder = this.safeDict (innerChildOrders, 0);

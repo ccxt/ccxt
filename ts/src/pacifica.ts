@@ -2433,7 +2433,7 @@ export default class pacifica extends Exchange {
     }
 
     addPaginationCursorToResult (response: Dict): any[] {
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const paginationCursor = this.safeString (response, 'next_cursor');
         const hasMore = this.safeBool (response, 'has_more', false);
         const dataLength = data.length;
@@ -3462,7 +3462,7 @@ export default class pacifica extends Exchange {
         return await this.privatePostAccountBuilderCodesApprove (this.extend (request, params));
     }
 
-    async fetchBuilderApprovals (address: string) {
+    async fetchBuilderApprovals (address: string): Promise<Dict> {
         const request: Dict = {
             'account': address,
         };

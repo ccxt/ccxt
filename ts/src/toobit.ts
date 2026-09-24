@@ -1729,7 +1729,7 @@ export default class toobit extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const balances = this.safeList (response, 'balances', response);
+        const balances: Dict[] = this.safeList (response, 'balances', response);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const code = this.safeCurrencyCode (this.safeString (balance, 'asset'));
