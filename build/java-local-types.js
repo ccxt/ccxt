@@ -11798,7 +11798,7 @@ export function patchJavaStringAccumulatorLists (transpiler) {
 
 // ===== 28. element-read locals of handle* tuple holders =====
 // `const x = holder[k]` where holder is a local initialised by an audited tuple producer
-// (handleElementType) prints `((List<Object>)holder).get(k)`: the element box is proven.
+// (handleElementType) prints `((java.util.List<Object>)holder).get(k)`: the element box is proven.
 function javaTupleHolderElementLocalType (printer, declaration) {
     const read = unwrapParens (declaration.initializer);
     if (read === undefined || !ts.isElementAccessExpression (read) || !ts.isIdentifier (read.expression)
@@ -11821,7 +11821,7 @@ function javaTupleHolderElementLocalType (printer, declaration) {
         return undefined;
     }
     const list = printer.printNode (read.expression, 0);
-    return { type, rhs: `((List<Object>)${list}).get(${read.argumentExpression.text})` };
+    return { type, rhs: `((java.util.List<Object>)${list}).get(${read.argumentExpression.text})` };
 }
 
 export function patchJavaTupleHolderElementLocals (transpiler) {
