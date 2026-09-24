@@ -506,7 +506,10 @@ export default class bitfinex extends bitfinexRest {
         //
         const numFields = trade.length;
         const isPublic = numFields <= 8;
-        let marketId = (!isPublic) ? this.safeString (trade, 1) : undefined;
+        let marketId: Str = undefined;
+        if (!isPublic) {
+            marketId = this.safeString (trade, 1);
+        }
         market = this.safeMarket (marketId, market);
         const createdKey = isPublic ? 1 : 2;
         const priceKey = isPublic ? 3 : 5;
@@ -520,7 +523,10 @@ export default class bitfinex extends bitfinexRest {
                 type = 'market';
             }
         }
-        const orderId = (!isPublic) ? this.safeString (trade, 3) : undefined;
+        let orderId: Str = undefined;
+        if (!isPublic) {
+            orderId = this.safeString (trade, 3);
+        }
         const id = this.safeString (trade, 0);
         const timestamp = this.safeInteger (trade, createdKey);
         const price = this.safeString (trade, priceKey);
@@ -723,7 +729,7 @@ export default class bitfinex extends bitfinexRest {
             } else {
                 const deltas = message[1];
                 for (let i = 0; i < deltas.length; i++) {
-                    const delta = deltas[i];
+                    const delta = this.safeList (deltas, i);
                     const amount = this.safeNumber (delta, 2);
                     if (amount === undefined) {
                         continue;

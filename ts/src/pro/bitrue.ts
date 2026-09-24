@@ -161,7 +161,7 @@ export default class bitrue extends bitrueRest {
         //
         this.balance['info'] = balances;
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict (balances, i);
             const currencyId = this.safeString (balance, 'a');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -286,7 +286,10 @@ export default class bitrue extends bitrueRest {
         const sideId = this.safeInteger (order, 'S');
         // 1: buy
         // 2: sell
-        const side = (sideId === 1) ? 'buy' : 'sell';
+        let side: Str = 'sell';
+        if (sideId === 1) {
+            side = 'buy';
+        }
         const statusId = this.safeString (order, 'X');
         const feeCurrencyId = this.safeString (order, 'N');
         return this.safeOrder ({
@@ -440,7 +443,7 @@ export default class bitrue extends bitrueRest {
     parseContractBidsAsks (bidsAsks: any[], symbol: string): List {
         const result: List = [];
         for (let i = 0; i < bidsAsks.length; i++) {
-            const level = bidsAsks[i];
+            const level = this.safeList (bidsAsks, i);
             const price = this.safeNumber (level, 0);
             const rawAmount = this.safeNumber (level, 1);
             const amount = this.convertFromRawQuantity (symbol, rawAmount);

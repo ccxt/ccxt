@@ -805,8 +805,14 @@ export default class polymarket extends Exchange {
                     'info': market,
                 });
             }
-            const baseId = (conditionId !== undefined) ? conditionId : marketId;
-            const marketType = (outcomeLabelsLength > 2) ? 'categorical' : 'binary';
+            let baseId: Str = marketId;
+            if (conditionId !== undefined) {
+                baseId = conditionId;
+            }
+            let marketType: Str = 'binary';
+            if (outcomeLabelsLength > 2) {
+                marketType = 'categorical';
+            }
             // effectively-final copy for the market object literal below (reassigned in the loop)
             const marketResolvedOutcome = resolvedOutcome;
             result.push ({
@@ -1320,7 +1326,7 @@ export default class polymarket extends Exchange {
         const resolutionMs = fidelityMin * 60 * 1000;
         const buckets: Dict = {};
         for (let i = 0; i < history.length; i++) {
-            const item = history[i];
+            const item = this.safeDict (history, i);
             const t = this.safeInteger (item, 't');
             const price = this.safeNumber (item, 'p');
             if ((t === undefined) || (price === undefined)) {
@@ -1609,12 +1615,23 @@ export default class polymarket extends Exchange {
         const price = this.safeNumber (trade, 'price');
         const amount = this.safeNumber (trade, 'size');
         const rawSide = this.safeStringLower (trade, 'side');
-        const side = (rawSide === 'buy' || rawSide === 'sell') ? rawSide : undefined;
+        let side: Str = undefined;
+        if (rawSide === 'buy' || rawSide === 'sell') {
+            side = rawSide;
+        }
         const assetId = this.safeString2 (trade, 'asset', 'asset_id');
-        const mkt = (market !== undefined) ? market : this.safeOutcome (assetId);
+        let mkt: Market = undefined;
+        if (market !== undefined) {
+            mkt = market;
+        } else {
+            mkt = this.safeOutcome (assetId);
+        }
         const outcome = this.safeOutcomeSymbol (undefined, mkt);
         const rawTakerOrMaker = this.safeStringLower (trade, 'trader_side');
-        const takerOrMaker = (rawTakerOrMaker === 'taker' || rawTakerOrMaker === 'maker') ? rawTakerOrMaker : undefined;
+        let takerOrMaker: Str = undefined;
+        if (rawTakerOrMaker === 'taker' || rawTakerOrMaker === 'maker') {
+            takerOrMaker = rawTakerOrMaker;
+        }
         const feeRateBps = this.safeString (trade, 'fee_rate_bps');
         let fee: NullableDict = undefined;
         if (feeRateBps !== undefined) {
@@ -1984,7 +2001,7 @@ export default class polymarket extends Exchange {
         // requested outcomes first (one gamma request for all uncached token ids)
         const orderOutcomes: string[] = [];
         for (let i = 0; i < orders.length; i++) {
-            const o = orders[i];
+            const o = this.safeDict (orders, i);
             const __oc = this.safeString (o, 'outcome');
             if (__oc !== undefined) {
                 orderOutcomes.push (__oc);
@@ -1995,7 +2012,7 @@ export default class polymarket extends Exchange {
         const outcomes: Dict[] = [];
         const requests: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {
-            const o = orders[i];
+            const o = this.safeDict (orders, i);
             let orderParams = this.safeDict (o, 'params', {});
             if (this.safeString (orderParams, 'salt') === undefined) {
                 // a distinct salt per order so two identical orders don't collide, within a batch or across calls
@@ -2122,7 +2139,10 @@ export default class polymarket extends Exchange {
         // wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet (the EOA
         // still produces the signature and is checked on-chain as the wallet owner). Otherwise signer = EOA.
         const maker = funder;
-        const signer = (signatureType === 3) ? funder : eoa;
+        let signer: Str = eoa;
+        if (signatureType === 3) {
+            signer = funder;
+        }
         const message: Dict = {
             'salt': salt,
             'maker': maker,
@@ -2138,7 +2158,10 @@ export default class polymarket extends Exchange {
         };
         const exchangeV2 = this.safeString (this.options, 'exchangeAddress', '0xE111180000d2663C0091e4f400237545B87B996B');
         const negRiskExchangeV2 = this.safeString (this.options, 'negRiskExchangeAddress', '0xe2222d279d744050d28e00520010520000310F59');
-        const exchangeAddress = (negRisk === true) ? negRiskExchangeV2 : exchangeV2;
+        let exchangeAddress: Str = exchangeV2;
+        if (negRisk === true) {
+            exchangeAddress = negRiskExchangeV2;
+        }
         const domainVersion = this.safeString (this.options, 'ctfExchangeVersion', '2');
         const signature = this.signClobOrder (message, exchangeAddress, domainVersion, signatureType);
         const owner = this.safeString (this.options, 'l2ApiKey', this.apiKey);
@@ -2348,7 +2371,10 @@ export default class polymarket extends Exchange {
         // fields, so report the cancellation outcome explicitly rather than parsing an empty order
         const notCanceled = this.safeDict (response, 'not_canceled', {});
         const failureReason = this.safeString (notCanceled, id);
-        const status = (failureReason === undefined) ? 'canceled' : 'open';
+        let status: Str = 'open';
+        if (failureReason === undefined) {
+            status = 'canceled';
+        }
         return this.safePredictionOrder ({ 'id': id, 'status': status, 'info': response }) as PredictionOrder;
     }
 
@@ -2723,7 +2749,12 @@ export default class polymarket extends Exchange {
                     hasArrayParam = true;
                 }
             }
-            const querystring = hasArrayParam ? this.urlencodeWithArrayRepeat (query) : this.urlencode (query);
+            let querystring: Str = undefined;
+            if (hasArrayParam) {
+                querystring = this.urlencodeWithArrayRepeat (query);
+            } else {
+                querystring = this.urlencode (query);
+            }
             if (querystring !== '') {
                 url += '?' + querystring;
             }
@@ -2772,7 +2803,12 @@ export default class polymarket extends Exchange {
                 const secret = this.safeString (this.options, 'l2Secret', this.secret);
                 const passphrase = this.safeString (this.options, 'l2Passphrase', this.password);
                 // POLY_ADDRESS is the api-key owner = the signer EOA (derived from the privateKey when present)
-                const address = (this.privateKey !== undefined) ? this.ethChecksumAddress (this.ethGetAddressFromPrivateKey (this.privateKey)) : this.walletAddress;
+                let address: Str = undefined;
+                if (this.privateKey !== undefined) {
+                    address = this.ethChecksumAddress (this.ethGetAddressFromPrivateKey (this.privateKey));
+                } else {
+                    address = this.walletAddress;
+                }
                 const timestamp = this.seconds ().toString ();
                 // the L2 HMAC signs only the request path (no query string), matching
                 // @polymarket/clob-client — query params are sent separately, not signed
@@ -2955,9 +2991,24 @@ export default class polymarket extends Exchange {
             }
             return;
         }
-        const apiKey = (this.apiKey !== undefined) ? this.apiKey : this.safeString (this.options, 'l2ApiKey');
-        const secret = (this.secret !== undefined) ? this.secret : this.safeString (this.options, 'l2Secret');
-        const passphrase = (this.password !== undefined) ? this.password : this.safeString (this.options, 'l2Passphrase');
+        let apiKey: Str = undefined;
+        if (this.apiKey !== undefined) {
+            apiKey = this.apiKey;
+        } else {
+            apiKey = this.safeString (this.options, 'l2ApiKey');
+        }
+        let secret: Str = undefined;
+        if (this.secret !== undefined) {
+            secret = this.secret;
+        } else {
+            secret = this.safeString (this.options, 'l2Secret');
+        }
+        let passphrase: Str = undefined;
+        if (this.password !== undefined) {
+            passphrase = this.password;
+        } else {
+            passphrase = this.safeString (this.options, 'l2Passphrase');
+        }
         const hasL2 = (apiKey !== undefined) && (secret !== undefined) && (passphrase !== undefined);
         if (hasL2) {
             return;
@@ -3017,12 +3068,12 @@ export default class polymarket extends Exchange {
         const rawAsks = this.safeList (event, 'asks', []) as any[];
         const bids: Num[][] = [];
         for (let i = 0; i < rawBids.length; i++) {
-            const b = rawBids[i];
+            const b = this.safeDict (rawBids, i);
             bids.push ([ this.safeNumber (b, 'price'), this.safeNumber (b, 'size') ]);
         }
         const asks: Num[][] = [];
         for (let j = 0; j < rawAsks.length; j++) {
-            const a = rawAsks[j];
+            const a = this.safeDict (rawAsks, j);
             asks.push ([ this.safeNumber (a, 'price'), this.safeNumber (a, 'size') ]);
         }
         const outcomeObj = this.safeOutcome (outcome);
@@ -3044,7 +3095,7 @@ export default class polymarket extends Exchange {
         const changes = this.safeList (event, 'price_changes', []) as any[];
         const updated: Dict = {};
         for (let i = 0; i < changes.length; i++) {
-            const change = changes[i];
+            const change = this.safeDict (changes, i);
             const tokenId = this.safeString (change, 'asset_id');
             const outcome = this.tokenIdToSymbol (tokenId);
             if ((outcome === undefined) || !(outcome in this.orderbooks)) {
@@ -3294,9 +3345,24 @@ export default class polymarket extends Exchange {
 
     async subscribeUserChannel (messageHash: string, params: Dict = {}) {
         // the user channel authenticates inside the subscribe frame, not via HMAC headers
-        const apiKey = (this.apiKey !== undefined) ? this.apiKey : this.safeString (this.options, 'l2ApiKey');
-        const secret = (this.secret !== undefined) ? this.secret : this.safeString (this.options, 'l2Secret');
-        const passphrase = (this.password !== undefined) ? this.password : this.safeString (this.options, 'l2Passphrase');
+        let apiKey: Str = undefined;
+        if (this.apiKey !== undefined) {
+            apiKey = this.apiKey;
+        } else {
+            apiKey = this.safeString (this.options, 'l2ApiKey');
+        }
+        let secret: Str = undefined;
+        if (this.secret !== undefined) {
+            secret = this.secret;
+        } else {
+            secret = this.safeString (this.options, 'l2Secret');
+        }
+        let passphrase: Str = undefined;
+        if (this.password !== undefined) {
+            passphrase = this.password;
+        } else {
+            passphrase = this.safeString (this.options, 'l2Passphrase');
+        }
         const auth: Dict = { 'apiKey': apiKey, 'secret': secret, 'passphrase': passphrase };
         // an empty markets list subscribes to every market the user is active in
         const subscribeMsg: Dict = { 'auth': auth, 'markets': [], 'type': 'user' };

@@ -268,7 +268,10 @@ export default class kalshi extends Exchange {
                 const parsed = this.parseBinaryMarketToOutcomes (raw);
                 const eventTicker = this.safeString (raw, 'event_ticker');
                 const eventTitle = this.safeString (raw, 'title', eventTicker);
-                const eventKey = (eventTitle !== undefined && eventTitle !== '') ? this.shortenSlug (eventTitle) : undefined;
+                let eventKey: Str = undefined;
+                if (eventTitle !== undefined && eventTitle !== '') {
+                    eventKey = this.shortenSlug (eventTitle);
+                }
                 for (let j = 0; j < parsed.length; j++) {
                     const m = parsed[j];
                     flatMarkets.push (m);
@@ -334,7 +337,10 @@ export default class kalshi extends Exchange {
             const symbolLength = this.parseToInt (outcomeSymbol.length);
             const suffix = outcomeSymbol.slice (symbolLength - 3);
             const isNo = (suffix === '-NO');
-            const baseTicker = isNo ? outcomeSymbol.slice (0, symbolLength - 3) : outcomeSymbol;
+            let baseTicker: Str = outcomeSymbol;
+            if (isNo) {
+                baseTicker = outcomeSymbol.slice (0, symbolLength - 3);
+            }
             let response = undefined;
             try {
                 response = await this.kalshiPublicGetMarketsTicker ({ 'ticker': baseTicker });
@@ -411,7 +417,10 @@ export default class kalshi extends Exchange {
             // parseToInt-wrapped .length — see the fetchOutcome comment (php count()/python slice traps)
             const symbolLength = this.parseToInt (outcomeSymbol.length);
             const suffix = outcomeSymbol.slice (symbolLength - 3);
-            const baseTicker = (suffix === '-NO') ? outcomeSymbol.slice (0, symbolLength - 3) : outcomeSymbol;
+            let baseTicker: Str = outcomeSymbol;
+            if (suffix === '-NO') {
+                baseTicker = outcomeSymbol.slice (0, symbolLength - 3);
+            }
             if (!(baseTicker in seen)) {
                 seen[baseTicker] = true;
                 tickers.push (baseTicker);
@@ -574,7 +583,10 @@ export default class kalshi extends Exchange {
             seriesTicker = seriesParts.join ('-');
         }
         // market symbol (no outcome suffix)
-        const subtitleOrTicker = (subtitle !== undefined) ? subtitle : ticker;
+        let subtitleOrTicker: Str = ticker;
+        if (subtitle !== undefined) {
+            subtitleOrTicker = subtitle;
+        }
         const marketSymbol = this.slugToMarketSymbol (eventTicker, subtitleOrTicker);
         // kalshi exposes the per-market price tick via price_ranges[].step (a dollar value,
         // e.g. "0.0010" for deci-cent markets, "0.0100" for cent markets); older responses
@@ -896,7 +908,10 @@ export default class kalshi extends Exchange {
         //
         const marketAny = market;
         const outcomeObj = this.safeOutcome (this.safeString (marketAny, 'outcome'), marketAny);
-        const outcomeLabel = (market !== undefined && market !== null) ? this.safeString (market, 'label', this.safeString (market['info'], 'outcomeLabel', 'YES')) : 'YES';
+        let outcomeLabel: Str = 'YES';
+        if (market !== undefined && market !== null) {
+            outcomeLabel = this.safeString (market, 'label', this.safeString (market['info'], 'outcomeLabel', 'YES'));
+        }
         const isNo = outcomeLabel.toUpperCase () === 'NO';
         const timestamp = this.parse8601 (this.safeString (raw, 'updated_time'));
         const outcome = this.safeString (outcomeObj, 'outcome');
@@ -918,8 +933,18 @@ export default class kalshi extends Exchange {
             close = last;
         }
         // the book is quoted in the yes token, the no side mirrors with sizes swapped
-        const bidSizeString = (isNo) ? this.safeString (raw, 'yes_ask_size_fp') : this.safeString (raw, 'yes_bid_size_fp');
-        const askSizeString = (isNo) ? this.safeString (raw, 'yes_bid_size_fp') : this.safeString (raw, 'yes_ask_size_fp');
+        let bidSizeString: Str = undefined;
+        if (isNo) {
+            bidSizeString = this.safeString (raw, 'yes_ask_size_fp');
+        } else {
+            bidSizeString = this.safeString (raw, 'yes_bid_size_fp');
+        }
+        let askSizeString: Str = undefined;
+        if (isNo) {
+            askSizeString = this.safeString (raw, 'yes_bid_size_fp');
+        } else {
+            askSizeString = this.safeString (raw, 'yes_ask_size_fp');
+        }
         // kalshi occasionally reports a negative size for settling/closed markets; a size
         // can't be negative, so drop it rather than emit an invalid volume
         let bidVolume: Num = undefined;
@@ -1454,7 +1479,10 @@ export default class kalshi extends Exchange {
         const ts = this.parse8601 (this.safeString (fill, 'created_time'));
         // action is the order side (buy/sell) of the held leg
         const action = this.safeStringLower (fill, 'action');
-        const side = (action === 'sell') ? 'sell' : 'buy';
+        let side: Str = 'buy';
+        if (action === 'sell') {
+            side = 'sell';
+        }
         // price is the price of the leg held; kalshi reports dollars in V2, cents otherwise
         let price: Num = undefined;
         if (sideLeg === 'no') {
@@ -1480,7 +1508,10 @@ export default class kalshi extends Exchange {
             cost = price * amount;
         }
         const isTaker = this.safeBool (fill, 'is_taker', true);
-        const takerOrMaker = (isTaker === true) ? 'taker' : 'maker';
+        let takerOrMaker: Str = 'maker';
+        if (isTaker === true) {
+            takerOrMaker = 'taker';
+        }
         const feeCost = this.safeNumber (fill, 'fee_cost');
         let fee: Fee = undefined;
         if (feeCost !== undefined) {
@@ -1648,10 +1679,18 @@ export default class kalshi extends Exchange {
         const yesCount = this.safeNumber2 (settlement, 'yes_count_fp', 'yes_count', 0);
         const noCount = this.safeNumber2 (settlement, 'no_count_fp', 'no_count', 0);
         const heldYes = (yesCount >= noCount);
-        const heldLabel = (heldYes) ? 'YES' : 'NO';
+        let heldLabel: Str = 'NO';
+        if (heldYes) {
+            heldLabel = 'YES';
+        }
         const tickerMissing = (ticker === undefined);
         const useHeldYesTicker = (heldYes || tickerMissing);
-        const heldTicker = (useHeldYesTicker) ? ticker : (ticker + '-NO');
+        let heldTicker: Str = undefined;
+        if (useHeldYesTicker) {
+            heldTicker = ticker;
+        } else {
+            heldTicker = (ticker + '-NO');
+        }
         const mkt = this.safeOutcome (heldTicker, market);
         // which leg won; market_result is yes or no
         const marketResult = this.safeStringUpper (settlement, 'market_result');
@@ -1664,8 +1703,14 @@ export default class kalshi extends Exchange {
                 payout = revenueCents / 100;
             }
         }
-        const costKey = (heldYes) ? 'yes_total_cost' : 'no_total_cost';
-        const costDollarsKey = (heldYes) ? 'yes_total_cost_dollars' : 'no_total_cost_dollars';
+        let costKey: Str = 'no_total_cost';
+        if (heldYes) {
+            costKey = 'yes_total_cost';
+        }
+        let costDollarsKey: Str = 'no_total_cost_dollars';
+        if (heldYes) {
+            costDollarsKey = 'yes_total_cost_dollars';
+        }
         let cost = this.safeNumber (settlement, costDollarsKey);
         if (cost === undefined) {
             const costCents = this.safeNumber (settlement, costKey);
@@ -1886,8 +1931,14 @@ export default class kalshi extends Exchange {
         // price in the outcome's own leg: V2 returns *_price_dollars (already dollars),
         // legacy returned yes_price/no_price in cents
         const labelIsNo = (this.safeStringUpper (mkt, 'label') === 'NO');
-        const dollarsKey = (labelIsNo) ? 'no_price_dollars' : 'yes_price_dollars';
-        const centsKey = (labelIsNo) ? 'no_price' : 'yes_price';
+        let dollarsKey: Str = 'yes_price_dollars';
+        if (labelIsNo) {
+            dollarsKey = 'no_price_dollars';
+        }
+        let centsKey: Str = 'yes_price';
+        if (labelIsNo) {
+            centsKey = 'no_price';
+        }
         let price = this.safeNumber (order, dollarsKey);
         if (price === undefined) {
             const priceCents = this.safeNumber (order, centsKey);
@@ -1976,7 +2027,10 @@ export default class kalshi extends Exchange {
         // kalshi V2 (/portfolio/events/orders) quotes the YES leg only: side 'bid' = buy YES,
         // 'ask' = sell YES, price in dollars. a NO order maps to the complementary YES order
         // buy NO @ q == sell YES @ 1-q - flip the book side and the price
-        let bookSide = (isBuy) ? 'bid' : 'ask';
+        let bookSide: Str = 'ask';
+        if (isBuy) {
+            bookSide = 'bid';
+        }
         let yesPrice = price;
         if (isNo) {
             bookSide = (isBuy) ? 'ask' : 'bid';
@@ -1989,7 +2043,10 @@ export default class kalshi extends Exchange {
         // `time_in_force` param (handled below) still overrides
         const unifiedTif = this.safeStringUpper (params, 'timeInForce');
         params = this.omit (params, 'timeInForce');
-        let defaultTif = (isMarket) ? 'immediate_or_cancel' : 'good_till_canceled';
+        let defaultTif: Str = 'good_till_canceled';
+        if (isMarket) {
+            defaultTif = 'immediate_or_cancel';
+        }
         // kalshi has BOTH immediate_or_cancel (partial ok) and fill_or_kill (all-or-nothing);
         // map the unified tokens to the matching primitive rather than collapsing FOK into IOC
         if (unifiedTif === 'IOC') {
@@ -2567,7 +2624,10 @@ export default class kalshi extends Exchange {
         const ticker = this.safeString (rawEvent, 'event_ticker');
         const title = this.safeString (rawEvent, 'title');
         const hasTitle = (title !== undefined) && (title !== '');
-        const eventSlug = hasTitle ? this.shortenSlug (title) : undefined;
+        let eventSlug: Str = undefined;
+        if (hasTitle) {
+            eventSlug = this.shortenSlug (title);
+        }
         let created = this.parse8601 (this.safeString (rawEvent, 'created_date_iso'));
         if (created === undefined) {
             created = earliestCreated;

@@ -642,7 +642,7 @@ export default class binance extends Exchange {
         let resolvedOutcomeRaw = undefined;
         const rawOutcomesLength = rawOutcomes.length;
         for (let oi = 0; oi < rawOutcomesLength; oi++) {
-            const rawOutcome = rawOutcomes[oi];
+            const rawOutcome = this.safeDict (rawOutcomes, oi);
             const label = this.safeStringUpper (rawOutcome, 'name');
             const tokenId = this.safeString (rawOutcome, 'tokenId');
             const outcomeHandle = marketSymbol + ':' + label;
@@ -931,7 +931,7 @@ export default class binance extends Exchange {
         };
         const balances = this.safeList (response, 'items', []);
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict (balances, i);
             const accountType = this.safeString (balance, 'accountType');
             if (accountType === type) {
                 const free = this.safeString (balance, 'availableBalanceDisplay');
@@ -1874,7 +1874,7 @@ export default class binance extends Exchange {
         if (failedOrdersLength > 0) {
             let failedDetails = '';
             for (let i = 0; i < failedOrdersLength; i++) {
-                const failedOrder = failedOrders[i];
+                const failedOrder = this.safeDict (failedOrders, i);
                 const failedOrderId = this.safeString (failedOrder, 'orderId');
                 const failedReason = this.safeString (failedOrder, 'reason');
                 if (i > 0) {

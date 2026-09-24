@@ -803,7 +803,7 @@ export default class deepcoin extends deepcoinRest {
             'asks': [],
         };
         for (let i = 0; i < entries.length; i++) {
-            const entry = entries[i];
+            const entry = this.safeDict (entries, i);
             const entryData = this.safeDict (entry, 'd', {});
             const side = this.safeString (entryData, 'D');
             const price = this.safeNumber (entryData, 'P');

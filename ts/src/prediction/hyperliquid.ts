@@ -250,8 +250,14 @@ export default class hyperliquid extends Exchange {
         const targetPrice = this.safeString (desc, 'targetPrice');
         const expiry = this.safeString (desc, 'expiry', '');
         // Parse expiry: "20260503-0600" → "20260503"
-        const expiryDate = (expiry !== '') ? expiry.split ('-')[0] : '';
-        const label = (side === 0) ? 'YES' : 'NO';
+        let expiryDate: Str = '';
+        if (expiry !== '') {
+            expiryDate = expiry.split ('-')[0];
+        }
+        let label: Str = 'NO';
+        if (side === 0) {
+            label = 'YES';
+        }
         let base = underlying.toUpperCase ();
         if ((targetPrice !== undefined) && (targetPrice !== '')) {
             base = base + '_ABOVE_' + targetPrice;
@@ -278,7 +284,10 @@ export default class hyperliquid extends Exchange {
         if ((underlying !== undefined) && (underlying !== '')) {
             const targetPrice = this.safeString (desc, 'targetPrice');
             const expiry = this.safeString (desc, 'expiry', '');
-            const expiryDate = (expiry !== '') ? expiry.split ('-')[0] : '';
+            let expiryDate: Str = '';
+            if (expiry !== '') {
+                expiryDate = expiry.split ('-')[0];
+            }
             let base = underlying.toUpperCase ();
             if ((targetPrice !== undefined) && (targetPrice !== '')) {
                 base = base + '_ABOVE_' + targetPrice;
@@ -295,7 +304,10 @@ export default class hyperliquid extends Exchange {
             if (questionClass === 'pricebucket') {
                 const questionUnderlying = this.safeString (questionDesc, 'underlying');
                 const questionExpiry = this.safeString (questionDesc, 'expiry', '');
-                const expiryDate = (questionExpiry !== '') ? questionExpiry.split ('-')[0] : '';
+                let expiryDate: Str = '';
+                if (questionExpiry !== '') {
+                    expiryDate = questionExpiry.split ('-')[0];
+                }
                 const thresholdsRaw = this.safeString (questionDesc, 'priceThresholds', '');
                 const indexStr = this.safeString (desc, 'index');
                 const rawDescription = this.safeStringLower (desc, 'description', '');
@@ -487,7 +499,10 @@ export default class hyperliquid extends Exchange {
             const expPartsLength = expParts.length;
             if (expPartsLength >= 1 && expParts[0].length === 8) {
                 const ymd = expParts[0];
-                const hm = (expPartsLength >= 2) ? expParts[1] : '0000';
+                let hm: Str = '0000';
+                if (expPartsLength >= 2) {
+                    hm = expParts[1];
+                }
                 const isoStr = ymd.slice (0, 4) + '-' + ymd.slice (4, 6) + '-' + ymd.slice (6, 8) + 'T' + hm.slice (0, 2) + ':' + hm.slice (2, 4) + ':00Z';
                 expiryMs = this.parse8601 (isoStr);
                 expiryDatetime = isoStr;
@@ -755,7 +770,10 @@ export default class hyperliquid extends Exchange {
         }
         // day volume lives on the parent market's ctx; resolve it from the outcome's parent market
         const parentSymbol = this.safeString (mkt, 'market');
-        const parentMarket = (parentSymbol !== undefined) ? this.safeMarket (parentSymbol) : undefined;
+        let parentMarket: Market = undefined;
+        if (parentSymbol !== undefined) {
+            parentMarket = this.safeMarket (parentSymbol);
+        }
         const ctx = (parentMarket !== undefined) ? this.safeDict (this.safeDict (parentMarket, 'info', {}), 'ctx', {}) : {};
         const dayVolume = this.safeNumber (ctx, 'dayNtlVlm');
         return this.safePredictionTicker ({
@@ -821,11 +839,11 @@ export default class hyperliquid extends Exchange {
         const bids: Num[][] = [];
         const asks: Num[][] = [];
         for (let i = 0; i < rawBids.length; i++) {
-            const entry = rawBids[i];
+            const entry = this.safeDict (rawBids, i);
             bids.push ([ this.safeNumber (entry, 'px'), this.safeNumber (entry, 'sz') ]);
         }
         for (let i = 0; i < rawAsks.length; i++) {
-            const entry = rawAsks[i];
+            const entry = this.safeDict (rawAsks, i);
             asks.push ([ this.safeNumber (entry, 'px'), this.safeNumber (entry, 'sz') ]);
         }
         const orderbook = this.parseOrderBook ({ 'bids': bids, 'asks': asks }, this.safeString (outcomeObj, 'outcome', outcome), timestamp);
@@ -964,7 +982,7 @@ export default class hyperliquid extends Exchange {
         };
         const balances = this.safeList (response, 'balances', []);
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict (balances, i);
             const coin = this.safeString (balance, 'coin');
             const total = this.safeString (balance, 'total');
             const used = this.safeString (balance, 'hold');
@@ -1117,7 +1135,10 @@ export default class hyperliquid extends Exchange {
 
     findOutcomeInMarket (market: Market, sideHint: Str = undefined): Dict {
         const outcomesList = this.safeList (market, 'outcomes', []);
-        const normalizedHint = (sideHint !== undefined && sideHint !== '') ? sideHint.toUpperCase () : undefined;
+        let normalizedHint: Str = undefined;
+        if (sideHint !== undefined && sideHint !== '') {
+            normalizedHint = sideHint.toUpperCase ();
+        }
         if (normalizedHint !== undefined) {
             for (let i = 0; i < outcomesList.length; i++) {
                 const oc = this.safeDict (outcomesList, i, {});
@@ -1200,7 +1221,10 @@ export default class hyperliquid extends Exchange {
         }
         if (((this.markets !== undefined) && (outcomeInput in this.markets)) || ((this.markets_by_id !== undefined) && (outcomeInput in this.markets_by_id))) {
             const market = this.safeMarket (outcomeInput);
-            const sideHintOrDefault = (sideHint !== undefined) ? sideHint : 'YES';
+            let sideHintOrDefault: Str = 'YES';
+            if (sideHint !== undefined) {
+                sideHintOrDefault = sideHint;
+            }
             const found = this.findOutcomeInMarket (market, sideHintOrDefault);
             if (Object.keys (found).length > 0) {
                 return found;
@@ -1246,7 +1270,10 @@ export default class hyperliquid extends Exchange {
         const postOnly = this.safeBool (params, 'postOnly', false);
         const defaultSlippage = this.safeString (this.options, 'defaultSlippage', '0.05');
         const slippage = this.safeString (params, 'slippage', defaultSlippage);
-        let defaultTif = isMarket ? 'Ioc' : 'Gtc';
+        let defaultTif: Str = 'Gtc';
+        if (isMarket) {
+            defaultTif = 'Ioc';
+        }
         if (postOnly === true) {
             defaultTif = 'Alo';
         }
@@ -1632,9 +1659,15 @@ export default class hyperliquid extends Exchange {
         const coin = this.safeString (entry, 'coin');
         const outcomeObj = this.safeOutcome (coin, market);
         const marketSymbol = this.safeString (outcomeObj, 'outcome');
-        const resolvedMarket = (marketSymbol !== undefined && marketSymbol !== '') ? this.safeMarket (marketSymbol, market) : market;
+        let resolvedMarket: Market = market;
+        if (marketSymbol !== undefined && marketSymbol !== '') {
+            resolvedMarket = this.safeMarket (marketSymbol, market);
+        }
         const sideRaw = this.safeString (entry, 'side');
-        const side = (sideRaw === 'B') ? 'buy' : 'sell';
+        let side: Str = 'sell';
+        if (sideRaw === 'B') {
+            side = 'buy';
+        }
         const totalAmount = this.safeString (entry, 'origSz');
         const remaining = this.safeString (entry, 'sz');
         let filled: Str = undefined;
@@ -1702,7 +1735,10 @@ export default class hyperliquid extends Exchange {
             'stop limit': 'limit',
             'stop market': 'market',
         };
-        const statusLower = (status !== undefined && status !== '') ? status.toLowerCase () : undefined;
+        let statusLower: Str = undefined;
+        if (status !== undefined && status !== '') {
+            statusLower = status.toLowerCase ();
+        }
         return this.safeString (statuses, statusLower, statusLower);
     }
 
@@ -1713,7 +1749,10 @@ export default class hyperliquid extends Exchange {
             'fok': 'FOK',
             'alo': 'PO',
         };
-        const tifLower = (timeInForce !== undefined && timeInForce !== '') ? timeInForce.toLowerCase () : undefined;
+        let tifLower: Str = undefined;
+        if (timeInForce !== undefined && timeInForce !== '') {
+            tifLower = timeInForce.toLowerCase ();
+        }
         return this.safeString (statuses, tifLower, timeInForce);
     }
 
@@ -1832,9 +1871,15 @@ export default class hyperliquid extends Exchange {
         const coin = this.safeString (trade, 'coin');
         const outcomeObj = this.safeOutcome (coin, market);
         const marketSymbol = this.safeString (outcomeObj, 'outcome');
-        const resolvedMarket = (marketSymbol !== undefined && marketSymbol !== '') ? this.safeMarket (marketSymbol, market) : market;
+        let resolvedMarket: Market = market;
+        if (marketSymbol !== undefined && marketSymbol !== '') {
+            resolvedMarket = this.safeMarket (marketSymbol, market);
+        }
         const rawSide = this.safeString (trade, 'side');
-        const side = (rawSide === 'B') ? 'buy' : 'sell';
+        let side: Str = 'sell';
+        if (rawSide === 'B') {
+            side = 'buy';
+        }
         const fee = this.safeNumber (trade, 'fee');
         const feeCurrency = this.safeString (trade, 'feeToken', 'USDC');
         const outcomeSymbol = this.safeString (outcomeObj, 'outcome');
@@ -1847,7 +1892,10 @@ export default class hyperliquid extends Exchange {
             cost = this.parseNumber (Precise.stringMul (price, amount));
         }
         const crossed = (this.safeBool (trade, 'crossed') === true);
-        const takerOrMaker = crossed ? 'taker' : 'maker';
+        let takerOrMaker: Str = 'maker';
+        if (crossed) {
+            takerOrMaker = 'taker';
+        }
         return this.safePredictionTrade ({
             'id': this.safeString (trade, 'tid'),
             'info': trade,
@@ -1907,7 +1955,10 @@ export default class hyperliquid extends Exchange {
             // Apply query filter
             if (lowerQueriesLength > 0) {
                 const description = this.safeString (info, 'description', '').toLowerCase ();
-                const parentSymbolOrEmpty = (parentSymbol !== undefined) ? parentSymbol : '';
+                let parentSymbolOrEmpty: Str = '';
+                if (parentSymbol !== undefined) {
+                    parentSymbolOrEmpty = parentSymbol;
+                }
                 const symLower = parentSymbolOrEmpty.toLowerCase ();
                 // the parentSymbol joins words with underscores (BTC_ABOVE_...), so match the haystack word-by-word
                 // and require every word of a query to appear, letting "BTC above" match BTC_ABOVE
@@ -1990,7 +2041,10 @@ export default class hyperliquid extends Exchange {
             const partsLength = parts.length;
             if (partsLength >= 1 && parts[0].length === 8) {
                 const ymd = parts[0];
-                const hm = (partsLength >= 2) ? parts[1] : '0000';
+                let hm: Str = '0000';
+                if (partsLength >= 2) {
+                    hm = parts[1];
+                }
                 const isoStr = ymd.slice (0, 4) + '-' + ymd.slice (4, 6) + '-' + ymd.slice (6, 8) + 'T' + hm.slice (0, 2) + ':' + hm.slice (2, 4) + ':00Z';
                 expiryMs = this.parse8601 (isoStr);
                 expiryDatetime = isoStr;
@@ -2084,7 +2138,10 @@ export default class hyperliquid extends Exchange {
     }
 
     constructPhantomAgent (hash: any, isTestnet = true): Dict {
-        const source = isTestnet ? 'b' : 'a';
+        let source: Str = 'a';
+        if (isTestnet) {
+            source = 'b';
+        }
         return {
             'source': source,
             'connectionId': hash,

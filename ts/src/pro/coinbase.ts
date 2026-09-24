@@ -462,7 +462,7 @@ export default class coinbase extends coinbaseRest {
         const timestamp = this.parse8601 (datetime);
         const newTickers: Ticker[] = [];
         for (let i = 0; i < events.length; i++) {
-            const tickersObj = events[i];
+            const tickersObj = this.safeDict (events, i);
             const tickers = this.safeList (tickersObj, 'tickers', []);
             for (let j = 0; j < tickers.length; j++) {
                 const ticker = tickers[j];
@@ -753,7 +753,7 @@ export default class coinbase extends coinbaseRest {
             this.trades[symbol] = tradesArray;
         }
         for (let i = 0; i < events.length; i++) {
-            const currentEvent = events[i];
+            const currentEvent = this.safeDict (events, i);
             const currentTrades = this.safeList (currentEvent, 'trades');
             if (currentTrades === undefined) {
                 continue;
@@ -808,7 +808,7 @@ export default class coinbase extends coinbaseRest {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         for (let i = 0; i < events.length; i++) {
-            const event = events[i];
+            const event = this.safeDict (events, i);
             const responseOrders = this.safeList (event, 'orders');
             if (responseOrders === undefined) {
                 continue;
@@ -889,7 +889,7 @@ export default class coinbase extends coinbaseRest {
 
     handleOrderBookHelper (orderbook: any, updates: any) {
         for (let i = 0; i < updates.length; i++) {
-            const trade = updates[i];
+            const trade = this.safeDict (updates, i);
             const sideId = this.safeString (trade, 'side');
             const side = this.safeString (this.options['sides'], sideId);
             const price = this.safeNumber (trade, 'price_level');
@@ -934,7 +934,7 @@ export default class coinbase extends coinbaseRest {
         }
         const datetime = this.safeString (message, 'timestamp');
         for (let i = 0; i < events.length; i++) {
-            const event = events[i];
+            const event = this.safeDict (events, i);
             const updates = this.safeList (event, 'updates', []);
             const marketId = this.safeString (event, 'product_id');
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
@@ -1042,7 +1042,10 @@ export default class coinbase extends coinbaseRest {
         if (type === 'error') {
             const errorMessage = this.safeString (message, 'message');
             // ternary (not ||) so the ast-transpiler emits a value-typed conditional, not a boolean
-            const errorMessageValue = (errorMessage !== undefined) ? errorMessage : 'unknown error';
+            let errorMessageValue: Str = 'unknown error';
+            if (errorMessage !== undefined) {
+                errorMessageValue = errorMessage;
+            }
             throw new ExchangeError (errorMessageValue);
         }
         const method = this.safeValue (methods, channel);

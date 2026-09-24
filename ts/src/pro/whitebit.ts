@@ -517,7 +517,12 @@ export default class whitebit extends whitebitRest {
         const feeCost = this.safeString (trade, 6);
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 10);
-            const feeCurrencyCode = (feeCurrencyId !== undefined) ? this.safeCurrencyCode (feeCurrencyId) : market['quote'];
+            let feeCurrencyCode: Str = undefined;
+            if (feeCurrencyId !== undefined) {
+                feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            } else {
+                feeCurrencyCode = market['quote'];
+            }
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
@@ -673,7 +678,10 @@ export default class whitebit extends whitebitRest {
         const lastTradeTimestamp = this.safeTimestamp (order, 'mtime');
         const symbol = market['symbol'];
         const rawSide = this.safeInteger (order, 'side');
-        const side = (rawSide === 1) ? 'sell' : 'buy';
+        let side: Str = 'buy';
+        if (rawSide === 1) {
+            side = 'sell';
+        }
         const dealFee = this.safeString (order, 'deal_fee');
         let fee: Fee = undefined;
         if (dealFee !== undefined) {
