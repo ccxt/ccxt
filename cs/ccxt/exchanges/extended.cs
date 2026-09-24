@@ -679,7 +679,7 @@ public partial class extended : Exchange
         IDictionary<string, object> tradingConfig = this.safeDict(market, "tradingConfig", new Dictionary<string, object>() {});
         string? marketId = this.safeString(market, "name");
         string? baseId = this.safeString(market, "assetName", "");
-        if (getIndexOf(baseId, "SPOT") >= 0)
+        if ((baseId?.IndexOf("SPOT", StringComparison.Ordinal) ?? -1) >= 0)
         {
             baseId = baseId.Replace("SPOT", (string)"");
         }

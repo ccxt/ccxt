@@ -3537,7 +3537,7 @@ public partial class predictfun : PredictionExchange
         for (int i = 0; i < futuresLength; i++)
         {
             string? future = ((string)(futures != null && i < futures.Count ? futures[i] : null));
-            if (((getIndexOf(future, "orders::") == 0)) || ((getIndexOf(future, "myTrades::") == 0)))
+            if ((((future?.IndexOf("orders::", StringComparison.Ordinal) ?? -1) == 0)) || (((future?.IndexOf("myTrades::", StringComparison.Ordinal) ?? -1) == 0)))
             {
                 hashes.Add(future);
             }

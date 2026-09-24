@@ -832,7 +832,7 @@ public partial class BaseExchange
         for (int i = 0; i < messageHashes.Count; i++)
         {
             string? messageHash = ((string)messageHashes[i]);
-            if (getIndexOf(messageHash, element) >= 0)
+            if ((messageHash?.IndexOf(((string)element), StringComparison.Ordinal) ?? -1) >= 0)
             {
                 result.Add(messageHash);
             }

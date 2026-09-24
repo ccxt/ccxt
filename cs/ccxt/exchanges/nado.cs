@@ -3082,7 +3082,7 @@ public partial class nado : Exchange
             } else
             {
                 status = this.safeString(order, "status", "rejected");
-                if ((status == "success") || (getIndexOf(status, "waiting") >= 0))
+                if ((status == "success") || ((status?.IndexOf("waiting", StringComparison.Ordinal) ?? -1) >= 0))
                 {
                     status = "open";
                 }

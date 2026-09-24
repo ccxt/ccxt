@@ -10564,7 +10564,7 @@ public partial class bitget : Exchange
             before = this.parseNumber(Precise.stringSub(balanceString, amountRaw)); // subtract the signed change from the after-balance, the base derivation assumes a signed amount and would produce a negative before on outflows
         }
         string direction = "in";
-        if (getIndexOf(amountRaw, "-") >= 0)
+        if ((amountRaw?.IndexOf("-", StringComparison.Ordinal) ?? -1) >= 0)
         {
             direction = "out";
         }

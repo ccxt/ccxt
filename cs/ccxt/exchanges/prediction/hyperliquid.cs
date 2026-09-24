@@ -224,7 +224,7 @@ public partial class hyperliquid : PredictionExchange
         for (int i = 0; i < parts.Count; i++)
         {
             string? part = ((string)parts[i]);
-            int colonIndex = getIndexOf(part, ":");
+            int colonIndex = (part?.IndexOf(":", StringComparison.Ordinal) ?? -1);
             if (colonIndex > -1)
             {
                 string? key = slice(part, 0, colonIndex);
@@ -1156,7 +1156,7 @@ public partial class hyperliquid : PredictionExchange
             IDictionary<string, object> balance = this.safeDict(balances, i, new Dictionary<string, object>() {});
             string? coin = this.safeString(balance, "coin", "");
             // outcome tokens use the "+<encoding>" balance form; skip regular spot tokens (USDC, ...)
-            if ((getIndexOf(coin, "+") != 0))
+            if (((coin?.IndexOf("+", StringComparison.Ordinal) ?? -1) != 0))
             {
                 continue;
             }

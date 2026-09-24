@@ -1366,10 +1366,10 @@ public partial class bitfinex : ccxt.bitfinex
         }
         string? remaining = Precise.stringAbs(this.safeString(order, 6));
         string? type = this.safeString(order, 8, "");
-        if (getIndexOf(type, "LIMIT") > -1)
+        if ((type?.IndexOf("LIMIT", StringComparison.Ordinal) ?? -1) > -1)
         {
             type = "limit";
-        } else if (getIndexOf(type, "MARKET") > -1)
+        } else if ((type?.IndexOf("MARKET", StringComparison.Ordinal) ?? -1) > -1)
         {
             type = "market";
         }

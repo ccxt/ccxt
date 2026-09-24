@@ -1344,7 +1344,7 @@ public partial class bitbns : Exchange
             {
                 type = "deposit";
                 status = "ok";
-            } else if (type.IndexOf("withdraw", StringComparison.Ordinal) >= 0 || getIndexOf(expTime, "withdraw") >= 0)
+            } else if (type.IndexOf("withdraw", StringComparison.Ordinal) >= 0 || (expTime?.IndexOf("withdraw", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 type = "withdrawal";
             }

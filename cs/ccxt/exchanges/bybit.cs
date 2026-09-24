@@ -3591,7 +3591,7 @@ public partial class bybit : Exchange
                 string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
                 // using safeMarket here because if the user provides for instance BTCUSDT and "type": "spot" in params we should
                 // infer the market type from the type provided and not from the conflicting id (BTCUSDT might be swap or spot)
-                bool isExchangeSpecificSymbol = ((getIndexOf(symbol, "/") == -1));
+                bool isExchangeSpecificSymbol = (((symbol?.IndexOf("/", StringComparison.Ordinal) ?? -1) == -1));
                 if (isExchangeSpecificSymbol)
                 {
                     market = this.safeMarket(symbol, null, null, defaultType);

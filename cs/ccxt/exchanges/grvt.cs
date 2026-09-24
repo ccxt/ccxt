@@ -2183,7 +2183,7 @@ public partial class grvt : Exchange
         {
             string? msg = ((string)this.exceptionMessage(error));
             bool isFromFundingAccount = isEqual(fromAccountVar, "funding");
-            if (isFromFundingAccount && (getIndexOf(msg, "You are not authorized") >= 0))
+            if (isFromFundingAccount && ((msg?.IndexOf("You are not authorized", StringComparison.Ordinal) ?? -1) >= 0))
             {
                 throw new PermissionDenied (((this.id + " transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: ") + msg)) ;
             }

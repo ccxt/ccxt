@@ -6846,7 +6846,7 @@ public partial class xt : Exchange
                 {
                     throw new NullResponse ((this.id + " sign() returned empty body")) ;
                 }
-                if (getIndexOf(payload, "future") > -1)
+                if ((payload?.IndexOf("future", StringComparison.Ordinal) ?? -1) > -1)
                 {
                     ((IDictionary<string,object>)body)["clientMedia"] = id;
                     if ((body == null))

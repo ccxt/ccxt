@@ -1670,7 +1670,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         if (channel == "error")
         {
             string? ret_msg = this.safeString(message, "data", "");
-            if (getIndexOf(ret_msg, "Already subscribed") >= 0)
+            if ((ret_msg?.IndexOf("Already subscribed", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 // a duplicate subscribe is harmless - the server-side subscription is intact
                 // and data keeps flowing; rejecting all pending futures here would poison the

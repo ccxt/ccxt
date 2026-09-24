@@ -2281,7 +2281,7 @@ public partial class mexc : ccxt.mexc
         if (msg == "PONG")
         {
             this.handlePong(client, message);
-        } else if (getIndexOf(msg, "@") > -1)
+        } else if ((msg?.IndexOf("@", StringComparison.Ordinal) ?? -1) > -1)
         {
             List<object> parts = msg.Split(new [] {"@"}, StringSplitOptions.None).ToList<object>();
             string? channel = this.safeString(parts, 1);

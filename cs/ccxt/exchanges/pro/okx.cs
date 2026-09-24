@@ -3090,7 +3090,7 @@ public partial class okx : ccxt.okx
         } else if (channel.StartsWith("bbo") || channel.StartsWith("book"))
         {
             this.handleUnsubscriptionOrderBook(client, symbol, channel);
-        } else if (getIndexOf(channel, "tickers") > -1)
+        } else if ((channel?.IndexOf("tickers", StringComparison.Ordinal) ?? -1) > -1)
         {
             this.handleUnsubscriptionTicker(client, symbol, channel);
         } else if (channel.StartsWith("candle"))

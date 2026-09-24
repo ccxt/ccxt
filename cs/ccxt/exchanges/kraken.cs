@@ -742,7 +742,7 @@ public partial class kraken : Exchange
         {
             string? id = ((string)keys[i]);
             bool isSynthetic = false;
-            if (getIndexOf(id, ":BTNL") >= 0)
+            if ((id?.IndexOf(":BTNL", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 isSynthetic = true;
             }
@@ -1939,7 +1939,7 @@ public partial class kraken : Exchange
         };
         List<object> orderRequest = this.orderRequest("createOrder", symbol, type, request, amount, price, parameters);
         string? flags = this.safeString((orderRequest != null && 0 < orderRequest.Count ? orderRequest[0] : null), "oflags", "");
-        bool isUsingCost = getIndexOf(flags, "viqc") > -1;
+        bool isUsingCost = (flags?.IndexOf("viqc", StringComparison.Ordinal) ?? -1) > -1;
         Dictionary<string, object> response = await this.privatePostAddOrder(this.extend((orderRequest != null && 0 < orderRequest.Count ? orderRequest[0] : null), (orderRequest != null && 1 < orderRequest.Count ? orderRequest[1] : null)));
         //
         //     {
@@ -2303,7 +2303,7 @@ public partial class kraken : Exchange
             price = this.safeString2(order, "limitprice", "price", price);
         }
         string? flags = this.safeString(order, "oflags", "");
-        bool? isPostOnly = getIndexOf(flags, "post") > -1;
+        bool? isPostOnly = (flags?.IndexOf("post", StringComparison.Ordinal) ?? -1) > -1;
         double? average = this.safeNumber(order, "price");
         if ((market != null))
         {
@@ -2315,10 +2315,10 @@ public partial class kraken : Exchange
                     { "cost", feeCost },
                     { "rate", null },
                 };
-                if (getIndexOf(flags, "fciq") >= 0)
+                if ((flags?.IndexOf("fciq", StringComparison.Ordinal) ?? -1) >= 0)
                 {
                     fee["currency"] = getValue(market, "quote");
-                } else if (getIndexOf(flags, "fcib") >= 0)
+                } else if ((flags?.IndexOf("fcib", StringComparison.Ordinal) ?? -1) >= 0)
                 {
                     fee["currency"] = getValue(market, "base");
                 }

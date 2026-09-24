@@ -818,7 +818,7 @@ public partial class cryptocom : Exchange
         } catch(Exception e)
         {
             string? erString = ((string)this.exceptionMessage(e));
-            if (getIndexOf(erString, "SYS_ERROR") >= 0)
+            if ((erString?.IndexOf("SYS_ERROR", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 // sub-accounts can't access this endpoint
                 // {"code":"10001","msg":"SYS_ERROR"}

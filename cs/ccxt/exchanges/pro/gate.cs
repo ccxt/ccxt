@@ -493,7 +493,7 @@ public partial class gate : ccxt.gate
         symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
         string? url = this.getUrlByMarket(market);
-        bool isEuUrl = getIndexOf(url, "gateeu") >= 0;
+        bool isEuUrl = (url?.IndexOf("gateeu", StringComparison.Ordinal) ?? -1) >= 0;
         bool isNonEuSpot = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && !isEuUrl;
         string intervalDefault = "100ms";
         if (isNonEuSpot)
@@ -568,7 +568,7 @@ public partial class gate : ccxt.gate
         string? url = this.getUrlByMarket(market);
         symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
-        bool isEuUrl = getIndexOf(url, "gateeu") >= 0;
+        bool isEuUrl = (url?.IndexOf("gateeu", StringComparison.Ordinal) ?? -1) >= 0;
         bool isNonEuSpot = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && !isEuUrl;
         string intervalDefault = "100ms";
         if (isNonEuSpot)
@@ -1928,7 +1928,7 @@ public partial class gate : ccxt.gate
         //
         List<object> orders = this.safeList(message, "result", new List<object>() {});
         string? channel = this.safeString(message, "channel", "");
-        bool isTrigger = (getIndexOf(channel, "autoorders") >= 0) || (getIndexOf(channel, "priceorders") >= 0);
+        bool isTrigger = ((channel?.IndexOf("autoorders", StringComparison.Ordinal) ?? -1) >= 0) || ((channel?.IndexOf("priceorders", StringComparison.Ordinal) ?? -1) >= 0);
         string hashPrefix = "orders";
         if (isTrigger)
         {

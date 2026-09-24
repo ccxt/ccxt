@@ -2589,7 +2589,7 @@ public partial class htx : ccxt.htx
             this.handleMyTrade(client, message);
             return;
         }
-        if (getIndexOf(privateType, "accounts.update") >= 0)
+        if ((privateType?.IndexOf("accounts.update", StringComparison.Ordinal) ?? -1) >= 0)
         {
             this.handleBalance(client, message);
             return;
@@ -2604,19 +2604,19 @@ public partial class htx : ccxt.htx
         if (op == "notify")
         {
             string? topic = this.safeString(message, "topic", "");
-            if (getIndexOf(topic, "orders") >= 0)
+            if ((topic?.IndexOf("orders", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 this.handleOrder(client, message);
             }
-            if (getIndexOf(topic, "trade") >= 0)
+            if ((topic?.IndexOf("trade", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 this.handleMyTrade(client, message);
             }
-            if (getIndexOf(topic, "account") >= 0)
+            if ((topic?.IndexOf("account", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 this.handleBalance(client, message);
             }
-            if (getIndexOf(topic, "positions") >= 0)
+            if ((topic?.IndexOf("positions", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 this.handlePositions(client, (Dictionary<string, object>)message);
             }

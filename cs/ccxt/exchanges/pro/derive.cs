@@ -426,10 +426,10 @@ public partial class derive : ccxt.derive
             for (int i = 0; i < topics.Count; i++)
             {
                 string? topic = ((string)topics[i]);
-                if (getIndexOf(topic, "orderbook") >= 0)
+                if ((topic?.IndexOf("orderbook", StringComparison.Ordinal) ?? -1) >= 0)
                 {
                     this.handleOrderBookUnSubscription(client, topic);
-                } else if (getIndexOf(topic, "trades") >= 0)
+                } else if ((topic?.IndexOf("trades", StringComparison.Ordinal) ?? -1) >= 0)
                 {
                     this.handleTradesUnSubscription(client, topic);
                 }
