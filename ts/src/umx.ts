@@ -3169,6 +3169,16 @@ export default class umx extends Exchange {
             } else {
                 side = 'long';
             }
+        } else {
+            // the close-positions acknowledgements carry the closing order instead of a position
+            // row, the closed amount is its qty and the position side is the opposite of its side
+            contracts = this.safeString (position, 'qty');
+            const orderSide = this.safeString (position, 'side');
+            if (orderSide === 'sell') {
+                side = 'long';
+            } else if (orderSide === 'buy') {
+                side = 'short';
+            }
         }
         const markPrice = this.safeString (position, 'markPrice');
         let notional: Str = undefined;
@@ -4222,7 +4232,7 @@ export default class umx extends Exchange {
         if ((market['swap'] !== true) && (market['future'] !== true)) {
             throw new NotSupported (this.id + ' closePosition() supports swap and future markets only');
         }
-        const symbolFamily = market['base'] + '-' + market['quote'];
+        const symbolFamily = this.safeString (market['info'], 'symbolFamily');
         const businessType = (market['future'] === true) ? 'linear_futures' : 'linear_perpetual';
         const request: Dict = {
             'symbolFamily': symbolFamily,
