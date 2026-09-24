@@ -819,7 +819,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
+    override async unWatchOrderBookForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1312,7 +1312,7 @@ export default class binance extends binanceRest {
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
+    override async unWatchTradesForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1761,7 +1761,7 @@ export default class binance extends binanceRest {
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
+    override async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2176,7 +2176,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         const [ channelName, paramsName ] = this.handleOptionAndParams (params, 'watchTickers', 'name', 'ticker');
         if (channelName === 'bookTicker') {
             throw new BadRequest (this.id + ' deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead');
@@ -2193,7 +2193,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchMarkPrices (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchMarkPrices (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         const [ channelName, paramsName ] = this.handleOptionAndParams (params, 'watchMarkPrices', 'name', 'markPrice');
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -2224,7 +2224,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         return await this.watchMultiTickerHelper ('unWatchBidsAsks', 'bookTicker', symbols, params, true);
     }
 

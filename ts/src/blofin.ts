@@ -1189,7 +1189,7 @@ export default class blofin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+    override async fetchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

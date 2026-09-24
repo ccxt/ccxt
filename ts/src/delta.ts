@@ -632,7 +632,7 @@ export default class delta extends Exchange {
         });
     }
 
-    override async loadMarkets (reload = false, params = {}) {
+    override async loadMarkets (reload = false, params: Dict = {}) {
         const markets = await super.loadMarkets (reload, params);
         const currenciesByNumericId = this.safeDict (this.options, 'currenciesByNumericId');
         if ((currenciesByNumericId === undefined) || reload) {
@@ -2683,7 +2683,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+    override async fetchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['swap'] !== true) {

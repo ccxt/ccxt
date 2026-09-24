@@ -7393,7 +7393,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    override async fetchCrossBorrowRate (code: string, params = {}): Promise<CrossBorrowRate> {
+    override async fetchCrossBorrowRate (code: string, params: Dict = {}): Promise<CrossBorrowRate> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

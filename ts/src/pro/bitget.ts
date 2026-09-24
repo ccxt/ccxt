@@ -754,7 +754,7 @@ export default class bitget extends bitgetRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1087,7 +1087,7 @@ export default class bitget extends bitgetRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {any} status of the unwatch request
      */
-    override async unWatchTrades (symbol: string, params = {}): Promise<any> {
+    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
         const values = this.handleOptionAndParams (params, 'watchTrades', 'uta', false);
         const uta: Bool = values[0];
         const channelTopic = uta ? 'publicTrade' : 'trade';

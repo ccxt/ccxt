@@ -444,7 +444,7 @@ export default class pacifica extends pacificaRest {
      * @param {int|undefined} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -581,7 +581,7 @@ export default class pacifica extends pacificaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -652,7 +652,7 @@ export default class pacifica extends pacificaRest {
      * @param {string|undefined} [params.account] will default to options' walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async unWatchMyTrades (symbol: Str = undefined, params = {}): Promise<any> {
+    override async unWatchMyTrades (symbol: Str = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -817,7 +817,7 @@ export default class pacifica extends pacificaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async unWatchTrades (symbol: string, params = {}): Promise<any> {
+    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1007,7 +1007,7 @@ export default class pacifica extends pacificaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1126,7 +1126,7 @@ export default class pacifica extends pacificaRest {
      * @param {string|undefined} [params.account] will default to options' walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
+    override async unWatchOrders (symbol: Str = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

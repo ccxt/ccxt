@@ -659,7 +659,7 @@ export default class blofin extends blofinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+    override async watchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

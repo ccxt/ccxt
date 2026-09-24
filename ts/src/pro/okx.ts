@@ -262,7 +262,7 @@ export default class okx extends okxRest {
      * @param {string} [params.channel] the channel to subscribe to, trades by default. Can be trades, trades-all
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
+    override async unWatchTradesForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -559,7 +559,7 @@ export default class okx extends okxRest {
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1150,7 +1150,7 @@ export default class okx extends okxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
+    override async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params: Dict = {}): Promise<any> {
         const symbolsLength = symbolsAndTimeframes.length;
         if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
             throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
@@ -1319,7 +1319,7 @@ export default class okx extends okxRest {
      * @param {string} [params.depth] okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
+    override async unWatchOrderBookForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

@@ -3051,7 +3051,7 @@ export default class bullish extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns response from exchange
      */
-    override async signIn (params = {}) {
+    override async signIn (params: Dict = {}) {
         const response = await this.privateGetV1UsersHmacLogin (params);
         //
         //     {

@@ -9623,7 +9623,7 @@ export default class kucoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    override async fetchCrossBorrowRate (code: string, params = {}): Promise<CrossBorrowRate> {
+    override async fetchCrossBorrowRate (code: string, params: Dict = {}): Promise<CrossBorrowRate> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -10049,7 +10049,7 @@ export default class kucoin extends Exchange {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta)
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+    override async fetchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -11029,7 +11029,7 @@ export default class kucoin extends Exchange {
      * @param {string} [params.positionSide] *required for hedged position* 'BOTH', 'LONG' or 'SHORT' (default is 'BOTH')
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    override async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async addMargin (symbol: string, amount: number, params: Dict = {}): Promise<MarginModification> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

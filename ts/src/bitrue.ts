@@ -3219,7 +3219,7 @@ export default class bitrue extends Exchange {
      * @param {object} [params] parameters specific to the exchange API endpoint
      * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
      */
-    override async setMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async setMargin (symbol: string, amount: number, params: Dict = {}): Promise<MarginModification> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
