@@ -8660,6 +8660,45 @@ function stringListParameterElementType (csharp, scope, parameter) {
     return true;
 }
 
+// A string-list parameter left `object` in C#: its elements are strings at `read` only when a
+// `name = <string-list producer>` statement precedes the read in an enclosing block (the caller's
+// list is replaced) and every write is such a producer, with no in-place mutation.
+function rewrittenStringListParameter (csharp, scope, parameter, read) {
+    const name = parameter.name?.escapedText;
+    if (name === undefined || !stringListParameterAnnotation (parameter)) {
+        return false;
+    }
+    const writes = [];
+    for (const use of indexScope (csharp, scope).identifiers.get (name) ?? []) {
+        if (use === parameter.name || isNotAUse (use)) {
+            continue;
+        }
+        if (useRefersToDeclaration (csharp, scope, parameter, use) === false) {
+            continue;
+        }
+        const parent = use.parent;
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === use && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)) {
+            if (parent.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !stringListParameterWriteProducer (parent.right)) {
+                return false;
+            }
+            writes.push (parent);
+            continue;
+        }
+        if (parameterListUseIsMutation (use) || enclosingFunction (use) !== scope) {
+            return false;
+        }
+    }
+    return writes.some ((write) => {
+        const statement = write.parent;
+        if (statement?.kind !== ts.SyntaxKind.ExpressionStatement || statement.parent?.kind !== ts.SyntaxKind.Block) {
+            return false;
+        }
+        const siblings = statement.parent.statements;
+        const index = siblings.indexOf (statement);
+        return siblings.some ((later, i) => i > index && later.getStart () <= read.getStart () && read.getEnd () <= later.getEnd ());
+    });
+}
+
 // the element type of `recv[key]`, or undefined. `getValue (recv, key)` is an object box, so a
 // named declaration needs the cast csharpLocalTypeOf adds; the receiver must have exactly one
 // binding, declared before the read, and every other use of it must be a read the producer proved
@@ -8693,7 +8732,7 @@ function elementAccessElementType (csharp, initializer, context) {
     }
     if (declaration.kind === ts.SyntaxKind.Parameter) {
         // U02: a parameter receiver -- the receiver IS a narrowed list parameter (see above)
-        return stringListParameterElementType (csharp, scope, declaration) ? 'string' : undefined;
+        return (stringListParameterElementType (csharp, scope, declaration) || rewrittenStringListParameter (csharp, scope, declaration, initializer)) ? 'string' : undefined;
     }
     if (declaration.kind !== ts.SyntaxKind.VariableDeclaration) {
         return undefined;
