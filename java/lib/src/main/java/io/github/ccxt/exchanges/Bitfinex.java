@@ -4222,7 +4222,8 @@ public class Bitfinex extends BitfinexApi
         if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();
-            String nonce = String.valueOf(this.nonce());
+            // bitfinex rejects a nonce that is not greater than the previous one for the key (error 10114)
+            String nonce = String.valueOf(this.incrementingNonce());
             body = (String) (this.json(query));
             String auth = ((("/api/" + request) + nonce) + body);
             String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha384());

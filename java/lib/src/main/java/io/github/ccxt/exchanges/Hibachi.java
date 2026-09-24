@@ -1235,7 +1235,7 @@ public class Hibachi extends HibachiApi
             {
                 (this.loadMarkets()).join();
             }
-            Long nonce = this.nonce();
+            Object nonce = this.incrementingNonce();
             Map<String, Object> request = this.createOrderRequest(nonce, (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             ((Map<String, Object>)request).put("accountId", this.getAccountId());
             Map<String, Object> response = (this.privatePostTradeOrder(request)).join();
@@ -1287,7 +1287,7 @@ public class Hibachi extends HibachiApi
             {
                 (this.loadMarkets()).join();
             }
-            Long nonce = this.nonce();
+            Object nonce = this.incrementingNonce();
             List<Object> requestOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
@@ -1298,7 +1298,7 @@ public class Hibachi extends HibachiApi
                 Double amount = this.safeNumber(rawOrder, "amount");
                 Double price = this.safeNumber(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Map<String, Object> orderRequest = this.createOrderRequest((nonce + ((long) i)), symbol, type, side, amount, price, orderParams);
+                Map<String, Object> orderRequest = this.createOrderRequest(Helpers.add(nonce, i), symbol, type, side, amount, price, orderParams);
                 ((Map<String, Object>)orderRequest).put("action", "place");
                 ((List<Object>)requestOrders).add(orderRequest);
             }
@@ -1395,7 +1395,7 @@ public class Hibachi extends HibachiApi
             {
                 (this.loadMarkets()).join();
             }
-            Long nonce = this.nonce();
+            Object nonce = this.incrementingNonce();
             Map<String, Object> request = this.editOrderRequest(nonce, (String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             ((Map<String, Object>)request).put("accountId", this.getAccountId());
             (this.privatePutTradeOrder(request)).join();
@@ -1447,7 +1447,7 @@ public class Hibachi extends HibachiApi
             {
                 (this.loadMarkets()).join();
             }
-            Long nonce = this.nonce();
+            Object nonce = this.incrementingNonce();
             List<Object> requestOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
@@ -1459,7 +1459,7 @@ public class Hibachi extends HibachiApi
                 Double amount = this.safeNumber(rawOrder, "amount");
                 Double price = this.safeNumber(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Map<String, Object> orderRequest = this.editOrderRequest((nonce + ((long) i)), id, symbol, type, side, amount, price, orderParams);
+                Map<String, Object> orderRequest = this.editOrderRequest(Helpers.add(nonce, i), id, symbol, type, side, amount, price, orderParams);
                 ((Map<String, Object>)orderRequest).put("action", "modify");
                 ((List<Object>)requestOrders).add(orderRequest);
             }
@@ -1636,7 +1636,7 @@ public class Hibachi extends HibachiApi
             {
                 (this.loadMarkets()).join();
             }
-            Long nonce = this.nonce();
+            Object nonce = this.incrementingNonce();
             String nonce16 = this.intToBase16(nonce);
             String noncePadded = Helpers.padStart(nonce16, ((Number)16).intValue(), ((String)"0").charAt(0));
             Object message = this.base16ToBinary(noncePadded);

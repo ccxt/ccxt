@@ -1443,6 +1443,12 @@ public class Mercado extends MercadoApi
         return result;
     }
 
+    public Long nonce()
+    {
+        // the venue accepts any strictly-increasing integer tonce, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return Helpers.toLongOrNull(this.milliseconds());
+    }
+
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/");
@@ -1458,7 +1464,8 @@ public class Mercado extends MercadoApi
         {
             this.checkRequiredCredentials();
             url = Helpers.add(url, (this.version + "/"));
-            Long nonce = this.nonce();
+            // mercado requires each tonce to be greater than the previous one
+            Object nonce = this.incrementingNonce();
             body = (String) (this.urlencode(this.extend(new HashMap<String, Object>() {{
                 put( "tapi_method", path );
                 put( "tapi_nonce", nonce );

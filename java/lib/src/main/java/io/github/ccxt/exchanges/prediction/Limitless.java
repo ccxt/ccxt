@@ -4140,11 +4140,11 @@ public class Limitless extends LimitlessApi
         return this.fetchRawMarketsByTags(tags, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object nonce()
+    public Long nonce()
     {
         // the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
         // unique when two orders are signed within the same millisecond
-        return this.milliseconds();
+        return Helpers.toLongOrNull(this.milliseconds());
     }
 
     /**

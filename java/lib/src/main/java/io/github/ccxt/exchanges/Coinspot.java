@@ -1291,6 +1291,12 @@ public class Coinspot extends CoinspotApi
         return null;
     }
 
+    public Long nonce()
+    {
+        // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return Helpers.toLongOrNull(this.milliseconds());
+    }
+
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         Boolean isVersionedApi = false;
@@ -1302,7 +1308,8 @@ public class Coinspot extends CoinspotApi
         if (java.util.Objects.equals(accessType, "private"))
         {
             this.checkRequiredCredentials();
-            Long nonce = this.nonce();
+            // coinspot requires an increasing nonce
+            Object nonce = this.incrementingNonce();
             body = (String) (this.json(this.extend(new HashMap<String, Object>() {{
                 put( "nonce", nonce );
             }}, parameters)));

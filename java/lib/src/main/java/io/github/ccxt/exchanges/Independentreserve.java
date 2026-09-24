@@ -1636,6 +1636,12 @@ public class Independentreserve extends IndependentreserveApi
         return this.parseTransaction(transaction, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
+    public Long nonce()
+    {
+        // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return Helpers.toLongOrNull(this.milliseconds());
+    }
+
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/"), path);
@@ -1648,7 +1654,8 @@ public class Independentreserve extends IndependentreserveApi
         } else
         {
             this.checkRequiredCredentials();
-            Long nonce = this.nonce();
+            // independentreserve requires an increasing nonce
+            Object nonce = this.incrementingNonce();
             Object auth = new ArrayList<Object>(Arrays.asList(url, ("apiKey=" + this.apiKey), ("nonce=" + String.valueOf(nonce))));
             List<String> keys = new ArrayList<String>(((Map<String, Object>)parameters).keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)

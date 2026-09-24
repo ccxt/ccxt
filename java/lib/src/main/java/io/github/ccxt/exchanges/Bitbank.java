@@ -1539,7 +1539,7 @@ public class Bitbank extends BitbankApi
             Boolean isTimeWindow = (java.util.Objects.equals(authMethod, "timeWindow"));
             String requestTime = String.valueOf(this.milliseconds());
             String timeWindow = this.safeString(this.options, "timeWindow", "5000");
-            String nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.incrementingNonce());
             Object auth = null;
             if (Boolean.TRUE.equals(isTimeWindow))
             {

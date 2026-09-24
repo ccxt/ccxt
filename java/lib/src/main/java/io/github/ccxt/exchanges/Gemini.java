@@ -2853,7 +2853,8 @@ public class Gemini extends GeminiApi
             {
                 throw new AuthenticationError((this.id + " sign() requires an account-key, master-keys are not-supported")) ;
             }
-            String nonce = String.valueOf(this.nonce());
+            // gemini rejects a nonce that is not greater than the previously used one (InvalidNonce)
+            String nonce = String.valueOf(this.incrementingNonce());
             Object finalUrl = url;
             Map<String, Object> request = this.extend(new HashMap<String, Object>() {{
                 put( "request", finalUrl );

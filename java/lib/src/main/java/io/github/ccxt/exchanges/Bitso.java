@@ -2684,7 +2684,8 @@ public class Bitso extends BitsoApi
         if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();
-            String nonce = String.valueOf(this.nonce());
+            // bitso rejects a nonce that is not higher than the previous one (error 104)
+            String nonce = String.valueOf(this.incrementingNonce());
             endpoint = ("/api" + endpoint);
             Object content = new ArrayList<Object>(Arrays.asList(nonce, method, endpoint));
             Object request = String.join("", (List<String>)content);

@@ -943,6 +943,12 @@ public class Paymium extends PaymiumApi
         return this.safeString(statuses, status, status);
     }
 
+    public Long nonce()
+    {
+        // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return Helpers.toLongOrNull(this.milliseconds());
+    }
+
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         String url = ((Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), "/"), this.version) + "/") + this.implodeParams(path, parameters));
@@ -956,7 +962,8 @@ public class Paymium extends PaymiumApi
         } else
         {
             this.checkRequiredCredentials();
-            String nonce = String.valueOf(this.nonce());
+            // paymium requires an increasing nonce
+            String nonce = String.valueOf(this.incrementingNonce());
             Object auth = (nonce + url);
             final String finalNonce = nonce;
             headers = new HashMap<String, Object>() {{
