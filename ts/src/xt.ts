@@ -4114,7 +4114,7 @@ export default class xt extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type: any) {
+    parseLedgerEntryType (type: Str) {
         const ledgerType = {
             'EXCHANGE': 'transfer',
             'CLOSE_POSITION': 'trade',

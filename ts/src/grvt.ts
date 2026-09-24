@@ -1896,7 +1896,7 @@ export default class grvt extends Exchange {
         };
     }
 
-    async loadAccountInfos () {
+    async loadAccountInfos (): Promise<boolean> {
         if (this.safeString (this.options, 'userMainAccountId') !== undefined) {
             return false;
         }

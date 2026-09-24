@@ -2784,7 +2784,7 @@ export default class gate extends Exchange {
         return this.parseFundingHistories (response, symbol, since, limit);
     }
 
-    parseFundingHistories (response: any, symbol: any, since: Int, limit: Int): FundingHistory[] {
+    parseFundingHistories (response: any, symbol: Str, since: Int, limit: Int): FundingHistory[] {
         const result: FundingHistory[] = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -7009,7 +7009,7 @@ export default class gate extends Exchange {
         return this.parseMarginLoan (response, currency);
     }
 
-    parseMarginLoan (info: any, currency: Currency = undefined): MarginLoan {
+    parseMarginLoan (info: NullableDict, currency: Currency = undefined): MarginLoan {
         //
         // Cross
         //

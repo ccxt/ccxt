@@ -6121,7 +6121,7 @@ export default class htx extends Exchange {
         return this.parseCancelOrders (data) as Order[];
     }
 
-    parseCancelOrders (orders: any) {
+    parseCancelOrders (orders: NullableDict) {
         //
         //    {
         //        "success": [
@@ -8445,7 +8445,7 @@ export default class htx extends Exchange {
         return parsed;
     }
 
-    parseLedgerEntryType (type: any) {
+    parseLedgerEntryType (type: Str) {
         const types: Dict = {
             'trade': 'trade',
             'etf': 'trade',

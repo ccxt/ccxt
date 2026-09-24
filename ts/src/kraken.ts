@@ -3580,7 +3580,7 @@ export default class kraken extends Exchange {
         });
     }
 
-    parseAccountType (account: any) {
+    parseAccountType (account: Str) {
         const accountByType: Dict = {
             'spot': 'Spot Wallet',
             'swap': 'Futures Wallet',

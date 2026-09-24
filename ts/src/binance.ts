@@ -3201,7 +3201,7 @@ export default class binance extends Exchange {
         return this.parseCurrenciesCustom (responseCurrencies, marginablesById);
     }
 
-    parseCurrenciesCustom (responseCurrencies: any, marginablesById: any): Currencies {
+    parseCurrenciesCustom (responseCurrencies: any, marginablesById: NullableDict): Currencies {
         const result: Dict = {};
         for (let i = 0; i < responseCurrencies.length; i++) {
             const parsed = this.parseCurrency (responseCurrencies[i]);
@@ -13003,7 +13003,7 @@ export default class binance extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type: any) {
+    parseLedgerEntryType (type: Str) {
         const ledgerType: Dict = {
             'FEE': 'fee',
             'FUNDING_FEE': 'fee',

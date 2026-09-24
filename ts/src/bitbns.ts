@@ -573,7 +573,7 @@ export default class bitbns extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseStatus (status: any) {
+    parseStatus (status: Str) {
         const statuses: Dict = {
             '-1': 'cancelled',
             '0': 'open',

@@ -2987,7 +2987,7 @@ export default class coinbase extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    async findAccountId (code: Str, params: Dict = {}) {
+    async findAccountId (code: Str, params: Dict = {}): Promise<Str> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

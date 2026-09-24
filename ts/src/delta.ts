@@ -2527,7 +2527,7 @@ export default class delta extends Exchange {
         return this.parseLedger (result, currency, since, limit);
     }
 
-    parseLedgerEntryType (type: any) {
+    parseLedgerEntryType (type: Str) {
         const types: Dict = {
             'pnl': 'pnl',
             'deposit': 'transaction',
