@@ -426,7 +426,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCache(((Number)limit).intValue());
         }
-        Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
+        tradesArray.append(trade);
         Helpers.addElementToObject(this.trades, symbol, tradesArray);
         client.resolve(tradesArray, messageHash);
     }
@@ -715,7 +715,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         {
             Object candle = (candles == null || i < 0 || i >= candles.size() ? null : candles.get(i));
             List<Object> parsed = (List<Object>) this.parseOHLCV(candle, market);
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
         }
         client.resolve(stored, messageHash);
         // watchOHLCVForSymbols needs the symbol and timeframe to assemble its result
@@ -962,7 +962,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }};
             Map<String, Object> message = this.extend(request, parameters);
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, message, messageHash, subscription)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -1029,7 +1029,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }};
             Map<String, Object> message = this.extend(request, parameters);
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watchMultiple(url, messageHashes, message, messageHashes, subscription)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -1257,7 +1257,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 put( "market", marketId );
             }};
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         });
 
     }
@@ -1300,7 +1300,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         }
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(response, symbol);
         ((Map<String, Object>)snapshot).put("nonce", this.safeInteger(response, "nonce"));
-        Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+        orderbook.reset(snapshot);
         // unroll the accumulated deltas
         Object messages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));
         for (var i = 0; i < Helpers.getArrayLength(messages); i++)

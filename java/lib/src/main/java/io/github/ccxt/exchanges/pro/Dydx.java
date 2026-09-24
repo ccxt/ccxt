@@ -196,7 +196,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         for (var i = 0; i < ((List<?>)parsedTrades).size(); i++)
         {
             Object parsed = (parsedTrades == null || i < 0 || i >= parsedTrades.size() ? null : parsedTrades.get(i));
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
         }
         String messageHash = (("trade" + ":") + symbol);
         client.resolve(stored, messageHash);
@@ -265,7 +265,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
                 put( "id", ((Map<String, Object>)market).get("id") );
             }};
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -573,7 +573,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), stored);
         }
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        stored.append(parsed);
         client.resolve(stored, messageHash);
     }
 

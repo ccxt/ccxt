@@ -1426,7 +1426,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
         }
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        stored.append(parsed);
         if (!java.util.Objects.equals(symbol, null) && !java.util.Objects.equals(timeframe, null))
         {
             Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);

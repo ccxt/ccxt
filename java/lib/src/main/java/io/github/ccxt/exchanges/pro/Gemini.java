@@ -255,7 +255,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                 Helpers.addElementToObject(this.trades, symbol, stored);
             }
         }
-        Helpers.callDynamically(stored, "append", new Object[]{trade});
+        stored.append(trade);
         String messageHash = ("trades:" + symbol);
         client.resolve(stored, messageHash);
     }
@@ -315,7 +315,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             for (var i = 0; i < ((List<?>)trades).size(); i++)
             {
                 Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) ((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i))), market);
-                Helpers.callDynamically(stored, "append", new Object[]{trade});
+                stored.append(trade);
             }
             String messageHash = ("trades:" + symbol);
             client.resolve(stored, messageHash);
@@ -342,7 +342,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                     stored = new ArrayCache(((Number)tradesLimit).intValue());
                     Helpers.addElementToObject(this.trades, symbol, stored);
                 }
-                Helpers.callDynamically(stored, "append", new Object[]{trade});
+                stored.append(trade);
                 ((Map<String, Object>)storesForSymbols).put((String)symbol, stored);
             }
             List<String> symbols = new ArrayList<String>(storesForSymbols.keySet());
@@ -471,7 +471,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         {
             Object index = Helpers.subtract(Helpers.subtract(changesLength, i), 1);
             List<Object> parsed = (List<Object>) this.parseOHLCV(Helpers.GetValue(changes, index), market);
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            stored.append(parsed);
         }
         String messageHash = ((("ohlcv:" + symbol) + ":") + timeframeId);
         client.resolve(stored, messageHash);
@@ -515,7 +515,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             String subscribeHash = ("l2:" + ((Map<String, Object>)market).get("symbol"));
             Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/v2/marketdata");
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, request, subscribeHash, null)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }

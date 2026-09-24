@@ -1953,7 +1953,7 @@ final Object finalOi = oi;
         final String outcome3 = outcome2;
         final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             Long limit = limit3;
             if (!java.util.Objects.equals(outcome, null))
             {
@@ -2535,7 +2535,7 @@ final Object finalOi = oi;
     {
         final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome))).join();
@@ -2590,7 +2590,7 @@ final Object finalOi = oi;
     {
         final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome))).join();
@@ -3130,7 +3130,7 @@ final Object finalOi = oi;
     {
         final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
-            Object outcome = outcome3;
+            String outcome = outcome3;
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome))).join();

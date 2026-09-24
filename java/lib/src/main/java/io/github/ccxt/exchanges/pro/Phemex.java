@@ -552,7 +552,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         List<Object> parsed = this.parseTrades(trades, market);
         for (var i = 0; i < ((List<?>)parsed).size(); i++)
         {
-            Helpers.callDynamically(stored, "append", new Object[]{(parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i))});
+            stored.append((parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i)));
         }
         client.resolve(stored, messageHash);
     }
@@ -612,7 +612,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             for (var i = 0; i < ((List<?>)ohlcvs).size(); i++)
             {
                 Object candle = (ohlcvs == null || i < 0 || i >= ohlcvs.size() ? null : ohlcvs.get(i));
-                Helpers.callDynamically(stored, "append", new Object[]{candle});
+                stored.append(candle);
             }
             client.resolve(stored, messageHash);
         }
@@ -864,7 +864,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }};
             Map<String,Object> request = this.deepExtend(subscribe, parameters);
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, request, messageHash, null)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }

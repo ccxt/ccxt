@@ -526,7 +526,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (symbol == null ? null : ((Map<?, ?>)this.orderbooks).get(symbol));
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(parseable, symbol, timestamp, "buys", "asks");
-        Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+        orderbook.reset(snapshot);
         String messageHash = Helpers.add("orderbook:", symbol);
         client.resolve(orderbook, messageHash);
     }
@@ -696,7 +696,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 Helpers.addElementToObject(this.trades, symbol, stored);
             }
             Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), market);
-            Helpers.callDynamically(stored, "append", new Object[]{trade});
+            stored.append(trade);
             appended = true;
         }
         if (Boolean.TRUE.equals(appended))
@@ -858,7 +858,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             Helpers.addElementToObject((symbol == null ? null : ((Map<?, ?>)this.ohlcvs).get(symbol)), ((String)timeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue((symbol == null ? null : ((Map<?, ?>)this.ohlcvs).get(symbol)), ((String)timeframe));
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        stored.append(parsed);
         String messageHash = ((Helpers.add("ohlcv:", symbol) + ":") + timeframe);
         client.resolve(stored, messageHash);
     }

@@ -259,7 +259,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         {
             Map<String, Object> parsed = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size");
             ((Map<String, Object>)parsed).put("nonce", this.safeInteger(data, "offset"));
-            Helpers.callDynamically(orderbook, "reset", new Object[]{parsed});
+            orderbook.reset(parsed);
         } else if (java.util.Objects.equals(type, "update/order_book"))
         {
             this.handleOrderBookMessage(client, (Map<String, Object>) (message), orderbook);
@@ -916,7 +916,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         {
             Object iReversed = Helpers.subtract((((long) dataLength) - 1L), i);
             Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (Helpers.GetValue(data, iReversed)), market);
-            Helpers.callDynamically(stored, "append", new Object[]{trade});
+            stored.append(trade);
         }
         String messageHash = this.getMessageHash("trade", symbol);
         client.resolve(stored, messageHash);

@@ -937,12 +937,12 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                     Object index = Helpers.subtract((((long) length) - 1L), i); // need reverse to correct chronology
                     Object item = Helpers.GetValue(trades, index);
                     Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (item));
-                    Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
+                    tradesArray.append(trade);
                 }
             } else
             {
                 Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message));
-                Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
+                tradesArray.append(trade);
             }
             client.resolve(tradesArray, messageHash);
         }
