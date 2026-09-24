@@ -840,8 +840,8 @@ public class BaseExchange {
         return Encode.binaryConcatArray(arrays2);
     }
 
-    public Object exceptionMessage(Object exc, Object... optionalArgs) {
-        boolean includeStack = optionalArgs.length > 0 && optionalArgs[0] != null ? (boolean) optionalArgs[0] : true;
+    public Object exceptionMessage(Object exc, Object includeStackArg) {
+        boolean includeStack = !Boolean.FALSE.equals(includeStackArg);
         if (exc instanceof Throwable t) {
             // Walk the cause chain and include each level's class+message. Without
             // this, reflection-driven failures show as bare "InvocationTargetException"
