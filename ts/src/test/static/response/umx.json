@@ -6448,6 +6448,304 @@
                     }
                 ]
             }
+        ],
+        "fetchLedger": [
+            {
+                "description": "a spot sell in the trading bill, both trade legs and the fee",
+                "method": "fetchLedger",
+                "input": [
+                    null,
+                    null,
+                    3
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "accountName": "1000000000000000000",
+                            "id": "3538147615789715458",
+                            "businessType": "spot",
+                            "symbol": "ETH-USDT",
+                            "actionType": "8",
+                            "currency": "ETH",
+                            "qty": "-0.002",
+                            "actionId": "3538147615789715458",
+                            "transactionId": "3538147615789699072",
+                            "tradeId": "3538147615789715459",
+                            "lever": "0",
+                            "side": "sell",
+                            "createTime": "1790244927207",
+                            "cid": "100000000000002",
+                            "pid": "1000000000000000000",
+                            "uid": "0"
+                        },
+                        {
+                            "accountName": "1000000000000000000",
+                            "id": "3538147615789715457",
+                            "businessType": "spot",
+                            "symbol": "ETH-USDT",
+                            "actionType": "15",
+                            "currency": "USDT",
+                            "qty": "-0.00527878",
+                            "actionId": "3538147615789715457",
+                            "transactionId": "3538147615789699072",
+                            "tradeId": "3538147615789715459",
+                            "lever": "0",
+                            "side": "sell",
+                            "createTime": "1790244927207",
+                            "cid": "100000000000002",
+                            "pid": "1000000000000000000",
+                            "uid": "0"
+                        },
+                        {
+                            "accountName": "1000000000000000000",
+                            "id": "3538147615789715456",
+                            "businessType": "spot",
+                            "symbol": "ETH-USDT",
+                            "actionType": "7",
+                            "currency": "USDT",
+                            "qty": "5.27878",
+                            "actionId": "3538147615789715456",
+                            "transactionId": "3538147615789699072",
+                            "tradeId": "3538147615789715459",
+                            "lever": "0",
+                            "side": "sell",
+                            "createTime": "1790244927207",
+                            "cid": "100000000000002",
+                            "pid": "1000000000000000000",
+                            "uid": "0"
+                        }
+                    ],
+                    "ts": "1790247401271"
+                },
+                "parsedResponse": [
+                    {
+                        "id": "3538147615789715458",
+                        "timestamp": 1790244927207,
+                        "datetime": "2026-09-24T10:15:27.207Z",
+                        "direction": "out",
+                        "account": "trading",
+                        "referenceId": "3538147615789699072",
+                        "referenceAccount": null,
+                        "type": "trade",
+                        "currency": "ETH",
+                        "amount": 0.002,
+                        "before": null,
+                        "after": null,
+                        "status": "ok",
+                        "fee": null,
+                        "info": {
+                            "accountName": "1000000000000000000",
+                            "id": "3538147615789715458",
+                            "businessType": "spot",
+                            "symbol": "ETH-USDT",
+                            "actionType": "8",
+                            "currency": "ETH",
+                            "qty": "-0.002",
+                            "actionId": "3538147615789715458",
+                            "transactionId": "3538147615789699072",
+                            "tradeId": "3538147615789715459",
+                            "lever": "0",
+                            "side": "sell",
+                            "createTime": "1790244927207",
+                            "cid": "100000000000002",
+                            "pid": "1000000000000000000",
+                            "uid": "0"
+                        }
+                    },
+                    {
+                        "id": "3538147615789715457",
+                        "timestamp": 1790244927207,
+                        "datetime": "2026-09-24T10:15:27.207Z",
+                        "direction": "out",
+                        "account": "trading",
+                        "referenceId": "3538147615789699072",
+                        "referenceAccount": null,
+                        "type": "fee",
+                        "currency": "USDT",
+                        "amount": 0.00527878,
+                        "before": null,
+                        "after": null,
+                        "status": "ok",
+                        "fee": null,
+                        "info": {
+                            "accountName": "1000000000000000000",
+                            "id": "3538147615789715457",
+                            "businessType": "spot",
+                            "symbol": "ETH-USDT",
+                            "actionType": "15",
+                            "currency": "USDT",
+                            "qty": "-0.00527878",
+                            "actionId": "3538147615789715457",
+                            "transactionId": "3538147615789699072",
+                            "tradeId": "3538147615789715459",
+                            "lever": "0",
+                            "side": "sell",
+                            "createTime": "1790244927207",
+                            "cid": "100000000000002",
+                            "pid": "1000000000000000000",
+                            "uid": "0"
+                        }
+                    },
+                    {
+                        "id": "3538147615789715456",
+                        "timestamp": 1790244927207,
+                        "datetime": "2026-09-24T10:15:27.207Z",
+                        "direction": "in",
+                        "account": "trading",
+                        "referenceId": "3538147615789699072",
+                        "referenceAccount": null,
+                        "type": "trade",
+                        "currency": "USDT",
+                        "amount": 5.27878,
+                        "before": null,
+                        "after": null,
+                        "status": "ok",
+                        "fee": null,
+                        "info": {
+                            "accountName": "1000000000000000000",
+                            "id": "3538147615789715456",
+                            "businessType": "spot",
+                            "symbol": "ETH-USDT",
+                            "actionType": "7",
+                            "currency": "USDT",
+                            "qty": "5.27878",
+                            "actionId": "3538147615789715456",
+                            "transactionId": "3538147615789699072",
+                            "tradeId": "3538147615789715459",
+                            "lever": "0",
+                            "side": "sell",
+                            "createTime": "1790244927207",
+                            "cid": "100000000000002",
+                            "pid": "1000000000000000000",
+                            "uid": "0"
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "funding bill transfers, the opening balance is derived from the closing one",
+                "method": "fetchLedger",
+                "input": [
+                    null,
+                    null,
+                    2,
+                    {
+                        "type": "funding"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "accountName": "1000000000000000000",
+                            "pid": "1000000000000000000",
+                            "uid": "100000000000001",
+                            "cid": "100000000000002",
+                            "id": "2102870451856519168",
+                            "businessType": null,
+                            "accountType": "funding",
+                            "actionType": "2",
+                            "currency": "USDT",
+                            "amount": "-3",
+                            "balance": "40",
+                            "billId": "2102870451856519168",
+                            "transactionId": "2008158167452858071",
+                            "createTime": "1790198359822",
+                            "updateTime": "1790198359822"
+                        },
+                        {
+                            "accountName": "1000000000000000000",
+                            "pid": "1000000000000000000",
+                            "uid": "100000000000001",
+                            "cid": "100000000000002",
+                            "id": "2102870438631878656",
+                            "businessType": null,
+                            "accountType": "funding",
+                            "actionType": "1",
+                            "currency": "USDT",
+                            "amount": "2",
+                            "balance": "43",
+                            "billId": "2102870438631878656",
+                            "transactionId": "2008158167452858070",
+                            "createTime": "1790198356670",
+                            "updateTime": "1790198356670"
+                        }
+                    ],
+                    "msg": "Success",
+                    "ts": "1790247403706",
+                    "traceId": "f8ab780b53399e9ebab740ed033a5707"
+                },
+                "parsedResponse": [
+                    {
+                        "id": "2102870438631878656",
+                        "timestamp": 1790198356670,
+                        "datetime": "2026-09-23T21:19:16.670Z",
+                        "direction": "in",
+                        "account": "funding",
+                        "referenceId": "2008158167452858070",
+                        "referenceAccount": null,
+                        "type": "transfer",
+                        "currency": "USDT",
+                        "amount": 2,
+                        "before": 41,
+                        "after": 43,
+                        "status": "ok",
+                        "fee": null,
+                        "info": {
+                            "accountName": "1000000000000000000",
+                            "pid": "1000000000000000000",
+                            "uid": "100000000000001",
+                            "cid": "100000000000002",
+                            "id": "2102870438631878656",
+                            "businessType": null,
+                            "accountType": "funding",
+                            "actionType": "1",
+                            "currency": "USDT",
+                            "amount": "2",
+                            "balance": "43",
+                            "billId": "2102870438631878656",
+                            "transactionId": "2008158167452858070",
+                            "createTime": "1790198356670",
+                            "updateTime": "1790198356670"
+                        }
+                    },
+                    {
+                        "id": "2102870451856519168",
+                        "timestamp": 1790198359822,
+                        "datetime": "2026-09-23T21:19:19.822Z",
+                        "direction": "out",
+                        "account": "funding",
+                        "referenceId": "2008158167452858071",
+                        "referenceAccount": null,
+                        "type": "transfer",
+                        "currency": "USDT",
+                        "amount": 3,
+                        "before": 43,
+                        "after": 40,
+                        "status": "ok",
+                        "fee": null,
+                        "info": {
+                            "accountName": "1000000000000000000",
+                            "pid": "1000000000000000000",
+                            "uid": "100000000000001",
+                            "cid": "100000000000002",
+                            "id": "2102870451856519168",
+                            "businessType": null,
+                            "accountType": "funding",
+                            "actionType": "2",
+                            "currency": "USDT",
+                            "amount": "-3",
+                            "balance": "40",
+                            "billId": "2102870451856519168",
+                            "transactionId": "2008158167452858071",
+                            "createTime": "1790198359822",
+                            "updateTime": "1790198359822"
+                        }
+                    }
+                ]
+            }
         ]
     }
 }

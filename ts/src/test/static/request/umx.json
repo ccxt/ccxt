@@ -1259,6 +1259,53 @@
                 ],
                 "output": null
             }
+        ],
+        "fetchLedger": [
+            {
+                "description": "the trading account bill",
+                "method": "fetchLedger",
+                "url": "https://api.umx.com/api/v1/history/bill?limit=3",
+                "input": [
+                    null,
+                    null,
+                    3
+                ],
+                "output": null
+            },
+            {
+                "description": "the funding account bill",
+                "method": "fetchLedger",
+                "url": "https://api.umx.com/api/v1/asset/bill?limit=2",
+                "input": [
+                    null,
+                    null,
+                    2,
+                    {
+                        "type": "funding"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "the bill of one currency with since and limit, the limit stays off the wire when since is present",
+                "method": "fetchLedger",
+                "url": "https://api.umx.com/api/v1/history/bill?currency=USDT&beginTime=1790150400000",
+                "input": [
+                    "USDT",
+                    1790150400000,
+                    5
+                ],
+                "output": null
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "the funding fee view of the trading bill",
+                "method": "fetchFundingHistory",
+                "url": "https://api.umx.com/api/v1/history/bill?actionType=18",
+                "input": [],
+                "output": null
+            }
         ]
     },
     "outputType": "both"

@@ -5,7 +5,7 @@ import Exchange from './abstract/umx.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, NotSupported, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Bool, BorrowInterest, Conversion, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, DepositAddresses, DepositWithdrawFee, Dict, Endpoint, Fee, FundingRate, FundingRateHistory, FundingRates, Int, Leverage, List, MarginMode, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, Bool, BorrowInterest, Conversion, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, DepositAddresses, DepositWithdrawFee, Dict, Endpoint, Fee, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, List, MarginMode, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -71,12 +71,12 @@ export default class umx extends Exchange {
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': true,
                 'fetchDepositWithdrawFees': false,
-                'fetchFundingHistory': false,
+                'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
-                'fetchLedger': false,
+                'fetchLedger': true,
                 'fetchLeverage': true,
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': true,
@@ -2867,6 +2867,239 @@ export default class umx extends Exchange {
             'address': address,
             'tag': tag,
         } as DepositAddress;
+    }
+
+    /**
+     * @method
+     * @name umx#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://www.umx.com/docs/coin-apis/trading-account-information/asset-information/get-trading-account-transaction-history
+     * @see https://www.umx.com/docs/coin-apis/funding-account/get-funding-account-transaction-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] timestamp in ms of the earliest entry to fetch, the trading account bill caps a requested window at thirty days
+     * @param {int} [limit] the maximum amount of entries to return, the venue defaults to 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] "trading" (default) or "funding", the account whose bill is fetched
+     * @param {string} [params.actionType] narrow the answer to one venue transaction type
+     * @param {int} [params.until] timestamp in ms of the latest entry to fetch
+     * @param {boolean} [params.paginate] default false, when true fetches the entries in multiple calls, walking backwards from the newest entry
+     * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     */
+    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<LedgerEntry[]> {
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
+        if (paginate) {
+            // the venue documents beginId and endId cursors on the history endpoints, but the
+            // family proved broken venue side, so the pagination walks on endTime, see fetchTransfers
+            return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params, 100) as LedgerEntry[];
+        }
+        let marketType: Str = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
+        let currency: Currency = undefined;
+        let request: Dict = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        if (since === undefined) {
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+        } else {
+            request['beginTime'] = since;
+            // limit keeps the newest entries of the requested range rather than the ones that
+            // follow since, so it is left out here and applied to the parsed result instead
+        }
+        let response = undefined;
+        if (marketType === 'funding') {
+            response = await this.privateGetV1AssetBill (this.extend (request, params));
+        } else {
+            response = await this.privateGetV1HistoryBill (this.extend (request, params));
+        }
+        const data = this.safeList (response, 'data', []);
+        return this.parseLedger (data, currency, since, limit);
+    }
+
+    override parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
+        // the two bills share the row skeleton but not the actionType code space, a funding row
+        // is told apart by its accountType field, which the trading bill does not carry
+        const tradingTypes: Dict = {
+            '1': 'transfer',
+            '2': 'transfer',
+            '5': 'trade',
+            '6': 'trade',
+            '7': 'trade',
+            '8': 'trade',
+            '15': 'fee',
+            '16': 'fee',
+            '17': 'trade',
+            '18': 'fee',
+            '19': 'fee',
+            '20': 'fee',
+            '21': 'fee',
+            '22': 'fee',
+            '23': 'fee',
+            '24': 'fee',
+            '25': 'transfer',
+            '26': 'transfer',
+            '31': 'fee',
+            '40': 'fee',
+            '41': 'fee',
+            '42': 'airdrop',
+            '43': 'rebate',
+            '46': 'airdrop',
+            '47': 'rebate',
+            '53': 'trade',
+            '54': 'fee',
+            '58': 'trade',
+            '59': 'trade',
+            '62': 'transfer',
+            '63': 'transfer',
+            '68': 'trade',
+            '69': 'trade',
+            '70': 'fee',
+            '71': 'trade',
+            '72': 'trade',
+            '75': 'fee',
+            '86': 'transfer',
+            '87': 'transfer',
+            '90': 'transfer',
+            '91': 'transfer',
+        };
+        const fundingTypes: Dict = {
+            '1': 'transfer',
+            '2': 'transfer',
+            '5': 'trade',
+            '6': 'trade',
+            '7': 'trade',
+            '8': 'trade',
+            '15': 'fee',
+            '16': 'fee',
+            '17': 'trade',
+            '18': 'fee',
+            '19': 'fee',
+            '21': 'transaction',
+            '22': 'transaction',
+            '23': 'transfer',
+            '24': 'transfer',
+            '25': 'transfer',
+            '26': 'transfer',
+            '27': 'transfer',
+            '28': 'transfer',
+            '30': 'fee',
+            '31': 'airdrop',
+            '32': 'rebate',
+            '34': 'cashback',
+            '37': 'fee',
+            '38': 'transaction',
+            '39': 'transfer',
+            '40': 'transfer',
+            '44': 'fee',
+            '45': 'fee',
+            '46': 'transfer',
+            '47': 'transfer',
+        };
+        const accountType = this.safeString (item, 'accountType');
+        let account = 'trading';
+        let types = tradingTypes;
+        if (accountType !== undefined) {
+            account = accountType;
+            types = fundingTypes;
+        }
+        const actionType = this.safeString (item, 'actionType');
+        const amountString = this.safeString2 (item, 'qty', 'amount');
+        let direction = 'in';
+        let amount = amountString;
+        if ((amountString !== undefined) && Precise.stringLt (amountString, '0')) {
+            direction = 'out';
+            amount = Precise.stringNeg (amountString);
+        }
+        const currencyId = this.safeString (item, 'currency');
+        const timestamp = this.safeInteger (item, 'createTime');
+        currency = this.safeCurrency (currencyId, currency);
+        // the funding bill reports the balance after the transaction, the opening one is derived
+        // here because the base derivation is not aware of the direction
+        const after = this.safeString (item, 'balance');
+        let before = undefined;
+        if ((after !== undefined) && (amount !== undefined)) {
+            if (direction === 'out') {
+                before = Precise.stringAdd (after, amount);
+            } else {
+                before = Precise.stringSub (after, amount);
+            }
+        }
+        return this.safeLedgerEntry ({
+            'info': item,
+            'id': this.safeString (item, 'id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'direction': direction,
+            'account': account,
+            'referenceId': this.safeString (item, 'transactionId'),
+            'referenceAccount': undefined,
+            'type': this.safeString (types, actionType, actionType),
+            'currency': currency['code'],
+            'amount': this.parseNumber (amount),
+            'before': this.parseNumber (before),
+            'after': this.parseNumber (after),
+            'status': 'ok',
+            'fee': undefined,
+        }, currency) as LedgerEntry;
+    }
+
+    /**
+     * @method
+     * @name umx#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account, a filtered view of the trading account bill
+     * @see https://www.umx.com/docs/coin-apis/trading-account-information/asset-information/get-trading-account-transaction-history
+     * @param {string} [symbol] unified market symbol, the filter is applied client side, the bill cannot be narrowed to one market on the wire
+     * @param {int} [since] timestamp in ms of the earliest entry to fetch, the venue caps a requested window at thirty days
+     * @param {int} [limit] the maximum amount of entries to return, the venue defaults to 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry to fetch
+     * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     */
+    override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingHistory[]> {
+        await this.loadMarkets ();
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let request: Dict = {
+            'actionType': '18',
+        };
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        if (since === undefined) {
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+        } else {
+            request['beginTime'] = since;
+            // limit keeps the newest entries of the requested range rather than the ones that
+            // follow since, so it is left out here and applied to the parsed result instead
+        }
+        const response = await this.privateGetV1HistoryBill (this.extend (request, params));
+        const data = this.safeList (response, 'data', []);
+        const incomes = this.parseIncomes (data, market);
+        return this.filterBySymbolSinceLimit (incomes, symbol, since, limit) as FundingHistory[];
+    }
+
+    override parseIncome (income: any, market: Market = undefined): object {
+        const marketId = this.safeString (income, 'symbol');
+        market = this.safeMarket (marketId, market, undefined, 'swap');
+        const currencyId = this.safeString (income, 'currency');
+        const timestamp = this.safeInteger (income, 'createTime');
+        return {
+            'info': income,
+            'symbol': market['symbol'],
+            'code': this.safeCurrencyCode (currencyId),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': this.safeString (income, 'id'),
+            'amount': this.safeNumber (income, 'qty'),
+        };
     }
 
     /**
