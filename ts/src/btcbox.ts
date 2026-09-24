@@ -669,7 +669,7 @@ export default class btcbox extends Exchange {
         const datetimeString = this.safeString (order, 'datetime');
         let timestamp: Int = undefined;
         if (datetimeString !== undefined) {
-            timestamp = this.parse8601 (order['datetime'] + '+09:00'); // Tokyo time
+            timestamp = this.parse8601 (datetimeString + '+09:00'); // Tokyo time
         }
         const amount = this.safeString (order, 'amount_original');
         const remaining = this.safeString (order, 'amount_outstanding');

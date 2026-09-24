@@ -638,7 +638,7 @@ export default class btse extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        if (this.options['adjustForTimeDifference'] === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference ();
         }
         const response = await this.publicGetPublicApiMarketV1Markets (params);
@@ -839,7 +839,7 @@ export default class btse extends Exchange {
             // the endpoint accepts timestamps in seconds
             request['start'] = this.parseToInt (since / 1000);
         }
-        let until = undefined;
+        let until: Int = undefined;
         [ until, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'until');
         if (until !== undefined) {
             if (since !== undefined) {
@@ -982,7 +982,7 @@ export default class btse extends Exchange {
             'symbol': market['id'],
             'period': period,
         };
-        let until = undefined;
+        let until: Int = undefined;
         [ until, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'until');
         const response = await this.publicGetPublicApiMarketV1RecentFundingHistory (this.extend (request, params));
         //
@@ -1591,7 +1591,7 @@ export default class btse extends Exchange {
             request['limit'] = Math.min (limit, 500); // the endpoint supports a maximum of 500 trades
         }
         // the unified trades endpoint has no server-side time filtering, since and until are applied client-side below
-        let until = undefined;
+        let until: Int = undefined;
         [ until, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'until');
         const response = await this.publicGetPublicApiMarketV1Trades (this.extend (request, params));
         //
@@ -3835,6 +3835,6 @@ export default class btse extends Exchange {
     }
 
     override nonce (): number {
-        return this.milliseconds () - this.options['timeDifference'];
+        return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 }

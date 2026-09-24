@@ -1465,7 +1465,7 @@ export default class bybit extends Exchange {
     }
 
     override nonce (): number {
-        return this.milliseconds () - this.options['timeDifference'];
+        return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
     addPaginationCursorToResult (response: Dict): any[] {
@@ -1497,7 +1497,7 @@ export default class bybit extends Exchange {
         const enableUnifiedMargin = this.safeBool (this.options, 'enableUnifiedMargin');
         const enableUnifiedAccount = this.safeBool (this.options, 'enableUnifiedAccount');
         if (enableUnifiedMargin === undefined || enableUnifiedAccount === undefined) {
-            if (this.options['enableDemoTrading'] === true) {
+            if (this.safeBool (this.options, 'enableDemoTrading', false)) {
                 // info endpoint is not available in demo trading
                 // so we're assuming UTA is enabled
                 this.options['enableUnifiedMargin'] = false;
@@ -1832,7 +1832,7 @@ export default class bybit extends Exchange {
         if (!this.checkRequiredCredentials (false)) {
             return {};
         }
-        if (this.options['enableDemoTrading'] === true) {
+        if (this.safeBool (this.options, 'enableDemoTrading', false)) {
             return {};
         }
         const response = await this.privateGetV5AssetCoinQueryInfo (params);
@@ -1942,7 +1942,7 @@ export default class bybit extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        if (this.options['adjustForTimeDifference'] === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference ();
         }
         const promisesUnresolved: List = [];

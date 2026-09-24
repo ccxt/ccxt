@@ -671,12 +671,13 @@ export default class blockchaincom extends Exchange {
                 request['ordType'] = 'STOPLIMIT';
             }
         }
+        const ordType = this.safeString (request, 'ordType');
         let priceRequired = false;
         let stopPriceRequired = false;
-        if (request['ordType'] === 'LIMIT' || request['ordType'] === 'STOPLIMIT') {
+        if (ordType === 'LIMIT' || ordType === 'STOPLIMIT') {
             priceRequired = true;
         }
-        if (request['ordType'] === 'STOP' || request['ordType'] === 'STOPLIMIT') {
+        if (ordType === 'STOP' || ordType === 'STOPLIMIT') {
             stopPriceRequired = true;
         }
         if (priceRequired) {
