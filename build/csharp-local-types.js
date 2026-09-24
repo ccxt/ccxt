@@ -11371,8 +11371,9 @@ function destructuredBoolReadsAreTruthy (csharp, scope, index, declaration) {
         if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === n && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
             continue; // a plain write — the generic scan proves its value is bool
         }
-        if (parent?.kind === ts.SyntaxKind.ArrayLiteralExpression) {
-            continue; // the destructuring write target itself
+        if (parent?.kind === ts.SyntaxKind.ArrayLiteralExpression && parent.parent?.kind === ts.SyntaxKind.BinaryExpression
+                && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+            continue; // the destructuring write target itself; any other array element (`return [ x, params ]`) is a raw read
         }
         if (!destructuredBoolReadIsTruthy (n)) {
             return false;
