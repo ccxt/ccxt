@@ -1394,6 +1394,23 @@ public class BaseExchange {
         throw new BadRequest(this.id + " " + (methodName == null ? "exchange-wide" : methodName + "()") + " option " + optionName + " must be a boolean");
     }
 
+    // any JS number box (Integer, Long, Double) with an integral value reads as Long; fractions, strings and others throw
+    public Long checkOptionInteger(Object methodName, Object optionName, Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Long l) {
+            return l;
+        }
+        if (value instanceof Integer i) {
+            return i.longValue();
+        }
+        if (value instanceof Double d && Math.floor(d) == d && !Double.isInfinite(d)) {
+            return d.longValue();
+        }
+        throw new BadRequest(this.id + " " + (methodName == null ? "exchange-wide" : methodName + "()") + " option " + optionName + " must be an integer");
+    }
+
     public boolean valueIsDefined(Object value) {
         return value != null;
     }
@@ -10034,6 +10051,39 @@ public Object describe()
     public Object handleOptionBoolAndParams2(Object parameters, Object methodName, Object optionName1, Object optionName2, Object... optionalArgs)
     {
         return this.handleOptionBoolAndParams2(parameters, methodName, optionName1, optionName2, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
+    }
+
+    /* eslint-disable no-unused-vars */
+    /* eslint-enable no-unused-vars */
+    public Object handleOptionIntegerAndParams(Object parameters, String methodName, Object optionName, Long defaultValue)
+    {
+        // handleOptionAndParams read as an integer; the statically typed ports throw on another type
+        List<Object> valuenewParamsVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, optionName, defaultValue);
+        var value = ((List<Object>) valuenewParamsVariable).get(0);
+        Map<String, Object> newParams = (Map<String, Object>) ((List<Object>) valuenewParamsVariable).get(1);
+        return new ArrayList<Object>(Arrays.asList(this.checkOptionInteger((String) (methodName), optionName, value), newParams));
+    }
+    /* eslint-disable no-unused-vars */
+    /* eslint-enable no-unused-vars */
+    public Object handleOptionIntegerAndParams(Object parameters, String methodName, Object optionName, Object... optionalArgs)
+    {
+        return this.handleOptionIntegerAndParams(parameters, methodName, optionName, Helpers.getArgLong(optionalArgs, 0, null));
+    }
+
+    /* eslint-disable no-unused-vars */
+    /* eslint-enable no-unused-vars */
+    public Object handleOptionIntegerAndParams2(Object parameters, Object methodName, Object optionName1, Object optionName2, Long defaultValue)
+    {
+        List<Object> valuenewParamsVariable = (List<Object>) this.handleOptionAndParams2(parameters, methodName, optionName1, optionName2, defaultValue);
+        var value = ((List<Object>) valuenewParamsVariable).get(0);
+        Map<String, Object> newParams = (Map<String, Object>) ((List<Object>) valuenewParamsVariable).get(1);
+        return new ArrayList<Object>(Arrays.asList(this.checkOptionInteger((String) (methodName), optionName1, value), newParams));
+    }
+    /* eslint-disable no-unused-vars */
+    /* eslint-enable no-unused-vars */
+    public Object handleOptionIntegerAndParams2(Object parameters, Object methodName, Object optionName1, Object optionName2, Object... optionalArgs)
+    {
+        return this.handleOptionIntegerAndParams2(parameters, methodName, optionName1, optionName2, Helpers.getArgLong(optionalArgs, 0, null));
     }
 
     public Object handleOption(Object methodName, Object optionName, Object defaultValue)

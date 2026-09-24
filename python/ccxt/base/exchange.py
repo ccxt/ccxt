@@ -2179,6 +2179,10 @@ class BaseExchange(object):
         # the statically typed ports throw on a present non-boolean value; here it passes through unchanged
         return value
 
+    def check_option_integer(self, methodName, optionName, value):
+        # the statically typed ports throw on a present value that is not an integral number; here it passes through unchanged
+        return value
+
     def rand_number(self, size):
         return int(''.join([str(random.randint(0, 9)) for _ in range(size)]))
 
@@ -6127,6 +6131,15 @@ class BaseExchange(object):
     def handle_option_bool_and_params_2(self, params: object, methodName: str, optionName1: str, optionName2: str, defaultValue: Bool = None):
         value, newParams = self.handle_option_and_params_2(params, methodName, optionName1, optionName2, defaultValue)
         return [self.check_option_bool(methodName, optionName1, value), newParams]
+
+    def handle_option_integer_and_params(self, params: object, methodName: Str, optionName: str, defaultValue: Int = None):
+        # handleOptionAndParams read as an integer; the statically typed ports throw on another type
+        value, newParams = self.handle_option_and_params(params, methodName, optionName, defaultValue)
+        return [self.check_option_integer(methodName, optionName, value), newParams]
+
+    def handle_option_integer_and_params_2(self, params: object, methodName: str, optionName1: str, optionName2: str, defaultValue: Int = None):
+        value, newParams = self.handle_option_and_params_2(params, methodName, optionName1, optionName2, defaultValue)
+        return [self.check_option_integer(methodName, optionName1, value), newParams]
 
     def handle_option(self, methodName: str, optionName: str, defaultValue: object = None):
         res = self.handle_option_and_params({}, methodName, optionName, defaultValue)

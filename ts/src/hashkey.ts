@@ -1369,7 +1369,7 @@ export default class hashkey extends Exchange {
             request['limit'] = limit;
         }
         let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
+        [ until, params ] = this.handleOptionIntegerAndParams (params, methodName, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
@@ -1593,7 +1593,7 @@ export default class hashkey extends Exchange {
             request['limit'] = limit;
         }
         let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
+        [ until, params ] = this.handleOptionIntegerAndParams (params, methodName, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
@@ -2013,7 +2013,7 @@ export default class hashkey extends Exchange {
             request['limit'] = limit;
         }
         let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
+        [ until, params ] = this.handleOptionIntegerAndParams (params, methodName, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
@@ -2065,7 +2065,7 @@ export default class hashkey extends Exchange {
             request['limit'] = limit;
         }
         let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
+        [ until, params ] = this.handleOptionIntegerAndParams (params, methodName, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
@@ -2403,7 +2403,7 @@ export default class hashkey extends Exchange {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a since argument');
         }
         let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
+        [ until, params ] = this.handleOptionIntegerAndParams (params, methodName, 'until');
         if (until === undefined) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires an until argument');
         }
@@ -3525,7 +3525,7 @@ export default class hashkey extends Exchange {
             request['startTime'] = since;
         }
         let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
+        [ until, params ] = this.handleOptionIntegerAndParams (params, methodName, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }

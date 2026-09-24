@@ -1061,7 +1061,7 @@ export default class binance extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOpenOrders', 'paginate', false);
         let maxEntriesPerRequest = undefined;
-        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'maxEntriesPerRequest', 100);
+        [ maxEntriesPerRequest, params ] = this.handleOptionIntegerAndParams (params, 'fetchOpenOrders', 'maxEntriesPerRequest', 100);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchOpenOrders', outcome, since, limit, params, pageKey, maxEntriesPerRequest) as PredictionOrder[];
@@ -1144,7 +1144,7 @@ export default class binance extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOrders', 'paginate', false);
         let maxEntriesPerRequest = undefined;
-        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'maxEntriesPerRequest', 100);
+        [ maxEntriesPerRequest, params ] = this.handleOptionIntegerAndParams (params, 'fetchOrders', 'maxEntriesPerRequest', 100);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchOrders', outcome, since, limit, params, pageKey, maxEntriesPerRequest) as PredictionOrder[];
@@ -1409,7 +1409,7 @@ export default class binance extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         let maxEntriesPerRequest = undefined;
-        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'maxEntriesPerRequest', 100);
+        [ maxEntriesPerRequest, params ] = this.handleOptionIntegerAndParams (params, 'fetchMyTrades', 'maxEntriesPerRequest', 100);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchMyTrades', outcome, since, limit, params, pageKey, maxEntriesPerRequest) as PredictionTrade[];

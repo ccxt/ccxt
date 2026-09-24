@@ -7237,6 +7237,8 @@ export class RustTranspilerBuilder {
             handle_option_string_and_params2: 4,
             handle_option_bool_and_params: 3,
             handle_option_bool_and_params2: 4,
+            handle_option_integer_and_params: 3,
+            handle_option_integer_and_params2: 4,
             binary_concat: 1,
             hmac:          3,
             ecdsa:         3,

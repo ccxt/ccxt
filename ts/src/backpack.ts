@@ -988,7 +988,7 @@ export default class backpack extends Exchange {
             'interval': interval,
         };
         let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'until');
+        [ until, params ] = this.handleOptionIntegerAndParams (params, 'fetchOHLCV', 'until');
         if (until !== undefined) {
             request['endTime'] = this.parseToInt (until / 1000); // convert milliseconds to seconds
         }
@@ -1476,7 +1476,7 @@ export default class backpack extends Exchange {
             request['limit'] = limit; // default 100, max 1000
         }
         let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'until');
+        [ until, params ] = this.handleOptionIntegerAndParams (params, 'fetchDeposits', 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
@@ -1512,7 +1512,7 @@ export default class backpack extends Exchange {
             request['limit'] = limit;
         }
         let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'until');
+        [ until, params ] = this.handleOptionIntegerAndParams (params, 'fetchWithdrawals', 'until');
         if (until !== undefined) {
             request['to'] = until;
         }

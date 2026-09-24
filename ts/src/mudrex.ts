@@ -1292,7 +1292,7 @@ export default class mudrex extends Exchange {
             market = this.market (symbol);
         }
         let maxCalls = undefined;
-        [ maxCalls, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginationCalls', 10);
+        [ maxCalls, params ] = this.handleOptionIntegerAndParams (params, 'fetchMyTrades', 'paginationCalls', 10);
         let pageSize = 0;
         if (limit !== undefined) {
             // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied

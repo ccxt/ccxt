@@ -1441,6 +1441,7 @@ export const CSHARP_COLLECTION_RETURN_METHODS = {
     'handleOptionAndParams2': 'List<object>', 'handleParamString': 'List<object>', 'handleParamString2': 'List<object>',
     'handleOptionStringAndParams': 'List<object>', 'handleOptionStringAndParams2': 'List<object>',
     'handleOptionBoolAndParams': 'List<object>', 'handleOptionBoolAndParams2': 'List<object>',
+    'handleOptionIntegerAndParams': 'List<object>', 'handleOptionIntegerAndParams2': 'List<object>',
     'handleApiKeyIndex': 'List<object>', 'handleDeriveSubaccountId': 'List<object>', 'handleDeriveWalletAddress': 'List<object>', 'handleHfAndParams': 'List<object>',
     'handleMaxEntriesPerRequestAndParams': 'List<object>', 'handleNetworkCodeAndParams': 'List<object>', 'handleOriginAndSingleAddress': 'List<object>', 'handleParamBool': 'List<object>',
     'handleParamBool2': 'List<object>', 'handleParamInteger': 'List<object>', 'handleParamInteger2': 'List<object>', 'handlePostOnly': 'List<object>',
@@ -11173,6 +11174,8 @@ export const DESTRUCTURED_ELEMENT0_TYPES = {
     'handleOptionStringAndParams2': 'string?',
     'handleOptionBoolAndParams': 'bool?',
     'handleOptionBoolAndParams2': 'bool?',
+    'handleOptionIntegerAndParams': 'Int64?',
+    'handleOptionIntegerAndParams2': 'Int64?',
     'handleNetworkCodeAndParams': 'string?',
     'handleTriggerDirectionAndParams': 'string?',
     'handleParamBool': 'bool?',
@@ -12331,11 +12334,12 @@ function destructuredHandleCallName (node) {
 }
 
 // `const [ x, params ] = this.<helper> (…)`: element 0 of the checkOption*-backed helpers is a
-// string / bool box or null on every path, so `var x = tmp[0]` takes that type with an identity
+// string / bool / Int64 box or null on every path, so `var x = tmp[0]` takes that type with an identity
 // cast once every use of x passes the generic retype scan
 const DESTRUCTURED_DECLARATION_ELEMENT0 = {
     'handleOptionStringAndParams': 'string?', 'handleOptionStringAndParams2': 'string?', 'handleMarginModeAndParams': 'string?',
     'handleOptionBoolAndParams': 'bool?', 'handleOptionBoolAndParams2': 'bool?',
+    'handleOptionIntegerAndParams': 'Int64?', 'handleOptionIntegerAndParams2': 'Int64?',
 };
 const DESTRUCTURED_ELEMENT0_LINE_RE = /^([ \t]*)var ([A-Za-z_]\w*) = ([A-Za-z_]\w*\[0\])$/m;
 function retypeDestructuredElement0 (csharp, scope, declaration, printed) {
