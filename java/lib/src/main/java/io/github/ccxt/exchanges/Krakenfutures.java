@@ -1318,9 +1318,9 @@ public class Krakenfutures extends KrakenfuturesApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            Object method = null;
-            List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "method", "historyGetMarketSymbolExecutions");
-            method = ((List<Object>) methodparametersVariable).get(0);
+            String method = null;
+            List<Object> methodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchTrades", "method", "historyGetMarketSymbolExecutions");
+            method = (String) ((List<Object>) methodparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
             List<Object> rawTrades = new ArrayList<Object>(Arrays.asList());
             Boolean isFullHistoryEndpoint = (java.util.Objects.equals(method, "historyGetMarketSymbolExecutions"));

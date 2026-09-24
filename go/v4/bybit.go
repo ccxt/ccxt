@@ -4960,9 +4960,9 @@ func (this *Bybit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var accountTypes map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var unifiedType *string = this.SafeStringUpper(accountTypes, typeVar, typeVar)
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchBalance", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	var response map[string]any = nil
 	if isSpot && (marginMode != nil) {
@@ -5502,12 +5502,12 @@ func (this *Bybit) createOrderBody(ch chan any, symbol any, typeVar any, side an
 	} else {
 		defaultMethod = "privatePostV5OrderCreate"
 	}
-	var method any = nil
-	var methodparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "method", defaultMethod)
-	method = GetValue(methodparamsVariable, 0)
+	var method *string = nil
+	var methodparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "method", defaultMethod)
+	method = SafeStringPtr(GetValue(methodparamsVariable, 0))
 	params = MapTyped(GetValue(methodparamsVariable, 1))
 	var response any = nil
-	if IsEqual(method, "privatePostV5PositionTradingStop") {
+	if method != nil && *method == "privatePostV5PositionTradingStop" {
 
 		response = (<-this.PrivatePostV5PositionTradingStop(orderRequest)).Raw
 		PanicOnError(response)
@@ -5577,11 +5577,11 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	} else {
 		defaultMethod = "privatePostV5OrderCreate"
 	}
-	var method any = nil
-	var methodparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "method", defaultMethod)
-	method = GetValue(methodparamsVariable, 0)
+	var method *string = nil
+	var methodparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "method", defaultMethod)
+	method = SafeStringPtr(GetValue(methodparamsVariable, 0))
 	params = MapTyped(GetValue(methodparamsVariable, 1))
-	var endpointIsTradingStop bool = (IsEqual(method, "privatePostV5PositionTradingStop"))
+	var endpointIsTradingStop bool = (method != nil && *method == "privatePostV5PositionTradingStop")
 	if (price == nil) && (lowerCaseType == "limit") && !endpointIsTradingStop {
 		panic(ArgumentsRequired(this.Id + " createOrder requires a price argument for limit orders"))
 	}
@@ -10407,11 +10407,11 @@ func (this *Bybit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var typeVar any = nil
-	var typeVarparamsVariable []any = this.HandleOptionAndParams(params, "fetchTradingFees", "type", "future")
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	var typeVar *string = nil
+	var typeVarparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchTradingFees", "type", "future")
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	if IsEqual(typeVar, "spot") {
+	if typeVar != nil && *typeVar == "spot" {
 		panic(NotSupported(this.Id + " fetchTradingFees() is not supported for spot market"))
 	}
 
@@ -11946,7 +11946,7 @@ func (this *Bybit) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any) 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var accountType any = nil
+	var accountType *string = nil
 	var enableUnifiedMarginenableUnifiedAccountVariable []any = ListTyped(PanicOnError((<-this.IsUnifiedEnabledAsync())))
 	enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
 	enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 1)
@@ -11957,8 +11957,8 @@ func (this *Bybit) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any) 
 		}
 		return "eb_convert_spot"
 	}()
-	var accountTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchConvertCurrencies", "accountType", accountTypeDefault)
-	accountType = GetValue(accountTypeparamsVariable, 0)
+	var accountTypeparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchConvertCurrencies", "accountType", accountTypeDefault)
+	accountType = SafeStringPtr(GetValue(accountTypeparamsVariable, 0))
 	params = MapTyped(GetValue(accountTypeparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"accountType": accountType,
@@ -12078,7 +12078,7 @@ func (this *Bybit) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any, 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var accountType any = nil
+	var accountType *string = nil
 	var enableUnifiedMarginenableUnifiedAccountVariable []any = ListTyped(PanicOnError((<-this.IsUnifiedEnabledAsync())))
 	enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
 	enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 1)
@@ -12089,8 +12089,8 @@ func (this *Bybit) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any, 
 		}
 		return "eb_convert_spot"
 	}()
-	var accountTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchConvertQuote", "accountType", accountTypeDefault)
-	accountType = GetValue(accountTypeparamsVariable, 0)
+	var accountTypeparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchConvertQuote", "accountType", accountTypeDefault)
+	accountType = SafeStringPtr(GetValue(accountTypeparamsVariable, 0))
 	params = MapTyped(GetValue(accountTypeparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"fromCoin":      fromCode,
@@ -12209,7 +12209,7 @@ func (this *Bybit) fetchConvertTradeBody(ch chan any, id any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var accountType any = nil
+	var accountType *string = nil
 	var enableUnifiedMarginenableUnifiedAccountVariable []any = ListTyped(PanicOnError((<-this.IsUnifiedEnabledAsync())))
 	enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
 	enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 1)
@@ -12220,8 +12220,8 @@ func (this *Bybit) fetchConvertTradeBody(ch chan any, id any, optionalArgs ...an
 		}
 		return "eb_convert_spot"
 	}()
-	var accountTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchConvertTrade", "accountType", accountTypeDefault)
-	accountType = GetValue(accountTypeparamsVariable, 0)
+	var accountTypeparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchConvertTrade", "accountType", accountTypeDefault)
+	accountType = SafeStringPtr(GetValue(accountTypeparamsVariable, 0))
 	params = MapTyped(GetValue(accountTypeparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"quoteTxId":   id,

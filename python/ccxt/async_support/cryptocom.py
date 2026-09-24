@@ -578,7 +578,7 @@ class cryptocom(Exchange, ImplicitAPI):
         if not self.check_required_credentials(False):
             return {}
         skipFetchCurrencies = False
-        skipFetchCurrencies, params = self.handle_option_and_params(params, 'fetchCurrencies', 'skipFetchCurrencies', False)
+        skipFetchCurrencies, params = self.handle_option_bool_and_params(params, 'fetchCurrencies', 'skipFetchCurrencies', False)
         if skipFetchCurrencies:
             # sub-accounts can't access this endpoint
             return {}
@@ -1101,7 +1101,7 @@ class cryptocom(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 300)
         market = self.market(symbol)
@@ -1605,7 +1605,7 @@ class cryptocom(Exchange, ImplicitAPI):
             # use createmarketBuy logic here
             quoteAmount = None
             createMarketBuyOrderRequiresPrice = True
-            createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+            createMarketBuyOrderRequiresPrice, params = self.handle_option_bool_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
             cost = self.safe_number_2(params, 'cost', 'notional')
             params = self.omit(params, 'cost')
             if cost is not None:

@@ -1454,9 +1454,9 @@ public partial class cex : Exchange
             { "timestamp", this.milliseconds() },
             { "amountCcy1", this.amountToPrecision(symbol, amount) },
         };
-        object timeInForce = null;
-        IList<object> timeInForceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "timeInForce", "GTC");
-        timeInForce = timeInForceparametersVariable[0];
+        string? timeInForce = null;
+        IList<object> timeInForceparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce", "GTC");
+        timeInForce = (string)timeInForceparametersVariable[0];
         parameters = timeInForceparametersVariable[1];
         if ((type == "limit"))
         {

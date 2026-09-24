@@ -3105,8 +3105,8 @@ public class Coinex extends CoinexApi
             if ((java.util.Objects.equals(type, "market")) && (java.util.Objects.equals(side, "buy")))
             {
                 Boolean createMarketBuyOrderRequiresPrice = true;
-                List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = Boolean.TRUE.equals(((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0));
+                List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                 Double cost = this.safeNumber(parameters, "cost");
                 parameters = (Map<String, Object>) (this.omit(parameters, "cost"));
@@ -4516,9 +4516,9 @@ public class Coinex extends CoinexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object defaultMethod = null;
-            List<Object> defaultMethodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositions", "method", "v2PrivateGetFuturesPendingPosition");
-            defaultMethod = ((List<Object>) defaultMethodparametersVariable).get(0);
+            String defaultMethod = null;
+            List<Object> defaultMethodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchPositions", "method", "v2PrivateGetFuturesPendingPosition");
+            defaultMethod = (String) ((List<Object>) defaultMethodparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) defaultMethodparametersVariable).get(1);
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -7271,7 +7271,7 @@ final Object finalI = i;
         return this.closePosition(symbol, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object handleMarginModeAndParams(Object methodName, Map<String, Object> parameters, Object defaultValue)
+    public Object handleMarginModeAndParams(Object methodName, Map<String, Object> parameters, String defaultValue)
     {
         /**
          * @ignore
@@ -7297,7 +7297,7 @@ final Object finalI = i;
     }
     public Object handleMarginModeAndParams(Object methodName, Object... optionalArgs)
     {
-        return this.handleMarginModeAndParams(methodName, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null);
+        return this.handleMarginModeAndParams(methodName, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}), Helpers.getArgString(optionalArgs, 1, null));
     }
 
     public Long nonce()

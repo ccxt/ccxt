@@ -1250,8 +1250,8 @@ public class Lighter extends LighterApi
             }
             // avoid skipNonce for l1 operations
             Boolean skipNonce = true;
-            List<Object> skipNonceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchNonce", "skipNonce", true);
-            skipNonce = Boolean.TRUE.equals(((List<Object>) skipNonceparametersVariable).get(0));
+            List<Object> skipNonceparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchNonce", "skipNonce", true);
+            skipNonce = (Boolean) ((List<Object>) skipNonceparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) skipNonceparametersVariable).get(1);
             if (Boolean.TRUE.equals(skipNonce))
             {

@@ -217,22 +217,22 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             {
                 ((Map<String, Object>)parameters).put("params", new HashMap<String, Object>() {{}});
             }
-            Object bookSubscriptionType = null;
-            Object bookSubscriptionType2 = null;
-            List<Object> bookSubscriptionTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
-            bookSubscriptionType = ((List<Object>) bookSubscriptionTypeparametersVariable).get(0);
+            String bookSubscriptionType = null;
+            String bookSubscriptionType2 = null;
+            List<Object> bookSubscriptionTypeparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
+            bookSubscriptionType = (String) ((List<Object>) bookSubscriptionTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) bookSubscriptionTypeparametersVariable).get(1);
-            List<Object> bookSubscriptionType2parametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
-            bookSubscriptionType2 = ((List<Object>) bookSubscriptionType2parametersVariable).get(0);
+            List<Object> bookSubscriptionType2parametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
+            bookSubscriptionType2 = (String) ((List<Object>) bookSubscriptionType2parametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) bookSubscriptionType2parametersVariable).get(1);
             Helpers.addElementToObject(Helpers.GetValue(parameters, "params"), "bookSubscriptionType", bookSubscriptionType2);
             Object bookUpdateFrequency = null;
-            Object bookUpdateFrequency2 = null;
+            String bookUpdateFrequency2 = null;
             List<Object> bookUpdateFrequencyparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "bookUpdateFrequency");
             bookUpdateFrequency = ((List<Object>) bookUpdateFrequencyparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) bookUpdateFrequencyparametersVariable).get(1);
-            List<Object> bookUpdateFrequency2parametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
-            bookUpdateFrequency2 = ((List<Object>) bookUpdateFrequency2parametersVariable).get(0);
+            List<Object> bookUpdateFrequency2parametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "bookUpdateFrequency", (String) (bookUpdateFrequency));
+            bookUpdateFrequency2 = (String) ((List<Object>) bookUpdateFrequency2parametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) bookUpdateFrequency2parametersVariable).get(1);
             if (!java.util.Objects.equals(bookUpdateFrequency2, null))
             {
@@ -302,22 +302,22 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             {
                 ((Map<String, Object>)parameters).put("params", new HashMap<String, Object>() {{}});
             }
-            Object bookSubscriptionType = null;
-            Object bookSubscriptionType2 = null;
-            List<Object> bookSubscriptionTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
-            bookSubscriptionType = ((List<Object>) bookSubscriptionTypeparametersVariable).get(0);
+            String bookSubscriptionType = null;
+            String bookSubscriptionType2 = null;
+            List<Object> bookSubscriptionTypeparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
+            bookSubscriptionType = (String) ((List<Object>) bookSubscriptionTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) bookSubscriptionTypeparametersVariable).get(1);
-            List<Object> bookSubscriptionType2parametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
-            bookSubscriptionType2 = ((List<Object>) bookSubscriptionType2parametersVariable).get(0);
+            List<Object> bookSubscriptionType2parametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
+            bookSubscriptionType2 = (String) ((List<Object>) bookSubscriptionType2parametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) bookSubscriptionType2parametersVariable).get(1);
             Helpers.addElementToObject(Helpers.GetValue(parameters, "params"), "bookSubscriptionType", bookSubscriptionType2);
             Object bookUpdateFrequency = null;
-            Object bookUpdateFrequency2 = null;
+            String bookUpdateFrequency2 = null;
             List<Object> bookUpdateFrequencyparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "bookUpdateFrequency");
             bookUpdateFrequency = ((List<Object>) bookUpdateFrequencyparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) bookUpdateFrequencyparametersVariable).get(1);
-            List<Object> bookUpdateFrequency2parametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
-            bookUpdateFrequency2 = ((List<Object>) bookUpdateFrequency2parametersVariable).get(0);
+            List<Object> bookUpdateFrequency2parametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "bookUpdateFrequency", (String) (bookUpdateFrequency));
+            bookUpdateFrequency2 = (String) ((List<Object>) bookUpdateFrequency2parametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) bookUpdateFrequency2parametersVariable).get(1);
             if (!java.util.Objects.equals(bookUpdateFrequency2, null))
             {

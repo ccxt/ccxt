@@ -4063,8 +4063,8 @@ public partial class htx : Exchange
         {
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             bool? useHistorical = null;
-            IList<object> useHistoricalparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "useHistoricalEndpointForSpot", true);
-            useHistorical = isTrue(useHistoricalparametersVariable[0]);
+            IList<object> useHistoricalparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "useHistoricalEndpointForSpot", true);
+            useHistorical = (bool?)useHistoricalparametersVariable[0];
             parameters = useHistoricalparametersVariable[1];
             if (useHistorical != true)
             {
@@ -4417,8 +4417,8 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         bool? isUnifiedAccount = null;
-        IList<object> isUnifiedAccountparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "fetchBalance", "unified", "uta", false);
-        isUnifiedAccount = isTrue(isUnifiedAccountparametersVariable[0]);
+        IList<object> isUnifiedAccountparametersVariable = (IList<object>)this.handleOptionBoolAndParams2(parameters, "fetchBalance", "unified", "uta", false);
+        isUnifiedAccount = (bool?)isUnifiedAccountparametersVariable[0];
         parameters = isUnifiedAccountparametersVariable[1];
         if ((isUnifiedAccount == true))
         {
@@ -4437,8 +4437,8 @@ public partial class htx : Exchange
         {
             subType = "linear";
         }
-        IList<object> isMultiAssetModeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchBalance", "multiAssetMode", false);
-        isMultiAssetMode = isTrue(isMultiAssetModeparametersVariable[0]);
+        IList<object> isMultiAssetModeparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchBalance", "multiAssetMode", false);
+        isMultiAssetMode = (bool?)isMultiAssetModeparametersVariable[0];
         parameters = isMultiAssetModeparametersVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         bool spot = (type == "spot");
@@ -4446,12 +4446,12 @@ public partial class htx : Exchange
         bool swap = (type == "swap");
         bool inverse = (isEqual(subType, "inverse"));
         bool linear = (isEqual(subType, "linear"));
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchBalance", parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
-        bool isolated = (isEqual(marginMode, "isolated"));
-        bool cross = (isEqual(marginMode, "cross"));
+        bool isolated = (marginMode == "isolated");
+        bool cross = (marginMode == "cross");
         bool margin = (type == "margin") || (spot && (cross || isolated));
         Dictionary<string, object> response = null;
         if ((isMultiAssetMode == true) || (linear && (swap || future)))
@@ -4819,9 +4819,9 @@ public partial class htx : Exchange
                         throw new ArgumentsRequired ((this.id + " fetchOrder() requires a symbol argument")) ;
                     }
                     request["contract_code"] = this.safeString(market, "id");
-                    object marginMode = null;
+                    string? marginMode = null;
                     IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchOrder", parameters);
-                    marginMode = marginModeparametersVariable[0];
+                    marginMode = (string)marginModeparametersVariable[0];
                     parameters = marginModeparametersVariable[1];
                     marginMode = ((marginMode == null)) ? "cross" : marginMode;
                     request["margin_mode"] = marginMode;
@@ -5099,9 +5099,9 @@ public partial class htx : Exchange
             {
                 request["limit"] = limit;
             }
-            object marginMode = null;
+            string? marginMode = null;
             IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchContractOrders", parameters);
-            marginMode = marginModeparametersVariable[0];
+            marginMode = (string)marginModeparametersVariable[0];
             parameters = marginModeparametersVariable[1];
             marginMode = ((marginMode == null)) ? "cross" : marginMode;
             request["margin_mode"] = marginMode;
@@ -6248,9 +6248,9 @@ public partial class htx : Exchange
         }
         await this.loadAccounts();
         Dictionary<string, object> market = this.market(symbol);
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         string accountId = ccxt.BaseExchange.FromStringValue(await this.FetchAccountIdByType((market.ContainsKey("type") ? market["type"] : null), marginMode, symbol));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -6309,13 +6309,13 @@ public partial class htx : Exchange
         {
             request["client-order-id"] = clientOrderId;
         }
-        if (isEqual(marginMode, "cross"))
+        if (marginMode == "cross")
         {
             request["source"] = "super-margin-api";
-        } else if (isEqual(marginMode, "isolated"))
+        } else if (marginMode == "isolated")
         {
             request["source"] = "margin-api";
-        } else if (isEqual(marginMode, "c2c"))
+        } else if (marginMode == "c2c")
         {
             request["source"] = "c2c-margin-api";
         }
@@ -6323,8 +6323,8 @@ public partial class htx : Exchange
         {
             string? quoteAmount = null;
             bool? createMarketBuyOrderRequiresPrice = true;
-            IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-            createMarketBuyOrderRequiresPrice = isTrue(createMarketBuyOrderRequiresPriceparametersVariable[0]);
+            IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparametersVariable[0];
             parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
             double? cost = this.safeNumber(parameters, "cost");
             parameters = this.omit(parameters, "cost");
@@ -6424,9 +6424,9 @@ public partial class htx : Exchange
         string? timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force", "gtc");
         if (isLinear)
         {
-            object marginMode = null;
+            string? marginMode = null;
             IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", parameters, "cross");
-            marginMode = marginModeparametersVariable[0];
+            marginMode = (string)marginModeparametersVariable[0];
             parameters = marginModeparametersVariable[1];
             request["margin_mode"] = marginMode;
             request["side"] = side;
@@ -8835,9 +8835,9 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchBorrowInterest", parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         marginMode = ((marginMode == null)) ? "cross" : marginMode;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
@@ -8851,7 +8851,7 @@ public partial class htx : Exchange
         }
         IDictionary<string, object> market = null;
         Dictionary<string, object> response = null;
-        if (isEqual(marginMode, "isolated"))
+        if (marginMode == "isolated")
         {
             if ((symbol != null))
             {
@@ -9249,9 +9249,9 @@ public partial class htx : Exchange
         {
             if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
             {
-                object marginMode = null;
+                string? marginMode = null;
                 IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchFundingHistory", parameters);
-                marginMode = marginModeparametersVariable[0];
+                marginMode = (string)marginModeparametersVariable[0];
                 parameters = marginModeparametersVariable[1];
                 marginMode = ((marginMode == null)) ? "cross" : marginMode;
                 request["margin_mode"] = marginMode;
@@ -9336,9 +9336,9 @@ public partial class htx : Exchange
         Dictionary<string, object> response = null;
         if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
         {
-            object marginMode = null;
+            string? marginMode = null;
             IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("setLeverage", parameters);
-            marginMode = marginModeparametersVariable[0];
+            marginMode = (string)marginModeparametersVariable[0];
             parameters = marginModeparametersVariable[1];
             marginMode = ((marginMode == null)) ? "cross" : marginMode;
             request["margin_mode"] = marginMode;
@@ -9649,9 +9649,9 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchPosition", parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         marginMode = ((marginMode == null)) ? "cross" : marginMode;
         IList<object> marketTypequeryVariable = (IList<object>)this.handleMarketTypeAndParams("fetchPosition", market, parameters);
@@ -9663,7 +9663,7 @@ public partial class htx : Exchange
             request["symbol"] = (market.ContainsKey("settleId") ? market["settleId"] : null);
         } else
         {
-            if (((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) != true)) && (isEqual(marginMode, "cross")))
+            if (((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) != true)) && (marginMode == "cross"))
             {
                 request["margin_account"] = "USDT"; // only allowed value
             }
@@ -9693,7 +9693,7 @@ public partial class htx : Exchange
             return ccxt.BaseExchange.ToPosition(this.parsePosition(linearPosition, market));
         }
         object account = null;
-        if (isEqual(marginMode, "cross"))
+        if (marginMode == "cross")
         {
             account = data;
         } else
@@ -11097,9 +11097,9 @@ public partial class htx : Exchange
         Dictionary<string, object> response = null;
         if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
         {
-            object marginMode = null;
+            string? marginMode = null;
             IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("closePosition", parameters, "cross");
-            marginMode = marginModeparametersVariable[0];
+            marginMode = (string)marginModeparametersVariable[0];
             parameters = marginModeparametersVariable[1];
             request["margin_mode"] = marginMode;
             response = await this.contractPrivatePostV5TradePosition(this.extend(request, parameters));

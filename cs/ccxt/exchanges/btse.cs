@@ -1186,9 +1186,9 @@ public partial class btse : Exchange
             response = this.safeList(walletResponse, "data", new List<object>() {});
         } else
         {
-            object wallet = null;
-            IList<object> walletparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchBalance", "wallet", "CROSS@");
-            wallet = walletparametersVariable[0];
+            string? wallet = null;
+            IList<object> walletparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchBalance", "wallet", "CROSS@");
+            wallet = (string)walletparametersVariable[0];
             parameters = walletparametersVariable[1];
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "wallet", wallet },
@@ -2195,8 +2195,8 @@ public partial class btse : Exchange
         {
             string? quoteAmount = null;
             bool? createMarketBuyOrderRequiresPrice = true;
-            IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-            createMarketBuyOrderRequiresPrice = isTrue(createMarketBuyOrderRequiresPriceparametersVariable[0]);
+            IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparametersVariable[0];
             parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
             string? cost = this.safeString(parameters, "cost");
             parameters = this.omit(parameters, "cost");
@@ -2398,22 +2398,22 @@ public partial class btse : Exchange
         // if positionMode is provided, we will get it from params and send it as is
         if ((positionMode == null))
         {
-            object hedged = false;
-            IList<object> hedgedparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "hedged", hedged);
-            hedged = hedgedparametersVariable[0];
+            bool? hedged = false;
+            IList<object> hedgedparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "createOrder", "hedged", hedged);
+            hedged = (bool?)hedgedparametersVariable[0];
             parameters = hedgedparametersVariable[1];
-            object marginMode = "cross";
-            IList<object> marginModeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "marginMode", marginMode);
-            marginMode = marginModeparametersVariable[0];
+            string? marginMode = "cross";
+            IList<object> marginModeparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "marginMode", marginMode);
+            marginMode = (string)marginModeparametersVariable[0];
             parameters = marginModeparametersVariable[1];
-            if (isEqual(marginMode, "isolated"))
+            if (marginMode == "isolated")
             {
-                if (isTrue(hedged))
+                if ((hedged == true))
                 {
                     throw new BadRequest ((this.id + " createOrder() cannot use isolated margin with hedged positions")) ;
                 }
                 request["positionMode"] = "ISOLATED";
-            } else if (isTrue(hedged))
+            } else if ((hedged == true))
             {
                 request["positionMode"] = "HEDGE";
             }
@@ -3970,13 +3970,13 @@ public partial class btse : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", this.futuresRequestId(market) },
         };
-        object type = "market";
-        IList<object> typeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "closePosition", "type", type);
-        type = typeparametersVariable[0];
+        string? type = "market";
+        IList<object> typeparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "closePosition", "type", type);
+        type = (string)typeparametersVariable[0];
         parameters = typeparametersVariable[1];
-        type = ((string)type).ToUpper();
+        type = type.ToUpper();
         request["orderType"] = type;
-        if (isEqual(type, "LIMIT"))
+        if (type == "LIMIT")
         {
             string? price = this.safeString(parameters, "price");
             if ((price == null))
@@ -4094,13 +4094,13 @@ public partial class btse : Exchange
         // the endpoint defaults to the ISOLATED bucket when marginMode is omitted,
         // verified live - a bare call on a cross account silently changes the
         // isolated leverage only, so the unified marginMode param is translated here
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("setLeverage", parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         if ((marginMode != null))
         {
-            request["marginMode"] = ((string)marginMode).ToUpper();
+            request["marginMode"] = marginMode.ToUpper();
         }
         Dictionary<string, object> response = await this.privatePostFuturesApiV3TradeLeverage(this.extend(request, parameters));
         return ccxt.BaseExchange.ToDict(response);

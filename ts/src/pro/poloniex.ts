@@ -235,7 +235,7 @@ export default class poloniex extends poloniexRest {
         if ((uppercaseType === 'MARKET') && (uppercaseSide === 'BUY')) {
             let quoteAmount: Str = undefined;
             let createMarketBuyOrderRequiresPrice = true;
-            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionBoolAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
             const cost = this.safeNumber (params, 'cost');
             params = this.omit (params, 'cost');
             if (cost !== undefined) {
@@ -489,7 +489,7 @@ export default class poloniex extends poloniexRest {
         }
         const watchOrderBookOptions = this.safeDict (this.options, 'watchOrderBook');
         let name = this.safeString (watchOrderBookOptions, 'name', 'book_lv2');
-        [ name, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'name', name);
+        [ name, params ] = this.handleOptionStringAndParams (params, 'watchOrderBook', 'name', name);
         const orderbook = await this.subscribe (name, name, false, [ symbol ], params);
         return orderbook.limit ();
     }

@@ -522,7 +522,7 @@ class bydfi extends \ccxt\async\bydfi {
         $depth = '100';
         list($depth, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'depth', $depth);
         $frequency = '100ms';
-        list($frequency, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'frequency', $frequency);
+        list($frequency, $params) = $this->handle_option_string_and_params($params, 'watchOrderBookForSymbols', 'frequency', $frequency);
         $channelSuffix = '';
         if ($frequency === '100ms') {
             $channelSuffix = '@100ms';
@@ -561,7 +561,7 @@ class bydfi extends \ccxt\async\bydfi {
         $depth = '100';
         list($depth, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'depth', $depth);
         $frequency = '100ms';
-        list($frequency, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'frequency', $frequency);
+        list($frequency, $params) = $this->handle_option_string_and_params($params, 'watchOrderBookForSymbols', 'frequency', $frequency);
         $channelSuffix = '';
         if ($frequency === '100ms') {
             $channelSuffix = '@100ms';

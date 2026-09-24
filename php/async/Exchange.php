@@ -4556,6 +4556,28 @@ class BaseExchange extends \ccxt\BaseExchange {
         return array( $value2, $params );
     }
 
+    public function handle_option_string_and_params(array $params, ?string $methodName, string $optionName, ?string $defaultValue = null) {
+        // handleOptionAndParams read as a string; the statically typed ports throw on another type
+        list($value, $newParams) = $this->handle_option_and_params($params, $methodName, $optionName, $defaultValue);
+        return array( $this->check_option_string($methodName, $optionName, $value), $newParams );
+    }
+
+    public function handle_option_string_and_params_2(array $params, string $methodName, string $optionName1, string $optionName2, ?string $defaultValue = null) {
+        list($value, $newParams) = $this->handle_option_and_params_2($params, $methodName, $optionName1, $optionName2, $defaultValue);
+        return array( $this->check_option_string($methodName, $optionName1, $value), $newParams );
+    }
+
+    public function handle_option_bool_and_params(array $params, ?string $methodName, string $optionName, ?bool $defaultValue = null) {
+        // handleOptionAndParams read as a boolean; the statically typed ports throw on another type
+        list($value, $newParams) = $this->handle_option_and_params($params, $methodName, $optionName, $defaultValue);
+        return array( $this->check_option_bool($methodName, $optionName, $value), $newParams );
+    }
+
+    public function handle_option_bool_and_params_2(array $params, string $methodName, string $optionName1, string $optionName2, ?bool $defaultValue = null) {
+        list($value, $newParams) = $this->handle_option_and_params_2($params, $methodName, $optionName1, $optionName2, $defaultValue);
+        return array( $this->check_option_bool($methodName, $optionName1, $value), $newParams );
+    }
+
     public function handle_option(string $methodName, string $optionName, mixed $defaultValue = null) {
         $res = $this->handle_option_and_params(array(), $methodName, $optionName, $defaultValue);
         return $this->safe_value($res, 0);
@@ -4629,13 +4651,13 @@ class BaseExchange extends \ccxt\BaseExchange {
         return array( $subType, $params );
     }
 
-    public function handle_margin_mode_and_params(string $methodName, $params = array(), mixed $defaultValue = null) {
+    public function handle_margin_mode_and_params(string $methodName, $params = array(), ?string $defaultValue = null) {
         /**
          * @ignore
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Array} the marginMode in lowercase as specified by $params["marginMode"], $params["defaultMarginMode"] $this->options["marginMode"] or $this->options["defaultMarginMode"]
          */
-        return $this->handle_option_and_params($params, $methodName, 'marginMode', $defaultValue);
+        return $this->handle_option_string_and_params($params, $methodName, 'marginMode', $defaultValue);
     }
 
     public function throw_exactly_matched_exception(mixed $exact, mixed $string, mixed $message) {

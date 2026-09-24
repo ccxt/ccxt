@@ -5969,6 +5969,56 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
+/* eslint-disable no-unused-vars */
+/* eslint-enable no-unused-vars */
+    fn handle_option_string_and_params(&self, mut params: Value, mut methodName: Value, mut optionName: Value, optional_args: &[Value]) -> Value {
+        let mut defaultValue = get_arg(optional_args, 0, Value::Null);
+        // handleOptionAndParams read as a string; the statically typed ports throw on another type
+        let mut valuenewParamsVariable = self.handle_option_and_params(params, methodName.clone(), optionName.clone(), &[defaultValue]);
+        let mut value: Value = valuenewParamsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut newParams: Value = valuenewParamsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        return Value::from(vec![self.check_option_string(methodName, optionName, value), newParams]);
+
+    Value::Null
+}
+
+/* eslint-disable no-unused-vars */
+/* eslint-enable no-unused-vars */
+    fn handle_option_string_and_params2(&self, mut params: Value, mut methodName: Value, mut optionName1: Value, mut optionName2: Value, optional_args: &[Value]) -> Value {
+        let mut defaultValue = get_arg(optional_args, 0, Value::Null);
+        let mut valuenewParamsVariable = self.handle_option_and_params2(params, methodName.clone(), optionName1.clone(), optionName2, &[defaultValue]);
+        let mut value: Value = valuenewParamsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut newParams: Value = valuenewParamsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        return Value::from(vec![self.check_option_string(methodName, optionName1, value), newParams]);
+
+    Value::Null
+}
+
+/* eslint-disable no-unused-vars */
+/* eslint-enable no-unused-vars */
+    fn handle_option_bool_and_params(&self, mut params: Value, mut methodName: Value, mut optionName: Value, optional_args: &[Value]) -> Value {
+        let mut defaultValue = get_arg(optional_args, 0, Value::Null);
+        // handleOptionAndParams read as a boolean; the statically typed ports throw on another type
+        let mut valuenewParamsVariable = self.handle_option_and_params(params, methodName.clone(), optionName.clone(), &[defaultValue]);
+        let mut value: Value = valuenewParamsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut newParams: Value = valuenewParamsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        return Value::from(vec![self.check_option_bool(methodName, optionName, value), newParams]);
+
+    Value::Null
+}
+
+/* eslint-disable no-unused-vars */
+/* eslint-enable no-unused-vars */
+    fn handle_option_bool_and_params2(&self, mut params: Value, mut methodName: Value, mut optionName1: Value, mut optionName2: Value, optional_args: &[Value]) -> Value {
+        let mut defaultValue = get_arg(optional_args, 0, Value::Null);
+        let mut valuenewParamsVariable = self.handle_option_and_params2(params, methodName.clone(), optionName1.clone(), optionName2, &[defaultValue]);
+        let mut value: Value = valuenewParamsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut newParams: Value = valuenewParamsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        return Value::from(vec![self.check_option_bool(methodName, optionName1, value), newParams]);
+
+    Value::Null
+}
+
     fn handle_option(&self, mut methodName: Value, mut optionName: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let mut res: Value = self.handle_option_and_params(Value::Map({
@@ -6075,7 +6125,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         let mut defaultValue = get_arg(optional_args, 1, Value::Null);
-        return self.handle_option_and_params(params, methodName, Value::Str("marginMode".into()), &[defaultValue]);
+        return self.handle_option_string_and_params(params, methodName, Value::Str("marginMode".into()), &[defaultValue]);
 
     Value::Null
 }
@@ -11671,6 +11721,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "handle_option" => self.handle_option(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "handle_option_and_params" => self.handle_option_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]),
             "handle_option_and_params2" => self.handle_option_and_params2(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
+            "handle_option_bool_and_params" => self.handle_option_bool_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]),
+            "handle_option_bool_and_params2" => self.handle_option_bool_and_params2(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
+            "handle_option_string_and_params" => self.handle_option_string_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]),
+            "handle_option_string_and_params2" => self.handle_option_string_and_params2(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
             "handle_param_bool" => self.handle_param_bool(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "handle_param_bool2" => self.handle_param_bool2(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]),
             "handle_param_integer" => self.handle_param_integer(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),

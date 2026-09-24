@@ -1591,9 +1591,9 @@ public partial class weex : Exchange
         {
             throw new NotSupported ((this.id + " fetchMarkPrice() supports contract markets only")) ;
         }
-        object priceType = null;
-        IList<object> priceTypeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMarkPrice", "priceType", "MARK");
-        priceType = priceTypeparametersVariable[0];
+        string? priceType = null;
+        IList<object> priceTypeparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchMarkPrice", "priceType", "MARK");
+        priceType = (string)priceTypeparametersVariable[0];
         parameters = priceTypeparametersVariable[1]; // the endpoint defaults to INDEX
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -1609,7 +1609,7 @@ public partial class weex : Exchange
         //
         // normalize here instead of falling back to 'price' in parseTicker, so a bare 'price' field in other payloads can never silently become the mark price
         Dictionary<string, object> ticker = this.extend(new Dictionary<string, object>() {}, response);
-        if (isEqual(priceType, "INDEX"))
+        if (priceType == "INDEX")
         {
             ticker["indexPrice"] = this.safeString(ticker, "price");
         } else
@@ -2397,8 +2397,8 @@ public partial class weex : Exchange
         }
         int maxLimit = 100;
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTransfers", "paginate", false);
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -3171,8 +3171,8 @@ public partial class weex : Exchange
         parameters = marketTypeparametersVariable[1];
         bool isSpot = (marketType == "spot");
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate", false);
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         int maxLimit = 100;
         if ((paginate == true))
@@ -3419,8 +3419,8 @@ public partial class weex : Exchange
         }
         int maxLimit = 1000;
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrders", "paginate", false);
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -3500,8 +3500,8 @@ public partial class weex : Exchange
             throw new NotSupported ((this.id + " fetchCanceledAndClosedOrders() does not support spot markets. Use fetchOrders() instead and filter by status \"canceled\" or \"closed\"")) ;
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate", false);
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         int maxLimit = 1000;
         if ((paginate == true))
@@ -3846,8 +3846,8 @@ public partial class weex : Exchange
             throw new ArgumentsRequired ((this.id + " fetchMyTrades() requires a symbol argument for spot markets")) ;
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate", false);
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         int maxLimit = 100;
         if ((paginate == true))
@@ -3945,8 +3945,8 @@ public partial class weex : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchLedger", "paginate", false);
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         int maxLimit = 100;
         if ((paginate == true))
@@ -4150,8 +4150,8 @@ public partial class weex : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate", false);
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -4779,9 +4779,9 @@ public partial class weex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("setLeverage", parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         if ((marginMode != null))
         {
@@ -4792,7 +4792,7 @@ public partial class weex : Exchange
         double? crossLeverage = this.safeNumber(parameters, "crossLeverage");
         if (((isolatedLongLeverage == null)) && ((isolatedShortLeverage == null)) && ((crossLeverage == null)))
         {
-            if (isEqual(marginMode, "isolated"))
+            if (marginMode == "isolated")
             {
                 request["isolatedLongLeverage"] = leverage;
                 request["isolatedShortLeverage"] = leverage;
@@ -4853,9 +4853,9 @@ public partial class weex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("setPositionMode", parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         if ((marginMode == null))
         {

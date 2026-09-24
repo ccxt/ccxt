@@ -904,8 +904,8 @@ public class Poloniex extends PoloniexApi
             Map<String, Object> parameters = parameters3;
             (this.loadMarkets()).join();
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -2746,8 +2746,8 @@ public class Poloniex extends PoloniexApi
             {
                 String quoteAmount = null;
                 Boolean createMarketBuyOrderRequiresPrice = true;
-                List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = Boolean.TRUE.equals(((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0));
+                List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                 Double cost = this.safeNumber(parameters, "cost");
                 parameters = (Map<String, Object>) (this.omit(parameters, "cost"));
@@ -4403,9 +4403,9 @@ public class Poloniex extends PoloniexApi
             }
             (this.loadMarkets()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object marginMode = null;
+            String marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters);
-            marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+            marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if (java.util.Objects.equals(marginMode, null))
             {
@@ -4422,7 +4422,7 @@ public class Poloniex extends PoloniexApi
                     throw new ArgumentsRequired((this.id + " setLeverage() requires a posSide parameter for hedged mode: \"LONG\" or \"SHORT\"")) ;
                 }
             }
-            final Object finalMarginMode = marginMode;
+            final String finalMarginMode = marginMode;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "lever", leverage );
                 put( "mgnMode", ((String)finalMarginMode).toUpperCase() );
@@ -4468,15 +4468,15 @@ public class Poloniex extends PoloniexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            Object marginMode = null;
+            String marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchLeverage", parameters);
-            marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+            marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if (java.util.Objects.equals(marginMode, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchLeverage() requires a marginMode parameter \"cross\" or \"isolated\"")) ;
             }
-            ((Map<String, Object>)request).put("mgnMode", ((String)marginMode).toUpperCase());
+            ((Map<String, Object>)request).put("mgnMode", marginMode.toUpperCase());
             Map<String, Object> response = (this.swapPrivateGetV3PositionLeverages(this.extend(request, parameters))).join();
             //
             //  for one-way mode:

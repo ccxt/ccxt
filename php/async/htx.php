@@ -3160,7 +3160,7 @@ class htx extends Exchange {
         } else {
             $request['symbol'] = $market['id'];
             $useHistorical = null;
-            list($useHistorical, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'useHistoricalEndpointForSpot', true);
+            list($useHistorical, $params) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'useHistoricalEndpointForSpot', true);
             if (!$useHistorical) {
                 if ($limit !== null) {
                     $request['size'] = min($limit, 2000); // max 2000
@@ -3486,7 +3486,7 @@ class htx extends Exchange {
             Async\await($this->load_markets());
         }
         $isUnifiedAccount = null;
-        list($isUnifiedAccount, $params) = $this->handle_option_and_params_2($params, 'fetchBalance', 'unified', 'uta', false);
+        list($isUnifiedAccount, $params) = $this->handle_option_bool_and_params_2($params, 'fetchBalance', 'unified', 'uta', false);
         if ($isUnifiedAccount) {
             throw new NotSupported($this->id . ' fetchBalance() unified $account has been deprecated on htx');
         }
@@ -3498,7 +3498,7 @@ class htx extends Exchange {
         if ($subType === null) {
             $subType = 'linear';
         }
-        list($isMultiAssetMode, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'multiAssetMode', false);
+        list($isMultiAssetMode, $params) = $this->handle_option_bool_and_params($params, 'fetchBalance', 'multiAssetMode', false);
         $request = array();
         $spot = ($type === 'spot');
         $future = ($type === 'future');
@@ -5295,7 +5295,7 @@ class htx extends Exchange {
         if (($orderType === 'market') && ($side === 'buy')) {
             $quoteAmount = null;
             $createMarketBuyOrderRequiresPrice = true;
-            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_bool_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
             $cost = $this->safe_number($params, 'cost');
             $params = $this->omit($params, 'cost');
             if ($cost !== null) {

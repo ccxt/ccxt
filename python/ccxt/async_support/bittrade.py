@@ -1485,7 +1485,7 @@ class bittrade(Exchange, ImplicitAPI):
         if (type == 'market') and (side == 'buy'):
             quoteAmount = None
             createMarketBuyOrderRequiresPrice = True
-            createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+            createMarketBuyOrderRequiresPrice, params = self.handle_option_bool_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
             cost = self.safe_number(params, 'cost')
             params = self.omit(params, 'cost')
             if cost is not None:

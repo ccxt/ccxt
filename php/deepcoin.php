@@ -663,7 +663,7 @@ class deepcoin extends Exchange {
         }
         $maxLimit = 300;
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             $params = $this->extend($params, array( 'calculateUntil' => true ));
             return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimit);
@@ -1012,7 +1012,7 @@ class deepcoin extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchDeposits', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchDeposits', $code, $since, $limit, $params, 'code', null, 1, 50);
         }
@@ -1060,7 +1060,7 @@ class deepcoin extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchWithdrawals', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchWithdrawals', $code, $since, $limit, $params, 'code', null, 1, 50);
         }
@@ -1656,7 +1656,7 @@ class deepcoin extends Exchange {
             list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params, $marginMode);
             $request['tdMode'] = $marginMode;
             $mrgPosition = 'merge';
-            list($mrgPosition, $params) = $this->handle_option_and_params($params, 'createOrder', 'mrgPosition', $mrgPosition);
+            list($mrgPosition, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'mrgPosition', $mrgPosition);
             $request['mrgPosition'] = $mrgPosition;
             $posSide = null;
             $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
@@ -1755,7 +1755,7 @@ class deepcoin extends Exchange {
             }
         }
         $mrgPosition = 'merge';
-        list($mrgPosition, $params) = $this->handle_option_and_params($params, 'createOrder', 'mrgPosition', $mrgPosition);
+        list($mrgPosition, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'mrgPosition', $mrgPosition);
         $request['mrgPosition'] = $mrgPosition;
         return $this->extend($request, $params);
     }
@@ -2275,7 +2275,7 @@ class deepcoin extends Exchange {
             }
         }
         $merged = true;
-        list($merged, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'merged', $merged);
+        list($merged, $params) = $this->handle_option_bool_and_params($params, 'cancelAllOrders', 'merged', $merged);
         $isMergedMode = $merged ? 1 : 0;
         $request = array(
             'InstrumentID' => $market['id'],
@@ -2696,7 +2696,7 @@ class deepcoin extends Exchange {
             throw new BadRequest($this->id . ' setLeverage() requires a $marginMode parameter that must be either cross or isolated');
         }
         $mrgPosition = 'merge';
-        list($mrgPosition, $params) = $this->handle_option_and_params($params, 'setLeverage', 'mrgPosition', $mrgPosition);
+        list($mrgPosition, $params) = $this->handle_option_string_and_params($params, 'setLeverage', 'mrgPosition', $mrgPosition);
         if ($mrgPosition !== 'merge' && $mrgPosition !== 'split') {
             throw new BadRequest($this->id . ' setLeverage() $mrgPosition parameter must be either merge or split');
         }

@@ -521,7 +521,7 @@ class toobit(ccxt.async_support.toobit):
             await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         channel = None
-        channel, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'channel', 'depth')
+        channel, params = self.handle_option_string_and_params(params, 'watchOrderBookForSymbols', 'channel', 'depth')
         messageHashes = []
         subParams = []
         for i in range(0, len(symbols)):

@@ -3415,7 +3415,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut requestType: Value = Value::from(vec![]);
         if (type_var.as_str() == Some("spot")) {
             let mut isMargin: Value = Value::Null;
-            { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("cancelAllOrders".into()), Value::Str("isMargin".into()), &[Value::Bool(false)]); isMargin = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp = self.handle_option_bool_and_params(params.clone(), Value::Str("cancelAllOrders".into()), Value::Str("isMargin".into()), &[Value::Bool(false)]); isMargin = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
             if is_true(&isMargin) {
                 append_to_array(&mut requestType, Value::Str("margin".into()));
             }  else {
@@ -5735,7 +5735,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut nonce: Value = to_string_val(&self.incrementing_nonce());
             let mut secret: Value = self.encode(self.secret.clone());
             let mut request: Value = Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), Value::Str("api".into())).into()), Value::Str("/".into())).into()), &version), pathWithParams).into());
-            let mut nonceWindowrequestParamsVariable = self.handle_option_and_params(params, Value::Str("sign".into()), Value::Str("nonceWindow".into()), &[Value::Bool(false)]);
+            let mut nonceWindowrequestParamsVariable = self.handle_option_bool_and_params(params, Value::Str("sign".into()), Value::Str("nonceWindow".into()), &[Value::Bool(false)]);
             let mut nonceWindow: Value = nonceWindowrequestParamsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             let mut requestParams: Value = nonceWindowrequestParamsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             let __ws_arg_43 = self.extend(Value::Map({

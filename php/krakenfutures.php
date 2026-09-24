@@ -1008,7 +1008,7 @@ class krakenfutures extends Exchange {
             'symbol' => $market['id'],
         );
         $method = null;
-        list($method, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'method', 'historyGetMarketSymbolExecutions');
+        list($method, $params) = $this->handle_option_string_and_params($params, 'fetchTrades', 'method', 'historyGetMarketSymbolExecutions');
         $rawTrades = array();
         $isFullHistoryEndpoint = ($method === 'historyGetMarketSymbolExecutions');
         if ($isFullHistoryEndpoint) {

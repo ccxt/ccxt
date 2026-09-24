@@ -1316,7 +1316,7 @@ export default class cex extends Exchange {
             'amountCcy1': this.amountToPrecision (symbol, amount),
         };
         let timeInForce: Str = undefined;
-        [ timeInForce, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce', 'GTC');
+        [ timeInForce, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'timeInForce', 'GTC');
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
             request['timeInForce'] = timeInForce;

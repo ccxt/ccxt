@@ -830,7 +830,7 @@ class deribit extends Exchange {
         $result = array();
         $parsedMarkets = array();
         $fetchAllMarkets = null;
-        list($fetchAllMarkets, $params) = $this->handle_option_and_params($params, 'fetchMarkets', 'fetchAllMarkets', true);
+        list($fetchAllMarkets, $params) = $this->handle_option_bool_and_params($params, 'fetchMarkets', 'fetchAllMarkets', true);
         if ($fetchAllMarkets) {
             $instrumentsResponse = $this->publicGetGetInstruments($params);
             $instrumentsResponses[] = $instrumentsResponse;

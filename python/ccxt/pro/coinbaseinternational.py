@@ -219,7 +219,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         if self.markets is None:
             await self.load_markets()
         channel = None
-        channel, params = self.handle_option_and_params(params, 'watchTicker', 'channel', 'LEVEL1')
+        channel, params = self.handle_option_string_and_params(params, 'watchTicker', 'channel', 'LEVEL1')
         return await self.subscribe(channel, [symbol], params)
 
     def get_active_symbols(self):
@@ -246,7 +246,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         if self.markets is None:
             await self.load_markets()
         channel = None
-        channel, params = self.handle_option_and_params(params, 'watchTickers', 'channel', 'LEVEL1')
+        channel, params = self.handle_option_string_and_params(params, 'watchTickers', 'channel', 'LEVEL1')
         ticker = await self.subscribe(channel, symbols, params)
         if self.newUpdates:
             result = {}

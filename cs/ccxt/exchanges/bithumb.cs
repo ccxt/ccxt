@@ -1924,8 +1924,8 @@ public partial class bithumb : Exchange
                 string? cost = this.safeString(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
                 bool? createMarketBuyOrderRequiresPrice = true;
-                IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = isTrue(createMarketBuyOrderRequiresPriceparametersVariable[0]);
+                IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparametersVariable[0];
                 parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
                 if ((createMarketBuyOrderRequiresPrice == true))
                 {

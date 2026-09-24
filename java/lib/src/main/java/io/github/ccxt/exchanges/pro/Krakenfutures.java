@@ -721,8 +721,8 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 (this.loadMarkets()).join();
             }
             Boolean verbose = false;
-            List<Object> verboseparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrders", "verbose", false);
-            verbose = Boolean.TRUE.equals(((List<Object>) verboseparametersVariable).get(0));
+            List<Object> verboseparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchOrders", "verbose", false);
+            verbose = (Boolean) ((List<Object>) verboseparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) verboseparametersVariable).get(1);
             Object name = "open_orders";
             String messageHash = "orders";

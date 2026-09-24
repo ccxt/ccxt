@@ -2182,8 +2182,8 @@ public partial class mexc : Exchange
         Dictionary<string, object> market = this.market(symbol);
         int maxLimit = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -3048,9 +3048,9 @@ public partial class mexc : Exchange
             object amount = this.safeValue(rawOrder, "amount");
             object price = this.safeValue(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            object marginMode = null;
+            string? marginMode = null;
             IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", parameters);
-            marginMode = marginModeparametersVariable[0];
+            marginMode = (string)marginModeparametersVariable[0];
             parameters = marginModeparametersVariable[1];
             Dictionary<string, object> orderRequest = this.createSpotOrderRequest(market, type, side, amount, price, marginMode, orderParams);
             ordersRequests.Add(orderRequest);

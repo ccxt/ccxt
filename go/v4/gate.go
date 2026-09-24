@@ -6255,7 +6255,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 			if isMarketOrder && (IsEqual(side, "buy")) {
 				var quoteAmount any = nil
 				var createMarketBuyOrderRequiresPrice bool = true
-				var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
+				var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 				createMarketBuyOrderRequiresPrice = GetValueBool(createMarketBuyOrderRequiresPriceparamsVariable, 0, false)
 				params = MapTyped(GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1))
 				var cost *float64 = this.SafeNumber(params, "cost")
@@ -7240,7 +7240,7 @@ func (this *Gate) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var res []any = this.HandleMarketTypeAndParams("fetchClosedOrders", market, params)
 	var typeVar *string = this.SafeString(res, 0)
 	var useHistorical any = false
-	var useHistoricalparamsVariable []any = this.HandleOptionAndParams(params, "fetchClosedOrders", "historical", false)
+	var useHistoricalparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchClosedOrders", "historical", false)
 	useHistorical = GetValue(useHistoricalparamsVariable, 0)
 	params = GetValue(useHistoricalparamsVariable, 1)
 	if !(useHistorical == true) && (((since == nil) && (until == nil)) || (typeVar == nil || *typeVar != "swap")) {
@@ -9215,22 +9215,22 @@ func (this *Gate) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) any 
 		request["limit"] = limit
 	}
 	var response any = nil
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchBorrowInterest", params, "cross")
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	if isUnifiedAccount {
 
 		response = (<-this.PrivateUnifiedGetInterestRecords(this.Extend(request, params)))
 		PanicOnError(response)
-	} else if IsEqual(marginMode, "isolated") {
+	} else if marginMode != nil && *marginMode == "isolated" {
 		if !IsEqual(market, nil) {
 			request["currency_pair"] = GetValue(market, "id")
 		}
 
 		response = (<-this.PrivateMarginGetUniInterestRecords(this.Extend(request, params)))
 		PanicOnError(response)
-	} else if IsEqual(marginMode, "cross") {
+	} else if marginMode != nil && *marginMode == "cross" {
 		// deprecated and not present in the exchange's docs but still works
 
 		response = (<-this.PrivateMarginGetCrossInterestRecords(this.Extend(request, params)))
@@ -9568,7 +9568,7 @@ func (this *Gate) fetchOpenInterestHistoryBody(ch chan any, symbol any, optional
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenInterestHistory", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOpenInterestHistory", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {

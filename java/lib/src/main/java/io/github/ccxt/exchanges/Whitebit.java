@@ -2901,7 +2901,7 @@ public class Whitebit extends WhitebitApi
                 throw new NotSupported((this.id + " createOrder() timeInForce IOC is only supported for limit orders")) ;
             }
             List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
-            var marginMode = ((List<Object>) marginModequeryVariable).get(0);
+            String marginMode = (String) ((List<Object>) marginModequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) marginModequeryVariable).get(1);
             if (postOnly)
             {
@@ -3213,10 +3213,10 @@ public class Whitebit extends WhitebitApi
             if (java.util.Objects.equals(type, "spot"))
             {
                 Boolean isMargin = null;
-                List<Object> isMarginparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrders", "isMargin", false);
-                isMargin = Helpers.isTrue(((List<Object>) isMarginparametersVariable).get(0));
+                List<Object> isMarginparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "cancelAllOrders", "isMargin", false);
+                isMargin = (Boolean) ((List<Object>) isMarginparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) isMarginparametersVariable).get(1);
-                if (Helpers.isTrue(isMargin))
+                if (Boolean.TRUE.equals(isMargin))
                 {
                     ((List<Object>)requestType).add("margin");
                 } else
@@ -6081,8 +6081,8 @@ public class Whitebit extends WhitebitApi
             String nonce = String.valueOf(this.incrementingNonce());
             Object secret = this.encode(this.secret);
             String request = (Helpers.add((("/" + "api") + "/"), version) + pathWithParams);
-            List<Object> nonceWindowrequestParamsVariable = (List<Object>) this.handleOptionAndParams(parameters, "sign", "nonceWindow", false);
-            var nonceWindow = ((List<Object>) nonceWindowrequestParamsVariable).get(0);
+            List<Object> nonceWindowrequestParamsVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "sign", "nonceWindow", false);
+            Boolean nonceWindow = (Boolean) ((List<Object>) nonceWindowrequestParamsVariable).get(0);
             Map<String, Object> requestParams = (Map<String, Object>) ((List<Object>) nonceWindowrequestParamsVariable).get(1);
             body = (String) (this.json(this.extend(new HashMap<String, Object>() {{
                 put( "request", request );

@@ -1032,12 +1032,12 @@ public partial class hollaex : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "resolution", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        object paginate = false;
+        bool? paginate = false;
         int maxLimit = 500;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", paginate);
-        paginate = paginateparametersVariable[0];
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", paginate);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, parameters, maxLimit));
         }

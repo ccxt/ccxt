@@ -204,7 +204,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             }
             Map<String, Object> watchTickerOptions = (Map<String, Object>) this.safeDict(this.options, "watchTicker");
             Object name = this.safeString(watchTickerOptions, "name", "state"); // or price
-            List<Object> nameparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTicker", "name", name);
+            List<Object> nameparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchTicker", "name", name);
             name = ((List<Object>) nameparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) nameparametersVariable).get(1);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
@@ -257,9 +257,9 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             }
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, false));
             Map<String, Object> watchTickerOptions = (Map<String, Object>) this.safeDict(this.options, "watchTicker");
-            Object name = this.safeString(watchTickerOptions, "name", "state"); // or price
-            List<Object> nameparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "name", name);
-            name = ((List<Object>) nameparametersVariable).get(0);
+            String name = this.safeString(watchTickerOptions, "name", "state"); // or price
+            List<Object> nameparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchTickers", "name", name);
+            name = (String) ((List<Object>) nameparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) nameparametersVariable).get(1);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> args = new ArrayList<Object>(Arrays.asList());
@@ -270,7 +270,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
                 ((List<Object>)args).add(((Map<String, Object>)market).get("id"));
             }
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            final Object finalName = name;
+            final String finalName = name;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", (finalName + ".subscribe") );
                 put( "params", args );

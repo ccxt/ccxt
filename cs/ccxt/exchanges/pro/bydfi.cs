@@ -545,12 +545,12 @@ public partial class bydfi : ccxt.bydfi
         IList<object> depthparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "depth", depth);
         depth = depthparametersVariable[0];
         parameters = depthparametersVariable[1];
-        object frequency = "100ms";
-        IList<object> frequencyparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "frequency", frequency);
-        frequency = frequencyparametersVariable[0];
+        string? frequency = "100ms";
+        IList<object> frequencyparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "frequency", frequency);
+        frequency = (string)frequencyparametersVariable[0];
         parameters = frequencyparametersVariable[1];
         string channelSuffix = "";
-        if (isEqual(frequency, "100ms"))
+        if (frequency == "100ms")
         {
             channelSuffix = "@100ms";
         }
@@ -589,12 +589,12 @@ public partial class bydfi : ccxt.bydfi
         IList<object> depthparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "depth", depth);
         depth = depthparametersVariable[0];
         parameters = depthparametersVariable[1];
-        object frequency = "100ms";
-        IList<object> frequencyparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "frequency", frequency);
-        frequency = frequencyparametersVariable[0];
+        string? frequency = "100ms";
+        IList<object> frequencyparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "frequency", frequency);
+        frequency = (string)frequencyparametersVariable[0];
         parameters = frequencyparametersVariable[1];
         string channelSuffix = "";
-        if (isEqual(frequency, "100ms"))
+        if (frequency == "100ms")
         {
             channelSuffix = "@100ms";
         }

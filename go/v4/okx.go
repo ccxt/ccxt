@@ -3232,11 +3232,11 @@ func (this *Okx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	var rpiparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrderBook", "rpi")
 	rpi = GetValue(rpiparamsVariable, 0)
 	params = MapTyped(GetValue(rpiparamsVariable, 1))
-	var method any = nil
-	var methodparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrderBook", "method", "publicGetMarketBooks")
-	method = GetValue(methodparamsVariable, 0)
+	var method *string = nil
+	var methodparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchOrderBook", "method", "publicGetMarketBooks")
+	method = SafeStringPtr(GetValue(methodparamsVariable, 0))
 	params = MapTyped(GetValue(methodparamsVariable, 1))
-	if (IsEqual(method, "publicGetMarketBooksFull")) && (limit == nil) {
+	if (method != nil && *method == "publicGetMarketBooksFull") && (limit == nil) {
 		limit = 5000
 	}
 	limit = func() any {
@@ -3258,7 +3258,7 @@ func (this *Okx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 
 		response = (<-this.PublicGetMarketBooksRpi(this.Extend(request, params)))
 		PanicOnError(response)
-	} else if (IsEqual(method, "publicGetMarketBooksFull")) || (IsGreaterThan(limit, 400)) {
+	} else if (method != nil && *method == "publicGetMarketBooksFull") || (IsGreaterThan(limit, 400)) {
 
 		response = (<-this.PublicGetMarketBooksFull(this.Extend(request, params))).Raw
 		PanicOnError(response)
@@ -3774,15 +3774,15 @@ func (this *Okx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 		if limit != nil {
 			request["limit"] = limit // default 100
 		}
-		var method any = nil
-		var methodparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "method", "publicGetMarketTrades")
-		method = GetValue(methodparamsVariable, 0)
+		var method *string = nil
+		var methodparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchTrades", "method", "publicGetMarketTrades")
+		method = SafeStringPtr(GetValue(methodparamsVariable, 0))
 		params = MapTyped(GetValue(methodparamsVariable, 1))
-		if IsEqual(method, "publicGetMarketTrades") {
+		if method != nil && *method == "publicGetMarketTrades" {
 
 			response = (<-this.PublicGetMarketTrades(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if IsEqual(method, "publicGetMarketHistoryTrades") {
+		} else if method != nil && *method == "publicGetMarketHistoryTrades" {
 
 			response = (<-this.PublicGetMarketHistoryTrades(this.Extend(request, params))).Raw
 			PanicOnError(response)
@@ -4637,7 +4637,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 			if tgtCcy != nil && *tgtCcy == "quote_ccy" {
 				// quote_ccy: sz refers to units of quote currency
 				var createMarketBuyOrderRequiresPrice bool = true
-				var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
+				var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 				createMarketBuyOrderRequiresPrice = GetValueBool(createMarketBuyOrderRequiresPriceparamsVariable, 0, false)
 				params = MapTyped(GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1))
 				var notional any = DerefScalar(this.SafeNumber2(params, "cost", "sz"))
@@ -7838,14 +7838,14 @@ func (this *Okx) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any)
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchLeverage", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
-	if IsEqual(marginMode, nil) {
-		marginMode = DerefScalar(this.SafeString(params, "mgnMode", "cross")) // cross as default marginMode
+	if marginMode == nil {
+		marginMode = this.SafeString(params, "mgnMode", "cross") // cross as default marginMode
 	}
-	if (!IsEqual(marginMode, "cross")) && (!IsEqual(marginMode, "isolated")) {
+	if (marginMode == nil || *marginMode != "cross") && (marginMode == nil || *marginMode != "isolated") {
 		panic(BadRequest(this.Id + " fetchLeverage() requires a marginMode parameter that must be either cross or isolated"))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -9078,14 +9078,14 @@ func (this *Okx) setLeverageBody(ch chan any, leverage any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("setLeverage", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
-	if IsEqual(marginMode, nil) {
-		marginMode = DerefScalar(this.SafeString(params, "mgnMode", "cross")) // cross as default marginMode
+	if marginMode == nil {
+		marginMode = this.SafeString(params, "mgnMode", "cross") // cross as default marginMode
 	}
-	if (!IsEqual(marginMode, "cross")) && (!IsEqual(marginMode, "isolated")) {
+	if (marginMode == nil || *marginMode != "cross") && (marginMode == nil || *marginMode != "isolated") {
 		panic(BadRequest(this.Id + " setLeverage() requires a marginMode parameter that must be either cross or isolated"))
 	}
 	var request map[string]any = map[string]any{
@@ -9094,7 +9094,7 @@ func (this *Okx) setLeverageBody(ch chan any, leverage any, optionalArgs ...any)
 		"instId":  market["id"],
 	}
 	var posSide *string = this.SafeString(params, "posSide", "net")
-	if IsEqual(marginMode, "isolated") {
+	if marginMode != nil && *marginMode == "isolated" {
 		if (posSide == nil || *posSide != "long") && (posSide == nil || *posSide != "short") && (posSide == nil || *posSide != "net") {
 			panic(BadRequest(this.Id + " setLeverage() requires the posSide argument to be either \"long\", \"short\" or \"net\""))
 		}
@@ -9820,12 +9820,12 @@ func (this *Okx) fetchMarketLeverageTiersBody(ch chan any, symbol any, optionalA
 			panic(BadRequest(Add(this.Id+" fetchMarketLeverageTiers() cannot fetch leverage tiers for ", symbol)))
 		}
 	}
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchMarketLeverageTiers", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
-	if IsEqual(marginMode, nil) {
-		marginMode = DerefScalar(this.SafeString(params, "tdMode", "cross")) // cross as default marginMode
+	if marginMode == nil {
+		marginMode = this.SafeString(params, "tdMode", "cross") // cross as default marginMode
 	}
 	var request map[string]any = map[string]any{
 		"instType": typeVar,
@@ -9944,12 +9944,12 @@ func (this *Okx) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchBorrowInterest", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
-	if IsEqual(marginMode, nil) {
-		marginMode = DerefScalar(this.SafeString(params, "mgnMode", "cross")) // cross as default marginMode
+	if marginMode == nil {
+		marginMode = this.SafeString(params, "mgnMode", "cross") // cross as default marginMode
 	}
 	var request map[string]any = map[string]any{
 		"mgnMode": marginMode,
@@ -11078,9 +11078,9 @@ func (this *Okx) closePositionBody(ch chan any, symbol any, optionalArgs ...any)
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	var code *string = this.SafeString(params, "code")
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("closePosition", params, "cross")
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"instId":  market["id"],

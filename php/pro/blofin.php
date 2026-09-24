@@ -214,7 +214,7 @@ class blofin extends \ccxt\async\blofin {
         $callerMethodName = null;
         list($callerMethodName, $params) = $this->handle_param_string($params, 'callerMethodName', 'watchOrderBookForSymbols');
         $channelName = null;
-        list($channelName, $params) = $this->handle_option_and_params($params, $callerMethodName, 'channel', 'books');
+        list($channelName, $params) = $this->handle_option_string_and_params($params, $callerMethodName, 'channel', 'books');
         // due to some problem, temporarily disable other channels
         if ($channelName !== 'books') {
             throw new NotSupported($this->id . ' ' . $callerMethodName . '() at this moment ' . $channelName . ' is not supported, coming soon');

@@ -1252,7 +1252,7 @@ class bybit(ccxt.async_support.bybit):
         }
         topic = self.safe_string(topicByMarket, self.get_private_type(url))
         executionFast = False
-        executionFast, params = self.handle_option_and_params(params, 'watchMyTrades', 'executionFast', False)
+        executionFast, params = self.handle_option_bool_and_params(params, 'watchMyTrades', 'executionFast', False)
         if executionFast:
             topic = 'execution.fast'
         trades = await self.watch_topics(url, [messageHash], [topic], params)
@@ -1289,7 +1289,7 @@ class bybit(ccxt.async_support.bybit):
         }
         topic = self.safe_string(topicByMarket, self.get_private_type(url))
         executionFast = False
-        executionFast, params = self.handle_option_and_params(params, 'watchMyTrades', 'executionFast', False)
+        executionFast, params = self.handle_option_bool_and_params(params, 'watchMyTrades', 'executionFast', False)
         if executionFast:
             topic = 'execution.fast'
         return await self.un_watch_topics(url, 'myTrades', [], [messageHash], [subHash], [topic], params)
@@ -1615,7 +1615,7 @@ class bybit(ccxt.async_support.bybit):
         url = await self.get_url_by_market_type(symbol, False, 'watchLiquidations', params)
         params = self.clean_params(params)
         method = None
-        method, params = self.handle_option_and_params(params, 'watchLiquidations', 'method', 'allLiquidation')
+        method, params = self.handle_option_string_and_params(params, 'watchLiquidations', 'method', 'allLiquidation')
         messageHash = 'liquidations::' + symbol
         topic = method + '.' + market['id']
         newLiquidation = await self.watch_topics(url, [messageHash], [topic], params)

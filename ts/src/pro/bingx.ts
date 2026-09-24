@@ -1160,8 +1160,8 @@ export default class bingx extends bingxRest {
         this.setBalanceCache (client, type, subType, subscriptionHash, params);
         let fetchBalanceSnapshot: Bool = undefined;
         let awaitBalanceSnapshot: Bool = undefined;
-        [ fetchBalanceSnapshot, params ] = this.handleOptionAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
-        [ awaitBalanceSnapshot, params ] = this.handleOptionAndParams (params, 'watchBalance', 'awaitBalanceSnapshot', false);
+        [ fetchBalanceSnapshot, params ] = this.handleOptionBoolAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        [ awaitBalanceSnapshot, params ] = this.handleOptionBoolAndParams (params, 'watchBalance', 'awaitBalanceSnapshot', false);
         if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
             await client.future (type + ':fetchBalanceSnapshot');
         }
@@ -1177,7 +1177,7 @@ export default class bingx extends bingxRest {
             return;
         }
         let fetchBalanceSnapshot = false;
-        [ fetchBalanceSnapshot, params ] = this.handleOptionAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        [ fetchBalanceSnapshot, params ] = this.handleOptionBoolAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
         if (fetchBalanceSnapshot) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
@@ -1241,8 +1241,8 @@ export default class bingx extends bingxRest {
         this.setPositionsCache (client, type, symbols);
         let fetchPositionsSnapshot: Bool = undefined;
         let awaitPositionsSnapshot: Bool = undefined;
-        [ fetchPositionsSnapshot, params ] = this.handleOptionAndParams (params, 'watchPositions', 'fetchPositionsSnapshot', true);
-        [ awaitPositionsSnapshot, params ] = this.handleOptionAndParams (params, 'watchPositions', 'awaitPositionsSnapshot', false);
+        [ fetchPositionsSnapshot, params ] = this.handleOptionBoolAndParams (params, 'watchPositions', 'fetchPositionsSnapshot', true);
+        [ awaitPositionsSnapshot, params ] = this.handleOptionBoolAndParams (params, 'watchPositions', 'awaitPositionsSnapshot', false);
         const uuid = this.uuid ();
         const subscription: Dict = {
             'unsubscribe': false,

@@ -2176,7 +2176,7 @@ class okx extends Exchange {
         $rpi = false;
         list($rpi, $params) = $this->handle_option_and_params($params, 'fetchOrderBook', 'rpi');
         $method = null;
-        list($method, $params) = $this->handle_option_and_params($params, 'fetchOrderBook', 'method', 'publicGetMarketBooks');
+        list($method, $params) = $this->handle_option_string_and_params($params, 'fetchOrderBook', 'method', 'publicGetMarketBooks');
         if ($method === 'publicGetMarketBooksFull' && $limit === null) {
             $limit = 5000;
         }
@@ -2610,7 +2610,7 @@ class okx extends Exchange {
                 $request['limit'] = $limit; // default 100
             }
             $method = null;
-            list($method, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'method', 'publicGetMarketTrades');
+            list($method, $params) = $this->handle_option_string_and_params($params, 'fetchTrades', 'method', 'publicGetMarketTrades');
             if ($method === 'publicGetMarketTrades') {
                 $response = $this->publicGetMarketTrades($this->extend($request, $params));
             } elseif ($method === 'publicGetMarketHistoryTrades') {
@@ -3315,7 +3315,7 @@ class okx extends Exchange {
                 if ($tgtCcy === 'quote_ccy') {
                     // quote_ccy: sz refers to units of quote currency
                     $createMarketBuyOrderRequiresPrice = true;
-                    list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                    list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_bool_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                     $notional = $this->safe_number_2($params, 'cost', 'sz');
                     $params = $this->omit($params, array( 'cost', 'sz' ));
                     if ($createMarketBuyOrderRequiresPrice) {

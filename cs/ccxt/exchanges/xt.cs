@@ -1858,8 +1858,8 @@ public partial class xt : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -2613,9 +2613,9 @@ public partial class xt : Exchange
             }
         } else
         {
-            object marginMode = null;
+            string? marginMode = null;
             IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchMyTrades", parameters);
-            marginMode = marginModeparametersVariable[0];
+            marginMode = (string)marginModeparametersVariable[0];
             parameters = marginModeparametersVariable[1];
             string marginOrSpotRequest = ((marginMode != null)) ? "LEVER" : "SPOT";
             request["bizType"] = marginOrSpotRequest;
@@ -3115,9 +3115,9 @@ public partial class xt : Exchange
             { "type", ((string)type).ToUpper() },
         };
         string? timeInForce = null;
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         string marginOrSpotRequest = ((marginMode != null)) ? "LEVER" : "SPOT";
         request["bizType"] = marginOrSpotRequest;
@@ -3254,11 +3254,11 @@ public partial class xt : Exchange
         {
             request["orderSide"] = ((string)side).ToUpper();
             request["triggerPriceType"] = this.safeString(parameters, "triggerPriceType", "LATEST_PRICE");
-            object marginMode = null;
+            string? marginMode = null;
             IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", parameters, "cross");
-            marginMode = marginModeparametersVariable[0];
+            marginMode = (string)marginModeparametersVariable[0];
             parameters = marginModeparametersVariable[1];
-            request["positionType"] = (isEqual(marginMode, "isolated")) ? "ISOLATED" : "CROSSED";
+            request["positionType"] = (marginMode == "isolated") ? "ISOLATED" : "CROSSED";
             if ((trailingPercent != null))
             {
                 request["callback"] = "PROPORTION";
@@ -3645,9 +3645,9 @@ public partial class xt : Exchange
             response = await this.privateLinearGetFutureTradeV1OrderListHistory(this.extend(request, parameters));
         } else
         {
-            object marginMode = null;
+            string? marginMode = null;
             IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchOrders", parameters);
-            marginMode = marginModeparametersVariable[0];
+            marginMode = (string)marginModeparametersVariable[0];
             parameters = marginModeparametersVariable[1];
             string marginOrSpotRequest = ((marginMode != null)) ? "LEVER" : "SPOT";
             request["bizType"] = marginOrSpotRequest;
@@ -3908,9 +3908,9 @@ public partial class xt : Exchange
             }
         } else
         {
-            object marginMode = null;
+            string? marginMode = null;
             IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchOrdersByStatus", parameters);
-            marginMode = marginModeparametersVariable[0];
+            marginMode = (string)marginModeparametersVariable[0];
             parameters = marginModeparametersVariable[1];
             string marginOrSpotRequest = ((marginMode != null)) ? "LEVER" : "SPOT";
             request["bizType"] = marginOrSpotRequest;
@@ -4419,9 +4419,9 @@ public partial class xt : Exchange
             response = await this.privateLinearPostFutureTradeV1OrderCancelAll(this.extend(request, parameters));
         } else
         {
-            object marginMode = null;
+            string? marginMode = null;
             IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("cancelAllOrders", parameters);
-            marginMode = marginModeparametersVariable[0];
+            marginMode = (string)marginModeparametersVariable[0];
             parameters = marginModeparametersVariable[1];
             string marginOrSpotRequest = ((marginMode != null)) ? "LEVER" : "SPOT";
             request["bizType"] = marginOrSpotRequest;

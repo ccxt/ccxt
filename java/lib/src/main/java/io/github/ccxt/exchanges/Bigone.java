@@ -2018,12 +2018,12 @@ public class Bigone extends BigoneApi
                 if (Boolean.TRUE.equals(isBuy))
                 {
                     Boolean createMarketBuyOrderRequiresPrice = null;
-                    List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                    createMarketBuyOrderRequiresPrice = Helpers.isTrue(((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0));
+                    List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                    createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                     parameters = (Map<String, Object>) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                     Double cost = this.safeNumber(parameters, "cost");
                     parameters = (Map<String, Object>) this.omit(parameters, "cost");
-                    if (Helpers.isTrue(createMarketBuyOrderRequiresPrice))
+                    if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                     {
                         if ((java.util.Objects.equals(price, null)) && (java.util.Objects.equals(cost, null)))
                         {

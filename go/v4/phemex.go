@@ -2558,7 +2558,7 @@ func (this *Phemex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	if typeVar != nil && *typeVar == "swap" {
 		var settle any = nil
-		var settleparamsVariable []any = this.HandleOptionAndParams(params, "fetchBalance", "settle", "USDT")
+		var settleparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchBalance", "settle", "USDT")
 		settle = GetValue(settleparamsVariable, 0)
 		params = MapTyped(GetValue(settleparamsVariable, 1))
 		if (code != nil) || (settle != nil) {
@@ -4551,7 +4551,7 @@ func (this *Phemex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		settle = GetValue(market, "settle")
 		code = GetValue(market, "settle")
 	} else {
-		var settleparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositions", "settle", code)
+		var settleparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchPositions", "settle", code)
 		settle = GetValue(settleparamsVariable, 0)
 		params = MapTyped(GetValue(settleparamsVariable, 1))
 	}
@@ -4577,11 +4577,11 @@ func (this *Phemex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var response map[string]any = nil
 	if isUSDTSettled {
-		var method any = nil
-		var methodparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositions", "method", "privateGetGAccountsAccountPositions")
-		method = GetValue(methodparamsVariable, 0)
+		var method *string = nil
+		var methodparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchPositions", "method", "privateGetGAccountsAccountPositions")
+		method = SafeStringPtr(GetValue(methodparamsVariable, 0))
 		params = MapTyped(GetValue(methodparamsVariable, 1))
-		if IsEqual(method, "privateGetGAccountsAccountPositions") {
+		if method != nil && *method == "privateGetGAccountsAccountPositions" {
 
 			response = MapTyped(PanicOnError((<-this.PrivateGetGAccountsAccountPositions(this.Extend(request, params))).Raw))
 		} else {
@@ -6555,7 +6555,7 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 		settle = GetValue(market, "settle")
 		code = GetValue(market, "settle")
 	} else {
-		var settleparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositionsADLRank", "settle", code)
+		var settleparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchPositionsADLRank", "settle", code)
 		settle = GetValue(settleparamsVariable, 0)
 		params = MapTyped(GetValue(settleparamsVariable, 1))
 	}
@@ -6581,11 +6581,11 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 	}
 	var response map[string]any = nil
 	if isUSDTSettled {
-		var method any = nil
-		var methodparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositionsADLRank", "method", "privateGetGAccountsAccountPositions")
-		method = GetValue(methodparamsVariable, 0)
+		var method *string = nil
+		var methodparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchPositionsADLRank", "method", "privateGetGAccountsAccountPositions")
+		method = SafeStringPtr(GetValue(methodparamsVariable, 0))
 		params = MapTyped(GetValue(methodparamsVariable, 1))
-		if IsEqual(method, "privateGetGAccountsAccountPositions") {
+		if method != nil && *method == "privateGetGAccountsAccountPositions" {
 
 			response = MapTyped(PanicOnError((<-this.PrivateGetGAccountsAccountPositions(this.Extend(request, params))).Raw))
 		} else {

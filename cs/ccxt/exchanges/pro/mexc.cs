@@ -809,11 +809,11 @@ public partial class mexc : ccxt.mexc
         object orderbook = null;
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            object frequency = null;
-            IList<object> frequencyparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "frequency", "100ms");
-            frequency = frequencyparametersVariable[0];
+            string? frequency = null;
+            IList<object> frequencyparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBook", "frequency", "100ms");
+            frequency = (string)frequencyparametersVariable[0];
             parameters = frequencyparametersVariable[1];
-            string channel = ((("spot@public.aggre.depth.v3.api.pb@" + (frequency)) + "@") + ((market.ContainsKey("id") ? market["id"] : null)));
+            string channel = ((("spot@public.aggre.depth.v3.api.pb@" + frequency) + "@") + ((market.ContainsKey("id") ? market["id"] : null)));
             orderbook = await this.watchSpotPublic(channel, messageHash, parameters);
         } else
         {
@@ -2045,11 +2045,11 @@ public partial class mexc : ccxt.mexc
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
             url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "spot");
-            object frequency = null;
-            IList<object> frequencyparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "frequency", "100ms");
-            frequency = frequencyparametersVariable[0];
+            string? frequency = null;
+            IList<object> frequencyparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBook", "frequency", "100ms");
+            frequency = (string)frequencyparametersVariable[0];
             parameters = frequencyparametersVariable[1];
-            string channel = ((("spot@public.aggre.depth.v3.api.pb@" + (frequency)) + "@") + ((market.ContainsKey("id") ? market["id"] : null)));
+            string channel = ((("spot@public.aggre.depth.v3.api.pb@" + frequency) + "@") + ((market.ContainsKey("id") ? market["id"] : null)));
             ((IDictionary<string,object>)parameters)["unsubscribed"] = true;
             this.spawn(this.watchSpotPublic, new object[] { channel, messageHash, parameters});
         } else

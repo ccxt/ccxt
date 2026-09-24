@@ -296,7 +296,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             callerMethodName = ((List<Object>) callerMethodNameparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) callerMethodNameparametersVariable).get(1);
             Object channelName = null;
-            List<Object> channelNameparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, callerMethodName, "channel", "books");
+            List<Object> channelNameparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, (String) (callerMethodName), "channel", "books");
             channelName = ((List<Object>) channelNameparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) channelNameparametersVariable).get(1);
             // due to some problem, temporarily disable other channels

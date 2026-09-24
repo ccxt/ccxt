@@ -842,8 +842,8 @@ public class Cryptocom extends CryptocomApi
                 return new HashMap<String, Object>() {{}};
             }
             Boolean skipFetchCurrencies = false;
-            List<Object> skipFetchCurrenciesparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchCurrencies", "skipFetchCurrencies", false);
-            skipFetchCurrencies = Boolean.TRUE.equals(((List<Object>) skipFetchCurrenciesparametersVariable).get(0));
+            List<Object> skipFetchCurrenciesparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchCurrencies", "skipFetchCurrencies", false);
+            skipFetchCurrencies = (Boolean) ((List<Object>) skipFetchCurrenciesparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) skipFetchCurrenciesparametersVariable).get(1);
             if (Boolean.TRUE.equals(skipFetchCurrencies))
             {
@@ -1573,8 +1573,8 @@ public class Cryptocom extends CryptocomApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -2363,8 +2363,8 @@ public class Cryptocom extends CryptocomApi
             // use createmarketBuy logic here
             String quoteAmount = null;
             Boolean createMarketBuyOrderRequiresPrice = true;
-            List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-            createMarketBuyOrderRequiresPrice = Boolean.TRUE.equals(((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0));
+            List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
             Double cost = this.safeNumber2(parameters, "cost", "notional");
             parameters = (Map<String, Object>) (this.omit(parameters, "cost"));
@@ -3753,9 +3753,9 @@ public class Cryptocom extends CryptocomApi
         String defaultType = this.safeString(this.options, "defaultType");
         Boolean isMargin = (Boolean) this.safeBool(parameters, "margin", false);
         parameters = (Map<String, Object>) (this.omit(parameters, "margin"));
-        Object marginMode = null;
+        String marginMode = null;
         List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams(methodName, parameters);
-        marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+        marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
         if (!java.util.Objects.equals(marginMode, null))
         {

@@ -559,7 +559,7 @@ export default class toobit extends toobitRest {
         }
         symbols = this.marketSymbols (symbols, undefined, false);
         let channel: Str = undefined;
-        [ channel, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'channel', 'depth');
+        [ channel, params ] = this.handleOptionStringAndParams (params, 'watchOrderBookForSymbols', 'channel', 'depth');
         const messageHashes: List = [];
         const subParams: List = [];
         for (let i = 0; i < symbols.length; i++) {

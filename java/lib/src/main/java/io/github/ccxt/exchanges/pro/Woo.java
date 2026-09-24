@@ -185,12 +185,12 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             {
                 (this.loadMarkets()).join();
             }
-            Object method = null;
-            List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "method", "orderbook");
-            method = ((List<Object>) methodparametersVariable).get(0);
+            String method = null;
+            List<Object> methodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBook", "method", "orderbook");
+            method = (String) ((List<Object>) methodparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            String topic = Helpers.add((((Map<String, Object>)market).get("id") + "@"), method);
+            String topic = ((((Map<String, Object>)market).get("id") + "@") + method);
             String urlUid = (((!java.util.Objects.equals(this.uid, "")))) ? ("/" + this.uid) : "";
             Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public"), urlUid);
             Long requestId = this.requestId(url);
@@ -199,7 +199,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "topic", topic );
                 put( "id", requestId );
             }};
-            final Object finalMethod = method;
+            final String finalMethod = method;
             final Map<String, Object> finalParameters = parameters;
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "id", String.valueOf(requestId) );
@@ -253,12 +253,12 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             {
                 (this.loadMarkets()).join();
             }
-            Object method = null;
-            List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "method", "orderbook");
-            method = ((List<Object>) methodparametersVariable).get(0);
+            String method = null;
+            List<Object> methodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBook", "method", "orderbook");
+            method = (String) ((List<Object>) methodparametersVariable).get(0);
             parameters = ((List<Object>) methodparametersVariable).get(1);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object subHash = Helpers.add((((Map<String, Object>)market).get("id") + "@"), method);
+            String subHash = ((((Map<String, Object>)market).get("id") + "@") + method);
             String topic = "orderbook";
             return (this.unwatchPublic(subHash, (String) (((Map<String, Object>)market).get("symbol")), topic, parameters)).join();
         });
@@ -527,12 +527,12 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             {
                 (this.loadMarkets()).join();
             }
-            Object method = null;
-            List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTicker", "method", "ticker");
-            method = ((List<Object>) methodparametersVariable).get(0);
+            String method = null;
+            List<Object> methodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchTicker", "method", "ticker");
+            method = (String) ((List<Object>) methodparametersVariable).get(0);
             parameters = ((List<Object>) methodparametersVariable).get(1);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object subHash = Helpers.add((((Map<String, Object>)market).get("id") + "@"), method);
+            String subHash = ((((Map<String, Object>)market).get("id") + "@") + method);
             String topic = "ticker";
             return (this.unwatchPublic(subHash, (String) (((Map<String, Object>)market).get("symbol")), topic, parameters)).join();
         });

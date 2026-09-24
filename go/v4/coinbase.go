@@ -1895,7 +1895,7 @@ func (this *Coinbase) fetchMarketsV3Body(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var usePrivate bool = false
-	var usePrivateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMarkets", "usePrivate", false)
+	var usePrivateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchMarkets", "usePrivate", false)
 	usePrivate = GetValueBool(usePrivateparamsVariable, 0, false)
 	params = MapTyped(GetValue(usePrivateparamsVariable, 1))
 	var spotUnresolvedPromises []any = []any{}
@@ -2746,7 +2746,7 @@ func (this *Coinbase) fetchTickersV3Body(ch chan any, optionalArgs ...any) any {
 	}
 	var response map[string]any = nil
 	var usePrivate bool = false
-	var usePrivateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTickers", "usePrivate", false)
+	var usePrivateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchTickers", "usePrivate", false)
 	usePrivate = GetValueBool(usePrivateparamsVariable, 0, false)
 	params = MapTyped(GetValue(usePrivateparamsVariable, 1))
 	if usePrivate {
@@ -2914,7 +2914,7 @@ func (this *Coinbase) fetchTickerV3Body(ch chan any, symbol any, optionalArgs ..
 		"limit":      1,
 	}
 	var usePrivate bool = false
-	var usePrivateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTicker", "usePrivate", false)
+	var usePrivateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchTicker", "usePrivate", false)
 	usePrivate = GetValueBool(usePrivateparamsVariable, 0, false)
 	params = MapTyped(GetValue(usePrivateparamsVariable, 1))
 	var response map[string]any = nil
@@ -3988,7 +3988,7 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar any, side
 		if (GetValue(market, "spot") == true) && (IsEqual(side, "buy")) {
 			var total any = nil
 			var createMarketBuyOrderRequiresPrice bool = true
-			var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
+			var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			createMarketBuyOrderRequiresPrice = GetValueBool(createMarketBuyOrderRequiresPriceparamsVariable, 0, false)
 			params = MapTyped(GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1))
 			var cost *float64 = this.SafeNumber(params, "cost")
@@ -4902,7 +4902,7 @@ func (this *Coinbase) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		return mathMin(limit, maxLimit)
 	}()
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -4936,7 +4936,7 @@ func (this *Coinbase) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var response map[string]any = nil
 	var usePrivate bool = false
-	var usePrivateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "usePrivate", false)
+	var usePrivateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "usePrivate", false)
 	usePrivate = GetValueBool(usePrivateparamsVariable, 0, false)
 	params = MapTyped(GetValue(usePrivateparamsVariable, 1))
 	if usePrivate {
@@ -5035,7 +5035,7 @@ func (this *Coinbase) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	}
 	var response map[string]any = nil
 	var usePrivate bool = false
-	var usePrivateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "usePrivate", false)
+	var usePrivateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchTrades", "usePrivate", false)
 	usePrivate = GetValueBool(usePrivateparamsVariable, 0, false)
 	params = MapTyped(GetValue(usePrivateparamsVariable, 1))
 	if usePrivate {
@@ -5203,7 +5203,7 @@ func (this *Coinbase) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	}
 	var response map[string]any = nil
 	var usePrivate bool = false
-	var usePrivateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrderBook", "usePrivate", false)
+	var usePrivateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOrderBook", "usePrivate", false)
 	usePrivate = GetValueBool(usePrivateparamsVariable, 0, false)
 	params = MapTyped(GetValue(usePrivateparamsVariable, 1))
 	if usePrivate {

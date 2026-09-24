@@ -2497,13 +2497,13 @@ public partial class phemex : Exchange
         }
         if (type == "swap")
         {
-            object settle = null;
-            IList<object> settleparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchBalance", "settle", "USDT");
-            settle = settleparametersVariable[0];
+            string? settle = null;
+            IList<object> settleparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchBalance", "settle", "USDT");
+            settle = (string)settleparametersVariable[0];
             parameters = settleparametersVariable[1];
             if ((code != null) || (settle != null))
             {
-                object coin = null;
+                string? coin = null;
                 if ((code != null))
                 {
                     coin = code;
@@ -2511,7 +2511,7 @@ public partial class phemex : Exchange
                 {
                     coin = settle;
                 }
-                Dictionary<string, object> currency = this.currency(((string)coin));
+                Dictionary<string, object> currency = this.currency(coin);
                 request["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
                 if ((((currency.ContainsKey("id") ? currency["id"] : null) as string) == "USDT"))
                 {
@@ -4381,28 +4381,28 @@ public partial class phemex : Exchange
         string? subType = null;
         object code = this.safeString2(parameters, "currency", "code", "USDT");
         parameters = this.omit(parameters, new List<object>() {"currency", "code"});
-        object settle = null;
+        string? settle = null;
         IDictionary<string, object> market = null;
         string? firstSymbol = this.safeString(symbols, 0);
         if ((firstSymbol != null))
         {
             market = this.market(firstSymbol);
-            settle = (market.ContainsKey("settle") ? market["settle"] : null);
+            settle = ((string)(market.ContainsKey("settle") ? market["settle"] : null));
             code = (market.ContainsKey("settle") ? market["settle"] : null);
         } else
         {
-            IList<object> settleparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchPositions", "settle", code);
-            settle = settleparametersVariable[0];
+            IList<object> settleparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchPositions", "settle", code);
+            settle = (string)settleparametersVariable[0];
             parameters = settleparametersVariable[1];
         }
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("fetchPositions", market, parameters);
         subType = (string)subTypeparametersVariable[0];
         parameters = subTypeparametersVariable[1];
-        bool isUSDTSettled = isEqual(settle, "USDT");
+        bool isUSDTSettled = settle == "USDT";
         if (isUSDTSettled)
         {
             code = "USDT";
-        } else if (isEqual(settle, "BTC"))
+        } else if (settle == "BTC")
         {
             code = "BTC";
         } else if ((code == null))
@@ -4416,11 +4416,11 @@ public partial class phemex : Exchange
         Dictionary<string, object> response = null;
         if (isUSDTSettled)
         {
-            object method = null;
-            IList<object> methodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchPositions", "method", "privateGetGAccountsAccountPositions");
-            method = methodparametersVariable[0];
+            string? method = null;
+            IList<object> methodparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchPositions", "method", "privateGetGAccountsAccountPositions");
+            method = (string)methodparametersVariable[0];
             parameters = methodparametersVariable[1];
-            if (isEqual(method, "privateGetGAccountsAccountPositions"))
+            if (method == "privateGetGAccountsAccountPositions")
             {
                 response = await this.privateGetGAccountsAccountPositions(this.extend(request, parameters));
             } else
@@ -6198,28 +6198,28 @@ public partial class phemex : Exchange
         string? subType = null;
         object code = this.safeString2(parameters, "currency", "code", "USDT");
         parameters = this.omit(parameters, new List<object>() {"currency", "code"});
-        object settle = null;
+        string? settle = null;
         IDictionary<string, object> market = null;
         string? firstSymbol = this.safeString(symbols, 0);
         if ((firstSymbol != null))
         {
             market = this.market(firstSymbol);
-            settle = (market.ContainsKey("settle") ? market["settle"] : null);
+            settle = ((string)(market.ContainsKey("settle") ? market["settle"] : null));
             code = (market.ContainsKey("settle") ? market["settle"] : null);
         } else
         {
-            IList<object> settleparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchPositionsADLRank", "settle", code);
-            settle = settleparametersVariable[0];
+            IList<object> settleparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchPositionsADLRank", "settle", code);
+            settle = (string)settleparametersVariable[0];
             parameters = settleparametersVariable[1];
         }
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("fetchPositionsADLRank", market, parameters);
         subType = (string)subTypeparametersVariable[0];
         parameters = subTypeparametersVariable[1];
-        bool isUSDTSettled = isEqual(settle, "USDT");
+        bool isUSDTSettled = settle == "USDT";
         if (isUSDTSettled)
         {
             code = "USDT";
-        } else if (isEqual(settle, "BTC"))
+        } else if (settle == "BTC")
         {
             code = "BTC";
         } else if ((code == null))
@@ -6233,11 +6233,11 @@ public partial class phemex : Exchange
         Dictionary<string, object> response = null;
         if (isUSDTSettled)
         {
-            object method = null;
-            IList<object> methodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchPositionsADLRank", "method", "privateGetGAccountsAccountPositions");
-            method = methodparametersVariable[0];
+            string? method = null;
+            IList<object> methodparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchPositionsADLRank", "method", "privateGetGAccountsAccountPositions");
+            method = (string)methodparametersVariable[0];
             parameters = methodparametersVariable[1];
-            if (isEqual(method, "privateGetGAccountsAccountPositions"))
+            if (method == "privateGetGAccountsAccountPositions")
             {
                 response = await this.privateGetGAccountsAccountPositions(this.extend(request, parameters));
             } else

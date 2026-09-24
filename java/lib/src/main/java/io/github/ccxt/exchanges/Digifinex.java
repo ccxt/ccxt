@@ -2542,8 +2542,8 @@ public class Digifinex extends DigifinexApi
             // limit orders require the amount in the base currency, market orders require the amount in the quote currency
             String quantity = null;
             Boolean createMarketBuyOrderRequiresPrice = true;
-            List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrderRequest", "createMarketBuyOrderRequiresPrice", true);
-            createMarketBuyOrderRequiresPrice = Boolean.TRUE.equals(((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0));
+            List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "createOrderRequest", "createMarketBuyOrderRequiresPrice", true);
+            createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
             if (Boolean.TRUE.equals(isMarketOrder) && (java.util.Objects.equals(side, "buy")))
             {
@@ -5658,7 +5658,7 @@ final Object finalI = i;
         return this.parseMarketLeverageTiers(info, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public Object handleMarginModeAndParams(Object methodName, Map<String, Object> parameters, Object defaultValue)
+    public Object handleMarginModeAndParams(Object methodName, Map<String, Object> parameters, String defaultValue)
     {
         /**
          * @ignore
@@ -5690,7 +5690,7 @@ final Object finalI = i;
     }
     public Object handleMarginModeAndParams(Object methodName, Object... optionalArgs)
     {
-        return this.handleMarginModeAndParams(methodName, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null);
+        return this.handleMarginModeAndParams(methodName, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}), Helpers.getArgString(optionalArgs, 1, null));
     }
 
     /**

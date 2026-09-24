@@ -2140,9 +2140,9 @@ public partial class bitfinex : Exchange
         {
             orderType = "FOK";
         }
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && ((marginMode == null)))
         {

@@ -335,8 +335,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             {
                 String quoteAmount = null;
                 Boolean createMarketBuyOrderRequiresPrice = true;
-                List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = Boolean.TRUE.equals(((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0));
+                List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                 Double cost = this.safeNumber(parameters, "cost");
                 parameters = (Map<String, Object>) this.omit(parameters, "cost");
@@ -810,7 +810,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             }
             Map<String, Object> watchOrderBookOptions = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook");
             Object name = this.safeString(watchOrderBookOptions, "name", "book_lv2");
-            List<Object> nameparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "name", name);
+            List<Object> nameparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBook", "name", name);
             name = ((List<Object>) nameparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) nameparametersVariable).get(1);
             Object orderbook = (this.subscribe(name, name, false, new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();

@@ -331,7 +331,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
             Object messageType = this.getTypeByMarket((Map<String, Object>) (market));
             Object channel = (messageType + ".order_cancel_cp");
-            List<Object> channelparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrdersWs", "channel", channel);
+            List<Object> channelparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "cancelAllOrdersWs", "channel", channel);
             channel = ((List<Object>) channelparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) channelparametersVariable).get(1);
             Object url = this.getUrlByMarket(market);

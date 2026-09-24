@@ -184,9 +184,9 @@ func (this *Woo) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var method any = nil
-	var methodparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "method", "orderbook")
-	method = ccxt.GetValue(methodparamsVariable, 0)
+	var method *string = nil
+	var methodparamsVariable []any = this.HandleOptionStringAndParams(params, "watchOrderBook", "method", "orderbook")
+	method = ccxt.SafeStringPtr(ccxt.GetValue(methodparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(methodparamsVariable, 1))
 	var market map[string]any = this.Market(symbol)
 	var topic any = ccxt.Add(ccxt.Add(market["id"], "@"), method)
@@ -210,7 +210,7 @@ func (this *Woo) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 		"limit":  limit,
 		"params": params,
 	}
-	if ccxt.IsEqual(method, "orderbookupdate") {
+	if method != nil && *method == "orderbookupdate" {
 		subscription["method"] = this.HandleOrderBookSubscription
 	}
 
@@ -244,9 +244,9 @@ func (this *Woo) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var method any = nil
-	var methodparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "method", "orderbook")
-	method = ccxt.GetValue(methodparamsVariable, 0)
+	var method *string = nil
+	var methodparamsVariable []any = this.HandleOptionStringAndParams(params, "watchOrderBook", "method", "orderbook")
+	method = ccxt.SafeStringPtr(ccxt.GetValue(methodparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(methodparamsVariable, 1))
 	var market map[string]any = this.Market(symbol)
 	var subHash any = ccxt.Add(ccxt.Add(market["id"], "@"), method)
@@ -498,9 +498,9 @@ func (this *Woo) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var method any = nil
-	var methodparamsVariable []any = this.HandleOptionAndParams(params, "watchTicker", "method", "ticker")
-	method = ccxt.GetValue(methodparamsVariable, 0)
+	var method *string = nil
+	var methodparamsVariable []any = this.HandleOptionStringAndParams(params, "watchTicker", "method", "ticker")
+	method = ccxt.SafeStringPtr(ccxt.GetValue(methodparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(methodparamsVariable, 1))
 	var market map[string]any = this.Market(symbol)
 	var subHash any = ccxt.Add(ccxt.Add(market["id"], "@"), method)

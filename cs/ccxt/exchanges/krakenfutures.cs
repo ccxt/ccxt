@@ -1141,12 +1141,12 @@ public partial class krakenfutures : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        object method = null;
-        IList<object> methodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTrades", "method", "historyGetMarketSymbolExecutions");
-        method = methodparametersVariable[0];
+        string? method = null;
+        IList<object> methodparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchTrades", "method", "historyGetMarketSymbolExecutions");
+        method = (string)methodparametersVariable[0];
         parameters = methodparametersVariable[1];
         List<object> rawTrades = new List<object>() {};
-        bool isFullHistoryEndpoint = (isEqual(method, "historyGetMarketSymbolExecutions"));
+        bool isFullHistoryEndpoint = (method == "historyGetMarketSymbolExecutions");
         if (isFullHistoryEndpoint)
         {
             IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("before", request, parameters);

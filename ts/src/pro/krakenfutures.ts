@@ -445,7 +445,7 @@ export default class krakenfutures extends krakenfuturesRest {
             await this.loadMarkets ();
         }
         let verbose = false;
-        [ verbose, params ] = this.handleOptionAndParams (params, 'watchOrders', 'verbose', false);
+        [ verbose, params ] = this.handleOptionBoolAndParams (params, 'watchOrders', 'verbose', false);
         let name = 'open_orders';
         let messageHash = 'orders';
         if (verbose) {

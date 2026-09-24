@@ -802,11 +802,11 @@ public partial class cryptocom : Exchange
         {
             return new Dictionary<string, object>() {};
         }
-        bool skipFetchCurrencies = false;
-        IList<object> skipFetchCurrenciesparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchCurrencies", "skipFetchCurrencies", false);
-        skipFetchCurrencies = isTrue(skipFetchCurrenciesparametersVariable[0]);
+        bool? skipFetchCurrencies = false;
+        IList<object> skipFetchCurrenciesparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchCurrencies", "skipFetchCurrencies", false);
+        skipFetchCurrencies = (bool?)skipFetchCurrenciesparametersVariable[0];
         parameters = skipFetchCurrenciesparametersVariable[1];
-        if (skipFetchCurrencies)
+        if ((skipFetchCurrencies == true))
         {
             // sub-accounts can't access this endpoint
             return new Dictionary<string, object>() {};
@@ -1407,8 +1407,8 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -2076,8 +2076,8 @@ public partial class cryptocom : Exchange
             // use createmarketBuy logic here
             string? quoteAmount = null;
             bool? createMarketBuyOrderRequiresPrice = true;
-            IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-            createMarketBuyOrderRequiresPrice = isTrue(createMarketBuyOrderRequiresPriceparametersVariable[0]);
+            IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparametersVariable[0];
             parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
             double? cost = this.safeNumber2(parameters, "cost", "notional");
             parameters = this.omit(parameters, "cost");
@@ -3184,13 +3184,13 @@ public partial class cryptocom : Exchange
         string? defaultType = this.safeString(this.options, "defaultType");
         bool? isMargin = this.safeBool(parameters, "margin", false);
         parameters = this.omit(parameters, "margin");
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams(methodName, parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         if ((marginMode != null))
         {
-            if (!isEqual(marginMode, "cross"))
+            if (marginMode != "cross")
             {
                 throw new NotSupported ((this.id + " only cross margin is supported")) ;
             }

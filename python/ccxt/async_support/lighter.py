@@ -838,7 +838,7 @@ class lighter(Exchange, ImplicitAPI):
             return nonceInOptions
         # avoid skipNonce for l1 operations
         skipNonce = True
-        skipNonce, params = self.handle_option_and_params(params, 'fetchNonce', 'skipNonce', True)
+        skipNonce, params = self.handle_option_bool_and_params(params, 'fetchNonce', 'skipNonce', True)
         if skipNonce:
             return self.milliseconds()
         response = await self.publicGetNextNonce({'account_index': accountIndex, 'api_key_index': apiKeyIndex})

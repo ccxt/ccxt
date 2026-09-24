@@ -1912,7 +1912,7 @@ func (this *Xt) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -2745,9 +2745,9 @@ func (this *Xt) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			response = MapTyped(PanicOnError((<-this.PrivateLinearGetFutureTradeV1OrderTradeList(this.Extend(request, params))).Raw))
 		}
 	} else {
-		var marginMode any = nil
+		var marginMode *string = nil
 		var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchMyTrades", params)
-		marginMode = GetValue(marginModeparamsVariable, 0)
+		marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 		params = MapTyped(GetValue(marginModeparamsVariable, 1))
 		var marginOrSpotRequest string = func() string {
 			if marginMode != nil {
@@ -3296,9 +3296,9 @@ func (this *Xt) createSpotOrderBody(ch chan any, symbol any, typeVar any, side a
 		"type":   ToUpper(typeVar),
 	}
 	var timeInForce any = nil
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("createOrder", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	var marginOrSpotRequest string = func() string {
 		if marginMode != nil {
@@ -3447,12 +3447,12 @@ func (this *Xt) createContractOrderBody(ch chan any, symbol any, typeVar any, si
 	if isTrailing {
 		request["orderSide"] = ToUpper(side)
 		request["triggerPriceType"] = this.SafeString(params, "triggerPriceType", "LATEST_PRICE")
-		var marginMode any = nil
+		var marginMode *string = nil
 		var marginModeparamsVariable []any = this.HandleMarginModeAndParams("createOrder", params, "cross")
-		marginMode = GetValue(marginModeparamsVariable, 0)
+		marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 		params = MapTyped(GetValue(marginModeparamsVariable, 1))
 		request["positionType"] = func() string {
-			if IsEqual(marginMode, "isolated") {
+			if marginMode != nil && *marginMode == "isolated" {
 				return "ISOLATED"
 			}
 			return "CROSSED"
@@ -3861,9 +3861,9 @@ func (this *Xt) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		response = MapTyped(PanicOnError((<-this.PrivateLinearGetFutureTradeV1OrderListHistory(this.Extend(request, params))).Raw))
 	} else {
-		var marginMode any = nil
+		var marginMode *string = nil
 		var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchOrders", params)
-		marginMode = GetValue(marginModeparamsVariable, 0)
+		marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 		params = MapTyped(GetValue(marginModeparamsVariable, 1))
 		var marginOrSpotRequest string = func() string {
 			if marginMode != nil {
@@ -4119,9 +4119,9 @@ func (this *Xt) fetchOrdersByStatusBody(ch chan any, status any, optionalArgs ..
 			response = MapTyped(PanicOnError((<-this.PrivateLinearGetFutureTradeV1OrderList(this.Extend(request, params))).Raw))
 		}
 	} else {
-		var marginMode any = nil
+		var marginMode *string = nil
 		var marginModeparamsVariable []any = this.HandleMarginModeAndParams("fetchOrdersByStatus", params)
-		marginMode = GetValue(marginModeparamsVariable, 0)
+		marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 		params = MapTyped(GetValue(marginModeparamsVariable, 1))
 		var marginOrSpotRequest string = func() string {
 			if marginMode != nil {
@@ -4690,9 +4690,9 @@ func (this *Xt) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		response = MapTyped(PanicOnError((<-this.PrivateLinearPostFutureTradeV1OrderCancelAll(this.Extend(request, params))).Raw))
 	} else {
-		var marginMode any = nil
+		var marginMode *string = nil
 		var marginModeparamsVariable []any = this.HandleMarginModeAndParams("cancelAllOrders", params)
-		marginMode = GetValue(marginModeparamsVariable, 0)
+		marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 		params = MapTyped(GetValue(marginModeparamsVariable, 1))
 		var marginOrSpotRequest string = func() string {
 			if marginMode != nil {

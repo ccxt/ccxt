@@ -845,7 +845,7 @@ class dydx(Exchange, ImplicitAPI):
         userAux = None
         userAux, params = self.handle_option_and_params(params, methodName, 'user')
         user = userAux
-        user, params = self.handle_option_and_params(params, methodName, 'address', userAux)
+        user, params = self.handle_option_string_and_params(params, methodName, 'address', userAux)
         if (user is not None) and (user != ''):
             return [user, params]
         if (self.walletAddress is not None) and (self.walletAddress != ''):
@@ -972,7 +972,7 @@ class dydx(Exchange, ImplicitAPI):
         userAddress = None
         subAccountNumber = None
         userAddress, params = self.handle_public_address('fetchOrders', params)
-        subAccountNumber, params = self.handle_option_and_params(params, 'fetchOrders', 'subAccountNumber', '0')
+        subAccountNumber, params = self.handle_option_string_and_params(params, 'fetchOrders', 'subAccountNumber', '0')
         if self.markets is None:
             self.load_markets()
         request = {
@@ -1138,7 +1138,7 @@ class dydx(Exchange, ImplicitAPI):
         userAddress = None
         subAccountNumber = None
         userAddress, params = self.handle_public_address('fetchPositions', params)
-        subAccountNumber, params = self.handle_option_and_params(params, 'fetchPositions', 'subAccountNumber', '0')
+        subAccountNumber, params = self.handle_option_string_and_params(params, 'fetchPositions', 'subAccountNumber', '0')
         if self.markets is None:
             self.load_markets()
         request = {
@@ -2153,7 +2153,7 @@ class dydx(Exchange, ImplicitAPI):
         userAddress = None
         subAccountNumber = None
         userAddress, params = self.handle_public_address(methodName, params)
-        subAccountNumber, params = self.handle_option_and_params(params, methodName, 'subAccountNumber', '0')
+        subAccountNumber, params = self.handle_option_string_and_params(params, methodName, 'subAccountNumber', '0')
         request = {
             'address': userAddress,
             'subaccountNumber': subAccountNumber,

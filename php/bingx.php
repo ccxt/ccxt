@@ -1205,7 +1205,7 @@ class bingx extends Exchange {
         $market = $this->market($symbol);
         $maxLimit = ($market['inverse'] === true) ? 1000 : 1440;
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimit);
         }
@@ -2482,7 +2482,7 @@ class bingx extends Exchange {
             $this->load_markets();
         }
         $standard = null;
-        list($standard, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'standard', false);
+        list($standard, $params) = $this->handle_option_bool_and_params($params, 'fetchBalance', 'standard', false);
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchBalance', null, $params);
         list($marketType, $marketTypeQuery) = $this->handle_market_type_and_params('fetchBalance', null, $params);
@@ -2788,7 +2788,7 @@ class bingx extends Exchange {
         }
         $symbols = $this->market_symbols($symbols);
         $standard = null;
-        list($standard, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'standard', false);
+        list($standard, $params) = $this->handle_option_bool_and_params($params, 'fetchPositions', 'standard', false);
         if ($standard) {
             $response = $this->contractV1PrivateGetAllPosition($params);
         } else {
@@ -5076,7 +5076,7 @@ class bingx extends Exchange {
         $standard = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchCanceledAndClosedOrders', $market, $params);
         list($subType, $params) = $this->handle_sub_type_and_params('fetchCanceledAndClosedOrders', $market, $params);
-        list($standard, $params) = $this->handle_option_and_params($params, 'fetchCanceledAndClosedOrders', 'standard', false);
+        list($standard, $params) = $this->handle_option_bool_and_params($params, 'fetchCanceledAndClosedOrders', 'standard', false);
         if ($standard) {
             $response = $this->contractV1PrivateGetAllOrders($this->extend($request, $params));
         } elseif ($type === 'spot') {
@@ -5350,7 +5350,7 @@ class bingx extends Exchange {
         }
         $maxLimit = 100;
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchTransfers', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchTransfers', $code, $since, $limit, $params, $maxLimit);
         }

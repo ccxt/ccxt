@@ -2095,7 +2095,7 @@ export default class bitrue extends Exchange {
             }
             request['contractName'] = market['id'];
             let createMarketBuyOrderRequiresPrice = true;
-            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionBoolAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
             if (isMarket && (side === 'buy') && createMarketBuyOrderRequiresPrice) {
                 const cost = this.safeString (params, 'cost');
                 params = this.omit (params, 'cost');

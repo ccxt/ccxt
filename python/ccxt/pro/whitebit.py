@@ -714,8 +714,8 @@ class whitebit(ccxt.async_support.whitebit):
         self.set_balance_cache(client, type, messageHash)
         fetchBalanceSnapshot = None
         awaitBalanceSnapshot = None
-        fetchBalanceSnapshot, params = self.handle_option_and_params(params, 'watchBalance', 'fetchBalanceSnapshot', True)
-        awaitBalanceSnapshot, params = self.handle_option_and_params(params, 'watchBalance', 'awaitBalanceSnapshot', True)
+        fetchBalanceSnapshot, params = self.handle_option_bool_and_params(params, 'watchBalance', 'fetchBalanceSnapshot', True)
+        awaitBalanceSnapshot, params = self.handle_option_bool_and_params(params, 'watchBalance', 'awaitBalanceSnapshot', True)
         if fetchBalanceSnapshot and awaitBalanceSnapshot:
             await client.future(type + ':fetchBalanceSnapshot')
         # an empty params array subscribes to updates for all assets,

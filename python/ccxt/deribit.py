@@ -830,7 +830,7 @@ class deribit(Exchange, ImplicitAPI):
         result = []
         parsedMarkets = {}
         fetchAllMarkets = None
-        fetchAllMarkets, params = self.handle_option_and_params(params, 'fetchMarkets', 'fetchAllMarkets', True)
+        fetchAllMarkets, params = self.handle_option_bool_and_params(params, 'fetchMarkets', 'fetchAllMarkets', True)
         if fetchAllMarkets:
             instrumentsResponse = self.publicGetGetInstruments(params)
             instrumentsResponses.append(instrumentsResponse)

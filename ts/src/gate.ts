@@ -4709,7 +4709,7 @@ export default class gate extends Exchange {
                 if (isMarketOrder && (side === 'buy')) {
                     let quoteAmount: Str = undefined;
                     let createMarketBuyOrderRequiresPrice = true;
-                    [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                    [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionBoolAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                     const cost = this.safeNumber (params, 'cost');
                     params = this.omit (params, 'cost');
                     if (cost !== undefined) {
@@ -5504,7 +5504,7 @@ export default class gate extends Exchange {
         const res = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
         const type = this.safeString (res, 0);
         let useHistorical = false;
-        [ useHistorical, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'historical', false);
+        [ useHistorical, params ] = this.handleOptionBoolAndParams (params, 'fetchClosedOrders', 'historical', false);
         if (!useHistorical && ((since === undefined && until === undefined) || (type !== 'swap'))) {
             return await this.fetchOrdersByStatus ('finished', symbol, since, limit, params) as Order[];
         }
@@ -7349,7 +7349,7 @@ export default class gate extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenInterestHistory', 'paginate', false);
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOpenInterestHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOpenInterestHistory', symbol, since, limit, timeframe, params, 100) as OpenInterest[];
         }
