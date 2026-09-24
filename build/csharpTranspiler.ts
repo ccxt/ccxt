@@ -39,6 +39,22 @@ let __dirname = new URL('.', metaUrl).pathname;
 
 let shouldTranspileTests = true
 
+// backward-scanning equivalent of /([A-Za-z_][\w]*)\s*$/.exec (content.substring (0, end))?.[1]
+function trailingIdentifierBefore (content: string, end: number): string | undefined {
+    let j = end;
+    while (j > 0 && /\s/.test (content[j - 1])) {
+        j--;
+    }
+    let k = j;
+    while (k > 0 && /\w/.test (content[k - 1])) {
+        k--;
+    }
+    while (k < j && !/[A-Za-z_]/.test (content[k])) {
+        k++;
+    }
+    return (k < j) ? content.substring (k, j) : undefined;
+}
+
 // S10: keywords after which a `((string)…)` cast wrap is still an expression position. A
 // plain (non-keyword) identifier directly before the `(` makes it a call's argument list
 // instead (`Remove((string)key)`, the printer's `throw new ExchangeError ((string)arg)`).
@@ -5647,8 +5663,8 @@ class NewTranspiler {
             // which even puts a space before the `(`. Only an EXPRESSION-position `((string)` is a
             // cast WRAP: the identifier token before it must not be a plain callable name (a
             // keyword like `return` / `throw` / `new` still starts an expression).
-            const prevWord = /([A-Za-z_][\w]*)\s*$/.exec (content.substring (0, at));
-            if (prevWord !== null && !CALL_PRECEDING_KEYWORDS.has (prevWord[1])) {
+            const prevWord = trailingIdentifierBefore (content, at);
+            if (prevWord !== undefined && !CALL_PRECEDING_KEYWORDS.has (prevWord)) {
                 out += content.substring (i, at + 9);
                 i = at + 9;
                 continue;
