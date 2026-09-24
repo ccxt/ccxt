@@ -359,7 +359,7 @@ public partial class nado : ccxt.nado
         List<object> subscriptionParams = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbolsAndTimeframes); i++)
         {
-            object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
+            List<object> symbolAndTimeframe = this.safeList(symbolsAndTimeframes, i);
             string? marketSymbol = this.safeString(symbolAndTimeframe, 0);
             string? timeframe = this.safeString(symbolAndTimeframe, 1, "1m");
             Dictionary<string, object> market = this.market(marketSymbol);
@@ -423,7 +423,7 @@ public partial class nado : ccxt.nado
         List<object> subscriptionParams = new List<object>() {};
         for (int i = 0; i < (symbolsAndTimeframes?.Count ?? 0); i++)
         {
-            object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
+            List<object> symbolAndTimeframe = this.safeList(symbolsAndTimeframes, i);
             string? marketSymbol = this.safeString(symbolAndTimeframe, 0);
             string? timeframe = this.safeString(symbolAndTimeframe, 1, "1m");
             Dictionary<string, object> market = this.market(marketSymbol);
@@ -2011,7 +2011,7 @@ public partial class nado : ccxt.nado
         for (int i = 0; i < subscriptions.Count; i++)
         {
             string? unsubscribeHash = ((string)subscriptions[i]);
-            object subscription = getValue(client.subscriptions, unsubscribeHash);
+            IDictionary<string, object> subscription = this.safeDict(client.subscriptions, unsubscribeHash);
             string? subscriptionId = this.safeString(subscription, "id");
             if ((subscriptionId != id))
             {

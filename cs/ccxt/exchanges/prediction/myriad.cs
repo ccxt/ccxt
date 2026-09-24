@@ -1069,7 +1069,11 @@ public partial class myriad : PredictionExchange
         string sideStr = ((string)side).ToLower();
         int sideInt = (sideStr == "buy") ? 0 : 1;
         bool isMarket = (typeStr == "market");
-        string defaultTif = isMarket ? "FOK" : "GTC";
+        string defaultTif = "GTC";
+        if (isMarket)
+        {
+            defaultTif = "FOK";
+        }
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce", defaultTif);
         object priceValue = price;
         if (isEqual(priceValue, null))
@@ -1148,7 +1152,7 @@ public partial class myriad : PredictionExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < ordersLength; i++)
         {
-            object o = getValue(orders, i);
+            IDictionary<string, object> o = this.safeDict(orders, i);
             string? outcome = this.safeString(o, "outcome");
             string? type = this.safeString(o, "type");
             string? side = this.safeString(o, "side");
@@ -1520,7 +1524,11 @@ public partial class myriad : PredictionExchange
         IDictionary<string, object> inner = this.safeDict(order, "order", new Dictionary<string, object>() {});
         string? orderHash = this.safeString2(order, "orderHash", "hash");
         Int64? sideInt = this.safeInteger(inner, "side");
-        string side = ((sideInt == 1)) ? "sell" : "buy";
+        string side = "buy";
+        if ((sideInt == 1))
+        {
+            side = "sell";
+        }
         string? amountWei = this.safeString(inner, "amount");
         string? priceWei = this.safeString(inner, "price");
         string? filledWei = this.safeString(order, "filledAmount");
@@ -1533,7 +1541,14 @@ public partial class myriad : PredictionExchange
         string? tif = this.safeStringUpper(order, "timeInForce");
         bool isMarketTif = (tif == "FOK") || (tif == "FAK");
         // resolve the outcome from market/outcome ids when no market was passed (e.g. fetchOrders without a outcome)
-        string? outcome = ((market == null)) ? null : this.safeString(market, "outcome");
+        string? outcome = null;
+        if ((market == null))
+        {
+            outcome = null;
+        } else
+        {
+            outcome = this.safeString(market, "outcome");
+        }
         object outcomeObj = market;
         if ((outcome == null))
         {
@@ -2486,7 +2501,11 @@ public partial class myriad : PredictionExchange
             });
         }
         string? marketTradingModel = this.safeString(raw, "tradingModel", "amm");
-        string marketExecutionModel = (marketTradingModel == "amm") ? "amm" : "clob";
+        string marketExecutionModel = "clob";
+        if (marketTradingModel == "amm")
+        {
+            marketExecutionModel = "amm";
+        }
         int outcomesLength = (outcomes?.Count ?? 0);
         // effectively-final copy for the market object literal below (reassigned in the loop)
         string? marketResolvedOutcome = resolvedOutcome;
@@ -2777,7 +2796,7 @@ public partial class myriad : PredictionExchange
         double? change = null;
         for (int i = 0; i < (outcomes?.Count ?? 0); i++)
         {
-            object o = outcomes[i];
+            IDictionary<string, object> o = this.safeDict(outcomes, i);
             if ((this.safeString(o, "outcomeId", this.safeString(o, "id")) == outcomeId))
             {
                 price = this.safeNumber(o, "price");
@@ -2944,7 +2963,7 @@ public partial class myriad : PredictionExchange
         double? price = null;
         for (int i = 0; i < (outcomes?.Count ?? 0); i++)
         {
-            object o = outcomes[i];
+            IDictionary<string, object> o = this.safeDict(outcomes, i);
             if ((this.safeString(o, "outcomeId", this.safeString(o, "id")) == outcomeId))
             {
                 price = this.safeNumber(o, "price");
@@ -3004,7 +3023,7 @@ public partial class myriad : PredictionExchange
         List<object> bids = new List<object>() {};
         for (int i = 0; i < (rawBids?.Count ?? 0); i++)
         {
-            object row = rawBids[i];
+            List<object> row = this.safeList(rawBids, i);
             string? rowPrice = Precise.stringDiv(this.safeString(row, 0), "1000000000000000000");
             string? rowAmount = Precise.stringDiv(this.safeString(row, 1), "1000000000000000000");
             bids.Add(new List<object> {this.parseNumber(rowPrice), this.parseNumber(rowAmount)});
@@ -3012,7 +3031,7 @@ public partial class myriad : PredictionExchange
         List<object> asks = new List<object>() {};
         for (int i = 0; i < (rawAsks?.Count ?? 0); i++)
         {
-            object row = rawAsks[i];
+            List<object> row = this.safeList(rawAsks, i);
             string? rowPrice = Precise.stringDiv(this.safeString(row, 0), "1000000000000000000");
             string? rowAmount = Precise.stringDiv(this.safeString(row, 1), "1000000000000000000");
             asks.Add(new List<object> {this.parseNumber(rowPrice), this.parseNumber(rowAmount)});
@@ -3225,7 +3244,7 @@ public partial class myriad : PredictionExchange
         {
             string? key = ((string)marketKeys[i]);
             IList<object> grouped = (IList<object>)(getValue(outcomesByMarket, key));
-            object firstOutcome = getValue(grouped, 0);
+            IDictionary<string, object> firstOutcome = this.safeDict(grouped, 0);
             IDictionary<string, object> info = this.safeDict(firstOutcome, "info", new Dictionary<string, object>() {});
             promises.Add(this.myriadPublicGetMarketsId(this.extend(new Dictionary<string, object>() {
                 { "id", this.safeString(info, "marketId") },
@@ -3308,7 +3327,7 @@ public partial class myriad : PredictionExchange
         List<object> trades = new List<object>() {};
         for (int i = 0; i < getArrayLength(rows); i++)
         {
-            object row = getValue(rows, i);
+            IDictionary<string, object> row = this.safeDict(rows, i);
             string? action = this.safeString(row, "action");
             if ((action != "buy") && (action != "sell"))
             {
@@ -3779,7 +3798,7 @@ public partial class myriad : PredictionExchange
         Dictionary<string, object> updated = new Dictionary<string, object>() {};
         for (int i = 0; i < changesLength; i++)
         {
-            object change = getValue(changes, i);
+            IDictionary<string, object> change = this.safeDict(changes, i);
             string? outcomeId = this.safeString(change, "outcome");
             string? sym = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
             if ((sym == null))
@@ -4282,7 +4301,7 @@ public partial class myriad : PredictionExchange
         int positionsLength = (positions?.Count ?? 0);
         for (int i = 0; i < positionsLength; i++)
         {
-            object p = getValue(positions, i);
+            IDictionary<string, object> p = this.safeDict(positions, i);
             string? id = this.safeString(p, "id");
             if ((id != null))
             {

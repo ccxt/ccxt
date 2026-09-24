@@ -2840,7 +2840,14 @@ public partial class htx : Exchange
             string? contractType = this.safeString(info, "contract_type");
             string? contractSuffix = this.safeString(futuresCharsMaps, contractType);
             // see comment on formats a bit above
-            object constructedId = (isEqual(getValue(market, "linear"), true)) ? add(add(add(add(getValue(market, "base"), "-"), getValue(market, "quote")), "-"), contractSuffix) : add(add(getValue(market, "base"), "_"), contractSuffix);
+            object constructedId = null;
+            if (isEqual(getValue(market, "linear"), true))
+            {
+                constructedId = add(add(add(add(getValue(market, "base"), "-"), getValue(market, "quote")), "-"), contractSuffix);
+            } else
+            {
+                constructedId = add(add(getValue(market, "base"), "_"), contractSuffix);
+            }
             if (isEqual(constructedId, symbolOrMarketId))
             {
                 object symbol = getValue(market, "symbol");
@@ -3618,8 +3625,8 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -3799,7 +3806,7 @@ public partial class htx : Exchange
         object trades = this.safeValue(response, "data");
         if (!((trades is IList<object>) || (trades.GetType().IsGenericType && trades.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            trades = this.safeValue(trades, "trades");
+            trades = this.safeList(trades, "trades");
         }
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
@@ -3944,8 +3951,8 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -4194,7 +4201,7 @@ public partial class htx : Exchange
         }
         for (int i = 0; i < getArrayLength(accounts); i++)
         {
-            IDictionary<string, object> account = ((IDictionary<string, object>)getValue(accounts, i));
+            IDictionary<string, object> account = this.safeDict(accounts, i);
             IDictionary<string, object> info = this.safeDict(account, "info");
             string? subtype = this.safeString(info, "subtype");
             string? typeFromAccount = this.safeString(account, "type");
@@ -4280,7 +4287,11 @@ public partial class htx : Exchange
         string? currencyId = this.safeString(rawCurrency, "currency");
         string? code = this.safeCurrencyCode(currencyId);
         string? assetType = this.safeString(rawCurrency, "assetType");
-        string type = (assetType == "1") ? "crypto" : "fiat";
+        string type = "fiat";
+        if (assetType == "1")
+        {
+            type = "crypto";
+        }
         if ((code != null))
         {
             ((IDictionary<string,object>)(this.options.ContainsKey("networkChainIdsByNames") ? this.options["networkChainIdsByNames"] : null))[(string)code] = new Dictionary<string, object>() {};
@@ -4636,7 +4647,7 @@ public partial class htx : Exchange
             List<object> details = this.safeList(data, "details", new List<object>() {});
             for (int i = 0; i < details.Count; i++)
             {
-                object balance = details[i];
+                IDictionary<string, object> balance = this.safeDict(details, i);
                 string? currencyId = this.safeString(balance, "currency");
                 string? code = this.safeCurrencyCode(currencyId);
                 Dictionary<string, object> account = this.account();
@@ -4654,7 +4665,7 @@ public partial class htx : Exchange
             {
                 for (int i = 0; i < getArrayLength(data); i++)
                 {
-                    object entry = getValue(data, i);
+                    IDictionary<string, object> entry = this.safeDict(data, i);
                     object balances = this.safeValue(entry, "list");
                     Dictionary<string, object> subResult = new Dictionary<string, object>() {};
                     for (int j = 0; j < getArrayLength(balances); j++)
@@ -4694,7 +4705,7 @@ public partial class htx : Exchange
         {
             for (int i = 0; i < getArrayLength(data); i++)
             {
-                object balance = getValue(data, i);
+                IDictionary<string, object> balance = this.safeDict(data, i);
                 string? currencyId = this.safeString(balance, "symbol");
                 string? code = this.safeCurrencyCode(currencyId);
                 Dictionary<string, object> account = this.account();
@@ -4945,7 +4956,7 @@ public partial class htx : Exchange
         object order = this.safeValue(response, "data");
         if (((order is IList<object>) || (order.GetType().IsGenericType && order.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            order = this.safeValue(order, 0);
+            order = this.safeDict(order, 0);
         }
         return ccxt.BaseExchange.ToOrder(this.parseOrder(order, market));
     }
@@ -5289,8 +5300,8 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchCanceledOrders", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchCanceledOrders", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -5364,8 +5375,8 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchClosedOrders", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchClosedOrders", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -6270,7 +6281,11 @@ public partial class htx : Exchange
             }
         } else
         {
-            string defaultOperator = (isEqual(side, "sell")) ? "lte" : "gte";
+            string defaultOperator = "gte";
+            if (isEqual(side, "sell"))
+            {
+                defaultOperator = "lte";
+            }
             string? stopOperator = this.safeString(parameters, "operator", defaultOperator);
             request["stop-price"] = this.priceToPrecision(symbol, triggerPrice);
             request["operator"] = stopOperator;
@@ -6858,7 +6873,7 @@ public partial class htx : Exchange
         object marginMode = null;
         for (int i = 0; i < getArrayLength(orders); i++)
         {
-            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
+            IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
             if ((symbol == null))
             {
@@ -8552,8 +8567,8 @@ public partial class htx : Exchange
             throw new ArgumentsRequired ((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -8890,7 +8905,7 @@ public partial class htx : Exchange
         //        ]
         //    }
         //
-        object data = this.safeValue(response, "data");
+        List<object> data = this.safeList(response, "data");
         List<object> interest = this.parseBorrowInterests(data, market);
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,code, since, limit));
     }
@@ -8939,7 +8954,11 @@ public partial class htx : Exchange
         //   }
         //
         string? marketId = this.safeString(info, "symbol");
-        string marginMode = ((marketId == null)) ? "cross" : "isolated";
+        string marginMode = "isolated";
+        if ((marketId == null))
+        {
+            marginMode = "cross";
+        }
         market = this.safeMarket(marketId);
         string? symbol = this.safeString(market, "symbol");
         Int64? timestamp = this.safeInteger(info, "accrued-at");
@@ -9473,7 +9492,11 @@ public partial class htx : Exchange
         double? entryPrice = this.safeNumber2(position, "cost_open", "open_avg_price");
         string? initialMargin = this.safeString2(position, "position_margin", "initial_margin");
         string? rawSide = this.safeString(position, "direction");
-        string directionSide = (rawSide == "buy") ? "long" : "short";
+        string directionSide = "short";
+        if (rawSide == "buy")
+        {
+            directionSide = "long";
+        }
         string? rawPositionSide = this.safeString(position, "position_side");
         // in one-way mode, "position_side" is "both" and the actual long/short signal is only present in "direction"
         string? side = directionSide;
@@ -9808,8 +9831,8 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -9930,7 +9953,7 @@ public partial class htx : Exchange
         List<object> brackets = this.safeList(info, "list", new List<object>() {});
         for (int i = 0; i < brackets.Count; i++)
         {
-            object item = brackets[i];
+            IDictionary<string, object> item = this.safeDict(brackets, i);
             string? leverage = this.safeString(item, "lever_rate");
             List<object> ladders = this.safeList(item, "ladders", new List<object>() {});
             for (int k = 0; k < ladders.Count; k++)
@@ -10656,7 +10679,7 @@ public partial class htx : Exchange
             return ccxt.BaseExchange.ToDictList(this.sortBy(settlementsLinear, "timestamp"));
         }
         IDictionary<string, object> data = this.safeDict(response, "data");
-        object settlementRecord = this.safeValue(data, "settlement_record");
+        List<object> settlementRecord = this.safeList(data, "settlement_record");
         List<object> settlements = this.parseSettlements(settlementRecord, market);
         return ccxt.BaseExchange.ToDictList(this.sortBy(settlements, "timestamp"));
     }
@@ -10756,7 +10779,7 @@ public partial class htx : Exchange
         object result = this.depositWithdrawFee(fee);
         for (int j = 0; j < chains.Count; j++)
         {
-            object chainEntry = chains[j];
+            IDictionary<string, object> chainEntry = this.safeDict(chains, j);
             string? networkId = this.safeString(chainEntry, "chain");
             string? withdrawFeeType = this.safeString(chainEntry, "withdrawFeeType");
             string? networkCode = this.networkIdToCode(networkId, code);
@@ -10845,7 +10868,7 @@ public partial class htx : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(settlements); i++)
         {
-            object settlement = getValue(settlements, i);
+            IDictionary<string, object> settlement = this.safeDict(settlements, i);
             List<object> list = this.safeList(settlement, "list");
             if (isEqual((market != null && market.ContainsKey("linear") ? market["linear"] : null), true))
             {
@@ -10860,7 +10883,7 @@ public partial class htx : Exchange
                 };
                 for (int j = 0; j < list.Count; j++)
                 {
-                    object item = list[j];
+                    IDictionary<string, object> item = this.safeDict(list, j);
                     Dictionary<string, object> parsedSettlement = this.parseSettlement(item, market);
                     result.Add(this.extend(parsedSettlement, timestampDetails));
                 }
@@ -11152,7 +11175,11 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        string posMode = isTrue(hedged) ? "dual_side" : "single_side";
+        string posMode = "single_side";
+        if (isTrue(hedged))
+        {
+            posMode = "dual_side";
+        }
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {

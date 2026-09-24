@@ -299,7 +299,7 @@ public partial class upbit : ccxt.upbit
         List<object> data = this.safeList(message, "orderbook_units", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = this.safeDict(data, i);
             double? ask_price = this.safeFloat(entry, "ask_price");
             double? ask_size = this.safeFloat(entry, "ask_size");
             double? bid_price = this.safeFloat(entry, "bid_price");
@@ -751,7 +751,7 @@ public partial class upbit : ccxt.upbit
         ((IDictionary<string,object>)this.balance)["datetime"] = this.iso8601(timestamp);
         for (int i = 0; i < data.Count; i++)
         {
-            object balance = data[i];
+            IDictionary<string, object> balance = this.safeDict(data, i);
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             string? available = this.safeString(balance, "balance");

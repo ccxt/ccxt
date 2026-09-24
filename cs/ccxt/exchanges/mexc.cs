@@ -3026,7 +3026,7 @@ public partial class mexc : Exchange
         string? symbol = null;
         for (int i = 0; i < getArrayLength(orders); i++)
         {
-            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
+            IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
             Dictionary<string, object> market = this.market(marketId);
             if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true))
@@ -4362,7 +4362,7 @@ public partial class mexc : Exchange
         {
             for (int i = 0; i < (wallet?.Count ?? 0); i++)
             {
-                object entry = wallet[i];
+                IDictionary<string, object> entry = this.safeDict(wallet, i);
                 IDictionary<string, object> bs = this.safeDict(entry, "baseAsset", new Dictionary<string, object>() {});
                 IDictionary<string, object> quote = this.safeDict(entry, "quoteAsset", new Dictionary<string, object>() {});
                 string? baseCode = this.safeCurrencyCode(this.safeString(bs, "asset"));
@@ -4381,7 +4381,7 @@ public partial class mexc : Exchange
         {
             for (int i = 0; i < (wallet?.Count ?? 0); i++)
             {
-                object entry = wallet[i];
+                IDictionary<string, object> entry = this.safeDict(wallet, i);
                 string? currencyId = this.safeString(entry, "currency");
                 string? code = this.safeCurrencyCode(currencyId);
                 Dictionary<string, object> account = this.account();
@@ -4397,7 +4397,7 @@ public partial class mexc : Exchange
         {
             for (int i = 0; i < (wallet?.Count ?? 0); i++)
             {
-                object entry = wallet[i];
+                IDictionary<string, object> entry = this.safeDict(wallet, i);
                 string? currencyId = this.safeString(entry, "asset");
                 string? code = this.safeCurrencyCode(currencyId);
                 Dictionary<string, object> account = this.account();
@@ -5995,9 +5995,9 @@ public partial class mexc : Exchange
         {
             currency = this.currency(code);
         }
-        object fromAccountType = null;
-        IList<object> fromAccountTypeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTransfers", "fromAccountType");
-        fromAccountType = fromAccountTypeparametersVariable[0];
+        string? fromAccountType = null;
+        IList<object> fromAccountTypeparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchTransfers", "fromAccountType");
+        fromAccountType = (string)fromAccountTypeparametersVariable[0];
         parameters = fromAccountTypeparametersVariable[1];
         Dictionary<string, object> accountTypes = new Dictionary<string, object>() {
             { "spot", "SPOT" },
@@ -6013,9 +6013,9 @@ public partial class mexc : Exchange
         {
             throw new ArgumentsRequired ((this.id + " fetchTransfers() requires a fromAccountType parameter, one of \"SPOT\", \"FUTURES\"")) ;
         }
-        object toAccountType = null;
-        IList<object> toAccountTypeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTransfers", "toAccountType");
-        toAccountType = toAccountTypeparametersVariable[0];
+        string? toAccountType = null;
+        IList<object> toAccountTypeparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchTransfers", "toAccountType");
+        toAccountType = (string)toAccountTypeparametersVariable[0];
         parameters = toAccountTypeparametersVariable[1];
         if ((toAccountType != null))
         {
@@ -6466,7 +6466,7 @@ public partial class mexc : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int j = 0; j < networkList.Count; j++)
         {
-            object networkEntry = networkList[j];
+            IDictionary<string, object> networkEntry = this.safeDict(networkList, j);
             string? networkId = this.safeString(networkEntry, "network");
             string? networkCode = this.safeString((this.options.ContainsKey("networks") ? this.options["networks"] : null), networkId, networkId);
             double? fee = this.safeNumber(networkEntry, "withdrawFee");
@@ -6556,7 +6556,7 @@ public partial class mexc : Exchange
         Dictionary<string, object> result = this.depositWithdrawFee(fee);
         for (int j = 0; j < networkList.Count; j++)
         {
-            object networkEntry = networkList[j];
+            IDictionary<string, object> networkEntry = this.safeDict(networkList, j);
             string? networkId = this.safeString(networkEntry, "network");
             string? networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
             if ((networkCode != null))
@@ -6638,7 +6638,7 @@ public partial class mexc : Exchange
         Int64? shortLeverage = null;
         for (int i = 0; i < getArrayLength(leverage); i++)
         {
-            object entry = getValue(leverage, i);
+            IDictionary<string, object> entry = this.safeDict(leverage, i);
             Int64? openType = this.safeInteger(entry, "openType");
             Int64? positionType = this.safeInteger(entry, "positionType");
             if ((positionType == 1))

@@ -558,7 +558,11 @@ public partial class bitfinex : ccxt.bitfinex
         //
         int numFields = getArrayLength(trade);
         bool isPublic = numFields <= 8;
-        object marketId = (!isPublic) ? this.safeString(trade, 1) : null;
+        object marketId = null;
+        if (!isPublic)
+        {
+            marketId = this.safeString(trade, 1);
+        }
         market = this.safeMarket(marketId, market);
         int createdKey = isPublic ? 1 : 2;
         int priceKey = isPublic ? 3 : 5;
@@ -575,7 +579,11 @@ public partial class bitfinex : ccxt.bitfinex
                 type = "market";
             }
         }
-        string? orderId = (!isPublic) ? this.safeString(trade, 3) : null;
+        string? orderId = null;
+        if (!isPublic)
+        {
+            orderId = this.safeString(trade, 3);
+        }
         string? id = this.safeString(trade, 0);
         Int64? timestamp = this.safeInteger(trade, createdKey);
         string? price = this.safeString(trade, priceKey);
@@ -796,7 +804,7 @@ public partial class bitfinex : ccxt.bitfinex
                 object deltas = getValue(message, 1);
                 for (int i = 0; i < getArrayLength(deltas); i++)
                 {
-                    object delta = getValue(deltas, i);
+                    List<object> delta = this.safeList(deltas, i);
                     object amount = this.safeNumber(delta, 2);
                     if (isEqual(amount, null))
                     {

@@ -889,7 +889,11 @@ public partial class hashkey : ccxt.hashkey
         List<object> data = this.safeList(message, "B", new List<object>() {});
         IDictionary<string, object> balanceUpdate = this.safeDict(data, 0);
         bool isSpot = eventVar == "outboundAccountInfo";
-        string type = isSpot ? "spot" : "swap";
+        string type = "swap";
+        if (isSpot)
+        {
+            type = "spot";
+        }
         if (!(inOp(this.balance, type)))
         {
             ((IDictionary<string,object>)this.balance)[type] = new Dictionary<string, object>() {};

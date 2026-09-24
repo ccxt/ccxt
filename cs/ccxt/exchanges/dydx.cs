@@ -983,15 +983,15 @@ public partial class dydx : Exchange
 
     public virtual List<object> handlePublicAddress(object methodName, object parameters)
     {
-        object userAux = null;
-        IList<object> userAuxparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "user");
-        userAux = userAuxparametersVariable[0];
+        string? userAux = null;
+        IList<object> userAuxparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "user");
+        userAux = (string)userAuxparametersVariable[0];
         parameters = userAuxparametersVariable[1];
-        object user = userAux;
+        string? user = userAux;
         IList<object> userparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "address", userAux);
-        user = userparametersVariable[0];
+        user = (string)userparametersVariable[0];
         parameters = userparametersVariable[1];
-        if (((user != null)) && (!isEqual(user, "")))
+        if (((user != null)) && (user != ""))
         {
             return new List<object>() {user, parameters};
         }

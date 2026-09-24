@@ -1640,7 +1640,7 @@ public partial class phemex : Exchange
         //         48759063370, // quote volume
         //     ]
         //
-        object baseVolume = null;
+        double? baseVolume = null;
         if (((market != null)) && (isEqual(getValue(market, "spot"), true)))
         {
             baseVolume = this.parseNumber(this.fromEv(this.safeString(ohlcv, 7), market));
@@ -2389,7 +2389,7 @@ public partial class phemex : Exchange
         List<object> data = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            object balance = data[i];
+            IDictionary<string, object> balance = this.safeDict(data, i);
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             IDictionary<string, object> currency = this.safeDict(this.currencies, code, new Dictionary<string, object>() {});
@@ -4053,11 +4053,11 @@ public partial class phemex : Exchange
         object data = null;
         if (isUSDTSettled)
         {
-            data = this.safeValue(response, "data", new List<object>() {});
+            data = this.safeList(response, "data", new List<object>() {});
         } else
         {
             data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-            data = this.safeValue(data, "rows", new List<object>() {});
+            data = this.safeList(data, "rows", new List<object>() {});
         }
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limitVar));
     }
@@ -5289,7 +5289,7 @@ public partial class phemex : Exchange
         object minNotional = 0;
         for (int i = 0; i < getArrayLength(riskLimits); i++)
         {
-            object tier = getValue(riskLimits, i);
+            IDictionary<string, object> tier = this.safeDict(riskLimits, i);
             Int64? maxNotional = this.safeInteger(tier, "limit");
             object minNotionalResponse = minNotional; // java req
             tiers.Add(new Dictionary<string, object>() {
@@ -5685,8 +5685,8 @@ public partial class phemex : Exchange
             throw new BadRequest ((this.id + " fetchFundingRateHistory() supports swap contracts only")) ;
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {

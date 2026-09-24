@@ -787,7 +787,7 @@ public partial class whitebit : Exchange
         bool? active = this.safeBool(market, "tradesEnabled");
         bool? isCollateral = this.safeBool(market, "isCollateral");
         string? typeId = this.safeString(market, "type");
-        object type = null;
+        string? type = null;
         string? settle = null;
         string? settleId = null;
         object symbol = add(add(bs, "/"), quote);
@@ -4271,7 +4271,7 @@ public partial class whitebit : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(contracts); i++)
         {
-            object contract = getValue(contracts, i);
+            IDictionary<string, object> contract = this.safeDict(contracts, i);
             result.Add(this.parseFundingHistory(contract, market));
         }
         List<object> sorted = this.sortBy(result, "timestamp");
@@ -4825,8 +4825,8 @@ public partial class whitebit : Exchange
         }
         int maxLimit = 100;
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {

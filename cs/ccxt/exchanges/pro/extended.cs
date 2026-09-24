@@ -911,7 +911,14 @@ public partial class extended : ccxt.extended
         string? symbol = this.safeString(subscription, "symbol");
         object timeframe = this.safeString(subscription, "timeframe");
         string? candleType = this.safeString(subscription, "candleType");
-        object cacheKey = (candleType == "trades") ? timeframe : add(add(timeframe, ":"), candleType);
+        object cacheKey = null;
+        if (candleType == "trades")
+        {
+            cacheKey = timeframe;
+        } else
+        {
+            cacheKey = add(add(timeframe, ":"), candleType);
+        }
         string? messageHash = this.safeString(subscription, "messageHash");
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(getValue(this.ohlcvs, symbol), cacheKey));
