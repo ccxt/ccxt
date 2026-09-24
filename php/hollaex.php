@@ -939,7 +939,7 @@ class hollaex extends Exchange {
         );
         $paginate = false;
         $maxLimit = 500;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', $paginate);
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', $paginate);
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimit);
         }

@@ -259,7 +259,7 @@ func (this *Blofin) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	callerMethodName = ccxt.GetValue(callerMethodNameparamsVariable, 0)
 	params = ccxt.GetValue(callerMethodNameparamsVariable, 1)
 	var channelName any = nil
-	var channelNameparamsVariable []any = this.HandleOptionAndParams(params, callerMethodName, "channel", "books")
+	var channelNameparamsVariable []any = this.HandleOptionStringAndParams(params, callerMethodName, "channel", "books")
 	channelName = ccxt.GetValue(channelNameparamsVariable, 0)
 	params = ccxt.GetValue(channelNameparamsVariable, 1)
 	// due to some problem, temporarily disable other channels

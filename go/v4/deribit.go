@@ -1185,7 +1185,7 @@ func (this *Deribit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var result []any = []any{}
 	var parsedMarkets map[string]any = map[string]any{}
 	var fetchAllMarkets any = nil
-	var fetchAllMarketsparamsVariable []any = this.HandleOptionAndParams(params, "fetchMarkets", "fetchAllMarkets", true)
+	var fetchAllMarketsparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchMarkets", "fetchAllMarkets", true)
 	fetchAllMarkets = GetValue(fetchAllMarketsparamsVariable, 0)
 	params = MapTyped(GetValue(fetchAllMarketsparamsVariable, 1))
 	if fetchAllMarkets == true {

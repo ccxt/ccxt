@@ -819,11 +819,11 @@ public partial class hashkey : ccxt.hashkey
         this.setBalanceCache(client, type, messageHash);
         bool? fetchBalanceSnapshot = null;
         bool? awaitBalanceSnapshot = null;
-        IList<object> fetchBalanceSnapshotparametersVariable = (IList<object>)this.handleOptionAndParams(this.options, "watchBalance", "fetchBalanceSnapshot", true);
-        fetchBalanceSnapshot = isTrue(fetchBalanceSnapshotparametersVariable[0]);
+        IList<object> fetchBalanceSnapshotparametersVariable = (IList<object>)this.handleOptionBoolAndParams(this.options, "watchBalance", "fetchBalanceSnapshot", true);
+        fetchBalanceSnapshot = (bool?)fetchBalanceSnapshotparametersVariable[0];
         parameters = fetchBalanceSnapshotparametersVariable[1];
-        IList<object> awaitBalanceSnapshotparametersVariable = (IList<object>)this.handleOptionAndParams(this.options, "watchBalance", "awaitBalanceSnapshot", false);
-        awaitBalanceSnapshot = isTrue(awaitBalanceSnapshotparametersVariable[0]);
+        IList<object> awaitBalanceSnapshotparametersVariable = (IList<object>)this.handleOptionBoolAndParams(this.options, "watchBalance", "awaitBalanceSnapshot", false);
+        awaitBalanceSnapshot = (bool?)awaitBalanceSnapshotparametersVariable[0];
         parameters = awaitBalanceSnapshotparametersVariable[1];
         if ((fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true))
         {

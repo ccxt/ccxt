@@ -1519,7 +1519,7 @@ class bullish extends Exchange {
             $request['_pageSize'] = $this->get_closest_limit($limit);
         }
         $method = 'privateGetV2HistoryOrders';
-        list($method, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'method', $method);
+        list($method, $params) = $this->handle_option_string_and_params($params, 'fetchOrders', 'method', $method);
         $response = array();
         if ($method === 'privateGetV2Orders') {
             //
@@ -1779,7 +1779,7 @@ class bullish extends Exchange {
             $type = 'POST_ONLY';
         }
         $timeInForce = 'GTC'; // is mandatory
-        list($timeInForce, $params) = $this->handle_option_and_params($params, 'createOrder', 'timeInForce', $timeInForce);
+        list($timeInForce, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'timeInForce', $timeInForce);
         $params['timeInForce'] = strtoupper($timeInForce);
         if (!$isMarketOrder) {
             $request['price'] = $this->price_to_precision($symbol, $price);

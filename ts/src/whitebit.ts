@@ -2277,7 +2277,7 @@ export default class whitebit extends Exchange {
         const requestType: List = [];
         if (type === 'spot') {
             let isMargin: Bool = undefined;
-            [ isMargin, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'isMargin', false);
+            [ isMargin, params ] = this.handleOptionBoolAndParams (params, 'cancelAllOrders', 'isMargin', false);
             if (isMargin) {
                 requestType.push ('margin');
             } else {
@@ -4290,7 +4290,7 @@ export default class whitebit extends Exchange {
             const nonce = this.incrementingNonce ().toString ();
             const secret = this.encode (this.secret);
             const request = '/' + 'api' + '/' + version + pathWithParams;
-            const [ nonceWindow, requestParams ] = this.handleOptionAndParams (params, 'sign', 'nonceWindow', false);
+            const [ nonceWindow, requestParams ] = this.handleOptionBoolAndParams (params, 'sign', 'nonceWindow', false);
             body = this.json (this.extend ({ 'request': request, 'nonce': nonce, 'nonceWindow': nonceWindow }, requestParams));
             const payload = this.stringToBase64 (body);
             const signature = this.hmac (this.encode (payload), secret, sha512);

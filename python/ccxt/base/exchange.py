@@ -2171,6 +2171,14 @@ class BaseExchange(object):
     def convert_to_safe_dictionary(self, dictionary):
         return dictionary
 
+    def check_option_string(self, methodName, optionName, value):
+        # the statically typed ports throw on a present non-string value; here it passes through unchanged
+        return value
+
+    def check_option_bool(self, methodName, optionName, value):
+        # the statically typed ports throw on a present non-boolean value; here it passes through unchanged
+        return value
+
     def rand_number(self, size):
         return int(''.join([str(random.randint(0, 9)) for _ in range(size)]))
 
@@ -6102,6 +6110,24 @@ class BaseExchange(object):
         value2, params = self.handle_option_and_params(params, methodName1, optionName2, defaultValue)
         return [value2, params]
 
+    def handle_option_string_and_params(self, params: object, methodName: Str, optionName: str, defaultValue: Str = None):
+        # handleOptionAndParams read as a string; the statically typed ports throw on another type
+        value, newParams = self.handle_option_and_params(params, methodName, optionName, defaultValue)
+        return [self.check_option_string(methodName, optionName, value), newParams]
+
+    def handle_option_string_and_params_2(self, params: object, methodName: str, optionName1: str, optionName2: str, defaultValue: Str = None):
+        value, newParams = self.handle_option_and_params_2(params, methodName, optionName1, optionName2, defaultValue)
+        return [self.check_option_string(methodName, optionName1, value), newParams]
+
+    def handle_option_bool_and_params(self, params: object, methodName: Str, optionName: str, defaultValue: Bool = None):
+        # handleOptionAndParams read as a boolean; the statically typed ports throw on another type
+        value, newParams = self.handle_option_and_params(params, methodName, optionName, defaultValue)
+        return [self.check_option_bool(methodName, optionName, value), newParams]
+
+    def handle_option_bool_and_params_2(self, params: object, methodName: str, optionName1: str, optionName2: str, defaultValue: Bool = None):
+        value, newParams = self.handle_option_and_params_2(params, methodName, optionName1, optionName2, defaultValue)
+        return [self.check_option_bool(methodName, optionName1, value), newParams]
+
     def handle_option(self, methodName: str, optionName: str, defaultValue: object = None):
         res = self.handle_option_and_params({}, methodName, optionName, defaultValue)
         return self.safe_value(res, 0)
@@ -6161,13 +6187,13 @@ class BaseExchange(object):
                 subType = values[0]
         return [subType, params]
 
-    def handle_margin_mode_and_params(self, methodName: str, params: dict = {}, defaultValue: object = None):
+    def handle_margin_mode_and_params(self, methodName: str, params: dict = {}, defaultValue: Str = None):
         """
  @ignore
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Array: the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] self.options["marginMode"] or self.options["defaultMarginMode"]
         """
-        return self.handle_option_and_params(params, methodName, 'marginMode', defaultValue)
+        return self.handle_option_string_and_params(params, methodName, 'marginMode', defaultValue)
 
     def throw_exactly_matched_exception(self, exact: object, string: object, message: object):
         if string is None:

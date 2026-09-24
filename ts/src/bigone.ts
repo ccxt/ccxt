@@ -1638,7 +1638,7 @@ export default class bigone extends Exchange {
         } else {
             if (isBuy) {
                 let createMarketBuyOrderRequiresPrice: Bool = undefined;
-                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionBoolAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 const cost = this.safeNumber (params, 'cost');
                 params = this.omit (params, 'cost');
                 if (createMarketBuyOrderRequiresPrice) {

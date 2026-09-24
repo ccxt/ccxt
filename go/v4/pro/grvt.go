@@ -209,9 +209,9 @@ func (this *Grvt) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	if symbols == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchTickers requires a symbols argument"))
 	}
-	var channel any = nil
-	var channelparamsVariable []any = this.HandleOptionAndParams(params, "watchTickers", "channel", "v1.ticker.s")
-	channel = ccxt.GetValue(channelparamsVariable, 0)
+	var channel *string = nil
+	var channelparamsVariable []any = this.HandleOptionStringAndParams(params, "watchTickers", "channel", "v1.ticker.s")
+	channel = ccxt.SafeStringPtr(ccxt.GetValue(channelparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(channelparamsVariable, 1))
 	var interval any = 500
 	var intervalparamsVariable []any = this.HandleOptionAndParams(params, "watchTickers", "interval", interval)
@@ -681,11 +681,11 @@ func (this *Grvt) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var channel any = nil
-	var channelparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "channel", "v1.book.d")
-	channel = ccxt.GetValue(channelparamsVariable, 0)
+	var channel *string = nil
+	var channelparamsVariable []any = this.HandleOptionStringAndParams(params, "watchOrderBook", "channel", "v1.book.d")
+	channel = ccxt.SafeStringPtr(ccxt.GetValue(channelparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(channelparamsVariable, 1))
-	var isSnapshot bool = (ccxt.IsEqual(channel, "v1.book.s"))
+	var isSnapshot bool = (channel != nil && *channel == "v1.book.s")
 	var symbolsLength int = ccxt.GetArrayLength(symbols)
 	if symbolsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrderBookForSymbols() requires a non-empty array of symbols"))

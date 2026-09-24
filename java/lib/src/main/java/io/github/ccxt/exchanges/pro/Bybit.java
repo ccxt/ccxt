@@ -1959,8 +1959,8 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             }};
             String topic = this.safeString(topicByMarket, this.getPrivateType(url));
             Boolean executionFast = false;
-            List<Object> executionFastparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchMyTrades", "executionFast", false);
-            executionFast = Boolean.TRUE.equals(((List<Object>) executionFastparametersVariable).get(0));
+            List<Object> executionFastparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchMyTrades", "executionFast", false);
+            executionFast = (Boolean) ((List<Object>) executionFastparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) executionFastparametersVariable).get(1);
             if (Boolean.TRUE.equals(executionFast))
             {
@@ -2033,8 +2033,8 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             }};
             String topic = this.safeString(topicByMarket, this.getPrivateType(url));
             Boolean executionFast = false;
-            List<Object> executionFastparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchMyTrades", "executionFast", false);
-            executionFast = Boolean.TRUE.equals(((List<Object>) executionFastparametersVariable).get(0));
+            List<Object> executionFastparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchMyTrades", "executionFast", false);
+            executionFast = (Boolean) ((List<Object>) executionFastparametersVariable).get(0);
             parameters = ((List<Object>) executionFastparametersVariable).get(1);
             if (Boolean.TRUE.equals(executionFast))
             {
@@ -2518,9 +2518,9 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             symbol = (String) ((Map<String, Object>)market).get("symbol");
             Object url = (this.getUrlByMarketType(symbol, false, "watchLiquidations", parameters)).join();
             parameters = this.cleanParams((Map<String, Object>) (parameters));
-            Object method = null;
-            List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchLiquidations", "method", "allLiquidation");
-            method = ((List<Object>) methodparametersVariable).get(0);
+            String method = null;
+            List<Object> methodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchLiquidations", "method", "allLiquidation");
+            method = (String) ((List<Object>) methodparametersVariable).get(0);
             parameters = ((List<Object>) methodparametersVariable).get(1);
             String messageHash = ("liquidations::" + symbol);
             String topic = ((method + ".") + ((Map<String, Object>)market).get("id"));

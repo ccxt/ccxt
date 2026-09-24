@@ -206,14 +206,14 @@ public partial class blofin : ccxt.blofin
         IList<object> callerMethodNameparametersVariable = (IList<object>)this.handleParamString(parameters, "callerMethodName", "watchOrderBookForSymbols");
         callerMethodName = (string)callerMethodNameparametersVariable[0];
         parameters = callerMethodNameparametersVariable[1];
-        object channelName = null;
-        IList<object> channelNameparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, callerMethodName, "channel", "books");
-        channelName = channelNameparametersVariable[0];
+        string? channelName = null;
+        IList<object> channelNameparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, callerMethodName, "channel", "books");
+        channelName = (string)channelNameparametersVariable[0];
         parameters = channelNameparametersVariable[1];
         // due to some problem, temporarily disable other channels
-        if (!isEqual(channelName, "books"))
+        if (channelName != "books")
         {
-            throw new NotSupported ((((((this.id + " ") + callerMethodName) + "() at this moment ") + (channelName)) + " is not supported, coming soon")) ;
+            throw new NotSupported ((((((this.id + " ") + callerMethodName) + "() at this moment ") + channelName) + " is not supported, coming soon")) ;
         }
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchMultipleWrapper(true, channelName, callerMethodName, symbols, parameters));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());

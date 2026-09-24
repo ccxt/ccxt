@@ -2327,7 +2327,7 @@ func (this *Mexc) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		return 2000
 	}() // docs say 1000 for spot, but in practice it's 500
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -3350,11 +3350,11 @@ func (this *Mexc) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 			request["orderId"] = id
 		}
 		var marginModequeryVariable []any = this.HandleMarginModeAndParams("fetchOrder", params)
-		marginMode := GetValue(marginModequeryVariable, 0)
+		var marginMode *string = SafeStringPtr(GetValue(marginModequeryVariable, 0))
 		query := GetValue(marginModequeryVariable, 1)
-		if !IsEqual(marginMode, nil) {
-			if !IsEqual(marginMode, "isolated") {
-				panic(BadRequest(Add(Add(this.Id+" fetchOrder() does not support marginMode ", marginMode), " for spot-margin trading")))
+		if marginMode != nil {
+			if marginMode == nil || *marginMode != "isolated" {
+				panic(BadRequest(this.Id + " fetchOrder() does not support marginMode " + *marginMode + " for spot-margin trading"))
 			}
 
 			data = (<-this.SpotPrivateGetMarginOrder(this.Extend(request, query))).Raw
@@ -3458,7 +3458,7 @@ func (this *Mexc) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 			panic(ArgumentsRequired(this.Id + " fetchOrders() requires a symbol argument for spot market"))
 		}
 		var marginModequeryInnerVariable []any = this.HandleMarginModeAndParams("fetchOrders", params)
-		marginMode := GetValue(marginModequeryInnerVariable, 0)
+		var marginMode *string = SafeStringPtr(GetValue(marginModequeryInnerVariable, 0))
 		queryInner := GetValue(marginModequeryInnerVariable, 1)
 		if since != nil {
 			request["startTime"] = since
@@ -3470,9 +3470,9 @@ func (this *Mexc) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 			request["limit"] = limit
 		}
 		var response any = nil
-		if !IsEqual(marginMode, nil) {
-			if !IsEqual(marginMode, "isolated") {
-				panic(BadRequest(Add(Add(this.Id+" fetchOrders() does not support marginMode ", marginMode), " for spot-margin trading")))
+		if marginMode != nil {
+			if marginMode == nil || *marginMode != "isolated" {
+				panic(BadRequest(this.Id + " fetchOrders() does not support marginMode " + *marginMode + " for spot-margin trading"))
 			}
 
 			response = (<-this.SpotPrivateGetMarginAllOrders(this.Extend(request, queryInner))).Raw
@@ -3755,12 +3755,12 @@ func (this *Mexc) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 			request["symbol"] = this.SafeString(market, "id")
 		}
 		var marginModequeryVariable []any = this.HandleMarginModeAndParams("fetchOpenOrders", params)
-		marginMode := GetValue(marginModequeryVariable, 0)
+		var marginMode *string = SafeStringPtr(GetValue(marginModequeryVariable, 0))
 		query := GetValue(marginModequeryVariable, 1)
 		var response []any = nil
-		if !IsEqual(marginMode, nil) {
-			if !IsEqual(marginMode, "isolated") {
-				panic(BadRequest(Add(Add(this.Id+" fetchOpenOrders() does not support marginMode ", marginMode), " for spot-margin trading")))
+		if marginMode != nil {
+			if marginMode == nil || *marginMode != "isolated" {
+				panic(BadRequest(this.Id + " fetchOpenOrders() does not support marginMode " + *marginMode + " for spot-margin trading"))
 			}
 
 			response = ListTyped(PanicOnError((<-this.SpotPrivateGetMarginOpenOrders(this.Extend(request, query))).Raw))
@@ -3979,7 +3979,7 @@ func (this *Mexc) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModequeryVariable []any = this.HandleMarginModeAndParams("cancelOrder", params)
-	marginMode := GetValue(marginModequeryVariable, 0)
+	var marginMode *string = SafeStringPtr(GetValue(marginModequeryVariable, 0))
 	query := GetValue(marginModequeryVariable, 1)
 	var data any = nil
 	if marketType != nil && *marketType == "spot" {
@@ -3996,9 +3996,9 @@ func (this *Mexc) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		} else {
 			requestInner["orderId"] = id
 		}
-		if !IsEqual(marginMode, nil) {
-			if !IsEqual(marginMode, "isolated") {
-				panic(BadRequest(Add(Add(this.Id+" cancelOrder() does not support marginMode ", marginMode), " for spot-margin trading")))
+		if marginMode != nil {
+			if marginMode == nil || *marginMode != "isolated" {
+				panic(BadRequest(this.Id + " cancelOrder() does not support marginMode " + *marginMode + " for spot-margin trading"))
 			}
 
 			data = (<-this.SpotPrivateDeleteMarginOrder(this.Extend(requestInner, query))).Raw
@@ -7383,7 +7383,7 @@ func (this *Mexc) HandleMarginModeAndParams(methodName any, optionalArgs ...any)
 	 */
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	defaultValue := GetArg(optionalArgs, 1, nil)
+	var defaultValue *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = defaultValue
 	var defaultType *string = this.SafeString(this.Options, "defaultType")
 	var isMargin *bool = this.SafeBool(params, "margin", false)

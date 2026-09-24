@@ -1444,10 +1444,10 @@ func (this *Bingx) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	this.SetBalanceCache(client, typeVar, subType, subscriptionHash, params)
 	var fetchBalanceSnapshot any = nil
 	var awaitBalanceSnapshot any = nil
-	var fetchBalanceSnapshotparamsVariable []any = this.HandleOptionAndParams(params, "watchBalance", "fetchBalanceSnapshot", true)
+	var fetchBalanceSnapshotparamsVariable []any = this.HandleOptionBoolAndParams(params, "watchBalance", "fetchBalanceSnapshot", true)
 	fetchBalanceSnapshot = ccxt.GetValue(fetchBalanceSnapshotparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(fetchBalanceSnapshotparamsVariable, 1))
-	var awaitBalanceSnapshotparamsVariable []any = this.HandleOptionAndParams(params, "watchBalance", "awaitBalanceSnapshot", false)
+	var awaitBalanceSnapshotparamsVariable []any = this.HandleOptionBoolAndParams(params, "watchBalance", "awaitBalanceSnapshot", false)
 	awaitBalanceSnapshot = ccxt.GetValue(awaitBalanceSnapshotparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(awaitBalanceSnapshotparamsVariable, 1))
 	if (fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true) {
@@ -1467,7 +1467,7 @@ func (this *Bingx) SetBalanceCache(client any, typeVar any, subType any, subscri
 		return
 	}
 	var fetchBalanceSnapshot bool = false
-	var fetchBalanceSnapshotparamsVariable []any = this.HandleOptionAndParams(params, "watchBalance", "fetchBalanceSnapshot", true)
+	var fetchBalanceSnapshotparamsVariable []any = this.HandleOptionBoolAndParams(params, "watchBalance", "fetchBalanceSnapshot", true)
 	fetchBalanceSnapshot = ccxt.GetValueBool(fetchBalanceSnapshotparamsVariable, 0, false)
 	params = ccxt.GetValue(fetchBalanceSnapshotparamsVariable, 1)
 	if fetchBalanceSnapshot {
@@ -1566,10 +1566,10 @@ func (this *Bingx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	this.SetPositionsCache(client, typeVar, symbols)
 	var fetchPositionsSnapshot any = nil
 	var awaitPositionsSnapshot any = nil
-	var fetchPositionsSnapshotparamsVariable []any = this.HandleOptionAndParams(params, "watchPositions", "fetchPositionsSnapshot", true)
+	var fetchPositionsSnapshotparamsVariable []any = this.HandleOptionBoolAndParams(params, "watchPositions", "fetchPositionsSnapshot", true)
 	fetchPositionsSnapshot = ccxt.GetValue(fetchPositionsSnapshotparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(fetchPositionsSnapshotparamsVariable, 1))
-	var awaitPositionsSnapshotparamsVariable []any = this.HandleOptionAndParams(params, "watchPositions", "awaitPositionsSnapshot", false)
+	var awaitPositionsSnapshotparamsVariable []any = this.HandleOptionBoolAndParams(params, "watchPositions", "awaitPositionsSnapshot", false)
 	awaitPositionsSnapshot = ccxt.GetValue(awaitPositionsSnapshotparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(awaitPositionsSnapshotparamsVariable, 1))
 	var uuid string = this.Uuid()

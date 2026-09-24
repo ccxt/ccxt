@@ -1847,7 +1847,7 @@ class mexc extends Exchange {
         $market = $this->market($symbol);
         $maxLimit = ($market['spot'] === true) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimit);
         }
@@ -6120,7 +6120,7 @@ class mexc extends Exchange {
         );
     }
 
-    public function handle_margin_mode_and_params(string $methodName, $params = array(), mixed $defaultValue = null): array {
+    public function handle_margin_mode_and_params(string $methodName, $params = array(), ?string $defaultValue = null): array {
         /**
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'

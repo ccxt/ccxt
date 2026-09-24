@@ -1217,11 +1217,11 @@ public partial class blofin : Exchange
         {
             request["limit"] = limit; // default 100
         }
-        object method = null;
-        IList<object> methodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTrades", "method", "publicGetMarketTrades");
-        method = methodparametersVariable[0];
+        string? method = null;
+        IList<object> methodparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchTrades", "method", "publicGetMarketTrades");
+        method = (string)methodparametersVariable[0];
         parameters = methodparametersVariable[1];
-        if (isEqual(method, "publicGetMarketTrades"))
+        if (method == "publicGetMarketTrades")
         {
             response = await this.publicGetMarketTrades(this.extend(request, parameters));
         }
@@ -1625,9 +1625,9 @@ public partial class blofin : Exchange
             { "size", this.amountToPrecision(symbol, amount) },
             { "brokerId", this.safeString(this.options, "brokerId", "ec6dd3a7dd982d0b") },
         };
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", parameters, "cross");
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         request["marginMode"] = marginMode;
         string? triggerPriceAny = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopLossPrice", "takeProfitPrice"});
@@ -1880,11 +1880,11 @@ public partial class blofin : Exchange
         bool isStopLossPriceDefined = (this.safeString(parameters, "stopLossPrice") != null);
         bool isTakeProfitPriceDefined = (this.safeString(parameters, "takeProfitPrice") != null);
         bool isTriggerOrder = (this.safeString(parameters, "triggerPrice") != null);
-        bool isTpslEndpoint = false;
-        IList<object> isTpslEndpointparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "tpsl", false);
-        isTpslEndpoint = isTrue(isTpslEndpointparametersVariable[0]);
+        bool? isTpslEndpoint = false;
+        IList<object> isTpslEndpointparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "createOrder", "tpsl", false);
+        isTpslEndpoint = (bool?)isTpslEndpointparametersVariable[0];
         parameters = isTpslEndpointparametersVariable[1];
-        bool isCombinedSlTp = (isStopLossPriceDefined && isTakeProfitPriceDefined) || isTpslEndpoint;
+        bool isCombinedSlTp = (isStopLossPriceDefined && isTakeProfitPriceDefined) || (isTpslEndpoint == true);
         bool isSlOrTp = isStopLossPriceDefined || isTakeProfitPriceDefined;
         Dictionary<string, object> response = null;
         bool? reduceOnly = this.safeBool(parameters, "reduceOnly");
@@ -2128,16 +2128,16 @@ public partial class blofin : Exchange
         }
         bool? isTrigger = this.safeBoolN(parameters, new List<object>() {"stop", "trigger"}, false);
         bool? isTpSl = this.safeBool2(parameters, "tpsl", "TPSL", false);
-        object method = null;
-        IList<object> methodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOpenOrders", "method", "privateGetTradeOrdersPending");
-        method = methodparametersVariable[0];
+        string? method = null;
+        IList<object> methodparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchOpenOrders", "method", "privateGetTradeOrdersPending");
+        method = (string)methodparametersVariable[0];
         parameters = methodparametersVariable[1];
         object query = this.omit(parameters, new List<object>() {"method", "stop", "trigger", "tpsl", "TPSL"});
         Dictionary<string, object> response = null;
-        if (((isTpSl == true)) || (isEqual(method, "privateGetTradeOrdersTpslPending")))
+        if (((isTpSl == true)) || (method == "privateGetTradeOrdersTpslPending"))
         {
             response = await this.privateGetTradeOrdersTpslPending(this.extend(request, query));
-        } else if (((isTrigger == true)) || (isEqual(method, "privateGetTradeOrdersAlgoPending")))
+        } else if (((isTrigger == true)) || (method == "privateGetTradeOrdersAlgoPending"))
         {
             request["orderType"] = "trigger";
             response = await this.privateGetTradeOrdersAlgoPending(this.extend(request, query));
@@ -3148,15 +3148,15 @@ public partial class blofin : Exchange
         {
             throw new ArgumentsRequired ((this.id + " fetchLeverages() requires a symbols argument")) ;
         }
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchLeverages", parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         if ((marginMode == null))
         {
             marginMode = this.safeString(parameters, "marginMode", "cross"); // cross as default marginMode
         }
-        if ((!isEqual(marginMode, "cross")) && (!isEqual(marginMode, "isolated")))
+        if ((marginMode != "cross") && (marginMode != "isolated"))
         {
             throw new BadRequest ((this.id + " fetchLeverages() requires a marginMode parameter that must be either cross or isolated")) ;
         }
@@ -3214,15 +3214,15 @@ public partial class blofin : Exchange
         {
             await this.loadMarkets();
         }
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchLeverage", parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         if ((marginMode == null))
         {
             marginMode = this.safeString(parameters, "marginMode", "cross"); // cross as default marginMode
         }
-        if ((!isEqual(marginMode, "cross")) && (!isEqual(marginMode, "isolated")))
+        if ((marginMode != "cross") && (marginMode != "isolated"))
         {
             throw new BadRequest ((this.id + " fetchLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
         }
@@ -3290,11 +3290,11 @@ public partial class blofin : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("setLeverage", parameters, "cross");
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
-        if ((!isEqual(marginMode, "cross")) && (!isEqual(marginMode, "isolated")))
+        if ((marginMode != "cross") && (marginMode != "isolated"))
         {
             throw new BadRequest ((this.id + " setLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
         }
@@ -3333,9 +3333,9 @@ public partial class blofin : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("closePosition", parameters, "cross");
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },
@@ -3394,13 +3394,13 @@ public partial class blofin : Exchange
             request["begin"] = since;
         }
         bool? isTrigger = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "tpsl", "TPSL"}, false);
-        object method = null;
-        IList<object> methodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchClosedOrders", "method", "privateGetTradeOrdersHistory");
-        method = methodparametersVariable[0];
+        string? method = null;
+        IList<object> methodparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchClosedOrders", "method", "privateGetTradeOrdersHistory");
+        method = (string)methodparametersVariable[0];
         parameters = methodparametersVariable[1];
         object query = this.omit(parameters, new List<object>() {"method", "stop", "trigger", "tpsl", "TPSL"});
         Dictionary<string, object> response = null;
-        if (((isTrigger == true)) || (isEqual(method, "privateGetTradeOrdersTpslHistory")))
+        if (((isTrigger == true)) || (method == "privateGetTradeOrdersTpslHistory"))
         {
             response = await this.privateGetTradeOrdersTpslHistory(this.extend(request, query));
         } else

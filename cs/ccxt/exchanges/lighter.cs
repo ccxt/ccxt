@@ -1121,11 +1121,11 @@ public partial class lighter : Exchange
             return ccxt.BaseExchange.ToInt64Value(nonceInOptions);
         }
         // avoid skipNonce for l1 operations
-        bool skipNonce = true;
-        IList<object> skipNonceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchNonce", "skipNonce", true);
-        skipNonce = isTrue(skipNonceparametersVariable[0]);
+        bool? skipNonce = true;
+        IList<object> skipNonceparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchNonce", "skipNonce", true);
+        skipNonce = (bool?)skipNonceparametersVariable[0];
         parameters = skipNonceparametersVariable[1];
-        if (skipNonce)
+        if ((skipNonce == true))
         {
             return ccxt.BaseExchange.ToInt64Value(this.milliseconds());
         }

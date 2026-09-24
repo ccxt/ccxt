@@ -1346,7 +1346,7 @@ impl CoinbaseinternationalCore {
             self.load_markets(&[]).await;
         }
         let mut method: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createDepositAddress".into()), Value::Str("method".into()), &[Value::Str("v1PrivatePostTransfersAddress".into())]); method = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("createDepositAddress".into()), Value::Str("method".into()), &[Value::Str("v1PrivatePostTransfersAddress".into())]); method = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut portfolio: Value = Value::Null;
         { let __destr_tmp = self.handle_portfolio_and_params(Value::Str("createDepositAddress".into()), &[params.clone()]).await; portfolio = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut request: Value = Value::Map({
@@ -3048,7 +3048,7 @@ impl CoinbaseinternationalCore {
         let mut portfolio: Value = Value::Null;
         { let __destr_tmp = self.handle_portfolio_and_params(Value::Str("withdraw".into()), &[params.clone()]).await; portfolio = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut method: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("withdraw".into()), Value::Str("method".into()), &[Value::Str("v1PrivatePostTransfersWithdraw".into())]); method = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("withdraw".into()), Value::Str("method".into()), &[Value::Str("v1PrivatePostTransfersWithdraw".into())]); method = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut networkId: Value = Value::Null;
         { let __destr_tmp = self.handle_network_id_and_params(code, Value::Str("withdraw".into()), &[params.clone()]).await; networkId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut request: Value = Value::Map({

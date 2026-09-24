@@ -625,8 +625,8 @@ public partial class deribit : ccxt.deribit
         }
         object descriptor = "";
         bool? useDepthEndpoint = null; // for more info, see comment in .options
-        IList<object> useDepthEndpointparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "useDepthEndpoint", false);
-        useDepthEndpoint = isTrue(useDepthEndpointparametersVariable[0]);
+        IList<object> useDepthEndpointparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "watchOrderBookForSymbols", "useDepthEndpoint", false);
+        useDepthEndpoint = (bool?)useDepthEndpointparametersVariable[0];
         parameters = useDepthEndpointparametersVariable[1];
         if ((useDepthEndpoint == true))
         {
@@ -635,7 +635,7 @@ public partial class deribit : ccxt.deribit
             depth = depthparametersVariable[0];
             parameters = depthparametersVariable[1];
             object group = null;
-            IList<object> groupparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "group", "none");
+            IList<object> groupparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "group", "none");
             group = groupparametersVariable[0];
             parameters = groupparametersVariable[1];
             descriptor = add(add(add(add(group, "."), depth), "."), interval);

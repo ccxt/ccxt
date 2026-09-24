@@ -559,7 +559,7 @@ class cryptocom extends Exchange {
             return array();
         }
         $skipFetchCurrencies = false;
-        list($skipFetchCurrencies, $params) = $this->handle_option_and_params($params, 'fetchCurrencies', 'skipFetchCurrencies', false);
+        list($skipFetchCurrencies, $params) = $this->handle_option_bool_and_params($params, 'fetchCurrencies', 'skipFetchCurrencies', false);
         if ($skipFetchCurrencies) {
             // sub-accounts can't access this endpoint
             return array();
@@ -1113,7 +1113,7 @@ class cryptocom extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 300);
         }
@@ -1674,7 +1674,7 @@ class cryptocom extends Exchange {
             // use createmarketBuy logic here
             $quoteAmount = null;
             $createMarketBuyOrderRequiresPrice = true;
-            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_bool_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
             $cost = $this->safe_number_2($params, 'cost', 'notional');
             $params = $this->omit($params, 'cost');
             if ($cost !== null) {

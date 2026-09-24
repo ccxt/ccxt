@@ -494,13 +494,13 @@ public partial class krakenfutures : ccxt.krakenfutures
         {
             await this.loadMarkets();
         }
-        bool verbose = false;
-        IList<object> verboseparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrders", "verbose", false);
-        verbose = isTrue(verboseparametersVariable[0]);
+        bool? verbose = false;
+        IList<object> verboseparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "watchOrders", "verbose", false);
+        verbose = (bool?)verboseparametersVariable[0];
         parameters = verboseparametersVariable[1];
         string? name = "open_orders";
         string messageHash = "orders";
-        if (verbose)
+        if ((verbose == true))
         {
             name = "open_orders_verbose";
             messageHash = "orders:verbose";

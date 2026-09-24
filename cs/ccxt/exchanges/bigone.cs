@@ -1766,8 +1766,8 @@ public partial class bigone : Exchange
             if (isBuy)
             {
                 bool? createMarketBuyOrderRequiresPrice = null;
-                IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = isTrue(createMarketBuyOrderRequiresPriceparametersVariable[0]);
+                IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparametersVariable[0];
                 parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
                 double? cost = this.safeNumber(parameters, "cost");
                 parameters = this.omit(parameters, "cost");

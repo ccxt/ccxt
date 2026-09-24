@@ -994,7 +994,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         method = None
-        method, params = self.handle_option_and_params(params, 'fetchTrades', 'method', 'historyGetMarketSymbolExecutions')
+        method, params = self.handle_option_string_and_params(params, 'fetchTrades', 'method', 'historyGetMarketSymbolExecutions')
         rawTrades = []
         isFullHistoryEndpoint = (method == 'historyGetMarketSymbolExecutions')
         if isFullHistoryEndpoint:

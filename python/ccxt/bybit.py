@@ -4076,7 +4076,7 @@ class bybit(Exchange, ImplicitAPI):
         else:
             defaultMethod = 'privatePostV5OrderCreate'
         method = None
-        method, params = self.handle_option_and_params(params, 'createOrder', 'method', defaultMethod)
+        method, params = self.handle_option_string_and_params(params, 'createOrder', 'method', defaultMethod)
         response: dict
         if method == 'privatePostV5PositionTradingStop':
             response = self.privatePostV5PositionTradingStop(orderRequest)
@@ -4155,7 +4155,7 @@ class bybit(Exchange, ImplicitAPI):
         else:
             defaultMethod = 'privatePostV5OrderCreate'
         method = None
-        method, params = self.handle_option_and_params(params, 'createOrder', 'method', defaultMethod)
+        method, params = self.handle_option_string_and_params(params, 'createOrder', 'method', defaultMethod)
         endpointIsTradingStop = method == 'privatePostV5PositionTradingStop'
         if (price is None) and (lowerCaseType == 'limit') and not endpointIsTradingStop:
             raise ArgumentsRequired(self.id + ' createOrder requires a price argument for limit orders')
@@ -7674,7 +7674,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if self.markets is None:
             self.load_markets()
         type = None
-        type, params = self.handle_option_and_params(params, 'fetchTradingFees', 'type', 'future')
+        type, params = self.handle_option_string_and_params(params, 'fetchTradingFees', 'type', 'future')
         if type == 'spot':
             raise NotSupported(self.id + ' fetchTradingFees() is not supported for spot market')
         response = self.privateGetV5AccountFeeRate(params)
@@ -8841,7 +8841,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin is True) or (enableUnifiedAccount is True)
         accountTypeDefault = 'eb_convert_uta' if isUnifiedAccount else 'eb_convert_spot'
-        accountType, params = self.handle_option_and_params(params, 'fetchConvertCurrencies', 'accountType', accountTypeDefault)
+        accountType, params = self.handle_option_string_and_params(params, 'fetchConvertCurrencies', 'accountType', accountTypeDefault)
         request = {
             'accountType': accountType,
         }
@@ -8939,7 +8939,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin is True) or (enableUnifiedAccount is True)
         accountTypeDefault = 'eb_convert_uta' if isUnifiedAccount else 'eb_convert_spot'
-        accountType, params = self.handle_option_and_params(params, 'fetchConvertQuote', 'accountType', accountTypeDefault)
+        accountType, params = self.handle_option_string_and_params(params, 'fetchConvertQuote', 'accountType', accountTypeDefault)
         request = {
             'fromCoin': fromCode,
             'toCoin': toCode,
@@ -9027,7 +9027,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin is True) or (enableUnifiedAccount is True)
         accountTypeDefault = 'eb_convert_uta' if isUnifiedAccount else 'eb_convert_spot'
-        accountType, params = self.handle_option_and_params(params, 'fetchConvertTrade', 'accountType', accountTypeDefault)
+        accountType, params = self.handle_option_string_and_params(params, 'fetchConvertTrade', 'accountType', accountTypeDefault)
         request = {
             'quoteTxId': id,
             'accountType': accountType,

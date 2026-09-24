@@ -1052,7 +1052,7 @@ class btse(Exchange, ImplicitAPI):
             response = self.safe_list(walletResponse, 'data', [])
         else:
             wallet = None
-            wallet, params = self.handle_option_and_params(params, 'fetchBalance', 'wallet', 'CROSS@')
+            wallet, params = self.handle_option_string_and_params(params, 'fetchBalance', 'wallet', 'CROSS@')
             request = {
                 'wallet': wallet,
             }
@@ -1906,7 +1906,7 @@ class btse(Exchange, ImplicitAPI):
         if needsQuoteSize:
             quoteAmount = None
             createMarketBuyOrderRequiresPrice = True
-            createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+            createMarketBuyOrderRequiresPrice, params = self.handle_option_bool_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
             cost = self.safe_string(params, 'cost')
             params = self.omit(params, 'cost')
             if cost is not None:
@@ -2068,9 +2068,9 @@ class btse(Exchange, ImplicitAPI):
         # if positionMode is provided, we will get it from params and send it as is
         if positionMode is None:
             hedged = False
-            hedged, params = self.handle_option_and_params(params, 'createOrder', 'hedged', hedged)
+            hedged, params = self.handle_option_bool_and_params(params, 'createOrder', 'hedged', hedged)
             marginMode = 'cross'
-            marginMode, params = self.handle_option_and_params(params, 'createOrder', 'marginMode', marginMode)
+            marginMode, params = self.handle_option_string_and_params(params, 'createOrder', 'marginMode', marginMode)
             if marginMode == 'isolated':
                 if hedged:
                     raise BadRequest(self.id + ' createOrder() cannot use isolated margin with hedged positions')
@@ -3368,7 +3368,7 @@ class btse(Exchange, ImplicitAPI):
             'symbol': self.futures_request_id(market),
         }
         type = 'market'
-        type, params = self.handle_option_and_params(params, 'closePosition', 'type', type)
+        type, params = self.handle_option_string_and_params(params, 'closePosition', 'type', type)
         type = type.upper()
         request['orderType'] = type
         if type == 'LIMIT':

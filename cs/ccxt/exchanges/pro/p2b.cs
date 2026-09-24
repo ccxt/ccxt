@@ -142,7 +142,7 @@ public partial class p2b : ccxt.p2b
         }
         IDictionary<string, object> watchTickerOptions = this.safeDict(this.options, "watchTicker");
         object name = this.safeString(watchTickerOptions, "name", "state"); // or price
-        IList<object> nameparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchTicker", "name", name);
+        IList<object> nameparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchTicker", "name", name);
         name = nameparametersVariable[0];
         parameters = nameparametersVariable[1];
         Dictionary<string, object> market = this.market(symbolVar);
@@ -175,7 +175,7 @@ public partial class p2b : ccxt.p2b
         symbols = this.marketSymbols(symbols, null, false);
         IDictionary<string, object> watchTickerOptions = this.safeDict(this.options, "watchTicker");
         object name = this.safeString(watchTickerOptions, "name", "state"); // or price
-        IList<object> nameparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchTickers", "name", name);
+        IList<object> nameparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchTickers", "name", name);
         name = nameparametersVariable[0];
         parameters = nameparametersVariable[1];
         List<object> messageHashes = new List<object>() {};

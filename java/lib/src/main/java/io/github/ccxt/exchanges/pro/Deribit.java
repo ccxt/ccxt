@@ -809,18 +809,18 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             }
             Object descriptor = "";
             Boolean useDepthEndpoint = null; // for more info, see comment in .options
-            List<Object> useDepthEndpointparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "useDepthEndpoint", false);
-            useDepthEndpoint = Helpers.isTrue(((List<Object>) useDepthEndpointparametersVariable).get(0));
+            List<Object> useDepthEndpointparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchOrderBookForSymbols", "useDepthEndpoint", false);
+            useDepthEndpoint = (Boolean) ((List<Object>) useDepthEndpointparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) useDepthEndpointparametersVariable).get(1);
-            if (Helpers.isTrue(useDepthEndpoint))
+            if (Boolean.TRUE.equals(useDepthEndpoint))
             {
                 Object depth = null;
                 List<Object> depthparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "depth", "20");
                 depth = ((List<Object>) depthparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) depthparametersVariable).get(1);
-                Object group = null;
-                List<Object> groupparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "group", "none");
-                group = ((List<Object>) groupparametersVariable).get(0);
+                String group = null;
+                List<Object> groupparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "group", "none");
+                group = (String) ((List<Object>) groupparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) groupparametersVariable).get(1);
                 descriptor = ((((group + ".") + depth) + ".") + interval);
             } else

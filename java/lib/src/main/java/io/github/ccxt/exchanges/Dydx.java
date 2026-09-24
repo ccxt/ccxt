@@ -1125,7 +1125,7 @@ public class Dydx extends DydxApi
         userAux = ((List<Object>) userAuxparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) userAuxparametersVariable).get(1);
         Object user = userAux;
-        List<Object> userparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "address", userAux);
+        List<Object> userparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, (String) (methodName), "address", (String) (userAux));
         user = ((List<Object>) userparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) userparametersVariable).get(1);
         if ((!java.util.Objects.equals(user, null)) && (!java.util.Objects.equals(user, "")))
@@ -1298,19 +1298,19 @@ public class Dydx extends DydxApi
             Long limit = limit3;
             Map<String, Object> parameters = parameters3;
             String userAddress = null;
-            Object subAccountNumber = null;
+            String subAccountNumber = null;
             List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("fetchOrders", (Map<String, Object>) (parameters));
             userAddress = (String) ((List<Object>) userAddressparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
-            List<Object> subAccountNumberparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "subAccountNumber", "0");
-            subAccountNumber = ((List<Object>) subAccountNumberparametersVariable).get(0);
+            List<Object> subAccountNumberparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchOrders", "subAccountNumber", "0");
+            subAccountNumber = (String) ((List<Object>) subAccountNumberparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subAccountNumberparametersVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             final String finalUserAddress = userAddress;
-            final Object finalSubAccountNumber = subAccountNumber;
+            final String finalSubAccountNumber = subAccountNumber;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "address", finalUserAddress );
                 put( "subaccountNumber", finalSubAccountNumber );
@@ -1580,19 +1580,19 @@ public class Dydx extends DydxApi
         return BaseExchange.supplyAsync(() -> {
             Map<String, Object> parameters = parameters3;
             String userAddress = null;
-            Object subAccountNumber = null;
+            String subAccountNumber = null;
             List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress("fetchPositions", (Map<String, Object>) (parameters));
             userAddress = (String) ((List<Object>) userAddressparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
-            List<Object> subAccountNumberparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositions", "subAccountNumber", "0");
-            subAccountNumber = ((List<Object>) subAccountNumberparametersVariable).get(0);
+            List<Object> subAccountNumberparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchPositions", "subAccountNumber", "0");
+            subAccountNumber = (String) ((List<Object>) subAccountNumberparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) subAccountNumberparametersVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             final String finalUserAddress = userAddress;
-            final Object finalSubAccountNumber = subAccountNumber;
+            final String finalSubAccountNumber = subAccountNumber;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "address", finalUserAddress );
                 put( "subaccountNumber", finalSubAccountNumber );
@@ -3172,15 +3172,15 @@ public class Dydx extends DydxApi
             String methodName = this.safeString(parameters, "methodName");
             parameters = this.omit(parameters, "methodName");
             String userAddress = null;
-            Object subAccountNumber = null;
+            String subAccountNumber = null;
             List<Object> userAddressparametersVariable = (List<Object>) this.handlePublicAddress(methodName, (Map<String, Object>) (parameters));
             userAddress = (String) ((List<Object>) userAddressparametersVariable).get(0);
             parameters = ((List<Object>) userAddressparametersVariable).get(1);
-            List<Object> subAccountNumberparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "subAccountNumber", "0");
-            subAccountNumber = ((List<Object>) subAccountNumberparametersVariable).get(0);
+            List<Object> subAccountNumberparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, methodName, "subAccountNumber", "0");
+            subAccountNumber = (String) ((List<Object>) subAccountNumberparametersVariable).get(0);
             parameters = ((List<Object>) subAccountNumberparametersVariable).get(1);
             final String finalUserAddress = userAddress;
-            final Object finalSubAccountNumber = subAccountNumber;
+            final String finalSubAccountNumber = subAccountNumber;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "address", finalUserAddress );
                 put( "subaccountNumber", finalSubAccountNumber );

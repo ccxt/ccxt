@@ -1484,8 +1484,8 @@ public partial class coinbaseexchange : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {

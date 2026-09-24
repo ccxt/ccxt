@@ -563,7 +563,7 @@ export default class cryptocom extends Exchange {
             return {};
         }
         let skipFetchCurrencies = false;
-        [ skipFetchCurrencies, params ] = this.handleOptionAndParams (params, 'fetchCurrencies', 'skipFetchCurrencies', false);
+        [ skipFetchCurrencies, params ] = this.handleOptionBoolAndParams (params, 'fetchCurrencies', 'skipFetchCurrencies', false);
         if (skipFetchCurrencies) {
             // sub-accounts can't access this endpoint
             return {};
@@ -1117,7 +1117,7 @@ export default class cryptocom extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 300) as OHLCV[];
         }
@@ -1678,7 +1678,7 @@ export default class cryptocom extends Exchange {
             // use createmarketBuy logic here
             let quoteAmount: Str = undefined;
             let createMarketBuyOrderRequiresPrice = true;
-            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionBoolAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
             const cost = this.safeNumber2 (params, 'cost', 'notional');
             params = this.omit (params, 'cost');
             if (cost !== undefined) {

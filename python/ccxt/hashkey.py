@@ -3442,7 +3442,7 @@ class hashkey(Exchange, ImplicitAPI):
 
     def handle_trigger_option_and_params(self, params: object, methodName: str, defaultValue: Bool = None) -> list:
         isTrigger = defaultValue
-        isTrigger, params = self.handle_option_and_params_2(params, methodName, 'stop', 'trigger', isTrigger)
+        isTrigger, params = self.handle_option_bool_and_params_2(params, methodName, 'stop', 'trigger', isTrigger)
         return [isTrigger, params]
 
     def parse_order(self, order: dict, market: Market = None) -> Order:

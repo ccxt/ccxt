@@ -4243,7 +4243,7 @@ export default class bybit extends Exchange {
             defaultMethod = 'privatePostV5OrderCreate';
         }
         let method: Str = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'createOrder', 'method', defaultMethod);
+        [ method, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'method', defaultMethod);
         let response: Dict;
         if (method === 'privatePostV5PositionTradingStop') {
             response = await this.privatePostV5PositionTradingStop (orderRequest);
@@ -4327,7 +4327,7 @@ export default class bybit extends Exchange {
             defaultMethod = 'privatePostV5OrderCreate';
         }
         let method: Str = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'createOrder', 'method', defaultMethod);
+        [ method, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'method', defaultMethod);
         const endpointIsTradingStop = method === 'privatePostV5PositionTradingStop';
         if ((price === undefined) && (lowerCaseType === 'limit') && !endpointIsTradingStop) {
             throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for limit orders');
@@ -8147,7 +8147,7 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         let type: Str = undefined;
-        [ type, params ] = this.handleOptionAndParams (params, 'fetchTradingFees', 'type', 'future');
+        [ type, params ] = this.handleOptionStringAndParams (params, 'fetchTradingFees', 'type', 'future');
         if (type === 'spot') {
             throw new NotSupported (this.id + ' fetchTradingFees() is not supported for spot market');
         }
@@ -9394,7 +9394,7 @@ export default class bybit extends Exchange {
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         const isUnifiedAccount = (enableUnifiedMargin === true) || (enableUnifiedAccount === true);
         const accountTypeDefault = isUnifiedAccount ? 'eb_convert_uta' : 'eb_convert_spot';
-        [ accountType, params ] = this.handleOptionAndParams (params, 'fetchConvertCurrencies', 'accountType', accountTypeDefault);
+        [ accountType, params ] = this.handleOptionStringAndParams (params, 'fetchConvertCurrencies', 'accountType', accountTypeDefault);
         const request: Dict = {
             'accountType': accountType,
         };
@@ -9496,7 +9496,7 @@ export default class bybit extends Exchange {
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         const isUnifiedAccount = (enableUnifiedMargin === true) || (enableUnifiedAccount === true);
         const accountTypeDefault = isUnifiedAccount ? 'eb_convert_uta' : 'eb_convert_spot';
-        [ accountType, params ] = this.handleOptionAndParams (params, 'fetchConvertQuote', 'accountType', accountTypeDefault);
+        [ accountType, params ] = this.handleOptionStringAndParams (params, 'fetchConvertQuote', 'accountType', accountTypeDefault);
         const request: Dict = {
             'fromCoin': fromCode,
             'toCoin': toCode,
@@ -9588,7 +9588,7 @@ export default class bybit extends Exchange {
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         const isUnifiedAccount = (enableUnifiedMargin === true) || (enableUnifiedAccount === true);
         const accountTypeDefault = isUnifiedAccount ? 'eb_convert_uta' : 'eb_convert_spot';
-        [ accountType, params ] = this.handleOptionAndParams (params, 'fetchConvertTrade', 'accountType', accountTypeDefault);
+        [ accountType, params ] = this.handleOptionStringAndParams (params, 'fetchConvertTrade', 'accountType', accountTypeDefault);
         const request: Dict = {
             'quoteTxId': id,
             'accountType': accountType,

@@ -1630,7 +1630,7 @@ func (this *Cex) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 		"amountCcy1":    this.AmountToPrecision(symbol, amount),
 	}
 	var timeInForce any = nil
-	var timeInForceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "timeInForce", "GTC")
+	var timeInForceparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "timeInForce", "GTC")
 	timeInForce = GetValue(timeInForceparamsVariable, 0)
 	params = GetValue(timeInForceparamsVariable, 1)
 	if IsEqual(typeVar, "limit") {

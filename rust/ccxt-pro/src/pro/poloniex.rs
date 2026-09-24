@@ -540,7 +540,7 @@ impl PoloniexCore {
         if (uppercaseType.as_str() == Some("MARKET")) && (uppercaseSide.as_str() == Some("BUY")) {
             let mut quoteAmount: Value = Value::Null;
             let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);
-            { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]); createMarketBuyOrderRequiresPrice = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp = self.handle_option_bool_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]); createMarketBuyOrderRequiresPrice = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
             let mut cost: Value = self.safe_number_k(params.clone(), "cost", &[]);
             params = self.omit(params.clone(), Value::Str("cost".into()), &[]);
             if (cost != Value::Null) {
@@ -877,7 +877,7 @@ impl PoloniexCore {
         }
         let mut watchOrderBookOptions: Value = self.safe_dict_k(self.options.clone(), "watchOrderBook", &[]);
         let mut name: Value = self.safe_string_k(watchOrderBookOptions, "name", &[Value::Str("book_lv2".into())]);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchOrderBook".into()), Value::Str("name".into()), &[name.clone()]); name = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("watchOrderBook".into()), Value::Str("name".into()), &[name.clone()]); name = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut orderbook: Value = self.subscribe(name.clone(), name.clone(), Value::Bool(false), &[Value::from(vec![symbol]), params]).await;
         return orderbook.limit();
 

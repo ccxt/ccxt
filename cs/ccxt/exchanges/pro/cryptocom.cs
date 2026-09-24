@@ -136,22 +136,22 @@ public partial class cryptocom : ccxt.cryptocom
         {
             ((IDictionary<string,object>)parameters)["params"] = new Dictionary<string, object>() {};
         }
-        object bookSubscriptionType = null;
-        object bookSubscriptionType2 = null;
-        IList<object> bookSubscriptionTypeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
-        bookSubscriptionType = bookSubscriptionTypeparametersVariable[0];
+        string? bookSubscriptionType = null;
+        string? bookSubscriptionType2 = null;
+        IList<object> bookSubscriptionTypeparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
+        bookSubscriptionType = (string)bookSubscriptionTypeparametersVariable[0];
         parameters = bookSubscriptionTypeparametersVariable[1];
-        IList<object> bookSubscriptionType2parametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
-        bookSubscriptionType2 = bookSubscriptionType2parametersVariable[0];
+        IList<object> bookSubscriptionType2parametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
+        bookSubscriptionType2 = (string)bookSubscriptionType2parametersVariable[0];
         parameters = bookSubscriptionType2parametersVariable[1];
         ((IDictionary<string,object>)getValue(parameters, "params"))["bookSubscriptionType"] = bookSubscriptionType2;
         object bookUpdateFrequency = null;
-        object bookUpdateFrequency2 = null;
+        string? bookUpdateFrequency2 = null;
         IList<object> bookUpdateFrequencyparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "bookUpdateFrequency");
         bookUpdateFrequency = bookUpdateFrequencyparametersVariable[0];
         parameters = bookUpdateFrequencyparametersVariable[1];
-        IList<object> bookUpdateFrequency2parametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
-        bookUpdateFrequency2 = bookUpdateFrequency2parametersVariable[0];
+        IList<object> bookUpdateFrequency2parametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
+        bookUpdateFrequency2 = (string)bookUpdateFrequency2parametersVariable[0];
         parameters = bookUpdateFrequency2parametersVariable[1];
         if ((bookUpdateFrequency2 != null))
         {
@@ -199,22 +199,22 @@ public partial class cryptocom : ccxt.cryptocom
         {
             ((IDictionary<string,object>)parameters)["params"] = new Dictionary<string, object>() {};
         }
-        object bookSubscriptionType = null;
-        object bookSubscriptionType2 = null;
-        IList<object> bookSubscriptionTypeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
-        bookSubscriptionType = bookSubscriptionTypeparametersVariable[0];
+        string? bookSubscriptionType = null;
+        string? bookSubscriptionType2 = null;
+        IList<object> bookSubscriptionTypeparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
+        bookSubscriptionType = (string)bookSubscriptionTypeparametersVariable[0];
         parameters = bookSubscriptionTypeparametersVariable[1];
-        IList<object> bookSubscriptionType2parametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
-        bookSubscriptionType2 = bookSubscriptionType2parametersVariable[0];
+        IList<object> bookSubscriptionType2parametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
+        bookSubscriptionType2 = (string)bookSubscriptionType2parametersVariable[0];
         parameters = bookSubscriptionType2parametersVariable[1];
         ((IDictionary<string,object>)getValue(parameters, "params"))["bookSubscriptionType"] = bookSubscriptionType2;
         object bookUpdateFrequency = null;
-        object bookUpdateFrequency2 = null;
+        string? bookUpdateFrequency2 = null;
         IList<object> bookUpdateFrequencyparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "bookUpdateFrequency");
         bookUpdateFrequency = bookUpdateFrequencyparametersVariable[0];
         parameters = bookUpdateFrequencyparametersVariable[1];
-        IList<object> bookUpdateFrequency2parametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
-        bookUpdateFrequency2 = bookUpdateFrequency2parametersVariable[0];
+        IList<object> bookUpdateFrequency2parametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
+        bookUpdateFrequency2 = (string)bookUpdateFrequency2parametersVariable[0];
         parameters = bookUpdateFrequency2parametersVariable[1];
         if ((bookUpdateFrequency2 != null))
         {

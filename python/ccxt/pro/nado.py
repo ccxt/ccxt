@@ -519,7 +519,7 @@ class nado(ccxt.async_support.nado):
             messageHash += ':' + symbol
             productId = self.parse_to_int(market['id'])
         subaccount = None
-        subaccount, params = self.handle_option_and_params(params, 'watchOrders', 'subaccount', 'default')
+        subaccount, params = self.handle_option_string_and_params(params, 'watchOrders', 'subaccount', 'default')
         sender = self.create_subaccount(self.walletAddress, subaccount)
         stream = {
             'type': 'order_update',
@@ -554,7 +554,7 @@ class nado(ccxt.async_support.nado):
             messageHash += ':' + symbol
             productId = self.parse_to_int(market['id'])
         subaccount = None
-        subaccount, params = self.handle_option_and_params(params, 'unWatchOrders', 'subaccount', 'default')
+        subaccount, params = self.handle_option_string_and_params(params, 'unWatchOrders', 'subaccount', 'default')
         sender = self.create_subaccount(self.walletAddress, subaccount)
         stream = {
             'type': 'order_update',
@@ -589,7 +589,7 @@ class nado(ccxt.async_support.nado):
             messageHash += ':' + symbol
             productId = self.parse_to_int(market['id'])
         subaccount = None
-        subaccount, params = self.handle_option_and_params(params, 'watchMyTrades', 'subaccount', 'default')
+        subaccount, params = self.handle_option_string_and_params(params, 'watchMyTrades', 'subaccount', 'default')
         sender = self.create_subaccount(self.walletAddress, subaccount)
         stream = {
             'type': 'fill',
@@ -624,7 +624,7 @@ class nado(ccxt.async_support.nado):
             messageHash += ':' + symbol
             productId = self.parse_to_int(market['id'])
         subaccount = None
-        subaccount, params = self.handle_option_and_params(params, 'unWatchMyTrades', 'subaccount', 'default')
+        subaccount, params = self.handle_option_string_and_params(params, 'unWatchMyTrades', 'subaccount', 'default')
         sender = self.create_subaccount(self.walletAddress, subaccount)
         stream = {
             'type': 'fill',
@@ -660,7 +660,7 @@ class nado(ccxt.async_support.nado):
                 messageHash += ':' + market['symbol']
                 productId = self.parse_to_int(market['id'])
         subaccount = None
-        subaccount, params = self.handle_option_and_params(params, 'watchPositions', 'subaccount', 'default')
+        subaccount, params = self.handle_option_string_and_params(params, 'watchPositions', 'subaccount', 'default')
         sender = self.create_subaccount(self.walletAddress, subaccount)
         stream = {
             'type': 'position_change',
@@ -696,7 +696,7 @@ class nado(ccxt.async_support.nado):
                 messageHash += ':' + market['symbol']
                 productId = self.parse_to_int(market['id'])
         subaccount = None
-        subaccount, params = self.handle_option_and_params(params, 'unWatchPositions', 'subaccount', 'default')
+        subaccount, params = self.handle_option_string_and_params(params, 'unWatchPositions', 'subaccount', 'default')
         sender = self.create_subaccount(self.walletAddress, subaccount)
         stream = {
             'type': 'position_change',
@@ -996,7 +996,7 @@ class nado(ccxt.async_support.nado):
         recvWindow = None
         recvWindow, params = self.handle_option_and_params(params, 'authenticate', 'recvWindow', 5000)
         subaccount = None
-        subaccount, params = self.handle_option_and_params(params, 'authenticate', 'subaccount', 'default')
+        subaccount, params = self.handle_option_string_and_params(params, 'authenticate', 'subaccount', 'default')
         id = self.request_id()
         sender = self.create_subaccount(self.walletAddress, subaccount)
         expiration = self.sum(self.milliseconds(), recvWindow)

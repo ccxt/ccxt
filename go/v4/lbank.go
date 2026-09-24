@@ -2087,7 +2087,7 @@ func (this *Lbank) createOrderBody(ch chan any, symbol any, typeVar any, side an
 			request["type"] = Add(Add(side, "_"), "market")
 			var quoteAmount any = nil
 			var createMarketBuyOrderRequiresPrice bool = true
-			var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
+			var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			createMarketBuyOrderRequiresPrice = GetValueBool(createMarketBuyOrderRequiresPriceparamsVariable, 0, false)
 			params = MapTyped(GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1))
 			var cost *float64 = this.SafeNumber(params, "cost")

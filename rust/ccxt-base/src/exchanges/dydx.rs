@@ -1380,7 +1380,7 @@ impl DydxCore {
         let mut userAux: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), methodName.clone(), Value::Str("user".into()), &[]); userAux = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut user: Value = userAux.clone();
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), methodName.clone(), Value::Str("address".into()), &[userAux]); user = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), methodName.clone(), Value::Str("address".into()), &[userAux]); user = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (user != Value::Null) && (user.as_str() != Some("")) {
             return Value::from(vec![user, params.clone()]);
         }
@@ -1547,7 +1547,7 @@ impl DydxCore {
         let mut userAddress: Value = Value::Null;
         let mut subAccountNumber: Value = Value::Null;
         { let __destr_tmp = self.handle_public_address(Value::Str("fetchOrders".into()), params.clone()); userAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOrders".into()), Value::Str("subAccountNumber".into()), &[Value::Str("0".into())]); subAccountNumber = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("fetchOrders".into()), Value::Str("subAccountNumber".into()), &[Value::Str("0".into())]); subAccountNumber = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
@@ -1743,7 +1743,7 @@ impl DydxCore {
         let mut userAddress: Value = Value::Null;
         let mut subAccountNumber: Value = Value::Null;
         { let __destr_tmp = self.handle_public_address(Value::Str("fetchPositions".into()), params.clone()); userAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchPositions".into()), Value::Str("subAccountNumber".into()), &[Value::Str("0".into())]); subAccountNumber = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("fetchPositions".into()), Value::Str("subAccountNumber".into()), &[Value::Str("0".into())]); subAccountNumber = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
@@ -3108,7 +3108,7 @@ impl DydxCore {
         let mut userAddress: Value = Value::Null;
         let mut subAccountNumber: Value = Value::Null;
         { let __destr_tmp = self.handle_public_address(methodName.clone(), params.clone()); userAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), methodName, Value::Str("subAccountNumber".into()), &[Value::Str("0".into())]); subAccountNumber = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), methodName, Value::Str("subAccountNumber".into()), &[Value::Str("0".into())]); subAccountNumber = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("address".to_string(), userAddress);

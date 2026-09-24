@@ -1337,7 +1337,7 @@ class hyperliquid extends Exchange {
         $type = $this->safe_string($params, 'type');
         $params = $this->omit($params, 'type');
         $hip3 = false;
-        list($hip3, $params) = $this->handle_option_and_params($params, 'fetchTickers', 'hip3', false);
+        list($hip3, $params) = $this->handle_option_bool_and_params($params, 'fetchTickers', 'hip3', false);
         if ($symbols !== null) {
             // infer from first symbol
             $firstSymbol = $this->safe_string($symbols, 0);
@@ -3275,7 +3275,7 @@ class hyperliquid extends Exchange {
         $userAddress = null;
         list($userAddress, $params) = $this->handle_public_address('fetchOpenOrders', $params);
         $method = null;
-        list($method, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
+        list($method, $params) = $this->handle_option_string_and_params($params, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -5202,7 +5202,7 @@ class hyperliquid extends Exchange {
         $userAux = null;
         list($userAux, $params) = $this->handle_option_and_params_2($params, $methodName, 'user', 'subAccountAddress');
         $user = $userAux;
-        list($user, $params) = $this->handle_option_and_params($params, $methodName, 'address', $userAux);
+        list($user, $params) = $this->handle_option_string_and_params($params, $methodName, 'address', $userAux);
         if (($user !== null) && ($user !== '')) {
             return array( $user, $params );
         }

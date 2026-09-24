@@ -1585,7 +1585,7 @@ func (this *Grvt) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -2266,7 +2266,7 @@ func (this *Grvt) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var maxLimit int = 1000
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTransfers", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchTransfers", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {

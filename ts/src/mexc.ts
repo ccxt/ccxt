@@ -1854,7 +1854,7 @@ export default class mexc extends Exchange {
         const market = this.market (symbol);
         const maxLimit = (market['spot'] === true) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
         }
@@ -6137,7 +6137,7 @@ export default class mexc extends Exchange {
         } as Leverage;
     }
 
-    override handleMarginModeAndParams (methodName: string, params: Dict = {}, defaultValue: any = undefined): [any, Dict] {
+    override handleMarginModeAndParams (methodName: string, params: Dict = {}, defaultValue: Str = undefined): [Str, Dict] {
         /**
          * @ignore
          * @method

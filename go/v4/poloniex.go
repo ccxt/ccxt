@@ -879,7 +879,7 @@ func (this *Poloniex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -2611,7 +2611,7 @@ func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any
 		if IsEqual(side, "buy") {
 			var quoteAmount any = nil
 			var createMarketBuyOrderRequiresPrice any = true
-			var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
+			var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
 			params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
 			var cost *float64 = this.SafeNumber(params, "cost")

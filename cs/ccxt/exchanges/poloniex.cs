@@ -860,8 +860,8 @@ public partial class poloniex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -2419,8 +2419,8 @@ public partial class poloniex : Exchange
             {
                 string? quoteAmount = null;
                 bool? createMarketBuyOrderRequiresPrice = true;
-                IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = isTrue(createMarketBuyOrderRequiresPriceparametersVariable[0]);
+                IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparametersVariable[0];
                 parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
                 double? cost = this.safeNumber(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
@@ -3712,9 +3712,9 @@ public partial class poloniex : Exchange
         }
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("setLeverage", parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         if ((marginMode == null))
         {
@@ -3733,7 +3733,7 @@ public partial class poloniex : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "lever", leverage },
-            { "mgnMode", ((string)marginMode).ToUpper() },
+            { "mgnMode", marginMode.ToUpper() },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.swapPrivatePostV3PositionLeverage(this.extend(request, parameters));
@@ -3757,15 +3757,15 @@ public partial class poloniex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchLeverage", parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         if ((marginMode == null))
         {
             throw new ArgumentsRequired ((this.id + " fetchLeverage() requires a marginMode parameter \"cross\" or \"isolated\"")) ;
         }
-        request["mgnMode"] = ((string)marginMode).ToUpper();
+        request["mgnMode"] = marginMode.ToUpper();
         Dictionary<string, object> response = await this.swapPrivateGetV3PositionLeverages(this.extend(request, parameters));
         //
         //  for one-way mode:

@@ -1098,7 +1098,7 @@ class btse extends Exchange {
             $response = $this->safe_list($walletResponse, 'data', array());
         } else {
             $wallet = null;
-            list($wallet, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'wallet', 'CROSS@');
+            list($wallet, $params) = $this->handle_option_string_and_params($params, 'fetchBalance', 'wallet', 'CROSS@');
             $request = array(
                 'wallet' => $wallet,
             );
@@ -2074,7 +2074,7 @@ class btse extends Exchange {
         if ($needsQuoteSize) {
             $quoteAmount = null;
             $createMarketBuyOrderRequiresPrice = true;
-            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_bool_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
             $cost = $this->safe_string($params, 'cost');
             $params = $this->omit($params, 'cost');
             if ($cost !== null) {
@@ -2255,9 +2255,9 @@ class btse extends Exchange {
         // if positionMode is provided, we will get it from params and send it as is
         if ($positionMode === null) {
             $hedged = false;
-            list($hedged, $params) = $this->handle_option_and_params($params, 'createOrder', 'hedged', $hedged);
+            list($hedged, $params) = $this->handle_option_bool_and_params($params, 'createOrder', 'hedged', $hedged);
             $marginMode = 'cross';
-            list($marginMode, $params) = $this->handle_option_and_params($params, 'createOrder', 'marginMode', $marginMode);
+            list($marginMode, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'marginMode', $marginMode);
             if ($marginMode === 'isolated') {
                 if ($hedged) {
                     throw new BadRequest($this->id . ' createOrder() cannot use isolated margin with $hedged positions');
@@ -3742,7 +3742,7 @@ class btse extends Exchange {
             'symbol' => $this->futures_request_id($market),
         );
         $type = 'market';
-        list($type, $params) = $this->handle_option_and_params($params, 'closePosition', 'type', $type);
+        list($type, $params) = $this->handle_option_string_and_params($params, 'closePosition', 'type', $type);
         $type = strtoupper($type);
         $request['orderType'] = $type;
         if ($type === 'LIMIT') {

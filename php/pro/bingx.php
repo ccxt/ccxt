@@ -1214,8 +1214,8 @@ class bingx extends \ccxt\async\bingx {
         $this->set_balance_cache($client, $type, $subType, $subscriptionHash, $params);
         $fetchBalanceSnapshot = null;
         $awaitBalanceSnapshot = null;
-        list($fetchBalanceSnapshot, $params) = $this->handle_option_and_params($params, 'watchBalance', 'fetchBalanceSnapshot', true);
-        list($awaitBalanceSnapshot, $params) = $this->handle_option_and_params($params, 'watchBalance', 'awaitBalanceSnapshot', false);
+        list($fetchBalanceSnapshot, $params) = $this->handle_option_bool_and_params($params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        list($awaitBalanceSnapshot, $params) = $this->handle_option_bool_and_params($params, 'watchBalance', 'awaitBalanceSnapshot', false);
         if ($fetchBalanceSnapshot && $awaitBalanceSnapshot) {
             Async\await($client->future($type . ':fetchBalanceSnapshot'));
         }
@@ -1231,7 +1231,7 @@ class bingx extends \ccxt\async\bingx {
             return;
         }
         $fetchBalanceSnapshot = false;
-        list($fetchBalanceSnapshot, $params) = $this->handle_option_and_params($params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        list($fetchBalanceSnapshot, $params) = $this->handle_option_bool_and_params($params, 'watchBalance', 'fetchBalanceSnapshot', true);
         if ($fetchBalanceSnapshot) {
             $messageHash = $type . ':fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
@@ -1303,8 +1303,8 @@ class bingx extends \ccxt\async\bingx {
         $this->set_positions_cache($client, $type, $symbols);
         $fetchPositionsSnapshot = null;
         $awaitPositionsSnapshot = null;
-        list($fetchPositionsSnapshot, $params) = $this->handle_option_and_params($params, 'watchPositions', 'fetchPositionsSnapshot', true);
-        list($awaitPositionsSnapshot, $params) = $this->handle_option_and_params($params, 'watchPositions', 'awaitPositionsSnapshot', false);
+        list($fetchPositionsSnapshot, $params) = $this->handle_option_bool_and_params($params, 'watchPositions', 'fetchPositionsSnapshot', true);
+        list($awaitPositionsSnapshot, $params) = $this->handle_option_bool_and_params($params, 'watchPositions', 'awaitPositionsSnapshot', false);
         $uuid = $this->uuid();
         $subscription = array(
             'unsubscribe' => false,

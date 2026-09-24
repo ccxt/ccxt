@@ -1191,7 +1191,7 @@ func (this *Lighter) fetchNonceBody(ch chan any, accountIndex any, apiKeyIndex a
 	}
 	// avoid skipNonce for l1 operations
 	var skipNonce bool = true
-	var skipNonceparamsVariable []any = this.HandleOptionAndParams(params, "fetchNonce", "skipNonce", true)
+	var skipNonceparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchNonce", "skipNonce", true)
 	skipNonce = GetValueBool(skipNonceparamsVariable, 0, false)
 	params = MapTyped(GetValue(skipNonceparamsVariable, 1))
 	if skipNonce {

@@ -4139,7 +4139,7 @@ class binance extends Exchange {
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchBalance', null, $params);
         $isPortfolioMargin = null;
-        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchBalance', 'papi', 'portfolioMargin', false);
+        list($isPortfolioMargin, $params) = $this->handle_option_bool_and_params_2($params, 'fetchBalance', 'papi', 'portfolioMargin', false);
         $marginMode = null;
         $query = null;
         list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchBalance', $params);
@@ -4157,7 +4157,7 @@ class binance extends Exchange {
         } elseif ($this->is_linear($type, $subType)) {
             $type = 'linear';
             $useV2 = null;
-            list($useV2, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'useV2', false);
+            list($useV2, $params) = $this->handle_option_bool_and_params($params, 'fetchBalance', 'useV2', false);
             $params = $this->extend($request, $query);
             if (!$useV2) {
                 $response = Async\await($this->fapiPrivateV3GetAccount($params));
@@ -5191,7 +5191,7 @@ class binance extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 1000));
         }
@@ -6036,7 +6036,7 @@ class binance extends Exchange {
         }
         $market = $this->market($symbol);
         $isPortfolioMargin = null;
-        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'editContractOrder', 'papi', 'portfolioMargin', false);
+        list($isPortfolioMargin, $params) = $this->handle_option_bool_and_params_2($params, 'editContractOrder', 'papi', 'portfolioMargin', false);
         $request = $this->edit_contract_order_request($id, $symbol, $type, $side, $amount, $price, $params);
         $response = null;
         if ($market['linear'] === true) {
@@ -6151,7 +6151,7 @@ class binance extends Exchange {
             $price = $this->safe_value($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $isPortfolioMargin = null;
-            list($isPortfolioMargin, $orderParams) = $this->handle_option_and_params_2($orderParams, 'editOrders', 'papi', 'portfolioMargin', false);
+            list($isPortfolioMargin, $orderParams) = $this->handle_option_bool_and_params_2($orderParams, 'editOrders', 'papi', 'portfolioMargin', false);
             if ($isPortfolioMargin) {
                 throw new NotSupported($this->id . ' editOrders() does not support portfolio margin orders');
             }
@@ -7181,7 +7181,7 @@ class binance extends Exchange {
             'side' => $upperCaseSide,
         );
         $isPortfolioMargin = null;
-        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'createOrder', 'papi', 'portfolioMargin', false);
+        list($isPortfolioMargin, $params) = $this->handle_option_bool_and_params_2($params, 'createOrder', 'papi', 'portfolioMargin', false);
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
         $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
@@ -7644,7 +7644,7 @@ class binance extends Exchange {
         $request = array();
         $market = null;
         $stock = null;
-        list($stock, $params) = $this->handle_option_and_params($params, 'fetchOrder', 'stock', false);
+        list($stock, $params) = $this->handle_option_bool_and_params($params, 'fetchOrder', 'stock', false);
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $stock = $this->safe_bool($market, 'stock', false);
@@ -7661,7 +7661,7 @@ class binance extends Exchange {
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOrder', $params);
         $isPortfolioMargin = null;
-        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchOrder', 'papi', 'portfolioMargin', false);
+        list($isPortfolioMargin, $params) = $this->handle_option_bool_and_params_2($params, 'fetchOrder', 'papi', 'portfolioMargin', false);
         $isConditional = $this->safe_bool_n($params, array( 'stop', 'trigger', 'conditional' ));
         $isOptionType = $type === 'option';
         $isLinearType = $this->is_linear($type, $subType);
@@ -7764,7 +7764,7 @@ class binance extends Exchange {
         $request = array();
         $market = null;
         $stock = null;
-        list($stock, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'stock', false);
+        list($stock, $params) = $this->handle_option_bool_and_params($params, 'fetchOrders', 'stock', false);
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $stock = $this->safe_bool($market, 'stock', false);
@@ -7779,7 +7779,7 @@ class binance extends Exchange {
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOrders', $params);
         $isPortfolioMargin = null;
-        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchOrders', 'papi', 'portfolioMargin', false);
+        list($isPortfolioMargin, $params) = $this->handle_option_bool_and_params_2($params, 'fetchOrders', 'papi', 'portfolioMargin', false);
         $isConditional = $this->safe_bool_n($params, array( 'stop', 'trigger', 'conditional' ));
         $isOptionType = $type === 'option';
         $isLinearType = $this->is_linear($type, $subType);
@@ -8104,10 +8104,10 @@ class binance extends Exchange {
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
         $isPortfolioMargin = null;
-        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchOpenOrders', 'papi', 'portfolioMargin', false);
+        list($isPortfolioMargin, $params) = $this->handle_option_bool_and_params_2($params, 'fetchOpenOrders', 'papi', 'portfolioMargin', false);
         $isConditional = $this->safe_bool_n($params, array( 'stop', 'trigger', 'conditional' ));
         $stock = null;
-        list($stock, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'stock', false);
+        list($stock, $params) = $this->handle_option_bool_and_params($params, 'fetchOpenOrders', 'stock', false);
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $stock = $this->safe_bool($market, 'stock', false);
@@ -8215,7 +8215,7 @@ class binance extends Exchange {
             'symbol' => $market['id'],
         );
         $isPortfolioMargin = null;
-        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchOpenOrder', 'papi', 'portfolioMargin', false);
+        list($isPortfolioMargin, $params) = $this->handle_option_bool_and_params_2($params, 'fetchOpenOrder', 'papi', 'portfolioMargin', false);
         $isConditional = $this->safe_bool_n($params, array( 'stop', 'trigger', 'conditional' ));
         $params = $this->omit($params, array( 'stop', 'trigger', 'conditional' ));
         $isPortfolioMarginConditional = ($isPortfolioMargin && $isConditional);
@@ -8434,7 +8434,7 @@ class binance extends Exchange {
          */
         $market = null;
         $stock = null;
-        list($stock, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'stock', false);
+        list($stock, $params) = $this->handle_option_bool_and_params($params, 'fetchClosedOrders', 'stock', false);
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $stock = $this->safe_bool($market, 'stock', false);
@@ -8481,7 +8481,7 @@ class binance extends Exchange {
          */
         $market = null;
         $stock = null;
-        list($stock, $params) = $this->handle_option_and_params($params, 'fetchCanceledOrders', 'stock', false);
+        list($stock, $params) = $this->handle_option_bool_and_params($params, 'fetchCanceledOrders', 'stock', false);
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $stock = $this->safe_bool($market, 'stock', false);
@@ -8528,7 +8528,7 @@ class binance extends Exchange {
          */
         $market = null;
         $stock = null;
-        list($stock, $params) = $this->handle_option_and_params($params, 'fetchCanceledAndClosedOrders', 'stock', false);
+        list($stock, $params) = $this->handle_option_bool_and_params($params, 'fetchCanceledAndClosedOrders', 'stock', false);
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $stock = $this->safe_bool($market, 'stock', false);
@@ -8582,7 +8582,7 @@ class binance extends Exchange {
         $request = array();
         $market = null;
         $stock = null;
-        list($stock, $params) = $this->handle_option_and_params($params, 'cancelOrder', 'stock', false);
+        list($stock, $params) = $this->handle_option_bool_and_params($params, 'cancelOrder', 'stock', false);
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $stock = $this->safe_bool($market, 'stock', false);
@@ -8599,7 +8599,7 @@ class binance extends Exchange {
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrder', $params);
         $isPortfolioMargin = null;
-        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'cancelOrder', 'papi', 'portfolioMargin', false);
+        list($isPortfolioMargin, $params) = $this->handle_option_bool_and_params_2($params, 'cancelOrder', 'papi', 'portfolioMargin', false);
         $isConditional = $this->safe_bool_n($params, array( 'stop', 'trigger', 'conditional' ));
         $isOptionType = $type === 'option';
         $isLinearType = $this->is_linear($type, $subType);
@@ -8714,7 +8714,7 @@ class binance extends Exchange {
         $request = array();
         $market = null;
         $stock = null;
-        list($stock, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'stock', false);
+        list($stock, $params) = $this->handle_option_bool_and_params($params, 'cancelAllOrders', 'stock', false);
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $stock = $this->safe_bool($market, 'stock', false);
@@ -8725,7 +8725,7 @@ class binance extends Exchange {
             throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
         }
         $isPortfolioMargin = null;
-        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'cancelAllOrders', 'papi', 'portfolioMargin', false);
+        list($isPortfolioMargin, $params) = $this->handle_option_bool_and_params_2($params, 'cancelAllOrders', 'papi', 'portfolioMargin', false);
         $isConditional = $this->safe_bool_n($params, array( 'stop', 'trigger', 'conditional' ));
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params, 'spot');
@@ -9048,7 +9048,7 @@ class binance extends Exchange {
         $type = null;
         $marginMode = null;
         $stock = null;
-        list($stock, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'stock', false);
+        list($stock, $params) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'stock', false);
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $stock = $this->safe_bool($market, 'stock', false);
@@ -9096,7 +9096,7 @@ class binance extends Exchange {
         } else {
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchMyTrades', $params);
             $isPortfolioMargin = null;
-            list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchMyTrades', 'papi', 'portfolioMargin', false);
+            list($isPortfolioMargin, $params) = $this->handle_option_bool_and_params_2($params, 'fetchMyTrades', 'papi', 'portfolioMargin', false);
             if ($stock === true) {
                 if ($endTime === null) {
                     $endTime = $this->milliseconds();
@@ -10730,7 +10730,7 @@ class binance extends Exchange {
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchTradingFee', $market, $params);
         $isPortfolioMargin = null;
-        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchTradingFee', 'papi', 'portfolioMargin', false);
+        list($isPortfolioMargin, $params) = $this->handle_option_bool_and_params_2($params, 'fetchTradingFee', 'papi', 'portfolioMargin', false);
         $isLinear = $this->is_linear($type, $subType);
         $isInverse = $this->is_inverse($type, $subType);
         $request = array(
@@ -11804,7 +11804,7 @@ class binance extends Exchange {
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('loadLeverageBrackets', null, $params, 'linear');
             $isPortfolioMargin = null;
-            list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'loadLeverageBrackets', 'papi', 'portfolioMargin', false);
+            list($isPortfolioMargin, $params) = $this->handle_option_bool_and_params_2($params, 'loadLeverageBrackets', 'papi', 'portfolioMargin', false);
             $response = null;
             if ($this->is_linear($type, $subType)) {
                 if ($isPortfolioMargin) {
@@ -11871,7 +11871,7 @@ class binance extends Exchange {
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchLeverageTiers', null, $params, 'linear');
         $isPortfolioMargin = null;
-        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchLeverageTiers', 'papi', 'portfolioMargin', false);
+        list($isPortfolioMargin, $params) = $this->handle_option_bool_and_params_2($params, 'fetchLeverageTiers', 'papi', 'portfolioMargin', false);
         $response = null;
         if ($this->is_linear($type, $subType)) {
             if ($isPortfolioMargin) {
@@ -12229,14 +12229,14 @@ class binance extends Exchange {
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchAccountPositions', null, $params, 'linear');
         $isPortfolioMargin = null;
-        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchAccountPositions', 'papi', 'portfolioMargin', false);
+        list($isPortfolioMargin, $params) = $this->handle_option_bool_and_params_2($params, 'fetchAccountPositions', 'papi', 'portfolioMargin', false);
         $response = null;
         if ($this->is_linear($type, $subType)) {
             if ($isPortfolioMargin) {
                 $response = Async\await($this->papiV2GetUmAccount($params));
             } else {
                 $useV2 = null;
-                list($useV2, $params) = $this->handle_option_and_params($params, 'fetchAccountPositions', 'useV2', false);
+                list($useV2, $params) = $this->handle_option_bool_and_params($params, 'fetchAccountPositions', 'useV2', false);
                 if (!$useV2) {
                     $response = Async\await($this->fapiPrivateV3GetAccount($params));
                 } else {
@@ -12319,7 +12319,7 @@ class binance extends Exchange {
             throw new NotSupported($this->id . ' fetchPositions() supports linear and inverse contracts only');
         }
         $filterClosed = null;
-        list($filterClosed, $params) = $this->handle_option_and_params($params, 'fetchAccountPositions', 'filterClosed', false);
+        list($filterClosed, $params) = $this->handle_option_bool_and_params($params, 'fetchAccountPositions', 'filterClosed', false);
         $result = $this->parse_account_positions($response, $filterClosed);
         $symbols = $this->market_symbols($symbols);
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
@@ -12363,7 +12363,7 @@ class binance extends Exchange {
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchPositionsRisk', null, $params, 'linear');
         $isPortfolioMargin = null;
-        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchPositionsRisk', 'papi', 'portfolioMargin', false);
+        list($isPortfolioMargin, $params) = $this->handle_option_bool_and_params_2($params, 'fetchPositionsRisk', 'papi', 'portfolioMargin', false);
         $params = $this->omit($params, 'type');
         $response = null;
         if ($this->is_linear($type, $subType)) {
@@ -12371,7 +12371,7 @@ class binance extends Exchange {
                 $response = Async\await($this->papiGetUmPositionRisk($this->extend($request, $params)));
             } else {
                 $useV2 = null;
-                list($useV2, $params) = $this->handle_option_and_params($params, 'fetchPositionsRisk', 'useV2', false);
+                list($useV2, $params) = $this->handle_option_bool_and_params($params, 'fetchPositionsRisk', 'useV2', false);
                 $params = $this->extend($request, $params);
                 if (!$useV2) {
                     $response = Async\await($this->fapiPrivateV3GetPositionRisk($params));
@@ -12550,7 +12550,7 @@ class binance extends Exchange {
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchFundingHistory', $market, $params, 'linear');
         $isPortfolioMargin = null;
-        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchFundingHistory', 'papi', 'portfolioMargin', false);
+        list($isPortfolioMargin, $params) = $this->handle_option_bool_and_params_2($params, 'fetchFundingHistory', 'papi', 'portfolioMargin', false);
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -12616,7 +12616,7 @@ class binance extends Exchange {
             'leverage' => $leverage,
         );
         $isPortfolioMargin = null;
-        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'setLeverage', 'papi', 'portfolioMargin', false);
+        list($isPortfolioMargin, $params) = $this->handle_option_bool_and_params_2($params, 'setLeverage', 'papi', 'portfolioMargin', false);
         $response = null;
         if ($market['linear'] === true) {
             if ($isPortfolioMargin) {
@@ -12741,7 +12741,7 @@ class binance extends Exchange {
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('setPositionMode', $market, $params);
         $isPortfolioMargin = null;
-        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'setPositionMode', 'papi', 'portfolioMargin', false);
+        list($isPortfolioMargin, $params) = $this->handle_option_bool_and_params_2($params, 'setPositionMode', 'papi', 'portfolioMargin', false);
         $dualSidePosition = null;
         if ($hedged) {
             $dualSidePosition = 'true';
@@ -12807,7 +12807,7 @@ class binance extends Exchange {
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchLeverages', null, $params, 'linear');
         $isPortfolioMargin = null;
-        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchLeverages', 'papi', 'portfolioMargin', false);
+        list($isPortfolioMargin, $params) = $this->handle_option_bool_and_params_2($params, 'fetchLeverages', 'papi', 'portfolioMargin', false);
         $response = null;
         if ($this->is_linear($type, $subType)) {
             if ($isPortfolioMargin) {
@@ -13160,7 +13160,7 @@ class binance extends Exchange {
             $request['endTime'] = $until;
         }
         $isPortfolioMargin = null;
-        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchLedger', 'papi', 'portfolioMargin', false);
+        list($isPortfolioMargin, $params) = $this->handle_option_bool_and_params_2($params, 'fetchLedger', 'papi', 'portfolioMargin', false);
         $response = null;
         if ($type === 'option') {
             $this->check_required_argument('fetchLedger', $code, 'code');
@@ -14106,7 +14106,7 @@ class binance extends Exchange {
             Async\await($this->load_markets());
         }
         $isPortfolioMargin = null;
-        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchBorrowInterest', 'papi', 'portfolioMargin', false);
+        list($isPortfolioMargin, $params) = $this->handle_option_bool_and_params_2($params, 'fetchBorrowInterest', 'papi', 'portfolioMargin', false);
         $request = array();
         $market = null;
         if ($code !== null) {
@@ -14218,7 +14218,7 @@ class binance extends Exchange {
         );
         $response = null;
         $isPortfolioMargin = null;
-        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'repayCrossMargin', 'papi', 'portfolioMargin', false);
+        list($isPortfolioMargin, $params) = $this->handle_option_bool_and_params_2($params, 'repayCrossMargin', 'papi', 'portfolioMargin', false);
         if ($isPortfolioMargin) {
             $method = null;
             list($method, $params) = $this->handle_option_and_params_2($params, 'repayCrossMargin', 'repayCrossMarginMethod', 'method');
@@ -14321,7 +14321,7 @@ class binance extends Exchange {
         );
         $response = null;
         $isPortfolioMargin = null;
-        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'borrowCrossMargin', 'papi', 'portfolioMargin', false);
+        list($isPortfolioMargin, $params) = $this->handle_option_bool_and_params_2($params, 'borrowCrossMargin', 'papi', 'portfolioMargin', false);
         if ($isPortfolioMargin) {
             $response = Async\await($this->papiPostMarginLoan($this->extend($request, $params)));
         } else {
@@ -14433,7 +14433,7 @@ class binance extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenInterestHistory', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOpenInterestHistory', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_deterministic('fetchOpenInterestHistory', $symbol, $since, $limit, $timeframe, $params, 500));
         }
@@ -14630,7 +14630,7 @@ class binance extends Exchange {
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchMyLiquidations', $market, $params, 'linear');
         $isPortfolioMargin = null;
-        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchMyLiquidations', 'papi', 'portfolioMargin', false);
+        list($isPortfolioMargin, $params) = $this->handle_option_bool_and_params_2($params, 'fetchMyLiquidations', 'papi', 'portfolioMargin', false);
         $request = array();
         if ($type !== 'spot') {
             $request['autoCloseType'] = 'LIQUIDATION';
@@ -16057,7 +16057,7 @@ class binance extends Exchange {
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchPositionsADLRank', $market, $params);
         $isPortfolioMargin = null;
-        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchPositionsADLRank', 'papi', 'portfolioMargin', false);
+        list($isPortfolioMargin, $params) = $this->handle_option_bool_and_params_2($params, 'fetchPositionsADLRank', 'papi', 'portfolioMargin', false);
         $response = null;
         if ($subType === 'linear') {
             if ($isPortfolioMargin) {

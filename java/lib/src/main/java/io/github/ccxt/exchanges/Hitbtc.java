@@ -5301,7 +5301,7 @@ public class Hitbtc extends HitbtcApi
         return this.closePosition(symbol, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object handleMarginModeAndParams(Object methodName, Map<String, Object> parameters, Object defaultValue)
+    public Object handleMarginModeAndParams(Object methodName, Map<String, Object> parameters, String defaultValue)
     {
         /**
          * @ignore
@@ -5327,7 +5327,7 @@ public class Hitbtc extends HitbtcApi
     }
     public Object handleMarginModeAndParams(Object methodName, Object... optionalArgs)
     {
-        return this.handleMarginModeAndParams(methodName, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null);
+        return this.handleMarginModeAndParams(methodName, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}), Helpers.getArgString(optionalArgs, 1, null));
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

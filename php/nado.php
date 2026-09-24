@@ -400,7 +400,7 @@ class nado extends Exchange {
             $amountX18 = Precise::string_mul($amountX18, '-1');
         }
         $subaccount = null;
-        list($subaccount, $params) = $this->handle_option_and_params($params, 'createOrder', 'subaccount', 'default');
+        list($subaccount, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'subaccount', 'default');
         $expiration = null;
         list($expiration, $params) = $this->handle_option_and_params($params, 'createOrder', 'expiration', '4294967295');
         $recvWindow = null;
@@ -563,9 +563,9 @@ class nado extends Exchange {
         }
         $editOrderOptions = $this->safe_dict($this->options, 'editOrder', array());
         $subaccount = null;
-        list($subaccount, $params) = $this->handle_option_and_params($params, 'editOrder', 'subaccount', 'default');
+        list($subaccount, $params) = $this->handle_option_string_and_params($params, 'editOrder', 'subaccount', 'default');
         $expiration = null;
-        list($expiration, $params) = $this->handle_option_and_params($params, 'editOrder', 'expiration', '4294967295');
+        list($expiration, $params) = $this->handle_option_string_and_params($params, 'editOrder', 'expiration', '4294967295');
         $recvWindow = null;
         list($recvWindow, $params) = $this->handle_option_and_params($params, 'editOrder', 'recvWindow', 5000);
         $cancelNonce = $this->create_order_nonce($recvWindow);
@@ -725,7 +725,7 @@ class nado extends Exchange {
             $productIds[] = $this->parse_to_int($market['id']);
         }
         $subaccount = null;
-        list($subaccount, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'subaccount', 'default');
+        list($subaccount, $params) = $this->handle_option_string_and_params($params, 'cancelAllOrders', 'subaccount', 'default');
         $sender = $this->create_subaccount($this->walletAddress, $subaccount);
         $recvWindow = null;
         list($recvWindow, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'recvWindow', 5000);
@@ -840,7 +840,7 @@ class nado extends Exchange {
         $market = $this->market($symbol);
         $productId = $this->parse_to_int($market['id']);
         $subaccount = null;
-        list($subaccount, $params) = $this->handle_option_and_params($params, 'cancelOrders', 'subaccount', 'default');
+        list($subaccount, $params) = $this->handle_option_string_and_params($params, 'cancelOrders', 'subaccount', 'default');
         $sender = $this->create_subaccount($this->walletAddress, $subaccount);
         $productIds = array();
         for ($i = 0; $i < count($ids); $i++) {
@@ -951,7 +951,7 @@ class nado extends Exchange {
             $productIds[] = $this->parse_to_int($market['id']);
         }
         $subaccount = null;
-        list($subaccount, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'subaccount', 'default');
+        list($subaccount, $params) = $this->handle_option_string_and_params($params, 'fetchOrders', 'subaccount', 'default');
         $sender = $this->create_subaccount($this->walletAddress, $subaccount);
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
@@ -1032,7 +1032,7 @@ class nado extends Exchange {
         }
         $this->load_markets();
         $subaccount = null;
-        list($subaccount, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'subaccount', 'default');
+        list($subaccount, $params) = $this->handle_option_string_and_params($params, 'fetchOpenOrders', 'subaccount', 'default');
         $sender = $this->create_subaccount($this->walletAddress, $subaccount);
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         if ($trigger === true) {
@@ -1109,7 +1109,7 @@ class nado extends Exchange {
             $market = $this->market($symbol);
         }
         $subaccount = null;
-        list($subaccount, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'subaccount', 'default');
+        list($subaccount, $params) = $this->handle_option_string_and_params($params, 'fetchClosedOrders', 'subaccount', 'default');
         $sender = $this->create_subaccount($this->walletAddress, $subaccount);
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         if ($trigger === true) {
@@ -1228,7 +1228,7 @@ class nado extends Exchange {
             $market = $this->market($symbol);
         }
         $subaccount = null;
-        list($subaccount, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'subaccount', 'default');
+        list($subaccount, $params) = $this->handle_option_string_and_params($params, 'fetchMyTrades', 'subaccount', 'default');
         $matchesRequest = array(
             'subaccounts' => array(
                 $this->create_subaccount($this->walletAddress, $subaccount),
@@ -1301,7 +1301,7 @@ class nado extends Exchange {
         }
         $this->load_markets();
         $subaccount = null;
-        list($subaccount, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'subaccount', 'default');
+        list($subaccount, $params) = $this->handle_option_string_and_params($params, 'fetchBalance', 'subaccount', 'default');
         $request = array(
             'type' => 'subaccount_info',
             'subaccount' => $this->create_subaccount($this->walletAddress, $subaccount),
@@ -1374,7 +1374,7 @@ class nado extends Exchange {
             $currency = $this->currency($code);
         }
         $subaccount = null;
-        list($subaccount, $params) = $this->handle_option_and_params($params, $methodName, 'subaccount', 'default');
+        list($subaccount, $params) = $this->handle_option_string_and_params($params, $methodName, 'subaccount', 'default');
         $eventsRequest = array(
             'subaccounts' => array(
                 $this->create_subaccount($this->walletAddress, $subaccount),
@@ -1468,7 +1468,7 @@ class nado extends Exchange {
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
         $subaccount = null;
-        list($subaccount, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'subaccount', 'default');
+        list($subaccount, $params) = $this->handle_option_string_and_params($params, 'fetchPositions', 'subaccount', 'default');
         $request = array(
             'type' => 'subaccount_info',
             'subaccount' => $this->create_subaccount($this->walletAddress, $subaccount),
@@ -1888,7 +1888,7 @@ class nado extends Exchange {
             throw new BadSymbol($this->id . ' fetchFundingHistory() supports swap contracts only');
         }
         $subaccount = null;
-        list($subaccount, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'subaccount', 'default');
+        list($subaccount, $params) = $this->handle_option_string_and_params($params, 'fetchFundingHistory', 'subaccount', 'default');
         $request = array(
             'interest_and_funding' => array(
                 'subaccount' => $this->create_subaccount($this->walletAddress, $subaccount),

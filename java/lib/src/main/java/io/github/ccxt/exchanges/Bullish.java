@@ -2033,9 +2033,9 @@ public class Bullish extends BullishApi
             {
                 ((Map<String, Object>)request).put("_pageSize", this.getClosestLimit(limit));
             }
-            Object method = "privateGetV2HistoryOrders";
-            List<Object> methodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "method", method);
-            method = ((List<Object>) methodparametersVariable).get(0);
+            String method = "privateGetV2HistoryOrders";
+            List<Object> methodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchOrders", "method", method);
+            method = (String) ((List<Object>) methodparametersVariable).get(0);
             parameters = ((List<Object>) methodparametersVariable).get(1);
             List<Object> response = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(method, "privateGetV2Orders"))
@@ -2465,11 +2465,11 @@ public class Bullish extends BullishApi
             {
                 type = "POST_ONLY";
             }
-            Object timeInForce = "GTC"; // is mandatory
-            List<Object> timeInForceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "timeInForce", timeInForce);
-            timeInForce = ((List<Object>) timeInForceparametersVariable).get(0);
+            String timeInForce = "GTC"; // is mandatory
+            List<Object> timeInForceparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce", timeInForce);
+            timeInForce = (String) ((List<Object>) timeInForceparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) timeInForceparametersVariable).get(1);
-            ((Map<String, Object>)parameters).put("timeInForce", ((String)timeInForce).toUpperCase());
+            ((Map<String, Object>)parameters).put("timeInForce", timeInForce.toUpperCase());
             if (!Boolean.TRUE.equals(isMarketOrder))
             {
                 ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));

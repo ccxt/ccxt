@@ -1475,7 +1475,7 @@ export default class coinbase extends Exchange {
 
     async fetchMarketsV3 (params: Dict = {}): Promise<Market[]> {
         let usePrivate = false;
-        [ usePrivate, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'usePrivate', false);
+        [ usePrivate, params ] = this.handleOptionBoolAndParams (params, 'fetchMarkets', 'usePrivate', false);
         const spotUnresolvedPromises: List = [];
         if (usePrivate) {
             spotUnresolvedPromises.push (this.v3PrivateGetBrokerageProducts (params));
@@ -2160,7 +2160,7 @@ export default class coinbase extends Exchange {
         }
         let response = undefined;
         let usePrivate = false;
-        [ usePrivate, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'usePrivate', false);
+        [ usePrivate, params ] = this.handleOptionBoolAndParams (params, 'fetchTickers', 'usePrivate', false);
         if (usePrivate) {
             response = await this.v3PrivateGetBrokerageProducts (this.extend (request, params));
         } else {
@@ -2276,7 +2276,7 @@ export default class coinbase extends Exchange {
             'limit': 1,
         };
         let usePrivate = false;
-        [ usePrivate, params ] = this.handleOptionAndParams (params, 'fetchTicker', 'usePrivate', false);
+        [ usePrivate, params ] = this.handleOptionBoolAndParams (params, 'fetchTicker', 'usePrivate', false);
         let response = undefined;
         if (usePrivate) {
             response = await this.v3PrivateGetBrokerageProductsProductIdTicker (this.extend (request, params));
@@ -3207,7 +3207,7 @@ export default class coinbase extends Exchange {
             if ((market['spot'] === true) && (side === 'buy')) {
                 let total: Str = undefined;
                 let createMarketBuyOrderRequiresPrice = true;
-                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionBoolAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 const cost = this.safeNumber (params, 'cost');
                 params = this.omit (params, 'cost');
                 if (cost !== undefined) {
@@ -3915,7 +3915,7 @@ export default class coinbase extends Exchange {
         const maxLimit = 300;
         limit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit - 1) as OHLCV[];
         }
@@ -3944,7 +3944,7 @@ export default class coinbase extends Exchange {
         }
         let response = undefined;
         let usePrivate = false;
-        [ usePrivate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'usePrivate', false);
+        [ usePrivate, params ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'usePrivate', false);
         if (usePrivate) {
             response = await this.v3PrivateGetBrokerageProductsProductIdCandles (this.extend (request, params));
         } else {
@@ -4027,7 +4027,7 @@ export default class coinbase extends Exchange {
         }
         let response = undefined;
         let usePrivate = false;
-        [ usePrivate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'usePrivate', false);
+        [ usePrivate, params ] = this.handleOptionBoolAndParams (params, 'fetchTrades', 'usePrivate', false);
         if (usePrivate) {
             response = await this.v3PrivateGetBrokerageProductsProductIdTicker (this.extend (request, params));
         } else {
@@ -4153,7 +4153,7 @@ export default class coinbase extends Exchange {
         }
         let response = undefined;
         let usePrivate = false;
-        [ usePrivate, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'usePrivate', false);
+        [ usePrivate, params ] = this.handleOptionBoolAndParams (params, 'fetchOrderBook', 'usePrivate', false);
         if (usePrivate) {
             response = await this.v3PrivateGetBrokerageProductBook (this.extend (request, params));
         } else {

@@ -708,16 +708,16 @@ func (this *Toobit) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
-	var channel any = nil
-	var channelparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "channel", "depth")
-	channel = ccxt.GetValue(channelparamsVariable, 0)
+	var channel *string = nil
+	var channelparamsVariable []any = this.HandleOptionStringAndParams(params, "watchOrderBookForSymbols", "channel", "depth")
+	channel = ccxt.SafeStringPtr(ccxt.GetValue(channelparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(channelparamsVariable, 1))
 	var messageHashes []any = []any{}
 	var subParams []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-		messageHashes = append(messageHashes, ccxt.Add("orderBook::"+*symbol+"::", channel))
+		messageHashes = append(messageHashes, "orderBook::"+*symbol+"::"+*channel)
 		var rawHash *string = ccxt.SafeStringPtr(market["id"])
 		subParams = append(subParams, rawHash)
 	}

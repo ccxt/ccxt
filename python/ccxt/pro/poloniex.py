@@ -230,7 +230,7 @@ class poloniex(ccxt.async_support.poloniex):
         if (uppercaseType == 'MARKET') and (uppercaseSide == 'BUY'):
             quoteAmount = None
             createMarketBuyOrderRequiresPrice = True
-            createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+            createMarketBuyOrderRequiresPrice, params = self.handle_option_bool_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
             cost = self.safe_number(params, 'cost')
             params = self.omit(params, 'cost')
             if cost is not None:
@@ -455,7 +455,7 @@ class poloniex(ccxt.async_support.poloniex):
             await self.load_markets()
         watchOrderBookOptions = self.safe_dict(self.options, 'watchOrderBook')
         name = self.safe_string(watchOrderBookOptions, 'name', 'book_lv2')
-        name, params = self.handle_option_and_params(params, 'watchOrderBook', 'name', name)
+        name, params = self.handle_option_string_and_params(params, 'watchOrderBook', 'name', name)
         orderbook = await self.subscribe(name, name, False, [symbol], params)
         return orderbook.limit()
 

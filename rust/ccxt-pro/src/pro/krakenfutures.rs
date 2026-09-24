@@ -829,7 +829,7 @@ impl KrakenfuturesCore {
             self.load_markets(&[]).await;
         }
         let mut verbose: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchOrders".into()), Value::Str("verbose".into()), &[Value::Bool(false)]); verbose = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_bool_and_params(params.clone(), Value::Str("watchOrders".into()), Value::Str("verbose".into()), &[Value::Bool(false)]); verbose = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut name: Value = Value::Str("open_orders".into());
         let mut messageHash: Value = Value::Str("orders".into());
         if is_true(&verbose) {

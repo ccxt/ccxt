@@ -592,7 +592,7 @@ class toobit extends \ccxt\async\toobit {
         }
         $symbols = $this->market_symbols($symbols, null, false);
         $channel = null;
-        list($channel, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'channel', 'depth');
+        list($channel, $params) = $this->handle_option_string_and_params($params, 'watchOrderBookForSymbols', 'channel', 'depth');
         $messageHashes = array();
         $subParams = array();
         for ($i = 0; $i < count($symbols); $i++) {

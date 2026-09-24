@@ -915,7 +915,7 @@ impl BydfiCore {
         let mut depth: Value = Value::Str("100".into());
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchOrderBookForSymbols".into()), Value::Str("depth".into()), &[depth.clone()]); depth = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut frequency: Value = Value::Str("100ms".into());
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchOrderBookForSymbols".into()), Value::Str("frequency".into()), &[frequency.clone()]); frequency = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("watchOrderBookForSymbols".into()), Value::Str("frequency".into()), &[frequency.clone()]); frequency = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut channelSuffix: Value = Value::Str("".into());
         if (frequency.as_str() == Some("100ms")) {
             channelSuffix = Value::Str("@100ms".into());
@@ -960,7 +960,7 @@ impl BydfiCore {
         let mut depth: Value = Value::Str("100".into());
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchOrderBookForSymbols".into()), Value::Str("depth".into()), &[depth.clone()]); depth = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut frequency: Value = Value::Str("100ms".into());
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchOrderBookForSymbols".into()), Value::Str("frequency".into()), &[frequency.clone()]); frequency = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("watchOrderBookForSymbols".into()), Value::Str("frequency".into()), &[frequency.clone()]); frequency = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut channelSuffix: Value = Value::Str("".into());
         if (frequency.as_str() == Some("100ms")) {
             channelSuffix = Value::Str("@100ms".into());

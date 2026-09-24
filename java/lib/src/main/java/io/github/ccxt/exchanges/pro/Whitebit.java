@@ -1026,13 +1026,13 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             this.setBalanceCache(client, type, messageHash);
             Boolean fetchBalanceSnapshot = null;
             Boolean awaitBalanceSnapshot = null;
-            List<Object> fetchBalanceSnapshotparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
-            fetchBalanceSnapshot = Helpers.isTrue(((List<Object>) fetchBalanceSnapshotparametersVariable).get(0));
+            List<Object> fetchBalanceSnapshotparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
+            fetchBalanceSnapshot = (Boolean) ((List<Object>) fetchBalanceSnapshotparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) fetchBalanceSnapshotparametersVariable).get(1);
-            List<Object> awaitBalanceSnapshotparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchBalance", "awaitBalanceSnapshot", true);
-            awaitBalanceSnapshot = Helpers.isTrue(((List<Object>) awaitBalanceSnapshotparametersVariable).get(0));
+            List<Object> awaitBalanceSnapshotparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchBalance", "awaitBalanceSnapshot", true);
+            awaitBalanceSnapshot = (Boolean) ((List<Object>) awaitBalanceSnapshotparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) awaitBalanceSnapshotparametersVariable).get(1);
-            if (Helpers.isTrue(fetchBalanceSnapshot) && Helpers.isTrue(awaitBalanceSnapshot))
+            if (Boolean.TRUE.equals(fetchBalanceSnapshot) && Boolean.TRUE.equals(awaitBalanceSnapshot))
             {
                 client.future((type + ":fetchBalanceSnapshot")).getFuture().join();
             }

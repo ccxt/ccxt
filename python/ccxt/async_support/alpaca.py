@@ -796,7 +796,7 @@ class alpaca(Exchange, ImplicitAPI):
         loc = self.safe_string(params, 'loc', 'us')
         method = self.safe_string(params, 'method', 'marketPublicGetV1beta3CryptoLocBars')
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         paginationCalls = 10
         paginationCalls, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginationCalls', 10)
         request = {
@@ -1417,7 +1417,7 @@ class alpaca(Exchange, ImplicitAPI):
         if price is not None:
             request['limit_price'] = self.price_to_precision(symbol, price)
         timeInForce = None
-        timeInForce, params = self.handle_option_and_params(params, 'editOrder', 'timeInForce', 'gtc')
+        timeInForce, params = self.handle_option_string_and_params(params, 'editOrder', 'timeInForce', 'gtc')
         if timeInForce is not None:
             # the venue only accepts lowercase values, normalize the unified uppercase spellings
             request['time_in_force'] = timeInForce.lower()

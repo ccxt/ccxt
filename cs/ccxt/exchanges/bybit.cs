@@ -4779,9 +4779,9 @@ public partial class bybit : Exchange
         }
         IDictionary<string, object> accountTypes = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         string? unifiedType = this.safeStringUpper(accountTypes, type, type);
-        object marginMode = null;
+        string? marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchBalance", parameters);
-        marginMode = marginModeparametersVariable[0];
+        marginMode = (string)marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         Dictionary<string, object> response = null;
         if (isSpot && ((marginMode != null)))
@@ -5301,12 +5301,12 @@ public partial class bybit : Exchange
         {
             defaultMethod = "privatePostV5OrderCreate";
         }
-        object method = null;
-        IList<object> methodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "method", defaultMethod);
-        method = methodparametersVariable[0];
+        string? method = null;
+        IList<object> methodparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "method", defaultMethod);
+        method = (string)methodparametersVariable[0];
         parameters = methodparametersVariable[1];
         Dictionary<string, object> response = null;
-        if (isEqual(method, "privatePostV5PositionTradingStop"))
+        if (method == "privatePostV5PositionTradingStop")
         {
             response = await this.privatePostV5PositionTradingStop(orderRequest);
         } else
@@ -5375,11 +5375,11 @@ public partial class bybit : Exchange
         {
             defaultMethod = "privatePostV5OrderCreate";
         }
-        object method = null;
-        IList<object> methodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "method", defaultMethod);
-        method = methodparametersVariable[0];
+        string? method = null;
+        IList<object> methodparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "method", defaultMethod);
+        method = (string)methodparametersVariable[0];
         parameters = methodparametersVariable[1];
-        bool endpointIsTradingStop = isEqual(method, "privatePostV5PositionTradingStop");
+        bool endpointIsTradingStop = method == "privatePostV5PositionTradingStop";
         if (((price == null)) && (lowerCaseType == "limit") && !endpointIsTradingStop)
         {
             throw new ArgumentsRequired ((this.id + " createOrder requires a price argument for limit orders")) ;
@@ -9644,11 +9644,11 @@ public partial class bybit : Exchange
         {
             await this.loadMarkets();
         }
-        object type = null;
-        IList<object> typeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTradingFees", "type", "future");
-        type = typeparametersVariable[0];
+        string? type = null;
+        IList<object> typeparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchTradingFees", "type", "future");
+        type = (string)typeparametersVariable[0];
         parameters = typeparametersVariable[1];
-        if (isEqual(type, "spot"))
+        if (type == "spot")
         {
             throw new NotSupported ((this.id + " fetchTradingFees() is not supported for spot market")) ;
         }
@@ -11013,14 +11013,14 @@ public partial class bybit : Exchange
         {
             await this.loadMarkets();
         }
-        object accountType = null;
+        string? accountType = null;
         var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
         var enableUnifiedMargin = enableUnifiedMarginenableUnifiedAccountVariable[0];
         var enableUnifiedAccount = enableUnifiedMarginenableUnifiedAccountVariable[1];
         bool isUnifiedAccount = (isEqual(enableUnifiedMargin, true)) || (isEqual(enableUnifiedAccount, true));
         string accountTypeDefault = isUnifiedAccount ? "eb_convert_uta" : "eb_convert_spot";
-        IList<object> accountTypeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchConvertCurrencies", "accountType", accountTypeDefault);
-        accountType = accountTypeparametersVariable[0];
+        IList<object> accountTypeparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchConvertCurrencies", "accountType", accountTypeDefault);
+        accountType = (string)accountTypeparametersVariable[0];
         parameters = accountTypeparametersVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "accountType", accountType },
@@ -11124,14 +11124,14 @@ public partial class bybit : Exchange
         {
             await this.loadMarkets();
         }
-        object accountType = null;
+        string? accountType = null;
         var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
         var enableUnifiedMargin = enableUnifiedMarginenableUnifiedAccountVariable[0];
         var enableUnifiedAccount = enableUnifiedMarginenableUnifiedAccountVariable[1];
         bool isUnifiedAccount = (isEqual(enableUnifiedMargin, true)) || (isEqual(enableUnifiedAccount, true));
         string accountTypeDefault = isUnifiedAccount ? "eb_convert_uta" : "eb_convert_spot";
-        IList<object> accountTypeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchConvertQuote", "accountType", accountTypeDefault);
-        accountType = accountTypeparametersVariable[0];
+        IList<object> accountTypeparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchConvertQuote", "accountType", accountTypeDefault);
+        accountType = (string)accountTypeparametersVariable[0];
         parameters = accountTypeparametersVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "fromCoin", fromCode },
@@ -11226,14 +11226,14 @@ public partial class bybit : Exchange
         {
             await this.loadMarkets();
         }
-        object accountType = null;
+        string? accountType = null;
         var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
         var enableUnifiedMargin = enableUnifiedMarginenableUnifiedAccountVariable[0];
         var enableUnifiedAccount = enableUnifiedMarginenableUnifiedAccountVariable[1];
         bool isUnifiedAccount = (isEqual(enableUnifiedMargin, true)) || (isEqual(enableUnifiedAccount, true));
         string accountTypeDefault = isUnifiedAccount ? "eb_convert_uta" : "eb_convert_spot";
-        IList<object> accountTypeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchConvertTrade", "accountType", accountTypeDefault);
-        accountType = accountTypeparametersVariable[0];
+        IList<object> accountTypeparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchConvertTrade", "accountType", accountTypeDefault);
+        accountType = (string)accountTypeparametersVariable[0];
         parameters = accountTypeparametersVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "quoteTxId", id },

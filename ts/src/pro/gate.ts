@@ -237,7 +237,7 @@ export default class gate extends gateRest {
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         const messageType = this.getTypeByMarket (market);
         let channel = messageType + '.order_cancel_cp';
-        [ channel, params ] = this.handleOptionAndParams (params, 'cancelAllOrdersWs', 'channel', channel);
+        [ channel, params ] = this.handleOptionStringAndParams (params, 'cancelAllOrdersWs', 'channel', channel);
         const url = this.getUrlByMarket (market);
         params = this.omit (params, [ 'stop', 'trigger' ]);
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);

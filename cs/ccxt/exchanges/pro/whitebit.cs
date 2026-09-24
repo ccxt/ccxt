@@ -843,10 +843,10 @@ public partial class whitebit : ccxt.whitebit
         this.setBalanceCache(client, type, messageHash);
         object fetchBalanceSnapshot = null;
         object awaitBalanceSnapshot = null;
-        IList<object> fetchBalanceSnapshotparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
+        IList<object> fetchBalanceSnapshotparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
         fetchBalanceSnapshot = fetchBalanceSnapshotparametersVariable[0];
         parameters = fetchBalanceSnapshotparametersVariable[1];
-        IList<object> awaitBalanceSnapshotparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchBalance", "awaitBalanceSnapshot", true);
+        IList<object> awaitBalanceSnapshotparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "watchBalance", "awaitBalanceSnapshot", true);
         awaitBalanceSnapshot = awaitBalanceSnapshotparametersVariable[0];
         parameters = awaitBalanceSnapshotparametersVariable[1];
         if (isTrue(fetchBalanceSnapshot) && isTrue(awaitBalanceSnapshot))

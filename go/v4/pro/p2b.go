@@ -179,7 +179,7 @@ func (this *P2b) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 	}
 	var watchTickerOptions map[string]any = ccxt.SafeMapTyped(this.Options, "watchTicker")
 	var name any = ccxt.DerefScalar(this.SafeString(watchTickerOptions, "name", "state")) // or price
-	var nameparamsVariable []any = this.HandleOptionAndParams(params, "watchTicker", "name", name)
+	var nameparamsVariable []any = this.HandleOptionStringAndParams(params, "watchTicker", "name", name)
 	name = ccxt.GetValue(nameparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(nameparamsVariable, 1))
 	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
@@ -223,7 +223,7 @@ func (this *P2b) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols, nil, false)
 	var watchTickerOptions map[string]any = ccxt.SafeMapTyped(this.Options, "watchTicker")
 	var name any = ccxt.DerefScalar(this.SafeString(watchTickerOptions, "name", "state")) // or price
-	var nameparamsVariable []any = this.HandleOptionAndParams(params, "watchTickers", "name", name)
+	var nameparamsVariable []any = this.HandleOptionStringAndParams(params, "watchTickers", "name", name)
 	name = ccxt.GetValue(nameparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(nameparamsVariable, 1))
 	var messageHashes []any = []any{}

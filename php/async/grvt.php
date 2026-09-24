@@ -1212,7 +1212,7 @@ class grvt extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimit));
         }
@@ -1787,7 +1787,7 @@ class grvt extends Exchange {
         $currency = $this->currency($code);
         $maxLimit = 1000;
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchTransfers', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_dynamic('fetchTransfers', null, $since, $limit, $params, $maxLimit));
         }

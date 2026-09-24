@@ -1008,7 +1008,7 @@ class blofin extends Exchange {
             $request['limit'] = $limit; // default 100
         }
         $method = null;
-        list($method, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'method', 'publicGetMarketTrades');
+        list($method, $params) = $this->handle_option_string_and_params($params, 'fetchTrades', 'method', 'publicGetMarketTrades');
         if ($method === 'publicGetMarketTrades') {
             $response = $this->publicGetMarketTrades($this->extend($request, $params));
         }
@@ -1597,7 +1597,7 @@ class blofin extends Exchange {
         $isTakeProfitPriceDefined = $this->safe_string($params, 'takeProfitPrice') !== null;
         $isTriggerOrder = $this->safe_string($params, 'triggerPrice') !== null;
         $isTpslEndpoint = false;
-        list($isTpslEndpoint, $params) = $this->handle_option_and_params($params, 'createOrder', 'tpsl', false);
+        list($isTpslEndpoint, $params) = $this->handle_option_bool_and_params($params, 'createOrder', 'tpsl', false);
         $isCombinedSlTp = ($isStopLossPriceDefined && $isTakeProfitPriceDefined) || $isTpslEndpoint;
         $isSlOrTp = $isStopLossPriceDefined || $isTakeProfitPriceDefined;
         $reduceOnly = $this->safe_bool($params, 'reduceOnly');
@@ -1802,7 +1802,7 @@ class blofin extends Exchange {
         $isTrigger = $this->safe_bool_n($params, array( 'stop', 'trigger' ), false);
         $isTpSl = $this->safe_bool_2($params, 'tpsl', 'TPSL', false);
         $method = null;
-        list($method, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
+        list($method, $params) = $this->handle_option_string_and_params($params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
         $query = $this->omit($params, array( 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ));
         if (($isTpSl === true) || ($method === 'privateGetTradeOrdersTpslPending')) {
             $response = $this->privateGetTradeOrdersTpslPending($this->extend($request, $query));
@@ -2902,7 +2902,7 @@ class blofin extends Exchange {
         }
         $isTrigger = $this->safe_bool_n($params, array( 'stop', 'trigger', 'tpsl', 'TPSL' ), false);
         $method = null;
-        list($method, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory');
+        list($method, $params) = $this->handle_option_string_and_params($params, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory');
         $query = $this->omit($params, array( 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ));
         if (($isTrigger === true) || ($method === 'privateGetTradeOrdersTpslHistory')) {
             $response = $this->privateGetTradeOrdersTpslHistory($this->extend($request, $query));

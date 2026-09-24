@@ -1365,6 +1365,29 @@ public partial class BaseExchange
         return new System.Collections.Concurrent.ConcurrentDictionary<string, object>((IDictionary<string, object>)obj);
     }
 
+    // a present option value of another type is a user error: throw instead of coercing
+    public string checkOptionString(object methodName, object optionName, object value)
+    {
+        if (value == null || value is string)
+        {
+            return value as string;
+        }
+        throw new BadRequest(this.id + " " + (methodName == null ? "exchange-wide" : methodName + "()") + " option " + optionName + " must be a string");
+    }
+
+    public bool? checkOptionBool(object methodName, object optionName, object value)
+    {
+        if (value == null)
+        {
+            return null;
+        }
+        if (value is bool b)
+        {
+            return b;
+        }
+        throw new BadRequest(this.id + " " + (methodName == null ? "exchange-wide" : methodName + "()") + " option " + optionName + " must be a boolean");
+    }
+
     public IDictionary<string, object> createSafeDictionary(bool isWs = false)
     {
         return !isWs ? new System.Collections.Concurrent.ConcurrentDictionary<string, object>() : new ccxt.pro.CustomConcurrentDictionary<string, object>();;

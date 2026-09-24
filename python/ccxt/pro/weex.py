@@ -766,7 +766,7 @@ class weex(ccxt.async_support.weex):
         callerMethodName = self.safe_string(params, 'callerMethodName', 'watchOrderBookForSymbols')
         params = self.omit(params, 'callerMethodName')
         depth = '200'
-        depth, params = self.handle_option_and_params(params, callerMethodName, 'depth', depth)
+        depth, params = self.handle_option_string_and_params(params, callerMethodName, 'depth', depth)
         messageHashes = []
         channels = []
         for i in range(0, len(symbols)):
@@ -817,7 +817,7 @@ class weex(ccxt.async_support.weex):
         callerMethodName = self.safe_string(params, 'callerMethodName', 'unWatchOrderBookForSymbols')
         params = self.omit(params, 'callerMethodName')
         depth = '200'
-        depth, params = self.handle_option_and_params(params, callerMethodName, 'depth', depth)
+        depth, params = self.handle_option_string_and_params(params, callerMethodName, 'depth', depth)
         subHashes = []
         channels = []
         unSubHashes = []

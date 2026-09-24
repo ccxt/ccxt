@@ -446,7 +446,7 @@ class bydfi(ccxt.async_support.bydfi):
         depth = '100'
         depth, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'depth', depth)
         frequency = '100ms'
-        frequency, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'frequency', frequency)
+        frequency, params = self.handle_option_string_and_params(params, 'watchOrderBookForSymbols', 'frequency', frequency)
         channelSuffix = ''
         if frequency == '100ms':
             channelSuffix = '@100ms'
@@ -477,7 +477,7 @@ class bydfi(ccxt.async_support.bydfi):
         depth = '100'
         depth, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'depth', depth)
         frequency = '100ms'
-        frequency, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'frequency', frequency)
+        frequency, params = self.handle_option_string_and_params(params, 'watchOrderBookForSymbols', 'frequency', frequency)
         channelSuffix = ''
         if frequency == '100ms':
             channelSuffix = '@100ms'

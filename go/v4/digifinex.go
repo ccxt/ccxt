@@ -795,10 +795,10 @@ func (this *Digifinex) fetchMarketsV2Body(ch chan any, optionalArgs ...any) any 
 	_ = params
 	var defaultType *string = this.SafeString(this.Options, "defaultType")
 	var marginModequeryVariable []any = this.HandleMarginModeAndParams("fetchMarketsV2", params)
-	marginMode := GetValue(marginModequeryVariable, 0)
+	var marginMode *string = SafeStringPtr(GetValue(marginModequeryVariable, 0))
 	query := GetValue(marginModequeryVariable, 1)
 	var promisesRaw []any = []any{}
-	if !IsEqual(marginMode, nil) {
+	if marginMode != nil {
 		promisesRaw = append(promisesRaw, EndpointRaw(this.PublicSpotGetMarginSymbols(query)))
 	} else {
 		promisesRaw = append(promisesRaw, EndpointRaw(this.PublicSpotGetTradesSymbols(query)))
@@ -898,7 +898,7 @@ func (this *Digifinex) fetchMarketsV2Body(ch chan any, optionalArgs ...any) any 
 		var spot bool = (settle == nil)
 		var swap bool = !spot
 		var margin any = func() any {
-			if !IsEqual(marginMode, nil) {
+			if marginMode != nil {
 				return true
 			}
 			return nil
@@ -1148,10 +1148,10 @@ func (this *Digifinex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModequeryVariable []any = this.HandleMarginModeAndParams("fetchBalance", params)
-	marginMode := GetValue(marginModequeryVariable, 0)
+	var marginMode *string = SafeStringPtr(GetValue(marginModequeryVariable, 0))
 	query := GetValue(marginModequeryVariable, 1)
 	var response map[string]any = nil
-	if !IsEqual(marginMode, nil) || (marketType != nil && *marketType == "margin") {
+	if (marginMode != nil) || (marketType != nil && *marketType == "margin") {
 		marketType = SafeStringPtr("margin")
 
 		response = MapTyped(PanicOnError((<-this.PrivateSpotGetMarginAssets(query)).Raw))
@@ -2124,14 +2124,14 @@ func (this *Digifinex) createOrderBody(ch chan any, symbol any, typeVar any, sid
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var marginResult any = this.HandleMarginModeAndParams("createOrder", params)
-	var marginMode any = GetValue(marginResult, 0)
+	var marginMode *string = SafeStringPtr(GetValue(marginResult, 0))
 	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 	var response map[string]any = nil
 	if GetValue(market, "swap") == true {
 
 		response = MapTyped(PanicOnError((<-this.PrivateSwapPostTradeOrderPlace(request)).Raw))
 	} else {
-		if !IsEqual(marginMode, nil) {
+		if marginMode != nil {
 
 			response = MapTyped(PanicOnError((<-this.PrivateSpotPostMarginOrderNew(request)).Raw))
 		} else {
@@ -2211,9 +2211,9 @@ func (this *Digifinex) createOrdersBody(ch chan any, orders any, optionalArgs ..
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
 		var marginResult any = this.HandleMarginModeAndParams("createOrders", orderParams)
-		var currentMarginMode any = GetValue(marginResult, 0)
-		if !IsEqual(currentMarginMode, nil) {
-			if marginMode == nil {
+		var currentMarginMode *string = SafeStringPtr(GetValue(marginResult, 0))
+		if currentMarginMode != nil {
+			if IsEqual(marginMode, nil) {
 				marginMode = currentMarginMode
 			} else {
 				if !IsEqual(marginMode, currentMarginMode) {
@@ -2232,7 +2232,7 @@ func (this *Digifinex) createOrdersBody(ch chan any, orders any, optionalArgs ..
 		response = MapTyped(PanicOnError((<-this.PrivateSwapPostTradeBatchOrder(ordersRequests)).Raw))
 	} else {
 		request["market"] = func() string {
-			if marginMode != nil {
+			if !IsEqual(marginMode, nil) {
 				return "margin"
 			}
 			return "spot"
@@ -2309,12 +2309,12 @@ func (this *Digifinex) CreateOrderRequest(symbol any, typeVar any, side any, amo
 	 */
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var marketType any = nil
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("createOrderRequest", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("createOrderRequest", params)
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	if marginMode != nil {
 		marketType = "margin"
@@ -2399,7 +2399,7 @@ func (this *Digifinex) CreateOrderRequest(symbol any, typeVar any, side any, amo
 		// limit orders require the amount in the base currency, market orders require the amount in the quote currency
 		var quantity any = nil
 		var createMarketBuyOrderRequiresPrice bool = true
-		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrderRequest", "createMarketBuyOrderRequiresPrice", true)
+		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionBoolAndParams(params, "createOrderRequest", "createMarketBuyOrderRequiresPrice", true)
 		createMarketBuyOrderRequiresPrice = GetValueBool(createMarketBuyOrderRequiresPriceparamsVariable, 0, false)
 		params = MapTyped(GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1))
 		if isMarketOrder && (IsEqual(side, "buy")) {
@@ -2518,10 +2518,10 @@ func (this *Digifinex) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
 		request["market"] = marketType
 	}
 	var marginModequeryVariable []any = this.HandleMarginModeAndParams("cancelOrder", params)
-	marginMode := GetValue(marginModequeryVariable, 0)
+	var marginMode *string = SafeStringPtr(GetValue(marginModequeryVariable, 0))
 	query := GetValue(marginModequeryVariable, 1)
 	var response any = nil
-	if !IsEqual(marginMode, nil) || (IsEqual(marketType, "margin")) {
+	if (marginMode != nil) || (IsEqual(marketType, "margin")) {
 		marketType = "margin"
 
 		response = (<-this.PrivateSpotPostMarginOrderCancel(this.Extend(request, query))).Raw
@@ -2855,7 +2855,7 @@ func (this *Digifinex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModequeryVariable []any = this.HandleMarginModeAndParams("fetchOpenOrders", params)
-	marginMode := GetValue(marginModequeryVariable, 0)
+	var marginMode *string = SafeStringPtr(GetValue(marginModequeryVariable, 0))
 	query := GetValue(marginModequeryVariable, 1)
 	var request map[string]any = map[string]any{}
 	var swap bool = (IsEqual(marketType, "swap"))
@@ -2879,7 +2879,7 @@ func (this *Digifinex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 		request[marketIdRequest] = GetValue(market, "id")
 	}
 	var response map[string]any = nil
-	if !IsEqual(marginMode, nil) || (IsEqual(marketType, "margin")) {
+	if (marginMode != nil) || (IsEqual(marketType, "margin")) {
 		marketType = "margin"
 
 		response = MapTyped(PanicOnError((<-this.PrivateSpotGetMarginOrderCurrent(this.Extend(request, query))).Raw))
@@ -2990,7 +2990,7 @@ func (this *Digifinex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModequeryVariable []any = this.HandleMarginModeAndParams("fetchOrders", params)
-	marginMode := GetValue(marginModequeryVariable, 0)
+	var marginMode *string = SafeStringPtr(GetValue(marginModequeryVariable, 0))
 	query := GetValue(marginModequeryVariable, 1)
 	var request map[string]any = map[string]any{}
 	if IsEqual(marketType, "swap") {
@@ -3016,7 +3016,7 @@ func (this *Digifinex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 	var response map[string]any = nil
-	if !IsEqual(marginMode, nil) || (IsEqual(marketType, "margin")) {
+	if (marginMode != nil) || (IsEqual(marketType, "margin")) {
 		marketType = "margin"
 
 		response = MapTyped(PanicOnError((<-this.PrivateSpotGetMarginOrderHistory(this.Extend(request, query))).Raw))
@@ -3122,7 +3122,7 @@ func (this *Digifinex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) 
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModequeryVariable []any = this.HandleMarginModeAndParams("fetchOrder", params)
-	marginMode := GetValue(marginModequeryVariable, 0)
+	var marginMode *string = SafeStringPtr(GetValue(marginModequeryVariable, 0))
 	query := GetValue(marginModequeryVariable, 1)
 	var request map[string]any = map[string]any{
 		"order_id": id,
@@ -3135,7 +3135,7 @@ func (this *Digifinex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) 
 		request["market"] = marketType
 	}
 	var response map[string]any = nil
-	if (!IsEqual(marginMode, nil)) || (IsEqual(marketType, "margin")) {
+	if (marginMode != nil) || (IsEqual(marketType, "margin")) {
 		marketType = "margin"
 
 		response = MapTyped(PanicOnError((<-this.PrivateSpotGetMarginOrder(this.Extend(request, query))).Raw))
@@ -3253,7 +3253,7 @@ func (this *Digifinex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModequeryVariable []any = this.HandleMarginModeAndParams("fetchMyTrades", params)
-	marginMode := GetValue(marginModequeryVariable, 0)
+	var marginMode *string = SafeStringPtr(GetValue(marginModequeryVariable, 0))
 	query := GetValue(marginModequeryVariable, 1)
 	if IsEqual(marketType, "swap") {
 		if since != nil {
@@ -3278,7 +3278,7 @@ func (this *Digifinex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 	var response map[string]any = nil
-	if !IsEqual(marginMode, nil) || (IsEqual(marketType, "margin")) {
+	if (marginMode != nil) || (IsEqual(marketType, "margin")) {
 		marketType = "margin"
 
 		response = MapTyped(PanicOnError((<-this.PrivateSpotGetMarginMytrades(this.Extend(request, query))).Raw))
@@ -3441,7 +3441,7 @@ func (this *Digifinex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModequeryVariable []any = this.HandleMarginModeAndParams("fetchLedger", params)
-	marginMode := GetValue(marginModequeryVariable, 0)
+	var marginMode *string = SafeStringPtr(GetValue(marginModequeryVariable, 0))
 	query := GetValue(marginModequeryVariable, 1)
 	if IsEqual(marketType, "swap") {
 		if since != nil {
@@ -3468,7 +3468,7 @@ func (this *Digifinex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 	var response map[string]any = nil
-	if !IsEqual(marginMode, nil) || (IsEqual(marketType, "margin")) {
+	if (marginMode != nil) || (IsEqual(marketType, "margin")) {
 		marketType = "margin"
 
 		response = MapTyped(PanicOnError((<-this.PrivateSpotGetMarginFinancelog(this.Extend(request, query))).Raw))
@@ -4592,9 +4592,9 @@ func (this *Digifinex) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModequeryVariable []any = this.HandleMarginModeAndParams("fetchPositions", params)
-	marginMode := GetValue(marginModequeryVariable, 0)
+	var marginMode *string = SafeStringPtr(GetValue(marginModequeryVariable, 0))
 	query := GetValue(marginModequeryVariable, 1)
-	if !IsEqual(marginMode, nil) {
+	if marginMode != nil {
 		marketType = SafeStringPtr("margin")
 	}
 	if !IsEqual(market, nil) {
@@ -4721,9 +4721,9 @@ func (this *Digifinex) fetchPositionBody(ch chan any, symbol any, optionalArgs .
 	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var marginModequeryVariable []any = this.HandleMarginModeAndParams("fetchPosition", params)
-	marginMode := GetValue(marginModequeryVariable, 0)
+	var marginMode *string = SafeStringPtr(GetValue(marginModequeryVariable, 0))
 	query := GetValue(marginModequeryVariable, 1)
-	if !IsEqual(marginMode, nil) {
+	if marginMode != nil {
 		marketType = SafeStringPtr("margin")
 	}
 	var marketIdRequest string = func() string {
@@ -5230,7 +5230,7 @@ func (this *Digifinex) HandleMarginModeAndParams(methodName any, optionalArgs ..
 	 */
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	defaultValue := GetArg(optionalArgs, 1, nil)
+	var defaultValue *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = defaultValue
 	var defaultType *string = this.SafeString(this.Options, "defaultType")
 	var isMargin *bool = this.SafeBool(params, "margin", false)

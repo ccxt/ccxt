@@ -317,7 +317,7 @@ class kucoin(ccxt.async_support.kucoin):
         symbol = market['symbol']
         messageHash = 'ticker:' + symbol
         uta = False
-        uta, params = self.handle_option_and_params(params, 'watchTicker', 'uta', uta)
+        uta, params = self.handle_option_bool_and_params(params, 'watchTicker', 'uta', uta)
         if uta:
             messageHash = 'uta:' + messageHash
             channel = 'ticker'
@@ -328,7 +328,7 @@ class kucoin(ccxt.async_support.kucoin):
         if isFuturesMethod is True:
             method = '/contractMarket/ticker'
         else:
-            method, params = self.handle_option_and_params(params, 'watchTicker', 'spotMethod', method)
+            method, params = self.handle_option_string_and_params(params, 'watchTicker', 'spotMethod', method)
         topic = method + ':' + market['id']
         return await self.subscribe(url, messageHash, topic, params)
 
@@ -351,7 +351,7 @@ class kucoin(ccxt.async_support.kucoin):
         symbol = market['symbol']
         isFuturesMethod = market['contract']
         uta = False
-        uta, params = self.handle_option_and_params(params, 'unWatchTicker', 'uta', uta)
+        uta, params = self.handle_option_bool_and_params(params, 'unWatchTicker', 'uta', uta)
         subscription = {
             'symbols': [symbol],
             'topic': 'ticker',
@@ -370,7 +370,7 @@ class kucoin(ccxt.async_support.kucoin):
             if isFuturesMethod is True:
                 method = '/contractMarket/ticker'
             else:
-                method, params = self.handle_option_and_params(params, 'watchTicker', 'spotMethod', method)
+                method, params = self.handle_option_string_and_params(params, 'watchTicker', 'spotMethod', method)
             topic = method + ':' + market['id']
             messageHash = 'unsubscribe:' + subMessageHash
             # we have to add the topic to the messageHashes and subMessageHashes
@@ -402,7 +402,7 @@ class kucoin(ccxt.async_support.kucoin):
         marketType = None
         marketType, params = self.handle_market_type_and_params('watchTickers', firstMarket, params)
         uta = False
-        uta, params = self.handle_option_and_params(params, 'watchTickers', 'uta', uta)
+        uta, params = self.handle_option_bool_and_params(params, 'watchTickers', 'uta', uta)
         isFuturesMethod = (marketType != 'spot') and (marketType != 'margin')
         if (isFuturesMethod or uta) and symbols is None:
             raise ArgumentsRequired(self.id + ' watchTickers() requires a list of symbols for ' + marketType + ' markets and unified trading account (uta)')
@@ -411,7 +411,7 @@ class kucoin(ccxt.async_support.kucoin):
         if isFuturesMethod:
             method = '/contractMarket/ticker'
         else:
-            method, params = self.handle_option_and_params_2(params, 'watchTickers', 'method', 'spotMethod', method)
+            method, params = self.handle_option_string_and_params_2(params, 'watchTickers', 'method', 'spotMethod', method)
         messageHashes = []
         topics = []
         if symbols is not None:
@@ -828,7 +828,7 @@ class kucoin(ccxt.async_support.kucoin):
         period = self.safe_string(self.timeframes, timeframe, timeframe)
         messageHash = 'candles:' + symbol + ':' + timeframe
         uta = False
-        uta, params = self.handle_option_and_params(params, 'watchOHLCV', 'uta', uta)
+        uta, params = self.handle_option_bool_and_params(params, 'watchOHLCV', 'uta', uta)
         ohlcv = None
         if uta:
             channel = 'kline'
@@ -869,7 +869,7 @@ class kucoin(ccxt.async_support.kucoin):
         market = self.market(symbol)
         symbol = market['symbol']
         uta = False
-        uta, params = self.handle_option_and_params(params, 'unWatchOHLCV', 'uta', uta)
+        uta, params = self.handle_option_bool_and_params(params, 'unWatchOHLCV', 'uta', uta)
         period = self.safe_string(self.timeframes, timeframe, timeframe)
         symbolAndTimeframe = [symbol, timeframe]
         subscription = {
@@ -1034,7 +1034,7 @@ class kucoin(ccxt.async_support.kucoin):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         uta = False
-        uta, params = self.handle_option_and_params(params, 'watchTrades', 'uta', uta)
+        uta, params = self.handle_option_bool_and_params(params, 'watchTrades', 'uta', uta)
         if uta:
             await self.load_markets()
             market = self.market(symbol)
@@ -1146,7 +1146,7 @@ class kucoin(ccxt.async_support.kucoin):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         uta = False
-        uta, params = self.handle_option_and_params(params, 'watchTrades', 'uta', uta)
+        uta, params = self.handle_option_bool_and_params(params, 'watchTrades', 'uta', uta)
         if uta:
             await self.load_markets()
             market = self.market(symbol)
@@ -1306,13 +1306,13 @@ class kucoin(ccxt.async_support.kucoin):
         # sequence follows the snapshot; price 0 → skip (bump sequence), size 0 → remove the price level
         #
         uta = False
-        uta, params = self.handle_option_and_params(params, 'watchOrderBook', 'uta', uta)
+        uta, params = self.handle_option_bool_and_params(params, 'watchOrderBook', 'uta', uta)
         if uta:
             await self.load_markets()
             market = self.market(symbol)
             symbol = market['symbol']
             depth = 'increment'  # '1', '5', '50' or 'increment'
-            depth, params = self.handle_option_and_params(params, 'watchOrderBook', 'utaDepth', depth)
+            depth, params = self.handle_option_string_and_params(params, 'watchOrderBook', 'utaDepth', depth)
             messageHash = 'uta:orderbook:' + symbol + ':depth:' + depth
             channel = 'obu'
             subscription = {}
@@ -1348,13 +1348,13 @@ class kucoin(ccxt.async_support.kucoin):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         uta = False
-        uta, params = self.handle_option_and_params(params, 'unWatchOrderBook', 'uta', uta)
+        uta, params = self.handle_option_bool_and_params(params, 'unWatchOrderBook', 'uta', uta)
         if uta:
             await self.load_markets()
             market = self.market(symbol)
             symbol = market['symbol']
             depth = 'increment'  # '1', '5', '50' or 'increment'
-            depth, params = self.handle_option_and_params(params, 'watchOrderBook', 'utaDepth', depth)
+            depth, params = self.handle_option_string_and_params(params, 'watchOrderBook', 'utaDepth', depth)
             params = self.extend(params, {
                 'depth': depth,
             })
@@ -1777,7 +1777,7 @@ class kucoin(ccxt.async_support.kucoin):
         if self.markets is None:
             await self.load_markets()
         uta = await self.is_uta_enabled()
-        uta, params = self.handle_option_and_params(params, 'watchOrders', 'uta', uta)
+        uta, params = self.handle_option_bool_and_params(params, 'watchOrders', 'uta', uta)
         market = None
         messageHash = 'orders'
         if symbol is not None:
@@ -2183,7 +2183,7 @@ class kucoin(ccxt.async_support.kucoin):
         marketType, params = self.handle_market_type_and_params('watchMyTrades', market, params)
         isFuturesMethod = ((marketType != 'spot') and (marketType != 'margin'))
         uta = await self.is_uta_enabled()
-        uta, params = self.handle_option_and_params(params, 'watchMyTrades', 'uta', uta)
+        uta, params = self.handle_option_bool_and_params(params, 'watchMyTrades', 'uta', uta)
         trades = None
         if uta:
             params = self.extend(params, {
@@ -2385,7 +2385,7 @@ class kucoin(ccxt.async_support.kucoin):
         if self.markets is None:
             await self.load_markets()
         uta = await self.is_uta_enabled()
-        uta, params = self.handle_option_and_params(params, 'watchBalance', 'uta', uta)
+        uta, params = self.handle_option_bool_and_params(params, 'watchBalance', 'uta', uta)
         defaultType = 'unified' if uta else 'spot'
         type = defaultType
         if not uta:
@@ -2641,7 +2641,7 @@ class kucoin(ccxt.async_support.kucoin):
         if self.markets is None:
             await self.load_markets()
         uta = await self.is_uta_enabled()
-        uta, params = self.handle_option_and_params(params, 'watchPositions', 'uta', uta)
+        uta, params = self.handle_option_bool_and_params(params, 'watchPositions', 'uta', uta)
         tradeType = 'UNIFIED' if uta else 'TRADE'
         messageHash = 'positions'
         messageHashes = []

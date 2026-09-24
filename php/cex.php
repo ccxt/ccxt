@@ -1310,7 +1310,7 @@ class cex extends Exchange {
             'amountCcy1' => $this->amount_to_precision($symbol, $amount),
         );
         $timeInForce = null;
-        list($timeInForce, $params) = $this->handle_option_and_params($params, 'createOrder', 'timeInForce', 'GTC');
+        list($timeInForce, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'timeInForce', 'GTC');
         if ($type === 'limit') {
             $request['price'] = $this->price_to_precision($symbol, $price);
             $request['timeInForce'] = $timeInForce;

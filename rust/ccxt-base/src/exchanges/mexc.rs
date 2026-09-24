@@ -3077,7 +3077,7 @@ impl MexcCore {
         let mut market: Value = self.market(symbol.clone());
         let mut maxLimit: Value = (if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { Value::Int(500) } else { Value::Int(2000) }); // docs say 1000 for spot, but in practice it's 500
         let mut paginate: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_bool_and_params(params.clone(), Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&paginate) {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol, since.clone(), limit.clone(), timeframe.clone(), params.clone(), maxLimit.clone()]).await;
         }
@@ -4013,7 +4013,7 @@ impl MexcCore {
             let mut query: Value = marginModequeryVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             if (marginMode != Value::Null) {
                 if (marginMode.as_str() != Some("isolated")) {
-                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() does not support marginMode ".into())).into()), &marginMode), Value::Str(" for spot-margin trading".into()))));
+                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() does not support marginMode ".into())).into()), marginMode).into()), Value::Str(" for spot-margin trading".into()))));
                 }
                 let __ws_arg_18 = self.extend(request.clone(), &[query.clone()]);
                 data = self.spot_private_get_margin_order(&[__ws_arg_18]).await;
@@ -4123,7 +4123,7 @@ impl MexcCore {
             let mut response: Value = Value::Null;
             if (marginMode != Value::Null) {
                 if (marginMode.as_str() != Some("isolated")) {
-                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders() does not support marginMode ".into())).into()), &marginMode), Value::Str(" for spot-margin trading".into()))));
+                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders() does not support marginMode ".into())).into()), marginMode).into()), Value::Str(" for spot-margin trading".into()))));
                 }
                 let __ws_arg_21 = self.extend(request.clone(), &[queryInner.clone()]);
                 response = self.spot_private_get_margin_all_orders(&[__ws_arg_21]).await;
@@ -4346,7 +4346,7 @@ impl MexcCore {
             let mut response: Value = Value::Null;
             if (marginMode != Value::Null) {
                 if (marginMode.as_str() != Some("isolated")) {
-                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() does not support marginMode ".into())).into()), &marginMode), Value::Str(" for spot-margin trading".into()))));
+                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() does not support marginMode ".into())).into()), marginMode).into()), Value::Str(" for spot-margin trading".into()))));
                 }
                 let __ws_arg_26 = self.extend(request.clone(), &[query.clone()]);
                 response = self.spot_private_get_margin_open_orders(&[__ws_arg_26]).await;
@@ -4507,7 +4507,7 @@ impl MexcCore {
             }
             if (marginMode != Value::Null) {
                 if (marginMode.as_str() != Some("isolated")) {
-                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() does not support marginMode ".into())).into()), &marginMode), Value::Str(" for spot-margin trading".into()))));
+                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() does not support marginMode ".into())).into()), marginMode).into()), Value::Str(" for spot-margin trading".into()))));
                 }
                 let __ws_arg_30 = self.extend(requestInner.clone(), &[query.clone()]);
                 data = self.spot_private_delete_margin_order(&[__ws_arg_30]).await;

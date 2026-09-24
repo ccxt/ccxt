@@ -1634,7 +1634,7 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -1813,7 +1813,7 @@ func (this *Pacifica) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	var userAddress any = nil
@@ -2727,7 +2727,7 @@ func (this *Pacifica) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	var defaultLimit int = 100 // Default max limit
@@ -3116,7 +3116,7 @@ func (this *Pacifica) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOrders", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	var defaultLimit int = 100 // max default 100
@@ -4016,7 +4016,7 @@ func (this *Pacifica) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLedger", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchLedger", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	var userAddress any = nil
@@ -4152,7 +4152,7 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 		market = this.Market(symbol)
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingHistory", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	var userAddress any = nil

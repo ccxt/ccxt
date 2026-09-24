@@ -1727,7 +1727,7 @@ class bithumb extends Exchange {
                 $cost = $this->safe_string($params, 'cost');
                 $params = $this->omit($params, 'cost');
                 $createMarketBuyOrderRequiresPrice = true;
-                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_bool_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 if ($createMarketBuyOrderRequiresPrice) {
                     if (($price === null) && ($cost === null)) {
                         throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');

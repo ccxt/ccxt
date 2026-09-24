@@ -1777,7 +1777,7 @@ impl BlofinCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }; // default 100
         }
         let mut method: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchTrades".into()), Value::Str("method".into()), &[Value::Str("publicGetMarketTrades".into())]); method = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("fetchTrades".into()), Value::Str("method".into()), &[Value::Str("publicGetMarketTrades".into())]); method = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (method.as_str() == Some("publicGetMarketTrades")) {
             let __ws_arg_3 = self.extend(request, &[params]);
             response = self.public_get_market_trades(&[__ws_arg_3]).await;
@@ -2466,7 +2466,7 @@ impl BlofinCore {
         let mut isTakeProfitPriceDefined: bool = self.safe_string_k(params.clone(), "takeProfitPrice", &[]) != Value::Null;
         let mut isTriggerOrder: bool = self.safe_string_k(params.clone(), "triggerPrice", &[]) != Value::Null;
         let mut isTpslEndpoint: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("tpsl".into()), &[Value::Bool(false)]); isTpslEndpoint = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_bool_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("tpsl".into()), &[Value::Bool(false)]); isTpslEndpoint = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut isCombinedSlTp: bool = (isStopLossPriceDefined && isTakeProfitPriceDefined) || is_true(&isTpslEndpoint);
         let mut isSlOrTp: bool = isStopLossPriceDefined || isTakeProfitPriceDefined;
         let mut response: Value = Value::Null;
@@ -2720,7 +2720,7 @@ impl BlofinCore {
         let mut isTrigger: Value = self.safe_bool_n(params.clone(), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[Value::Bool(false)]);
         let mut isTpSl: Value = self.safe_bool2(params.clone(), Value::Str("tpsl".into()), Value::Str("TPSL".into()), &[Value::Bool(false)]);
         let mut method: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOpenOrders".into()), Value::Str("method".into()), &[Value::Str("privateGetTradeOrdersPending".into())]); method = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("fetchOpenOrders".into()), Value::Str("method".into()), &[Value::Str("privateGetTradeOrdersPending".into())]); method = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut query: Value = self.omit(params, Value::from(vec![Value::Str("method".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("tpsl".into()), Value::Str("TPSL".into())]), &[]);
         let mut response: Value = Value::Null;
         if (isTpSl.as_bool() == Some(true)) || (method.as_str() == Some("privateGetTradeOrdersTpslPending")) {
@@ -4062,7 +4062,7 @@ impl BlofinCore {
         }
         let mut isTrigger: Value = self.safe_bool_n(params.clone(), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("tpsl".into()), Value::Str("TPSL".into())]), &[Value::Bool(false)]);
         let mut method: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchClosedOrders".into()), Value::Str("method".into()), &[Value::Str("privateGetTradeOrdersHistory".into())]); method = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("fetchClosedOrders".into()), Value::Str("method".into()), &[Value::Str("privateGetTradeOrdersHistory".into())]); method = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut query: Value = self.omit(params, Value::from(vec![Value::Str("method".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("tpsl".into()), Value::Str("TPSL".into())]), &[]);
         let mut response: Value = Value::Null;
         if (isTrigger.as_bool() == Some(true)) || (method.as_str() == Some("privateGetTradeOrdersTpslHistory")) {

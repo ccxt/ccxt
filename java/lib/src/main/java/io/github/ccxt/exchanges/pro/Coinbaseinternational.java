@@ -359,11 +359,11 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             {
                 (this.loadMarkets()).join();
             }
-            Object channel = null;
-            List<Object> channelparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTicker", "channel", "LEVEL1");
-            channel = ((List<Object>) channelparametersVariable).get(0);
+            String channel = null;
+            List<Object> channelparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchTicker", "channel", "LEVEL1");
+            channel = (String) ((List<Object>) channelparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) channelparametersVariable).get(1);
-            return (this.subscribe(((String)channel), new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
+            return (this.subscribe(channel, new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -418,7 +418,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 (this.loadMarkets()).join();
             }
             Object channel = null;
-            List<Object> channelparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "channel", "LEVEL1");
+            List<Object> channelparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchTickers", "channel", "LEVEL1");
             channel = ((List<Object>) channelparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) channelparametersVariable).get(1);
             Object ticker = (this.subscribe(channel, symbols, parameters)).join();

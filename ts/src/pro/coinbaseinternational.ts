@@ -231,7 +231,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             await this.loadMarkets ();
         }
         let channel: Str = undefined;
-        [ channel, params ] = this.handleOptionAndParams (params, 'watchTicker', 'channel', 'LEVEL1');
+        [ channel, params ] = this.handleOptionStringAndParams (params, 'watchTicker', 'channel', 'LEVEL1');
         return await this.subscribe ((channel as string), [ symbol ], params);
     }
 
@@ -263,7 +263,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             await this.loadMarkets ();
         }
         let channel: Str = undefined;
-        [ channel, params ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'LEVEL1');
+        [ channel, params ] = this.handleOptionStringAndParams (params, 'watchTickers', 'channel', 'LEVEL1');
         const ticker = await this.subscribe (channel, symbols, params);
         if (this.newUpdates) {
             const result: Dict = {};
