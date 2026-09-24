@@ -2178,6 +2178,8 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     // declares the same signatures; nonce/milliseconds are non-nullable Int64)
     'milliseconds': 'Int64',
     'nonce': 'Int64',
+    // incrementingNonce (base only, no override): returns nonce () or lastNonce + 1, an Int64 box
+    'incrementingNonce': 'Int64?',
     'parseToInt': 'Int64?',
     // grvt#convertToBigIntCustom (generated): its single definition's single return path is
     // `return parseInt (x);` — an Int64 or null box once parseInt is retyped (see
@@ -14063,6 +14065,7 @@ export function installCsharpAsyncCoreReturns (transpiler) {
 export const CSHARP_NUMERIC_RETURN_TYPES = {
     // Exchange.BaseMethods.cs (transpiled from ts/src/base/Exchange.ts)
     'nonce': 'Int64',
+    'incrementingNonce': 'Int64?',
     'parseToInt': 'Int64?',
     'safeNumber': 'double?',
     'safeNumber2': 'double?',
