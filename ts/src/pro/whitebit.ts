@@ -1125,7 +1125,7 @@ export default class whitebit extends whitebitRest {
             'balanceMargin_update': this.handleBalance,
             'deals_update': this.handleMyTrades,
         };
-        const topic = this.safeValue (message, 'method');
+        const topic = this.safeString (message, 'method');
         const method = this.safeValue (methods, topic);
         if (method !== undefined) {
             method.call (this, client, message);

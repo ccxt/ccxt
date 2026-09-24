@@ -432,7 +432,7 @@ export default class woo extends wooRest {
         //     }
         //
         const data = this.safeValue (message, 'data');
-        const topic = this.safeValue (message, 'topic');
+        const topic = this.safeString (message, 'topic');
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
         const timestamp = this.safeInteger (message, 'ts');
@@ -520,7 +520,7 @@ export default class woo extends wooRest {
         //         ]
         //     }
         //
-        const topic = this.safeValue (message, 'topic');
+        const topic = this.safeString (message, 'topic');
         const data = this.safeValue (message, 'data');
         const timestamp = this.safeInteger (message, 'ts');
         const result: List = [];
@@ -717,7 +717,7 @@ export default class woo extends wooRest {
         //     }
         //
         const data = this.safeDict (message, 'data');
-        const topic = this.safeValue (message, 'topic');
+        const topic = this.safeString (message, 'topic');
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -1466,7 +1466,7 @@ export default class woo extends wooRest {
         //
         //    }
         //
-        const data = this.safeValue (message, 'data');
+        const data = this.safeDict (message, 'data');
         const balances = this.safeValue (data, 'balances');
         const keys = Object.keys (balances);
         const ts = this.safeInteger (message, 'ts');
