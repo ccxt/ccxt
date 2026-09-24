@@ -1412,7 +1412,10 @@ export default class coinbase extends Exchange {
         for (let i = 0; i < baseIds.length; i++) {
             const baseId = baseIds[i];
             const base = this.safeCurrencyCode (baseId);
-            const type = (baseId in dataById) ? 'fiat' : 'crypto';
+            let type: Str = 'crypto';
+            if (baseId in dataById) {
+                type = 'fiat';
+            }
             // https://github.com/ccxt/ccxt/issues/6066
             if (type === 'crypto') {
                 for (let j = 0; j < data.length; j++) {
@@ -2032,7 +2035,10 @@ export default class coinbase extends Exchange {
             if (code !== undefined) {
                 this.options['networksById'][code] = (name as string).toLowerCase ();
             }
-            const type = (assetId !== undefined) ? 'crypto' : 'fiat';
+            let type: Str = 'fiat';
+            if (assetId !== undefined) {
+                type = 'crypto';
+            }
             if (code !== undefined) {
                 result[code] = this.safeCurrencyStructure ({
                     'info': currency,
@@ -2448,7 +2454,7 @@ export default class coinbase extends Exchange {
         const v3Accounts = this.safeList (params, 'type', this.options['v3Accounts']);
         const result: Dict = { 'info': response };
         for (let b = 0; b < balances.length; b++) {
-            const balance = balances[b];
+            const balance = this.safeDict (balances, b);
             const type = this.safeString (balance, 'type');
             if (this.inArray (type, accounts)) {
                 const value = this.safeDict (balance, 'balance');
@@ -3111,7 +3117,12 @@ export default class coinbase extends Exchange {
         const isStopLoss = stopLossPrice !== undefined;
         const isTakeProfit = takeProfitPrice !== undefined;
         const timeInForce = this.safeString (params, 'timeInForce');
-        const postOnly = (timeInForce === 'PO') ? true : this.safeBool2 (params, 'postOnly', 'post_only', false);
+        let postOnly: Bool = undefined;
+        if (timeInForce === 'PO') {
+            postOnly = true;
+        } else {
+            postOnly = this.safeBool2 (params, 'postOnly', 'post_only', false);
+        }
         const endTime = this.safeString (params, 'end_time');
         let stopDirection = this.safeString (params, 'stop_direction');
         if (type === 'limit') {
@@ -5107,7 +5118,10 @@ export default class coinbase extends Exchange {
         }
         const notionalObject = this.safeDict (position, 'position_notional', {});
         const positionSide = this.safeString (position, 'position_side');
-        const side = (positionSide === 'POSITION_SIDE_LONG') ? 'long' : 'short';
+        let side: Str = 'short';
+        if (positionSide === 'POSITION_SIDE_LONG') {
+            side = 'long';
+        }
         const unrealizedPNLObject = this.safeDict (position, 'unrealized_pnl', {});
         const liquidationPriceObject = this.safeDict (position, 'liquidation_price', {});
         const liquidationPrice = this.safeNumber (liquidationPriceObject, 'value');
@@ -5161,7 +5175,10 @@ export default class coinbase extends Exchange {
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
         const isSpot = (type === 'spot');
-        const productType = isSpot ? 'SPOT' : 'FUTURE';
+        let productType: Str = 'FUTURE';
+        if (isSpot) {
+            productType = 'SPOT';
+        }
         const request: Dict = {
             'product_type': productType,
         };
@@ -5293,8 +5310,14 @@ export default class coinbase extends Exchange {
         }
         // eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
         const nonce = this.randomBytes (16);
-        const aud = useEddsa ? 'cdp_service' : 'retail_rest_api_proxy';
-        const iss = useEddsa ? 'cdp' : 'coinbase-cloud';
+        let aud: Str = 'retail_rest_api_proxy';
+        if (useEddsa) {
+            aud = 'cdp_service';
+        }
+        let iss: Str = 'coinbase-cloud';
+        if (useEddsa) {
+            iss = 'cdp';
+        }
         const request: Dict = {
             'aud': [ aud ],
             'iss': iss,
@@ -5328,7 +5351,10 @@ export default class coinbase extends Exchange {
         const version = api[0];
         const signed = api[1] === 'private';
         const isV3 = version === 'v3';
-        const pathPart = (isV3) ? 'api/v3' : 'v2';
+        let pathPart: Str = 'v2';
+        if (isV3) {
+            pathPart = 'api/v3';
+        }
         let fullPath = '/' + pathPart + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const savedPath = fullPath;

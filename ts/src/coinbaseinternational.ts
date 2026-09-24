@@ -369,7 +369,7 @@ export default class coinbaseinternational extends Exchange {
         }
         const accounts = await this.fetchAccounts ();
         for (let i = 0; i < accounts.length; i++) {
-            const account = accounts[i];
+            const account = this.safeDict (accounts, i);
             const info = this.safeDict (account, 'info', {});
             if (this.safeBool (info, 'is_default') === true) {
                 const portfolioId = this.safeString (info, 'portfolio_id');
@@ -1607,7 +1607,7 @@ export default class coinbaseinternational extends Exchange {
             rows = instruments;
         }
         for (let i = 0; i < rows.length; i++) {
-            const instrument = rows[i];
+            const instrument = this.safeDict (rows, i);
             const marketId = this.safeString (instrument, 'symbol');
             const symbol = this.safeSymbol (marketId);
             const quote = this.safeDict (instrument, 'quote', {});
@@ -1741,7 +1741,7 @@ export default class coinbaseinternational extends Exchange {
             'info': response,
         };
         for (let i = 0; i < response.length; i++) {
-            const rawBalance = response[i];
+            const rawBalance = this.safeDict (response, i);
             const currencyId = this.safeString (rawBalance, 'asset_name');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();

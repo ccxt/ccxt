@@ -1774,7 +1774,7 @@ export default class bybit extends Exchange {
         let eta: Int = undefined;
         let url: Str = undefined;
         for (let i = 0; i < list.length; i++) {
-            const event = list[i];
+            const event = this.safeDict (list, i);
             const state = this.safeString (event, 'state');
             if (state === 'ongoing') {
                 status = 'maintenance';
@@ -2214,7 +2214,10 @@ export default class bybit extends Exchange {
             const id = this.safeString (market, 'symbol');
             const baseId = this.safeString (market, 'baseCoin');
             const quoteId = this.safeString (market, 'quoteCoin');
-            const defaultSettledId = linear ? quoteId : baseId;
+            let defaultSettledId: Str = baseId;
+            if (linear) {
+                defaultSettledId = quoteId;
+            }
             const settleId = this.safeString (market, 'settleCoin', defaultSettledId);
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
@@ -2541,7 +2544,10 @@ export default class bybit extends Exchange {
         const isSpot = this.safeString (ticker, 'openInterestValue') === undefined;
         const timestamp = this.safeInteger (ticker, 'time');
         const marketId = this.safeString (ticker, 'symbol');
-        const type = isSpot ? 'spot' : 'contract';
+        let type: Str = 'contract';
+        if (isSpot) {
+            type = 'spot';
+        }
         market = this.safeMarket (marketId, market, undefined, type);
         const symbol = this.safeSymbol (marketId, market, undefined, type);
         const last = this.safeString (ticker, 'lastPrice');
@@ -3312,7 +3318,10 @@ export default class bybit extends Exchange {
         //
         const id = this.safeStringN (trade, [ 'execId', 'id', 'tradeId' ]);
         const marketId = this.safeString (trade, 'symbol');
-        let marketType = ('createType' in trade) ? 'contract' : 'spot';
+        let marketType: Str = 'spot';
+        if ('createType' in trade) {
+            marketType = 'contract';
+        }
         const category = this.safeString (trade, 'category');
         if (category !== undefined) {
             marketType = (category === 'spot') ? 'spot' : 'contract';
@@ -3651,13 +3660,13 @@ export default class bybit extends Exchange {
             result[code] = account;
         } else {
             for (let i = 0; i < currencyList.length; i++) {
-                const entry = currencyList[i];
+                const entry = this.safeDict (currencyList, i);
                 const accountType = this.safeString (entry, 'accountType');
                 if (accountType === 'UNIFIED' || accountType === 'CONTRACT' || accountType === 'SPOT') {
                     const coins = this.safeList (entry, 'coin', []);
                     for (let j = 0; j < coins.length; j++) {
                         const account = this.account ();
-                        const coinEntry = coins[j];
+                        const coinEntry = this.safeDict (coins, j);
                         const loan = this.safeString (coinEntry, 'borrowAmount');
                         const interest = this.safeString (coinEntry, 'accruedInterest');
                         if ((loan !== undefined) && (interest !== undefined)) {
@@ -4017,7 +4026,10 @@ export default class bybit extends Exchange {
         if (code !== undefined) {
             if (code !== '0') {
                 const category = this.safeString (order, 'category');
-                const inferredMarketType = (category === 'spot') ? 'spot' : 'contract';
+                let inferredMarketType: Str = 'contract';
+                if (category === 'spot') {
+                    inferredMarketType = 'spot';
+                }
                 return this.safeOrder ({
                     'info': order,
                     'status': 'rejected',
@@ -4459,7 +4471,10 @@ export default class bybit extends Exchange {
                     throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                 } else {
                     const quoteAmount = Precise.stringMul (this.numberToString (amount), priceString);
-                    const costRequest = (cost !== undefined) ? cost : quoteAmount;
+                    let costRequest: Str = quoteAmount;
+                    if (cost !== undefined) {
+                        costRequest = cost;
+                    }
                     request['qty'] = this.getCost (symbol, costRequest);
                 }
             } else {
@@ -4575,7 +4590,7 @@ export default class bybit extends Exchange {
         const ordersRequests: List = [];
         const orderSymbols: List = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const marketId = this.safeString (rawOrder, 'symbol');
             orderSymbols.push (marketId);
             const type = this.safeString (rawOrder, 'type');
@@ -4799,7 +4814,7 @@ export default class bybit extends Exchange {
         const ordersRequests: List = [];
         let orderSymbols: List = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const symbol = this.safeString (rawOrder, 'symbol');
             orderSymbols.push (symbol);
             const id = this.safeString (rawOrder, 'id');
@@ -5087,7 +5102,7 @@ export default class bybit extends Exchange {
         const ordersRequests: List = [];
         let category: Str = undefined;
         for (let i = 0; i < orders.length; i++) {
-            const order = orders[i];
+            const order = this.safeDict (orders, i);
             const symbol = this.safeString (order, 'symbol');
             const market = this.market (symbol);
             let currentCategory: Str = undefined;
@@ -5369,7 +5384,10 @@ export default class bybit extends Exchange {
         // see https://github.com/ccxt/ccxt/pull/29602
         const innerListLength = innerList.length;
         if (innerListLength === 0) {
-            const extra = (isTrigger === true) ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
+            let extra: Str = ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
+            if (isTrigger === true) {
+                extra = '';
+            }
             throw new OrderNotFound ('Order ' + id.toString () + ' was not found.' + extra);
         }
         const order = this.safeDict (innerList, 0, {});
@@ -6288,7 +6306,10 @@ export default class bybit extends Exchange {
         const updated = this.safeInteger (transaction, 'updateTime');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const feeCost = this.safeNumber2 (transaction, 'depositFee', 'withdrawFee');
-        const type = ('depositFee' in transaction) ? 'deposit' : 'withdrawal';
+        let type: Str = 'withdrawal';
+        if ('depositFee' in transaction) {
+            type = 'deposit';
+        }
         let fee: Fee = undefined;
         if (feeCost !== undefined) {
             fee = {
@@ -6545,12 +6566,20 @@ export default class bybit extends Exchange {
         currency = this.safeCurrency (currencyId, currency);
         const amountString = this.safeString2 (item, 'amount', 'change');
         const afterString = this.safeString2 (item, 'wallet_balance', 'cashBalance');
-        const direction = Precise.stringLt (amountString, '0') ? 'out' : 'in';
+        let direction: Str = 'in';
+        if (Precise.stringLt (amountString, '0')) {
+            direction = 'out';
+        }
         let before: Num = undefined;
         let after: Num = undefined;
         let amount: Num = undefined;
         if (afterString !== undefined && amountString !== undefined) {
-            const difference = (direction === 'out') ? amountString : Precise.stringNeg (amountString);
+            let difference: Str = undefined;
+            if (direction === 'out') {
+                difference = amountString;
+            } else {
+                difference = Precise.stringNeg (amountString);
+            }
             before = this.parseToNumeric (Precise.stringAdd (afterString, difference));
             after = this.parseToNumeric (afterString);
             amount = this.parseToNumeric (Precise.stringAbs (amountString));
@@ -7036,7 +7065,10 @@ export default class bybit extends Exchange {
             if (market['settle'] === 'USDC') {
                 //  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
                 const useMarkPrice = this.safeBool (this.options, 'useMarkPriceForPositionCollateral', false);
-                const price = useMarkPrice ? markPrice : entryPrice;
+                let price: Str = entryPrice;
+                if (useMarkPrice) {
+                    price = markPrice;
+                }
                 const difference = Precise.stringAbs (Precise.stringSub (price, liquidationPrice));
                 collateralString = Precise.stringAdd (Precise.stringAdd (Precise.stringMul (difference, size), maintenanceMarginString), unrealisedPnl);
             } else {
@@ -7330,7 +7362,10 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const subType = (market['linear'] === true) ? 'linear' : 'inverse';
+        let subType: Str = 'inverse';
+        if (market['linear'] === true) {
+            subType = 'linear';
+        }
         const category = this.safeString (params, 'category', subType);
         const intervals = this.safeDict (this.options, 'intervals');
         const interval = this.safeString (intervals, timeframe); // 5min,15min,30min,1h,4h,1d
@@ -7414,7 +7449,10 @@ export default class bybit extends Exchange {
         if (interval === undefined) {
             throw new BadRequest (this.id + ' fetchOpenInterest() cannot use the ' + timeframe + ' timeframe');
         }
-        const subType = (market['linear'] === true) ? 'linear' : 'inverse';
+        let subType: Str = 'inverse';
+        if (market['linear'] === true) {
+            subType = 'linear';
+        }
         const category = this.safeString (params, 'category', subType);
         const request: Dict = {
             'symbol': market['id'],
@@ -8077,7 +8115,10 @@ export default class bybit extends Exchange {
         //     }
         //
         const marketId = this.safeString (fee, 'symbol');
-        const defaultType = (market !== undefined) ? market['type'] : 'contract';
+        let defaultType: Str = 'contract';
+        if (market !== undefined) {
+            defaultType = market['type'];
+        }
         const symbol = this.safeSymbol (marketId, market, undefined, defaultType);
         return {
             'info': fee,
@@ -8219,7 +8260,7 @@ export default class bybit extends Exchange {
         };
         if (chainsLength !== 0) {
             for (let i = 0; i < chainsLength; i++) {
-                const chain = chains[i];
+                const chain = this.safeDict (chains, i);
                 const networkId = this.safeString (chain, 'chain');
                 const currencyCode = this.safeString (currency, 'code');
                 const networkCode = this.networkIdToCode (networkId, currencyCode);
@@ -8527,7 +8568,7 @@ export default class bybit extends Exchange {
         //
         const result: List = [];
         for (let i = 0; i < volatility.length; i++) {
-            const entry = volatility[i];
+            const entry = this.safeDict (volatility, i);
             const timestamp = this.safeInteger (entry, 'time');
             result.push ({
                 'info': volatility,
@@ -9393,7 +9434,10 @@ export default class bybit extends Exchange {
         let accountType: Str = undefined;
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         const isUnifiedAccount = (enableUnifiedMargin === true) || (enableUnifiedAccount === true);
-        const accountTypeDefault = isUnifiedAccount ? 'eb_convert_uta' : 'eb_convert_spot';
+        let accountTypeDefault: Str = 'eb_convert_spot';
+        if (isUnifiedAccount) {
+            accountTypeDefault = 'eb_convert_uta';
+        }
         [ accountType, params ] = this.handleOptionStringAndParams (params, 'fetchConvertCurrencies', 'accountType', accountTypeDefault);
         const request: Dict = {
             'accountType': accountType,
@@ -9495,7 +9539,10 @@ export default class bybit extends Exchange {
         let accountType: Str = undefined;
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         const isUnifiedAccount = (enableUnifiedMargin === true) || (enableUnifiedAccount === true);
-        const accountTypeDefault = isUnifiedAccount ? 'eb_convert_uta' : 'eb_convert_spot';
+        let accountTypeDefault: Str = 'eb_convert_spot';
+        if (isUnifiedAccount) {
+            accountTypeDefault = 'eb_convert_uta';
+        }
         [ accountType, params ] = this.handleOptionStringAndParams (params, 'fetchConvertQuote', 'accountType', accountTypeDefault);
         const request: Dict = {
             'fromCoin': fromCode,
@@ -9587,7 +9634,10 @@ export default class bybit extends Exchange {
         let accountType: Str = undefined;
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         const isUnifiedAccount = (enableUnifiedMargin === true) || (enableUnifiedAccount === true);
-        const accountTypeDefault = isUnifiedAccount ? 'eb_convert_uta' : 'eb_convert_spot';
+        let accountTypeDefault: Str = 'eb_convert_spot';
+        if (isUnifiedAccount) {
+            accountTypeDefault = 'eb_convert_uta';
+        }
         [ accountType, params ] = this.handleOptionStringAndParams (params, 'fetchConvertTrade', 'accountType', accountTypeDefault);
         const request: Dict = {
             'quoteTxId': id,

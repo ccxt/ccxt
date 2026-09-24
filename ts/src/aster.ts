@@ -1265,7 +1265,10 @@ export default class aster extends Exchange {
         //
         const id = this.safeString2 (trade, 'id', 'a');
         const marketId = this.safeString (trade, 'symbol');
-        const marketType = ('positionSide' in trade) ? 'swap' : 'spot';
+        let marketType: Str = 'spot';
+        if ('positionSide' in trade) {
+            marketType = 'swap';
+        }
         market = this.safeMarket (marketId, market, undefined, marketType);
         const currencyId = this.safeString2 (trade, 'commissionAsset', 'marginAsset');
         const currencyCode = this.safeCurrencyCode (currencyId);
@@ -2085,7 +2088,7 @@ export default class aster extends Exchange {
     override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict (response, i);
             const currencyId = this.safeString (balance, 'asset');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -2166,7 +2169,10 @@ export default class aster extends Exchange {
      * @returns {object} response from the exchange
      */
     override async setPositionMode (hedged: boolean, symbol: Str = undefined, params: Dict = {}) {
-        const strValue = hedged ? 'true' : 'false';
+        let strValue: Str = 'false';
+        if (hedged) {
+            strValue = 'true';
+        }
         const request: Dict = {
             'dualSidePosition': strValue,
         };
@@ -2307,7 +2313,10 @@ export default class aster extends Exchange {
         //
         const info = order;
         const positionSide = this.safeString (order, 'positionSide');
-        const defaultType = (positionSide !== undefined) ? 'swap' : 'spot';
+        let defaultType: Str = 'spot';
+        if (positionSide !== undefined) {
+            defaultType = 'swap';
+        }
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market, undefined, defaultType);
         const side = this.safeStringLower (order, 'side');
@@ -2698,7 +2707,7 @@ export default class aster extends Exchange {
             throw new InvalidOrder (this.id + ' createOrders() order list max 5 orders');
         }
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const marketId = this.safeString (rawOrder, 'symbol');
             const currentMarket = this.market (marketId);
             orderSymbols.push (currentMarket['symbol']);
@@ -3812,7 +3821,7 @@ export default class aster extends Exchange {
         const assets = this.safeList (account, 'assets', []);
         const balances: Dict = {};
         for (let i = 0; i < assets.length; i++) {
-            const entry = assets[i];
+            const entry = this.safeDict (assets, i);
             const currencyId = this.safeString (entry, 'asset');
             const code = this.safeCurrencyCode (currencyId);
             const crossWalletBalance = this.safeString (entry, 'crossWalletBalance');
@@ -4075,13 +4084,13 @@ export default class aster extends Exchange {
             this.options['leverageBrackets'] = this.createSafeDictionary ();
             const entries = this.toArray (response);
             for (let i = 0; i < entries.length; i++) {
-                const entry = entries[i];
+                const entry = this.safeDict (entries, i);
                 const marketId = this.safeString (entry, 'symbol');
                 const symbol = this.safeSymbol (marketId, undefined, undefined, 'contract');
                 const brackets = this.safeList (entry, 'brackets', []);
                 const result: List = [];
                 for (let j = 0; j < brackets.length; j++) {
-                    const bracket = brackets[j];
+                    const bracket = this.safeDict (brackets, j);
                     const floorValue = this.safeString (bracket, 'notionalFloor');
                     const maintenanceMarginPercentage = this.safeString (bracket, 'maintMarginRatio');
                     result.push ([ floorValue, maintenanceMarginPercentage ]);

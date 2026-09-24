@@ -3596,8 +3596,14 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const bidsKey = (uta === true) ? 'b' : 'bids';
-        const asksKey = (uta === true) ? 'a' : 'asks';
+        let bidsKey: Str = 'bids';
+        if (uta === true) {
+            bidsKey = 'b';
+        }
+        let asksKey: Str = 'asks';
+        if (uta === true) {
+            asksKey = 'a';
+        }
         const timestamp = this.safeInteger (data, 'ts');
         return this.parseOrderBook (data, market['symbol'], timestamp, bidsKey, asksKey);
     }
@@ -4750,7 +4756,10 @@ export default class bitget extends Exchange {
         // retrievable periods listed here:
         // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
         // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
-        const key = (market['spot'] === true) ? 'spot' : 'swap';
+        let key: Str = 'swap';
+        if (market['spot'] === true) {
+            key = 'spot';
+        }
         const ohlcOptions = this.safeDict (this.options['fetchOHLCV'], key, {});
         const maxLimitPerTimeframe = this.safeDict (ohlcOptions, 'maxLimitPerTimeframe', {});
         const maxLimitForThisTimeframe = this.safeInteger (maxLimitPerTimeframe, timeframe, limit);
@@ -5098,7 +5107,7 @@ export default class bitget extends Exchange {
         //     }
         //
         for (let i = 0; i < balance.length; i++) {
-            const entry = balance[i];
+            const entry = this.safeDict (balance, i);
             const account = this.account ();
             const currencyId = this.safeString (entry, 'coin');
             const code = this.safeCurrencyCode (currencyId);
@@ -5163,7 +5172,7 @@ export default class bitget extends Exchange {
         //       }
         //
         for (let i = 0; i < balance.length; i++) {
-            const entry = balance[i];
+            const entry = this.safeDict (balance, i);
             const account = this.account ();
             const currencyId = this.safeString2 (entry, 'marginCoin', 'coin');
             const code = this.safeCurrencyCode (currencyId);
@@ -5440,7 +5449,10 @@ export default class bitget extends Exchange {
         }
         const posSide = this.safeString (order, 'posSide');
         const isContractOrder = (posSide !== undefined);
-        let marketType = isContractOrder ? 'contract' : 'spot';
+        let marketType: Str = 'spot';
+        if (isContractOrder) {
+            marketType = 'contract';
+        }
         if (market !== undefined) {
             marketType = market['type'];
         }
@@ -5805,14 +5817,20 @@ export default class bitget extends Exchange {
         [ hedged, params ] = this.handleParamBool (params, 'hedged', false);
         if (reduceOnly === true) {
             if ((hedged === true) || isStopLossOrTakeProfitTrigger) {
-                const reduceOnlyPosSide = (side === 'sell') ? 'long' : 'short';
+                let reduceOnlyPosSide: Str = 'short';
+                if (side === 'sell') {
+                    reduceOnlyPosSide = 'long';
+                }
                 request['posSide'] = reduceOnlyPosSide;
             } else if (!isStopLossOrTakeProfitTrigger) {
                 request['reduceOnly'] = 'yes';
             }
         } else {
             if (hedged === true) {
-                const posSide = (side === 'buy') ? 'long' : 'short';
+                let posSide: Str = 'short';
+                if (side === 'buy') {
+                    posSide = 'long';
+                }
                 request['posSide'] = posSide;
             }
         }
@@ -5987,7 +6005,10 @@ export default class bitget extends Exchange {
                 if (marginMode === undefined) {
                     marginMode = 'cross';
                 }
-                const marginModeRequest = (marginMode === 'cross') ? 'crossed' : 'isolated';
+                let marginModeRequest: Str = 'isolated';
+                if (marginMode === 'cross') {
+                    marginModeRequest = 'crossed';
+                }
                 request['marginMode'] = marginModeRequest;
                 let requestSide = side;
                 if (reduceOnly === true) {
@@ -6073,7 +6094,7 @@ export default class bitget extends Exchange {
         let symbol: Str = undefined;
         let marginMode: Str = undefined;
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const marketId = this.safeString (rawOrder, 'symbol');
             if (symbol === undefined) {
                 symbol = marketId;
@@ -6147,7 +6168,7 @@ export default class bitget extends Exchange {
         let symbol: Str = undefined;
         let marginMode: Str = undefined;
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const marketId = this.safeString (rawOrder, 'symbol');
             if (symbol === undefined) {
                 symbol = marketId;
@@ -6185,7 +6206,10 @@ export default class bitget extends Exchange {
             if (marginMode === undefined) {
                 marginMode = 'cross';
             }
-            const marginModeRequest = (marginMode === 'cross') ? 'crossed' : 'isolated';
+            let marginModeRequest: Str = 'isolated';
+            if (marginMode === 'cross') {
+                marginModeRequest = 'crossed';
+            }
             request['marginMode'] = marginModeRequest;
             request['marginCoin'] = market['settleId'];
             let productType: Str = undefined;
@@ -6352,7 +6376,10 @@ export default class bitget extends Exchange {
                 } else {
                     const amountString = this.numberToString (amount);
                     const priceString = this.numberToString (price);
-                    const finalCost = (cost === undefined) ? (Precise.stringMul (amountString, priceString)) : cost;
+                    let finalCost: Str = cost;
+                    if (cost === undefined) {
+                        finalCost = (Precise.stringMul (amountString, priceString));
+                    }
                     request['size'] = this.priceToPrecision (symbol, finalCost);
                 }
             } else {
@@ -7103,7 +7130,10 @@ export default class bitget extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
             const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
-            const marketType = ('type' in market) ? market['type'] : defaultType;
+            let marketType: Str = defaultType;
+            if ('type' in market) {
+                marketType = market['type'];
+            }
             type = this.safeString (params, 'type', marketType);
         } else {
             const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
@@ -9821,7 +9851,10 @@ export default class bitget extends Exchange {
         //     }
         //
         const errorCode = this.safeString (data, 'code');
-        const status = (errorCode === '00000') ? 'ok' : 'failed';
+        let status: Str = 'failed';
+        if (errorCode === '00000') {
+            status = 'ok';
+        }
         return {
             'info': data,
             'symbol': this.safeString (market, 'symbol'),
@@ -9931,8 +9964,14 @@ export default class bitget extends Exchange {
 
     override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const isCrossMarginMode = this.safeString (leverage, 'marginMode') === 'crossed';
-        const longLevKey = isCrossMarginMode ? 'crossedMarginLeverage' : 'isolatedLongLever';
-        const shortLevKey = isCrossMarginMode ? 'crossedMarginLeverage' : 'isolatedShortLever';
+        let longLevKey: Str = 'isolatedLongLever';
+        if (isCrossMarginMode) {
+            longLevKey = 'crossedMarginLeverage';
+        }
+        let shortLevKey: Str = 'isolatedShortLever';
+        if (isCrossMarginMode) {
+            shortLevKey = 'crossedMarginLeverage';
+        }
         return {
             'info': leverage,
             'symbol': this.safeString (market, 'symbol'),
@@ -10083,7 +10122,10 @@ export default class bitget extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const posMode = hedged ? 'hedge_mode' : 'one_way_mode';
+        let posMode: Str = 'one_way_mode';
+        if (hedged) {
+            posMode = 'hedge_mode';
+        }
         const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -10447,7 +10489,7 @@ export default class bitget extends Exchange {
             'networks': {},
         };
         for (let i = 0; i < chainsLength; i++) {
-            const chain = chains[i];
+            const chain = this.safeDict (chains, i);
             const networkId = this.safeString (chain, 'chain');
             const currencyCode = this.safeString (currency, 'code');
             const networkCode = this.networkIdToCode (networkId, currencyCode);
@@ -11257,7 +11299,10 @@ export default class bitget extends Exchange {
         //
         const marketId = this.safeString (info, 'symbol');
         market = this.safeMarket (marketId, market);
-        const marginMode = (marketId !== undefined) ? 'isolated' : 'cross';
+        let marginMode: Str = 'cross';
+        if (marketId !== undefined) {
+            marginMode = 'isolated';
+        }
         const timestamp = this.safeInteger (info, 'cTime');
         return {
             'info': info,

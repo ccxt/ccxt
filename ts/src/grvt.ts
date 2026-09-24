@@ -1414,7 +1414,7 @@ export default class grvt extends Exchange {
         const spotBalances = this.safeList (response, 'spot_balances', []);
         const availableBalance = this.safeString (response, 'available_balance');
         for (let i = 0; i < spotBalances.length; i++) {
-            const balance = spotBalances[i];
+            const balance = this.safeDict (spotBalances, i);
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -2423,7 +2423,10 @@ export default class grvt extends Exchange {
         const timestamp = this.safeIntegerProduct (position, 'event_time', 0.000001);
         const sizeRaw = this.safeString (position, 'size');
         const isLong = (Precise.stringGe (sizeRaw, '0'));
-        const side = isLong ? 'long' : 'short';
+        let side: Str = 'short';
+        if (isLong) {
+            side = 'long';
+        }
         return this.safePosition ({
             'info': position,
             'id': undefined,
@@ -3021,7 +3024,10 @@ export default class grvt extends Exchange {
             });
         }
         const isMarket = this.safeBool (order, 'is_market');
-        const orderType = (isMarket === true) ? 'market' : 'limit';
+        let orderType: Str = 'limit';
+        if (isMarket === true) {
+            orderType = 'market';
+        }
         const isPostOnly = this.safeBool (order, 'post_only');
         const isReduceOnly = this.safeBool (order, 'reduce_only');
         const timeInForceRaw = this.safeString (order, 'time_in_force');

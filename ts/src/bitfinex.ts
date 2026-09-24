@@ -648,7 +648,7 @@ export default class bitfinex extends Exchange {
         const markets = this.arrayConcat (spotMarketsInfo, futuresMarketsInfo);
         const result: List = [];
         for (let i = 0; i < markets.length; i++) {
-            const pairObj = markets[i];
+            const pairObj = this.safeList (markets, i);
             const id = this.safeStringUpper (pairObj, 0);
             const market = this.safeValue (pairObj, 1, {});
             let spot = true;
@@ -1000,7 +1000,7 @@ export default class bitfinex extends Exchange {
         const balances = this.toArray (response);
         const result: Dict = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeList (balances, i);
             const account = this.account ();
             const interest = this.safeString (balance, 3);
             if (interest !== '0') {
@@ -1216,7 +1216,10 @@ export default class bitfinex extends Exchange {
             const price = this.safeNumber (order, priceIndex);
             const signedAmount = this.safeString (order, 2);
             const amount = Precise.stringAbs (signedAmount);
-            const side = Precise.stringGt (signedAmount, '0') ? 'bids' : 'asks';
+            let side: Str = 'asks';
+            if (Precise.stringGt (signedAmount, '0')) {
+                side = 'bids';
+            }
             result[side].push ([ price, this.parseNumber (amount) ]);
         }
         result['bids'] = this.sortBy (result['bids'], 0, true);
@@ -1691,7 +1694,10 @@ export default class bitfinex extends Exchange {
         const remaining = Precise.stringAbs (this.safeString (orderList, 6));
         const signedAmount = this.safeString (orderList, 7);
         const amount = Precise.stringAbs (signedAmount);
-        const side = Precise.stringLt (signedAmount, '0') ? 'sell' : 'buy';
+        let side: Str = 'buy';
+        if (Precise.stringLt (signedAmount, '0')) {
+            side = 'sell';
+        }
         const orderType = this.safeString (orderList, 8);
         const type = this.safeString (this.safeDict (this.options, 'exchangeTypes'), orderType);
         const timeInForce = this.parseTimeInForce (orderType);
@@ -1948,7 +1954,7 @@ export default class bitfinex extends Exchange {
         }
         const ordersRequests: List[] = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const symbol = this.safeString (rawOrder, 'symbol');
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
@@ -3831,7 +3837,10 @@ export default class bitfinex extends Exchange {
         const baseValue = Precise.stringMul (contracts, contractSize);
         const price = this.safeString (entry, 11);
         const sideFlag = this.safeInteger (entry, 8);
-        const side = (sideFlag === 1) ? 'buy' : 'sell';
+        let side: Str = 'sell';
+        if (sideFlag === 1) {
+            side = 'buy';
+        }
         return this.safeLiquidation ({
             'info': entry,
             'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
@@ -3891,7 +3900,10 @@ export default class bitfinex extends Exchange {
         //     ]
         //
         const marginStatusRaw = data[0];
-        const marginStatus = (marginStatusRaw === 1) ? 'ok' : 'failed';
+        let marginStatus: Str = 'failed';
+        if (marginStatusRaw === 1) {
+            marginStatus = 'ok';
+        }
         return {
             'info': data,
             'symbol': this.safeString (market, 'symbol'),

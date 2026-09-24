@@ -625,7 +625,10 @@ export default class paradex extends Exchange {
         const isOptionPerpetual = (assetKind === 'PERP_OPTION');
         const isOptionDelivery = (assetKind === 'OPTION');
         const isOption = isOptionPerpetual || isOptionDelivery;
-        const type = (isOption) ? 'option' : 'swap';
+        let type: Str = 'swap';
+        if (isOption) {
+            type = 'option';
+        }
         const isSwap = (type === 'swap');
         const marketId = this.safeString (market, 'symbol');
         const quoteId = this.safeString (market, 'quote_currency');
@@ -1305,7 +1308,10 @@ export default class paradex extends Exchange {
         const side = this.safeStringLower (trade, 'side');
         const liability = this.safeStringLower (trade, 'liquidity', 'taker');
         const isTaker = liability === 'taker';
-        const takerOrMaker = (isTaker) ? 'taker' : 'maker';
+        let takerOrMaker: Str = 'maker';
+        if (isTaker) {
+            takerOrMaker = 'taker';
+        }
         const currencyId = this.safeString (trade, 'fee_currency');
         const code = this.safeCurrencyCode (currencyId);
         return this.safeTrade ({
@@ -1984,7 +1990,7 @@ export default class paradex extends Exchange {
         }
         const ordersRequests: List = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const symbol = this.safeString (rawOrder, 'symbol');
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');

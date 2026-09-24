@@ -1855,11 +1855,11 @@ export default class lighter extends Exchange {
         const result: Dict = { 'info': response };
         const accounts = this.safeList (response, 'accounts', []);
         for (let i = 0; i < accounts.length; i++) {
-            const account = accounts[i];
+            const account = this.safeDict (accounts, i);
             if (type === 'spot') {
                 const assets = this.safeList (account, 'assets', []);
                 for (let j = 0; j < assets.length; j++) {
-                    const asset = assets[j];
+                    const asset = this.safeDict (assets, j);
                     const codeId = this.safeString (asset, 'symbol');
                     const code = this.safeCurrencyCode (codeId);
                     const balance = this.safeDict (result, code, this.account ());
@@ -1973,7 +1973,7 @@ export default class lighter extends Exchange {
         const allPositions: List = [];
         const accounts = this.safeList (response, 'accounts', []);
         for (let i = 0; i < accounts.length; i++) {
-            const account = accounts[i];
+            const account = this.safeDict (accounts, i);
             const positions = this.safeList (account, 'positions', []);
             for (let j = 0; j < positions.length; j++) {
                 allPositions.push (positions[j]);

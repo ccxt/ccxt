@@ -519,7 +519,7 @@ export default class bitso extends Exchange {
             const takerFees: List = [];
             const makerFees: List = [];
             for (let j = 0; j < feeTiers.length; j++) {
-                const tier = feeTiers[j];
+                const tier = this.safeDict (feeTiers, j);
                 const volume = this.safeNumber (tier, 'volume');
                 const takerFee = this.safeNumber (tier, 'taker');
                 const makerFee = this.safeNumber (tier, 'maker');
@@ -671,7 +671,7 @@ export default class bitso extends Exchange {
             'datetime': undefined,
         };
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict (balances, i);
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();

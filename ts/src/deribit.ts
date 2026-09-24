@@ -1082,7 +1082,7 @@ export default class deribit extends Exchange {
             summaries = [ balance ];
         }
         for (let i = 0; i < summaries.length; i++) {
-            const data = summaries[i];
+            const data = this.safeDict (summaries, i);
             const currencyId = this.safeString (data, 'currency');
             const currencyCode = this.safeCurrencyCode (currencyId);
             const account = this.account ();

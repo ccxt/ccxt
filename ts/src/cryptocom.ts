@@ -1226,7 +1226,7 @@ export default class cryptocom extends Exchange {
         const positionBalances = this.safeList (data[0], 'position_balances', []);
         const result: Dict = { 'info': response };
         for (let i = 0; i < positionBalances.length; i++) {
-            const balance = positionBalances[i];
+            const balance = this.safeDict (positionBalances, i);
             const currencyId = this.safeString (balance, 'instrument_name');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -1517,7 +1517,7 @@ export default class cryptocom extends Exchange {
         }
         const ordersRequests: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const marketId = this.safeString (rawOrder, 'symbol');
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
@@ -1861,7 +1861,7 @@ export default class cryptocom extends Exchange {
         }
         const orderRequests: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {
-            const order = orders[i];
+            const order = this.safeDict (orders, i);
             const id = this.safeString (order, 'id');
             const symbol = this.safeString (order, 'symbol');
             const market = this.market (symbol);
@@ -2728,7 +2728,7 @@ export default class cryptocom extends Exchange {
         };
         if (networkList !== undefined) {
             for (let i = 0; i < networkListLength; i++) {
-                const networkInfo = networkList[i];
+                const networkInfo = this.safeDict (networkList, i);
                 const networkId = this.safeString (networkInfo, 'network_id');
                 const currencyCode = this.safeString (currency, 'code');
                 const networkCode = this.networkIdToCode (networkId, currencyCode);
@@ -3579,8 +3579,14 @@ export default class cryptocom extends Exchange {
             const symbol = this.symbols[i];
             const market = this.market (symbol);
             const isSwap = market['swap'];
-            const takerFeeKey = (isSwap === true) ? 'effective_deriv_taker_rate_bps' : 'effective_spot_taker_rate_bps';
-            const makerFeeKey = (isSwap === true) ? 'effective_deriv_maker_rate_bps' : 'effective_spot_maker_rate_bps';
+            let takerFeeKey: Str = 'effective_spot_taker_rate_bps';
+            if (isSwap === true) {
+                takerFeeKey = 'effective_deriv_taker_rate_bps';
+            }
+            let makerFeeKey: Str = 'effective_spot_maker_rate_bps';
+            if (isSwap === true) {
+                makerFeeKey = 'effective_deriv_maker_rate_bps';
+            }
             const tradingFee = {
                 'info': response,
                 'symbol': symbol,

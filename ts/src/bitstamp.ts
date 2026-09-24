@@ -1182,7 +1182,12 @@ export default class bitstamp extends Exchange {
         }
         const feeCostString = this.safeString (trade, 'fee');
         const feeCurrency = this.safeString (market, 'quote');
-        const priceId = (rawMarketId !== undefined) ? rawMarketId : this.safeString (market, 'id');
+        let priceId: Str = undefined;
+        if (rawMarketId !== undefined) {
+            priceId = rawMarketId;
+        } else {
+            priceId = this.safeString (market, 'id');
+        }
         priceString = this.safeString (trade, priceId, priceString);
         amountString = this.safeString (trade, this.safeString (market, 'baseId'), amountString);
         costString = this.safeString (trade, this.safeString (market, 'quoteId'), costString);
@@ -1413,7 +1418,7 @@ export default class bitstamp extends Exchange {
             response = [];
         }
         for (let i = 0; i < response.length; i++) {
-            const currencyBalance = response[i];
+            const currencyBalance = this.safeDict (response, i);
             const currencyId = this.safeString (currencyBalance, 'currency');
             const currencyCode = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -1631,7 +1636,7 @@ export default class bitstamp extends Exchange {
         const result = this.depositWithdrawFee (fee);
         const code = this.safeString (currency, 'code');
         for (let j = 0; j < fee.length; j++) {
-            const networkEntry = fee[j];
+            const networkEntry = this.safeDict (fee, j);
             const networkId = this.safeString (networkEntry, 'network');
             const networkCode = this.networkIdToCode (networkId, code);
             const withdrawFee = this.safeNumber (networkEntry, 'fee');
@@ -2791,7 +2796,10 @@ export default class bitstamp extends Exchange {
                     headers['Content-Type'] = contentType;
                 }
             }
-            const authBody = (body !== undefined && body !== '') ? body : '';
+            let authBody: Str = '';
+            if (body !== undefined && body !== '') {
+                authBody = body;
+            }
             const auth = xAuth + method + url.replace ('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
             headers['X-Auth-Signature'] = signature;

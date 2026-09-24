@@ -700,7 +700,10 @@ export default class kraken extends Exchange {
             }
             const status = this.safeString (market, 'status');
             const isActive = status === 'online';
-            const symbol = (!isSynthetic) ? (base + '/' + quote) : id;
+            let symbol: Str = id;
+            if (!isSynthetic) {
+                symbol = (base + '/' + quote);
+            }
             result.push ({
                 'id': id,
                 'wsId': this.safeString (market, 'wsname'),
@@ -1786,7 +1789,7 @@ export default class kraken extends Exchange {
         let symbol: Str = undefined;
         let market: Market = undefined;
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const marketId = this.safeString (rawOrder, 'symbol');
             if (symbol === undefined) {
                 symbol = marketId;
@@ -2206,7 +2209,10 @@ export default class kraken extends Exchange {
             } else {
                 request['volume'] = this.costToPrecision (symbol, cost);
             }
-            const extendedOflags = (flags !== undefined) ? flags + ',viqc' : 'viqc';
+            let extendedOflags: Str = 'viqc';
+            if (flags !== undefined) {
+                extendedOflags = flags + ',viqc';
+            }
             request['oflags'] = extendedOflags;
         } else if (isLimitOrder && !isTrailingAmountOrder && !isTrailingPercentOrder) {
             request['price'] = this.priceToPrecision (symbol, price);
@@ -2289,7 +2295,10 @@ export default class kraken extends Exchange {
         let postOnly: Bool = undefined;
         [ postOnly, params ] = this.handlePostOnly (isMarket, false, params);
         if (postOnly === true) {
-            const extendedPostFlags = (flags !== undefined) ? flags + ',post' : 'post';
+            let extendedPostFlags: Str = 'post';
+            if (flags !== undefined) {
+                extendedPostFlags = flags + ',post';
+            }
             request['oflags'] = extendedPostFlags;
         }
         if ((flags !== undefined) && !('oflags' in request)) {
@@ -3547,7 +3556,10 @@ export default class kraken extends Exchange {
         //
         const marketId = this.safeString (position, 'pair');
         const rawSide = this.safeString (position, 'type');
-        const side = (rawSide === 'buy') ? 'long' : 'short';
+        let side: Str = 'short';
+        if (rawSide === 'buy') {
+            side = 'long';
+        }
         return this.safePosition ({
             'info': position,
             'id': undefined,
@@ -3753,7 +3765,7 @@ export default class kraken extends Exchange {
                     if ('orders' in result) {
                         const orders = this.safeList (result, 'orders', []);
                         for (let i = 0; i < orders.length; i++) {
-                            const order = orders[i];
+                            const order = this.safeDict (orders, i);
                             const error = this.safeString (order, 'error');
                             if (error !== undefined) {
                                 this.throwExactlyMatchedException (this.exceptions['exact'], error, message);

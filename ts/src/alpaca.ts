@@ -1872,7 +1872,10 @@ export default class alpaca extends Exchange {
                 const activityType = this.safeString (entry, 'activity_type');
                 const amount = this.safeString (entry, 'net_amount');
                 const isIncoming = (activityType === 'CSD') || ((activityType === 'TRANS') && !Precise.stringLt (amount, '0'));
-                const entryDirection = isIncoming ? 'INCOMING' : 'OUTGOING';
+                let entryDirection: Str = 'OUTGOING';
+                if (isIncoming) {
+                    entryDirection = 'INCOMING';
+                }
                 if ((type === 'BOTH') || (entryDirection === type)) {
                     filtered.push (entry);
                 }
@@ -2203,7 +2206,7 @@ export default class alpaca extends Exchange {
             result[code] = cashAccount;
         }
         for (let i = 0; i < positions.length; i++) {
-            const position = positions[i];
+            const position = this.safeDict (positions, i);
             const positionSymbol = this.safeString (position, 'symbol');
             if (positionSymbol === undefined) {
                 continue;

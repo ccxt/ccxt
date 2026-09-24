@@ -1731,7 +1731,7 @@ export default class toobit extends Exchange {
         };
         const balances = this.safeList (response, 'balances', response);
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict (balances, i);
             const code = this.safeCurrencyCode (this.safeString (balance, 'asset'));
             const account = this.account ();
             account['free'] = this.safeString2 (balance, 'free', 'availableBalance');
