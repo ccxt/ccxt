@@ -2768,7 +2768,7 @@ export default class derive extends Exchange {
         return undefined;
     }
 
-    override nonce () {
+    override nonce (): number {
         // the order nonce is a millisecond timestamp and must be unique per wallet (error 11017), while staying a valid date (error 11018)
         // incrementingNonce () reads this and bumps past the previous value when two orders share a millisecond
         return this.milliseconds ();

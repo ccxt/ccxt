@@ -11592,7 +11592,7 @@ impl std::ops::DerefMut for ${coreName} {
             }
         }
 
-        if (child || transpilingSingle || baseOnly) return;
+        if (child || exchanges.length > 0 || baseOnly) return;
 
         this.transpileErrorHierarchy();
         this.transpileTests();

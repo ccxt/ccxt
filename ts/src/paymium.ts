@@ -631,7 +631,7 @@ export default class paymium extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    override nonce () {
+    override nonce (): number {
         // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
         return this.milliseconds ();
     }
