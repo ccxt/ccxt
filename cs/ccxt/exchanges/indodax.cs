@@ -874,10 +874,10 @@ public partial class indodax : Exchange
         //        }
         //    }
         //
-        object side = null;
+        string? side = null;
         if ((order != null && ((IDictionary<string, object>)order).ContainsKey("type")))
         {
-            side = ((IDictionary<string,object>)order)["type"];
+            side = this.safeString(order, "type");
         }
         string? status = this.parseOrderStatus(this.safeString(order, "status", "open"));
         string? symbol = null;
@@ -1154,7 +1154,7 @@ public partial class indodax : Exchange
         {
             throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
-        object side = this.safeValue(parameters, "side");
+        string? side = this.safeString(parameters, "side");
         if ((side == null))
         {
             throw new ArgumentsRequired ((this.id + " cancelOrder() requires an extra \"side\" param")) ;

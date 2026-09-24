@@ -152,7 +152,7 @@ public partial class bithumb : ccxt.bithumb
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < symbolsLengthDefined; i++)
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             object streamMarketId = null;
             if (isGenerationTwo)
@@ -541,7 +541,7 @@ public partial class bithumb : ccxt.bithumb
         List<object> units = this.safeList(message, "orderbook_units", new List<object>() {});
         for (int i = 0; i < units.Count; i++)
         {
-            object entry = units[i];
+            IDictionary<string, object> entry = this.safeDict(units, i);
             double? bidPrice = this.safeNumber(entry, "bid_price");
             double? bidSize = this.safeNumber(entry, "bid_size");
             double? askPrice = this.safeNumber(entry, "ask_price");
@@ -583,7 +583,11 @@ public partial class bithumb : ccxt.bithumb
         //    }
         //
         string? sideId = this.safeString(delta, "orderType");
-        string side = (sideId == "bid") ? "bids" : "asks";
+        string side = "asks";
+        if (sideId == "bid")
+        {
+            side = "bids";
+        }
         List<object> bidAsk = this.parseOrderBookBidAsk(delta, "price", "quantity");
         object orderbookSide = getValue(orderbook, side);
         (orderbookSide as IOrderBookSide).storeArray(bidAsk);
@@ -906,7 +910,7 @@ public partial class bithumb : ccxt.bithumb
         }
         for (int i = 0; i < assets.Count; i++)
         {
-            object asset = assets[i];
+            IDictionary<string, object> asset = this.safeDict(assets, i);
             string? currencyId = this.safeString(asset, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();

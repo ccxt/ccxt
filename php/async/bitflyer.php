@@ -419,7 +419,7 @@ class bitflyer extends Exchange {
     public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
-            $balance = $response[$i];
+            $balance = $this->safe_dict($response, $i);
             $currencyId = $this->safe_string($balance, 'currency_code');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -587,7 +587,7 @@ class bitflyer extends Exchange {
         if ($side !== null) {
             $idInner = $side . '_child_order_acceptance_id';
             if (is_array($trade) && array_key_exists($idInner ?? '', $trade)) {
-                $order = $trade[$idInner];
+                $order = $this->safe_string($trade, $idInner);
             }
         }
         if ($order === null) {

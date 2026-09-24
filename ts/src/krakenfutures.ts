@@ -871,7 +871,7 @@ export default class krakenfutures extends Exchange {
         let makerFee: Str = undefined;
         let takerFee: Str = undefined;
         for (let i = 0; i < tiers.length; i++) {
-            const tier = tiers[i];
+            const tier = this.safeDict (tiers, i);
             const tierVolume = this.safeString (tier, 'usdVolume');
             if ((volume === undefined) || Precise.stringGe (volume, tierVolume)) {
                 makerFee = this.safeString (tier, 'makerFee');
@@ -911,7 +911,7 @@ export default class krakenfutures extends Exchange {
         }
         const market = this.market (symbol);
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 2000) as OHLCV[];
         }
@@ -1004,7 +1004,7 @@ export default class krakenfutures extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params) as Trade[];
         }
@@ -1081,7 +1081,7 @@ export default class krakenfutures extends Exchange {
             const length = elements.length;
             for (let i = 0; i < length; i++) {
                 const index = length - 1 - i;
-                const element = elements[index];
+                const element = this.safeDict (elements, index);
                 const event = this.safeDict (element, 'event', {});
                 const executionContainer = this.safeDict (event, 'Execution', {});
                 const rawTrade = this.safeDict (executionContainer, 'execution', {});
@@ -1455,7 +1455,7 @@ export default class krakenfutures extends Exchange {
         }
         const ordersRequests: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const marketId = this.safeString (rawOrder, 'symbol');
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
@@ -1820,7 +1820,7 @@ export default class krakenfutures extends Exchange {
         const allOrders = this.safeList (response, 'elements', []);
         const closedOrders: Dict[] = [];
         for (let i = 0; i < allOrders.length; i++) {
-            const order = allOrders[i];
+            const order = this.safeDict (allOrders, i);
             const event = this.safeDict (order, 'event', {});
             const orderPlaced = this.safeDict2 (event, 'OrderPlaced', 'OrderTriggerActivated');
             const orderUpdated = this.safeDict (event, 'OrderUpdated');
@@ -1881,7 +1881,7 @@ export default class krakenfutures extends Exchange {
         const allOrders = this.safeList (response, 'elements', []);
         const canceledAndRejected: Dict[] = [];
         for (let i = 0; i < allOrders.length; i++) {
-            const order = allOrders[i];
+            const order = this.safeDict (allOrders, i);
             const event = this.safeDict (order, 'event', {});
             const isCancelledTriggerOrder = ('OrderTriggerCancelled' in event);
             const orderPlaced = this.safeDict2 (event, 'OrderPlaced', 'OrderTriggerCancelled');
@@ -2390,7 +2390,7 @@ export default class krakenfutures extends Exchange {
         if (tradesLength > 0) {
             let vwapSum = '0.0';
             for (let i = 0; i < trades.length; i++) {
-                const trade = trades[i];
+                const trade = this.safeDict (trades, i);
                 const tradeAmount = this.safeString (trade, 'amount');
                 const tradePrice = this.safeString (trade, 'price');
                 filled2 = Precise.stringAdd (filled2, tradeAmount) as string;
@@ -2423,7 +2423,10 @@ export default class krakenfutures extends Exchange {
         }
         let cost: Str = undefined;
         if ((filled !== undefined) && (market !== undefined)) {
-            const whichPrice = (average !== undefined) ? average : price;
+            let whichPrice: Str = price;
+            if (average !== undefined) {
+                whichPrice = average;
+            }
             if (whichPrice !== undefined) {
                 if (market['linear'] === true) {
                     cost = Precise.stringMul (filled, whichPrice); // in quote
@@ -3045,7 +3048,7 @@ export default class krakenfutures extends Exchange {
         const tickers = this.safeList (response, 'tickers', []);
         const fundingRates: FundingRate[] = [];
         for (let i = 0; i < tickers.length; i++) {
-            const entry = tickers[i];
+            const entry = this.safeDict (tickers, i);
             const entry_symbol = this.safeString (entry, 'symbol');
             if (marketIds !== undefined) {
                 if (!this.inArray (entry_symbol, marketIds)) {
@@ -3168,7 +3171,7 @@ export default class krakenfutures extends Exchange {
         const rates = this.safeValue (response, 'rates');
         const result: FundingRateHistory[] = [];
         for (let i = 0; i < rates.length; i++) {
-            const item = rates[i];
+            const item = this.safeDict (rates, i);
             const datetime = this.safeString (item, 'timestamp');
             result.push ({
                 'info': item,

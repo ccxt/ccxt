@@ -2652,7 +2652,7 @@ export default class mexc extends Exchange {
         const ordersRequests: Dict[] = [];
         let symbol: Str = undefined;
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const marketId = this.safeString (rawOrder, 'symbol');
             const market = this.market (marketId);
             if (market['spot'] !== true) {
@@ -3959,7 +3959,7 @@ export default class mexc extends Exchange {
         let result: Dict = { 'info': response };
         if (marketType === 'margin') {
             for (let i = 0; i < wallet.length; i++) {
-                const entry = wallet[i];
+                const entry = this.safeDict (wallet, i);
                 const base = this.safeDict (entry, 'baseAsset', {});
                 const quote = this.safeDict (entry, 'quoteAsset', {});
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'asset'));
@@ -3974,7 +3974,7 @@ export default class mexc extends Exchange {
             return this.safeBalance (result);
         } else if (marketType === 'swap') {
             for (let i = 0; i < wallet.length; i++) {
-                const entry = wallet[i];
+                const entry = this.safeDict (wallet, i);
                 const currencyId = this.safeString (entry, 'currency');
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
@@ -3987,7 +3987,7 @@ export default class mexc extends Exchange {
             return this.safeBalance (result);
         } else {
             for (let i = 0; i < wallet.length; i++) {
-                const entry = wallet[i];
+                const entry = this.safeDict (wallet, i);
                 const currencyId = this.safeString (entry, 'asset');
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
@@ -5505,7 +5505,7 @@ export default class mexc extends Exchange {
             currency = this.currency (code);
         }
         let fromAccountType: Str = undefined;
-        [ fromAccountType, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'fromAccountType');
+        [ fromAccountType, params ] = this.handleOptionStringAndParams (params, 'fetchTransfers', 'fromAccountType');
         const accountTypes: Dict = {
             'spot': 'SPOT',
             'swap': 'FUTURES',
@@ -5519,7 +5519,7 @@ export default class mexc extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a fromAccountType parameter, one of "SPOT", "FUTURES"');
         }
         let toAccountType: Str = undefined;
-        [ toAccountType, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'toAccountType');
+        [ toAccountType, params ] = this.handleOptionStringAndParams (params, 'fetchTransfers', 'toAccountType');
         if (toAccountType !== undefined) {
             request['toAccountType'] = this.safeString (accountTypes, toAccountType, toAccountType);
         } else {
@@ -5957,7 +5957,7 @@ export default class mexc extends Exchange {
         const networkList = this.safeList (transaction, 'networkList', []);
         const result: Dict = {};
         for (let j = 0; j < networkList.length; j++) {
-            const networkEntry = networkList[j];
+            const networkEntry = this.safeDict (networkList, j);
             const networkId = this.safeString (networkEntry, 'network');
             const networkCode = this.safeString (this.options['networks'], networkId, networkId);
             const fee = this.safeNumber (networkEntry, 'withdrawFee');
@@ -6042,7 +6042,7 @@ export default class mexc extends Exchange {
         const networkList = this.safeList (fee, 'networkList', []);
         const result = this.depositWithdrawFee (fee);
         for (let j = 0; j < networkList.length; j++) {
-            const networkEntry = networkList[j];
+            const networkEntry = this.safeDict (networkList, j);
             const networkId = this.safeString (networkEntry, 'network');
             const networkCode = this.networkIdToCode (networkId, this.safeString (currency, 'code'));
             if (networkCode !== undefined) {
@@ -6118,7 +6118,7 @@ export default class mexc extends Exchange {
         let longLeverage: Int = undefined;
         let shortLeverage: Int = undefined;
         for (let i = 0; i < (leverage as List).length; i++) {
-            const entry = leverage[i];
+            const entry = this.safeDict (leverage, i);
             const openType = this.safeInteger (entry, 'openType');
             const positionType = this.safeInteger (entry, 'positionType');
             if (positionType === 1) {

@@ -561,7 +561,7 @@ class bithumb(Exchange, ImplicitAPI):
             for i in range(0, len(quotes)):
                 quote = quotes[i]
                 quoteId = quote
-                response = results[i]
+                response = self.safe_dict(results, i)
                 data = self.safe_dict(response, 'data', {})
                 extension = self.safe_dict(quoteCurrencies, quote, {})
                 currencyIds = list(data.keys())
@@ -666,7 +666,7 @@ class bithumb(Exchange, ImplicitAPI):
                 result[code] = account
         else:
             for i in range(0, len(response)):
-                entry = response[i]
+                entry = self.safe_dict(response, i)
                 account = self.account()
                 currencyId = self.safe_string(entry, 'currency')
                 code = self.safe_currency_code(currencyId)
@@ -773,7 +773,7 @@ class bithumb(Exchange, ImplicitAPI):
             bids = []
             asks = []
             for i in range(0, len(orderBookUnits)):
-                entry = orderBookUnits[i]
+                entry = self.safe_dict(orderBookUnits, i)
                 bids.append({
                     'price': self.safe_string(entry, 'bid_price'),
                     'quantity': self.safe_string(entry, 'bid_size'),
@@ -1108,7 +1108,7 @@ class bithumb(Exchange, ImplicitAPI):
             responses = promises
             for i in range(0, len(quotes)):
                 quote = quotes[i]
-                response = responses[i]
+                response = self.safe_dict(responses, i)
                 data = self.safe_dict(response, 'data', {})
                 timestamp = self.safe_integer(data, 'date')
                 tickers = self.omit(data, 'date')
@@ -1558,7 +1558,7 @@ class bithumb(Exchange, ImplicitAPI):
         ordersRequests = []
         orderSymbols = []
         for i in range(0, len(orders)):
-            rawOrder = orders[i]
+            rawOrder = self.safe_dict(orders, i)
             symbol = self.safe_string(rawOrder, 'symbol')
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' createOrders() requires each order to have a symbol')
@@ -2134,7 +2134,7 @@ class bithumb(Exchange, ImplicitAPI):
         if feeCost is not None:
             currency = None
             if market is not None:
-                currency = market['quote']
+                currency = self.safe_string(market, 'quote')
             fee = {
                 'currency': currency,
                 'cost': feeCost,
@@ -3037,7 +3037,7 @@ class bithumb(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_addresses(response, codes, False, {})
 
-    def parse_deposit_address(self, response: object, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, response: dict, currency: Currency = None) -> DepositAddress:
         #
         # generation 2: createDepositAddress, fetchDepositAddress, fetchDepositAddresses
         #

@@ -695,7 +695,10 @@ export default class modetrade extends modetradeRest {
             await this.loadMarkets ();
         }
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
-        const topic = (trigger === true) ? 'algoexecutionreport' : 'executionreport';
+        let topic: Str = 'executionreport';
+        if (trigger === true) {
+            topic = 'algoexecutionreport';
+        }
         params = this.omit (params, [ 'stop', 'trigger' ]);
         let messageHash = topic;
         if (symbol !== undefined) {
@@ -733,7 +736,10 @@ export default class modetrade extends modetradeRest {
             await this.loadMarkets ();
         }
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
-        const topic = (trigger === true) ? 'algoexecutionreport' : 'executionreport';
+        let topic: Str = 'executionreport';
+        if (trigger === true) {
+            topic = 'algoexecutionreport';
+        }
         params = this.omit (params, 'stop');
         let messageHash = 'myTrades';
         if (symbol !== undefined) {
@@ -1123,7 +1129,7 @@ export default class modetrade extends modetradeRest {
         const cache = this.positions;
         const newPositions: Position[] = [];
         for (let i = 0; i < rawPositions.length; i++) {
-            const rawPosition = rawPositions[i];
+            const rawPosition = this.safeDict (rawPositions, i);
             const marketId = this.safeString (rawPosition, 'symbol');
             const market = this.safeMarket (marketId);
             const position = this.parseWsPosition (rawPosition, market);
@@ -1267,7 +1273,7 @@ export default class modetrade extends modetradeRest {
         this.balance['datetime'] = this.iso8601 (ts);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const value = balances[key];
+            const value = this.safeDict (balances, key);
             const code = this.safeCurrencyCode (key);
             let account = this.account ();
             if ((code !== undefined) && (code in this.balance)) {

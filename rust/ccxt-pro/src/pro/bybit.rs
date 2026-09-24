@@ -546,7 +546,10 @@ impl BybitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut accessibility: Value = (if is_true(&isPrivate) { Value::Str("private".into()) } else { Value::Str("public".into()) });
+        let mut accessibility: Value = Value::Str("public".into());
+        if is_true(&isPrivate) {
+            accessibility = Value::Str("private".into());
+        }
         if (method == Value::Null) {
             method = Value::Str("".into());
         }
@@ -558,7 +561,7 @@ impl BybitCore {
         if (symbol != Value::Null) {
             market = self.market(symbol);
             isUsdcSettled = Value::Bool(market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null).as_str() == Some("USDC"));
-            type_var = market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
+            type_var = self.safe_string_k(market.clone(), "type", &[]);
         }  else {
             { let __destr_tmp = self.handle_market_type_and_params(method.clone(), &[Value::Null, params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
             let mut defaultSettle: Value = self.safe_string_k(self.options.clone(), "defaultSettle", &[]);
@@ -1050,18 +1053,21 @@ impl BybitCore {
     m
 }) });
         let mut isSpot: bool = self.safe_string_k(data.clone(), "usdIndexPrice", &[]) != Value::Null;
-        let mut type_var: Value = (if isSpot { Value::Str("spot".into()) } else { Value::Str("contract".into()) });
+        let mut type_var: Value = Value::Str("contract".into());
+        if isSpot {
+            type_var = Value::Str("spot".into());
+        }
         let mut symbol: Value = Value::Null;
         let mut parsed: Value = Value::Null;
         if (updateType.as_deref() == Some("snapshot")) {
             parsed = self.parse_ticker(data.clone(), &[]);
-            symbol = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            symbol = self.safe_string_k(parsed.clone(), "symbol", &[]);
         }  else if (updateType.as_deref() == Some("delta")) {
             let mut topicParts: Value = split(&topic, &Value::Str(".".into()));
             let mut topicLength: Value = Value::Int(topicParts.len() as i64);
             let mut marketId: Value = self.safe_string(topicParts, (match (&(topicLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
             let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, type_var]);
-            symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            symbol = self.safe_string_k(market, "symbol", &[]);
             // update the info in place
             let mut ticker: Value = self.safe_dict(self.tickers.clone(), symbol.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1344,7 +1350,10 @@ impl BybitCore {
         }
         let mut marketId: Value = self.safe_string(topicParts, (match (&(topicLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
         let mut isSpot: bool = Value::Int(get_value(&client, &Value::Str("url".into())).as_str().and_then(|__s| __s.find("spot")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);
-        let mut marketType: Value = (if isSpot { Value::Str("spot".into()) } else { Value::Str("contract".into()) });
+        let mut marketType: Value = Value::Str("contract".into());
+        if isSpot {
+            marketType = Value::Str("spot".into());
+        }
         let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, marketType]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut ohlcvsByTimeframe: Value = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[]);
@@ -1392,7 +1401,10 @@ impl BybitCore {
         //     }
         //
         let mut isInverse: bool = (match market.get("inverse") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Null }).as_bool() == Some(true);
-        let mut volumeIndex: Value = (if isInverse { Value::Str("turnover".into()) } else { Value::Str("volume".into()) });
+        let mut volumeIndex: Value = Value::Str("volume".into());
+        if isInverse {
+            volumeIndex = Value::Str("turnover".into());
+        }
         return Value::from(vec![self.safe_integer_k(ohlcv.clone(), "start", &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number(ohlcv, volumeIndex, &[])]);
 
     Value::Null
@@ -1600,7 +1612,10 @@ impl BybitCore {
     m
 }) });
         let mut marketId: Value = self.safe_string_k(data.clone(), "s", &[]);
-        let mut marketType: Value = (if isSpot { Value::Str("spot".into()) } else { Value::Str("contract".into()) });
+        let mut marketType: Value = Value::Str("contract".into());
+        if isSpot {
+            marketType = Value::Str("spot".into());
+        }
         let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, marketType]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut timestamp: Value = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
@@ -1815,7 +1830,10 @@ impl BybitCore {
         let mut trades: Value = data;
         let mut parts: Value = split(&topic, &Value::Str(".".into()));
         let mut isSpot: bool = Value::Int(get_value(&client, &Value::Str("url".into())).as_str().and_then(|__s| __s.find("spot")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
-        let mut marketType: Value = (if (isSpot) { Value::Str("spot".into()) } else { Value::Str("contract".into()) });
+        let mut marketType: Value = Value::Str("contract".into());
+        if isSpot {
+            marketType = Value::Str("spot".into());
+        }
         let mut marketId: Value = self.safe_string(parts, Value::Int(1), &[]);
         let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, marketType]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -1872,7 +1890,10 @@ impl BybitCore {
         //
         let mut id: Value = self.safe_string_n(trade.clone(), Value::from(vec![Value::Str("i".into()), Value::Str("T".into()), Value::Str("v".into())]), &[]);
         let mut isContract: bool = matches!(&trade, Value::Dict(__d) if __d.contains_key("BT"));
-        let mut marketType: Value = (if isContract { Value::Str("contract".into()) } else { Value::Str("spot".into()) });
+        let mut marketType: Value = Value::Str("spot".into());
+        if isContract {
+            marketType = Value::Str("contract".into());
+        }
         if (market != Value::Null) {
             marketType = market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
         }
@@ -2495,7 +2516,7 @@ impl BybitCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_202: bool = true;
                 while { if !__for_first_202 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_202 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawLiquidations.len() as i64) as f64) } {
-                let mut rawLiquidation: Value = rawLiquidations.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut rawLiquidation: Value = self.safe_dict(rawLiquidations.clone(), i.clone(), &[]);
                 let mut marketId: Value = self.safe_string_k(rawLiquidation.clone(), "s", &[]);
                 let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("".into()), Value::Str("contract".into())]);
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);

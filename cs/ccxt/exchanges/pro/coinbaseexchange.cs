@@ -102,7 +102,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         List<object> productIds = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             market = this.market(symbol);
             productIds.Add((market.ContainsKey("id") ? market["id"] : null));
             messageHashes.Add(add(add(messageHashStart, ":"), (market.ContainsKey("symbol") ? market["symbol"] : null)));
@@ -594,7 +594,11 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                 { "sell", "buy" },
             }, currentSide, currentSide);
         }
-        string idKey = isMaker ? "maker_order_id" : "taker_order_id";
+        string idKey = "taker_order_id";
+        if (isMaker)
+        {
+            idKey = "maker_order_id";
+        }
         parsed["order"] = this.safeString(trade, idKey);
         market = this.market((parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null));
         string? feeCurrency = ((string)getValue(market, "quote"));
@@ -758,7 +762,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                         object trades = getValue(previousOrder, "trades");
                         for (int i = 0; i < getArrayLength(trades); i++)
                         {
-                            object tradeEntry = getValue(trades, i);
+                            IDictionary<string, object> tradeEntry = this.safeDict(trades, i);
                             totalCost = this.safeString(tradeEntry, "cost", "0");
                             totalAmount = this.safeString(tradeEntry, "amount", "0");
                         }
@@ -1039,7 +1043,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             };
             for (int i = 0; i < changes.Count; i++)
             {
-                object change = changes[i];
+                List<object> change = this.safeList(changes, i);
                 string? key = this.safeString(change, 0);
                 string? side = this.safeString(sides, key);
                 double? price = this.safeNumber(change, 1);

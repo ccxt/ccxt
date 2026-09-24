@@ -384,7 +384,7 @@ func (this *Toobit) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes a
 	var marketIds []any = []any{}
 	var selectedTimeframe any = nil
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
-		var data any = ccxt.GetValue(symbolsAndTimeframes, i)
+		var data []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
 		var symbolStr *string = this.SafeString(data, 0)
 		var market map[string]any = ccxt.MapTyped(this.Market(symbolStr))
 		var marketId *string = ccxt.SafeStringPtr(market["id"])
@@ -766,12 +766,7 @@ func (this *Toobit) HandleOrderBook(client any, message map[string]any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {
-		var entry map[string]any = ccxt.MapTyped(func() any {
-			if i >= 0 && i < len(data) {
-				return ccxt.DerefScalar(data[i])
-			}
-			return nil
-		}())
+		var entry map[string]any = ccxt.SafeMapTyped(data, i)
 		var messageHash string = "orderBook::" + *symbol + "::" + "diffDepth"
 		if !(ccxt.InOp(this.Orderbooks, symbol)) {
 			var limit *int64 = this.SafeInteger(ccxt.GetValue(this.Options, "ws"), "orderBookLimit", 1000)
@@ -824,12 +819,7 @@ func (this *Toobit) SetOrderBookSnapshot(client any, message any, channel any) {
 		return
 	}
 	for i := 0; i < length; i++ {
-		var entry any = func() any {
-			if i >= 0 && i < len(data) {
-				return ccxt.DerefScalar(data[i])
-			}
-			return nil
-		}()
+		var entry map[string]any = ccxt.SafeMapTyped(data, i)
 		var marketId *string = this.SafeString(entry, "s")
 		var symbol *string = this.SafeSymbol(marketId)
 		var messageHash any = ccxt.Add("orderBook::"+*symbol+"::", channel)
@@ -875,28 +865,22 @@ func (this *Toobit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsVariable, 1))
 	var isSpot bool = (ccxt.IsEqual(marketType, "spot"))
-	var typeVar string = func() string {
-		if isSpot {
-			return "spot"
-		}
-		return "contract"
-	}()
+	var typeVar string = "contract"
+	if isSpot {
+		typeVar = "spot"
+	}
 	var spotSubHash string = "spot:balance"
 	var swapSubHash string = "contract:private"
 	var spotMessageHash string = "spot:balance"
 	var swapMessageHash string = "contract:balance"
-	var messageHash string = func() string {
-		if isSpot {
-			return spotMessageHash
-		}
-		return swapMessageHash
-	}()
-	var subscriptionHash string = func() string {
-		if isSpot {
-			return spotSubHash
-		}
-		return swapSubHash
-	}()
+	var messageHash string = swapMessageHash
+	if isSpot {
+		messageHash = spotMessageHash
+	}
+	var subscriptionHash string = swapSubHash
+	if isSpot {
+		subscriptionHash = spotSubHash
+	}
 	if ccxt.IsEqual(subscriptionHash, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchBalance() requires a subscription hash"))
 	}
@@ -916,12 +900,10 @@ func (this *Toobit) SetBalanceCache(client any, marketType any, optionalArgs ...
 	if (subscriptionHash == nil) || (ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)) {
 		return
 	}
-	var typeVar string = func() string {
-		if ccxt.IsEqual(marketType, "spot") {
-			return "spot"
-		}
-		return "contract"
-	}()
+	var typeVar string = "contract"
+	if ccxt.IsEqual(marketType, "spot") {
+		typeVar = "spot"
+	}
 	var messageHash string = typeVar + ":fetchBalanceSnapshot"
 	if !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
 		client.(ccxt.ClientInterface).Future(messageHash)
@@ -965,12 +947,10 @@ func (this *Toobit) HandleBalance(client any, message map[string]any) {
 	var channel *string = this.SafeString(message, "e")
 	var data any = this.SafeList(message, "B", []any{})
 	var timestamp *int64 = this.SafeInteger(message, "E")
-	var typeVar string = func() string {
-		if channel != nil && *channel == "outboundContractAccountInfo" {
-			return "contract"
-		}
-		return "spot"
-	}()
+	var typeVar string = "spot"
+	if channel != nil && *channel == "outboundContractAccountInfo" {
+		typeVar = "contract"
+	}
 	if !(ccxt.InOp(this.Balance, typeVar)) {
 		ccxt.AddElementToObject(this.Balance, typeVar, map[string]any{})
 	}
@@ -1005,12 +985,10 @@ func (this *Toobit) loadBalanceSnapshotBody(ch chan any, client any, messageHash
 		"type": marketType,
 	}))
 	ccxt.PanicOnError(response)
-	var typeVar string = func() string {
-		if ccxt.IsEqual(marketType, "spot") {
-			return "spot"
-		}
-		return "contract"
-	}()
+	var typeVar string = "contract"
+	if ccxt.IsEqual(marketType, "spot") {
+		typeVar = "spot"
+	}
 	ccxt.AddElementToObject(this.Balance, typeVar, this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]any{})))
 	// don't remove the future from the .futures cache
 	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
@@ -1250,12 +1228,10 @@ func (this *Toobit) ParseMyTrade(trade map[string]any, optionalArgs ...any) any 
 	var marketId *string = this.SafeString(trade, "s")
 	var ts *string = this.SafeString(trade, "t")
 	var isMaker bool = (ccxt.IsEqual(this.SafeBool(trade, "m"), true))
-	var takerOrMaker string = func() string {
-		if isMaker {
-			return "maker"
-		}
-		return "taker"
-	}()
+	var takerOrMaker string = "taker"
+	if isMaker {
+		takerOrMaker = "maker"
+	}
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           this.SafeString(trade, "T"),

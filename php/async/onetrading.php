@@ -806,7 +806,7 @@ class onetrading extends Exchange {
         $takerFees = array();
         $makerFees = array();
         for ($i = 0; $i < count($feeTiers); $i++) {
-            $tier = $feeTiers[$i];
+            $tier = $this->safe_dict($feeTiers, $i);
             $volume = $this->safe_number($tier, 'volume');
             $taker = $this->safe_string($tier, 'taker_fee');
             $maker = $this->safe_string($tier, 'maker_fee');
@@ -1252,7 +1252,7 @@ class onetrading extends Exchange {
         $balances = $this->safe_list($response, 'balances', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+            $balance = $this->safe_dict($balances, $i);
             $currencyId = $this->safe_string($balance, 'currency_code');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();

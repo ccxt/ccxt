@@ -665,7 +665,7 @@ public partial class bithumb : Exchange
             {
                 string? quote = ((string)quotes[i]);
                 string? quoteId = quote;
-                object response = getValue(results, i);
+                IDictionary<string, object> response = this.safeDict(results, i);
                 IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
                 IDictionary<string, object> extension = this.safeDict(quoteCurrencies, quote, new Dictionary<string, object>() {});
                 List<object> currencyIds = new List<object>(((IDictionary<string,object>)data).Keys);
@@ -789,7 +789,7 @@ public partial class bithumb : Exchange
         {
             for (int i = 0; i < getArrayLength(response); i++)
             {
-                object entry = getValue(response, i);
+                IDictionary<string, object> entry = this.safeDict(response, i);
                 Dictionary<string, object> account = this.account();
                 string? currencyId = this.safeString(entry, "currency");
                 string? code = this.safeCurrencyCode(currencyId);
@@ -897,7 +897,7 @@ public partial class bithumb : Exchange
             List<object> asks = new List<object>() {};
             for (int i = 0; i < orderBookUnits.Count; i++)
             {
-                object entry = orderBookUnits[i];
+                IDictionary<string, object> entry = this.safeDict(orderBookUnits, i);
                 bids.Add(new Dictionary<string, object>() {
                     { "price", this.safeString(entry, "bid_price") },
                     { "quantity", this.safeString(entry, "bid_size") },
@@ -1281,7 +1281,7 @@ public partial class bithumb : Exchange
             for (int i = 0; i < (quotes?.Count ?? 0); i++)
             {
                 object quote = quotes[i];
-                object response = getValue(responses, i);
+                IDictionary<string, object> response = this.safeDict(responses, i);
                 IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
                 Int64? timestamp = this.safeInteger(data, "date");
                 Dictionary<string, object> tickers = this.omit(data, "date");
@@ -1807,7 +1807,7 @@ public partial class bithumb : Exchange
         IList<object> orderSymbols = new List<object>() {};
         for (int i = 0; i < getArrayLength(orders); i++)
         {
-            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
+            IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? symbol = this.safeString(rawOrder, "symbol");
             if ((symbol == null))
             {
@@ -2497,10 +2497,10 @@ public partial class bithumb : Exchange
         Dictionary<string, object> fee = null;
         if ((feeCost != null))
         {
-            object currency = null;
+            string? currency = null;
             if ((market != null))
             {
-                currency = getValue(market, "quote");
+                currency = this.safeString(market, "quote");
             }
             fee = new Dictionary<string, object>() {
                 { "currency", currency },

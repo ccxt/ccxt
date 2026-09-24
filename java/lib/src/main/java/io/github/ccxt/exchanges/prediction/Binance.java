@@ -217,7 +217,7 @@ public class Binance extends BinanceApi
             Integer queriesLength = ((List<?>)queries).size();
             if (Helpers.isGreaterThan(queriesLength, 0))
             {
-                Object eventParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit")));
+                Map<String, Object> eventParams = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit")));
                 List<PredictionEvent> events = (this.fetchEvents(eventParams)).join();
                 Integer eventsLength = ((List<?>)events).size();
                 List<Object> queryMarkets = new ArrayList<Object>(Arrays.asList());
@@ -233,7 +233,7 @@ public class Binance extends BinanceApi
                 return queryMarkets;
             }
             Long maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "maxFetchMarketsLimit", 200));
-            Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit")));
+            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit")));
             Object rawTopics = (this.fetchRawTopics(maxMarkets, rest)).join();
             List<Object> parsedEvents = new ArrayList<Object>(Arrays.asList());
             List<Object> flatMarkets = new ArrayList<Object>(Arrays.asList());
@@ -664,7 +664,7 @@ public class Binance extends BinanceApi
                 Integer responseLength = ((List<?>)response).size();
                 for (var i = 0; Helpers.isLessThan(i, responseLength); i++)
                 {
-                    Object rawTopic = (response == null || i < 0 || i >= response.size() ? null : response.get(i));
+                    Map<String, Object> rawTopic = (Map<String, Object>) this.safeDict(response, i);
                     String topicId = this.safeString(rawTopic, "marketTopicId");
                     if (!java.util.Objects.equals(topicId, null))
                     {
@@ -800,14 +800,14 @@ public class Binance extends BinanceApi
         {
             active = (java.util.Objects.equals(status, "REGISTERED")) || (java.util.Objects.equals(status, "OPEN"));
         }
-        Object resolved = null;
+        Boolean resolved = null;
         if (!java.util.Objects.equals(status, null))
         {
             resolved = (java.util.Objects.equals(status, "RESOLVED")) || (java.util.Objects.equals(status, "SETTLED"));
         }
-        final Object finalSlug = slug;
+        final String finalSlug = slug;
         final Object finalActive = active;
-        final Object finalResolved = resolved;
+        final Boolean finalResolved = resolved;
         return new HashMap<String, Object>() {{
             put( "id", topicId );
             put( "slug", finalSlug );
@@ -891,7 +891,7 @@ public class Binance extends BinanceApi
         Integer rawOutcomesLength = ((List<?>)rawOutcomes).size();
         for (var oi = 0; Helpers.isLessThan(oi, rawOutcomesLength); oi++)
         {
-            Object rawOutcome = (rawOutcomes == null || oi < 0 || oi >= ((List<?>)rawOutcomes).size() ? null : ((List<?>)rawOutcomes).get(oi));
+            Map<String, Object> rawOutcome = (Map<String, Object>) this.safeDict(rawOutcomes, oi);
             String label = this.safeStringUpper(rawOutcome, "name");
             String tokenId = this.safeString(rawOutcome, "tokenId");
             String outcomeHandle = ((marketSymbol + ":") + label);
@@ -1290,7 +1290,7 @@ final Object finalMarketSymbol = marketSymbol;
             List<Object> balances = (List<Object>) this.safeList(response, "items", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
-                Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
+                Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i);
                 String accountType = this.safeString(balance, "accountType");
                 if (java.util.Objects.equals(accountType, type))
                 {
@@ -1460,8 +1460,8 @@ final Object finalMarketSymbol = marketSymbol;
             Long limit = limit3;
             Map<String, Object> parameters = parameters3;
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             Object maxEntriesPerRequest = null;
             List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "maxEntriesPerRequest", 100);
@@ -1581,8 +1581,8 @@ final Object finalMarketSymbol = marketSymbol;
             Long limit = limit3;
             Map<String, Object> parameters = parameters3;
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             Object maxEntriesPerRequest = null;
             List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "maxEntriesPerRequest", 100);
@@ -1950,8 +1950,8 @@ final Object finalMarketSymbol = marketSymbol;
             Long limit = limit3;
             Map<String, Object> parameters = parameters3;
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             Object maxEntriesPerRequest = null;
             List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "maxEntriesPerRequest", 100);
@@ -2620,7 +2620,7 @@ final Object finalMarketSymbol = marketSymbol;
                 Object failedDetails = "";
                 for (var i = 0; Helpers.isLessThan(i, failedOrdersLength); i++)
                 {
-                    Object failedOrder = (failedOrders == null || i < 0 || i >= failedOrders.size() ? null : failedOrders.get(i));
+                    Map<String, Object> failedOrder = (Map<String, Object>) this.safeDict(failedOrders, i);
                     String failedOrderId = this.safeString(failedOrder, "orderId");
                     String failedReason = this.safeString(failedOrder, "reason");
                     if (Helpers.isGreaterThan(i, 0))

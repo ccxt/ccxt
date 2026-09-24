@@ -691,7 +691,7 @@ public class Revolutx extends RevolutxApi
                 Object marketIds = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+                    String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                     Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                     ((List<Object>)marketIds).add(((Map<String, Object>)market).get("id"));
                 }

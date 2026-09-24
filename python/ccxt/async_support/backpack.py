@@ -1382,7 +1382,7 @@ class backpack(Exchange, ImplicitAPI):
         for i in range(0, len(balanceKeys)):
             id = balanceKeys[i]
             code = self.safe_currency_code(id)
-            balance = response[id]
+            balance = self.safe_dict(response, id)
             account = self.account()
             locked = self.safe_string(balance, 'locked')
             staked = self.safe_string(balance, 'staked')
@@ -1639,7 +1639,7 @@ class backpack(Exchange, ImplicitAPI):
         response = await self.privateGetWapiV1CapitalDepositAddress(self.extend(request, params))
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "address": "0xfBe7CbfCde93c8a4204a4be6B56732Eb32690170"
@@ -1708,7 +1708,7 @@ class backpack(Exchange, ImplicitAPI):
             await self.load_markets()
         ordersRequests = []
         for i in range(0, len(orders)):
-            rawOrder = orders[i]
+            rawOrder = self.safe_dict(orders, i)
             marketId = self.safe_string(rawOrder, 'symbol')
             type = self.safe_string(rawOrder, 'type')
             side = self.safe_string(rawOrder, 'side')
@@ -1734,7 +1734,9 @@ class backpack(Exchange, ImplicitAPI):
         }
         triggerPrice = self.safe_string(params, 'triggerPrice')
         isTriggerOrder = triggerPrice is not None
-        quantityKey = 'triggerQuantity' if isTriggerOrder else 'quantity'
+        quantityKey = 'quantity'
+        if isTriggerOrder:
+            quantityKey = 'triggerQuantity'
         # handle basic limit/market order types
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
@@ -1777,7 +1779,7 @@ class backpack(Exchange, ImplicitAPI):
                 request['stopLossLimitPrice'] = self.price_to_precision(symbol, stopLossPrice)
             params = self.omit(params, 'stopLoss')
         selfTradePrevention = None
-        selfTradePrevention, params = self.handle_option_and_params(params, 'createOrder', 'selfTradePrevention')
+        selfTradePrevention, params = self.handle_option_string_and_params(params, 'createOrder', 'selfTradePrevention')
         if selfTradePrevention is not None:
             if selfTradePrevention == 'EXPIRE_MAKER':
                 request['selfTradePrevention'] = 'RejectMaker'
@@ -2193,7 +2195,7 @@ class backpack(Exchange, ImplicitAPI):
         response = await self.privateGetWapiV1HistoryFunding(self.extend(request, params))
         return self.parse_incomes(response, market, since, limit)
 
-    def parse_income(self, income: object, market: Market = None) -> object:
+    def parse_income(self, income: dict, market: Market = None) -> object:
         #
         #     {
         #         "fundingRate": "0.0001",

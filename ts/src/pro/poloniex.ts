@@ -145,7 +145,10 @@ export default class poloniex extends poloniexRest {
      * @returns {object} data from the websocket stream
      */
     async subscribe (name: string, messageHash: string, isPrivate: boolean, symbols: Strings = undefined, params: Dict = {}) {
-        const publicOrPrivate = isPrivate ? 'private' : 'public';
+        let publicOrPrivate: Str = 'public';
+        if (isPrivate) {
+            publicOrPrivate = 'private';
+        }
         const url = this.urls['api']['ws'][publicOrPrivate];
         const subscribe: Dict = {
             'event': 'subscribe',
@@ -661,7 +664,7 @@ export default class poloniex extends poloniexRest {
         //
         const data = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
-            const item = data[i];
+            const item = this.safeDict (data, i);
             const marketId = this.safeString (item, 'symbol');
             if (marketId !== undefined) {
                 const trade = this.parseWsTrade (item);
@@ -1122,7 +1125,7 @@ export default class poloniex extends poloniexRest {
         const snapshot = type === 'snapshot';
         const update = type === 'update';
         for (let i = 0; i < data.length; i++) {
-            const item = data[i];
+            const item = this.safeDict (data, i);
             const marketId = this.safeString (item, 'symbol');
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];

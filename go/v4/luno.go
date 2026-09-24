@@ -535,7 +535,7 @@ func (this *Luno) ParseCurrency(rawCurrency any) any {
 	var code *string = this.SafeCurrencyCode(id)
 	var networks map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(rawCurrency); i++ {
-		var networkEntry any = GetValue(rawCurrency, i)
+		var networkEntry map[string]any = SafeMapTyped(rawCurrency, i)
 		var networkId *string = this.SafeString(networkEntry, "name")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
@@ -774,12 +774,7 @@ func (this *Luno) ParseBalance(response any) any {
 		"datetime":  nil,
 	}
 	for i := 0; i < len(wallets); i++ {
-		var wallet map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(wallets) {
-				return DerefScalar(wallets[i])
-			}
-			return nil
-		}())
+		var wallet map[string]any = SafeMapTyped(wallets, i)
 		var currencyId *string = this.SafeString(wallet, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var reserved *string = this.SafeString(wallet, "reserved")
@@ -1820,10 +1815,10 @@ func (this *Luno) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-this.LoadAccountsAsync()))
 	var currency map[string]any = nil
-	var id any = DerefScalar(this.SafeString(params, "id")) // account id
+	var id *string = this.SafeString(params, "id") // account id
 	var min_row any = this.SafeValue(params, "min_row")
 	var max_row any = this.SafeValue(params, "max_row")
-	if IsEqual(id, nil) {
+	if id == nil {
 		if code == nil {
 			panic(ArgumentsRequired(this.Id + " fetchLedger() requires a currency code argument if no account id specified in params"))
 		}
@@ -1833,7 +1828,7 @@ func (this *Luno) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		if IsEqual(account, nil) {
 			panic(ExchangeError(Add(this.Id+" fetchLedger() could not find account id for ", code)))
 		}
-		id = account["id"]
+		id = this.SafeString(account, "id")
 	}
 	if IsEqual(min_row, nil) && IsEqual(max_row, nil) {
 		max_row = 0           // Default to most recent transactions

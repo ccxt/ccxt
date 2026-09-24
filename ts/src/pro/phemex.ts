@@ -377,7 +377,7 @@ export default class phemex extends phemexRest {
         //
         this.balance['info'] = message;
         for (let i = 0; i < message.length; i++) {
-            const balance = message[i];
+            const balance = this.safeDict (message, i);
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const currency = this.safeDict (this.currencies, code, {});
@@ -619,7 +619,10 @@ export default class phemex extends phemexRest {
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
         const isUsdtSwap = (isSwap === true) && settleIsUSDT;
-        const name = isUsdtSwap ? 'trade_p' : 'trade';
+        let name: Str = 'trade';
+        if (isUsdtSwap) {
+            name = 'trade_p';
+        }
         const messageHash = 'trade:' + symbol;
         const method = name + '.subscribe';
         const subscribe: Dict = {
@@ -661,7 +664,10 @@ export default class phemex extends phemexRest {
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
         const isUsdtSwap = (isSwap === true) && settleIsUSDT;
-        const name = isUsdtSwap ? 'orderbook_p' : 'orderbook';
+        let name: Str = 'orderbook';
+        if (isUsdtSwap) {
+            name = 'orderbook_p';
+        }
         const messageHash = 'orderbook:' + symbol;
         const method = name + '.subscribe';
         const subscribe: Dict = {
@@ -701,7 +707,10 @@ export default class phemex extends phemexRest {
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
         const isUsdtSwap = (isSwap === true) && settleIsUSDT;
-        const name = isUsdtSwap ? 'kline_p' : 'kline';
+        let name: Str = 'kline';
+        if (isUsdtSwap) {
+            name = 'kline_p';
+        }
         const messageHash = 'kline:' + timeframe + ':' + symbol;
         const method = name + '.subscribe';
         const subscribe: Dict = {
@@ -1533,7 +1542,10 @@ export default class phemex extends phemexRest {
             this.handleOrders (client, orders);
         }
         if (('accounts' in message) || ('accounts_p' in message) || ('wallets' in message)) {
-            let type = ('accounts' in message) ? 'swap' : 'spot';
+            let type: Str = 'spot';
+            if ('accounts' in message) {
+                type = 'swap';
+            }
             if ('accounts_p' in message) {
                 type = 'perpetual';
             }

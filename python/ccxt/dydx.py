@@ -843,7 +843,7 @@ class dydx(Exchange, ImplicitAPI):
 
     def handle_public_address(self, methodName: Str, params: dict) -> list:
         userAux = None
-        userAux, params = self.handle_option_and_params(params, methodName, 'user')
+        userAux, params = self.handle_option_string_and_params(params, methodName, 'user')
         user = userAux
         user, params = self.handle_option_string_and_params(params, methodName, 'address', userAux)
         if (user is not None) and (user != ''):
@@ -1789,11 +1789,11 @@ class dydx(Exchange, ImplicitAPI):
         gasPrice = None
         denom = None
         if defaultFeeDenom == 'uusdc':
-            gasPrice = feeDenom['USDC_GAS_PRICE']
-            denom = feeDenom['USDC_DENOM']
+            gasPrice = self.safe_string(feeDenom, 'USDC_GAS_PRICE')
+            denom = self.safe_string(feeDenom, 'USDC_DENOM')
         else:
-            gasPrice = feeDenom['CHAINTOKEN_GAS_PRICE']
-            denom = feeDenom['CHAINTOKEN_DENOM']
+            gasPrice = self.safe_string(feeDenom, 'CHAINTOKEN_GAS_PRICE')
+            denom = self.safe_string(feeDenom, 'CHAINTOKEN_DENOM')
         gasLimit = int(math.ceil(self.parse_to_numeric(Precise.string_mul(gasUsed, defaultFeeMultiplier))))
         feeAmount = Precise.string_mul(self.number_to_string(gasLimit), gasPrice)
         if feeAmount is None:

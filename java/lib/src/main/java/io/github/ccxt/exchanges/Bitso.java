@@ -668,7 +668,7 @@ public class Bitso extends BitsoApi
                 List<Object> makerFees = new ArrayList<Object>(Arrays.asList());
                 for (var j = 0; j < ((List<?>)feeTiers).size(); j++)
                 {
-                    Object tier = (feeTiers == null || j < 0 || j >= feeTiers.size() ? null : feeTiers.get(j));
+                    Map<String, Object> tier = (Map<String, Object>) this.safeDict(feeTiers, j);
                     Double volume = this.safeNumber(tier, "volume");
                     Double takerFee = this.safeNumber(tier, "taker");
                     Double makerFee = this.safeNumber(tier, "maker");
@@ -849,7 +849,7 @@ public class Bitso extends BitsoApi
 
     public Object parseBalance(Object response)
     {
-        Object payload = this.safeValue(response, "payload", new HashMap<String, Object>() {{}});
+        Map<String, Object> payload = (Map<String, Object>) this.safeDict(response, "payload", new HashMap<String, Object>() {{}});
         List<Object> balances = (List<Object>) this.safeList(payload, "balances", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -858,7 +858,7 @@ public class Bitso extends BitsoApi
         }};
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i);
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();

@@ -653,12 +653,10 @@ func (this *Bitfinex) ParseWsTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var numFields int = ccxt.GetArrayLength(trade)
 	var isPublic bool = (numFields <= 8)
-	var marketId any = func() any {
-		if !isPublic {
-			return this.SafeString(trade, 1)
-		}
-		return nil
-	}()
+	var marketId any = nil
+	if !isPublic {
+		marketId = ccxt.DerefScalar(this.SafeString(trade, 1))
+	}
 	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
 	var createdKey int = func() int {
 		if isPublic {
@@ -697,12 +695,10 @@ func (this *Bitfinex) ParseWsTrade(trade any, optionalArgs ...any) any {
 			typeVar = ccxt.SafeStringPtr("market")
 		}
 	}
-	var orderId *string = func() *string {
-		if !isPublic {
-			return this.SafeString(trade, 3)
-		}
-		return nil
-	}()
+	var orderId *string = nil
+	if !isPublic {
+		orderId = this.SafeString(trade, 3)
+	}
 	var id *string = this.SafeString(trade, 0)
 	var timestamp *int64 = this.SafeInteger(trade, createdKey)
 	var price *string = this.SafeString(trade, priceKey)
@@ -948,7 +944,7 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 				return nil
 			}()
 			for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
-				var delta any = ccxt.GetValue(deltas, i)
+				var delta []any = ccxt.SafeListTyped(deltas, i)
 				var amount *float64 = this.SafeNumber(delta, 2)
 				if amount == nil {
 					continue

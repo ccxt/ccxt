@@ -690,7 +690,10 @@ impl AsterCore {
             while { if !__for_first_21 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_21 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol);
-            let mut suffix: Value = (if (use1sFreq.as_bool() == Some(true)) { Value::Str("@1s".into()) } else { Value::Str("".into()) });
+            let mut suffix: Value = Value::Str("".into());
+            if (use1sFreq.as_bool() == Some(true)) {
+                suffix = Value::Str("@1s".into());
+            }
             append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[]), Value::Str("@markPrice".into())).into()), suffix).into()));
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("ticker:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()));
         }
@@ -760,7 +763,10 @@ impl AsterCore {
             while { if !__for_first_22 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_22 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol);
-            let mut suffix: Value = (if (use1sFreq.as_bool() == Some(true)) { Value::Str("@1s".into()) } else { Value::Str("".into()) });
+            let mut suffix: Value = Value::Str("".into());
+            if (use1sFreq.as_bool() == Some(true)) {
+                suffix = Value::Str("@1s".into());
+            }
             append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[]), Value::Str("@markPrice".into())).into()), suffix).into()));
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("unsubscribe:ticker:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()));
         }
@@ -1015,7 +1021,10 @@ impl AsterCore {
     pub fn parse_ws_bid_ask(&self, mut message: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "T", &[]);
-        let mut bidAskSymbol: Value = (if (market != Value::Null) { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut bidAskSymbol: Value = Value::Null;
+        if (market != Value::Null) {
+            bidAskSymbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), bidAskSymbol);
@@ -1345,7 +1354,12 @@ impl AsterCore {
             }
         }
         let mut marketId: Value = self.safe_string_k(trade.clone(), "s", &[]);
-        let mut defaultType: Value = (if (market == Value::Null) { self.safe_string_k(self.options.clone(), "defaultType", &[Value::Str("spot".into())]) } else { market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null) });
+        let mut defaultType: Value = Value::Null;
+        if (market == Value::Null) {
+            defaultType = self.safe_string_k(self.options.clone(), "defaultType", &[Value::Str("spot".into())]);
+        }  else {
+            defaultType = market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
+        }
         let mut symbol: Value = self.safe_symbol(marketId, &[market, Value::Null, defaultType]);
         let mut side: Value = self.safe_string_lower_k(trade.clone(), "S", &[]);
         let mut takerOrMaker: Value = Value::Null;
@@ -1705,15 +1719,20 @@ impl AsterCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_29: bool = true;
             while { if !__for_first_29 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_29 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsAndTimeframes.len() as i64) as f64) } {
-            let mut data: Value = symbolsAndTimeframes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut data: Value = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]);
             let mut symbolString: Value = self.safe_string(data.clone(), Value::Int(0), &[]);
             if (symbolString == Value::Null) {
                 continue;
             }
             let mut market: Value = self.market(symbolString.clone());
-            symbolString = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            symbolString = self.safe_string_k(market.clone(), "symbol", &[]);
             let mut unfiedTimeframe: Value = self.safe_string(data, Value::Int(1), &[]);
-            let mut timeframeId: Value = (if (unfiedTimeframe == Value::Null) { Value::Null } else { self.safe_string(self.timeframes.clone(), unfiedTimeframe.clone(), &[unfiedTimeframe.clone()]) });
+            let mut timeframeId: Value = Value::Null;
+            if (unfiedTimeframe == Value::Null) {
+                timeframeId = Value::Null;
+            }  else {
+                timeframeId = self.safe_string(self.timeframes.clone(), unfiedTimeframe.clone(), &[unfiedTimeframe.clone()]);
+            }
             append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[]), Value::Str("@kline_".into())).into()), timeframeId).into()));
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), unfiedTimeframe).into()));
         }
@@ -1775,15 +1794,20 @@ impl AsterCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_30: bool = true;
             while { if !__for_first_30 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_30 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsAndTimeframes.len() as i64) as f64) } {
-            let mut data: Value = symbolsAndTimeframes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut data: Value = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]);
             let mut symbolString: Value = self.safe_string(data.clone(), Value::Int(0), &[]);
             if (symbolString == Value::Null) {
                 continue;
             }
             let mut market: Value = self.market(symbolString.clone());
-            symbolString = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            symbolString = self.safe_string_k(market.clone(), "symbol", &[]);
             let mut unfiedTimeframe: Value = self.safe_string(data, Value::Int(1), &[]);
-            let mut timeframeId: Value = (if (unfiedTimeframe == Value::Null) { Value::Null } else { self.safe_string(self.timeframes.clone(), unfiedTimeframe.clone(), &[unfiedTimeframe.clone()]) });
+            let mut timeframeId: Value = Value::Null;
+            if (unfiedTimeframe == Value::Null) {
+                timeframeId = Value::Null;
+            }  else {
+                timeframeId = self.safe_string(self.timeframes.clone(), unfiedTimeframe.clone(), &[unfiedTimeframe.clone()]);
+            }
             append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[]), Value::Str("@kline_".into())).into()), timeframeId).into()));
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:ohlcv:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), unfiedTimeframe).into()));
         }
@@ -2509,7 +2533,10 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut executionType: Option<String> = (match __pro_message.get("x").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (executionType.as_deref() == Some("TRADE")) {
             let mut isSwap: bool = Value::Int(get_value(&client, &Value::Str("url".into())).as_str().and_then(|__s| __s.find("fstream")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
-            let mut type_var: Value = (if isSwap { Value::Str("swap".into()) } else { Value::Str("spot".into()) });
+            let mut type_var: Value = Value::Str("spot".into());
+            if isSwap {
+                type_var = Value::Str("swap".into());
+            }
             let mut fakeMarket: Value = self.safe_market_structure(&[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), type_var);

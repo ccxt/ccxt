@@ -671,7 +671,7 @@ impl PhemexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_571: bool = true;
             while { if !__for_first_571 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_571 = false; i.as_f64().unwrap_or(f64::NAN) < ((message.len() as i64) as f64) } {
-            let mut balance: Value = message.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut balance: Value = self.safe_dict(message.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut currency: Value = self.safe_dict(self.currencies.clone(), code.clone(), &[Value::Map({
@@ -958,7 +958,10 @@ impl PhemexCore {
         let mut isSwap: Value = market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null);
         let mut settleIsUSDT: bool = market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null).as_str() == Some("USDT");
         let mut isUsdtSwap: bool = (isSwap.as_bool() == Some(true)) && settleIsUSDT;
-        let mut name: Value = (if isUsdtSwap { Value::Str("trade_p".into()) } else { Value::Str("trade".into()) });
+        let mut name: Value = Value::Str("trade".into());
+        if isUsdtSwap {
+            name = Value::Str("trade_p".into());
+        }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".into()), symbol).into());
         let mut method: Value = Value::Str(format!("{}{}", name, Value::Str(".subscribe".into())).into());
         let mut subscribe: Value = Value::Map({
@@ -1007,7 +1010,10 @@ impl PhemexCore {
         let mut isSwap: Value = market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null);
         let mut settleIsUSDT: bool = market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null).as_str() == Some("USDT");
         let mut isUsdtSwap: bool = (isSwap.as_bool() == Some(true)) && settleIsUSDT;
-        let mut name: Value = (if isUsdtSwap { Value::Str("orderbook_p".into()) } else { Value::Str("orderbook".into()) });
+        let mut name: Value = Value::Str("orderbook".into());
+        if isUsdtSwap {
+            name = Value::Str("orderbook_p".into());
+        }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
         let mut method: Value = Value::Str(format!("{}{}", name, Value::Str(".subscribe".into())).into());
         let mut subscribe: Value = Value::Map({
@@ -1056,7 +1062,10 @@ impl PhemexCore {
         let mut isSwap: Value = market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null);
         let mut settleIsUSDT: bool = market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null).as_str() == Some("USDT");
         let mut isUsdtSwap: bool = (isSwap.as_bool() == Some(true)) && settleIsUSDT;
-        let mut name: Value = (if isUsdtSwap { Value::Str("kline_p".into()) } else { Value::Str("kline".into()) });
+        let mut name: Value = Value::Str("kline".into());
+        if isUsdtSwap {
+            name = Value::Str("kline_p".into());
+        }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kline:".into()), timeframe).into()), Value::Str(":".into())).into()), symbol).into());
         let mut method: Value = Value::Str(format!("{}{}", name, Value::Str(".subscribe".into())).into());
         let mut subscribe: Value = Value::Map({
@@ -1962,7 +1971,10 @@ impl PhemexCore {
             self.handle_orders(client.clone(), orders);
         }
         if (matches!(&message, Value::Dict(__d) if __d.contains_key("accounts"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("accounts_p"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("wallets"))) {
-            let mut type_var: Value = (if (matches!(&message, Value::Dict(__d) if __d.contains_key("accounts"))) { Value::Str("swap".into()) } else { Value::Str("spot".into()) });
+            let mut type_var: Value = Value::Str("spot".into());
+            if (matches!(&message, Value::Dict(__d) if __d.contains_key("accounts"))) {
+                type_var = Value::Str("swap".into());
+            }
             if (matches!(&message, Value::Dict(__d) if __d.contains_key("accounts_p"))) {
                 type_var = Value::Str("perpetual".into());
             }

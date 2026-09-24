@@ -487,7 +487,7 @@ export default class luno extends Exchange {
         const code = this.safeCurrencyCode (id);
         const networks: Dict = {};
         for (let i = 0; i < (rawCurrency as List).length; i++) {
-            const networkEntry = rawCurrency[i];
+            const networkEntry = this.safeDict (rawCurrency, i);
             const networkId = this.safeString (networkEntry, 'name');
             const networkCode = this.networkIdToCode (networkId, code);
             if (networkCode !== undefined) {
@@ -693,7 +693,7 @@ export default class luno extends Exchange {
             'datetime': undefined,
         };
         for (let i = 0; i < wallets.length; i++) {
-            const wallet = wallets[i];
+            const wallet = this.safeDict (wallets, i);
             const currencyId = this.safeString (wallet, 'asset');
             const code = this.safeCurrencyCode (currencyId);
             const reserved = this.safeString (wallet, 'reserved');

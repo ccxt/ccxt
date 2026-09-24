@@ -300,7 +300,7 @@ class coinspot(Exchange, ImplicitAPI):
                 currencyIds = list(currencies.keys())
                 for j in range(0, len(currencyIds)):
                     currencyId = currencyIds[j]
-                    balance = currencies[currencyId]
+                    balance = self.safe_dict(currencies, currencyId)
                     code = self.safe_currency_code(currencyId)
                     account = self.account()
                     account['total'] = self.safe_string(balance, 'balance')
@@ -725,7 +725,9 @@ class coinspot(Exchange, ImplicitAPI):
         version = api[0] if isVersionedApi else None
         accessType = api[1] if isVersionedApi else api
         endpoint = '/' + self.implode_params(path, params)
-        fullPath = '/' + version + endpoint if (version is not None) else endpoint
+        fullPath = endpoint
+        if version is not None:
+            fullPath = '/' + version + endpoint
         url = self.urls['api'][accessType] + fullPath
         if accessType == 'private':
             self.check_required_credentials()

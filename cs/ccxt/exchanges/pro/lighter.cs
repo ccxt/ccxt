@@ -437,7 +437,7 @@ public partial class lighter : ccxt.lighter
         {
             for (int i = 0; i < getArrayLength(symbols); i++)
             {
-                object symbol = getValue(symbols, i);
+                string? symbol = ((string)getValue(symbols, i));
                 messageHashes.Add(this.getMessageHash("ticker", symbol));
             }
         }
@@ -576,7 +576,11 @@ public partial class lighter : ccxt.lighter
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "size");
         bool? isMakerAsk = this.safeBool(trade, "is_maker_ask");
-        string side = ((isMakerAsk == true)) ? "buy" : "sell";
+        string side = "sell";
+        if ((isMakerAsk == true))
+        {
+            side = "buy";
+        }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", tradeId },
@@ -779,7 +783,14 @@ public partial class lighter : ccxt.lighter
         Dictionary<string, object> fee = null;
         if ((takerOrMaker != null))
         {
-            string? feeRateRaw = (takerOrMaker == "maker") ? this.safeString(trade, "maker_fee") : this.safeString(trade, "taker_fee");
+            string? feeRateRaw = null;
+            if (takerOrMaker == "maker")
+            {
+                feeRateRaw = this.safeString(trade, "maker_fee");
+            } else
+            {
+                feeRateRaw = this.safeString(trade, "taker_fee");
+            }
             string? feeRate = ((feeRateRaw != null)) ? Precise.stringDiv(feeRateRaw, "1000000") : "0";
             string? feeAmount = Precise.stringMul(costString, feeRate);
             fee = new Dictionary<string, object>() {
@@ -986,7 +997,11 @@ public partial class lighter : ccxt.lighter
         //
         Int64? timestamp = this.safeInteger(liquidation, "timestamp");
         bool? isMakerAsk = this.safeBool(liquidation, "is_maker_ask");
-        string side = ((isMakerAsk == true)) ? "buy" : "sell";
+        string side = "sell";
+        if ((isMakerAsk == true))
+        {
+            side = "buy";
+        }
         string? contracts = this.safeString(liquidation, "size");
         string? contractSize = this.safeString(market, "contractSize");
         string? price = this.safeString(liquidation, "price");
@@ -1206,7 +1221,7 @@ public partial class lighter : ccxt.lighter
             for (int i = 0; i < assetIds.Count; i++)
             {
                 string? assetId = ((string)assetIds[i]);
-                object asset = getValue(assets, assetId);
+                IDictionary<string, object> asset = this.safeDict(assets, assetId);
                 string? codeId = this.safeString(asset, "symbol");
                 string? code = this.safeCurrencyCode(codeId);
                 Dictionary<string, object> account = this.account();

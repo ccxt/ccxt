@@ -2523,7 +2523,7 @@ public partial class okx : Exchange
         };
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            object eventVar = data[i];
+            IDictionary<string, object> eventVar = this.safeDict(data, i);
             string? state = this.safeString(eventVar, "state");
             update["eta"] = this.safeInteger(eventVar, "end");
             update["url"] = this.safeString(eventVar, "href");
@@ -3038,7 +3038,7 @@ public partial class okx : Exchange
         int chainsLength = getArrayLength(chains);
         for (int j = 0; j < chainsLength; j++)
         {
-            object chain = getValue(chains, j);
+            IDictionary<string, object> chain = this.safeDict(chains, j);
             // allow empty string for rare fiat-currencies, e.g. TRY
             string? networkId = this.safeString(chain, "chain", ""); // USDT-BEP20, USDT-Avalance-C, etc
             if (networkId == "")
@@ -3117,9 +3117,9 @@ public partial class okx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        bool rpi = false;
-        IList<object> rpiparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrderBook", "rpi");
-        rpi = isTrue(rpiparametersVariable[0]);
+        bool? rpi = false;
+        IList<object> rpiparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOrderBook", "rpi", false);
+        rpi = (bool?)rpiparametersVariable[0];
         parameters = rpiparametersVariable[1];
         string? method = null;
         IList<object> methodparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchOrderBook", "method", "publicGetMarketBooks");
@@ -3130,7 +3130,7 @@ public partial class okx : Exchange
             limitVar = 5000;
         }
         limitVar = ((limitVar == null)) ? 100 : limitVar;
-        if (rpi && (isGreaterThan(limitVar, 400)))
+        if ((rpi == true) && (isGreaterThan(limitVar, 400)))
         {
             // the rpi book hard-errors with 51000 "Parameter sz error." above 400,
             // including the 5000 that publicGetMarketBooksFull defaults to
@@ -3141,7 +3141,7 @@ public partial class okx : Exchange
             request["sz"] = limitVar; // max 400
         }
         Dictionary<string, object> response = null;
-        if (rpi)
+        if ((rpi == true))
         {
             response = await this.publicGetMarketBooksRpi(this.extend(request, parameters));
         } else if ((method == "publicGetMarketBooksFull") || (isGreaterThan(limitVar, 400)))
@@ -3579,8 +3579,8 @@ public partial class okx : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -3705,8 +3705,8 @@ public partial class okx : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -3838,8 +3838,8 @@ public partial class okx : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -3920,7 +3920,7 @@ public partial class okx : Exchange
         List<object> details = this.safeList(first, "details", new List<object>() {});
         for (int i = 0; i < (details?.Count ?? 0); i++)
         {
-            object balance = details[i];
+            IDictionary<string, object> balance = this.safeDict(details, i);
             string? currencyId = this.safeString(balance, "ccy");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -3954,7 +3954,7 @@ public partial class okx : Exchange
         List<object> data = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            object balance = data[i];
+            IDictionary<string, object> balance = this.safeDict(data, i);
             string? currencyId = this.safeString(balance, "ccy");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -4314,20 +4314,20 @@ public partial class okx : Exchange
         {
             if (((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) || ((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true)))
             {
-                object positionSide = null;
-                IList<object> positionSideparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "positionSide");
-                positionSide = positionSideparametersVariable[0];
+                string? positionSide = null;
+                IList<object> positionSideparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "positionSide");
+                positionSide = (string)positionSideparametersVariable[0];
                 parameters = positionSideparametersVariable[1];
                 if ((positionSide != null))
                 {
                     request["posSide"] = positionSide;
                 } else
                 {
-                    object hedged = null;
-                    IList<object> hedgedparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "hedged");
-                    hedged = hedgedparametersVariable[0];
+                    bool? hedged = null;
+                    IList<object> hedgedparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "createOrder", "hedged");
+                    hedged = (bool?)hedgedparametersVariable[0];
                     parameters = hedgedparametersVariable[1];
-                    if (isEqual(hedged, true))
+                    if ((hedged == true))
                     {
                         bool isBuy = (isEqual(side, "buy"));
                         bool isProtective = ((takeProfitPrice != null)) || ((stopLossPrice != null)) || isReduceOnly;
@@ -4706,7 +4706,7 @@ public partial class okx : Exchange
         List<object> ordersRequests = new List<object>() {};
         for (int i = 0; i < getArrayLength(orders); i++)
         {
-            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
+            IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
             if ((marketId == null))
             {
@@ -5173,7 +5173,7 @@ public partial class okx : Exchange
         }
         for (int i = 0; i < getArrayLength(orders); i++)
         {
-            IDictionary<string, object> order = ((IDictionary<string, object>)getValue(orders, i));
+            IDictionary<string, object> order = this.safeDict(orders, i);
             string? id = this.safeString(order, "id");
             string? clientOrderId = this.safeString2(order, "clOrdId", "clientOrderId");
             string? symbol = this.safeString(order, "symbol");
@@ -5783,8 +5783,8 @@ public partial class okx : Exchange
         }
         int maxLimit = 100;
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -6152,8 +6152,8 @@ public partial class okx : Exchange
         }
         int maxLimit = 100;
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchClosedOrders", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchClosedOrders", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -6343,8 +6343,8 @@ public partial class okx : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -6447,8 +6447,8 @@ public partial class okx : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -6940,8 +6940,8 @@ public partial class okx : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -7061,8 +7061,8 @@ public partial class okx : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -7399,7 +7399,7 @@ public partial class okx : Exchange
         Int64? shortLeverage = null;
         for (int i = 0; i < getArrayLength(leverage); i++)
         {
-            object entry = getValue(leverage, i);
+            IDictionary<string, object> entry = this.safeDict(leverage, i);
             marginMode = this.safeStringLower(entry, "mgnMode");
             marketId = this.safeString(entry, "instId");
             string? positionSide = this.safeStringLower(entry, "posSide");
@@ -8806,7 +8806,7 @@ public partial class okx : Exchange
         Dictionary<string, object> borrowRateHistories = new Dictionary<string, object>() {};
         for (int i = 0; i < getArrayLength(response); i++)
         {
-            object item = getValue(response, i);
+            IDictionary<string, object> item = this.safeDict(response, i);
             string? code = this.safeCurrencyCode(this.safeString(item, "ccy"));
             if (((code != null)) && ((codes == null) || this.inArray(code, codes)))
             {
@@ -9174,7 +9174,7 @@ public partial class okx : Exchange
         List<object> tiers = new List<object>() {};
         for (int i = 0; i < getArrayLength(info); i++)
         {
-            object tier = getValue(info, i);
+            IDictionary<string, object> tier = this.safeDict(info, i);
             string? marketId = this.safeString(tier, "instId");
             tiers.Add(new Dictionary<string, object>() {
                 { "tier", this.safeInteger(tier, "tier") },
@@ -9561,16 +9561,16 @@ public partial class okx : Exchange
             await this.loadMarkets();
         }
         // handle unified currency code or symbol
-        object currencyId = null;
+        string? currencyId = null;
         IDictionary<string, object> market = null;
         if ((((this.markets != null)) && (inOp(this.markets, symbol))) || (((this.markets_by_id != null)) && (inOp(this.markets_by_id, symbol))))
         {
             market = this.market(symbol);
-            currencyId = (market.ContainsKey("baseId") ? market["baseId"] : null);
+            currencyId = this.safeString(market, "baseId");
         } else
         {
             Dictionary<string, object> currency = this.currency(symbol);
-            currencyId = (currency.ContainsKey("id") ? currency["id"] : null);
+            currencyId = this.safeString(currency, "id");
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ccy", currencyId },
@@ -9940,7 +9940,7 @@ public partial class okx : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(settlements); i++)
         {
-            object entry = getValue(settlements, i);
+            IDictionary<string, object> entry = this.safeDict(settlements, i);
             Int64? timestamp = this.safeInteger(entry, "ts");
             List<object> details = this.safeList(entry, "details", new List<object>() {});
             for (int j = 0; j < (details?.Count ?? 0); j++)
@@ -10852,7 +10852,7 @@ public partial class okx : Exchange
             List<object> data = this.safeList(response, "data", new List<object>() {});
             for (int i = 0; i < (data?.Count ?? 0); i++)
             {
-                object error = data[i];
+                IDictionary<string, object> error = this.safeDict(data, i);
                 string? errorCode = this.safeString(error, "sCode");
                 string? message = this.safeString(error, "sMsg");
                 this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
@@ -11136,7 +11136,7 @@ public partial class okx : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            object entry = data[i];
+            List<object> entry = this.safeList(data, i);
             result.Add(new Dictionary<string, object>() {
                 { "timestamp", this.safeString(entry, 0) },
                 { "longShortRatio", this.safeString(entry, 1) },

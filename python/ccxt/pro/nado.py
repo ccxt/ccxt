@@ -301,7 +301,7 @@ class nado(ccxt.async_support.nado):
         messageHashes = []
         subscriptionParams = []
         for i in range(0, len(symbolsAndTimeframes)):
-            symbolAndTimeframe = symbolsAndTimeframes[i]
+            symbolAndTimeframe = self.safe_list(symbolsAndTimeframes, i)
             marketSymbol = self.safe_string(symbolAndTimeframe, 0)
             timeframe = self.safe_string(symbolAndTimeframe, 1, '1m')
             market = self.market(marketSymbol)
@@ -348,7 +348,7 @@ class nado(ccxt.async_support.nado):
         messageHashes = []
         subscriptionParams = []
         for i in range(0, len(symbolsAndTimeframes)):
-            symbolAndTimeframe = symbolsAndTimeframes[i]
+            symbolAndTimeframe = self.safe_list(symbolsAndTimeframes, i)
             marketSymbol = self.safe_string(symbolAndTimeframe, 0)
             timeframe = self.safe_string(symbolAndTimeframe, 1, '1m')
             market = self.market(marketSymbol)
@@ -1614,7 +1614,7 @@ class nado(ccxt.async_support.nado):
         subscriptions = list(client.subscriptions.keys())
         for i in range(0, len(subscriptions)):
             unsubscribeHash = subscriptions[i]
-            subscription = client.subscriptions[unsubscribeHash]
+            subscription = self.safe_dict(client.subscriptions, unsubscribeHash)
             subscriptionId = self.safe_string(subscription, 'id')
             if subscriptionId != id:
                 continue

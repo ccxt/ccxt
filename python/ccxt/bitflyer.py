@@ -406,7 +406,7 @@ class bitflyer(Exchange, ImplicitAPI):
     def parse_balance(self, response: object) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
-            balance = response[i]
+            balance = self.safe_dict(response, i)
             currencyId = self.safe_string(balance, 'currency_code')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -550,7 +550,7 @@ class bitflyer(Exchange, ImplicitAPI):
         if side is not None:
             idInner = side + '_child_order_acceptance_id'
             if idInner in trade:
-                order = trade[idInner]
+                order = self.safe_string(trade, idInner)
         if order is None:
             order = self.safe_string(trade, 'child_order_acceptance_id')
         timestamp = self.parse8601(self.safe_string(trade, 'exec_date'))

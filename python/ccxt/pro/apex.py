@@ -421,13 +421,13 @@ class apex(ccxt.async_support.apex):
         parsed = self.parse_ticker(data)
         if (updateType == 'snapshot'):
             parsed = self.parse_ticker(data)
-            symbol = parsed['symbol']
+            symbol = self.safe_string(parsed, 'symbol')
         elif updateType == 'delta':
             topicParts = topic.split('.')
             topicLength = len(topicParts)
             marketId = self.safe_string(topicParts, topicLength - 1)
             market = self.safe_market(marketId, None, None)
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol')
             ticker = self.safe_dict(self.tickers, symbol, {})
             rawTicker = self.safe_dict(ticker, 'info', {})
             merged = self.extend(rawTicker, data)
@@ -474,7 +474,7 @@ class apex(ccxt.async_support.apex):
         rawHashes = []
         messageHashes = []
         for i in range(0, len(symbolsAndTimeframes)):
-            data = symbolsAndTimeframes[i]
+            data = self.safe_list(symbolsAndTimeframes, i)
             symbolString = self.safe_string(data, 0)
             market = self.market(symbolString)
             symbolString = market['id2']
@@ -519,7 +519,9 @@ class apex(ccxt.async_support.apex):
         timeframe = self.find_timeframe(timeframeId)
         marketId = self.safe_string(topicParts, topicLength - 1)
         isSpot = client.url.find('spot') > -1
-        marketType = 'spot' if isSpot else 'contract'
+        marketType = 'contract'
+        if isSpot:
+            marketType = 'spot'
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         if not (symbol in self.ohlcvs):

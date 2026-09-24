@@ -486,7 +486,7 @@ class bitvavo(Exchange, ImplicitAPI):
         result = []
         fees = self.fees
         for i in range(0, len(markets)):
-            market = markets[i]
+            market = self.safe_dict(markets, i)
             id = self.safe_string(market, 'market')
             baseId = self.safe_string(market, 'base')
             quoteId = self.safe_string(market, 'quote')
@@ -822,7 +822,7 @@ class bitvavo(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchTrades', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchTrades', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, params)
         request = {
@@ -1134,7 +1134,7 @@ class bitvavo(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1440)
         request = self.fetch_ohlcv_request(symbol, timeframe, since, limit, params)
@@ -1155,7 +1155,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'datetime': None,
         }
         for i in range(0, len(response)):
-            balance = response[i]
+            balance = self.safe_dict(response, i)
             currencyId = self.safe_string(balance, 'symbol')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -1500,7 +1500,7 @@ class bitvavo(Exchange, ImplicitAPI):
         else:
             raise ArgumentsRequired(self.id + ' createOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890')
         selfTradePrevention = None
-        selfTradePrevention, params = self.handle_option_and_params(params, 'createOrder', 'selfTradePrevention')
+        selfTradePrevention, params = self.handle_option_string_and_params(params, 'createOrder', 'selfTradePrevention')
         if selfTradePrevention is not None:
             if selfTradePrevention == 'EXPIRE_BOTH':
                 request['selfTradePrevention'] = 'cancelBoth'
@@ -1832,7 +1832,7 @@ class bitvavo(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOrders', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchOrders', symbol, since, limit, params)
         market = self.market(symbol)
@@ -2028,7 +2028,7 @@ class bitvavo(Exchange, ImplicitAPI):
             }
         rawTrades = self.safe_list(order, 'fills', [])
         timeInForce = self.safe_string(order, 'timeInForce')
-        postOnly = self.safe_value(order, 'postOnly')
+        postOnly = self.safe_bool(order, 'postOnly')
         # https://github.com/ccxt/ccxt/issues/8489
         return self.safe_order({
             'info': order,
@@ -2090,7 +2090,7 @@ class bitvavo(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params)
         market = self.market(symbol)

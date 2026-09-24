@@ -347,7 +347,10 @@ class mexc extends \ccxt\async\mexc {
         $marketIdIsUndefined = $marketId === null;
         $isSpot = $marketIdIsUndefined ? $channelStartsWithSpot : $market['spot'];
         $spotPrefix = 'spot:';
-        $messageHashPrefix = ($isSpot === true) ? $spotPrefix : '';
+        $messageHashPrefix = '';
+        if ($isSpot === true) {
+            $messageHashPrefix = $spotPrefix;
+        }
         $topic = $messageHashPrefix . 'ticker';
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
@@ -529,7 +532,10 @@ class mexc extends \ccxt\async\mexc {
         $unsubscribed = $this->safe_bool($params, 'unsubscribed', false);
         $params = $this->omit($params, array( 'unsubscribed' ));
         $url = $this->urls['api']['ws']['spot'];
-        $method = ($unsubscribed === true) ? 'UNSUBSCRIPTION' : 'SUBSCRIPTION';
+        $method = 'SUBSCRIPTION';
+        if ($unsubscribed === true) {
+            $method = 'UNSUBSCRIPTION';
+        }
         $request = array(
             'method' => $method,
             'params' => array( $channel ),
@@ -856,7 +862,7 @@ class mexc extends \ccxt\async\mexc {
             return -1;
         }
         for ($i = 0; $i < count($cache); $i++) {
-            $delta = $cache[$i];
+            $delta = $this->safe_dict($cache, $i);
             $deltaNonce = $this->safe_integer_n($delta, array( 'r', 'version', 'fromVersion' ));
             if ($deltaNonce === null) {
                 continue;
@@ -1289,7 +1295,10 @@ class mexc extends \ccxt\async\mexc {
         $priceString = $this->safe_string_2($trade, 'p', 'price');
         $amountString = $this->safe_string_2($trade, 'v', 'quantity');
         $rawSide = $this->safe_string_2($trade, 'S', 'tradeType');
-        $side = ($rawSide === '1') ? 'buy' : 'sell';
+        $side = 'sell';
+        if ($rawSide === '1') {
+            $side = 'buy';
+        }
         $isMaker = $this->safe_integer($trade, 'm');
         $feeAmount = $this->safe_string_2($trade, 'n', 'feeAmount');
         $feeCurrencyId = $this->safe_string_2($trade, 'N', 'feeCurrency');
@@ -1672,7 +1681,10 @@ class mexc extends \ccxt\async\mexc {
         //     }
         //
         $channel = $this->safe_string($message, 'channel');
-        $type = ($channel === 'spot@private.account.v3.api.pb') ? 'spot' : 'swap';
+        $type = 'swap';
+        if ($channel === 'spot@private.account.v3.api.pb') {
+            $type = 'spot';
+        }
         $messageHash = 'balance:' . $type;
         $data = $this->safe_dict_n($message, array( 'data', 'privateAccount' ));
         $futuresTimestamp = $this->safe_integer_2($message, 'ts', 'createTime');

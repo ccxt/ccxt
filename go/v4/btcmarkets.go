@@ -773,7 +773,7 @@ func (this *Btcmarkets) ParseBalance(response any) any {
 		"info": response,
 	}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var balance map[string]any = MapTyped(GetValue(response, i))
+		var balance map[string]any = SafeMapTyped(response, i)
 		var currencyId *string = this.SafeString(balance, "assetName")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -1099,12 +1099,12 @@ func (this *Btcmarkets) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.Parse8601(this.SafeString(trade, "timestamp"))
 	var marketId *string = this.SafeString(trade, "marketId")
 	market = this.SafeMarket(marketId, market, "-")
-	var feeCurrencyCode any = func() any {
-		if GetValue(market, "quote") == "AUD" {
-			return GetValue(market, "quote")
-		}
-		return GetValue(market, "base")
-	}()
+	var feeCurrencyCode any = nil
+	if GetValue(market, "quote") == "AUD" {
+		feeCurrencyCode = GetValue(market, "quote")
+	} else {
+		feeCurrencyCode = GetValue(market, "base")
+	}
 	var side *string = this.SafeString(trade, "side")
 	if side != nil && *side == "Bid" {
 		side = SafeStringPtr("buy")
@@ -1418,16 +1418,16 @@ func (this *Btcmarkets) CalculateFee(symbol any, typeVar any, side any, amount a
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var currency any = nil
+	var currency *string = nil
 	var cost any = nil
 	if GetValue(market, "quote") == "AUD" {
-		currency = market["quote"]
+		currency = this.SafeString(market, "quote")
 		var amountString *string = this.NumberToString(amount)
 		var priceString *string = this.NumberToString(price)
 		var otherUnitsAmount *string = Precise.StringMul(amountString, priceString)
 		cost = this.CostToPrecision(symbol, otherUnitsAmount)
 	} else {
-		currency = market["base"]
+		currency = this.SafeString(market, "base")
 		cost = DerefScalar(this.AmountToPrecision(symbol, amount))
 	}
 	var rate any = this.SafeValue(market, takerOrMaker)
@@ -1641,8 +1641,8 @@ func (this *Btcmarkets) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 		"status": "open",
 	}
 
-	var retRes130315 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes130315)
+	var retRes130815 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes130815)
 	return nil
 }
 

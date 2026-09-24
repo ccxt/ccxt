@@ -474,7 +474,7 @@ export default class lbank extends Exchange {
         const networksRaw = rawCurrency;
         const networks: Dict = {};
         for (let j = 0; j < (networksRaw as List).length; j++) {
-            const networkEntry = networksRaw[j];
+            const networkEntry = this.safeDict (networksRaw, j);
             let networkId = this.safeString (networkEntry, 'chain');
             if (networkId === undefined) {
                 networkId = this.safeString (networkEntry, 'assetCode'); // use type as fallback if networkId is not present
@@ -1363,7 +1363,7 @@ export default class lbank extends Exchange {
         const balances = this.safeList (data, 'balances');
         if (balances !== undefined) {
             for (let i = 0; i < balances.length; i++) {
-                const item = balances[i];
+                const item = this.safeDict (balances, i);
                 const currencyId = this.safeString (item, 'asset');
                 const codeInner = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
@@ -1379,7 +1379,7 @@ export default class lbank extends Exchange {
         const isArray = Array.isArray (data);
         if (isArray === true) {
             for (let i = 0; i < data.length; i++) {
-                const item = data[i];
+                const item = this.safeDict (data, i);
                 const currencyId = this.safeString (item, 'coin');
                 const codeInner = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
@@ -2766,7 +2766,7 @@ export default class lbank extends Exchange {
         const result = this.safeList (response, 'data', []);
         const withdrawFees: Dict = {};
         for (let i = 0; i < result.length; i++) {
-            const entry = result[i];
+            const entry = this.safeDict (result, i);
             const currencyId = this.safeString (entry, 'coin');
             const code = this.safeCurrencyCode (currencyId);
             const networkList = this.safeList (entry, 'networkList', []);
@@ -2774,7 +2774,7 @@ export default class lbank extends Exchange {
                 withdrawFees[code] = {};
             }
             for (let j = 0; j < networkList.length; j++) {
-                const networkEntry = networkList[j];
+                const networkEntry = this.safeDict (networkList, j);
                 const fee = this.safeNumber (networkEntry, 'withdrawFee');
                 if (fee !== undefined) {
                     const networkCode = this.networkIdToCode (this.safeString (networkEntry, 'name'), code);
@@ -2831,7 +2831,7 @@ export default class lbank extends Exchange {
         const result = this.safeList (response, 'data', []);
         const withdrawFees: Dict = {};
         for (let i = 0; i < result.length; i++) {
-            const item = result[i];
+            const item = this.safeDict (result, i);
             const canWithdraw = this.safeString (item, 'canWithDraw');
             if (canWithdraw === 'true') {
                 const currencyId = this.safeString (item, 'assetCode');
@@ -3054,7 +3054,7 @@ export default class lbank extends Exchange {
         const code = this.safeString (currency, 'code');
         const networkList = this.safeList (fee, 'networkList', []);
         for (let j = 0; j < networkList.length; j++) {
-            const networkEntry = networkList[j];
+            const networkEntry = this.safeDict (networkList, j);
             const networkCode = this.networkIdToCode (this.safeString (networkEntry, 'name'), code);
             const withdrawFee = this.safeNumber (networkEntry, 'withdrawFee');
             const isDefault = this.safeBool (networkEntry, 'isDefault');

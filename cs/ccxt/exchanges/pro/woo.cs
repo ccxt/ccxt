@@ -84,7 +84,11 @@ public partial class woo : ccxt.woo
 
     public async virtual Task<object> watchPublic(object messageHash, object message)
     {
-        string urlUid = (!isEqual(this.uid, "")) ? ("/" + this.uid) : "";
+        string urlUid = "";
+        if (!isEqual(this.uid, ""))
+        {
+            urlUid = ("/" + this.uid);
+        }
         string? url = ((string)add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), urlUid));
         Int64 requestId = this.requestId(url);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
@@ -97,7 +101,11 @@ public partial class woo : ccxt.woo
     public async virtual Task<object> unwatchPublic(object subHash, object symbol, object topic, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string urlUid = (!isEqual(this.uid, "")) ? ("/" + this.uid) : "";
+        string urlUid = "";
+        if (!isEqual(this.uid, ""))
+        {
+            urlUid = ("/" + this.uid);
+        }
         string? url = ((string)add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), urlUid));
         Int64 requestId = this.requestId(url);
         string unsubHash = ("unsubscribe::" + (subHash));
@@ -148,7 +156,11 @@ public partial class woo : ccxt.woo
         parameters = methodparametersVariable[1];
         Dictionary<string, object> market = this.market(symbol);
         string? topic = ((string)add(add((market.ContainsKey("id") ? market["id"] : null), "@"), method));
-        string urlUid = (!isEqual(this.uid, "")) ? ("/" + this.uid) : "";
+        string urlUid = "";
+        if (!isEqual(this.uid, ""))
+        {
+            urlUid = ("/" + this.uid);
+        }
         string? url = ((string)add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), urlUid));
         Int64 requestId = this.requestId(url);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -486,7 +498,7 @@ public partial class woo : ccxt.woo
         //     }
         //
         object data = this.safeValue(message, "data");
-        object topic = this.safeValue(message, "topic");
+        string? topic = this.safeString(message, "topic");
         string? marketId = this.safeString(data, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
         Int64? timestamp = this.safeInteger(message, "ts");
@@ -582,7 +594,7 @@ public partial class woo : ccxt.woo
         //         ]
         //     }
         //
-        object topic = this.safeValue(message, "topic");
+        string? topic = this.safeString(message, "topic");
         object data = this.safeValue(message, "data");
         Int64? timestamp = this.safeInteger(message, "ts");
         List<object> result = new List<object>() {};
@@ -810,7 +822,7 @@ public partial class woo : ccxt.woo
         //     }
         //
         IDictionary<string, object> data = this.safeDict(message, "data");
-        object topic = this.safeValue(message, "topic");
+        string? topic = this.safeString(message, "topic");
         string? marketId = this.safeString(data, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -1101,7 +1113,11 @@ public partial class woo : ccxt.woo
             await this.loadMarkets();
         }
         bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
-        string topic = ((trigger == true)) ? "algoexecutionreportv2" : "executionreport";
+        string topic = "executionreport";
+        if ((trigger == true))
+        {
+            topic = "algoexecutionreportv2";
+        }
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         string messageHash = topic;
         if ((symbolVar != null))
@@ -1146,7 +1162,11 @@ public partial class woo : ccxt.woo
             await this.loadMarkets();
         }
         bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
-        string topic = ((trigger == true)) ? "algoexecutionreportv2" : "executionreport";
+        string topic = "executionreport";
+        if ((trigger == true))
+        {
+            topic = "algoexecutionreportv2";
+        }
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         string messageHash = "myTrades";
         if ((symbolVar != null))
@@ -1463,8 +1483,8 @@ public partial class woo : ccxt.woo
                 {
                     throw new ArgumentsRequired ((this.id + " watchPositions() symbols is required")) ;
                 }
-                object symbol = getValue(symbols, i);
-                messageHashes.Add(("positions::" + (symbol)));
+                string? symbol = ((string)getValue(symbols, i));
+                messageHashes.Add(("positions::" + symbol));
             }
         } else
         {
@@ -1637,7 +1657,7 @@ public partial class woo : ccxt.woo
         //
         //    }
         //
-        object data = this.safeValue(message, "data");
+        IDictionary<string, object> data = this.safeDict(message, "data");
         object balances = this.safeValue(data, "balances");
         List<object> keys = new List<object>(((IDictionary<string,object>)balances).Keys);
         Int64? ts = this.safeInteger(message, "ts");
@@ -1647,7 +1667,7 @@ public partial class woo : ccxt.woo
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            object value = getValue(balances, key);
+            IDictionary<string, object> value = this.safeDict(balances, key);
             string? code = this.safeCurrencyCode(key);
             object account = this.account();
             if (((code != null)) && (inOp(this.balance, code)))

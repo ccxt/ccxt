@@ -411,7 +411,7 @@ export default class independentreserve extends Exchange {
     override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict (response, i);
             const currencyId = this.safeString (balance, 'CurrencyCode');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();

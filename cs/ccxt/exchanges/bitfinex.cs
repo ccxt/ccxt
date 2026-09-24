@@ -878,7 +878,7 @@ public partial class bitfinex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (markets?.Count ?? 0); i++)
         {
-            object pairObj = markets[i];
+            List<object> pairObj = this.safeList(markets, i);
             string? id = this.safeStringUpper(pairObj, 0);
             object market = this.safeValue(pairObj, 1, new Dictionary<string, object>() {});
             bool spot = true;
@@ -1092,7 +1092,7 @@ public partial class bitfinex : Exchange
         Dictionary<string, object> indexedNetworks = new Dictionary<string, object>() {};
         for (int i = 0; i < getArrayLength(((IDictionary<string,object>)indexed)["networks"]); i++)
         {
-            object networkObj = getValue(((IDictionary<string,object>)indexed)["networks"], i);
+            List<object> networkObj = this.safeList(((IDictionary<string,object>)indexed)["networks"], i);
             string? networkId = this.safeString(networkObj, 0);
             List<object> valuesList = this.safeList(networkObj, 1);
             string? networkName = this.safeString(valuesList, 0);
@@ -1240,7 +1240,7 @@ public partial class bitfinex : Exchange
         };
         for (int i = 0; i < (balances?.Count ?? 0); i++)
         {
-            object balance = balances[i];
+            List<object> balance = this.safeList(balances, i);
             Dictionary<string, object> account = this.account();
             string? interest = this.safeString(balance, 3);
             if (interest != "0")
@@ -1477,7 +1477,11 @@ public partial class bitfinex : Exchange
             double? price = this.safeNumber(order, priceIndex);
             string? signedAmount = this.safeString(order, 2);
             string? amount = Precise.stringAbs(signedAmount);
-            string side = Precise.stringGt(signedAmount, "0") ? "bids" : "asks";
+            string side = "asks";
+            if (Precise.stringGt(signedAmount, "0"))
+            {
+                side = "bids";
+            }
             ((IList<object>)(result != null && result.ContainsKey(side) ? result[side] : null)).Add(new List<object>() {price, this.parseNumber(amount)});
         }
         result["bids"] = this.sortBy(((IDictionary<string,object>)result)["bids"], 0, true);
@@ -1807,8 +1811,8 @@ public partial class bitfinex : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -1881,8 +1885,8 @@ public partial class bitfinex : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -1992,7 +1996,11 @@ public partial class bitfinex : Exchange
         string? remaining = Precise.stringAbs(this.safeString(orderList, 6));
         string? signedAmount = this.safeString(orderList, 7);
         string? amount = Precise.stringAbs(signedAmount);
-        string side = Precise.stringLt(signedAmount, "0") ? "sell" : "buy";
+        string side = "buy";
+        if (Precise.stringLt(signedAmount, "0"))
+        {
+            side = "sell";
+        }
         string? orderType = this.safeString(orderList, 8);
         string? type = this.safeString(this.safeDict(this.options, "exchangeTypes"), orderType);
         string? timeInForce = this.parseTimeInForce(orderType);
@@ -2285,7 +2293,7 @@ public partial class bitfinex : Exchange
         List<object> ordersRequests = new List<object>() {};
         for (int i = 0; i < getArrayLength(orders); i++)
         {
-            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
+            IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? symbol = this.safeString(rawOrder, "symbol");
             string? type = this.safeString(rawOrder, "type");
             string? side = this.safeString(rawOrder, "side");
@@ -2665,8 +2673,8 @@ public partial class bitfinex : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchClosedOrders", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchClosedOrders", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -2993,7 +3001,7 @@ public partial class bitfinex : Exchange
         int transactionLength = getArrayLength(transaction);
         Int64? timestamp = null;
         Int64? updated = null;
-        object code = null;
+        string? code = null;
         object amount = null;
         object id = null;
         string? status = null;
@@ -3010,7 +3018,7 @@ public partial class bitfinex : Exchange
             timestamp = this.safeInteger(transaction, 0);
             if ((currency != null))
             {
-                code = getValue(currency, "code");
+                code = this.safeString(currency, "code");
             }
             feeCost = this.safeString(data, 8);
             if ((feeCost != null))
@@ -3702,8 +3710,8 @@ public partial class bitfinex : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -3841,8 +3849,8 @@ public partial class bitfinex : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -4155,8 +4163,8 @@ public partial class bitfinex : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOpenInterestHistory", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOpenInterestHistory", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -4305,8 +4313,8 @@ public partial class bitfinex : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchLiquidations", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchLiquidations", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -4369,7 +4377,7 @@ public partial class bitfinex : Exchange
         //         ]
         //     ]
         //
-        object entry = getValue(liquidation, 0);
+        List<object> entry = this.safeList(liquidation, 0);
         Int64? timestamp = this.safeInteger(entry, 2);
         string? marketId = this.safeString(entry, 4);
         string? contracts = Precise.stringAbs(this.safeString(entry, 5));
@@ -4377,7 +4385,11 @@ public partial class bitfinex : Exchange
         string? baseValue = Precise.stringMul(contracts, contractSize);
         string? price = this.safeString(entry, 11);
         Int64? sideFlag = this.safeInteger(entry, 8);
-        string side = ((sideFlag == 1)) ? "buy" : "sell";
+        string side = "sell";
+        if ((sideFlag == 1))
+        {
+            side = "buy";
+        }
         return this.safeLiquidation(new Dictionary<string, object>() {
             { "info", entry },
             { "symbol", this.safeSymbol(marketId, market, null, "contract") },
@@ -4442,7 +4454,11 @@ public partial class bitfinex : Exchange
         //     ]
         //
         object marginStatusRaw = getValue(data, 0);
-        string marginStatus = (isEqual(marginStatusRaw, 1)) ? "ok" : "failed";
+        string marginStatus = "failed";
+        if (isEqual(marginStatusRaw, 1))
+        {
+            marginStatus = "ok";
+        }
         return new Dictionary<string, object>() {
             { "info", data },
             { "symbol", this.safeString(market, "symbol") },

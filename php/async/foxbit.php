@@ -395,7 +395,7 @@ class foxbit extends Exchange {
         $type = $this->safe_string_lower($rawCurrency, 'type');
         $parsedNetworks = array();
         for ($j = 0; $j < count($networks); $j++) {
-            $network = $networks[$j];
+            $network = $this->safe_dict($networks, $j);
             $networkId = $this->safe_string($network, 'code');
             $networkCode = $this->network_id_to_code($networkId, $code);
             $networkWithdrawInfo = $this->safe_dict($network, 'withdraw_info');
@@ -891,7 +891,7 @@ class foxbit extends Exchange {
             'info' => $response,
         );
         for ($i = 0; $i < count($accounts); $i++) {
-            $account = $accounts[$i];
+            $account = $this->safe_dict($accounts, $i);
             $currencyId = $this->safe_string($account, 'currency_symbol');
             $currencyCode = $this->safe_currency_code($currencyId);
             $total = $this->safe_string($account, 'balance');
@@ -1857,11 +1857,11 @@ class foxbit extends Exchange {
     public function parse_ticker(array $ticker, ?array $market = null): array {
         $marketId = $this->safe_string($ticker, 'market_symbol');
         $symbol = $this->safe_symbol($marketId, $market, null, 'spot');
-        $rolling_24h = $ticker['rolling_24h'];
+        $rolling_24h = $this->safe_dict($ticker, 'rolling_24h');
         $best = $this->safe_dict($ticker, 'best');
         $bestAsk = $this->safe_dict($best, 'ask');
         $bestBid = $this->safe_dict($best, 'bid');
-        $lastTrade = $ticker['last_trade'];
+        $lastTrade = $this->safe_dict($ticker, 'last_trade');
         $lastPrice = $this->safe_string($lastTrade, 'price');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -1945,7 +1945,7 @@ class foxbit extends Exchange {
             $market = $this->market($symbol);
         }
         if ($market !== null) {
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol');
         }
         $timestamp = $this->parse_date($this->safe_string($order, 'created_at'));
         $price = $this->safe_string($order, 'price');
@@ -1998,7 +1998,7 @@ class foxbit extends Exchange {
         ));
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         $network = $this->safe_dict($depositAddress, 'network');
         $networkId = $this->safe_string($network, 'code');
         $currencyCode = $this->safe_currency_code(null, $currency);

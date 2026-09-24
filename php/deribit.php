@@ -1076,7 +1076,7 @@ class deribit extends Exchange {
             $summaries = array( $balance );
         }
         for ($i = 0; $i < count($summaries); $i++) {
-            $data = $summaries[$i];
+            $data = $this->safe_dict($summaries, $i);
             $currencyId = $this->safe_string($data, 'currency');
             $currencyCode = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -1405,8 +1405,8 @@ class deribit extends Exchange {
                     throw new BadRequest($this->id . ' fetchTickers the base $currency must be the same for all $symbols, this endpoint only supports one base $currency at a time. Read more about it here => https://docs.deribit.com/#public-get_book_summary_by_currency');
                 }
                 if ($code === null) {
-                    $code = $market['base'];
-                    $type = $market['type'];
+                    $code = $this->safe_string($market, 'base');
+                    $type = $this->safe_string($market, 'type');
                 }
             }
         }
@@ -1492,7 +1492,7 @@ class deribit extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 5000);
         }
@@ -3314,7 +3314,7 @@ class deribit extends Exchange {
         }
         $market = $this->market($symbol);
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         $maxEntriesPerRequest = 744; // seems exchange returns max 744 items per request
         $eachItemDuration = '1h';
         if ($paginate) {
@@ -3368,7 +3368,7 @@ class deribit extends Exchange {
         $rates = array();
         $result = $this->safe_list($response, 'result', array());
         for ($i = 0; $i < count($result); $i++) {
-            $fr = $result[$i];
+            $fr = $this->safe_dict($result, $i);
             $rate = $this->parse_funding_rate($fr, $market);
             $rates[] = $rate;
         }
@@ -3436,7 +3436,7 @@ class deribit extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLiquidations', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchLiquidations', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchLiquidations', $symbol, $since, $limit, $params, 'continuation', 'continuation', null);
         }

@@ -814,7 +814,12 @@ export default class extended extends extendedRest {
         const symbol = this.safeString (subscription, 'symbol');
         const timeframe = this.safeString (subscription, 'timeframe');
         const candleType = this.safeString (subscription, 'candleType');
-        const cacheKey = (candleType === 'trades') ? timeframe : timeframe + ':' + candleType;
+        let cacheKey: Str = undefined;
+        if (candleType === 'trades') {
+            cacheKey = timeframe;
+        } else {
+            cacheKey = timeframe + ':' + candleType;
+        }
         const messageHash = this.safeString (subscription, 'messageHash');
         this.ohlcvs[symbol as string] = this.safeDict (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol as string], cacheKey);

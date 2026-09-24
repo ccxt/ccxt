@@ -403,7 +403,7 @@ class independentreserve extends Exchange {
     public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
-            $balance = $response[$i];
+            $balance = $this->safe_dict($response, $i);
             $currencyId = $this->safe_string($balance, 'CurrencyCode');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -592,7 +592,7 @@ class independentreserve extends Exchange {
         } elseif ($market !== null) {
             $symbol = $market['symbol'];
             $base = $market['base'];
-            $quote = $market['quote'];
+            $quote = $this->safe_string($market, 'quote');
         }
         $orderType = $this->safe_string_2($order, 'Type', 'OrderType');
         $side = null;
@@ -991,7 +991,7 @@ class independentreserve extends Exchange {
         return $this->parse_deposit_address($response);
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         //
         //    {
         //        Tag: '3307446684',

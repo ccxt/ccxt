@@ -187,7 +187,9 @@ class bybit(ccxt.async_support.bybit):
         return requestId
 
     async def get_url_by_market_type(self, symbol: Str = None, isPrivate: Bool = False, method: Str = None, params: dict = {}) -> str:
-        accessibility = 'private' if isPrivate else 'public'
+        accessibility = 'public'
+        if isPrivate:
+            accessibility = 'private'
         if method is None:
             method = ''
         isUsdcSettled = None
@@ -198,7 +200,7 @@ class bybit(ccxt.async_support.bybit):
         if symbol is not None:
             market = self.market(symbol)
             isUsdcSettled = market['settle'] == 'USDC'
-            type = market['type']
+            type = self.safe_string(market, 'type')
         else:
             type, params = self.handle_market_type_and_params(method, None, params)
             defaultSettle = self.safe_string(self.options, 'defaultSettle')
@@ -582,18 +584,20 @@ class bybit(ccxt.async_support.bybit):
         updateType = self.safe_string(message, 'type', '')
         data = self.safe_dict(message, 'data', {})
         isSpot = self.safe_string(data, 'usdIndexPrice') is not None
-        type = 'spot' if isSpot else 'contract'
+        type = 'contract'
+        if isSpot:
+            type = 'spot'
         symbol = None
         parsed = None
         if (updateType == 'snapshot'):
             parsed = self.parse_ticker(data)
-            symbol = parsed['symbol']
+            symbol = self.safe_string(parsed, 'symbol')
         elif updateType == 'delta':
             topicParts = topic.split('.')
             topicLength = len(topicParts)
             marketId = self.safe_string(topicParts, topicLength - 1)
             market = self.safe_market(marketId, None, None, type)
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol')
             # update the info in place
             ticker = self.safe_dict(self.tickers, symbol, {})
             rawTicker = self.safe_dict(ticker, 'info', {})
@@ -788,7 +792,9 @@ class bybit(ccxt.async_support.bybit):
             return
         marketId = self.safe_string(topicParts, topicLength - 1)
         isSpot = client.url.find('spot') > -1
-        marketType = 'spot' if isSpot else 'contract'
+        marketType = 'contract'
+        if isSpot:
+            marketType = 'spot'
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         ohlcvsByTimeframe = self.safe_dict(self.ohlcvs, symbol)
@@ -822,7 +828,9 @@ class bybit(ccxt.async_support.bybit):
         #     }
         #
         isInverse = (self.safe_bool(market, 'inverse') is True)
-        volumeIndex = 'turnover' if isInverse else 'volume'
+        volumeIndex = 'volume'
+        if isInverse:
+            volumeIndex = 'turnover'
         return [
             self.safe_integer(ohlcv, 'start'),
             self.safe_number(ohlcv, 'open'),
@@ -980,7 +988,9 @@ class bybit(ccxt.async_support.bybit):
         isSnapshot = (type == 'snapshot')
         data = self.safe_dict(message, 'data', {})
         marketId = self.safe_string(data, 's')
-        marketType = 'spot' if isSpot else 'contract'
+        marketType = 'contract'
+        if isSpot:
+            marketType = 'spot'
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         timestamp = self.safe_integer(message, 'ts')
@@ -1130,7 +1140,9 @@ class bybit(ccxt.async_support.bybit):
         trades = data
         parts = topic.split('.')
         isSpot = client.url.find('spot') >= 0
-        marketType = 'spot' if (isSpot) else 'contract'
+        marketType = 'contract'
+        if isSpot:
+            marketType = 'spot'
         marketId = self.safe_string(parts, 1)
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
@@ -1179,7 +1191,9 @@ class bybit(ccxt.async_support.bybit):
         #
         id = self.safe_string_n(trade, ['i', 'T', 'v'])
         isContract = ('BT' in trade)
-        marketType = 'contract' if isContract else 'spot'
+        marketType = 'spot'
+        if isContract:
+            marketType = 'contract'
         if market is not None:
             marketType = market['type']
         marketId = self.safe_string(trade, 's')
@@ -1656,7 +1670,7 @@ class bybit(ccxt.async_support.bybit):
         if isinstance(message['data'], list):
             rawLiquidations = self.safe_list(message, 'data', [])
             for i in range(0, len(rawLiquidations)):
-                rawLiquidation = rawLiquidations[i]
+                rawLiquidation = self.safe_dict(rawLiquidations, i)
                 marketId = self.safe_string(rawLiquidation, 's')
                 market = self.safe_market(marketId, None, '', 'contract')
                 symbol = market['symbol']

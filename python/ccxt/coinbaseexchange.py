@@ -781,7 +781,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
     def parse_balance(self, response: object) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
-            balance = response[i]
+            balance = self.safe_dict(response, i)
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -1062,7 +1062,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             'rate': feeRate,
         }
         id = self.safe_string(trade, 'trade_id')
-        side = 'sell' if (trade['side'] == 'buy') else 'buy'
+        side = 'buy'
+        if trade['side'] == 'buy':
+            side = 'sell'
         orderId = self.safe_string(trade, 'order_id')
         # Coinbase Pro returns inverted side to fetchMyTrades vs fetchTrades
         makerOrderId = self.safe_string(trade, 'maker_order_id')
@@ -1105,7 +1107,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params, 100)
         if self.markets is None:
@@ -1449,7 +1451,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOpenOrders', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchOpenOrders', symbol, since, limit, params, 100)
         request = {}
@@ -1818,7 +1820,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                 account = self.safe_dict(accountsByCurrencyCode, code)
                 if account is None:
                     raise ExchangeError(self.id + ' fetchDepositsWithdrawals() could not find account id for ' + code)
-                id = account['id']
+                id = self.safe_string(account, 'id')
         request = {}
         if id is not None:
             request['id'] = id
@@ -1925,11 +1927,11 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         return self.fetch_deposits_withdrawals(code, since, limit, self.extend({'type': 'withdraw'}, params))
 
     def parse_transaction_status(self, transaction: dict) -> str:
-        canceled = self.safe_value(transaction, 'canceled_at')
+        canceled = self.safe_string(transaction, 'canceled_at')
         if (canceled is not None) and (canceled is not None):
             return 'canceled'
-        processed = self.safe_value(transaction, 'processed_at')
-        completed = self.safe_value(transaction, 'completed_at')
+        processed = self.safe_string(transaction, 'processed_at')
+        completed = self.safe_string(transaction, 'completed_at')
         if (completed is not None) and (completed is not None):
             return 'ok'
         elif (processed is not None) and (processed is not None):

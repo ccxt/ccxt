@@ -519,7 +519,7 @@ public partial class luno : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int i = 0; i < getArrayLength(rawCurrency); i++)
         {
-            object networkEntry = getValue(rawCurrency, i);
+            IDictionary<string, object> networkEntry = this.safeDict(rawCurrency, i);
             string? networkId = this.safeString(networkEntry, "name");
             string? networkCode = this.networkIdToCode(networkId, code);
             if ((networkCode != null))
@@ -738,7 +738,7 @@ public partial class luno : Exchange
         };
         for (int i = 0; i < wallets.Count; i++)
         {
-            object wallet = wallets[i];
+            IDictionary<string, object> wallet = this.safeDict(wallets, i);
             string? currencyId = this.safeString(wallet, "asset");
             string? code = this.safeCurrencyCode(currencyId);
             string? reserved = this.safeString(wallet, "reserved");
@@ -1545,7 +1545,7 @@ public partial class luno : Exchange
         }
         await this.loadAccounts();
         IDictionary<string, object> currency = null;
-        object id = this.safeString(parameters, "id"); // account id
+        string? id = this.safeString(parameters, "id"); // account id
         object min_row = this.safeValue(parameters, "min_row");
         object max_row = this.safeValue(parameters, "max_row");
         if ((id == null))
@@ -1561,7 +1561,7 @@ public partial class luno : Exchange
             {
                 throw new ExchangeError (((this.id + " fetchLedger() could not find account id for ") + code)) ;
             }
-            id = GetValue(account, "id");
+            id = this.safeString(account, "id");
         }
         if ((min_row == null) && (max_row == null))
         {

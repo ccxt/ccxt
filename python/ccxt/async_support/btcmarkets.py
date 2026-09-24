@@ -594,7 +594,7 @@ class btcmarkets(Exchange, ImplicitAPI):
     def parse_balance(self, response: object) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
-            balance = response[i]
+            balance = self.safe_dict(response, i)
             currencyId = self.safe_string(balance, 'assetName')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -840,7 +840,11 @@ class btcmarkets(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(trade, 'timestamp'))
         marketId = self.safe_string(trade, 'marketId')
         market = self.safe_market(marketId, market, '-')
-        feeCurrencyCode = market['quote'] if (market['quote'] == 'AUD') else market['base']
+        feeCurrencyCode = None
+        if market['quote'] == 'AUD':
+            feeCurrencyCode = market['quote']
+        else:
+            feeCurrencyCode = market['base']
         side = self.safe_string(trade, 'side')
         if side == 'Bid':
             side = 'buy'
@@ -1080,13 +1084,13 @@ class btcmarkets(Exchange, ImplicitAPI):
         currency = None
         cost = None
         if market['quote'] == 'AUD':
-            currency = market['quote']
+            currency = self.safe_string(market, 'quote')
             amountString = self.number_to_string(amount)
             priceString = self.number_to_string(price)
             otherUnitsAmount = Precise.string_mul(amountString, priceString)
             cost = self.cost_to_precision(symbol, otherUnitsAmount)
         else:
-            currency = market['base']
+            currency = self.safe_string(market, 'base')
             cost = self.amount_to_precision(symbol, amount)
         rate = self.safe_value(market, takerOrMaker)
         rateCost = Precise.string_mul(self.number_to_string(rate), cost)

@@ -1530,7 +1530,7 @@ func (this *Alpaca) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		request["qty"] = this.AmountToPrecision(symbol, amount)
 	}
 	var defaultTIF any = nil
-	var defaultTIFparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "timeInForce")
+	var defaultTIFparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "timeInForce")
 	defaultTIF = GetValue(defaultTIFparamsVariable, 0)
 	params = MapTyped(GetValue(defaultTIFparamsVariable, 1))
 	if defaultTIF != nil {
@@ -2267,9 +2267,9 @@ func (this *Alpaca) ParseDepositAddress(depositAddress any, optionalArgs ...any)
 	//
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	var parsedCurrency any = nil
+	var parsedCurrency *string = nil
 	if currency != nil {
-		parsedCurrency = GetValue(currency, "id")
+		parsedCurrency = this.SafeString(currency, "id")
 	}
 	return map[string]any{
 		"info":     depositAddress,
@@ -2396,12 +2396,10 @@ func (this *Alpaca) fetchTransactionsHelperBody(ch chan any, typeVar any, code a
 			var activityType *string = this.SafeString(entry, "activity_type")
 			var amount *string = this.SafeString(entry, "net_amount")
 			var isIncoming bool = (activityType != nil && *activityType == "CSD") || ((activityType != nil && *activityType == "TRANS") && !Precise.StringLt(amount, "0"))
-			var entryDirection string = func() string {
-				if isIncoming {
-					return "INCOMING"
-				}
-				return "OUTGOING"
-			}()
+			var entryDirection string = "OUTGOING"
+			if isIncoming {
+				entryDirection = "INCOMING"
+			}
 			if (IsEqual(typeVar, "BOTH")) || (IsEqual(entryDirection, typeVar)) {
 				filtered = append(filtered, entry)
 			}
@@ -2808,12 +2806,7 @@ func (this *Alpaca) ParseBalance(response any) any {
 		AddElementToObject(result, code, cashAccount)
 	}
 	for i := 0; i < len(positions); i++ {
-		var position map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(positions) {
-				return DerefScalar(positions[i])
-			}
-			return nil
-		}())
+		var position map[string]any = SafeMapTyped(positions, i)
 		var positionSymbol *string = this.SafeString(position, "symbol")
 		if positionSymbol == nil {
 			continue

@@ -1809,8 +1809,8 @@ public partial class weex : Exchange
         }
         int maxHistoricalLimit = 100;
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -1820,9 +1820,9 @@ public partial class weex : Exchange
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limitVar,timeframeVar, parameters, maxHistoricalLimit));
         }
         Int64? until = this.safeInteger(parameters, "until");
-        bool historical = false;
-        IList<object> historicalparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "historical");
-        historical = isTrue(historicalparametersVariable[0]);
+        bool? historical = false;
+        IList<object> historicalparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "historical", false);
+        historical = (bool?)historicalparametersVariable[0];
         parameters = historicalparametersVariable[1];
         IDictionary<string, object> timeframeOption = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         IDictionary<string, object> contractTimeframes = this.safeDict(timeframeOption, "contract", new Dictionary<string, object>() {});
@@ -1838,7 +1838,7 @@ public partial class weex : Exchange
         {
             limitVar = mathMin(limitVar, 1000); // hardcap threshold
         }
-        if (historical)
+        if ((historical == true))
         {
             if ((priceType != null))
             {
@@ -2013,7 +2013,11 @@ public partial class weex : Exchange
         {
             string? marketId = this.safeString(trade, "symbol");
             string? realizedPnl = this.safeString(trade, "realizedPnl");
-            string marketType = ((realizedPnl != null)) ? "swap" : "spot";
+            string marketType = "spot";
+            if ((realizedPnl != null))
+            {
+                marketType = "swap";
+            }
             market = this.safeMarket(marketId, null, null, marketType);
             isSpot = marketType == "spot";
         } else
@@ -2025,15 +2029,15 @@ public partial class weex : Exchange
         if ((commission != null))
         {
             string? commissionAsset = this.safeString(trade, "commissionAsset");
-            object feeCurrency = this.safeCurrencyCode(commissionAsset);
+            string? feeCurrency = this.safeCurrencyCode(commissionAsset);
             if (isEqual(isSpot, true))
             {
                 if (side == "buy")
                 {
-                    feeCurrency = getValue(market, "base");
+                    feeCurrency = this.safeString(market, "base");
                 } else
                 {
-                    feeCurrency = getValue(market, "quote");
+                    feeCurrency = this.safeString(market, "quote");
                 }
             }
             fee = new Dictionary<string, object>() {
@@ -3672,7 +3676,11 @@ public partial class weex : Exchange
         {
             string? marketId = this.fromSandboxMarketId(this.safeString(order, "symbol"));
             string? positionSide = this.safeString(order, "positionSide");
-            string marketType = ((positionSide == null)) ? "spot" : "swap";
+            string marketType = "swap";
+            if ((positionSide == null))
+            {
+                marketType = "spot";
+            }
             market = this.safeMarket(marketId, null, null, marketType);
         }
         Int64? timestamp = this.safeIntegerN(order, new List<object>() {"transactTime", "time", "createTime"});
@@ -4861,7 +4869,11 @@ public partial class weex : Exchange
         {
             throw new ArgumentsRequired ((this.id + " setPositionMode() also sets marginMode, so a marginMode parameter is required")) ;
         }
-        string separatedType = isTrue(hedged) ? "SEPARATED" : "COMBINED";
+        string separatedType = "COMBINED";
+        if (isTrue(hedged))
+        {
+            separatedType = "SEPARATED";
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "marginType", this.encodeMarginMode(marginMode) },
@@ -4889,7 +4901,11 @@ public partial class weex : Exchange
             { "amount", this.costToPrecision(symbol, amount) },
             { "type", type },
         };
-        string parsedType = (isEqual(type, 1)) ? "add" : "reduce";
+        string parsedType = "reduce";
+        if (isEqual(type, 1))
+        {
+            parsedType = "add";
+        }
         Dictionary<string, object> response = await this.contractPrivatePostCapiV3AccountPositionMargin(this.extend(request, parameters));
         return this.extend(this.parseMarginModification(response, market), new Dictionary<string, object>() {
             { "amount", this.parseNumber(amount) },
@@ -4907,7 +4923,11 @@ public partial class weex : Exchange
         //     }
         //
         string? msg = this.safeString(data, "msg");
-        string status = (msg == "success") ? "ok" : "failed";
+        string status = "failed";
+        if (msg == "success")
+        {
+            status = "ok";
+        }
         Int64? timestamp = this.safeInteger(data, "requestTime");
         return new Dictionary<string, object>() {
             { "info", data },

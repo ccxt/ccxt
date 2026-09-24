@@ -345,7 +345,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             }
             List<Object> productIds = new ArrayList<Object>(Arrays.asList());
             List<Object> watchMessageHashes = new ArrayList<Object>(Arrays.asList());
-            List<Object> unWatchMessageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> unWatchMessageHashes = new ArrayList<String>(Arrays.asList());
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, false));
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
@@ -354,7 +354,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 String marketId = (String) ((Map<String, Object>)market).get("id");
                 ((List<Object>)productIds).add(marketId);
                 ((List<Object>)watchMessageHashes).add(((name + "::") + symbol));
-                ((List<Object>)unWatchMessageHashes).add(((("unsubscribe:" + name) + "::") + symbol));
+                unWatchMessageHashes.add(((("unsubscribe:" + name) + "::") + symbol));
             }
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             final Object finalName = name;
@@ -698,7 +698,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         List<Object> newTickers = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)events).size(); i++)
         {
-            Object tickersObj = (events == null || i < 0 || i >= events.size() ? null : events.get(i));
+            Map<String, Object> tickersObj = (Map<String, Object>) this.safeDict(events, i);
             List<Object> tickers = (List<Object>) this.safeList(tickersObj, "tickers", new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < ((List<?>)tickers).size(); j++)
             {
@@ -1210,7 +1210,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         }
         for (var i = 0; i < ((List<?>)events).size(); i++)
         {
-            Object currentEvent = (events == null || i < 0 || i >= events.size() ? null : events.get(i));
+            Map<String, Object> currentEvent = (Map<String, Object>) this.safeDict(events, i);
             List<Object> currentTrades = (List<Object>) this.safeList(currentEvent, "trades");
             if (java.util.Objects.equals(currentTrades, null))
             {
@@ -1271,7 +1271,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         }
         for (var i = 0; i < ((List<?>)events).size(); i++)
         {
-            Object eventVar = (events == null || i < 0 || i >= events.size() ? null : events.get(i));
+            Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(events, i);
             List<Object> responseOrders = (List<Object>) this.safeList(eventVar, "orders");
             if (java.util.Objects.equals(responseOrders, null))
             {
@@ -1365,7 +1365,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
     {
         for (var i = 0; i < Helpers.getArrayLength(updates); i++)
         {
-            Object trade = Helpers.GetValue(updates, i);
+            Map<String, Object> trade = (Map<String, Object>) this.safeDict(updates, i);
             String sideId = this.safeString(trade, "side");
             String side = this.safeString(((Map<String, Object>)this.options).get("sides"), sideId);
             Double price = this.safeNumber(trade, "price_level");
@@ -1413,7 +1413,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         String datetime = this.safeString(message, "timestamp");
         for (var i = 0; i < ((List<?>)events).size(); i++)
         {
-            Object eventVar = (events == null || i < 0 || i >= events.size() ? null : events.get(i));
+            Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(events, i);
             List<Object> updates = (List<Object>) this.safeList(eventVar, "updates", new ArrayList<Object>(Arrays.asList()));
             String marketId = this.safeString(eventVar, "product_id");
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
@@ -1531,7 +1531,11 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         {
             String errorMessage = this.safeString(message, "message");
             // ternary (not ||) so the ast-transpiler emits a value-typed conditional, not a boolean
-            String errorMessageValue = (((!java.util.Objects.equals(errorMessage, null)))) ? errorMessage : "unknown error";
+            String errorMessageValue = "unknown error";
+            if (!java.util.Objects.equals(errorMessage, null))
+            {
+                errorMessageValue = errorMessage;
+            }
             throw new ExchangeError(errorMessageValue) ;
         }
         Object method = this.safeValue(methods, channel);

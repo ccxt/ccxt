@@ -1276,7 +1276,7 @@ public class Bit2c extends Bit2cApi
         //         "isMaker": True,
         //     }
         //
-        Object timestamp = null;
+        Long timestamp = null;
         String id = null;
         Object price = null;
         String amount = null;
@@ -1336,7 +1336,7 @@ public class Bit2c extends Bit2cApi
         }
         market = (Map<String, Object>) (this.safeMarket(null, market));
         final String finalId = id;
-        final Object finalTimestamp = timestamp;
+        final Long finalTimestamp = timestamp;
         final Map<String, Object> finalMarket = market;
         final Object finalOrderId = orderId;
         final Object finalSide = side;
@@ -1403,7 +1403,7 @@ public class Bit2c extends Bit2cApi
             //         "hasTx": False
             //     }
             //
-            return this.parseDepositAddress(response, currency);
+            return this.parseDepositAddress((Map<String, Object>) (response), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -1421,7 +1421,7 @@ public class Bit2c extends Bit2cApi
         return this.fetchDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseDepositAddress(Object depositAddress, Map<String, Object> currency)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         //
         //     {
@@ -1440,7 +1440,7 @@ public class Bit2c extends Bit2cApi
             put( "tag", null );
         }};
     }
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Object... optionalArgs)
     {
         return this.parseDepositAddress(depositAddress, Helpers.getArgMap(optionalArgs, 0, null));
     }

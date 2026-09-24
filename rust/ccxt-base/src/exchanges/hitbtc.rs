@@ -1418,7 +1418,7 @@ impl HitbtcCore {
             if (ends_with(&id, &Value::Str("_BQX".into()))) {
                 continue;
             }
-            let mut market: Value = self.safe_value(response.clone(), id.clone(), &[]);
+            let mut market: Value = self.safe_dict(response.clone(), id.clone(), &[]);
             let mut marketType: Option<String> = self.safe_string_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
             let mut expiry: Value = self.safe_integer_k(market.clone(), "expiry", &[]);
             let mut contract: Value = (Value::Bool(marketType.as_deref() == Some("futures")));
@@ -1782,8 +1782,7 @@ impl HitbtcCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_734: bool = true;
             while { if !__for_first_734 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_734 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&response, &i);
-            let mut entry: Value = get_value(&response, &i);
+            let mut entry: Value = self.safe_dict(response.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut account: Value = self.account();
@@ -2332,7 +2331,7 @@ impl HitbtcCore {
         let mut addressTo: Value = address.clone();
         let mut tag: Value = self.safe_string_k(native.clone(), "payment_id", &[]);
         let mut tagTo: Value = tag.clone();
-        let mut sender: Value = self.safe_value_k(native.clone(), "senders", &[]);
+        let mut sender: Value = self.safe_list_k(native.clone(), "senders", &[]);
         let mut addressFrom: Value = self.safe_string(sender, Value::Int(0), &[]);
         let mut amount: Value = self.safe_number_k(native.clone(), "amount", &[]);
         let mut subType: Option<String> = self.safe_string_k(transaction.clone(), "subtype", &[]).as_str().map(str::to_owned);
@@ -2695,7 +2694,7 @@ impl HitbtcCore {
             self.load_markets(&[]).await;
         }
         let mut paginate: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_bool_and_params(params.clone(), Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&paginate) {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), params.clone(), Value::Int(1000)]).await;
         }
@@ -3510,9 +3509,9 @@ impl HitbtcCore {
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId, market.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut postOnly: Value = self.safe_value_k(order.clone(), "post_only", &[]);
+        let mut postOnly: Value = self.safe_bool_k(order.clone(), "post_only", &[]);
         let mut timeInForce: Value = self.safe_string_k(order.clone(), "time_in_force", &[]);
-        let mut rawTrades: Value = self.safe_value_k(order.clone(), "trades", &[]);
+        let mut rawTrades: Value = self.safe_list_k(order.clone(), "trades", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
@@ -3529,7 +3528,7 @@ impl HitbtcCore {
         m.insert("side".to_string(), side);
         m.insert("timeInForce".to_string(), timeInForce);
         m.insert("postOnly".to_string(), postOnly);
-        m.insert("reduceOnly".to_string(), self.safe_value_k(order.clone(), "reduce_only", &[]));
+        m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "reduce_only", &[]));
         m.insert("filled".to_string(), filled);
         m.insert("remaining".to_string(), Value::Null);
         m.insert("cost".to_string(), Value::Null);
@@ -3839,7 +3838,7 @@ impl HitbtcCore {
             if (marketId == Value::Null) {
                 continue;
             }
-            let mut rawFundingRate: Value = self.safe_value(response.clone(), marketId.clone(), &[]);
+            let mut rawFundingRate: Value = self.safe_dict(response.clone(), marketId.clone(), &[]);
             let mut marketInner: Value = self.market(marketId);
             let mut symbol: Value = marketInner.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut fundingRate: Value = self.parse_funding_rate(rawFundingRate, &[marketInner]);
@@ -3876,7 +3875,7 @@ impl HitbtcCore {
             self.load_markets(&[]).await;
         }
         let mut paginate: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_bool_and_params(params.clone(), Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&paginate) {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".into()), params.clone(), Value::Int(1000)]).await;
         }
@@ -4139,7 +4138,7 @@ impl HitbtcCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_743: bool = true;
             while { if !__for_first_743 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_743 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
-            let mut entry: Value = positions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = self.safe_dict(positions.clone(), i.clone(), &[]);
             liquidationPrice = self.safe_number_k(entry.clone(), "price_liquidation", &[]);
             entryPrice = self.safe_number_k(entry.clone(), "price_entry", &[]);
             contracts = self.safe_number_k(entry.clone(), "quantity", &[]);
@@ -4151,7 +4150,7 @@ impl HitbtcCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_744: bool = true;
             while { if !__for_first_744 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_744 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencies.len() as i64) as f64) } {
-            let mut entry: Value = currencies.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = self.safe_dict(currencies.clone(), i.clone(), &[]);
             collateral = self.safe_number_k(entry, "margin_balance", &[]);
         }
         }
@@ -4744,7 +4743,7 @@ impl HitbtcCore {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_746: bool = true;
             while { if !__for_first_746 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_746 = false; j.as_f64().unwrap_or(f64::NAN) < ((networks.len() as i64) as f64) } {
-            let mut networkEntry: Value = networks.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut networkEntry: Value = self.safe_dict(networks.clone(), j.clone(), &[]);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "network", &[]);
             let mut code: Value = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
             let mut networkCode: Value = self.network_id_to_code(&[networkId, code]);

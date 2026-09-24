@@ -1198,7 +1198,10 @@ impl BitrueCore {
         //
         let mut keys: Value = object_keys(&response);
         let mut keysLength: f64 = ((keys.len() as i64) as f64);
-        let mut formattedStatus: Value = (if (keysLength > ((0i64) as f64)) { Value::Str("maintenance".into()) } else { Value::Str("ok".into()) });
+        let mut formattedStatus: Value = Value::Str("ok".into());
+        if keysLength > ((0i64) as f64) {
+            formattedStatus = Value::Str("maintenance".into());
+        }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), formattedStatus);
@@ -1675,7 +1678,7 @@ impl BitrueCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_389: bool = true;
             while { if !__for_first_389 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_389 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
-            let mut balance: Value = balances.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut balance: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string2(balance.clone(), Value::Str("asset".into()), Value::Str("marginCoin".into()), &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut account: Value = self.account();
@@ -2676,7 +2679,10 @@ impl BitrueCore {
                     let mut amountString: Value = self.number_to_string(amount.clone());
                     let mut priceString: Value = self.number_to_string(price);
                     let mut quoteAmount: Value = crate::precise::Precise::stringMul(&amountString, &priceString);
-                    let mut requestAmount: Value = (if (cost != Value::Null) { cost } else { quoteAmount });
+                    let mut requestAmount: Value = quoteAmount;
+                    if (cost != Value::Null) {
+                        requestAmount = cost;
+                    }
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("amount".into(), self.cost_to_precision(symbol.clone(), requestAmount.clone())); }
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("volume".into(), self.cost_to_precision(symbol.clone(), requestAmount)); }
                 }
@@ -3346,7 +3352,10 @@ impl BitrueCore {
         let mut updated: Value = self.safe_integer_k(transaction.clone(), "updatedAt", &[]);
         let mut payAmount: bool = matches!(&transaction, Value::Dict(__d) if __d.contains_key("payAmount"));
         let mut ctime: bool = matches!(&transaction, Value::Dict(__d) if __d.contains_key("ctime"));
-        let mut type_var: Value = (if (payAmount || ctime) { Value::Str("withdrawal".into()) } else { Value::Str("deposit".into()) });
+        let mut type_var: Value = Value::Str("deposit".into());
+        if payAmount || ctime {
+            type_var = Value::Str("withdrawal".into());
+        }
         let mut status: Value = self.parse_transaction_status_by_type(self.safe_string_k(transaction.clone(), "status", &[]), &[type_var.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut amount: Value = self.safe_number_k(transaction.clone(), "amount", &[]);
         let mut network: Value = Value::Null;
@@ -3503,7 +3512,7 @@ impl BitrueCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_391: bool = true;
                 while { if !__for_first_391 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_391 = false; i.as_f64().unwrap_or(f64::NAN) < chainDetailLength } {
-                let mut chainDetail: Value = chainDetails.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut chainDetail: Value = self.safe_dict(chainDetails.clone(), i.clone(), &[]);
                 let mut networkId: Value = self.safe_string_k(chainDetail.clone(), "chain", &[]);
                 let mut currencyCode: Value = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
                 let mut networkCode: Value = self.network_id_to_code(&[networkId, currencyCode]);

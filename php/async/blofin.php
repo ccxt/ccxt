@@ -954,11 +954,11 @@ class blofin extends Exchange {
         $feeCurrency = $this->safe_string($trade, 'feeCurrency');
         $isSpot = $feeCurrency !== null;
         if ($feeCurrency === null) {
-            $feeCurrency = $market['settle'];
+            $feeCurrency = $this->safe_string($market, 'settle');
         } elseif ($feeCurrency === 'base_currency') {
-            $feeCurrency = $market['base'];
+            $feeCurrency = $this->safe_string($market, 'base');
         } elseif ($feeCurrency === 'quote_currency') {
-            $feeCurrency = $market['quote'];
+            $feeCurrency = $this->safe_string($market, 'quote');
         }
         if ($feeCost !== null) {
             $fee = array(
@@ -1028,7 +1028,7 @@ class blofin extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchTrades', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchTrades', $symbol, $since, $limit, $params, 'tradeId', 'after', null, 100));
         }
@@ -1097,7 +1097,7 @@ class blofin extends Exchange {
         }
         $market = $this->market($symbol);
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 100));
         }
@@ -1144,7 +1144,7 @@ class blofin extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params, 100));
         }
@@ -1303,7 +1303,7 @@ class blofin extends Exchange {
         $timestamp = $this->safe_integer($data, 'ts');
         $details = $this->safe_list($data, 'details', array());
         for ($i = 0; $i < count($details); $i++) {
-            $balance = $details[$i];
+            $balance = $this->safe_dict($details, $i);
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -1343,7 +1343,7 @@ class blofin extends Exchange {
         $result = array( 'info' => $response );
         $data = $this->safe_list($response, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
-            $balance = $data[$i];
+            $balance = $this->safe_dict($data, $i);
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -1387,7 +1387,7 @@ class blofin extends Exchange {
             Async\await($this->load_markets());
         }
         $accountType = null;
-        list($accountType, $params) = $this->handle_option_and_params_2($params, 'fetchBalance', 'accountType', 'type');
+        list($accountType, $params) = $this->handle_option_string_and_params_2($params, 'fetchBalance', 'accountType', 'type');
         $request = array(
         );
         if ($accountType !== null && $accountType !== 'swap') {
@@ -1433,7 +1433,10 @@ class blofin extends Exchange {
         if ($isMarketOrder || $marketIOC) {
             $request['orderType'] = 'market';
         } else {
-            $key = ($triggerPriceAny !== null) ? 'orderPrice' : 'price';
+            $key = 'price';
+            if ($triggerPriceAny !== null) {
+                $key = 'orderPrice';
+            }
             $request[$key] = $this->price_to_precision($symbol, $price);
         }
         $postOnly = false;
@@ -1810,7 +1813,7 @@ class blofin extends Exchange {
         }
         $ordersRequests = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $marketId = $this->safe_string($rawOrder, 'symbol');
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
@@ -1850,7 +1853,7 @@ class blofin extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOpenOrders', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_dynamic('fetchOpenOrders', $symbol, $since, $limit, $params));
         }
@@ -1905,7 +1908,7 @@ class blofin extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params));
         }
@@ -1975,7 +1978,7 @@ class blofin extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchDeposits', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_dynamic('fetchDeposits', $code, $since, $limit, $params));
         }
@@ -2020,7 +2023,7 @@ class blofin extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchWithdrawals', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_dynamic('fetchWithdrawals', $code, $since, $limit, $params));
         }
@@ -2197,7 +2200,7 @@ class blofin extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchLedger', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_dynamic('fetchLedger', $code, $since, $limit, $params));
         }
@@ -3008,7 +3011,7 @@ class blofin extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchClosedOrders', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_dynamic('fetchClosedOrders', $symbol, $since, $limit, $params));
         }

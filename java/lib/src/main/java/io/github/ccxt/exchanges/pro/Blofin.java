@@ -521,12 +521,12 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
             String url = (String) Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)(((Map<String, Object>)this.urls).get("api"))).get("ws"), marketType), "public");
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             List<Object> args = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsList).size(); i++)
             {
                 Map<String, Object> market = (Map<String, Object>) this.market((symbolsList == null || i < 0 || i >= ((List<?>)symbolsList).size() ? null : ((List<?>)symbolsList).get(i)));
-                ((List<Object>)messageHashes).add(("bidask:" + ((Map<String, Object>)market).get("symbol")));
+                messageHashes.add(("bidask:" + ((Map<String, Object>)market).get("symbol")));
                 ((List<Object>)args).add(new HashMap<String, Object>() {{
                     put( "channel", channel );
                     put( "instId", ((Map<String, Object>)market).get("id") );
@@ -870,7 +870,11 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             }
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
-            String channel = (((java.util.Objects.equals(trigger, true)))) ? "orders-algo" : "orders";
+            String channel = "orders";
+            if (java.util.Objects.equals(trigger, true))
+            {
+                channel = "orders-algo";
+            }
             Object orders = (this.watchMultipleWrapper(false, channel, "watchOrdersForSymbols", symbols, parameters)).join();
             if (this.newUpdates)
             {
@@ -1187,7 +1191,11 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
     }}));
             }
             Object request = this.getSubscriptionRequest(rawSubscriptions);
-            String privateOrPublic = ((Helpers.isTrue(isPublic))) ? "public" : "private";
+            String privateOrPublic = "private";
+            if (Helpers.isTrue(isPublic))
+            {
+                privateOrPublic = "public";
+            }
             String url = (String) Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)(((Map<String, Object>)this.urls).get("api"))).get("ws"), marketType), privateOrPublic);
             return (this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, null)).join();
         });

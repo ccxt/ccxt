@@ -91,9 +91,14 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 (this.loadMarkets()).join();
             }
             String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
-            String method = ((Helpers.isTrue(unwatch))) ? "UNSUBSCRIBE" : "SUBSCRIBE";
+            String method = "SUBSCRIBE";
+            if (Helpers.isTrue(unwatch))
+            {
+                method = "UNSUBSCRIBE";
+            }
+            final String finalMethod = method;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "method", method );
+                put( "method", finalMethod );
                 put( "params", topics );
             }};
             Map<String,Object> message = this.deepExtend(request, parameters);
@@ -120,14 +125,19 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
             String instruction = "subscribe";
             String ts = String.valueOf(this.nonce());
-            String method = ((Helpers.isTrue(unwatch))) ? "UNSUBSCRIBE" : "SUBSCRIBE";
+            String method = "SUBSCRIBE";
+            if (Helpers.isTrue(unwatch))
+            {
+                method = "UNSUBSCRIBE";
+            }
             String recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
             String payload = (((((("instruction=" + instruction) + "&") + "timestamp=") + ts) + "&window=") + recvWindow);
             Object secretBytes = this.base64ToBinary(this.secret);
             Object seed = this.arraySlice(secretBytes, 0, 32);
             Object signature = eddsa(this.encode(payload), seed, ed25519());
+            final String finalMethod = method;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "method", method );
+                put( "method", finalMethod );
                 put( "params", topics );
                 put( "signature", new ArrayList<Object>(Arrays.asList(Backpack.this.apiKey, signature, ts, recvWindow)) );
             }};
@@ -762,7 +772,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object symbolAndTimeframe = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
+                List<Object> symbolAndTimeframe = (List<Object>) this.safeList(symbolsAndTimeframes, i);
                 String marketId = this.safeString(symbolAndTimeframe, 0);
                 Map<String, Object> market = (Map<String, Object>) this.market(marketId);
                 String tf = this.safeString(symbolAndTimeframe, 1);
@@ -826,7 +836,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object symbolAndTimeframe = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
+                List<Object> symbolAndTimeframe = (List<Object>) this.safeList(symbolsAndTimeframes, i);
                 String marketId = this.safeString(symbolAndTimeframe, 0);
                 Map<String, Object> market = (Map<String, Object>) this.market(marketId);
                 String tf = this.safeString(symbolAndTimeframe, 1);
@@ -1496,7 +1506,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         }
         for (var i = 0; i < Helpers.getArrayLength(cache); i++)
         {
-            Object delta = Helpers.GetValue(cache, i);
+            Map<String, Object> delta = (Map<String, Object>) this.safeDict(cache, i);
             Long deltaStart = this.safeInteger(delta, "U");
             Long deltaEnd = this.safeInteger(delta, "u");
             if ((java.util.Objects.equals(deltaStart, null)) || (java.util.Objects.equals(deltaEnd, null)))

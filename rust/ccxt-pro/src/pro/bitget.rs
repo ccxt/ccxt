@@ -464,8 +464,14 @@ impl BitgetCore {
                 m.insert("instType".to_string(), instType);
             m
         });
-        let mut topicOrChannel: Value = (if is_true(&uta) { Value::Str("topic".into()) } else { Value::Str("channel".into()) });
-        let mut symbolOrInstId: Value = (if is_true(&uta) { Value::Str("symbol".into()) } else { Value::Str("instId".into()) });
+        let mut topicOrChannel: Value = Value::Str("channel".into());
+        if is_true(&uta) {
+            topicOrChannel = Value::Str("topic".into());
+        }
+        let mut symbolOrInstId: Value = Value::Str("instId".into());
+        if is_true(&uta) {
+            symbolOrInstId = Value::Str("symbol".into());
+        }
         if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&topicOrChannel), Value::Str("ticker".into())); }
         if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbolOrInstId), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         return self.watch_public(uta, messageHash, args, &[params]).await;
@@ -536,8 +542,14 @@ impl BitgetCore {
                     m.insert("instType".to_string(), instType.clone());
                 m
             });
-            let mut topicOrChannel: Value = (if is_true(&uta) { Value::Str("topic".into()) } else { Value::Str("channel".into()) });
-            let mut symbolOrInstId: Value = (if is_true(&uta) { Value::Str("symbol".into()) } else { Value::Str("instId".into()) });
+            let mut topicOrChannel: Value = Value::Str("channel".into());
+            if is_true(&uta) {
+                topicOrChannel = Value::Str("topic".into());
+            }
+            let mut symbolOrInstId: Value = Value::Str("instId".into());
+            if is_true(&uta) {
+                symbolOrInstId = Value::Str("symbol".into());
+            }
             if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&topicOrChannel), Value::Str("ticker".into())); }
             if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbolOrInstId), marketInner.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             append_to_array(&mut topics, args);
@@ -733,7 +745,10 @@ impl BitgetCore {
         let mut utaTimestamp: Value = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "ts", &[utaTimestamp]);
         let mut instType: Option<String> = self.safe_string_lower_k(arg.clone(), "instType", &[]).as_str().map(str::to_owned);
-        let mut marketType: Value = (if (instType.as_deref() == Some("spot")) { Value::Str("spot".into()) } else { Value::Str("contract".into()) });
+        let mut marketType: Value = Value::Str("contract".into());
+        if (instType.as_deref() == Some("spot")) {
+            marketType = Value::Str("spot".into());
+        }
         let mut utaMarketId: Value = self.safe_string_k(arg, "symbol", &[]);
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "instId", &[utaMarketId]);
         market = self.safe_market(&[marketId, market.clone(), Value::Null, marketType]);
@@ -811,8 +826,14 @@ impl BitgetCore {
                     m.insert("instType".to_string(), instType.clone());
                 m
             });
-            let mut topicOrChannel: Value = (if is_true(&uta) { Value::Str("topic".into()) } else { Value::Str("channel".into()) });
-            let mut symbolOrInstId: Value = (if is_true(&uta) { Value::Str("symbol".into()) } else { Value::Str("instId".into()) });
+            let mut topicOrChannel: Value = Value::Str("channel".into());
+            if is_true(&uta) {
+                topicOrChannel = Value::Str("topic".into());
+            }
+            let mut symbolOrInstId: Value = Value::Str("instId".into());
+            if is_true(&uta) {
+                symbolOrInstId = Value::Str("symbol".into());
+            }
             if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&topicOrChannel), Value::Str("ticker".into())); }
             if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbolOrInstId), marketInner.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             append_to_array(&mut topics, args);
@@ -859,7 +880,10 @@ impl BitgetCore {
         let mut utaTimestamp: Value = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "ts", &[utaTimestamp]);
         let mut instType: Option<String> = self.safe_string_lower_k(arg.clone(), "instType", &[]).as_str().map(str::to_owned);
-        let mut marketType: Value = (if (instType.as_deref() == Some("spot")) { Value::Str("spot".into()) } else { Value::Str("contract".into()) });
+        let mut marketType: Value = Value::Str("contract".into());
+        if (instType.as_deref() == Some("spot")) {
+            marketType = Value::Str("spot".into());
+        }
         let mut utaMarketId: Value = self.safe_string_k(arg, "symbol", &[]);
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "instId", &[utaMarketId]);
         market = self.safe_market(&[marketId, market.clone(), Value::Null, marketType]);
@@ -1067,7 +1091,10 @@ impl BitgetCore {
     m
 }) });
         let mut instType: Option<String> = self.safe_string_lower_k(arg.clone(), "instType", &[]).as_str().map(str::to_owned);
-        let mut marketType: Value = (if (instType.as_deref() == Some("spot")) { Value::Str("spot".into()) } else { Value::Str("contract".into()) });
+        let mut marketType: Value = Value::Str("contract".into());
+        if (instType.as_deref() == Some("spot")) {
+            marketType = Value::Str("spot".into());
+        }
         let mut marketId: Value = self.safe_string2(arg.clone(), Value::Str("instId".into()), Value::Str("symbol".into()), &[]);
         let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, marketType]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -1288,8 +1315,14 @@ impl BitgetCore {
                     m.insert("instType".to_string(), instType);
                 m
             });
-            let mut topicOrChannel: Value = (if is_true(&uta) { Value::Str("topic".into()) } else { Value::Str("channel".into()) });
-            let mut symbolOrInstId: Value = (if is_true(&uta) { Value::Str("symbol".into()) } else { Value::Str("instId".into()) });
+            let mut topicOrChannel: Value = Value::Str("channel".into());
+            if is_true(&uta) {
+                topicOrChannel = Value::Str("topic".into());
+            }
+            let mut symbolOrInstId: Value = Value::Str("instId".into());
+            if is_true(&uta) {
+                symbolOrInstId = Value::Str("symbol".into());
+            }
             if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&topicOrChannel), channel.clone()); }
             if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbolOrInstId), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             append_to_array(&mut topics, args);
@@ -1361,7 +1394,10 @@ impl BitgetCore {
         let mut arg: Value = (match message.get("arg") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
         let mut channel: Option<String> = self.safe_string2(arg.clone(), Value::Str("channel".into()), Value::Str("topic".into()), &[Value::Str("".into())]).as_str().map(str::to_owned);
         let mut instType: Option<String> = self.safe_string_lower_k(arg.clone(), "instType", &[]).as_str().map(str::to_owned);
-        let mut marketType: Value = (if (instType.as_deref() == Some("spot")) { Value::Str("spot".into()) } else { Value::Str("contract".into()) });
+        let mut marketType: Value = Value::Str("contract".into());
+        if (instType.as_deref() == Some("spot")) {
+            marketType = Value::Str("spot".into());
+        }
         let mut marketId: Value = self.safe_string2(arg, Value::Str("instId".into()), Value::Str("symbol".into()), &[]);
         let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, marketType]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -1546,8 +1582,14 @@ impl BitgetCore {
                     m.insert("instType".to_string(), instType);
                 m
             });
-            let mut topicOrChannel: Value = (if is_true(&uta) { Value::Str("topic".into()) } else { Value::Str("channel".into()) });
-            let mut symbolOrInstId: Value = (if is_true(&uta) { Value::Str("symbol".into()) } else { Value::Str("instId".into()) });
+            let mut topicOrChannel: Value = Value::Str("channel".into());
+            if is_true(&uta) {
+                topicOrChannel = Value::Str("topic".into());
+            }
+            let mut symbolOrInstId: Value = Value::Str("instId".into());
+            if is_true(&uta) {
+                symbolOrInstId = Value::Str("symbol".into());
+            }
             if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&topicOrChannel), (if is_true(&uta) { Value::Str("publicTrade".into()) } else { Value::Str("trade".into()) })); }
             if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbolOrInstId), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             append_to_array(&mut topics, args);
@@ -1597,7 +1639,10 @@ impl BitgetCore {
 }));
         let mut values: Value = self.handle_option_bool_and_params(params.clone(), Value::Str("watchTrades".into()), Value::Str("uta".into()), &[Value::Bool(false)]);
         let mut uta: Value = values.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut channelTopic: Value = (if is_true(&uta) { Value::Str("publicTrade".into()) } else { Value::Str("trade".into()) });
+        let mut channelTopic: Value = Value::Str("trade".into());
+        if is_true(&uta) {
+            channelTopic = Value::Str("publicTrade".into());
+        }
         return self.un_watch_channel(symbol, channelTopic, Value::Str("trade".into()), Value::Str("watchTrades".into()), &[params]).await;
 
     Value::Null
@@ -1645,7 +1690,10 @@ impl BitgetCore {
     m
 }) });
         let mut instType: Option<String> = self.safe_string_lower_k(arg.clone(), "instType", &[]).as_str().map(str::to_owned);
-        let mut marketType: Value = (if (instType.as_deref() == Some("spot")) { Value::Str("spot".into()) } else { Value::Str("contract".into()) });
+        let mut marketType: Value = Value::Str("contract".into());
+        if (instType.as_deref() == Some("spot")) {
+            marketType = Value::Str("spot".into());
+        }
         let mut marketId: Value = self.safe_string2(arg, Value::Str("instId".into()), Value::Str("symbol".into()), &[]);
         let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, marketType]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -1860,8 +1908,14 @@ impl BitgetCore {
                 m.insert("instType".to_string(), instType);
             m
         });
-        let mut topicOrChannel: Value = (if is_true(&uta) { Value::Str("topic".into()) } else { Value::Str("channel".into()) });
-        let mut channel: Value = (if is_true(&uta) { Value::Str("position".into()) } else { Value::Str("positions".into()) });
+        let mut topicOrChannel: Value = Value::Str("channel".into());
+        if is_true(&uta) {
+            topicOrChannel = Value::Str("topic".into());
+        }
+        let mut channel: Value = Value::Str("positions".into());
+        if is_true(&uta) {
+            channel = Value::Str("position".into());
+        }
         if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&topicOrChannel), channel); }
         if !is_true(&uta) {
             if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("instId".into(), Value::Str("default".into())); }
@@ -2073,7 +2127,10 @@ impl BitgetCore {
             m
         })]);
         let mut hedgedId: Option<String> = self.safe_string2(position.clone(), Value::Str("posMode".into()), Value::Str("holdMode".into()), &[]).as_str().map(str::to_owned);
-        let mut hedged: Value = (if (hedgedId.as_deref() == Some("hedge_mode")) { Value::Bool(true) } else { Value::Bool(false) });
+        let mut hedged: Value = Value::Bool(false);
+        if (hedgedId.as_deref() == Some("hedge_mode")) {
+            hedged = Value::Bool(true);
+        }
         let mut timestamp: Value = self.safe_integer_n(position.clone(), Value::from(vec![Value::Str("updatedTime".into()), Value::Str("uTime".into()), Value::Str("cTime".into()), Value::Str("createdTime".into())]), &[]);
         let mut percentageDecimal: Value = self.safe_string2(position.clone(), Value::Str("unrealizedPLR".into()), Value::Str("profitRate".into()), &[]);
         let mut percentage: Value = crate::precise::Precise::stringMul(&percentageDecimal, &Value::Str("100".into()));
@@ -2149,12 +2206,15 @@ impl BitgetCore {
         let mut marketId: Value = Value::Null;
         let mut isTrigger: Value = Value::Null;
         { let __destr_tmp = self.is_trigger_order(params.clone()); isTrigger = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut messageHash: Value = (if (isTrigger.as_bool() == Some(true)) { Value::Str("triggerOrder".into()) } else { Value::Str("order".into()) });
+        let mut messageHash: Value = Value::Str("order".into());
+        if (isTrigger.as_bool() == Some(true)) {
+            messageHash = Value::Str("triggerOrder".into());
+        }
         let mut subscriptionHash: Value = Value::Str("order:trades".into());
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
             symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            marketId = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
+            marketId = self.safe_string_k(market.clone(), "id", &[]);
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol).into());
         }
         let mut uta: Value = Value::Null;
@@ -2188,8 +2248,15 @@ impl BitgetCore {
         if (isTrigger.as_bool() == Some(true)) {
             subscriptionHash = Value::Str(format!("{}{}", subscriptionHash, Value::Str(":stop".into())).into()); // we don't want to re-use the same subscription hash for stop orders
         }
-        let mut instId: Value = (if ((type_var.as_str() == Some("spot")) || (type_var.as_str() == Some("margin"))) { marketId } else { Value::Str("default".into()) }); // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
-        let mut channel: Value = (if (isTrigger.as_bool() == Some(true)) { Value::Str("orders-algo".into()) } else { Value::Str("orders".into()) });
+        // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
+        let mut instId: Value = Value::Str("default".into());
+        if (type_var.as_str() == Some("spot")) || (type_var.as_str() == Some("margin")) {
+            instId = marketId;
+        }
+        let mut channel: Value = Value::Str("orders".into());
+        if (isTrigger.as_bool() == Some(true)) {
+            channel = Value::Str("orders-algo".into());
+        }
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("watchOrders".into()), &[params.clone()]); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (marginMode != Value::Null) {
@@ -2211,7 +2278,10 @@ impl BitgetCore {
                 m.insert("instType".to_string(), instType);
             m
         });
-        let mut topicOrChannel: Value = (if is_true(&uta) { Value::Str("topic".into()) } else { Value::Str("channel".into()) });
+        let mut topicOrChannel: Value = Value::Str("channel".into());
+        if is_true(&uta) {
+            topicOrChannel = Value::Str("topic".into());
+        }
         if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&topicOrChannel), channel); }
         if !is_true(&uta) {
             if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("instId".into(), instId); }
@@ -2357,7 +2427,10 @@ impl BitgetCore {
         }
         let mut isTrigger: bool = (channel.as_deref() == Some("orders-algo")) || (channel.as_deref() == Some("ordersAlgo"));
         let mut stored: Value = (if isTrigger { self.triggerOrders.clone() } else { self.orders.clone() });
-        let mut messageHash: Value = (if isTrigger { Value::Str("triggerOrder".into()) } else { Value::Str("order".into()) });
+        let mut messageHash: Value = Value::Str("order".into());
+        if isTrigger {
+            messageHash = Value::Str("triggerOrder".into());
+        }
         let mut marketSymbols: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2732,7 +2805,10 @@ impl BitgetCore {
                 m.insert("instType".to_string(), instType);
             m
         });
-        let mut topicOrChannel: Value = (if is_true(&uta) { Value::Str("topic".into()) } else { Value::Str("channel".into()) });
+        let mut topicOrChannel: Value = Value::Str("channel".into());
+        if is_true(&uta) {
+            topicOrChannel = Value::Str("topic".into());
+        }
         if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&topicOrChannel), Value::Str("fill".into())); }
         if !is_true(&uta) {
             if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("instId".into(), Value::Str("default".into())); }
@@ -2957,7 +3033,10 @@ impl BitgetCore {
                 m.insert("instType".to_string(), instType.clone());
             m
         });
-        let mut topicOrChannel: Value = (if is_true(&uta) { Value::Str("topic".into()) } else { Value::Str("channel".into()) });
+        let mut topicOrChannel: Value = Value::Str("channel".into());
+        if is_true(&uta) {
+            topicOrChannel = Value::Str("topic".into());
+        }
         if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&topicOrChannel), channel); }
         if !is_true(&uta) {
             if let Value::Dict(__d) = &mut args { std::sync::Arc::make_mut(__d).insert("coin".into(), Value::Str("default".into())); }
@@ -3083,7 +3162,7 @@ impl BitgetCore {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_124: bool = true;
                     while { if !__for_first_124 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_124 = false; j.as_f64().unwrap_or(f64::NAN) < ((coins.len() as i64) as f64) } {
-                    let mut entry: Value = coins.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                    let mut entry: Value = self.safe_dict(coins.clone(), j.clone(), &[]);
                     let mut currencyId: Value = self.safe_string_k(entry.clone(), "coin", &[]);
                     let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
                     let mut account: Value = self.account();
@@ -3115,7 +3194,10 @@ impl BitgetCore {
                     let mut interest: Value = self.safe_string_k(rawBalance.clone(), "interest", &[]);
                     add_element_to_object(&mut account, &Value::Str("debt".into()), crate::precise::Precise::stringAdd(&borrow, &interest));
                 }
-                let mut freeQuery: Value = (if (in_op(&rawBalance, &Value::Str("maxTransferOut".into()))) { Value::Str("maxTransferOut".into()) } else { Value::Str("available".into()) });
+                let mut freeQuery: Value = Value::Str("available".into());
+                if (in_op(&rawBalance, &Value::Str("maxTransferOut".into()))) {
+                    freeQuery = Value::Str("maxTransferOut".into());
+                }
                 add_element_to_object(&mut account, &Value::Str("free".into()), self.safe_string(rawBalance.clone(), freeQuery, &[]));
                 add_element_to_object(&mut account, &Value::Str("total".into()), self.safe_string_k(rawBalance.clone(), "equity", &[]));
                 add_element_to_object(&mut account, &Value::Str("used".into()), self.safe_string_k(rawBalance, "frozen", &[]));
@@ -3416,15 +3498,17 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         }
         //     }
         //
+        if matches!(&message, Value::Str(_)) {
+            if (message.as_str() == Some("pong")) {
+                self.handle_pong(client.clone(), message.clone());
+            }
+            return;
+        }
         if (self.handle_error_message(client.clone(), message.clone()).as_bool() == Some(true)) {
             return;
         }
         let mut content: Option<String> = self.safe_string_k(message.clone(), "message", &[]).as_str().map(str::to_owned);
         if (content.as_deref() == Some("pong")) {
-            self.handle_pong(client.clone(), message.clone());
-            return;
-        }
-        if (message.as_str() == Some("pong")) {
             self.handle_pong(client.clone(), message.clone());
             return;
         }
@@ -3512,7 +3596,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }) });
         let mut instType: Option<String> = self.safe_string_lower_k(arg.clone(), "instType", &[]).as_str().map(str::to_owned);
-        let mut type_var: Value = (if (instType.as_deref() == Some("spot")) { Value::Str("spot".into()) } else { Value::Str("contract".into()) });
+        let mut type_var: Value = Value::Str("contract".into());
+        if (instType.as_deref() == Some("spot")) {
+            type_var = Value::Str("spot".into());
+        }
         let mut instId: Value = self.safe_string2(arg, Value::Str("instId".into()), Value::Str("symbol".into()), &[]);
         let mut market: Value = self.safe_market(&[instId, Value::Null, Value::Null, type_var]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -3545,7 +3632,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }) });
         let mut instType: Option<String> = self.safe_string_lower_k(arg.clone(), "instType", &[]).as_str().map(str::to_owned);
-        let mut type_var: Value = (if (instType.as_deref() == Some("spot")) { Value::Str("spot".into()) } else { Value::Str("contract".into()) });
+        let mut type_var: Value = Value::Str("contract".into());
+        if (instType.as_deref() == Some("spot")) {
+            type_var = Value::Str("spot".into());
+        }
         let mut instId: Value = self.safe_string2(arg, Value::Str("instId".into()), Value::Str("symbol".into()), &[]);
         let mut market: Value = self.safe_market(&[instId, Value::Null, Value::Null, type_var]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -3578,7 +3668,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }) });
         let mut instType: Option<String> = self.safe_string_lower_k(arg.clone(), "instType", &[]).as_str().map(str::to_owned);
-        let mut type_var: Value = (if (instType.as_deref() == Some("spot")) { Value::Str("spot".into()) } else { Value::Str("contract".into()) });
+        let mut type_var: Value = Value::Str("contract".into());
+        if (instType.as_deref() == Some("spot")) {
+            type_var = Value::Str("spot".into());
+        }
         let mut instId: Value = self.safe_string2(arg, Value::Str("instId".into()), Value::Str("symbol".into()), &[]);
         let mut market: Value = self.safe_market(&[instId, Value::Null, Value::Null, type_var]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -3615,7 +3708,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }) });
         let mut instType: Option<String> = self.safe_string_lower_k(arg.clone(), "instType", &[]).as_str().map(str::to_owned);
-        let mut type_var: Value = (if (instType.as_deref() == Some("spot")) { Value::Str("spot".into()) } else { Value::Str("contract".into()) });
+        let mut type_var: Value = Value::Str("contract".into());
+        if (instType.as_deref() == Some("spot")) {
+            type_var = Value::Str("spot".into());
+        }
         let mut instId: Value = self.safe_string2(arg.clone(), Value::Str("instId".into()), Value::Str("symbol".into()), &[]);
         let mut channel: Value = self.safe_string2(arg.clone(), Value::Str("channel".into()), Value::Str("topic".into()), &[Value::Str("".into())]);
         let mut interval: Value = self.safe_string_k(arg, "interval", &[]);
@@ -3680,7 +3776,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: Value = Value::Int(0);
             let mut __for_first_126: bool = true;
             while { if !__for_first_126 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_126 = false; i.as_f64().unwrap_or(f64::NAN) < ((argsList.len() as i64) as f64) } {
-            let mut arg: Value = argsList.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut arg: Value = self.safe_dict(argsList.clone(), i.clone(), &[]);
             let mut channel: Value = self.safe_string2(arg, Value::Str("channel".into()), Value::Str("topic".into()), &[Value::Str("".into())]);
             if Value::Int(channel.as_str().and_then(|__s| __s.find("books")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 // for now only unWatchOrderBook is supported

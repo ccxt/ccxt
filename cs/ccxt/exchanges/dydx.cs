@@ -983,15 +983,15 @@ public partial class dydx : Exchange
 
     public virtual List<object> handlePublicAddress(object methodName, object parameters)
     {
-        object userAux = null;
-        IList<object> userAuxparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "user");
-        userAux = userAuxparametersVariable[0];
+        string? userAux = null;
+        IList<object> userAuxparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "user");
+        userAux = (string)userAuxparametersVariable[0];
         parameters = userAuxparametersVariable[1];
-        object user = userAux;
+        string? user = userAux;
         IList<object> userparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "address", userAux);
-        user = userparametersVariable[0];
+        user = (string)userparametersVariable[0];
         parameters = userparametersVariable[1];
-        if (((user != null)) && (!isEqual(user, "")))
+        if (((user != null)) && (user != ""))
         {
             return new List<object>() {user, parameters};
         }
@@ -2130,16 +2130,16 @@ public partial class dydx : Exchange
         string? defaultFeeDenom = this.safeString(this.options, "defaultFeeDenom");
         string? defaultFeeMultiplier = this.safeString(this.options, "defaultFeeMultiplier");
         IDictionary<string, object> feeDenom = this.safeDict(this.options, "feeDenom", new Dictionary<string, object>() {});
-        object gasPrice = null;
-        object denom = null;
+        string? gasPrice = null;
+        string? denom = null;
         if (defaultFeeDenom == "uusdc")
         {
-            gasPrice = (feeDenom != null && feeDenom.ContainsKey("USDC_GAS_PRICE") ? feeDenom["USDC_GAS_PRICE"] : null);
-            denom = (feeDenom != null && feeDenom.ContainsKey("USDC_DENOM") ? feeDenom["USDC_DENOM"] : null);
+            gasPrice = this.safeString(feeDenom, "USDC_GAS_PRICE");
+            denom = this.safeString(feeDenom, "USDC_DENOM");
         } else
         {
-            gasPrice = (feeDenom != null && feeDenom.ContainsKey("CHAINTOKEN_GAS_PRICE") ? feeDenom["CHAINTOKEN_GAS_PRICE"] : null);
-            denom = (feeDenom != null && feeDenom.ContainsKey("CHAINTOKEN_DENOM") ? feeDenom["CHAINTOKEN_DENOM"] : null);
+            gasPrice = this.safeString(feeDenom, "CHAINTOKEN_GAS_PRICE");
+            denom = this.safeString(feeDenom, "CHAINTOKEN_DENOM");
         }
         double gasLimit = Math.Ceiling(Convert.ToDouble(this.parseToNumeric(Precise.stringMul(gasUsed, defaultFeeMultiplier))));
         string? feeAmount = Precise.stringMul(this.numberToString(gasLimit), gasPrice);

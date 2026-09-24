@@ -344,7 +344,10 @@ class aster extends \ccxt\async\aster {
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
             $market = $this->market($symbol);
-            $suffix = ($use1sFreq === true) ? '@1s' : '';
+            $suffix = '';
+            if ($use1sFreq === true) {
+                $suffix = '@1s';
+            }
             $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@markPrice' . $suffix;
             $messageHashes[] = 'ticker:' . $market['symbol'];
         }
@@ -400,7 +403,10 @@ class aster extends \ccxt\async\aster {
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
             $market = $this->market($symbol);
-            $suffix = ($use1sFreq === true) ? '@1s' : '';
+            $suffix = '';
+            if ($use1sFreq === true) {
+                $suffix = '@1s';
+            }
             $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@markPrice' . $suffix;
             $messageHashes[] = 'unsubscribe:ticker:' . $market['symbol'];
         }
@@ -618,7 +624,10 @@ class aster extends \ccxt\async\aster {
 
     public function parse_ws_bid_ask(array $message, ?array $market = null): array {
         $timestamp = $this->safe_integer($message, 'T');
-        $bidAskSymbol = ($market !== null) ? $market['symbol'] : null;
+        $bidAskSymbol = null;
+        if ($market !== null) {
+            $bidAskSymbol = $market['symbol'];
+        }
         return $this->safe_ticker(array(
             'symbol' => $bidAskSymbol,
             'timestamp' => $timestamp,
@@ -915,7 +924,12 @@ class aster extends \ccxt\async\aster {
             }
         }
         $marketId = $this->safe_string($trade, 's');
-        $defaultType = ($market === null) ? $this->safe_string($this->options, 'defaultType', 'spot') : $market['type'];
+        $defaultType = null;
+        if ($market === null) {
+            $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
+        } else {
+            $defaultType = $market['type'];
+        }
         $symbol = $this->safe_symbol($marketId, $market, null, $defaultType);
         $side = $this->safe_string_lower($trade, 'S');
         $takerOrMaker = null;
@@ -1228,15 +1242,20 @@ class aster extends \ccxt\async\aster {
             'params' => $subscriptionArgs,
         );
         for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-            $data = $symbolsAndTimeframes[$i];
+            $data = $this->safe_list($symbolsAndTimeframes, $i);
             $symbolString = $this->safe_string($data, 0);
             if ($symbolString === null) {
                 continue;
             }
             $market = $this->market($symbolString);
-            $symbolString = $market['symbol'];
+            $symbolString = $this->safe_string($market, 'symbol');
             $unfiedTimeframe = $this->safe_string($data, 1);
-            $timeframeId = ($unfiedTimeframe === null) ? null : $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
+            $timeframeId = null;
+            if ($unfiedTimeframe === null) {
+                $timeframeId = null;
+            } else {
+                $timeframeId = $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
+            }
             $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@kline_' . $timeframeId;
             $messageHashes[] = 'ohlcv:' . $market['symbol'] . ':' . $unfiedTimeframe;
         }
@@ -1285,15 +1304,20 @@ class aster extends \ccxt\async\aster {
             'params' => $subscriptionArgs,
         );
         for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-            $data = $symbolsAndTimeframes[$i];
+            $data = $this->safe_list($symbolsAndTimeframes, $i);
             $symbolString = $this->safe_string($data, 0);
             if ($symbolString === null) {
                 continue;
             }
             $market = $this->market($symbolString);
-            $symbolString = $market['symbol'];
+            $symbolString = $this->safe_string($market, 'symbol');
             $unfiedTimeframe = $this->safe_string($data, 1);
-            $timeframeId = ($unfiedTimeframe === null) ? null : $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
+            $timeframeId = null;
+            if ($unfiedTimeframe === null) {
+                $timeframeId = null;
+            } else {
+                $timeframeId = $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
+            }
             $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@kline_' . $timeframeId;
             $messageHashes[] = 'unsubscribe:ohlcv:' . $market['symbol'] . ':' . $unfiedTimeframe;
         }
@@ -1926,7 +1950,10 @@ class aster extends \ccxt\async\aster {
         $executionType = $this->safe_string($message, 'x');
         if ($executionType === 'TRADE') {
             $isSwap = mb_strpos($client->url, 'fstream') !== false;
-            $type = $isSwap ? 'swap' : 'spot';
+            $type = 'spot';
+            if ($isSwap) {
+                $type = 'swap';
+            }
             $fakeMarket = $this->safe_market_structure(array( 'type' => $type ));
             $trade = $this->parse_ws_trade($message, $fakeMarket);
             $orderId = $this->safe_string($trade, 'order');

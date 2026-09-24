@@ -871,7 +871,7 @@ public partial class hitbtc : Exchange
             {
                 continue;
             }
-            object market = this.safeValue(response, id);
+            IDictionary<string, object> market = this.safeDict(response, id);
             string? marketType = this.safeString(market, "type");
             Int64? expiry = this.safeInteger(market, "expiry");
             bool contract = (marketType == "futures");
@@ -1172,7 +1172,7 @@ public partial class hitbtc : Exchange
         };
         for (int i = 0; i < getArrayLength(response); i++)
         {
-            object entry = getValue(response, i);
+            IDictionary<string, object> entry = this.safeDict(response, i);
             string? currencyId = this.safeString(entry, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -1550,7 +1550,7 @@ public partial class hitbtc : Exchange
         Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(trade, "fee");
         bool? taker = this.safeBool(trade, "taker");
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         if ((taker != null))
         {
             takerOrMaker = ((taker == true)) ? "taker" : "maker";
@@ -1716,7 +1716,7 @@ public partial class hitbtc : Exchange
         string? addressTo = address;
         string? tag = this.safeString(native, "payment_id");
         string? tagTo = tag;
-        object sender = this.safeValue(native, "senders");
+        List<object> sender = this.safeList(native, "senders");
         string? addressFrom = this.safeString(sender, 0);
         double? amount = this.safeNumber(native, "amount");
         string? subType = this.safeString(transaction, "subtype");
@@ -2022,8 +2022,8 @@ public partial class hitbtc : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -2925,9 +2925,9 @@ public partial class hitbtc : Exchange
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         string? symbol = ((string)getValue(market, "symbol"));
-        object postOnly = this.safeValue(order, "post_only");
+        bool? postOnly = this.safeBool(order, "post_only");
         string? timeInForce = this.safeString(order, "time_in_force");
-        object rawTrades = this.safeValue(order, "trades");
+        List<object> rawTrades = this.safeList(order, "trades");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -2943,7 +2943,7 @@ public partial class hitbtc : Exchange
             { "side", side },
             { "timeInForce", timeInForce },
             { "postOnly", postOnly },
-            { "reduceOnly", this.safeValue(order, "reduce_only") },
+            { "reduceOnly", this.safeBool(order, "reduce_only") },
             { "filled", filled },
             { "remaining", null },
             { "cost", null },
@@ -3236,7 +3236,7 @@ public partial class hitbtc : Exchange
             {
                 continue;
             }
-            object rawFundingRate = this.safeValue(response, marketId);
+            IDictionary<string, object> rawFundingRate = this.safeDict(response, marketId);
             Dictionary<string, object> marketInner = this.market(marketId);
             string? symbol = ((string)(marketInner != null && ((IDictionary<string, object>)marketInner).ContainsKey("symbol") ? ((IDictionary<string, object>)marketInner)["symbol"] : null));
             Dictionary<string, object> fundingRate = this.parseFundingRate(rawFundingRate, marketInner);
@@ -3267,8 +3267,8 @@ public partial class hitbtc : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -3552,7 +3552,7 @@ public partial class hitbtc : Exchange
         double? contracts = null;
         for (int i = 0; i < positions.Count; i++)
         {
-            object entry = positions[i];
+            IDictionary<string, object> entry = this.safeDict(positions, i);
             liquidationPrice = this.safeNumber(entry, "price_liquidation");
             entryPrice = this.safeNumber(entry, "price_entry");
             contracts = this.safeNumber(entry, "quantity");
@@ -3561,7 +3561,7 @@ public partial class hitbtc : Exchange
         double? collateral = null;
         for (int i = 0; i < currencies.Count; i++)
         {
-            object entry = currencies[i];
+            IDictionary<string, object> entry = this.safeDict(currencies, i);
             collateral = this.safeNumber(entry, "margin_balance");
         }
         string? marketId = this.safeString(position, "symbol");
@@ -4178,7 +4178,7 @@ public partial class hitbtc : Exchange
         Dictionary<string, object> result = this.depositWithdrawFee(fee);
         for (int j = 0; j < networks.Count; j++)
         {
-            object networkEntry = networks[j];
+            IDictionary<string, object> networkEntry = this.safeDict(networks, j);
             string? networkId = this.safeString(networkEntry, "network");
             string? code = this.safeString(currency, "code");
             string? networkCode = this.networkIdToCode(networkId, code);

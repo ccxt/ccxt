@@ -563,7 +563,7 @@ export default class bithumb extends Exchange {
             for (let i = 0; i < quotes.length; i++) {
                 const quote = quotes[i];
                 const quoteId = quote;
-                const response = results[i];
+                const response = this.safeDict (results, i);
                 const data = this.safeDict (response, 'data', {});
                 const extension = this.safeDict (quoteCurrencies, quote, {});
                 const currencyIds = Object.keys (data);
@@ -676,7 +676,7 @@ export default class bithumb extends Exchange {
             }
         } else {
             for (let i = 0; i < response.length; i++) {
-                const entry = response[i];
+                const entry = this.safeDict (response, i);
                 const account = this.account ();
                 const currencyId = this.safeString (entry, 'currency');
                 const code = this.safeCurrencyCode (currencyId);
@@ -791,7 +791,7 @@ export default class bithumb extends Exchange {
             const bids = [];
             const asks = [];
             for (let i = 0; i < orderBookUnits.length; i++) {
-                const entry = orderBookUnits[i];
+                const entry = this.safeDict (orderBookUnits, i);
                 bids.push ({
                     'price': this.safeString (entry, 'bid_price'),
                     'quantity': this.safeString (entry, 'bid_size'),
@@ -1157,7 +1157,7 @@ export default class bithumb extends Exchange {
             const responses = await Promise.all (promises);
             for (let i = 0; i < quotes.length; i++) {
                 const quote = quotes[i];
-                const response = responses[i];
+                const response = this.safeDict (responses, i);
                 const data = this.safeDict (response, 'data', {});
                 const timestamp = this.safeInteger (data, 'date');
                 const tickers = this.omit (data, 'date');
@@ -1637,7 +1637,7 @@ export default class bithumb extends Exchange {
         const ordersRequests: List = [];
         let orderSymbols: List = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const symbol = this.safeString (rawOrder, 'symbol');
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrders() requires each order to have a symbol');

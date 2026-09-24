@@ -556,7 +556,7 @@ class bithumb extends Exchange {
             for ($i = 0; $i < count($quotes); $i++) {
                 $quote = $quotes[$i];
                 $quoteId = $quote;
-                $response = $results[$i];
+                $response = $this->safe_dict($results, $i);
                 $data = $this->safe_dict($response, 'data', array());
                 $extension = $this->safe_dict($quoteCurrencies, $quote, array());
                 $currencyIds = is_array($data) ? array_keys($data) : array();
@@ -669,7 +669,7 @@ class bithumb extends Exchange {
             }
         } else {
             for ($i = 0; $i < count($response); $i++) {
-                $entry = $response[$i];
+                $entry = $this->safe_dict($response, $i);
                 $account = $this->account();
                 $currencyId = $this->safe_string($entry, 'currency');
                 $code = $this->safe_currency_code($currencyId);
@@ -784,7 +784,7 @@ class bithumb extends Exchange {
             $bids = array();
             $asks = array();
             for ($i = 0; $i < count($orderBookUnits); $i++) {
-                $entry = $orderBookUnits[$i];
+                $entry = $this->safe_dict($orderBookUnits, $i);
                 $bids[] = array(
                     'price' => $this->safe_string($entry, 'bid_price'),
                     'quantity' => $this->safe_string($entry, 'bid_size'),
@@ -1150,7 +1150,7 @@ class bithumb extends Exchange {
             $responses = $promises;
             for ($i = 0; $i < count($quotes); $i++) {
                 $quote = $quotes[$i];
-                $response = $responses[$i];
+                $response = $this->safe_dict($responses, $i);
                 $data = $this->safe_dict($response, 'data', array());
                 $timestamp = $this->safe_integer($data, 'date');
                 $tickers = $this->omit($data, 'date');
@@ -1630,7 +1630,7 @@ class bithumb extends Exchange {
         $ordersRequests = array();
         $orderSymbols = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $symbol = $this->safe_string($rawOrder, 'symbol');
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' createOrders() requires each order to have a symbol');
@@ -2254,7 +2254,7 @@ class bithumb extends Exchange {
         if ($feeCost !== null) {
             $currency = null;
             if ($market !== null) {
-                $currency = $market['quote'];
+                $currency = $this->safe_string($market, 'quote');
             }
             $fee = array(
                 'currency' => $currency,
@@ -3250,7 +3250,7 @@ class bithumb extends Exchange {
         return $this->parse_deposit_addresses($response, $codes, false, array());
     }
 
-    public function parse_deposit_address(mixed $response, ?array $currency = null): array {
+    public function parse_deposit_address(array $response, ?array $currency = null): array {
         //
         // generation 2: createDepositAddress, fetchDepositAddress, fetchDepositAddresses
         //

@@ -706,8 +706,8 @@ public partial class hashkey : ccxt.hashkey
         {
             for (int i = 0; i < getArrayLength(symbols); i++)
             {
-                object symbol = getValue(symbols, i);
-                messageHashes.Add(((messageHash + ":") + (symbol)));
+                string? symbol = ((string)getValue(symbols, i));
+                messageHashes.Add(((messageHash + ":") + symbol));
             }
         }
         string? url = this.getPrivateUrl(listenKey);
@@ -889,7 +889,11 @@ public partial class hashkey : ccxt.hashkey
         List<object> data = this.safeList(message, "B", new List<object>() {});
         IDictionary<string, object> balanceUpdate = this.safeDict(data, 0);
         bool isSpot = eventVar == "outboundAccountInfo";
-        string type = isSpot ? "spot" : "swap";
+        string type = "swap";
+        if (isSpot)
+        {
+            type = "spot";
+        }
         if (!(inOp(this.balance, type)))
         {
             ((IDictionary<string,object>)this.balance)[type] = new Dictionary<string, object>() {};

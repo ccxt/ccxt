@@ -487,7 +487,11 @@ public partial class nado : Exchange
             IList<object> triggerDirectionparametersVariable = (IList<object>)this.handleTriggerDirectionAndParams(parameters);
             triggerDirection = triggerDirectionparametersVariable[0];
             parameters = triggerDirectionparametersVariable[1];
-            string directionSuffix = (isEqual(triggerDirection, "ascending")) ? "above" : "below";
+            string directionSuffix = "below";
+            if (isEqual(triggerDirection, "ascending"))
+            {
+                directionSuffix = "above";
+            }
             string? triggerPriceX18 = this.convertToX18(triggerPrice);
             Dictionary<string, object> priceRequirement = new Dictionary<string, object>() {};
             priceRequirement[(string)("oracle_price_" + directionSuffix)] = triggerPriceX18;
@@ -524,7 +528,7 @@ public partial class nado : Exchange
             appendix = this.createOrderAppendix(isTriggerOrder, parameters);
         }
         order["appendix"] = appendix;
-        object contracts = await this.queryContracts();
+        IDictionary<string, object> contracts = await this.queryContracts();
         string? chainId = this.safeString(contracts, "chain_id");
         string? signature = this.signOrder(order, productId, chainId);
         placeOrder["order"] = order;
@@ -666,7 +670,7 @@ public partial class nado : Exchange
             { "nonce", orderNonce },
             { "appendix", appendix },
         };
-        object contracts = await this.queryContracts();
+        IDictionary<string, object> contracts = await this.queryContracts();
         string? chainId = this.safeString(contracts, "chain_id");
         string? endpointAddress = this.safeString(contracts, "endpoint_addr");
         if ((endpointAddress == null))
@@ -798,7 +802,7 @@ public partial class nado : Exchange
             { "productIds", productIds },
             { "nonce", nonce },
         };
-        object contracts = await this.queryContracts();
+        IDictionary<string, object> contracts = await this.queryContracts();
         string? chainId = this.safeString(contracts, "chain_id");
         string? endpointAddress = this.safeString(contracts, "endpoint_addr");
         if ((endpointAddress == null))
@@ -905,7 +909,7 @@ public partial class nado : Exchange
             { "digests", ids },
             { "nonce", nonce },
         };
-        object contracts = await this.queryContracts();
+        IDictionary<string, object> contracts = await this.queryContracts();
         string? chainId = this.safeString(contracts, "chain_id");
         string? endpointAddress = this.safeString(contracts, "endpoint_addr");
         if ((endpointAddress == null))
@@ -1038,7 +1042,7 @@ public partial class nado : Exchange
         {
             request["limit"] = mathMin(limit, 500);
         }
-        object contracts = await this.queryContracts();
+        IDictionary<string, object> contracts = await this.queryContracts();
         string? chainId = this.safeString(contracts, "chain_id");
         string? endpointAddress = this.safeString(contracts, "endpoint_addr");
         string? signature = ((string)this.signFetchTriggerOrders(tx, chainId, endpointAddress));
@@ -1772,7 +1776,11 @@ public partial class nado : Exchange
             IDictionary<string, object> pair = this.safeDict(pairsById, id, new Dictionary<string, object>() {});
             IDictionary<string, object> asset = this.safeDict(assetsById, id, new Dictionary<string, object>() {});
             string? rawType = this.safeString(market, "type");
-            string? type = (rawType == "perp") ? "swap" : rawType;
+            string? type = rawType;
+            if (rawType == "perp")
+            {
+                type = "swap";
+            }
             bool contract = (type == "swap");
             string? tickerId = this.safeString2(pair, "ticker_id", "tickerId");
             if ((tickerId == null))
@@ -2703,7 +2711,7 @@ public partial class nado : Exchange
         List<object> balances = this.safeList(response, "spot_balances", new List<object>() {});
         for (int i = 0; i < balances.Count; i++)
         {
-            object rawBalance = balances[i];
+            IDictionary<string, object> rawBalance = this.safeDict(balances, i);
             string? currencyId = this.safeString(rawBalance, "product_id");
             string? code = this.safeCurrencyCode(currencyId);
             if (code == "0")
@@ -3213,7 +3221,7 @@ public partial class nado : Exchange
         return (("0x" + address) + this.padHex(encoded, 24, false));
     }
 
-    public async virtual Task<object> queryContracts(object parameters = null)
+    public async virtual Task<IDictionary<string, object>> queryContracts(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> cachedContracts = this.safeDict(this.options, "gatewayContracts");
@@ -3243,7 +3251,14 @@ public partial class nado : Exchange
             throw new ArgumentsRequired ((this.id + " padHex() requires length")) ;
         }
         string zeros = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-        object padded = isTrue(left) ? ((zeros + (value))) : (add(value, zeros));
+        object padded = null;
+        if (isTrue(left))
+        {
+            padded = ((zeros + (value)));
+        } else
+        {
+            padded = (add(value, zeros));
+        }
         if (isTrue(left))
         {
             object start = subtract(((string)padded).Length, length);

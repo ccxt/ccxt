@@ -302,7 +302,7 @@ class coinspot extends Exchange {
                 $currencyIds = is_array($currencies) ? array_keys($currencies) : array();
                 for ($j = 0; $j < count($currencyIds); $j++) {
                     $currencyId = $currencyIds[$j];
-                    $balance = $currencies[$currencyId];
+                    $balance = $this->safe_dict($currencies, $currencyId);
                     $code = $this->safe_currency_code($currencyId);
                     $account = $this->account();
                     $account['total'] = $this->safe_string($balance, 'balance');
@@ -798,7 +798,10 @@ class coinspot extends Exchange {
         $version = $isVersionedApi ? $api[0] : null;
         $accessType = $isVersionedApi ? $api[1] : $api;
         $endpoint = '/' . $this->implode_params($path, $params);
-        $fullPath = ($version !== null) ? '/' . $version . $endpoint : $endpoint;
+        $fullPath = $endpoint;
+        if ($version !== null) {
+            $fullPath = '/' . $version . $endpoint;
+        }
         $url = $this->urls['api'][$accessType] . $fullPath;
         if ($accessType === 'private') {
             $this->check_required_credentials();

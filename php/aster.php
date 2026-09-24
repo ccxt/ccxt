@@ -1257,7 +1257,10 @@ class aster extends Exchange {
         //
         $id = $this->safe_string_2($trade, 'id', 'a');
         $marketId = $this->safe_string($trade, 'symbol');
-        $marketType = (is_array($trade) && array_key_exists('positionSide' ?? '', $trade)) ? 'swap' : 'spot';
+        $marketType = 'spot';
+        if (is_array($trade) && array_key_exists('positionSide' ?? '', $trade)) {
+            $marketType = 'swap';
+        }
         $market = $this->safe_market($marketId, $market, null, $marketType);
         $currencyId = $this->safe_string_2($trade, 'commissionAsset', 'marginAsset');
         $currencyCode = $this->safe_currency_code($currencyId);
@@ -1742,7 +1745,7 @@ class aster extends Exchange {
         return $this->filter_by_array($results, 'symbol', $symbols);
     }
 
-    public function parse_last_price(mixed $entry, ?array $market = null): array {
+    public function parse_last_price(array $entry, ?array $market = null): array {
         //
         // spot & swap
         //
@@ -2073,7 +2076,7 @@ class aster extends Exchange {
     public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
-            $balance = $response[$i];
+            $balance = $this->safe_dict($response, $i);
             $currencyId = $this->safe_string($balance, 'asset');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -2154,7 +2157,10 @@ class aster extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} response from the exchange
          */
-        $strValue = $hedged ? 'true' : 'false';
+        $strValue = 'false';
+        if ($hedged) {
+            $strValue = 'true';
+        }
         $request = array(
             'dualSidePosition' => $strValue,
         );
@@ -2294,7 +2300,10 @@ class aster extends Exchange {
         //
         $info = $order;
         $positionSide = $this->safe_string($order, 'positionSide');
-        $defaultType = ($positionSide !== null) ? 'swap' : 'spot';
+        $defaultType = 'spot';
+        if ($positionSide !== null) {
+            $defaultType = 'swap';
+        }
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market, null, $defaultType);
         $side = $this->safe_string_lower($order, 'side');
@@ -2681,7 +2690,7 @@ class aster extends Exchange {
             throw new InvalidOrder($this->id . ' createOrders() order list max 5 orders');
         }
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $marketId = $this->safe_string($rawOrder, 'symbol');
             $currentMarket = $this->market($marketId);
             $orderSymbols[] = $currentMarket['symbol'];
@@ -2886,7 +2895,7 @@ class aster extends Exchange {
         }
         if ($timeInForceIsRequired && ($this->safe_string($params, 'timeInForce') === null) && ($this->safe_string($request, 'timeInForce') === null)) {
             $tif = null;
-            list($tif, $params) = $this->handle_option_and_params($params, 'createOrder', 'timeInForce');
+            list($tif, $params) = $this->handle_option_string_and_params($params, 'createOrder', 'timeInForce');
             $request['timeInForce'] = $tif;
         }
         $requestParams = $this->omit($params, array( 'newClientOrderId', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'trailingDelta', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ));
@@ -3366,7 +3375,7 @@ class aster extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 1, $params);
     }
 
-    public function parse_income(mixed $income, ?array $market = null): array {
+    public function parse_income(array $income, ?array $market = null): array {
         //
         //     {
         //       "symbol": "ETHUSDT",
@@ -3566,7 +3575,7 @@ class aster extends Exchange {
             if (Precise::string_lt($notionalStringAbs, $bracket[0])) {
                 break;
             }
-            $maintenanceMarginPercentageString = $bracket[1];
+            $maintenanceMarginPercentageString = $this->safe_string($bracket, 1);
         }
         $notional = $this->parse_number($notionalStringAbs);
         $contractsAbs = Precise::string_abs($this->safe_string($position, 'positionAmt'));
@@ -3767,7 +3776,7 @@ class aster extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
         $defaultMethod = null;
-        list($defaultMethod, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'method');
+        list($defaultMethod, $params) = $this->handle_option_string_and_params($params, 'fetchPositions', 'method');
         if ($defaultMethod === null) {
             $options = $this->safe_dict($this->options, 'fetchPositions');
             if ($options === null) {
@@ -3790,7 +3799,7 @@ class aster extends Exchange {
         $assets = $this->safe_list($account, 'assets', array());
         $balances = array();
         for ($i = 0; $i < count($assets); $i++) {
-            $entry = $assets[$i];
+            $entry = $this->safe_dict($assets, $i);
             $currencyId = $this->safe_string($entry, 'asset');
             $code = $this->safe_currency_code($currencyId);
             $crossWalletBalance = $this->safe_string($entry, 'crossWalletBalance');
@@ -3870,7 +3879,7 @@ class aster extends Exchange {
             if (Precise::string_lt($notionalStringAbs, $bracket[0])) {
                 break;
             }
-            $maintenanceMarginPercentageString = $bracket[1];
+            $maintenanceMarginPercentageString = $this->safe_string($bracket, 1);
         }
         $maintenanceMarginPercentage = $this->parse_number($maintenanceMarginPercentageString);
         $unrealizedPnlString = $this->safe_string($position, 'unrealizedProfit');
@@ -4053,13 +4062,13 @@ class aster extends Exchange {
             $this->options['leverageBrackets'] = $this->create_safe_dictionary();
             $entries = $this->to_array($response);
             for ($i = 0; $i < count($entries); $i++) {
-                $entry = $entries[$i];
+                $entry = $this->safe_dict($entries, $i);
                 $marketId = $this->safe_string($entry, 'symbol');
                 $symbol = $this->safe_symbol($marketId, null, null, 'contract');
                 $brackets = $this->safe_list($entry, 'brackets', array());
                 $result = array();
                 for ($j = 0; $j < count($brackets); $j++) {
-                    $bracket = $brackets[$j];
+                    $bracket = $this->safe_dict($brackets, $j);
                     $floorValue = $this->safe_string($bracket, 'notionalFloor');
                     $maintenanceMarginPercentage = $this->safe_string($bracket, 'maintMarginRatio');
                     $result[] = array( $floorValue, $maintenanceMarginPercentage );

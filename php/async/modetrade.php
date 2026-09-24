@@ -1078,7 +1078,7 @@ class modetrade extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_incremental('fetchFundingRateHistory', $symbol, $since, $limit, $params, 'page', 25));
         }
@@ -1131,7 +1131,7 @@ class modetrade extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function parse_income(mixed $income, ?array $market = null): array {
+    public function parse_income(array $income, ?array $market = null): array {
         //
         // {
         //         "symbol": "PERP_ETH_USDC",
@@ -1185,7 +1185,7 @@ class modetrade extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingHistory', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_incremental('fetchFundingHistory', $symbol, $since, $limit, $params, 'page', 500));
         }
@@ -1481,7 +1481,7 @@ class modetrade extends Exchange {
         $remaining = Precise::string_sub($cost, $filled);
         $fee = $this->safe_number_2($order, 'total_fee', 'totalFee');
         $feeCurrency = $this->safe_string_2($order, 'fee_asset', 'feeAsset');
-        $transactions = $this->safe_value($order, 'Transactions');
+        $transactions = $this->safe_list($order, 'Transactions');
         $triggerPrice = $this->safe_number($order, 'triggerPrice');
         $takeProfitPrice = null;
         $stopLossPrice = null;
@@ -1614,9 +1614,18 @@ class modetrade extends Exchange {
         $isMarket = $orderType === 'MARKET';
         $timeInForce = $this->safe_string_lower($params, 'timeInForce');
         $postOnly = $this->is_post_only($isMarket, null, $params);
-        $orderQtyKey = $isConditional ? 'quantity' : 'order_quantity';
-        $priceKey = $isConditional ? 'price' : 'order_price';
-        $typeKey = $isConditional ? 'type' : 'order_type';
+        $orderQtyKey = 'order_quantity';
+        if ($isConditional) {
+            $orderQtyKey = 'quantity';
+        }
+        $priceKey = 'order_price';
+        if ($isConditional) {
+            $priceKey = 'price';
+        }
+        $typeKey = 'order_type';
+        if ($isConditional) {
+            $typeKey = 'type';
+        }
         $request[$typeKey] = $orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if (!$isConditional) {
             if ($postOnly) {
@@ -1654,7 +1663,10 @@ class modetrade extends Exchange {
                 'child_orders' => array(),
             );
             $childOrders = $outterOrder['child_orders'];
-            $closeSide = ($orderSide === 'BUY') ? 'SELL' : 'BUY';
+            $closeSide = 'BUY';
+            if ($orderSide === 'BUY') {
+                $closeSide = 'SELL';
+            }
             if ($hasStopLoss) {
                 $stopLossPrice = $this->safe_number_2($stopLoss, 'triggerPrice', 'price', $stopLoss);
                 $stopLossOrder = array(
@@ -1781,7 +1793,7 @@ class modetrade extends Exchange {
         }
         $ordersRequests = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $marketId = $this->safe_string($rawOrder, 'symbol');
             if ($marketId === null) {
                 throw new ArgumentsRequired($this->id . ' createOrders() requires a symbol for each order');
@@ -1862,8 +1874,14 @@ class modetrade extends Exchange {
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
         }
         $isConditional = ($triggerPrice !== null) || ($this->safe_value($params, 'childOrders') !== null);
-        $orderQtyKey = $isConditional ? 'quantity' : 'order_quantity';
-        $priceKey = $isConditional ? 'price' : 'order_price';
+        $orderQtyKey = 'order_quantity';
+        if ($isConditional) {
+            $orderQtyKey = 'quantity';
+        }
+        $priceKey = 'order_price';
+        if ($isConditional) {
+            $priceKey = 'price';
+        }
         if ($price !== null) {
             $request[$priceKey] = $this->price_to_precision($symbol, $price);
         }
@@ -2207,7 +2225,7 @@ class modetrade extends Exchange {
         $paginate = false;
         $isTrigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
         $maxLimit = ($isTrigger === true) ? 100 : 500;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOrders', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_incremental('fetchOrders', $symbol, $since, $limit, $params, 'page', $maxLimit));
         }
@@ -2409,7 +2427,7 @@ class modetrade extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_incremental('fetchMyTrades', $symbol, $since, $limit, $params, 'page', 500));
         }
@@ -2466,7 +2484,7 @@ class modetrade extends Exchange {
         );
         $balances = $this->safe_list($response, 'holding', array());
         for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+            $balance = $this->safe_dict($balances, $i);
             $code = $this->safe_currency_code($this->safe_string($balance, 'token'));
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'holding');

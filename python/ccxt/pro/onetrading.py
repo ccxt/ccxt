@@ -952,7 +952,7 @@ class onetrading(ccxt.async_support.onetrading):
             datetime = self.safe_string_2(update, 'time', 'timestamp')
             previousOrderArray = self.filter_by_array(self.orders, 'id', orderId, False)
             previousOrder = self.safe_dict(previousOrderArray, 0, {})
-            symbol = previousOrder['symbol']
+            symbol = self.safe_string(previousOrder, 'symbol')
             filled = self.safe_string(update, 'filled_amount')
             status = self.parse_ws_order_status(updateType)
             if updateType == 'ORDER_CLOSED' and Precise.string_eq(filled, '0'):

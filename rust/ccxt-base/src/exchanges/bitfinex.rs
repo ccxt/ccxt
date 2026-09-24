@@ -1470,7 +1470,7 @@ impl BitfinexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_315: bool = true;
             while { if !__for_first_315 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_315 = false; i.as_f64().unwrap_or(f64::NAN) < ((markets.len() as i64) as f64) } {
-            let mut pairObj: Value = markets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut pairObj: Value = self.safe_list(markets.clone(), i.clone(), &[]);
             let mut id: Value = self.safe_string_upper(pairObj.clone(), Value::Int(0), &[]);
             let mut market: Value = self.safe_value(pairObj, Value::Int(1), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1711,7 +1711,7 @@ impl BitfinexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_316: bool = true;
             while { if !__for_first_316 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_316 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&get_value(&indexed, &Value::Str("networks".into()))).as_f64().unwrap_or(f64::NAN) } {
-            let mut networkObj: Value = get_value(&match &indexed { Value::Dict(__m15) => __m15.get("networks").cloned().unwrap_or(Value::Null), _ => Value::Null }, &i);
+            let mut networkObj: Value = self.safe_list(match &indexed { Value::Dict(__m15) => __m15.get("networks").cloned().unwrap_or(Value::Null), _ => Value::Null }, i.clone(), &[]);
             let mut networkId: Value = self.safe_string(networkObj.clone(), Value::Int(0), &[]);
             let mut valuesList: Value = self.safe_list(networkObj, Value::Int(1), &[]);
             let mut networkName: Value = self.safe_string(valuesList, Value::Int(0), &[]);
@@ -1899,7 +1899,7 @@ impl BitfinexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_320: bool = true;
             while { if !__for_first_320 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_320 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
-            let mut balance: Value = balances.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut balance: Value = self.safe_list(balances.clone(), i.clone(), &[]);
             let mut account: Value = self.account();
             let mut interest: Value = self.safe_string(balance.clone(), Value::Int(3), &[]);
             if (interest.as_str() != Some("0")) {
@@ -2157,7 +2157,10 @@ impl BitfinexCore {
             let mut price: Value = self.safe_number(order.clone(), priceIndex.clone(), &[]);
             let mut signedAmount: Value = self.safe_string(order, Value::Int(2), &[]);
             let mut amount: Value = crate::precise::Precise::stringAbs(&signedAmount);
-            let mut side: Value = (if is_true(&crate::precise::Precise::stringGt(&signedAmount, &Value::Str("0".into()))) { Value::Str("bids".into()) } else { Value::Str("asks".into()) });
+            let mut side: Value = Value::Str("asks".into());
+            if is_true(&crate::precise::Precise::stringGt(&signedAmount, &Value::Str("0".into()))) {
+                side = Value::Str("bids".into());
+            }
             crate::runtime::append_to_object_array(&mut result, &side, Value::from(vec![price, self.parse_number(amount, &[])]));
         }
         }
@@ -2471,7 +2474,7 @@ impl BitfinexCore {
             self.load_markets(&[]).await;
         }
         let mut paginate: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchTrades".into()), Value::Str("paginate".into()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_bool_and_params(params.clone(), Value::Str("fetchTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&paginate) {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), params.clone(), Value::Int(10000)]).await;
         }
@@ -2548,7 +2551,7 @@ impl BitfinexCore {
             self.load_markets(&[]).await;
         }
         let mut paginate: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_bool_and_params(params.clone(), Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&paginate) {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), params.clone(), Value::Int(10000)]).await;
         }
@@ -2649,7 +2652,10 @@ impl BitfinexCore {
         let mut remaining: Value = crate::precise::Precise::stringAbs(&self.safe_string(orderList.clone(), Value::Int(6), &[]));
         let mut signedAmount: Value = self.safe_string(orderList.clone(), Value::Int(7), &[]);
         let mut amount: Value = crate::precise::Precise::stringAbs(&signedAmount);
-        let mut side: Value = (if is_true(&crate::precise::Precise::stringLt(&signedAmount, &Value::Str("0".into()))) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
+        let mut side: Value = Value::Str("buy".into());
+        if is_true(&crate::precise::Precise::stringLt(&signedAmount, &Value::Str("0".into()))) {
+            side = Value::Str("sell".into());
+        }
         let mut orderType: Value = self.safe_string(orderList.clone(), Value::Int(8), &[]);
         let mut type_var: Value = self.safe_string(self.safe_dict_k(self.options.clone(), "exchangeTypes", &[]), orderType.clone(), &[]);
         let mut timeInForce: Value = self.parse_time_in_force(orderType.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
@@ -2941,7 +2947,7 @@ impl BitfinexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_324: bool = true;
             while { if !__for_first_324 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_324 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
-            let mut rawOrder: Value = orders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
             let mut symbol: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
             let mut type_var: Value = self.safe_string_k(rawOrder.clone(), "type", &[]);
             let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
@@ -3399,7 +3405,7 @@ impl BitfinexCore {
             self.load_markets(&[]).await;
         }
         let mut paginate: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchClosedOrders".into()), Value::Str("paginate".into()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_bool_and_params(params.clone(), Value::Str("fetchClosedOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&paginate) {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchClosedOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
         }
@@ -3794,7 +3800,7 @@ impl BitfinexCore {
             let mut data: Value = self.safe_list(transaction.clone(), Value::Int(4), &[Value::from(vec![])]);
             timestamp = self.safe_integer(transaction.clone(), Value::Int(0), &[]);
             if (currency != Value::Null) {
-                code = currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null);
+                code = self.safe_string_k(currency.clone(), "code", &[]);
             }
             feeCost = self.safe_string(data.clone(), Value::Int(8), &[]);
             if (feeCost != Value::Null) {
@@ -4500,7 +4506,7 @@ impl BitfinexCore {
             self.load_markets(&[]).await;
         }
         let mut paginate: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchLedger".into()), Value::Str("paginate".into()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_bool_and_params(params.clone(), Value::Str("fetchLedger".into()), Value::Str("paginate".into()), &[Value::Bool(false)]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&paginate) {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchLedger".into()), &[code.clone(), since.clone(), limit.clone(), params.clone(), Value::Int(2500)]).await;
         }
@@ -4622,7 +4628,7 @@ impl BitfinexCore {
             self.load_markets(&[]).await;
         }
         let mut paginate: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_bool_and_params(params.clone(), Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&paginate) {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".into()), params.clone(), Value::Int(5000)]).await;
         }
@@ -4681,12 +4687,12 @@ impl BitfinexCore {
         }
         let mut reversedArray: Value = Value::from(vec![]);
         let mut rawRates: Value = self.filter_by_symbol_since_limit(rates, &[symbol, since, limit]);
-        let mut ratesLength: Value = get_array_length(&rawRates);
+        let mut ratesLength: Value = Value::Int(rawRates.len() as i64);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_337: bool = true;
             while { if !__for_first_337 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_337 = false; i.as_f64().unwrap_or(f64::NAN) < ratesLength.as_f64().unwrap_or(f64::NAN) } {
-            let mut index: Value = (match (&(subtract(&ratesLength, &i)), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+            let mut index: Value = (match (&((match (&(ratesLength), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             let mut valueAtIndex: Value = get_value(&rawRates, &index);
             let mut valueAtIndex: Value = get_value(&rawRates, &index);
             append_to_array(&mut reversedArray, valueAtIndex);
@@ -4934,7 +4940,7 @@ impl BitfinexCore {
             self.load_markets(&[]).await;
         }
         let mut paginate: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOpenInterestHistory".into()), Value::Str("paginate".into()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_bool_and_params(params.clone(), Value::Str("fetchOpenInterestHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&paginate) {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOpenInterestHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".into()), params.clone(), Value::Int(5000)]).await;
         }
@@ -5060,7 +5066,7 @@ impl BitfinexCore {
             self.load_markets(&[]).await;
         }
         let mut paginate: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchLiquidations".into()), Value::Str("paginate".into()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_bool_and_params(params.clone(), Value::Str("fetchLiquidations".into()), Value::Str("paginate".into()), &[Value::Bool(false)]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&paginate) {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchLiquidations".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".into()), params.clone(), Value::Int(500)]).await;
         }
@@ -5103,7 +5109,7 @@ impl BitfinexCore {
         //         ]
         //     ]
         //
-        let mut entry: Value = get_value(&liquidation, &Value::Int(0));
+        let mut entry: Value = self.safe_list(liquidation, Value::Int(0), &[]);
         let mut timestamp: Value = self.safe_integer(entry.clone(), Value::Int(2), &[]);
         let mut marketId: Value = self.safe_string(entry.clone(), Value::Int(4), &[]);
         let mut contracts: Value = crate::precise::Precise::stringAbs(&self.safe_string(entry.clone(), Value::Int(5), &[]));
@@ -5111,7 +5117,10 @@ impl BitfinexCore {
         let mut baseValue: Value = crate::precise::Precise::stringMul(&contracts, &contractSize);
         let mut price: Value = self.safe_string(entry.clone(), Value::Int(11), &[]);
         let mut sideFlag: Option<i64> = self.safe_integer(entry.clone(), Value::Int(8), &[]).as_i64();
-        let mut side: Value = (if (sideFlag == Some(1)) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
+        let mut side: Value = Value::Str("sell".into());
+        if (sideFlag == Some(1)) {
+            side = Value::Str("buy".into());
+        }
         return self.safe_liquidation(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), entry);
@@ -5185,7 +5194,10 @@ impl BitfinexCore {
         //     ]
         //
         let mut marginStatusRaw: Value = get_value(&data, &Value::Int(0));
-        let mut marginStatus: Value = (if (is_equal(&marginStatusRaw, &Value::Int(1))) { Value::Str("ok".into()) } else { Value::Str("failed".into()) });
+        let mut marginStatus: Value = Value::Str("failed".into());
+        if is_equal(&marginStatusRaw, &Value::Int(1)) {
+            marginStatus = Value::Str("ok".into());
+        }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data);

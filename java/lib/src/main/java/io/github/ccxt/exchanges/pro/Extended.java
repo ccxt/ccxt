@@ -639,7 +639,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
-            Object filtered = this.filterByArray(newPositions, "symbol", symbols, false);
+            List<Object> filtered = (List<Object>) this.filterByArray(newPositions, "symbol", symbols, false);
             if (!this.isEmpty(filtered))
             {
                 client.resolve(filtered, messageHash);
@@ -1137,7 +1137,14 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         String symbol = this.safeString(subscription, "symbol");
         String timeframe = this.safeString(subscription, "timeframe");
         String candleType = this.safeString(subscription, "candleType");
-        String cacheKey = (((java.util.Objects.equals(candleType, "trades")))) ? timeframe : Helpers.add((timeframe + ":"), candleType);
+        String cacheKey = null;
+        if (java.util.Objects.equals(candleType, "trades"))
+        {
+            cacheKey = timeframe;
+        } else
+        {
+            cacheKey = Helpers.add((timeframe + ":"), candleType);
+        }
         String messageHash = this.safeString(subscription, "messageHash");
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), cacheKey);

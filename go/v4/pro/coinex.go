@@ -366,12 +366,7 @@ func (this *Coinex) HandleBalance(client any, message map[string]any) {
 	}
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var balances []any = ccxt.SafeListTypedDefault(data, "balance_list", []any{})
-	var firstEntry map[string]any = ccxt.MapTyped(func() any {
-		if 0 >= 0 && 0 < len(balances) {
-			return ccxt.DerefScalar(balances[0])
-		}
-		return nil
-	}())
+	var firstEntry map[string]any = ccxt.SafeMapTyped(balances, 0)
 	var updated *int64 = this.SafeInteger(firstEntry, "updated_at")
 	var unrealizedPnl *string = this.SafeString(firstEntry, "unrealized_pnl")
 	var isSpot bool = (updated != nil)
@@ -554,12 +549,10 @@ func (this *Coinex) HandleMyTrades(client any, message map[string]any) {
 	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
 	var marketId *string = this.SafeString(data, "market")
 	var isSpot bool = (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot") > -1)
-	var defaultType string = func() string {
-		if isSpot {
-			return "spot"
-		}
-		return "swap"
-	}()
+	var defaultType string = "swap"
+	if isSpot {
+		defaultType = "spot"
+	}
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, defaultType))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "myTrades:" + *symbol
@@ -620,12 +613,10 @@ func (this *Coinex) HandleTrades(client any, message map[string]any) {
 	var trades []any = ccxt.SafeListTyped(data, "deal_list")
 	var marketId *string = this.SafeString(data, "market")
 	var isSpot bool = (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot") > -1)
-	var defaultType string = func() string {
-		if isSpot {
-			return "spot"
-		}
-		return "swap"
-	}()
+	var defaultType string = "swap"
+	if isSpot {
+		defaultType = "spot"
+	}
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, defaultType))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "trades:" + *symbol
@@ -690,12 +681,10 @@ func (this *Coinex) ParseWsTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.SafeInteger(trade, "created_at")
 	var isSpot bool = (ccxt.InOp(trade, "margin_market"))
-	var defaultType string = func() string {
-		if isSpot {
-			return "spot"
-		}
-		return "swap"
-	}()
+	var defaultType string = "swap"
+	if isSpot {
+		defaultType = "spot"
+	}
 	var marketId *string = this.SafeString(trade, "market")
 	market = ccxt.MapTyped(this.SafeMarket(marketId, market, nil, defaultType))
 	var fee map[string]any = map[string]any{}
@@ -1080,12 +1069,10 @@ func (this *Coinex) HandleOrderBook(client any, message map[string]any) {
 	//     }
 	//
 	var isSpot bool = (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot") > -1)
-	var defaultType string = func() string {
-		if isSpot {
-			return "spot"
-		}
-		return "swap"
-	}()
+	var defaultType string = "swap"
+	if isSpot {
+		defaultType = "spot"
+	}
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var depth map[string]any = ccxt.MapTyped(this.SafeDict(data, "depth", map[string]any{}))
 	var marketId *string = this.SafeString(data, "market")
@@ -1432,12 +1419,10 @@ func (this *Coinex) ParseWsOrder(order any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(order, "market")
 	var status *string = this.SafeString(order, "status")
 	var isSpot bool = (ccxt.InOp(order, "margin_market"))
-	var defaultType string = func() string {
-		if isSpot {
-			return "spot"
-		}
-		return "swap"
-	}()
+	var defaultType string = "swap"
+	if isSpot {
+		defaultType = "spot"
+	}
 	market = ccxt.MapTyped(this.SafeMarket(marketId, market, nil, defaultType))
 	var fee map[string]any = nil
 	var feeCost any = this.OmitZero(this.SafeString2(order, "fee", "quote_ccy_fee"))

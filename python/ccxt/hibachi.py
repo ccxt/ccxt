@@ -939,7 +939,7 @@ class hibachi(Exchange, ImplicitAPI):
         nonce = self.incrementing_nonce()
         requestOrders = []
         for i in range(0, len(orders)):
-            rawOrder = orders[i]
+            rawOrder = self.safe_dict(orders, i)
             symbol = self.safe_string(rawOrder, 'symbol')
             type = self.safe_string(rawOrder, 'type')
             side = self.safe_string(rawOrder, 'side')
@@ -1036,7 +1036,7 @@ class hibachi(Exchange, ImplicitAPI):
         nonce = self.incrementing_nonce()
         requestOrders = []
         for i in range(0, len(orders)):
-            rawOrder = orders[i]
+            rawOrder = self.safe_dict(orders, i)
             id = self.safe_string(rawOrder, 'id')
             symbol = self.safe_string(rawOrder, 'symbol')
             type = self.safe_string(rawOrder, 'type')
@@ -1842,7 +1842,7 @@ class hibachi(Exchange, ImplicitAPI):
             self.privateGetTradeAccountTradingHistory(self.extend(request, params)),
         ]
         promises = rawPromises
-        responseCapitalHistory = promises[0]
+        responseCapitalHistory = self.safe_dict(promises, 0)
         #
         # {
         #     "transactions": [
@@ -1897,7 +1897,7 @@ class hibachi(Exchange, ImplicitAPI):
         # }
         #
         rowsCapitalHistory = self.safe_list(responseCapitalHistory, 'transactions', [])
-        responseTradingHistory = promises[1]
+        responseTradingHistory = self.safe_dict(promises, 1)
         #
         # {
         #     "tradingHistory": [

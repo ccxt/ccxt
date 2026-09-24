@@ -163,11 +163,26 @@ export default class kraken extends krakenRest {
         const isTrailingLimitAmountOrder = trailingLimitAmount !== undefined;
         const isTrailingLimitPercentOrder = trailingLimitPercent !== undefined;
         const offset = this.safeString (params, 'offset', ''); // can set this to - for minus
-        const trailingAmountString = (trailingAmount !== undefined) ? offset + this.numberToString (trailingAmount) : undefined;
-        const trailingPercentString = (trailingPercent !== undefined) ? offset + this.numberToString (trailingPercent) : undefined;
-        const trailingLimitAmountString = (trailingLimitAmount !== undefined) ? offset + this.numberToString (trailingLimitAmount) : undefined;
-        const trailingLimitPercentString = (trailingLimitPercent !== undefined) ? offset + this.numberToString (trailingLimitPercent) : undefined;
-        const priceType = (isTrailingPercentOrder || isTrailingLimitPercentOrder) ? 'pct' : 'quote';
+        let trailingAmountString: Str = undefined;
+        if (trailingAmount !== undefined) {
+            trailingAmountString = offset + this.numberToString (trailingAmount);
+        }
+        let trailingPercentString: Str = undefined;
+        if (trailingPercent !== undefined) {
+            trailingPercentString = offset + this.numberToString (trailingPercent);
+        }
+        let trailingLimitAmountString: Str = undefined;
+        if (trailingLimitAmount !== undefined) {
+            trailingLimitAmountString = offset + this.numberToString (trailingLimitAmount);
+        }
+        let trailingLimitPercentString: Str = undefined;
+        if (trailingLimitPercent !== undefined) {
+            trailingLimitPercentString = offset + this.numberToString (trailingLimitPercent);
+        }
+        let priceType: Str = 'quote';
+        if (isTrailingPercentOrder || isTrailingLimitPercentOrder) {
+            priceType = 'pct';
+        }
         if (method === 'createOrderWs') {
             const reduceOnly = this.safeBool (params, 'reduceOnly');
             if (reduceOnly === true) {
@@ -513,7 +528,7 @@ export default class kraken extends krakenRest {
         //     }
         //
         const data = this.safeList (message, 'data', []) as List;
-        const ticker = data[0];
+        const ticker = this.safeDict (data, 0);
         const symbol = this.safeString (ticker, 'symbol') as string;
         const messageHash = this.getMessageHash ('ticker', undefined, symbol);
         const vwap = this.safeString (ticker, 'vwap');
@@ -568,7 +583,7 @@ export default class kraken extends krakenRest {
         //     }
         //
         const data = this.safeList (message, 'data', []) as List;
-        const trade = data[0];
+        const trade = this.safeDict (data, 0);
         const symbol = this.safeString (trade, 'symbol') as string;
         const messageHash = this.getMessageHash ('trade', undefined, symbol);
         let stored = this.safeValue (this.trades, symbol);
@@ -609,7 +624,7 @@ export default class kraken extends krakenRest {
         //     }
         //
         const data = this.safeList (message, 'data', []) as List;
-        const first = data[0];
+        const first = this.safeDict (data, 0);
         const marketId = this.safeString (first, 'symbol');
         const symbol = this.safeSymbol (marketId);
         if (!(symbol in this.ohlcvs)) {
@@ -627,7 +642,7 @@ export default class kraken extends krakenRest {
         }
         const ohlcvsLength = data.length;
         for (let i = 0; i < ohlcvsLength; i++) {
-            const candle = data[i];
+            const candle = this.safeDict (data, i);
             const datetime = this.safeString (candle, 'interval_begin');
             const timestamp = this.parse8601 (datetime);
             const parsed = [
@@ -1007,7 +1022,7 @@ export default class kraken extends krakenRest {
     customHandleDeltas (bookside: any, deltas: any[]) {
         // const sortOrder = (key === 'bids') ? true : false;
         for (let j = 0; j < deltas.length; j++) {
-            const delta = deltas[j];
+            const delta = this.safeDict (deltas, j);
             const price = this.safeNumber (delta, 'price');
             const amount = this.safeNumber (delta, 'qty');
             bookside.store (price, amount);
@@ -1275,7 +1290,10 @@ export default class kraken extends krakenRest {
         }
         const datetime = this.safeString (trade, 'timestamp');
         const liquidityIndicator = this.safeString (trade, 'liquidity_ind');
-        const takerOrMaker = (liquidityIndicator === 't') ? 'taker' : 'maker';
+        let takerOrMaker: Str = 'maker';
+        if (liquidityIndicator === 't') {
+            takerOrMaker = 'taker';
+        }
         return {
             'info': trade,
             'id': this.safeString (trade, 'exec_id'),

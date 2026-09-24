@@ -1411,8 +1411,7 @@ impl CoinbaseexchangeCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_529: bool = true;
             while { if !__for_first_529 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_529 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
-            let mut balance: Value = get_value(&response, &i);
-            let mut balance: Value = get_value(&response, &i);
+            let mut balance: Value = self.safe_dict(response.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut account: Value = self.account();
@@ -1743,7 +1742,10 @@ impl CoinbaseexchangeCore {
             m
         });
         let mut id: Value = self.safe_string_k(trade.clone(), "trade_id", &[]);
-        let mut side: Value = (if (trade.as_map().and_then(|__m| __m.get("side")).cloned().unwrap_or(Value::Null).as_str() == Some("buy")) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
+        let mut side: Value = Value::Str("buy".into());
+        if (trade.as_map().and_then(|__m| __m.get("side")).cloned().unwrap_or(Value::Null).as_str() == Some("buy")) {
+            side = Value::Str("sell".into());
+        }
         let mut orderId: Value = self.safe_string_k(trade.clone(), "order_id", &[]);
         // Coinbase Pro returns inverted side to fetchMyTrades vs fetchTrades
         let mut makerOrderId: Option<String> = self.safe_string_k(trade.clone(), "maker_order_id", &[]).as_str().map(str::to_owned);
@@ -1800,7 +1802,7 @@ impl CoinbaseexchangeCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol argument".into()))));
         }
         let mut paginate: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_bool_and_params(params.clone(), Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&paginate) {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchMyTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), params.clone(), Value::Int(100)]).await;
         }
@@ -2247,7 +2249,7 @@ impl CoinbaseexchangeCore {
             self.load_markets(&[]).await;
         }
         let mut paginate: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOpenOrders".into()), Value::Str("paginate".into()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_bool_and_params(params.clone(), Value::Str("fetchOpenOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&paginate) {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchOpenOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), params.clone(), Value::Int(100)]).await;
         }
@@ -2729,7 +2731,7 @@ impl CoinbaseexchangeCore {
                 if (account == Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositsWithdrawals() could not find account id for ".into())).into()), code)));
                 }
-                id = account.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
+                id = self.safe_string_k(account.clone(), "id", &[]);
             }
         }
         let mut request: Value = Value::Map({
@@ -2891,15 +2893,15 @@ impl CoinbaseexchangeCore {
     pub fn parse_transaction_status(&self, mut transaction: Value) -> Value {
         let __transaction_empty = indexmap::IndexMap::new();
         let transaction = transaction.as_map().unwrap_or(&__transaction_empty);
-        let mut canceled: Value = (match transaction.get("canceled_at") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
-        if (canceled != Value::Null) && (canceled != Value::Null) {
+        let mut canceled: Option<String> = (match transaction.get("canceled_at") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        if (canceled.is_some()) && (canceled.is_some()) {
             return Value::Str("canceled".into());
         }
-        let mut processed: Value = (match transaction.get("processed_at") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
-        let mut completed: Value = (match transaction.get("completed_at") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
-        if (completed != Value::Null) && (completed != Value::Null) {
+        let mut processed: Option<String> = (match transaction.get("processed_at") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut completed: Option<String> = (match transaction.get("completed_at") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        if (completed.is_some()) && (completed.is_some()) {
             return Value::Str("ok".into());
-        }  else if (processed != Value::Null) && (processed != Value::Null) {
+        }  else if (processed.is_some()) && (processed.is_some()) {
             return Value::Str("failed".into());
         }  else {
             return Value::Str("pending".into());

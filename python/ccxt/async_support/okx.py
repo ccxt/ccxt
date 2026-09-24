@@ -1649,7 +1649,7 @@ class okx(Exchange, ImplicitAPI):
             'info': response,
         }
         for i in range(0, len(data)):
-            event = data[i]
+            event = self.safe_dict(data, i)
             state = self.safe_string(event, 'state')
             update['eta'] = self.safe_integer(event, 'end')
             update['url'] = self.safe_string(event, 'href')
@@ -2090,7 +2090,7 @@ class okx(Exchange, ImplicitAPI):
         type = 'crypto'
         chainsLength = len(chains)
         for j in range(0, chainsLength):
-            chain = chains[j]
+            chain = self.safe_dict(chains, j)
             # allow empty string for rare fiat-currencies, e.g. TRY
             networkId = self.safe_string(chain, 'chain', '')  # USDT-BEP20, USDT-Avalance-C, etc
             if networkId == '':
@@ -2159,7 +2159,7 @@ class okx(Exchange, ImplicitAPI):
             'instId': market['id'],
         }
         rpi = False
-        rpi, params = self.handle_option_and_params(params, 'fetchOrderBook', 'rpi')
+        rpi, params = self.handle_option_bool_and_params(params, 'fetchOrderBook', 'rpi', False)
         method = None
         method, params = self.handle_option_string_and_params(params, 'fetchOrderBook', 'method', 'publicGetMarketBooks')
         if method == 'publicGetMarketBooksFull' and limit is None:
@@ -2556,7 +2556,7 @@ class okx(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchTrades', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchTrades', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchTrades', symbol, since, limit, params, 'tradeId', 'after', None, 100)
         market = self.market(symbol)
@@ -2665,7 +2665,7 @@ class okx(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 200)
         priceType = self.safe_string(params, 'price')
@@ -2761,7 +2761,7 @@ class okx(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 100)
         market = self.market(symbol)
@@ -2823,7 +2823,7 @@ class okx(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(first, 'uTime')
         details = self.safe_list(first, 'details', [])
         for i in range(0, len(details)):
-            balance = details[i]
+            balance = self.safe_dict(details, i)
             currencyId = self.safe_string(balance, 'ccy')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -2846,7 +2846,7 @@ class okx(Exchange, ImplicitAPI):
         result = {'info': response}
         data = self.safe_list(response, 'data', [])
         for i in range(0, len(data)):
-            balance = data[i]
+            balance = self.safe_dict(data, i)
             currencyId = self.safe_string(balance, 'ccy')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -3179,12 +3179,12 @@ class okx(Exchange, ImplicitAPI):
         elif contract is True:
             if (market['swap'] is True) or (market['future'] is True):
                 positionSide = None
-                positionSide, params = self.handle_option_and_params(params, 'createOrder', 'positionSide')
+                positionSide, params = self.handle_option_string_and_params(params, 'createOrder', 'positionSide')
                 if positionSide is not None:
                     request['posSide'] = positionSide
                 else:
                     hedged = None
-                    hedged, params = self.handle_option_and_params(params, 'createOrder', 'hedged')
+                    hedged, params = self.handle_option_bool_and_params(params, 'createOrder', 'hedged')
                     if hedged is True:
                         isBuy = (side == 'buy')
                         isProtective = (takeProfitPrice is not None) or (stopLossPrice is not None) or isReduceOnly
@@ -3438,7 +3438,7 @@ class okx(Exchange, ImplicitAPI):
             await self.load_markets()
         ordersRequests = []
         for i in range(0, len(orders)):
-            rawOrder = orders[i]
+            rawOrder = self.safe_dict(orders, i)
             marketId = self.safe_string(rawOrder, 'symbol')
             if marketId is None:
                 raise ArgumentsRequired(self.id + ' createOrders() requires a symbol for each order')
@@ -3797,7 +3797,7 @@ class okx(Exchange, ImplicitAPI):
         if isStopOrTrailing is True:
             method = 'privatePostTradeCancelAlgos'
         for i in range(0, len(orders)):
-            order = orders[i]
+            order = self.safe_dict(orders, i)
             id = self.safe_string(order, 'id')
             clientOrderId = self.safe_string_2(order, 'clOrdId', 'clientOrderId')
             symbol = self.safe_string(order, 'symbol')
@@ -4348,7 +4348,7 @@ class okx(Exchange, ImplicitAPI):
             await self.load_markets()
         maxLimit = 100
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOpenOrders', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchOpenOrders', symbol, since, limit, params, maxLimit)
         request = {
@@ -4687,7 +4687,7 @@ class okx(Exchange, ImplicitAPI):
             await self.load_markets()
         maxLimit = 100
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchClosedOrders', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchClosedOrders', symbol, since, limit, params, maxLimit)
         request = {
@@ -4857,7 +4857,7 @@ class okx(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params)
         request = {
@@ -4951,7 +4951,7 @@ class okx(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchLedger', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchLedger', code, since, limit, params)
         options = self.safe_dict(self.options, 'fetchLedger', {})
@@ -5130,7 +5130,7 @@ class okx(Exchange, ImplicitAPI):
             'fee': fee,
         }, currency)
 
-    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "addr": "okbtothemoon",
@@ -5378,7 +5378,7 @@ class okx(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchDeposits', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchDeposits', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchDeposits', code, since, limit, params)
         request = {
@@ -5481,7 +5481,7 @@ class okx(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchWithdrawals', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchWithdrawals', code, since, limit, params)
         request = {
@@ -5776,7 +5776,7 @@ class okx(Exchange, ImplicitAPI):
         longLeverage = None
         shortLeverage = None
         for i in range(0, len(leverage)):
-            entry = leverage[i]
+            entry = self.safe_dict(leverage, i)
             marginMode = self.safe_string_lower(entry, 'mgnMode')
             marketId = self.safe_string(entry, 'instId')
             positionSide = self.safe_string_lower(entry, 'posSide')
@@ -7027,7 +7027,7 @@ class okx(Exchange, ImplicitAPI):
         #
         borrowRateHistories = {}
         for i in range(0, len(response)):
-            item = response[i]
+            item = self.safe_dict(response, i)
             code = self.safe_currency_code(self.safe_string(item, 'ccy'))
             if (code is not None) and (codes is None or self.in_array(code, codes)):
                 if not (code in borrowRateHistories):
@@ -7344,7 +7344,7 @@ class okx(Exchange, ImplicitAPI):
         #
         tiers = []
         for i in range(0, len(info)):
-            tier = info[i]
+            tier = self.safe_dict(info, i)
             marketId = self.safe_string(tier, 'instId')
             tiers.append({
                 'tier': self.safe_integer(tier, 'tier'),
@@ -7663,10 +7663,10 @@ class okx(Exchange, ImplicitAPI):
         market = None
         if ((self.markets is not None) and (symbol in self.markets)) or ((self.markets_by_id is not None) and (symbol in self.markets_by_id)):
             market = self.market(symbol)
-            currencyId = market['baseId']
+            currencyId = self.safe_string(market, 'baseId')
         else:
             currency = self.currency(symbol)
-            currencyId = currency['id']
+            currencyId = self.safe_string(currency, 'id')
         request = {
             'ccy': currencyId,
             'period': timeframe,
@@ -7970,7 +7970,7 @@ class okx(Exchange, ImplicitAPI):
         #
         result = []
         for i in range(0, len(settlements)):
-            entry = settlements[i]
+            entry = self.safe_dict(settlements, i)
             timestamp = self.safe_integer(entry, 'ts')
             details = self.safe_list(entry, 'details', [])
             for j in range(0, len(details)):
@@ -8762,7 +8762,7 @@ class okx(Exchange, ImplicitAPI):
             feedback = self.id + ' ' + body
             data = self.safe_list(response, 'data', [])
             for i in range(0, len(data)):
-                error = data[i]
+                error = self.safe_dict(data, i)
                 errorCode = self.safe_string(error, 'sCode')
                 message = self.safe_string(error, 'sMsg')
                 self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
@@ -8990,7 +8990,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(data)):
-            entry = data[i]
+            entry = self.safe_list(data, i)
             result.append({
                 'timestamp': self.safe_string(entry, 0),
                 'longShortRatio': self.safe_string(entry, 1),

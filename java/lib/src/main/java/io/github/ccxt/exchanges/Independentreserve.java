@@ -550,7 +550,7 @@ public class Independentreserve extends IndependentreserveApi
         }};
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
-            Object balance = Helpers.GetValue(response, i);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i);
             String currencyId = this.safeString(balance, "CurrencyCode");
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
@@ -802,17 +802,17 @@ public class Independentreserve extends IndependentreserveApi
         String baseId = this.safeString(order, "PrimaryCurrencyCode");
         String quoteId = this.safeString(order, "SecondaryCurrencyCode");
         Object base = null;
-        Object quote = null;
+        String quote = null;
         if ((!java.util.Objects.equals(baseId, null)) && (!java.util.Objects.equals(quoteId, null)))
         {
             base = this.safeCurrencyCode(baseId);
             quote = this.safeCurrencyCode(quoteId);
-            symbol = Helpers.add((base + "/"), quote);
+            symbol = ((base + "/") + quote);
         } else if (!java.util.Objects.equals(market, null))
         {
             symbol = ((Map<String, Object>)market).get("symbol");
             base = ((Map<String, Object>)market).get("base");
-            quote = ((Map<String, Object>)market).get("quote");
+            quote = this.safeString(market, "quote");
         }
         String orderType = this.safeString2(order, "Type", "OrderType");
         String side = null;
@@ -1446,7 +1446,7 @@ public class Independentreserve extends IndependentreserveApi
             //        NextUpdateTimestampUtc: '2024-02-20T11:14:56.5112394Z'
             //    }
             //
-            return this.parseDepositAddress(response);
+            return this.parseDepositAddress((Map<String, Object>) (response));
         }).thenApply(DepositAddress::new);
 
     }
@@ -1464,7 +1464,7 @@ public class Independentreserve extends IndependentreserveApi
         return this.fetchDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseDepositAddress(Object depositAddress, Map<String, Object> currency)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         //
         //    {
@@ -1484,7 +1484,7 @@ public class Independentreserve extends IndependentreserveApi
             put( "tag", Independentreserve.this.safeString(depositAddress, "Tag") );
         }};
     }
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Object... optionalArgs)
     {
         return this.parseDepositAddress(depositAddress, Helpers.getArgMap(optionalArgs, 0, null));
     }

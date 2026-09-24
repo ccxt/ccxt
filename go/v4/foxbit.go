@@ -443,12 +443,7 @@ func (this *Foxbit) ParseCurrency(rawCurrency any) any {
 	var typeVar *string = this.SafeStringLower(rawCurrency, "type")
 	var parsedNetworks map[string]any = map[string]any{}
 	for j := 0; j < len(networks); j++ {
-		var network map[string]any = MapTyped(func() any {
-			if j >= 0 && j < len(networks) {
-				return DerefScalar(networks[j])
-			}
-			return nil
-		}())
+		var network map[string]any = SafeMapTyped(networks, j)
 		var networkId *string = this.SafeString(network, "code")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		var networkWithdrawInfo map[string]any = SafeMapTyped(network, "withdraw_info")
@@ -692,7 +687,7 @@ func (this *Foxbit) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	//      }
 	//    ]
 	//  }
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var result map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 
 	ch <- this.ParseTicker(result, market)
@@ -1038,12 +1033,7 @@ func (this *Foxbit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		"info": response,
 	}
 	for i := 0; i < len(accounts); i++ {
-		var account map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(accounts) {
-				return DerefScalar(accounts[i])
-			}
-			return nil
-		}())
+		var account map[string]any = SafeMapTyped(accounts, i)
 		var currencyId *string = this.SafeString(account, "currency_symbol")
 		var currencyCode *string = this.SafeCurrencyCode(currencyId)
 		var total *string = this.SafeString(account, "balance")
@@ -1425,7 +1415,7 @@ func (this *Foxbit) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	//         }
 	//     ]
 	// }
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var result map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 
 	ch <- this.ParseOrder(result)
@@ -2263,11 +2253,11 @@ func (this *Foxbit) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(ticker, "market_symbol")
 	var symbol *string = this.SafeSymbol(marketId, market, nil, "spot")
-	var rolling_24h map[string]any = MapTyped(GetValue(ticker, "rolling_24h"))
+	var rolling_24h map[string]any = SafeMapTyped(ticker, "rolling_24h")
 	var best map[string]any = SafeMapTyped(ticker, "best")
 	var bestAsk map[string]any = SafeMapTyped(best, "ask")
 	var bestBid map[string]any = SafeMapTyped(best, "bid")
-	var lastTrade map[string]any = MapTyped(GetValue(ticker, "last_trade"))
+	var lastTrade map[string]any = SafeMapTyped(ticker, "last_trade")
 	var lastPrice *string = this.SafeString(lastTrade, "price")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -2341,12 +2331,12 @@ func (this *Foxbit) ParseOrderStatus(status *string) *string {
 func (this *Foxbit) ParseOrder(order any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var symbol any = DerefScalar(this.SafeString(order, "market_symbol"))
-	if (market == nil) && !IsEqual(symbol, nil) {
+	var symbol *string = this.SafeString(order, "market_symbol")
+	if (market == nil) && (symbol != nil) {
 		market = this.Market(symbol)
 	}
 	if market != nil {
-		symbol = GetValue(market, "symbol")
+		symbol = this.SafeString(market, "symbol")
 	}
 	var timestamp any = this.ParseDate(this.SafeString(order, "created_at"))
 	var price *string = this.SafeString(order, "price")

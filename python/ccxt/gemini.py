@@ -493,7 +493,9 @@ class gemini(Exchange, ImplicitAPI):
         code = self.safe_currency_code(id)
         fiatFlag = self.safe_string(rawCurrency, 7)
         isFiat = (fiatFlag is not None) and (fiatFlag != '')
-        type = 'fiat' if isFiat else 'crypto'
+        type = 'crypto'
+        if isFiat:
+            type = 'fiat'
         precision = self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 5)))
         networks = {}
         networkId = self.safe_string(rawCurrency, 9)
@@ -840,7 +842,9 @@ class gemini(Exchange, ImplicitAPI):
             contractSize = tickSize  # always same
             linear = True  # always linear
             inverse = False
-        type = 'swap' if swap else 'spot'
+        type = 'spot'
+        if swap:
+            type = 'swap'
         isSpot = not swap
         return self.safe_market_structure({
             'id': marketId,
@@ -1218,7 +1222,7 @@ class gemini(Exchange, ImplicitAPI):
     def parse_balance(self, response: object) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
-            balance = response[i]
+            balance = self.safe_dict(response, i)
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -1418,7 +1422,7 @@ class gemini(Exchange, ImplicitAPI):
         elif type == 'market buy' or type == 'market sell':
             type = 'market'
         else:
-            type = order['type']
+            type = self.safe_string(order, 'type')
         fee = None
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market)
@@ -1849,7 +1853,7 @@ class gemini(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         #
         #      {
         #          "address": "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",

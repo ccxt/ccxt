@@ -2351,7 +2351,10 @@ impl CoinexCore {
             let mut quoteId: Value = self.safe_string_k(entry.clone(), "quote_ccy", &[]);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-            let mut settleId: Value = (if (subType.as_deref() == Some("linear")) { Value::Str("USDT".into()) } else { baseId.clone() });
+            let mut settleId: Value = baseId.clone();
+            if (subType.as_deref() == Some("linear")) {
+                settleId = Value::Str("USDT".into());
+            }
             let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
             let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into());
             let mut leveragesLength: Value = Value::Int(leverages.len() as i64);
@@ -2806,7 +2809,7 @@ impl CoinexCore {
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "created_at", &[]);
         let mut defaultType: Value = self.safe_string_k(self.options.clone(), "defaultType", &[]);
         if (market != Value::Null) {
-            defaultType = market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
+            defaultType = self.safe_string_k(market.clone(), "type", &[]);
         }
         let mut marketId: Value = self.safe_string_k(trade.clone(), "market", &[]);
         market = self.safe_market(&[marketId, market.clone(), Value::Null, defaultType]);
@@ -3118,7 +3121,7 @@ impl CoinexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_548: bool = true;
             while { if !__for_first_548 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_548 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
-            let mut entry: Value = balances.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
             let mut free: Value = self.safe_dict_k(entry.clone(), "available", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3185,7 +3188,7 @@ impl CoinexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_549: bool = true;
             while { if !__for_first_549 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_549 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
-            let mut entry: Value = balances.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "ccy", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut account: Value = self.account();
@@ -3236,7 +3239,7 @@ impl CoinexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_550: bool = true;
             while { if !__for_first_550 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_550 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
-            let mut entry: Value = balances.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "ccy", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut account: Value = self.account();
@@ -3284,7 +3287,7 @@ impl CoinexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_551: bool = true;
             while { if !__for_first_551 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_551 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
-            let mut entry: Value = balances.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "ccy", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut account: Value = self.account();
@@ -3572,12 +3575,15 @@ impl CoinexCore {
         if (orderType.as_str() == Some("futures")) {
             orderType = Value::Str("swap".into());
         }
-        let mut marketType: Value = (if (orderType.as_str() == Some("swap")) { Value::Str("swap".into()) } else { Value::Str("spot".into()) });
+        let mut marketType: Value = Value::Str("spot".into());
+        if (orderType.as_str() == Some("swap")) {
+            marketType = Value::Str("swap".into());
+        }
         market = self.safe_market(&[marketId, market.clone(), Value::Null, marketType]);
         let mut feeCurrencyId: Value = self.safe_string_k(order.clone(), "fee_ccy", &[]);
         let mut feeCurrency: Value = self.safe_currency_code(feeCurrencyId, &[]);
         if (feeCurrency == Value::Null) {
-            feeCurrency = market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
+            feeCurrency = self.safe_string_k(market.clone(), "quote", &[]);
         }
         let mut side: Value = self.safe_string_k(order.clone(), "side", &[]);
         if (side.as_str() == Some("long")) {
@@ -3876,7 +3882,7 @@ impl CoinexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_552: bool = true;
             while { if !__for_first_552 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_552 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
-            let mut rawOrder: Value = orders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
             if (symbol == Value::Null) {
                 symbol = marketId.clone();
@@ -4043,7 +4049,7 @@ impl CoinexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_555: bool = true;
             while { if !__for_first_555 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_555 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut entry: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = self.safe_dict(data.clone(), i.clone(), &[]);
             let mut item: Value = self.safe_dict_k(entry, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4168,7 +4174,7 @@ impl CoinexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_556: bool = true;
             while { if !__for_first_556 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_556 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
-            let mut rawOrder: Value = orders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
             let mut market: Value = self.market(marketId.clone());
             if (marketId != Value::Null) {
@@ -4227,7 +4233,7 @@ impl CoinexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_557: bool = true;
             while { if !__for_first_557 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_557 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut entry: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = self.safe_dict(data.clone(), i.clone(), &[]);
             let mut code: Value = self.safe_string_k(entry.clone(), "code", &[]);
             let mut message: Value = self.safe_string_k(entry.clone(), "message", &[Value::Str("".into())]);
             if (code.as_str() != Some("0")) || ((message.as_str() != Some("Success")) && (message.as_str() != Some("Succeeded")) && (to_lower(&message).as_str() != Some("ok")) && (data == Value::Null)) {
@@ -5253,7 +5259,12 @@ impl CoinexCore {
             let mut marketId: Value = self.safe_string_k(info.clone(), "market", &[]);
             market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, Value::Str("swap".into())]);
             let mut maxNotional: Value = self.safe_number_k(tier.clone(), "amount", &[]);
-            let mut curr: Value = (if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) { market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null) });
+            let mut curr: Value = Value::Null;
+            if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+                curr = market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null);
+            }  else {
+                curr = market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
+            }
             let mut notional: Value = minNotional.clone();
             append_to_array(&mut tiers, Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -5341,7 +5352,10 @@ impl CoinexCore {
     m
 })]);
         let mut status: Value = self.safe_string_lower_k(response, "message", &[]);
-        let mut type_var: Value = (if (addOrReduce.as_str() == Some("reduce")) { Value::Str("reduce".into()) } else { Value::Str("add".into()) });
+        let mut type_var: Value = Value::Str("add".into());
+        if (addOrReduce.as_str() == Some("reduce")) {
+            type_var = Value::Str("reduce".into());
+        }
         let __ws_arg_51 = self.parse_margin_modification(data, &[market]);
         let __ws_arg_52 = self.parse_number(amount, &[]);
         return self.extend(__ws_arg_51, &[Value::Map({
@@ -5881,7 +5895,7 @@ impl CoinexCore {
             self.load_markets(&[]).await;
         }
         let mut paginate: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_bool_and_params(params.clone(), Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&paginate) {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".into()), params.clone(), Value::Int(1000)]).await;
         }
@@ -6012,7 +6026,10 @@ impl CoinexCore {
         let mut currencyId: Value = self.safe_string_k(transaction.clone(), "ccy", &[]);
         let mut code: Value = self.safe_currency_code(currencyId, &[currency]);
         let mut timestamp: Value = self.safe_integer_k(transaction.clone(), "created_at", &[]);
-        let mut type_var: Value = (if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("withdraw_id"))) { Value::Str("withdrawal".into()) } else { Value::Str("deposit".into()) });
+        let mut type_var: Value = Value::Str("deposit".into());
+        if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("withdraw_id"))) {
+            type_var = Value::Str("withdrawal".into());
+        }
         let mut networkId: Value = self.safe_string_k(transaction.clone(), "chain", &[]);
         let mut feeCost: Value = self.safe_string_k(transaction.clone(), "tx_fee", &[]);
         let mut transferMethod: Option<String> = self.safe_string_lower2(transaction.clone(), Value::Str("withdraw_method".into()), Value::Str("deposit_method".into()), &[]).as_str().map(str::to_owned);
@@ -6863,7 +6880,7 @@ impl CoinexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_563: bool = true;
             while { if !__for_first_563 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_563 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut item: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut item: Value = self.safe_dict(data.clone(), i.clone(), &[]);
             let mut asset: Value = self.safe_dict_k(item.clone(), "asset", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6946,7 +6963,7 @@ impl CoinexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_564: bool = true;
             while { if !__for_first_564 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_564 = false; i.as_f64().unwrap_or(f64::NAN) < ((chains.len() as i64) as f64) } {
-            let mut entry: Value = chains.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = self.safe_dict(chains.clone(), i.clone(), &[]);
             let mut isWithdrawEnabled: Value = self.safe_bool_k(entry.clone(), "withdraw_enabled", &[]);
             if (isWithdrawEnabled.as_bool() == Some(true)) {
                 add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".into())), &Value::Str("fee".into()), self.safe_number_k(entry.clone(), "withdrawal_fee", &[]));

@@ -1051,12 +1051,7 @@ func (this *Krakenfutures) ParseTradingFee(fee map[string]any, optionalArgs ...a
 	var makerFee *string = nil
 	var takerFee *string = nil
 	for i := 0; i < len(tiers); i++ {
-		var tier map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(tiers) {
-				return DerefScalar(tiers[i])
-			}
-			return nil
-		}())
+		var tier map[string]any = SafeMapTyped(tiers, i)
 		var tierVolume *string = this.SafeString(tier, "usdVolume")
 		if (volume == nil) || Precise.StringGe(volume, tierVolume) {
 			makerFee = this.SafeString(tier, "makerFee")
@@ -1112,7 +1107,7 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan any, symbol any, optionalArgs 
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -1221,7 +1216,7 @@ func (this *Krakenfutures) fetchTradesBody(ch chan any, symbol any, optionalArgs
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchTrades", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -1309,7 +1304,7 @@ func (this *Krakenfutures) fetchTradesBody(ch chan any, symbol any, optionalArgs
 		var length int = len(elements)
 		for i := 0; i < length; i++ {
 			var index any = Subtract(Subtract(length, 1), i)
-			var element map[string]any = MapTyped(GetValue(elements, index))
+			var element map[string]any = SafeMapTyped(elements, index)
 			var event map[string]any = SafeMapTyped(element, "event")
 			var executionContainer map[string]any = SafeMapTyped(event, "Execution")
 			var rawTrade map[string]any = MapTyped(this.SafeDict(executionContainer, "execution", map[string]any{}))
@@ -1562,7 +1557,7 @@ func (this *Krakenfutures) CreateOrderRequest(symbol any, typeVar any, side any,
 	var isTakeProfitTriggerOrder bool = (takeProfitTriggerPrice != nil)
 	var isStopLossOrTakeProfitTrigger bool = isStopLossTriggerOrder || isTakeProfitTriggerOrder
 	var triggerSignal *string = this.SafeString(params, "triggerSignal", "last")
-	var reduceOnly any = this.SafeValue(params, "reduceOnly")
+	var reduceOnly any = this.SafeBool(params, "reduceOnly")
 	if isStopLossOrTakeProfitTrigger || isTriggerOrder {
 		request["triggerSignal"] = triggerSignal
 	}
@@ -1579,7 +1574,7 @@ func (this *Krakenfutures) CreateOrderRequest(symbol any, typeVar any, side any,
 			request["stopPrice"] = this.PriceToPrecision(symbol, takeProfitTriggerPrice)
 		}
 	}
-	if reduceOnly == true {
+	if IsEqual(reduceOnly, true) {
 		request["reduceOnly"] = true
 	}
 	request["orderType"] = typeVar
@@ -1735,7 +1730,7 @@ func (this *Krakenfutures) createOrdersBody(ch chan any, orders any, optionalArg
 	}
 	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
+		var rawOrder map[string]any = SafeMapTyped(orders, i)
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
@@ -2027,7 +2022,7 @@ func (this *Krakenfutures) cancelAllOrdersBody(ch chan any, optionalArgs ...any)
 	//    }
 	//
 	var cancelStatus map[string]any = SafeMapTyped(response, "cancelStatus")
-	var orderEvents []any = SafeListTypedDefault(cancelStatus, "orderEvents", []any{})
+	var orderEvents []any = SafeListTyped(cancelStatus, "orderEvents")
 	var orders []any = []any{}
 	for i := 0; i < len(orderEvents); i++ {
 		var orderEvent map[string]any = SafeMapTyped(orderEvents, 0)
@@ -2271,12 +2266,7 @@ func (this *Krakenfutures) fetchClosedOrdersBody(ch chan any, optionalArgs ...an
 	var allOrders []any = SafeListTyped(response, "elements")
 	var closedOrders []any = []any{}
 	for i := 0; i < len(allOrders); i++ {
-		var order map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(allOrders) {
-				return DerefScalar(allOrders[i])
-			}
-			return nil
-		}())
+		var order map[string]any = SafeMapTyped(allOrders, i)
 		var event map[string]any = SafeMapTyped(order, "event")
 		var orderPlaced map[string]any = SafeDict2Typed(event, "OrderPlaced", "OrderTriggerActivated")
 		var orderUpdated map[string]any = SafeMapTyped(event, "OrderUpdated")
@@ -2357,12 +2347,7 @@ func (this *Krakenfutures) fetchCanceledOrdersBody(ch chan any, optionalArgs ...
 	var allOrders []any = SafeListTyped(response, "elements")
 	var canceledAndRejected []any = []any{}
 	for i := 0; i < len(allOrders); i++ {
-		var order map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(allOrders) {
-				return DerefScalar(allOrders[i])
-			}
-			return nil
-		}())
+		var order map[string]any = SafeMapTyped(allOrders, i)
 		var event map[string]any = SafeMapTyped(order, "event")
 		var isCancelledTriggerOrder bool = (func() bool { _, ok := event["OrderTriggerCancelled"]; return ok }())
 		var orderPlaced map[string]any = SafeDict2Typed(event, "OrderPlaced", "OrderTriggerCancelled")
@@ -2880,7 +2865,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) any {
 	if tradesLength > 0 {
 		var vwapSum any = "0.0"
 		for i := 0; i < GetArrayLength(trades); i++ {
-			var trade map[string]any = MapTyped(GetValue(trades, i))
+			var trade map[string]any = SafeMapTyped(trades, i)
 			var tradeAmount *string = this.SafeString(trade, "amount")
 			var tradePrice *string = this.SafeString(trade, "price")
 			filled2 = Precise.StringAdd(filled2, tradeAmount)
@@ -2913,13 +2898,11 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var cost *string = nil
 	if (filled != nil) && (market != nil) {
-		var whichPrice any = func() any {
-			if average != nil {
-				return average
-			}
-			return price
-		}()
-		if whichPrice != nil {
+		var whichPrice any = price
+		if average != nil {
+			whichPrice = average
+		}
+		if !IsEqual(whichPrice, nil) {
 			if GetValue(market, "linear") == true {
 				cost = Precise.StringMul(filled, whichPrice) // in quote
 			} else {
@@ -3642,12 +3625,7 @@ func (this *Krakenfutures) fetchFundingRatesBody(ch chan any, optionalArgs ...an
 	var tickers []any = SafeListTyped(response, "tickers")
 	var fundingRates []any = []any{}
 	for i := 0; i < len(tickers); i++ {
-		var entry any = func() any {
-			if i >= 0 && i < len(tickers) {
-				return DerefScalar(tickers[i])
-			}
-			return nil
-		}()
+		var entry map[string]any = SafeMapTyped(tickers, i)
 		var entry_symbol *string = this.SafeString(entry, "symbol")
 		if !IsEqual(marketIds, nil) {
 			if !this.InArray(entry_symbol, marketIds) {
@@ -3790,7 +3768,7 @@ func (this *Krakenfutures) fetchFundingRateHistoryBody(ch chan any, optionalArgs
 	var rates any = this.SafeValue(response, "rates")
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(rates); i++ {
-		var item any = GetValue(rates, i)
+		var item map[string]any = SafeMapTyped(rates, i)
 		var datetime *string = this.SafeString(item, "timestamp")
 		result = append(result, map[string]any{
 			"info":        item,
@@ -4326,8 +4304,8 @@ func (this *Krakenfutures) transferOutBody(ch chan any, code any, amount any, op
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes362815 map[string]any = MapTyped(PanicOnError((<-this.TransferAsync(code, amount, "future", "spot", params))))
-	ch <- BoxAbsent(retRes362815)
+	var retRes363115 map[string]any = MapTyped(PanicOnError((<-this.TransferAsync(code, amount, "future", "spot", params))))
+	ch <- BoxAbsent(retRes363115)
 	return nil
 }
 
@@ -4529,7 +4507,7 @@ func (this *Krakenfutures) fetchLeverageBody(ch chan any, symbol any, optionalAr
 	//         "leveragePreferences": [ { symbol: "PF_LTCUSD", maxLeverage: "5.00" } ]
 	//     }
 	//
-	var leveragePreferences []any = SafeListTypedDefault(response, "leveragePreferences", []any{})
+	var leveragePreferences []any = SafeListTyped(response, "leveragePreferences")
 	var data map[string]any = MapTyped(this.SafeDict(leveragePreferences, 0, map[string]any{}))
 
 	ch <- this.ParseLeverage(data, market)

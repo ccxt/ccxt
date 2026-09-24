@@ -1356,7 +1356,7 @@ class weex(Exchange, ImplicitAPI):
         #
         return self.parse_last_prices(response, symbols)
 
-    def parse_last_price(self, entry: object, market: Market = None) -> LastPrice:
+    def parse_last_price(self, entry: dict, market: Market = None) -> LastPrice:
         #
         #     {
         #         "symbol": "ETHUSDT",
@@ -1563,13 +1563,13 @@ class weex(Exchange, ImplicitAPI):
             self.load_markets()
         maxHistoricalLimit = 100
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             params = self.extend(params, {'historical': True})
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxHistoricalLimit)
         until = self.safe_integer(params, 'until')
         historical = False
-        historical, params = self.handle_option_and_params(params, 'fetchOHLCV', 'historical')
+        historical, params = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'historical', False)
         timeframeOption = self.safe_dict(self.options, 'timeframes', {})
         contractTimeframes = self.safe_dict(timeframeOption, 'contract', {})
         market = self.market(symbol)
@@ -1725,7 +1725,9 @@ class weex(Exchange, ImplicitAPI):
         if market is None:
             marketId = self.safe_string(trade, 'symbol')
             realizedPnl = self.safe_string(trade, 'realizedPnl')
-            marketType = 'swap' if (realizedPnl is not None) else 'spot'
+            marketType = 'spot'
+            if realizedPnl is not None:
+                marketType = 'swap'
             market = self.safe_market(marketId, None, None, marketType)
             isSpot = marketType == 'spot'
         else:
@@ -1737,9 +1739,9 @@ class weex(Exchange, ImplicitAPI):
             feeCurrency = self.safe_currency_code(commissionAsset)
             if isSpot is True:
                 if side == 'buy':
-                    feeCurrency = market['base']
+                    feeCurrency = self.safe_string(market, 'base')
                 else:
-                    feeCurrency = market['quote']
+                    feeCurrency = self.safe_string(market, 'quote')
             fee = {
                 'cost': commission,
                 'currency': feeCurrency,
@@ -2983,7 +2985,9 @@ class weex(Exchange, ImplicitAPI):
         if market is None:
             marketId = self.from_sandbox_market_id(self.safe_string(order, 'symbol'))
             positionSide = self.safe_string(order, 'positionSide')
-            marketType = 'spot' if (positionSide is None) else 'swap'
+            marketType = 'swap'
+            if positionSide is None:
+                marketType = 'spot'
             market = self.safe_market(marketId, None, None, marketType)
         timestamp = self.safe_integer_n(order, ['transactTime', 'time', 'createTime'])
         rawStatus = self.safe_string_lower_2(order, 'status', 'algoStatus')  # algo (trigger) order payloads carry algoStatus instead of status
@@ -3399,7 +3403,7 @@ class weex(Exchange, ImplicitAPI):
         items = self.safe_list(response, 'items', [])
         return self.parse_incomes(items, market, since, limit)
 
-    def parse_income(self, income: object, market: Market = None) -> object:
+    def parse_income(self, income: dict, market: Market = None) -> object:
         #
         #     {
         #         "billId": "793622764958253481",
@@ -3931,7 +3935,9 @@ class weex(Exchange, ImplicitAPI):
         marginMode, params = self.handle_margin_mode_and_params('setPositionMode', params)
         if marginMode is None:
             raise ArgumentsRequired(self.id + ' setPositionMode() also sets marginMode, so a marginMode parameter is required')
-        separatedType = 'SEPARATED' if hedged else 'COMBINED'
+        separatedType = 'COMBINED'
+        if hedged:
+            separatedType = 'SEPARATED'
         request = {
             'symbol': market['id'],
             'marginType': self.encode_margin_mode(marginMode),
@@ -3952,7 +3958,9 @@ class weex(Exchange, ImplicitAPI):
             'amount': self.cost_to_precision(symbol, amount),
             'type': type,
         }
-        parsedType = 'add' if (type == 1) else 'reduce'
+        parsedType = 'reduce'
+        if type == 1:
+            parsedType = 'add'
         response = self.contractPrivatePostCapiV3AccountPositionMargin(self.extend(request, params))
         return self.extend(self.parse_margin_modification(response, market), {
             'amount': self.parse_number(amount),
@@ -3968,7 +3976,9 @@ class weex(Exchange, ImplicitAPI):
         #     }
         #
         msg = self.safe_string(data, 'msg')
-        status = 'ok' if (msg == 'success') else 'failed'
+        status = 'failed'
+        if msg == 'success':
+            status = 'ok'
         timestamp = self.safe_integer(data, 'requestTime')
         return {
             'info': data,

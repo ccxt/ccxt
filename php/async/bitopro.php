@@ -1031,7 +1031,7 @@ class bitopro extends Exchange {
             'info' => $response,
         );
         for ($i = 0; $i < count($response); $i++) {
-            $balance = $response[$i];
+            $balance = $this->safe_dict($response, $i);
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $amount = $this->safe_string($balance, 'amount');

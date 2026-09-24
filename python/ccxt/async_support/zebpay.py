@@ -1677,7 +1677,7 @@ class zebpay(Exchange, ImplicitAPI):
         }
         currencyList = self.safe_list(response, 'data', [])
         for i in range(0, len(currencyList)):
-            entry = currencyList[i]
+            entry = self.safe_dict(currencyList, i)
             account = self.account()
             account['total'] = self.safe_string(entry, 'total')
             account['free'] = self.safe_string(entry, 'free')
@@ -1832,7 +1832,9 @@ class zebpay(Exchange, ImplicitAPI):
     def sign(self, path: object, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         params = self.omit(params, 'defaultType')
         isV1 = path.find('v1/') > -1
-        marketType = 'swap' if isV1 else 'spot'
+        marketType = 'spot'
+        if isV1:
+            marketType = 'swap'
         url = self.urls['api'][marketType]
         tail = '/api/' + self.implode_params(path, params)
         url += tail

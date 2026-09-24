@@ -589,7 +589,7 @@ class grvt extends Exchange {
         //     }]
         // }
         //
-        $currentBuilders = $results[0];
+        $currentBuilders = $this->safe_dict($results, 0);
         $approvedBuilder = $this->safe_list($currentBuilders, 'results', array());
         $length = count($approvedBuilder);
         $found = false;
@@ -677,7 +677,7 @@ class grvt extends Exchange {
             $promises[] = $this->sign_in();
         }
         $results = $promises;
-        $response = $results[0];
+        $response = $this->safe_dict($results, 0);
         $result = $this->safe_list($response, 'result', array());
         return $this->parse_markets($result);
     }
@@ -1254,7 +1254,7 @@ class grvt extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params);
         }
@@ -1406,7 +1406,7 @@ class grvt extends Exchange {
         $spotBalances = $this->safe_list($response, 'spot_balances', array());
         $availableBalance = $this->safe_string($response, 'available_balance');
         for ($i = 0; $i < count($spotBalances); $i++) {
-            $balance = $spotBalances[$i];
+            $balance = $this->safe_dict($spotBalances, $i);
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -2273,7 +2273,7 @@ class grvt extends Exchange {
          */
         $this->load_markets_and_sign_in();
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params);
         }
@@ -2415,7 +2415,10 @@ class grvt extends Exchange {
         $timestamp = $this->safe_integer_product($position, 'event_time', 0.000001);
         $sizeRaw = $this->safe_string($position, 'size');
         $isLong = (Precise::string_ge($sizeRaw, '0'));
-        $side = $isLong ? 'long' : 'short';
+        $side = 'short';
+        if ($isLong) {
+            $side = 'long';
+        }
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -2603,7 +2606,7 @@ class grvt extends Exchange {
          */
         $this->load_markets_and_sign_in();
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingHistory', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchFundingHistory', $symbol, $since, $limit, $params, 1000);
         }
@@ -2646,7 +2649,7 @@ class grvt extends Exchange {
         return $this->parse_incomes($result, $market, $since, $limit);
     }
 
-    public function parse_income(mixed $income, ?array $market = null) {
+    public function parse_income(array $income, ?array $market = null) {
         //
         //            {
         //                "event_time": "1765267200004987902",
@@ -3013,7 +3016,10 @@ class grvt extends Exchange {
             ));
         }
         $isMarket = $this->safe_bool($order, 'is_market');
-        $orderType = ($isMarket === true) ? 'market' : 'limit';
+        $orderType = 'limit';
+        if ($isMarket === true) {
+            $orderType = 'market';
+        }
         $isPostOnly = $this->safe_bool($order, 'post_only');
         $isReduceOnly = $this->safe_bool($order, 'reduce_only');
         $timeInForceRaw = $this->safe_string($order, 'time_in_force');

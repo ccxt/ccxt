@@ -642,7 +642,7 @@ export default class hyperliquid extends Exchange {
         for (let i = 0; i < promises.length; i++) {
             const dexName = fetchDexesList[i];
             const offset = perpDexesOffset[dexName];
-            const response = promises[i];
+            const response = this.safeList (promises, i);
             const meta = this.safeDict (response, 0, {});
             const collateralToken = this.safeString (meta, 'collateralToken');
             const universe = this.safeList (meta, 'universe', []);
@@ -1018,8 +1018,14 @@ export default class hyperliquid extends Exchange {
         //     }
         //
         const collateralTokenCode = this.safeString (market, 'collateralTokenName');
-        const quoteId = (collateralTokenCode === undefined) ? 'USDC' : collateralTokenCode;
-        const settleId = (collateralTokenCode === undefined) ? 'USDC' : collateralTokenCode;
+        let quoteId: Str = collateralTokenCode;
+        if (collateralTokenCode === undefined) {
+            quoteId = 'USDC';
+        }
+        let settleId: Str = collateralTokenCode;
+        if (collateralTokenCode === undefined) {
+            settleId = 'USDC';
+        }
         const baseName = this.safeString (market, 'name');
         let base = this.safeCurrencyCode (baseName);
         if (base === undefined) {
@@ -1187,7 +1193,7 @@ export default class hyperliquid extends Exchange {
         if (balances !== undefined) {
             const spotBalances: Dict = { 'info': response };
             for (let i = 0; i < balances.length; i++) {
-                const balance = balances[i];
+                const balance = this.safeDict (balances, i);
                 const unifiedCode = this.safeCurrencyCode (this.safeString (balance, 'coin'));
                 const code = (isSpot === true) ? this.updateSpotCurrencyCode (unifiedCode) : unifiedCode;
                 const account = this.account ();
@@ -1958,7 +1964,7 @@ export default class hyperliquid extends Exchange {
             [ userAddress, params ] = this.handlePublicAddress ('isUnifiedEnabled', params);
         }
         let enableUnifiedMargin: Bool = undefined;
-        [ enableUnifiedMargin, params ] = this.handleOptionAndParams (params, method, 'enableUnifiedMargin');
+        [ enableUnifiedMargin, params ] = this.handleOptionBoolAndParams (params, method, 'enableUnifiedMargin');
         if (enableUnifiedMargin === undefined || shouldRefresh) {
             const request: Dict = {
                 'type': 'userAbstraction',
@@ -2167,7 +2173,7 @@ export default class hyperliquid extends Exchange {
         let vaultAddress: Str = undefined;
         const randomize = this.safeBool (params, 'randomize', false);
         params = this.omit (params, 'randomize');
-        [ vaultAddress, params ] = this.handleOptionAndParams (params, 'createOrder', 'vaultAddress');
+        [ vaultAddress, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'vaultAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
         const durationMins = Math.floor (duration / 1000 / 60); // convert from ms to minutes
         const orderObj: Dict = {
@@ -2282,7 +2288,10 @@ export default class hyperliquid extends Exchange {
         const isBuy = (side === 'BUY');
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
         const slippage = this.safeString (params, 'slippage');
-        let defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
+        let defaultTimeInForce: Str = 'gtc';
+        if (isMarket) {
+            defaultTimeInForce = 'ioc';
+        }
         const postOnly = this.safeBool (params, 'postOnly', false);
         if (postOnly === true) {
             defaultTimeInForce = 'alo';
@@ -2314,7 +2323,10 @@ export default class hyperliquid extends Exchange {
             } else {
                 triggerPrice = this.priceToPrecision (symbol, stopLossPrice);
             }
-            const tpSlType = (isTp) ? 'tp' : 'sl';
+            let tpSlType: Str = 'sl';
+            if (isTp) {
+                tpSlType = 'tp';
+            }
             orderType['trigger'] = {
                 'isMarket': isMarket,
                 'triggerPx': triggerPrice,
@@ -2355,7 +2367,7 @@ export default class hyperliquid extends Exchange {
         defaultSlippage = this.safeString (params, 'slippage', defaultSlippage);
         let hasClientOrderId = false;
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const clientOrderId = this.safeString2 (orderParams, 'clientOrderId', 'client_id');
             if (clientOrderId !== undefined) {
@@ -2364,7 +2376,7 @@ export default class hyperliquid extends Exchange {
         }
         if (hasClientOrderId) {
             for (let i = 0; i < orders.length; i++) {
-                const rawOrder = orders[i];
+                const rawOrder = this.safeDict (orders, i);
                 const orderParams = this.safeDict (rawOrder, 'params', {});
                 const clientOrderId = this.safeString2 (orderParams, 'clientOrderId', 'client_id');
                 if (clientOrderId === undefined) {
@@ -2377,7 +2389,7 @@ export default class hyperliquid extends Exchange {
         const orderReq: List = [];
         let grouping = 'na';
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const marketId = this.safeString (rawOrder, 'symbol');
             const market = this.market (marketId);
             const symbol = market['symbol'];
@@ -2438,7 +2450,7 @@ export default class hyperliquid extends Exchange {
             }
         }
         let vaultAddress: Str = undefined;
-        [ vaultAddress, params ] = this.handleOptionAndParams (params, 'createOrder', 'vaultAddress');
+        [ vaultAddress, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'vaultAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
         const orderAction: Dict = {
             'type': 'order',
@@ -2566,7 +2578,7 @@ export default class hyperliquid extends Exchange {
         }
         const market = this.market (symbol);
         let vaultAddress: Str = undefined;
-        [ vaultAddress, params ] = this.handleOptionAndParams (params, 'cancelTwapOrder', 'vaultAddress');
+        [ vaultAddress, params ] = this.handleOptionStringAndParams (params, 'cancelTwapOrder', 'vaultAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
         const action: Dict = {
             'type': 'twapCancel',
@@ -2657,7 +2669,7 @@ export default class hyperliquid extends Exchange {
         }
         cancelAction['cancels'] = cancelReq;
         let vaultAddress: Str = undefined;
-        [ vaultAddress, params ] = this.handleOptionAndParams2 (params, 'cancelOrders', 'vaultAddress', 'subAccountAddress');
+        [ vaultAddress, params ] = this.handleOptionStringAndParams2 (params, 'cancelOrders', 'vaultAddress', 'subAccountAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
         const signature = this.signL1Action (cancelAction, nonce, vaultAddress);
         request['action'] = cancelAction;
@@ -2699,7 +2711,7 @@ export default class hyperliquid extends Exchange {
         };
         let cancelByCloid = false;
         for (let i = 0; i < orders.length; i++) {
-            const order = orders[i];
+            const order = this.safeDict (orders, i);
             const clientOrderId = this.safeString (order, 'clientOrderId');
             if (clientOrderId !== undefined) {
                 cancelByCloid = true;
@@ -2723,7 +2735,7 @@ export default class hyperliquid extends Exchange {
         cancelAction['type'] = cancelByCloid ? 'cancelByCloid' : 'cancel';
         cancelAction['cancels'] = cancelReq;
         let vaultAddress: Str = undefined;
-        [ vaultAddress, params ] = this.handleOptionAndParams2 (params, 'cancelOrdersForSymbols', 'vaultAddress', 'subAccountAddress');
+        [ vaultAddress, params ] = this.handleOptionStringAndParams2 (params, 'cancelOrdersForSymbols', 'vaultAddress', 'subAccountAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
         const signature = this.signL1Action (cancelAction, nonce, vaultAddress);
         request['action'] = cancelAction;
@@ -2776,7 +2788,7 @@ export default class hyperliquid extends Exchange {
             'time': nonce + (timeout as number),
         };
         let vaultAddress: Str = undefined;
-        [ vaultAddress, params ] = this.handleOptionAndParams2 (params, 'cancelAllOrdersAfter', 'vaultAddress', 'subAccountAddress');
+        [ vaultAddress, params ] = this.handleOptionStringAndParams2 (params, 'cancelAllOrdersAfter', 'vaultAddress', 'subAccountAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
         const signature = this.signL1Action (cancelAction, nonce, vaultAddress);
         request['action'] = cancelAction;
@@ -2799,7 +2811,7 @@ export default class hyperliquid extends Exchange {
         this.checkRequiredCredentials ();
         let hasClientOrderId = false;
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const clientOrderId = this.safeString2 (orderParams, 'clientOrderId', 'client_id');
             if (clientOrderId !== undefined) {
@@ -2808,7 +2820,7 @@ export default class hyperliquid extends Exchange {
         }
         if (hasClientOrderId) {
             for (let i = 0; i < orders.length; i++) {
-                const rawOrder = orders[i];
+                const rawOrder = this.safeDict (orders, i);
                 const orderParams = this.safeDict (rawOrder, 'params', {});
                 const clientOrderId = this.safeString2 (orderParams, 'clientOrderId', 'client_id');
                 if (clientOrderId === undefined) {
@@ -2819,7 +2831,7 @@ export default class hyperliquid extends Exchange {
         params = this.omit (params, [ 'slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce' ]);
         const modifies: List = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const id = this.safeString (rawOrder, 'id');
             const marketId = this.safeString (rawOrder, 'symbol');
             const market = this.market (marketId);
@@ -2833,7 +2845,10 @@ export default class hyperliquid extends Exchange {
             let orderParams = this.safeDict (rawOrder, 'params', {});
             const defaultSlippage = this.safeString (this.options, 'defaultSlippage');
             const slippage = this.safeString (orderParams, 'slippage', defaultSlippage);
-            let defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
+            let defaultTimeInForce: Str = 'gtc';
+            if (isMarket) {
+                defaultTimeInForce = 'ioc';
+            }
             const postOnly = this.safeBool (orderParams, 'postOnly', false);
             if (postOnly === true) {
                 defaultTimeInForce = 'alo';
@@ -2864,7 +2879,10 @@ export default class hyperliquid extends Exchange {
                 } else {
                     triggerPrice = this.priceToPrecision (symbol, stopLossPrice);
                 }
-                const tpSlType = (isTp) ? 'tp' : 'sl';
+                let tpSlType: Str = 'sl';
+                if (isTp) {
+                    tpSlType = 'tp';
+                }
                 orderType['trigger'] = {
                     'isMarket': isMarket,
                     'triggerPx': triggerPrice,
@@ -2902,7 +2920,7 @@ export default class hyperliquid extends Exchange {
             'modifies': modifies,
         };
         let vaultAddress: Str = undefined;
-        [ vaultAddress, params ] = this.handleOptionAndParams (params, 'editOrder', 'vaultAddress');
+        [ vaultAddress, params ] = this.handleOptionStringAndParams (params, 'editOrder', 'vaultAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
         const signature = this.signL1Action (modifyAction, nonce, vaultAddress);
         const request: Dict = {
@@ -3102,7 +3120,7 @@ export default class hyperliquid extends Exchange {
             fundings = response;
         }
         for (let i = 0; i < fundings.length; i++) {
-            const entry = fundings[i];
+            const entry = this.safeDict (fundings, i);
             const timestamp = this.safeInteger (entry, 'time');
             result.push ({
                 'info': entry,
@@ -3182,7 +3200,7 @@ export default class hyperliquid extends Exchange {
             rawOrders = response;
         }
         for (let i = 0; i < rawOrders.length; i++) {
-            const order = rawOrders[i];
+            const order = this.safeDict (rawOrders, i);
             const extendOrder: Dict = {};
             if (this.safeString (order, 'status') === undefined) {
                 extendOrder['ccxtStatus'] = 'open';
@@ -3970,7 +3988,7 @@ export default class hyperliquid extends Exchange {
             'leverage': leverage,
         };
         let vaultAddress: Str = undefined;
-        [ vaultAddress, params ] = this.handleOptionAndParams2 (params, 'setMarginMode', 'vaultAddress', 'subAccountAddress');
+        [ vaultAddress, params ] = this.handleOptionStringAndParams2 (params, 'setMarginMode', 'vaultAddress', 'subAccountAddress');
         if (vaultAddress !== undefined) {
             if (vaultAddress.startsWith ('0x')) {
                 vaultAddress = vaultAddress.replace ('0x', '');
@@ -4028,7 +4046,7 @@ export default class hyperliquid extends Exchange {
             'leverage': leverage,
         };
         let vaultAddress: Str = undefined;
-        [ vaultAddress, params ] = this.handleOptionAndParams2 (params, 'setLeverage', 'vaultAddress', 'subAccountAddress');
+        [ vaultAddress, params ] = this.handleOptionStringAndParams2 (params, 'setLeverage', 'vaultAddress', 'subAccountAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
         const signature = this.signL1Action (updateAction, nonce, vaultAddress);
         const request: Dict = {
@@ -4103,7 +4121,7 @@ export default class hyperliquid extends Exchange {
             'ntli': sz,
         };
         let vaultAddress: Str = undefined;
-        [ vaultAddress, params ] = this.handleOptionAndParams2 (params, 'modifyMargin', 'vaultAddress', 'subAccountAddress');
+        [ vaultAddress, params ] = this.handleOptionStringAndParams2 (params, 'modifyMargin', 'vaultAddress', 'subAccountAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
         const signature = this.signL1Action (updateAction, nonce, vaultAddress);
         const request: Dict = {
@@ -4321,7 +4339,7 @@ export default class hyperliquid extends Exchange {
             }
         }
         let vaultAddress: Str = undefined;
-        [ vaultAddress, params ] = this.handleOptionAndParams (params, 'withdraw', 'vaultAddress');
+        [ vaultAddress, params ] = this.handleOptionStringAndParams (params, 'withdraw', 'vaultAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
         params = this.omit (params, 'vaultAddress');
         const nonce = this.incrementingNonce ();
@@ -4679,7 +4697,7 @@ export default class hyperliquid extends Exchange {
         }
         const records = this.extractTypeFromDelta (depositLedger);
         let vaultAddress: Str = undefined;
-        [ vaultAddress, params ] = this.handleOptionAndParams (params, 'fetchDepositsWithdrawals', 'vaultAddress');
+        [ vaultAddress, params ] = this.handleOptionStringAndParams (params, 'fetchDepositsWithdrawals', 'vaultAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
         let deposits: Dict[] = [];
         if (vaultAddress !== undefined) {
@@ -4749,7 +4767,7 @@ export default class hyperliquid extends Exchange {
         }
         const records = this.extractTypeFromDelta (withdrawalLedger);
         let vaultAddress: Str = undefined;
-        [ vaultAddress, params ] = this.handleOptionAndParams (params, 'fetchDepositsWithdrawals', 'vaultAddress');
+        [ vaultAddress, params ] = this.handleOptionStringAndParams (params, 'fetchDepositsWithdrawals', 'vaultAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
         let withdrawals: Dict[] = [];
         if (vaultAddress !== undefined) {
@@ -5005,7 +5023,7 @@ export default class hyperliquid extends Exchange {
 
     handlePublicAddress (methodName: string, params: Dict): [Str, Dict] {
         let userAux: Str = undefined;
-        [ userAux, params ] = this.handleOptionAndParams2 (params, methodName, 'user', 'subAccountAddress');
+        [ userAux, params ] = this.handleOptionStringAndParams2 (params, methodName, 'user', 'subAccountAddress');
         let user = userAux;
         [ user, params ] = this.handleOptionStringAndParams (params, methodName, 'address', userAux);
         if ((user !== undefined) && (user !== '')) {
@@ -5116,7 +5134,7 @@ export default class hyperliquid extends Exchange {
     parseCreateEditOrderArgs (id: Str, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): [Dict, Dict] {
         const market = this.market (symbol);
         let vaultAddress: Str = undefined;
-        [ vaultAddress, params ] = this.handleOptionAndParams2 (params, 'createOrder', 'vaultAddress', 'subAccountAddress');
+        [ vaultAddress, params ] = this.handleOptionStringAndParams2 (params, 'createOrder', 'vaultAddress', 'subAccountAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
         symbol = market['symbol'];
         const order: Dict = {

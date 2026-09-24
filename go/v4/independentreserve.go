@@ -529,7 +529,7 @@ func (this *Independentreserve) ParseBalance(response any) any {
 		"info": response,
 	}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var balance map[string]any = MapTyped(GetValue(response, i))
+		var balance map[string]any = SafeMapTyped(response, i)
 		var currencyId *string = this.SafeString(balance, "CurrencyCode")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -767,7 +767,7 @@ func (this *Independentreserve) ParseOrder(order any, optionalArgs ...any) any {
 	} else if market != nil {
 		symbol = GetValue(market, "symbol")
 		base = GetValue(market, "base")
-		quote = GetValue(market, "quote")
+		quote = this.SafeString(market, "quote")
 	}
 	var orderType *string = this.SafeString2(order, "Type", "OrderType")
 	var side any = nil

@@ -514,10 +514,10 @@ class apex extends Exchange {
         $networks = array();
         $chains = $this->options['_temp_currencies_chains'];
         for ($j = 0; $j < count($chains); $j++) {
-            $chain = $chains[$j];
+            $chain = $this->safe_dict($chains, $j);
             $tokens = $this->safe_list($chain, 'tokens', array());
             for ($f = 0; $f < count($tokens); $f++) {
-                $token = $tokens[$f];
+                $token = $this->safe_dict($tokens, $f);
                 $tokenName = $this->safe_string($token, 'token');
                 if ($tokenName === $currencyId) {
                     $networkId = $this->safe_string($chain, 'chainId');
@@ -1308,7 +1308,12 @@ class apex extends Exchange {
 
     public function generate_random_client_id_omni(?string $_accountId) {
         $hasAccountId = ($_accountId !== null) && ($_accountId !== '');
-        $accountId = $hasAccountId ? $_accountId : (string) $this->rand_number(12);
+        $accountId = null;
+        if ($hasAccountId) {
+            $accountId = $_accountId;
+        } else {
+            $accountId = (string) $this->rand_number(12);
+        }
         return 'apexomni-' . $accountId . '-' . (string) $this->milliseconds() . '-' . (string) $this->rand_number(6);
     }
 
@@ -1869,7 +1874,7 @@ class apex extends Exchange {
         return $this->parse_incomes($fundingValues, $market, $since, $limit);
     }
 
-    public function parse_income(mixed $income, ?array $market = null): array {
+    public function parse_income(array $income, ?array $market = null): array {
         //
         // {
         //     "id": "1234",

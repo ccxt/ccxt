@@ -379,9 +379,9 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                    String marketId = this.marketId((String) (symbol));
-                    ((List<Object>)messageHashes).add(Helpers.add(messageHash, symbol));
+                    String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+                    String marketId = this.marketId(symbol);
+                    ((List<Object>)messageHashes).add((messageHash + symbol));
                     ((List<Object>)channels).add((marketId + channel));
                 }
                 ((Map<String, Object>)subscription).put("symbols", symbols);
@@ -555,7 +555,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object symbolAndTimeframe = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
+                List<Object> symbolAndTimeframe = (List<Object>) this.safeList(symbolsAndTimeframes, i);
                 String marketId = this.safeString(symbolAndTimeframe, 0);
                 Map<String, Object> market = (Map<String, Object>) this.market(marketId);
                 String tf = this.safeString(symbolAndTimeframe, 1);
@@ -617,7 +617,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object symbolAndTimeframe = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
+                List<Object> symbolAndTimeframe = (List<Object>) this.safeList(symbolsAndTimeframes, i);
                 String marketId = this.safeString(symbolAndTimeframe, 0);
                 Map<String, Object> market = (Map<String, Object>) this.market(marketId);
                 String tf = this.safeString(symbolAndTimeframe, 1);
@@ -1484,7 +1484,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             }};
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
-                Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
+                Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i);
                 String currencyId = this.safeString(balance, "a");
                 String code = this.safeCurrencyCode((String) (currencyId));
                 Map<String, Object> account = (Map<String, Object>) this.account();

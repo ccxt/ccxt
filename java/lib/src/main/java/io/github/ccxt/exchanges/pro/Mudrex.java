@@ -132,14 +132,14 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
                 (this.loadMarkets()).join();
             }
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             List<Object> assets = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(symbols, null))
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
                     Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
-                    ((List<Object>)messageHashes).add(("ticker:" + ((Map<String, Object>)market).get("symbol")));
+                    messageHashes.add(("ticker:" + ((Map<String, Object>)market).get("symbol")));
                     Object baseIdString = (((!java.util.Objects.equals(((Map<String, Object>)market).get("baseId"), null)))) ? ((Map<String, Object>)market).get("baseId") : "";
                     Object quoteIdString = (((!java.util.Objects.equals(((Map<String, Object>)market).get("quoteId"), null)))) ? ((Map<String, Object>)market).get("quoteId") : "";
                     ((List<Object>)assets).add(Helpers.add(((String)baseIdString).toLowerCase(), ((String)quoteIdString).toLowerCase()));

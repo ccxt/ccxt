@@ -442,7 +442,10 @@ impl OkxCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" getUrl() requires a channel argument".into()))));
         }
         let mut isSandbox: Value = self.options.as_map().and_then(|__m| __m.get("sandboxMode")).cloned().unwrap_or(Value::Null);
-        let mut sandboxSuffix: Value = (if (is_equal(&isSandbox, &Value::Bool(true))) { Value::Str("?brokerId=9999".into()) } else { Value::Str("".into()) });
+        let mut sandboxSuffix: Value = Value::Str("".into());
+        if is_equal(&isSandbox, &Value::Bool(true)) {
+            sandboxSuffix = Value::Str("?brokerId=9999".into());
+        }
         let mut isBusiness: bool = access.as_str() == Some("business");
         let mut isPublic: bool = access.as_str() == Some("public");
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
@@ -885,7 +888,7 @@ impl OkxCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_517: bool = true;
             while { if !__for_first_517 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_517 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut rawfr: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut rawfr: Value = self.safe_dict(data.clone(), i.clone(), &[]);
             let mut fundingRate: Value = self.parse_funding_rate(rawfr, &[]);
             let mut symbol: Value = fundingRate.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
@@ -1446,7 +1449,10 @@ impl OkxCore {
         }
         let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]);
         params = self.omit(params.clone(), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
-        let mut accessType: Value = (if (isTrigger.as_bool() == Some(true)) { Value::Str("business".into()) } else { Value::Str("private".into()) });
+        let mut accessType: Value = Value::Str("private".into());
+        if (isTrigger.as_bool() == Some(true)) {
+            accessType = Value::Str("business".into());
+        }
         self.authenticate(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("access".to_string(), accessType);
@@ -2573,19 +2579,25 @@ impl OkxCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut access: Value = (if (isTrigger.as_bool() == Some(true)) { Value::Str("business".into()) } else { Value::Str("private".into()) });
+        let mut access: Value = Value::Str("private".into());
+        if (isTrigger.as_bool() == Some(true)) {
+            access = Value::Str("business".into());
+        }
         self.authenticate(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("access".to_string(), access);
     m
 })]).await;
-        let mut channel: Value = (if (isTrigger.as_bool() == Some(true)) { Value::Str("orders-algo".into()) } else { Value::Str("orders".into()) });
+        let mut channel: Value = Value::Str("orders".into());
+        if (isTrigger.as_bool() == Some(true)) {
+            channel = Value::Str("orders-algo".into());
+        }
         let mut messageHash: Value = Value::Str(format!("{}{}", channel, Value::Str("::myTrades".into())).into());
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
             symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            type_var = market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
+            type_var = self.safe_string_k(market, "type", &[]);
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol).into());
         }
         if (type_var.as_str() == Some("future")) {
@@ -2813,7 +2825,10 @@ impl OkxCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut accessType: Value = (if (isTrigger.as_bool() == Some(true)) { Value::Str("business".into()) } else { Value::Str("private".into()) });
+        let mut accessType: Value = Value::Str("private".into());
+        if (isTrigger.as_bool() == Some(true)) {
+            accessType = Value::Str("business".into());
+        }
         self.authenticate(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("access".to_string(), accessType);
@@ -2823,7 +2838,7 @@ impl OkxCore {
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
             symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            type_var = market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
+            type_var = self.safe_string_k(market, "type", &[]);
         }
         if (type_var.as_str() == Some("future")) {
             type_var = Value::Str("futures".into());
@@ -2844,7 +2859,10 @@ impl OkxCore {
                 m.insert("instType".to_string(), uppercaseType);
             m
         });
-        let mut channel: Value = (if (isTrigger.as_bool() == Some(true)) { Value::Str("orders-algo".into()) } else { Value::Str("orders".into()) });
+        let mut channel: Value = Value::Str("orders".into());
+        if (isTrigger.as_bool() == Some(true)) {
+            channel = Value::Str("orders-algo".into());
+        }
         let __ws_arg_3 = self.extend(request, &[params]);
         let mut orders: Value = self.subscribe(Value::Str("private".into()), channel.clone(), channel.clone(), symbol.clone(), &[__ws_arg_3]).await;
         if is_true(&self.newUpdates) {
@@ -3455,7 +3473,7 @@ impl OkxCore {
                                                 let mut i: Value = Value::Int(0);
                         let mut __for_first_541: bool = true;
                         while { if !__for_first_541 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_541 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-                        let mut d: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                        let mut d: Value = self.safe_dict(data.clone(), i.clone(), &[]);
                         errorCode = self.safe_string_k(d.clone(), "sCode", &[]);
                         if (errorCode != Value::Null) {
                             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone(), feedback.clone());
@@ -3538,8 +3556,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         //
         //
-        if (message.as_str() == Some("pong")) {
-            self.handle_pong(client.clone(), message.clone());
+        if matches!(&message, Value::Str(_)) {
+            if (message.as_str() == Some("pong")) {
+                self.handle_pong(client.clone(), message.clone());
+            }
             return;
         }
         // const table = this.safeString (message, 'table');

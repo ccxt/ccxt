@@ -365,7 +365,7 @@ public partial class btcturk : Exchange
         double? minCost = null;
         for (int j = 0; j < filters.Count; j++)
         {
-            object filter = filters[j];
+            IDictionary<string, object> filter = this.safeDict(filters, j);
             string? filterType = this.safeString(filter, "filterType");
             if (filterType == "PRICE_FILTER")
             {
@@ -438,7 +438,7 @@ public partial class btcturk : Exchange
         };
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = this.safeDict(data, i);
             string? currencyId = this.safeString(entry, "asset");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -1215,7 +1215,11 @@ public partial class btcturk : Exchange
     {
         string? errorCode = this.safeString(response, "code", "0");
         string? message = this.safeString(response, "message");
-        object output = ((message == null)) ? body : message;
+        object output = message;
+        if ((message == null))
+        {
+            output = body;
+        }
         this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, ((this.id + " ") + (output)));
         if ((errorCode != "0") && (errorCode != "SUCCESS"))
         {

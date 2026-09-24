@@ -1479,14 +1479,14 @@ public partial class toobit : Exchange
             request["limit"] = limit;
         }
         List<object> response = new List<object>() {};
-        object endpoint = null;
-        IList<object> endpointparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "price");
-        endpoint = endpointparametersVariable[0];
+        string? endpoint = null;
+        IList<object> endpointparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchOHLCV", "price");
+        endpoint = (string)endpointparametersVariable[0];
         parameters = endpointparametersVariable[1];
-        if (isEqual(endpoint, "index"))
+        if (endpoint == "index")
         {
             response = await this.commonGetQuoteV1IndexKlines(this.extend(request, parameters));
-        } else if (isEqual(endpoint, "mark"))
+        } else if (endpoint == "mark")
         {
             response = await this.commonGetQuoteV1MarkPriceKlines(this.extend(request, parameters));
         } else
@@ -1824,8 +1824,8 @@ public partial class toobit : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -1910,7 +1910,7 @@ public partial class toobit : Exchange
         List<object> balances = this.safeList(response, "balances", response);
         for (int i = 0; i < balances.Count; i++)
         {
-            object balance = balances[i];
+            IDictionary<string, object> balance = this.safeDict(balances, i);
             string? code = this.safeCurrencyCode(this.safeString(balance, "asset"));
             Dictionary<string, object> account = this.account();
             account["free"] = this.safeString2(balance, "free", "availableBalance");

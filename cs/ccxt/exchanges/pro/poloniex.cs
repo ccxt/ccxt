@@ -147,7 +147,11 @@ public partial class poloniex : ccxt.poloniex
     public async virtual Task<object> subscribe(object name, object messageHash, object isPrivate, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string publicOrPrivate = isTrue(isPrivate) ? "private" : "public";
+        string publicOrPrivate = "public";
+        if (isTrue(isPrivate))
+        {
+            publicOrPrivate = "private";
+        }
         object url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), publicOrPrivate);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "event", "subscribe" },
@@ -738,7 +742,7 @@ public partial class poloniex : ccxt.poloniex
         List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            object item = data[i];
+            IDictionary<string, object> item = this.safeDict(data, i);
             string? marketId = this.safeString(item, "symbol");
             if ((marketId != null))
             {
@@ -1230,7 +1234,7 @@ public partial class poloniex : ccxt.poloniex
         bool update = type == "update";
         for (int i = 0; i < data.Count; i++)
         {
-            object item = data[i];
+            IDictionary<string, object> item = this.safeDict(data, i);
             string? marketId = this.safeString(item, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));

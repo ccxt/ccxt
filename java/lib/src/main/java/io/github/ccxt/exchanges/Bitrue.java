@@ -790,9 +790,14 @@ public class Bitrue extends BitrueApi
             //
             List<String> keys = new ArrayList<String>(response.keySet());
             Integer keysLength = ((List<?>)keys).size();
-            String formattedStatus = (((Helpers.isGreaterThan(keysLength, 0)))) ? "maintenance" : "ok";
+            String formattedStatus = "ok";
+            if (Helpers.isGreaterThan(keysLength, 0))
+            {
+                formattedStatus = "maintenance";
+            }
+            final String finalFormattedStatus = formattedStatus;
             return new HashMap<String, Object>() {{
-                put( "status", formattedStatus );
+                put( "status", finalFormattedStatus );
                 put( "updated", null );
                 put( "eta", null );
                 put( "url", null );
@@ -998,7 +1003,7 @@ public class Bitrue extends BitrueApi
 
             List<Object> promisesRaw = new ArrayList<Object>(Arrays.asList());
             Object types = null;
-            List<Object> defaultTypes = new ArrayList<Object>(Arrays.asList("spot", "linear", "inverse"));
+            List<String> defaultTypes = new ArrayList<String>(Arrays.asList("spot", "linear", "inverse"));
             Map<String, Object> fetchMarketsOptions = (Map<String, Object>) this.safeDict(this.options, "fetchMarkets");
             if (!java.util.Objects.equals(fetchMarketsOptions, null))
             {
@@ -1125,8 +1130,8 @@ public class Bitrue extends BitrueApi
         String lowercaseId = this.safeStringLower(market, "symbol");
         Long side = this.safeInteger(market, "side"); // 1 linear, 0 inverse, undefined spot
         String type = "spot";
-        Object isLinear = null;
-        Object isInverse = null;
+        Boolean isLinear = null;
+        Boolean isInverse = null;
         if (java.util.Objects.equals(side, null))
         {
             type = "spot";
@@ -1191,8 +1196,8 @@ public class Bitrue extends BitrueApi
         final String finalSettleId = settleId;
         final String finalType = type;
         final String finalStatus = status;
-        final Object finalIsLinear = isLinear;
-        final Object finalIsInverse = isInverse;
+        final Boolean finalIsLinear = isLinear;
+        final Boolean finalIsInverse = isInverse;
         final Double finalMaxQuantity = maxQuantity;
         final Double finalMinCost = minCost;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
@@ -1302,7 +1307,7 @@ public class Bitrue extends BitrueApi
         List<Object> balances = (List<Object>) this.safeList2(response, "balances", "account", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i);
             String currencyId = this.safeString2(balance, "asset", "marginCoin");
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
@@ -2522,7 +2527,11 @@ public class Bitrue extends BitrueApi
                         String amountString = this.numberToString(amount);
                         String priceString = this.numberToString(price);
                         String quoteAmount = Precise.stringMul(amountString, priceString);
-                        String requestAmount = (((!java.util.Objects.equals(cost, null)))) ? cost : quoteAmount;
+                        String requestAmount = quoteAmount;
+                        if (!java.util.Objects.equals(cost, null))
+                        {
+                            requestAmount = cost;
+                        }
                         ((Map<String, Object>)request).put("amount", this.costToPrecision(symbol, requestAmount));
                         ((Map<String, Object>)request).put("volume", this.costToPrecision(symbol, requestAmount));
                     }
@@ -3559,7 +3568,11 @@ public class Bitrue extends BitrueApi
         Long updated = this.safeInteger(transaction, "updatedAt");
         Boolean payAmount = (transaction.containsKey("payAmount"));
         Boolean ctime = (transaction.containsKey("ctime"));
-        String type = (((Boolean.TRUE.equals(payAmount) || Boolean.TRUE.equals(ctime)))) ? "withdrawal" : "deposit";
+        String type = "deposit";
+        if (Boolean.TRUE.equals(payAmount) || Boolean.TRUE.equals(ctime))
+        {
+            type = "withdrawal";
+        }
         String status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
         Double amount = this.safeNumber(transaction, "amount");
         Object network = null;
@@ -3590,6 +3603,7 @@ public class Bitrue extends BitrueApi
         final String finalAddressFrom = addressFrom;
         final String finalTagTo = tagTo;
         final String finalTagFrom = tagFrom;
+        final String finalType = type;
         final Map<String, Object> finalFee = fee;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
@@ -3604,7 +3618,7 @@ public class Bitrue extends BitrueApi
             put( "tag", finalTagTo );
             put( "tagTo", finalTagTo );
             put( "tagFrom", finalTagFrom );
-            put( "type", type );
+            put( "type", finalType );
             put( "amount", amount );
             put( "currency", code );
             put( "status", status );
@@ -3730,7 +3744,7 @@ public class Bitrue extends BitrueApi
         {
             for (var i = 0; Helpers.isLessThan(i, chainDetailLength); i++)
             {
-                Object chainDetail = (chainDetails == null || i < 0 || i >= chainDetails.size() ? null : chainDetails.get(i));
+                Map<String, Object> chainDetail = (Map<String, Object>) this.safeDict(chainDetails, i);
                 String networkId = this.safeString(chainDetail, "chain");
                 String currencyCode = this.safeString(currency, "code");
                 String networkCode = this.networkIdToCode(networkId, currencyCode);

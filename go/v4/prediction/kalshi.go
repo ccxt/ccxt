@@ -442,12 +442,10 @@ func (this *Kalshi) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			var parsed []any = ccxt.ArrayTyped(this.ParseBinaryMarketToOutcomes(raw))
 			var eventTicker *string = this.SafeString(raw, "event_ticker")
 			var eventTitle *string = this.SafeString(raw, "title", eventTicker)
-			var eventKey any = func() any {
-				if (eventTitle != nil) && (eventTitle == nil || *eventTitle != "") {
-					return this.ShortenSlug(eventTitle)
-				}
-				return nil
-			}()
+			var eventKey any = nil
+			if (eventTitle != nil) && (eventTitle == nil || *eventTitle != "") {
+				eventKey = this.ShortenSlug(eventTitle)
+			}
 			for j := 0; j < len(parsed); j++ {
 				var m any = func() any {
 					if j >= 0 && j < len(parsed) {
@@ -528,12 +526,10 @@ func (this *Kalshi) fetchOutcomeBody(ch chan any, outcomeSymbol any) any {
 		var symbolLength int64 = this.ParseToInt(ccxt.GetLength(outcomeSymbol))
 		var suffix string = ccxt.Slice(outcomeSymbol, symbolLength-3, nil)
 		var isNo bool = (suffix == "-NO")
-		var baseTicker any = func() any {
-			if isNo {
-				return ccxt.Slice(outcomeSymbol, 0, symbolLength-3)
-			}
-			return outcomeSymbol
-		}()
+		var baseTicker any = outcomeSymbol
+		if isNo {
+			baseTicker = ccxt.Slice(outcomeSymbol, 0, symbolLength-3)
+		}
 		var response any = nil
 
 		{
@@ -667,13 +663,17 @@ func (this *Kalshi) fetchOutcomesBody(ch chan any, outcomeSymbols any) any {
 		// parseToInt-wrapped .length — see the fetchOutcome comment (php count()/python slice traps)
 		var symbolLength int64 = this.ParseToInt(ccxt.GetLength(outcomeSymbol))
 		var suffix string = ccxt.Slice(outcomeSymbol, symbolLength-3, nil)
-		var baseTicker any = func() any {
-			if suffix == "-NO" {
-				return ccxt.Slice(outcomeSymbol, 0, symbolLength-3)
+		var baseTicker *string = outcomeSymbol
+		if suffix == "-NO" {
+			baseTicker = ccxt.SafeStringPtr(ccxt.Slice(outcomeSymbol, 0, symbolLength-3))
+		}
+		if !(func() bool {
+			if baseTicker == nil {
+				return false
 			}
-			return outcomeSymbol
-		}()
-		if !(ccxt.InOp(seen, baseTicker)) {
+			_, ok := seen[*baseTicker]
+			return ok
+		}()) {
 			ccxt.AddElementToObject(seen, baseTicker, true)
 			tickers = append(tickers, baseTicker)
 		}
@@ -845,17 +845,15 @@ func (this *Kalshi) ParseMarket(raw any) any {
 		seriesTicker = ccxt.SafeStringPtr(ccxt.Join(seriesParts, "-"))
 	}
 	// market symbol (no outcome suffix)
-	var subtitleOrTicker *string = func() *string {
-		if subtitle != nil {
-			return subtitle
-		}
-		return ticker
-	}()
+	var subtitleOrTicker *string = ticker
+	if subtitle != nil {
+		subtitleOrTicker = subtitle
+	}
 	var marketSymbol any = this.SlugToMarketSymbol(eventTicker, subtitleOrTicker)
 	// kalshi exposes the per-market price tick via price_ranges[].step (a dollar value,
 	// e.g. "0.0010" for deci-cent markets, "0.0100" for cent markets); older responses
 	// used tick_size (in cents). amount is a whole number of contracts
-	var priceRanges []any = ccxt.SafeListTypedDefault(raw, "price_ranges", []any{})
+	var priceRanges []any = ccxt.SafeListTyped(raw, "price_ranges")
 	var firstRange map[string]any = ccxt.SafeMapTyped(priceRanges, 0)
 	var stepDollars *string = this.SafeString(firstRange, "step")
 	var pricePrecision any = this.ParseNumber(ccxt.Precise.StringDiv(this.SafeString(raw, "tick_size", "1"), "100"))
@@ -1292,26 +1290,26 @@ func (this *Kalshi) ParsePredictionTicker(raw any, optionalArgs ...any) any {
 		close = last
 	}
 	// the book is quoted in the yes token, the no side mirrors with sizes swapped
-	var bidSizeString any = func() any {
-		if isNo {
-			return this.SafeString(raw, "yes_ask_size_fp")
-		}
-		return this.SafeString(raw, "yes_bid_size_fp")
-	}()
-	var askSizeString any = func() any {
-		if isNo {
-			return this.SafeString(raw, "yes_bid_size_fp")
-		}
-		return this.SafeString(raw, "yes_ask_size_fp")
-	}()
+	var bidSizeString *string = nil
+	if isNo {
+		bidSizeString = this.SafeString(raw, "yes_ask_size_fp")
+	} else {
+		bidSizeString = this.SafeString(raw, "yes_bid_size_fp")
+	}
+	var askSizeString *string = nil
+	if isNo {
+		askSizeString = this.SafeString(raw, "yes_bid_size_fp")
+	} else {
+		askSizeString = this.SafeString(raw, "yes_ask_size_fp")
+	}
 	// kalshi occasionally reports a negative size for settling/closed markets; a size
 	// can't be negative, so drop it rather than emit an invalid volume
 	var bidVolume any = nil
-	if (bidSizeString != nil) && ccxt.Precise.StringGe(bidSizeString, "0") {
+	if (!ccxt.IsEqual(bidSizeString, nil)) && ccxt.Precise.StringGe(bidSizeString, "0") {
 		bidVolume = this.ParseNumber(bidSizeString)
 	}
 	var askVolume any = nil
-	if (askSizeString != nil) && ccxt.Precise.StringGe(askSizeString, "0") {
+	if (!ccxt.IsEqual(askSizeString, nil)) && ccxt.Precise.StringGe(askSizeString, "0") {
 		askVolume = this.ParseNumber(askSizeString)
 	}
 	var average any = nil
@@ -2045,12 +2043,10 @@ func (this *Kalshi) ParseMyTrade(fill any, optionalArgs ...any) any {
 	var ts *int64 = this.Parse8601(this.SafeString(fill, "created_time"))
 	// action is the order side (buy/sell) of the held leg
 	var action *string = this.SafeStringLower(fill, "action")
-	var side string = func() string {
-		if action != nil && *action == "sell" {
-			return "sell"
-		}
-		return "buy"
-	}()
+	var side string = "buy"
+	if action != nil && *action == "sell" {
+		side = "sell"
+	}
 	// price is the price of the leg held; kalshi reports dollars in V2, cents otherwise
 	var price any = nil
 	if sideLeg != nil && *sideLeg == "no" {
@@ -2076,12 +2072,10 @@ func (this *Kalshi) ParseMyTrade(fill any, optionalArgs ...any) any {
 		cost = ccxt.Multiply(price, amount)
 	}
 	var isTaker *bool = this.SafeBool(fill, "is_taker", true)
-	var takerOrMaker string = func() string {
-		if isTaker != nil && *isTaker == true {
-			return "taker"
-		}
-		return "maker"
-	}()
+	var takerOrMaker string = "maker"
+	if isTaker != nil && *isTaker == true {
+		takerOrMaker = "taker"
+	}
 	var feeCost *float64 = this.SafeNumber(fill, "fee_cost")
 	var fee map[string]any = nil
 	if feeCost != nil {
@@ -2321,20 +2315,18 @@ func (this *Kalshi) ParseSettlement(settlement any, optionalArgs ...any) any {
 	var yesCount *float64 = this.SafeNumber2(settlement, "yes_count_fp", "yes_count", 0)
 	var noCount *float64 = this.SafeNumber2(settlement, "no_count_fp", "no_count", 0)
 	var heldYes bool = (noCount == nil || (yesCount != nil && *yesCount >= *noCount))
-	var heldLabel string = func() string {
-		if heldYes {
-			return "YES"
-		}
-		return "NO"
-	}()
+	var heldLabel string = "NO"
+	if heldYes {
+		heldLabel = "YES"
+	}
 	var tickerMissing bool = (ticker == nil)
 	var useHeldYesTicker bool = (heldYes || tickerMissing)
-	var heldTicker any = func() any {
-		if useHeldYesTicker {
-			return ticker
-		}
-		return (*ticker + "-NO")
-	}()
+	var heldTicker any = nil
+	if useHeldYesTicker {
+		heldTicker = ticker
+	} else {
+		heldTicker = (*ticker + "-NO")
+	}
 	var mkt map[string]any = this.SafeOutcome(heldTicker, market)
 	// which leg won; market_result is yes or no
 	var marketResult *string = this.SafeStringUpper(settlement, "market_result")
@@ -2347,18 +2339,14 @@ func (this *Kalshi) ParseSettlement(settlement any, optionalArgs ...any) any {
 			payout = ccxt.Divide(revenueCents, 100)
 		}
 	}
-	var costKey string = func() string {
-		if heldYes {
-			return "yes_total_cost"
-		}
-		return "no_total_cost"
-	}()
-	var costDollarsKey string = func() string {
-		if heldYes {
-			return "yes_total_cost_dollars"
-		}
-		return "no_total_cost_dollars"
-	}()
+	var costKey string = "no_total_cost"
+	if heldYes {
+		costKey = "yes_total_cost"
+	}
+	var costDollarsKey string = "no_total_cost_dollars"
+	if heldYes {
+		costDollarsKey = "yes_total_cost_dollars"
+	}
 	var cost any = ccxt.DerefScalar(this.SafeNumber(settlement, costDollarsKey))
 	if ccxt.IsEqual(cost, nil) {
 		var costCents *float64 = this.SafeNumber(settlement, costKey)
@@ -2674,18 +2662,14 @@ func (this *Kalshi) ParsePredictionOrder(order any, optionalArgs ...any) any {
 	// price in the outcome's own leg: V2 returns *_price_dollars (already dollars),
 	// legacy returned yes_price/no_price in cents
 	var labelIsNo bool = (this.SafeStringUpper(mkt, "label") != nil && *this.SafeStringUpper(mkt, "label") == "NO")
-	var dollarsKey string = func() string {
-		if labelIsNo {
-			return "no_price_dollars"
-		}
-		return "yes_price_dollars"
-	}()
-	var centsKey string = func() string {
-		if labelIsNo {
-			return "no_price"
-		}
-		return "yes_price"
-	}()
+	var dollarsKey string = "yes_price_dollars"
+	if labelIsNo {
+		dollarsKey = "no_price_dollars"
+	}
+	var centsKey string = "yes_price"
+	if labelIsNo {
+		centsKey = "no_price"
+	}
 	var price any = ccxt.DerefScalar(this.SafeNumber(order, dollarsKey))
 	if ccxt.IsEqual(price, nil) {
 		var priceCents *float64 = this.SafeNumber(order, centsKey)
@@ -2786,12 +2770,10 @@ func (this *Kalshi) createOrderBody(ch chan any, outcome any, typeVar any, side 
 	// kalshi V2 (/portfolio/events/orders) quotes the YES leg only: side 'bid' = buy YES,
 	// 'ask' = sell YES, price in dollars. a NO order maps to the complementary YES order
 	// buy NO @ q == sell YES @ 1-q - flip the book side and the price
-	var bookSide string = func() string {
-		if isBuy {
-			return "bid"
-		}
-		return "ask"
-	}()
+	var bookSide string = "ask"
+	if isBuy {
+		bookSide = "bid"
+	}
 	var yesPrice any = price
 	if isNo {
 		bookSide = func() string {
@@ -2809,12 +2791,10 @@ func (this *Kalshi) createOrderBody(ch chan any, outcome any, typeVar any, side 
 	// `time_in_force` param (handled below) still overrides
 	var unifiedTif *string = this.SafeStringUpper(params, "timeInForce")
 	params = ccxt.MapTyped(this.Omit(params, "timeInForce"))
-	var defaultTif string = func() string {
-		if isMarket {
-			return "immediate_or_cancel"
-		}
-		return "good_till_canceled"
-	}()
+	var defaultTif string = "good_till_canceled"
+	if isMarket {
+		defaultTif = "immediate_or_cancel"
+	}
 	// kalshi has BOTH immediate_or_cancel (partial ok) and fill_or_kill (all-or-nothing)
 	// map the unified tokens to the matching primitive rather than collapsing FOK into IOC
 	if unifiedTif != nil && *unifiedTif == "IOC" {
@@ -2828,9 +2808,9 @@ func (this *Kalshi) createOrderBody(ch chan any, outcome any, typeVar any, side 
 	var timeInForceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "time_in_force", defaultTif)
 	timeInForce = ccxt.GetValue(timeInForceparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(timeInForceparamsVariable, 1))
-	var stp any = nil
-	var stpparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "self_trade_prevention_type", "taker_at_cross")
-	stp = ccxt.GetValue(stpparamsVariable, 0)
+	var stp *string = nil
+	var stpparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "self_trade_prevention_type", "taker_at_cross")
+	stp = ccxt.SafeStringPtr(ccxt.GetValue(stpparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(stpparamsVariable, 1))
 	var request map[string]any = map[string]any{
 		"ticker":                     ticker,
@@ -2918,8 +2898,8 @@ func (this *Kalshi) editOrderBody(ch chan any, id any, outcome any, typeVar any,
 
 	ccxt.PanicOnError((<-this.CancelOrderAsync(id, outcome)))
 
-	var retRes207215 map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.CreateOrderAsync(outcome, typeVar, side, amount, price, params))))
-	ch <- ccxt.BoxAbsent(retRes207215)
+	var retRes212615 map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.CreateOrderAsync(outcome, typeVar, side, amount, price, params))))
+	ch <- ccxt.BoxAbsent(retRes212615)
 	return nil
 }
 
@@ -3618,12 +3598,10 @@ func (this *Kalshi) ParseEvent(rawEvent any) any {
 	var ticker *string = this.SafeString(rawEvent, "event_ticker")
 	var title *string = this.SafeString(rawEvent, "title")
 	var hasTitle bool = (title != nil) && (title == nil || *title != "")
-	var eventSlug any = func() any {
-		if hasTitle {
-			return this.ShortenSlug(title)
-		}
-		return nil
-	}()
+	var eventSlug any = nil
+	if hasTitle {
+		eventSlug = this.ShortenSlug(title)
+	}
 	var created any = ccxt.DerefScalar(this.Parse8601(this.SafeString(rawEvent, "created_date_iso")))
 	if ccxt.IsEqual(created, nil) {
 		created = earliestCreated

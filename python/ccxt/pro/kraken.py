@@ -172,11 +172,21 @@ class kraken(ccxt.async_support.kraken):
         isTrailingLimitAmountOrder = trailingLimitAmount is not None
         isTrailingLimitPercentOrder = trailingLimitPercent is not None
         offset = self.safe_string(params, 'offset', '')  # can set this to - for minus
-        trailingAmountString = offset + self.number_to_string(trailingAmount) if (trailingAmount is not None) else None
-        trailingPercentString = offset + self.number_to_string(trailingPercent) if (trailingPercent is not None) else None
-        trailingLimitAmountString = offset + self.number_to_string(trailingLimitAmount) if (trailingLimitAmount is not None) else None
-        trailingLimitPercentString = offset + self.number_to_string(trailingLimitPercent) if (trailingLimitPercent is not None) else None
-        priceType = 'pct' if (isTrailingPercentOrder or isTrailingLimitPercentOrder) else 'quote'
+        trailingAmountString = None
+        if trailingAmount is not None:
+            trailingAmountString = offset + self.number_to_string(trailingAmount)
+        trailingPercentString = None
+        if trailingPercent is not None:
+            trailingPercentString = offset + self.number_to_string(trailingPercent)
+        trailingLimitAmountString = None
+        if trailingLimitAmount is not None:
+            trailingLimitAmountString = offset + self.number_to_string(trailingLimitAmount)
+        trailingLimitPercentString = None
+        if trailingLimitPercent is not None:
+            trailingLimitPercentString = offset + self.number_to_string(trailingLimitPercent)
+        priceType = 'quote'
+        if isTrailingPercentOrder or isTrailingLimitPercentOrder:
+            priceType = 'pct'
         if method == 'createOrderWs':
             reduceOnly = self.safe_bool(params, 'reduceOnly')
             if reduceOnly is True:
@@ -491,7 +501,7 @@ class kraken(ccxt.async_support.kraken):
         #     }
         #
         data = self.safe_list(message, 'data', [])
-        ticker = data[0]
+        ticker = self.safe_dict(data, 0)
         symbol = self.safe_string(ticker, 'symbol')
         messageHash = self.get_message_hash('ticker', None, symbol)
         vwap = self.safe_string(ticker, 'vwap')
@@ -544,7 +554,7 @@ class kraken(ccxt.async_support.kraken):
         #     }
         #
         data = self.safe_list(message, 'data', [])
-        trade = data[0]
+        trade = self.safe_dict(data, 0)
         symbol = self.safe_string(trade, 'symbol')
         messageHash = self.get_message_hash('trade', None, symbol)
         stored = self.safe_value(self.trades, symbol)
@@ -582,7 +592,7 @@ class kraken(ccxt.async_support.kraken):
         #     }
         #
         data = self.safe_list(message, 'data', [])
-        first = data[0]
+        first = self.safe_dict(data, 0)
         marketId = self.safe_string(first, 'symbol')
         symbol = self.safe_symbol(marketId)
         if not (symbol in self.ohlcvs):
@@ -598,7 +608,7 @@ class kraken(ccxt.async_support.kraken):
             self.ohlcvs[symbol][timeframe] = stored
         ohlcvsLength = len(data)
         for i in range(0, ohlcvsLength):
-            candle = data[i]
+            candle = self.safe_dict(data, i)
             datetime = self.safe_string(candle, 'interval_begin')
             timestamp = self.parse8601(datetime)
             parsed = [
@@ -941,7 +951,7 @@ class kraken(ccxt.async_support.kraken):
     def custom_handle_deltas(self, bookside: object, deltas: list[object]):
         # const sortOrder = (key === 'bids') ? true : false;
         for j in range(0, len(deltas)):
-            delta = deltas[j]
+            delta = self.safe_dict(deltas, j)
             price = self.safe_number(delta, 'price')
             amount = self.safe_number(delta, 'qty')
             bookside.store(price, amount)
@@ -1175,7 +1185,7 @@ class kraken(ccxt.async_support.kraken):
         #
         symbol = self.safe_string(trade, 'symbol')
         if market is not None:
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol')
         fee = None
         if 'fees' in trade:
             fees = self.safe_list(trade, 'fees', [])
@@ -1186,7 +1196,9 @@ class kraken(ccxt.async_support.kraken):
             }
         datetime = self.safe_string(trade, 'timestamp')
         liquidityIndicator = self.safe_string(trade, 'liquidity_ind')
-        takerOrMaker = 'taker' if (liquidityIndicator == 't') else 'maker'
+        takerOrMaker = 'maker'
+        if liquidityIndicator == 't':
+            takerOrMaker = 'taker'
         return {
             'info': trade,
             'id': self.safe_string(trade, 'exec_id'),

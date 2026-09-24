@@ -369,7 +369,10 @@ export default class delta extends Exchange {
         const strike = this.safeString (optionParts, 2);
         const datetime = this.convertExpireDate (expiry);
         const timestamp = this.parse8601 (datetime);
-        const optionTypeUnified = (optionType === 'C') ? 'call' : 'put';
+        let optionTypeUnified: Str = 'put';
+        if (optionType === 'C') {
+            optionTypeUnified = 'call';
+        }
         return this.safeMarketStructure ({
             'id': optionType + '-' + base + '-' + strike + '-' + expiry,
             'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
@@ -503,7 +506,10 @@ export default class delta extends Exchange {
         //
         const result = this.safeDict (response, 'result', {});
         const underMaintenance = this.safeString (result, 'under_maintenance');
-        const status = (underMaintenance === 'true') ? 'maintenance' : 'ok';
+        let status: Str = 'ok';
+        if (underMaintenance === 'true') {
+            status = 'maintenance';
+        }
         const updated = this.safeIntegerProduct (result, 'server_time', 0.001, this.milliseconds ());
         return {
             'status': status,
@@ -1701,7 +1707,7 @@ export default class delta extends Exchange {
         const result: Dict = { 'info': response };
         const currenciesByNumericId = this.safeDict (this.options, 'currenciesByNumericId', {});
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict (balances, i);
             const currencyId = this.safeString (balance, 'asset_id');
             const currency = this.safeDict (currenciesByNumericId, currencyId);
             const code = (currency === undefined) ? currencyId : currency['code'];
@@ -1967,7 +1973,12 @@ export default class delta extends Exchange {
         const marketId = this.safeString (order, 'product_id');
         const marketsByNumericId = this.safeDict (this.options, 'marketsByNumericId', {});
         market = this.safeValue (marketsByNumericId, marketId, market);
-        const symbol = (market === undefined) ? marketId : market['symbol'];
+        let symbol: Str = undefined;
+        if (market === undefined) {
+            symbol = marketId;
+        } else {
+            symbol = market['symbol'];
+        }
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
         const side = this.safeString (order, 'side');
         let type = this.safeString (order, 'order_type');

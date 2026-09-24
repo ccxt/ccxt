@@ -284,7 +284,10 @@ class bingx extends \ccxt\async\bingx {
         $marketId = $this->safe_string($data, 's');
         // const marketId = messageHash.split('@')[0];
         $isSwap = mb_strpos($client->url, 'swap') !== false;
-        $marketType = $isSwap ? 'swap' : 'spot';
+        $marketType = 'spot';
+        if ($isSwap) {
+            $marketType = 'swap';
+        }
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         // the Coin-M stream is a distinct endpoint, so it identifies an inverse
@@ -556,7 +559,10 @@ class bingx extends \ccxt\async\bingx {
         $rawHash = $this->safe_string($message, 'dataType', '');
         $marketId = explode('@', $rawHash)[0];
         $isSwap = mb_strpos($client->url, 'swap') !== false;
-        $marketType = $isSwap ? 'swap' : 'spot';
+        $marketType = 'spot';
+        if ($isSwap) {
+            $marketType = 'swap';
+        }
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $messageHash = 'trade::' . $symbol;
@@ -750,14 +756,17 @@ class bingx extends \ccxt\async\bingx {
         $isAllEndpoint = ($firstPart === 'all');
         $marketId = $this->safe_string($data, 'symbol', $firstPart);
         $isSwap = mb_strpos($client->url, 'swap') !== false;
-        $marketType = $isSwap ? 'swap' : 'spot';
+        $marketType = 'spot';
+        if ($isSwap) {
+            $marketType = 'swap';
+        }
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
         if ($orderbook === null) {
             // const limit = [ 5, 10, 20, 50, 100 ]
             $subscriptionHash = $dataType;
-            $subscription = $client->subscriptions[$subscriptionHash];
+            $subscription = $this->safe_dict($client->subscriptions, $subscriptionHash);
             // see handleOHLCV — subscription.limit may be missing for non-orderbook callers;
             // default to a reasonable depth instead of throwing NPE in the Java port.
             $limit = $this->safe_integer($subscription, 'limit', 100);
@@ -799,7 +808,10 @@ class bingx extends \ccxt\async\bingx {
         // for linear swap, (T) is the opening time
         $isSpot = ($this->safe_bool($market, 'spot') === true);
         $isInverse = ($this->safe_bool($market, 'inverse') === true);
-        $timestamp = $isSpot ? 't' : 'T';
+        $timestamp = 'T';
+        if ($isSpot) {
+            $timestamp = 't';
+        }
         if ($this->safe_bool($market, 'swap') === true) {
             $timestamp = $isInverse ? 't' : 'T';
         }
@@ -884,7 +896,10 @@ class bingx extends \ccxt\async\bingx {
         $firstPart = $parts[0];
         $isAllEndpoint = ($firstPart === 'all');
         $marketId = $this->safe_string($message, 's', $firstPart);
-        $marketType = $isSwap ? 'swap' : 'spot';
+        $marketType = 'spot';
+        if ($isSwap) {
+            $marketType = 'swap';
+        }
         $market = $this->safe_market($marketId, null, null, $marketType);
         $candles = null;
         if ($isSwap) {
@@ -905,7 +920,7 @@ class bingx extends \ccxt\async\bingx {
         $unifiedTimeframe = $this->find_timeframe($rawTimeframe, $timeframes);
         if ($this->safe_value($this->ohlcvs[$symbol], $rawTimeframe) === null) {
             $subscriptionHash = $dataType;
-            $subscription = $client->subscriptions[$subscriptionHash];
+            $subscription = $this->safe_dict($client->subscriptions, $subscriptionHash);
             // subscription.limit is only set when watchOHLCV registers the subscription;
             // when handleMessage routes a non-OHLCV-originated subscription here (or the
             // subscription dict was reset on reconnect), fall back to the OHLCVLimit option.
@@ -1058,10 +1073,16 @@ class bingx extends \ccxt\async\bingx {
         $isSpot = ($type === 'spot');
         $spotHash = 'spot:private';
         $swapHash = 'swap:private';
-        $subscriptionHash = $isSpot ? $spotHash : $swapHash;
+        $subscriptionHash = $swapHash;
+        if ($isSpot) {
+            $subscriptionHash = $spotHash;
+        }
         $spotMessageHash = 'spot:order';
         $swapMessageHash = 'swap:order';
-        $messageHash = $isSpot ? $spotMessageHash : $swapMessageHash;
+        $messageHash = $swapMessageHash;
+        if ($isSpot) {
+            $messageHash = $spotMessageHash;
+        }
         if ($market !== null) {
             $messageHash .= ':' . $symbol;
         }
@@ -1127,10 +1148,16 @@ class bingx extends \ccxt\async\bingx {
         $isSpot = ($type === 'spot');
         $spotHash = 'spot:private';
         $swapHash = 'swap:private';
-        $subscriptionHash = $isSpot ? $spotHash : $swapHash;
+        $subscriptionHash = $swapHash;
+        if ($isSpot) {
+            $subscriptionHash = $spotHash;
+        }
         $spotMessageHash = 'spot:mytrades';
         $swapMessageHash = 'swap:mytrades';
-        $messageHash = $isSpot ? $spotMessageHash : $swapMessageHash;
+        $messageHash = $swapMessageHash;
+        if ($isSpot) {
+            $messageHash = $spotMessageHash;
+        }
         if ($market !== null) {
             $messageHash .= ':' . $symbol;
         }
@@ -1190,8 +1217,14 @@ class bingx extends \ccxt\async\bingx {
         $swapSubHash = 'swap:private';
         $spotMessageHash = 'spot:balance';
         $swapMessageHash = 'swap:balance';
-        $messageHash = $isSpot ? $spotMessageHash : $swapMessageHash;
-        $subscriptionHash = $isSpot ? $spotSubHash : $swapSubHash;
+        $messageHash = $swapMessageHash;
+        if ($isSpot) {
+            $messageHash = $spotMessageHash;
+        }
+        $subscriptionHash = $swapSubHash;
+        if ($isSpot) {
+            $subscriptionHash = $spotSubHash;
+        }
         $request = null;
         $baseUrl = null;
         $uuid = $this->uuid();
@@ -1735,7 +1768,10 @@ class bingx extends \ccxt\async\bingx {
         $symbol = $parsedOrder['symbol'];
         $spotHash = 'spot:order';
         $swapHash = 'swap:order';
-        $messageHash = ($isSpot) ? $spotHash : $swapHash;
+        $messageHash = $swapHash;
+        if ($isSpot) {
+            $messageHash = $spotHash;
+        }
         $client->resolve($stored, $messageHash);
         $client->resolve($stored, $messageHash . ':' . $symbol);
     }
@@ -1805,14 +1841,20 @@ class bingx extends \ccxt\async\bingx {
             $cachedTrades = new ArrayCacheBySymbolById($limit);
             $this->myTrades = $cachedTrades;
         }
-        $type = $isSpot ? 'spot' : 'swap';
+        $type = 'swap';
+        if ($isSpot) {
+            $type = 'spot';
+        }
         $marketId = $this->safe_string($result, 's');
         $market = $this->safe_market($marketId, null, '-', $type);
         $parsed = $this->parse_trade($result, $market);
         $symbol = $parsed['symbol'];
         $spotHash = 'spot:mytrades';
         $swapHash = 'swap:mytrades';
-        $messageHash = $isSpot ? $spotHash : $swapHash;
+        $messageHash = $swapHash;
+        if ($isSpot) {
+            $messageHash = $spotHash;
+        }
         $cachedTrades->append($parsed);
         $client->resolve($cachedTrades, $messageHash);
         $client->resolve($cachedTrades, $messageHash . ':' . $symbol);
@@ -1860,7 +1902,10 @@ class bingx extends \ccxt\async\bingx {
         $timestamp = $this->safe_integer_2($message, 'T', 'E');
         $spotUrl = $this->safe_string($this->urls['api']['ws'], 'spot');
         $isSpot = ($spotUrl !== null) && (mb_strpos($client->url, $spotUrl) === 0);
-        $type = $isSpot ? 'spot' : 'swap';
+        $type = 'swap';
+        if ($isSpot) {
+            $type = 'spot';
+        }
         if (!(is_array($this->balance) && array_key_exists($type ?? '', $this->balance))) {
             $this->balance[$type] = array();
         }
@@ -1884,11 +1929,18 @@ class bingx extends \ccxt\async\bingx {
     }
 
     public function handle_message(Client $client, mixed $message) {
+        // plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them
+        if (gettype($message) === 'string') {
+            if ($message === 'Ping') {
+                $this->spawn(array($this, 'pong'), $client, $message);
+            }
+            return;
+        }
         if (!$this->handle_error_message($client, $message)) {
             return;
         }
         // public subscriptions
-        if (($message === 'Ping') || (is_array($message) && array_key_exists('ping' ?? '', $message))) {
+        if (is_array($message) && array_key_exists('ping' ?? '', $message)) {
             $this->spawn(array($this, 'pong'), $client, $message);
             return;
         }

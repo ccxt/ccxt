@@ -1088,7 +1088,7 @@ public class P2b extends P2bApi
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object currencyId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Object balance = Helpers.GetValue(response, currencyId);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, currencyId);
             String code = this.safeCurrencyCode((String) (currencyId));
             String used = this.safeString(balance, "freeze");
             String available = this.safeString(balance, "available");

@@ -122,7 +122,11 @@ public partial class grvt : ccxt.grvt
             { "params", request },
             { "id", this.requestId() },
         };
-        string apiPart = isTrue(publicOrPrivate) ? "publicMarket" : "privateTrading";
+        string apiPart = "privateTrading";
+        if (isTrue(publicOrPrivate))
+        {
+            apiPart = "publicMarket";
+        }
         return await this.watchMultiple(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), apiPart), messageHashes, payload, rawHashes);
     }
 
@@ -190,7 +194,7 @@ public partial class grvt : ccxt.grvt
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             object marketId = (market.ContainsKey("id") ? market["id"] : null);
             rawHashes.Add(add(add(marketId, "@"), interval.ToString()));
@@ -347,7 +351,7 @@ public partial class grvt : ccxt.grvt
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             object marketId = (market.ContainsKey("id") ? market["id"] : null);
             Int64? limitRaw = this.safeInteger(parameters, "limit", 50); // 50, 200, 500, 1000
@@ -465,7 +469,7 @@ public partial class grvt : ccxt.grvt
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbolsAndTimeframes); i++)
         {
-            object data = getValue(symbolsAndTimeframes, i);
+            List<object> data = this.safeList(symbolsAndTimeframes, i);
             string? symbolString = this.safeString(data, 0);
             Dictionary<string, object> market = this.market(symbolString);
             object marketId = (market.ContainsKey("id") ? market["id"] : null);
@@ -609,7 +613,7 @@ public partial class grvt : ccxt.grvt
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             object marketId = (market.ContainsKey("id") ? market["id"] : null);
             rawHashes.Add(add(add(marketId, "@"), extraPart));
@@ -851,7 +855,7 @@ public partial class grvt : ccxt.grvt
         {
             for (int i = 0; i < getArrayLength(symbols); i++)
             {
-                object symbol = getValue(symbols, i);
+                string? symbol = ((string)getValue(symbols, i));
                 Dictionary<string, object> market = this.market(symbol);
                 rawHashes.Add(((subAccountId + "-") + ((market.ContainsKey("id") ? market["id"] : null))));
                 messageHashes.Add(("positions::" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));

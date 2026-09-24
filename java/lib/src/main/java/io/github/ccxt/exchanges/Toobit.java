@@ -1642,9 +1642,9 @@ public class Toobit extends ToobitApi
                 ((Map<String, Object>)request).put("limit", limit);
             }
             List<Object> response = new ArrayList<Object>(Arrays.asList());
-            Object endpoint = null;
-            List<Object> endpointparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "price");
-            endpoint = ((List<Object>) endpointparametersVariable).get(0);
+            String endpoint = null;
+            List<Object> endpointparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchOHLCV", "price");
+            endpoint = (String) ((List<Object>) endpointparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) endpointparametersVariable).get(1);
             if (java.util.Objects.equals(endpoint, "index"))
             {
@@ -1878,7 +1878,7 @@ public class Toobit extends ToobitApi
         return this.fetchLastPrices(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseLastPrice(Object entry, Map<String, Object> market)
+    public Object parseLastPrice(Map<String, Object> entry, Map<String, Object> market)
     {
         String marketId = this.safeString(entry, "s");
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
@@ -1892,7 +1892,7 @@ public class Toobit extends ToobitApi
             put( "info", entry );
         }};
     }
-    public Object parseLastPrice(Object entry, Object... optionalArgs)
+    public Object parseLastPrice(Map<String, Object> entry, Object... optionalArgs)
     {
         return this.parseLastPrice(entry, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -2109,8 +2109,8 @@ public class Toobit extends ToobitApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -2235,7 +2235,7 @@ public class Toobit extends ToobitApi
         Object balances = this.safeList(response, "balances", response);
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Object balance = (balances == null || i < 0 || i >= ((List<?>)balances).size() ? null : ((List<?>)balances).get(i));
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i);
             String code = this.safeCurrencyCode(this.safeString(balance, "asset"));
             Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("free", this.safeString2(balance, "free", "availableBalance"));
@@ -2561,7 +2561,7 @@ public class Toobit extends ToobitApi
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
         String rawType = this.safeString(order, "type");
         String rawSideLower = this.safeStringLower(order, "side");
-        Object reduceOnly = null;
+        Boolean reduceOnly = null;
         if (!java.util.Objects.equals(rawSideLower, null))
         {
             // contract orders arrive as BUY_OPEN, SELL_CLOSE and the like -
@@ -2581,10 +2581,10 @@ public class Toobit extends ToobitApi
             triggerPrice = null;
         }
         final Map<String, Object> finalMarket = market;
-        final Object finalRawType = rawType;
+        final String finalRawType = rawType;
         final String finalRawSideLower = rawSideLower;
         final String finalTriggerPrice = triggerPrice;
-        final Object finalReduceOnly = reduceOnly;
+        final Boolean finalReduceOnly = reduceOnly;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Toobit.this.safeString(order, "orderId") );
@@ -3842,7 +3842,7 @@ public class Toobit extends ToobitApi
             //         "coinType":"ERC20_TOKEN"
             //     }
             //
-            return this.parseDepositAddress(response, currency);
+            return this.parseDepositAddress((Map<String, Object>) (response), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -3860,7 +3860,7 @@ public class Toobit extends ToobitApi
         return this.fetchDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseDepositAddress(Object depositAddress, Map<String, Object> currency)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         String address = this.safeString(depositAddress, "address");
         this.checkAddress(address);
@@ -3872,7 +3872,7 @@ public class Toobit extends ToobitApi
             put( "tag", Toobit.this.safeString(depositAddress, "addressExt") );
         }};
     }
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Object... optionalArgs)
     {
         return this.parseDepositAddress(depositAddress, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -3911,7 +3911,7 @@ public class Toobit extends ToobitApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
-            final Object finalNetworkCode = networkCode;
+            final String finalNetworkCode = networkCode;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", ((Map<String, Object>)currency).get("id") );
                 put( "address", address );

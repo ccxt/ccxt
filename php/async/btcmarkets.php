@@ -636,7 +636,7 @@ class btcmarkets extends Exchange {
     public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
-            $balance = $response[$i];
+            $balance = $this->safe_dict($response, $i);
             $currencyId = $this->safe_string($balance, 'assetName');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -919,7 +919,12 @@ class btcmarkets extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($trade, 'timestamp'));
         $marketId = $this->safe_string($trade, 'marketId');
         $market = $this->safe_market($marketId, $market, '-');
-        $feeCurrencyCode = ($market['quote'] === 'AUD') ? $market['quote'] : $market['base'];
+        $feeCurrencyCode = null;
+        if ($market['quote'] === 'AUD') {
+            $feeCurrencyCode = $market['quote'];
+        } else {
+            $feeCurrencyCode = $market['base'];
+        }
         $side = $this->safe_string($trade, 'side');
         if ($side === 'Bid') {
             $side = 'buy';
@@ -1193,13 +1198,13 @@ class btcmarkets extends Exchange {
         $currency = null;
         $cost = null;
         if ($market['quote'] === 'AUD') {
-            $currency = $market['quote'];
+            $currency = $this->safe_string($market, 'quote');
             $amountString = $this->number_to_string($amount);
             $priceString = $this->number_to_string($price);
             $otherUnitsAmount = Precise::string_mul($amountString, $priceString);
             $cost = $this->cost_to_precision($symbol, $otherUnitsAmount);
         } else {
-            $currency = $market['base'];
+            $currency = $this->safe_string($market, 'base');
             $cost = $this->amount_to_precision($symbol, $amount);
         }
         $rate = $this->safe_value($market, $takerOrMaker);

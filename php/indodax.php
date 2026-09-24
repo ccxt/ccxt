@@ -811,7 +811,7 @@ class indodax extends Exchange {
         //
         $side = null;
         if (is_array($order) && array_key_exists('type' ?? '', $order)) {
-            $side = $order['type'];
+            $side = $this->safe_string($order, 'type');
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status', 'open'));
         $symbol = null;
@@ -1054,7 +1054,7 @@ class indodax extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
-        $side = $this->safe_value($params, 'side');
+        $side = $this->safe_string($params, 'side');
         if ($side === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires an extra "side" param');
         }

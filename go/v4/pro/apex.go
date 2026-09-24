@@ -555,13 +555,13 @@ func (this *Apex) HandleTicker(client any, message map[string]any) {
 	var parsed any = this.ParseTicker(data)
 	if updateType != nil && *updateType == "snapshot" {
 		parsed = this.ParseTicker(data)
-		symbol = ccxt.GetValue(parsed, "symbol")
+		symbol = ccxt.DerefScalar(this.SafeString(parsed, "symbol"))
 	} else if updateType != nil && *updateType == "delta" {
 		var topicParts []string = ccxt.Split(topic, ".")
 		var topicLength int = len(topicParts)
 		var marketId *string = this.SafeString(topicParts, topicLength-1)
 		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil))
-		symbol = market["symbol"]
+		symbol = ccxt.DerefScalar(this.SafeString(market, "symbol"))
 		var ticker map[string]any = ccxt.SafeMapTyped(this.Tickers, symbol)
 		var rawTicker any = this.SafeDict(ticker, "info", map[string]any{})
 		var merged map[string]any = this.Extend(rawTicker, data)
@@ -644,7 +644,7 @@ func (this *Apex) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 	var rawHashes []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
-		var data any = ccxt.GetValue(symbolsAndTimeframes, i)
+		var data []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
 		var symbolString any = ccxt.DerefScalar(this.SafeString(data, 0))
 		var market map[string]any = this.Market(symbolString)
 		symbolString = market["id2"]
@@ -696,12 +696,10 @@ func (this *Apex) HandleOHLCV(client any, message map[string]any) {
 	var timeframe *string = this.FindTimeframe(timeframeId)
 	var marketId *string = this.SafeString(topicParts, topicLength-1)
 	var isSpot bool = (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot") > -1)
-	var marketType string = func() string {
-		if isSpot {
-			return "spot"
-		}
-		return "contract"
-	}()
+	var marketType string = "contract"
+	if isSpot {
+		marketType = "spot"
+	}
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {

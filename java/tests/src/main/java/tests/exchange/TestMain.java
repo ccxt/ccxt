@@ -775,7 +775,7 @@ public class TestMain extends BaseTest
     public Object getValidSymbol(BaseExchange exchange, Object spot)
     {
         Object currentTypeMarkets = this.getMarketsFromExchange(exchange, spot);
-        List<Object> codes = new ArrayList<Object>(Arrays.asList("BTC", "ETH", "XRP", "LTC", "BNB", "DASH", "DOGE", "ETC", "TRX", "USDT", "USDC", "USD", "GUSD", "EUR", "TUSD", "CNY", "JPY", "BRL"));
+        List<String> codes = new ArrayList<String>(Arrays.asList("BTC", "ETH", "XRP", "LTC", "BNB", "DASH", "DOGE", "ETC", "TRX", "USDT", "USDC", "USD", "GUSD", "EUR", "TUSD", "CNY", "JPY", "BRL"));
         List<Object> spotSymbols = new ArrayList<Object>(Arrays.asList("BTC/USDT", "BTC/USDC", "BTC/USD", "BTC/CNY", "BTC/EUR", "BTC/AUD", "BTC/BRL", "BTC/JPY", "ETH/USDT", "ETH/USDC", "ETH/USD", "ETH/CNY", "ETH/EUR", "ETH/AUD", "ETH/BRL", "ETH/JPY", "EUR/USDT", "EUR/USD", "EUR/USDC", "USDT/EUR", "USD/EUR", "USDC/EUR", "BTC/ETH", "ETH/BTC"));
         List<Object> swapSymbols = new ArrayList<Object>(Arrays.asList("BTC/USDT:USDT", "BTC/USD:USDT", "BTC/USDC:USDC", "BTC/USD:USDC", "BTC/USD:USD", "ETH/USDT:USDT", "ETH/USD:USDT", "ETH/USDC:USDC", "ETH/USD:USDC", "ETH/USD:USD", "BTC/USD:BTC", "ETH/USD:ETH"));
         List<Object> targetSymbols = ((Helpers.isTrue(spot))) ? spotSymbols : swapSymbols;
@@ -1132,7 +1132,7 @@ public class TestMain extends BaseTest
             // fetchEvents/fetchEvent are prediction-only and not on every language's typed base
             // (Go's ICoreExchange / C# Exchange), so invoke them dynamically by name and validate
             // inline rather than through a per-method test file
-            Object eventId = null;
+            String eventId = null;
             if (!Helpers.isTrue(this.wsTests))
             {
                 try
@@ -1419,7 +1419,7 @@ public class TestMain extends BaseTest
             // no try/finally and no re-throw from the catch (the typed-lang async lambdas can't do
             // either): record any failure, ALWAYS attempt the cancel, then report the failure
             Object order = null;
-            Object placedId = null;
+            String placedId = null;
             Object failure = null;
             try
             {

@@ -853,7 +853,10 @@ class hashkey extends \ccxt\async\hashkey {
         $data = $this->safe_list($message, 'B', array());
         $balanceUpdate = $this->safe_dict($data, 0);
         $isSpot = $event === 'outboundAccountInfo';
-        $type = $isSpot ? 'spot' : 'swap';
+        $type = 'swap';
+        if ($isSpot) {
+            $type = 'spot';
+        }
         if (!(is_array($this->balance) && array_key_exists($type ?? '', $this->balance))) {
             $this->balance[$type] = array();
         }

@@ -697,8 +697,14 @@ export default class poloniex extends Exchange {
             'symbol': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
-        const keyStart = (market['spot'] === true) ? 'startTime' : 'sTime';
-        const keyEnd = (market['spot'] === true) ? 'endTime' : 'eTime';
+        let keyStart: Str = 'sTime';
+        if (market['spot'] === true) {
+            keyStart = 'startTime';
+        }
+        let keyEnd: Str = 'eTime';
+        if (market['spot'] === true) {
+            keyEnd = 'endTime';
+        }
         if (since !== undefined) {
             request[keyStart] = since;
         }
@@ -976,7 +982,10 @@ export default class poloniex extends Exchange {
         if (alias !== undefined) {
             type = 'future';
         }
-        const marketType = (type === 'future') ? 'future' : 'swap';
+        let marketType: Str = 'swap';
+        if (type === 'future') {
+            marketType = 'future';
+        }
         return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
@@ -1262,7 +1271,7 @@ export default class poloniex extends Exchange {
         const chains = this.safeList (entry, 'networkList', []);
         const chainsLength = chains.length;
         for (let j = 0; j < chainsLength; j++) {
-            const chain = chains[j];
+            const chain = this.safeDict (chains, j);
             const chainId = this.safeString (chain, 'blockchain');
             const networkCode = this.networkIdToCode (chainId, code);
             if (networkCode !== undefined) {
@@ -1560,7 +1569,7 @@ export default class poloniex extends Exchange {
     override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
         }
@@ -1575,8 +1584,14 @@ export default class poloniex extends Exchange {
             // 'from': 12345678, // A 'trade Id'. The query begins at ‘from'.
             // 'direction': 'PRE', // PRE, NEXT The direction before or after ‘from'.
         };
-        const startKey = isContract ? 'sTime' : 'startTime';
-        const endKey = isContract ? 'eTime' : 'endTime';
+        let startKey: Str = 'startTime';
+        if (isContract) {
+            startKey = 'sTime';
+        }
+        let endKey: Str = 'endTime';
+        if (isContract) {
+            endKey = 'eTime';
+        }
         if (since !== undefined) {
             request[startKey] = since;
         }
@@ -2148,22 +2163,37 @@ export default class poloniex extends Exchange {
                 } else {
                     quoteAmount = this.costToPrecision (symbol, amount);
                 }
-                const amountKey = (market['spot'] === true) ? 'amount' : 'sz';
+                let amountKey: Str = 'sz';
+                if (market['spot'] === true) {
+                    amountKey = 'amount';
+                }
                 request[amountKey] = quoteAmount;
             } else {
-                const amountKey = (market['spot'] === true) ? 'quantity' : 'sz';
+                let amountKey: Str = 'sz';
+                if (market['spot'] === true) {
+                    amountKey = 'quantity';
+                }
                 request[amountKey] = this.amountToPrecision (symbol, amount);
             }
         } else {
-            const amountKey = (market['spot'] === true) ? 'quantity' : 'sz';
+            let amountKey: Str = 'sz';
+            if (market['spot'] === true) {
+                amountKey = 'quantity';
+            }
             request[amountKey] = this.amountToPrecision (symbol, amount);
-            const priceKey = (market['spot'] === true) ? 'price' : 'px';
+            let priceKey: Str = 'px';
+            if (market['spot'] === true) {
+                priceKey = 'price';
+            }
             request[priceKey] = this.priceToPrecision (symbol, price);
         }
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clOrdId');
         if (clientOrderId !== undefined) {
             // the futures v3 api silently ignores the spot key and generates its own id
-            const clientOrderIdKey = (market['spot'] === true) ? 'clientOrderId' : 'clOrdId';
+            let clientOrderIdKey: Str = 'clOrdId';
+            if (market['spot'] === true) {
+                clientOrderIdKey = 'clientOrderId';
+            }
             request[clientOrderIdKey] = clientOrderId;
             params = this.omit (params, [ 'clientOrderId', 'clOrdId' ]);
         }
@@ -2478,7 +2508,7 @@ export default class poloniex extends Exchange {
             result['datetime'] = this.iso8601 (ts);
             const details = this.safeList (response, 'details', []);
             for (let i = 0; i < details.length; i++) {
-                const balance = details[i];
+                const balance = this.safeDict (details, i);
                 const currencyId = this.safeString (balance, 'ccy');
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
@@ -3244,7 +3274,10 @@ export default class poloniex extends Exchange {
         let status = this.safeString (transaction, 'status', 'pending');
         status = this.parseTransactionStatus (status) as string;
         const txid = this.safeString (transaction, 'txid');
-        const type = ('withdrawalRequestsId' in transaction) ? 'withdrawal' : 'deposit';
+        let type: Str = 'deposit';
+        if ('withdrawalRequestsId' in transaction) {
+            type = 'withdrawal';
+        }
         const id = this.safeString2 (transaction, 'withdrawalRequestsId', 'depositNumber');
         const address = this.safeString (transaction, 'address');
         const tag = this.safeString (transaction, 'paymentID');
@@ -3388,7 +3421,7 @@ export default class poloniex extends Exchange {
         let marginMode: Str = undefined;
         const data = this.safeList (leverage, 'data', []);
         for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
+            const entry = this.safeDict (data, i);
             marketId = this.safeString (entry, 'symbol');
             // mgnMode arrives upper case; parseOrder and parsePosition read the
             // same field with safeStringLower
@@ -3453,7 +3486,10 @@ export default class poloniex extends Exchange {
      * @returns {object} response from the exchange
      */
     override async setPositionMode (hedged: boolean, symbol: Str = undefined, params: Dict = {}) {
-        const mode = hedged ? 'HEDGE' : 'ONE_WAY';
+        let mode: Str = 'ONE_WAY';
+        if (hedged) {
+            mode = 'HEDGE';
+        }
         const request: Dict = {
             'posMode': mode,
         };

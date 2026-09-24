@@ -1041,8 +1041,8 @@ public class Bullish extends BullishApi
         Boolean future = false;
         Boolean option = false;
         Boolean contract = true;
-        Object linear = null;
-        Object inverse = null;
+        Boolean linear = null;
+        Boolean inverse = null;
         String expiryDatetime = null;
         Double contractSize = null;
         String optionType = null;
@@ -1091,8 +1091,8 @@ public class Bullish extends BullishApi
         final Boolean finalFuture = future;
         final Boolean finalOption = option;
         final Boolean finalContract = contract;
-        final Object finalLinear = linear;
-        final Object finalInverse = inverse;
+        final Boolean finalLinear = linear;
+        final Boolean finalInverse = inverse;
         final Double finalContractSize = contractSize;
         final String finalExpiryDatetime = expiryDatetime;
         final Object finalStrike = strike;
@@ -1258,8 +1258,8 @@ public class Bullish extends BullishApi
             }
             Integer maxLimit = 100;
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -1357,8 +1357,8 @@ public class Bullish extends BullishApi
             } else
             {
                 Boolean paginate = false;
-                List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-                paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+                List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+                paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
                 parameters = ((List<Object>) paginateparametersVariable).get(1);
                 if (Boolean.TRUE.equals(paginate))
                 {
@@ -1803,8 +1803,8 @@ public class Bullish extends BullishApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Integer maxLimit = 100;
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -1914,8 +1914,8 @@ public class Bullish extends BullishApi
             }
             Integer maxLimit = 100;
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -2811,7 +2811,7 @@ public class Bullish extends BullishApi
         }
         String average = this.safeString(order, "averageFillPrice");
         final String finalStatus = status;
-        final Object finalType = type;
+        final String finalType = type;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", Bullish.this.safeString(order, "clientOrderId") );
@@ -3116,7 +3116,7 @@ public class Bullish extends BullishApi
         return this.parseTransaction(transaction, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public String parseTransactionType(Object type)
+    public String parseTransactionType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "DEPOSIT", "deposit" );
@@ -3151,7 +3151,7 @@ public class Bullish extends BullishApi
                 List<Object> accounts = this.toArray(response);
                 for (var i = 0; i < ((List<?>)accounts).size(); i++)
                 {
-                    Object account = (accounts == null || i < 0 || i >= accounts.size() ? null : accounts.get(i));
+                    Map<String, Object> account = (Map<String, Object>) this.safeDict(accounts, i);
                     String name = this.safeString(account, "tradingAccountName");
                     if (java.util.Objects.equals(name, "Primary Account"))
                     {
@@ -3361,7 +3361,7 @@ public class Bullish extends BullishApi
                     }
                 }
             }
-            return this.parseDepositAddress(data, currency);
+            return this.parseDepositAddress((Map<String, Object>) (data), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -3380,7 +3380,7 @@ public class Bullish extends BullishApi
         return this.fetchDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseDepositAddress(Object depositAddress, Map<String, Object> currency)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         String id = this.safeString(depositAddress, "symbol");
         String network = this.safeString(depositAddress, "network");
@@ -3393,7 +3393,7 @@ public class Bullish extends BullishApi
             put( "tag", null );
         }};
     }
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Object... optionalArgs)
     {
         return this.parseDepositAddress(depositAddress, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -3485,7 +3485,7 @@ public class Bullish extends BullishApi
         }};
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
-            Object balance = Helpers.GetValue(response, i);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i);
             String symbol = this.safeString(balance, "assetSymbol");
             String code = this.safeCurrencyCode(symbol);
             Map<String, Object> account = (Map<String, Object>) this.account();
@@ -3660,8 +3660,8 @@ public class Bullish extends BullishApi
             Object tradingAccountId = (this.loadAccount(parameters)).join();
             Integer maxLimit = 100;
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -3825,7 +3825,7 @@ public class Bullish extends BullishApi
         {
             status = this.safeString(transfer, "message");
         }
-        final Object finalStatus = status;
+        final String finalStatus = status;
         return new HashMap<String, Object>() {{
             put( "id", Bullish.this.safeString(transfer, "requestId") );
             put( "timestamp", timestamp );

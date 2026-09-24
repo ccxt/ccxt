@@ -415,7 +415,11 @@ public partial class kalshi : PredictionExchange
                 List<object> parsed = this.parseBinaryMarketToOutcomes(raw);
                 string? eventTicker = this.safeString(raw, "event_ticker");
                 string? eventTitle = this.safeString(raw, "title", eventTicker);
-                string? eventKey = ((eventTitle != null) && eventTitle != "") ? this.shortenSlug(eventTitle) : null;
+                string? eventKey = null;
+                if ((eventTitle != null) && eventTitle != "")
+                {
+                    eventKey = this.shortenSlug(eventTitle);
+                }
                 for (int j = 0; j < (parsed?.Count ?? 0); j++)
                 {
                     object m = parsed[j];
@@ -489,7 +493,11 @@ public partial class kalshi : PredictionExchange
             Int64? symbolLength = this.parseToInt(((string)outcomeSymbol).Length);
             string? suffix = slice(outcomeSymbol, subtract(symbolLength, 3), null);
             bool isNo = (suffix == "-NO");
-            object baseTicker = isNo ? slice(outcomeSymbol, 0, subtract(symbolLength, 3)) : outcomeSymbol;
+            object baseTicker = outcomeSymbol;
+            if (isNo)
+            {
+                baseTicker = slice(outcomeSymbol, 0, subtract(symbolLength, 3));
+            }
             Dictionary<string, object> response = null;
             try
             {
@@ -583,7 +591,11 @@ public partial class kalshi : PredictionExchange
             // parseToInt-wrapped .length — see the fetchOutcome comment (php count()/python slice traps)
             Int64? symbolLength = this.parseToInt(((string)outcomeSymbol).Length);
             string? suffix = slice(outcomeSymbol, subtract(symbolLength, 3), null);
-            object baseTicker = (suffix == "-NO") ? slice(outcomeSymbol, 0, subtract(symbolLength, 3)) : outcomeSymbol;
+            object baseTicker = outcomeSymbol;
+            if (suffix == "-NO")
+            {
+                baseTicker = slice(outcomeSymbol, 0, subtract(symbolLength, 3));
+            }
             if (!(inOp(seen, baseTicker)))
             {
                 seen[(string)baseTicker] = true;
@@ -765,7 +777,11 @@ public partial class kalshi : PredictionExchange
             seriesTicker = String.Join("-", seriesParts.ToArray());
         }
         // market symbol (no outcome suffix)
-        object subtitleOrTicker = ((subtitle != null)) ? subtitle : ticker;
+        object subtitleOrTicker = ticker;
+        if ((subtitle != null))
+        {
+            subtitleOrTicker = subtitle;
+        }
         string? marketSymbol = this.slugToMarketSymbol(eventTicker, subtitleOrTicker);
         // kalshi exposes the per-market price tick via price_ranges[].step (a dollar value,
         // e.g. "0.0010" for deci-cent markets, "0.0100" for cent markets); older responses
@@ -1131,8 +1147,22 @@ public partial class kalshi : PredictionExchange
             close = last;
         }
         // the book is quoted in the yes token, the no side mirrors with sizes swapped
-        string? bidSizeString = isNo ? this.safeString(raw, "yes_ask_size_fp") : this.safeString(raw, "yes_bid_size_fp");
-        string? askSizeString = isNo ? this.safeString(raw, "yes_bid_size_fp") : this.safeString(raw, "yes_ask_size_fp");
+        string? bidSizeString = null;
+        if (isNo)
+        {
+            bidSizeString = this.safeString(raw, "yes_ask_size_fp");
+        } else
+        {
+            bidSizeString = this.safeString(raw, "yes_bid_size_fp");
+        }
+        string? askSizeString = null;
+        if (isNo)
+        {
+            askSizeString = this.safeString(raw, "yes_bid_size_fp");
+        } else
+        {
+            askSizeString = this.safeString(raw, "yes_ask_size_fp");
+        }
         // kalshi occasionally reports a negative size for settling/closed markets; a size
         // can't be negative, so drop it rather than emit an invalid volume
         double? bidVolume = null;
@@ -1723,7 +1753,11 @@ public partial class kalshi : PredictionExchange
         Int64? ts = this.parse8601(this.safeString(fill, "created_time"));
         // action is the order side (buy/sell) of the held leg
         string? action = this.safeStringLower(fill, "action");
-        string side = (action == "sell") ? "sell" : "buy";
+        string side = "buy";
+        if (action == "sell")
+        {
+            side = "sell";
+        }
         // price is the price of the leg held; kalshi reports dollars in V2, cents otherwise
         object price = null;
         if (sideLeg == "no")
@@ -1756,7 +1790,11 @@ public partial class kalshi : PredictionExchange
             cost = multiply(price, amount);
         }
         bool? isTaker = this.safeBool(fill, "is_taker", true);
-        string takerOrMaker = ((isTaker == true)) ? "taker" : "maker";
+        string takerOrMaker = "maker";
+        if ((isTaker == true))
+        {
+            takerOrMaker = "taker";
+        }
         double? feeCost = this.safeNumber(fill, "fee_cost");
         Dictionary<string, object> fee = null;
         if ((feeCost != null))
@@ -1954,10 +1992,21 @@ public partial class kalshi : PredictionExchange
         double? yesCount = this.safeNumber2(settlement, "yes_count_fp", "yes_count", 0);
         double? noCount = this.safeNumber2(settlement, "no_count_fp", "no_count", 0);
         bool heldYes = (isGreaterThanOrEqual(yesCount, noCount));
-        string heldLabel = heldYes ? "YES" : "NO";
+        string heldLabel = "NO";
+        if (heldYes)
+        {
+            heldLabel = "YES";
+        }
         bool tickerMissing = ((ticker == null));
         bool useHeldYesTicker = (heldYes || tickerMissing);
-        object heldTicker = useHeldYesTicker ? ticker : (add(ticker, "-NO"));
+        object heldTicker = null;
+        if (useHeldYesTicker)
+        {
+            heldTicker = ticker;
+        } else
+        {
+            heldTicker = (add(ticker, "-NO"));
+        }
         IDictionary<string, object> mkt = this.safeOutcome(heldTicker, market);
         // which leg won; market_result is yes or no
         string? marketResult = this.safeStringUpper(settlement, "market_result");
@@ -1972,8 +2021,16 @@ public partial class kalshi : PredictionExchange
                 payout = (revenueCents / 100);
             }
         }
-        string costKey = heldYes ? "yes_total_cost" : "no_total_cost";
-        string costDollarsKey = heldYes ? "yes_total_cost_dollars" : "no_total_cost_dollars";
+        string costKey = "no_total_cost";
+        if (heldYes)
+        {
+            costKey = "yes_total_cost";
+        }
+        string costDollarsKey = "no_total_cost_dollars";
+        if (heldYes)
+        {
+            costDollarsKey = "yes_total_cost_dollars";
+        }
         object cost = this.safeNumber(settlement, costDollarsKey);
         if (isEqual(cost, null))
         {
@@ -2224,8 +2281,16 @@ public partial class kalshi : PredictionExchange
         // price in the outcome's own leg: V2 returns *_price_dollars (already dollars),
         // legacy returned yes_price/no_price in cents
         bool labelIsNo = ((this.safeStringUpper(mkt, "label") == "NO"));
-        string dollarsKey = labelIsNo ? "no_price_dollars" : "yes_price_dollars";
-        string centsKey = labelIsNo ? "no_price" : "yes_price";
+        string dollarsKey = "yes_price_dollars";
+        if (labelIsNo)
+        {
+            dollarsKey = "no_price_dollars";
+        }
+        string centsKey = "yes_price";
+        if (labelIsNo)
+        {
+            centsKey = "no_price";
+        }
         object price = this.safeNumber(order, dollarsKey);
         if (isEqual(price, null))
         {
@@ -2321,7 +2386,11 @@ public partial class kalshi : PredictionExchange
         // kalshi V2 (/portfolio/events/orders) quotes the YES leg only: side 'bid' = buy YES,
         // 'ask' = sell YES, price in dollars. a NO order maps to the complementary YES order
         // buy NO @ q == sell YES @ 1-q - flip the book side and the price
-        string bookSide = isBuy ? "bid" : "ask";
+        string bookSide = "ask";
+        if (isBuy)
+        {
+            bookSide = "bid";
+        }
         double? yesPrice = price;
         if (isNo)
         {
@@ -2336,7 +2405,11 @@ public partial class kalshi : PredictionExchange
         // `time_in_force` param (handled below) still overrides
         string? unifiedTif = this.safeStringUpper(parameters, "timeInForce");
         parameters = this.omit(parameters, "timeInForce");
-        string defaultTif = isMarket ? "immediate_or_cancel" : "good_till_canceled";
+        string defaultTif = "good_till_canceled";
+        if (isMarket)
+        {
+            defaultTif = "immediate_or_cancel";
+        }
         // kalshi has BOTH immediate_or_cancel (partial ok) and fill_or_kill (all-or-nothing);
         // map the unified tokens to the matching primitive rather than collapsing FOK into IOC
         if (unifiedTif == "IOC")
@@ -2353,9 +2426,9 @@ public partial class kalshi : PredictionExchange
         IList<object> timeInForceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "time_in_force", defaultTif);
         timeInForce = timeInForceparametersVariable[0];
         parameters = timeInForceparametersVariable[1];
-        object stp = null;
-        IList<object> stpparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "self_trade_prevention_type", "taker_at_cross");
-        stp = stpparametersVariable[0];
+        string? stp = null;
+        IList<object> stpparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "self_trade_prevention_type", "taker_at_cross");
+        stp = (string)stpparametersVariable[0];
         parameters = stpparametersVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ticker", ticker },
@@ -2592,8 +2665,8 @@ public partial class kalshi : PredictionExchange
         } else
         {
             // tags / category / series_ticker resolve to a set of series; fetch their events, capped
-            object seriesTickers = await this.resolveEventSeriesTickers(parameters);
-            int seriesTickersLength = getArrayLength(seriesTickers);
+            List<object> seriesTickers = await this.resolveEventSeriesTickers(parameters);
+            int seriesTickersLength = (seriesTickers?.Count ?? 0);
             if ((seriesTickersLength == 0))
             {
                 this.requireEventQuery(parameters);
@@ -2723,7 +2796,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] the fetchEvents params carrying tags / category / series_ticker
      * @returns {string[]} deduplicated series tickers
      */
-    public async virtual Task<object> resolveEventSeriesTickers(object parameters = null)
+    public async virtual Task<List<object>> resolveEventSeriesTickers(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> collected = new List<object>() {};
@@ -3016,7 +3089,11 @@ public partial class kalshi : PredictionExchange
         string? ticker = this.safeString(rawEvent, "event_ticker");
         string? title = this.safeString(rawEvent, "title");
         bool hasTitle = ((title != null)) && (title != "");
-        string? eventSlug = hasTitle ? this.shortenSlug(title) : null;
+        string? eventSlug = null;
+        if (hasTitle)
+        {
+            eventSlug = this.shortenSlug(title);
+        }
         Int64? created = this.parse8601(this.safeString(rawEvent, "created_date_iso"));
         if ((created == null))
         {

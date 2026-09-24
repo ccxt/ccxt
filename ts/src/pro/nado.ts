@@ -321,7 +321,7 @@ export default class nado extends nadoRest {
         const messageHashes: string[] = [];
         const subscriptionParams: any[] = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const symbolAndTimeframe = symbolsAndTimeframes[i];
+            const symbolAndTimeframe = this.safeList (symbolsAndTimeframes, i);
             const marketSymbol = this.safeString (symbolAndTimeframe, 0);
             const timeframe = this.safeString (symbolAndTimeframe, 1, '1m');
             const market = this.market (marketSymbol);
@@ -373,7 +373,7 @@ export default class nado extends nadoRest {
         const messageHashes: string[] = [];
         const subscriptionParams: any[] = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const symbolAndTimeframe = symbolsAndTimeframes[i];
+            const symbolAndTimeframe = this.safeList (symbolsAndTimeframes, i);
             const marketSymbol = this.safeString (symbolAndTimeframe, 0);
             const timeframe = this.safeString (symbolAndTimeframe, 1, '1m');
             const market = this.market (marketSymbol);
@@ -1769,7 +1769,7 @@ export default class nado extends nadoRest {
         const subscriptions = Object.keys (client.subscriptions);
         for (let i = 0; i < subscriptions.length; i++) {
             const unsubscribeHash = subscriptions[i];
-            const subscription = client.subscriptions[unsubscribeHash];
+            const subscription = this.safeDict (client.subscriptions, unsubscribeHash);
             const subscriptionId = this.safeString (subscription, 'id');
             if (subscriptionId !== id) {
                 continue;

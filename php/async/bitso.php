@@ -528,7 +528,7 @@ class bitso extends Exchange {
             $takerFees = array();
             $makerFees = array();
             for ($j = 0; $j < count($feeTiers); $j++) {
-                $tier = $feeTiers[$j];
+                $tier = $this->safe_dict($feeTiers, $j);
                 $volume = $this->safe_number($tier, 'volume');
                 $takerFee = $this->safe_number($tier, 'taker');
                 $makerFee = $this->safe_number($tier, 'maker');
@@ -676,7 +676,7 @@ class bitso extends Exchange {
     }
 
     public function parse_balance(mixed $response): array {
-        $payload = $this->safe_value($response, 'payload', array());
+        $payload = $this->safe_dict($response, 'payload', array());
         $balances = $this->safe_list($payload, 'balances', array());
         $result = array(
             'info' => $response,
@@ -684,7 +684,7 @@ class bitso extends Exchange {
             'datetime' => null,
         );
         for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+            $balance = $this->safe_dict($balances, $i);
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();

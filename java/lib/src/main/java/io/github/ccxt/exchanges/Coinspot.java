@@ -622,7 +622,7 @@ public class Coinspot extends CoinspotApi
                 for (var j = 0; j < ((List<?>)currencyIds).size(); j++)
                 {
                     Object currencyId = (currencyIds == null || j < 0 || j >= currencyIds.size() ? null : currencyIds.get(j));
-                    Object balance = Helpers.GetValue(currencies, currencyId);
+                    Map<String, Object> balance = (Map<String, Object>) this.safeDict(currencies, currencyId);
                     String code = this.safeCurrencyCode((String) (currencyId));
                     Map<String, Object> account = (Map<String, Object>) this.account();
                     ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
@@ -1303,7 +1303,11 @@ public class Coinspot extends CoinspotApi
         Object version = ((Boolean.TRUE.equals(isVersionedApi))) ? Helpers.GetValue(api, 0) : null;
         Object accessType = ((Boolean.TRUE.equals(isVersionedApi))) ? Helpers.GetValue(api, 1) : api;
         String endpoint = ("/" + this.implodeParams(path, parameters));
-        String fullPath = (((!java.util.Objects.equals(version, null)))) ? (Helpers.add("/", version) + endpoint) : endpoint;
+        String fullPath = endpoint;
+        if (!java.util.Objects.equals(version, null))
+        {
+            fullPath = (Helpers.add("/", version) + endpoint);
+        }
         Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), accessType), fullPath);
         if (java.util.Objects.equals(accessType, "private"))
         {

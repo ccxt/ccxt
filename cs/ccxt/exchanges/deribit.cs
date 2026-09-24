@@ -1389,7 +1389,7 @@ public partial class deribit : Exchange
         }
         for (int i = 0; i < (summaries?.Count ?? 0); i++)
         {
-            object data = summaries[i];
+            IDictionary<string, object> data = this.safeDict(summaries, i);
             string? currencyId = this.safeString(data, "currency");
             string? currencyCode = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -1715,8 +1715,8 @@ public partial class deribit : Exchange
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        object code = this.safeString2(parameters, "code", "currency");
-        object type = null;
+        string? code = this.safeString2(parameters, "code", "currency");
+        string? type = null;
         parameters = this.omit(parameters, new List<object>() {"code"});
         if ((symbols != null))
         {
@@ -1729,8 +1729,8 @@ public partial class deribit : Exchange
                 }
                 if ((code == null))
                 {
-                    code = (market.ContainsKey("base") ? market["base"] : null);
-                    type = (market.ContainsKey("type") ? market["type"] : null);
+                    code = this.safeString(market, "base");
+                    type = this.safeString(market, "type");
                 }
             }
         }
@@ -1738,20 +1738,20 @@ public partial class deribit : Exchange
         {
             throw new ArgumentsRequired ((this.id + " fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for")) ;
         }
-        Dictionary<string, object> currency = this.currency(((string)code));
+        Dictionary<string, object> currency = this.currency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         if ((type != null))
         {
             string? requestType = null;
-            if (isEqual(type, "spot"))
+            if (type == "spot")
             {
                 requestType = "spot";
-            } else if (isEqual(type, "future") || (isEqual(type, "contract")))
+            } else if (type == "future" || (type == "contract"))
             {
                 requestType = "future";
-            } else if (isEqual(type, "option"))
+            } else if (type == "option")
             {
                 requestType = "option";
             }
@@ -1831,8 +1831,8 @@ public partial class deribit : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -3800,8 +3800,8 @@ public partial class deribit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         int maxEntriesPerRequest = 744; // seems exchange returns max 744 items per request
         string eachItemDuration = "1h";
@@ -3866,7 +3866,7 @@ public partial class deribit : Exchange
         List<object> result = this.safeList(response, "result", new List<object>() {});
         for (int i = 0; i < result.Count; i++)
         {
-            object fr = result[i];
+            IDictionary<string, object> fr = this.safeDict(result, i);
             Dictionary<string, object> rate = this.parseFundingRate(fr, market);
             rates.Add(rate);
         }
@@ -3938,8 +3938,8 @@ public partial class deribit : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchLiquidations", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchLiquidations", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {

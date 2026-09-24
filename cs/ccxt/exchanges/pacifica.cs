@@ -1032,7 +1032,7 @@ public partial class pacifica : Exchange
         List<object> spotBalances = this.safeList(data, "spot_balances", new List<object>() {});
         for (int i = 0; i < spotBalances.Count; i++)
         {
-            object balance = spotBalances[i];
+            IDictionary<string, object> balance = this.safeDict(spotBalances, i);
             string? currencyId = this.safeString(balance, "symbol");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -1110,7 +1110,11 @@ public partial class pacifica : Exchange
         // }
         bool? isIsolated = this.safeBool(setting, "isolated", false);
         Int64? leverage = this.safeInteger(setting, "leverage");
-        string marginMode = ((isIsolated == true)) ? "isolated" : "cross";
+        string marginMode = "cross";
+        if ((isIsolated == true))
+        {
+            marginMode = "isolated";
+        }
         return new Dictionary<string, object>() {
             { "info", setting },
             { "symbol", symbol },
@@ -1263,7 +1267,11 @@ public partial class pacifica : Exchange
         //
         // }
         bool? isIsolated = this.safeBool(setting, "isolated", false);
-        string marginMode = ((isIsolated == true)) ? "isolated" : "cross";
+        string marginMode = "cross";
+        if ((isIsolated == true))
+        {
+            marginMode = "isolated";
+        }
         return new Dictionary<string, object>() {
             { "symbol", symbol },
             { "marginMode", marginMode },
@@ -2020,7 +2028,7 @@ public partial class pacifica : Exchange
         Int64 timestamp = this.milliseconds(); // unified sequence
         for (int i = 0; i < getArrayLength(orders); i++)
         {
-            IDictionary<string, object> order = ((IDictionary<string, object>)getValue(orders, i));
+            IDictionary<string, object> order = this.safeDict(orders, i);
             string? symbol = this.safeString(order, "symbol");
             string? side = this.safeString(order, "side");
             string? price = this.safeString(order, "price");
@@ -2310,7 +2318,11 @@ public partial class pacifica : Exchange
         // }
         //
         bool? success = this.safeBool(response, "success", false);
-        string status = ((success == true)) ? "canceled" : "closed";
+        string status = "closed";
+        if ((success == true))
+        {
+            status = "canceled";
+        }
         return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "id", id },             { "status", status },             { "info", response },             { "symbol", symbol },         }));
     }
 
@@ -3806,9 +3818,9 @@ public partial class pacifica : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> finalHeaders = new Dictionary<string, object>() {};
-        object agentAddress = null;
-        IList<object> agentAddressparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createSubAccount", "agentAddress");
-        agentAddress = agentAddressparametersVariable[0];
+        string? agentAddress = null;
+        IList<object> agentAddressparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createSubAccount", "agentAddress");
+        agentAddress = (string)agentAddressparametersVariable[0];
         parameters = agentAddressparametersVariable[1];
         string? originAddress = null;
         IList<object> originAddressparametersVariable = (IList<object>)this.handleOriginAndSingleAddress("createSubAccount", parameters);
@@ -3822,13 +3834,13 @@ public partial class pacifica : Exchange
         {
             finalHeaders["agent_wallet"] = agentAddress;
         }
-        object subAccountAddress = null;
-        IList<object> subAccountAddressparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createSubAccount", "subAccountAddress");
-        subAccountAddress = subAccountAddressparametersVariable[0];
+        string? subAccountAddress = null;
+        IList<object> subAccountAddressparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createSubAccount", "subAccountAddress");
+        subAccountAddress = (string)subAccountAddressparametersVariable[0];
         parameters = subAccountAddressparametersVariable[1];
-        object subAccountPrivateKey = null;
-        IList<object> subAccountPrivateKeyparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createSubAccount", "subAccountPrivateKey");
-        subAccountPrivateKey = subAccountPrivateKeyparametersVariable[0];
+        string? subAccountPrivateKey = null;
+        IList<object> subAccountPrivateKeyparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createSubAccount", "subAccountPrivateKey");
+        subAccountPrivateKey = (string)subAccountPrivateKeyparametersVariable[0];
         parameters = subAccountPrivateKeyparametersVariable[1];
         if ((subAccountAddress == null))
         {
@@ -4021,7 +4033,11 @@ public partial class pacifica : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         bool isTestnet = this.isSandboxModeEnabled;
-        string urlKey = isTestnet ? "test" : "api";
+        string urlKey = "api";
+        if (isTestnet)
+        {
+            urlKey = "test";
+        }
         object host = this.implodeHostname(getValue(getValue(this.urls, urlKey), api));
         object url = add(add(add(add(host, "/api/"), this.version), "/"), this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));
@@ -4155,9 +4171,9 @@ public partial class pacifica : Exchange
         };
         string signature = this.signMessage(signatureHeader, sigPayload, this.privateKey);
         Dictionary<string, object> finalHeaders = new Dictionary<string, object>() {};
-        object agentAddress = null;
-        IList<object> agentAddressparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "postActionRequest", "agentAddress");
-        agentAddress = agentAddressparametersVariable[0];
+        string? agentAddress = null;
+        IList<object> agentAddressparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "postActionRequest", "agentAddress");
+        agentAddress = (string)agentAddressparametersVariable[0];
         parameters = agentAddressparametersVariable[1];
         string? originAddress = null;
         IList<object> originAddressparametersVariable = (IList<object>)this.handleOriginAndSingleAddress("postActionRequest", parameters);

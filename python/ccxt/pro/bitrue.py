@@ -162,7 +162,7 @@ class bitrue(ccxt.async_support.bitrue):
         #
         self.balance['info'] = balances
         for i in range(0, len(balances)):
-            balance = balances[i]
+            balance = self.safe_dict(balances, i)
             currencyId = self.safe_string(balance, 'a')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -275,7 +275,9 @@ class bitrue(ccxt.async_support.bitrue):
         sideId = self.safe_integer(order, 'S')
         # 1: buy
         # 2: sell
-        side = 'buy' if (sideId == 1) else 'sell'
+        side = 'sell'
+        if sideId == 1:
+            side = 'buy'
         statusId = self.safe_string(order, 'X')
         feeCurrencyId = self.safe_string(order, 'N')
         return self.safe_order({
@@ -416,7 +418,7 @@ class bitrue(ccxt.async_support.bitrue):
     def parse_contract_bids_asks(self, bidsAsks: list[object], symbol: str) -> list:
         result = []
         for i in range(0, len(bidsAsks)):
-            level = bidsAsks[i]
+            level = self.safe_list(bidsAsks, i)
             price = self.safe_number(level, 0)
             rawAmount = self.safe_number(level, 1)
             amount = self.convert_from_raw_quantity(symbol, rawAmount)
@@ -804,7 +806,7 @@ class bitrue(ccxt.async_support.bitrue):
                 # a flight is already in progress - wake when the leader
                 # settles it: the listenKey url is then in the options
                 await client.future(messageHash)
-                return self.options['listenKeyUrl']
+                return self.safe_string(self.options, 'listenKeyUrl')
             # register before the first await, so a concurrent caller entering
             # authenticate () while this one is inside the fetch sees the flight
             future = client.reusableFuture(messageHash)
@@ -845,7 +847,7 @@ class bitrue(ccxt.async_support.bitrue):
             # a bogus `new object[] {...}` argument
             refreshTimeout = self.safe_integer(self.options, 'listenKeyRefreshRate', 1800000)
             self.delay(refreshTimeout, self.keep_alive_listen_key)
-        return self.options['listenKeyUrl']
+        return self.safe_string(self.options, 'listenKeyUrl')
 
     async def keep_alive_listen_key(self, params: dict = {}):
         listenKey = self.safe_string(self.options, 'listenKey')

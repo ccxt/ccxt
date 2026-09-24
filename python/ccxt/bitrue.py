@@ -701,7 +701,9 @@ class bitrue(Exchange, ImplicitAPI):
         #
         keys = list(response.keys())
         keysLength = len(keys)
-        formattedStatus = 'maintenance' if (keysLength > 0) else 'ok'
+        formattedStatus = 'ok'
+        if keysLength > 0:
+            formattedStatus = 'maintenance'
         return {
             'status': formattedStatus,
             'updated': None,
@@ -1089,7 +1091,7 @@ class bitrue(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(response, 'updateTime')
         balances = self.safe_list_2(response, 'balances', 'account', [])
         for i in range(0, len(balances)):
-            balance = balances[i]
+            balance = self.safe_dict(balances, i)
             currencyId = self.safe_string_2(balance, 'asset', 'marginCoin')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -2037,7 +2039,9 @@ class bitrue(Exchange, ImplicitAPI):
                     amountString = self.number_to_string(amount)
                     priceString = self.number_to_string(price)
                     quoteAmount = Precise.string_mul(amountString, priceString)
-                    requestAmount = cost if (cost is not None) else quoteAmount
+                    requestAmount = quoteAmount
+                    if cost is not None:
+                        requestAmount = cost
                     request['amount'] = self.cost_to_precision(symbol, requestAmount)
                     request['volume'] = self.cost_to_precision(symbol, requestAmount)
             else:
@@ -2734,7 +2738,9 @@ class bitrue(Exchange, ImplicitAPI):
         updated = self.safe_integer(transaction, 'updatedAt')
         payAmount = ('payAmount' in transaction)
         ctime = ('ctime' in transaction)
-        type = 'withdrawal' if (payAmount or ctime) else 'deposit'
+        type = 'deposit'
+        if payAmount or ctime:
+            type = 'withdrawal'
         status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
         amount = self.safe_number(transaction, 'amount')
         network = None
@@ -2850,7 +2856,7 @@ class bitrue(Exchange, ImplicitAPI):
         }
         if chainDetailLength != 0:
             for i in range(0, chainDetailLength):
-                chainDetail = chainDetails[i]
+                chainDetail = self.safe_dict(chainDetails, i)
                 networkId = self.safe_string(chainDetail, 'chain')
                 currencyCode = self.safe_string(currency, 'code')
                 networkCode = self.network_id_to_code(networkId, currencyCode)

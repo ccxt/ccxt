@@ -1411,8 +1411,8 @@ public class Deribit extends DeribitApi
                     {
                         type = "spot";
                     }
-                    Object inverse = null;
-                    Object linear = null;
+                    Boolean inverse = null;
+                    Boolean linear = null;
                     if (Boolean.TRUE.equals(isSpot))
                     {
                         symbol = ((base + "/") + quote);
@@ -1450,8 +1450,8 @@ public class Deribit extends DeribitApi
                     final String finalSettle = settle;
                     final String finalType = type;
                     final Boolean finalOption = option;
-                    final Object finalLinear = linear;
-                    final Object finalInverse = inverse;
+                    final Boolean finalLinear = linear;
+                    final Boolean finalInverse = inverse;
                     final Double finalStrike = strike;
                     final String finalOptionType = optionType;
                                     ((List<Object>)result).add(new HashMap<String, Object>() {{
@@ -1540,7 +1540,7 @@ public class Deribit extends DeribitApi
         }
         for (var i = 0; i < ((List<?>)summaries).size(); i++)
         {
-            Object data = (summaries == null || i < 0 || i >= summaries.size() ? null : summaries.get(i));
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(summaries, i);
             String currencyId = this.safeString(data, "currency");
             String currencyCode = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
@@ -1955,8 +1955,8 @@ public class Deribit extends DeribitApi
                 (this.loadMarkets()).join();
             }
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
-            Object code = this.safeString2(parameters, "code", "currency");
-            Object type = null;
+            String code = this.safeString2(parameters, "code", "currency");
+            String type = null;
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("code")));
             if (!java.util.Objects.equals(symbols, null))
             {
@@ -1969,8 +1969,8 @@ public class Deribit extends DeribitApi
                     }
                     if (java.util.Objects.equals(code, null))
                     {
-                        code = ((Map<String, Object>)market).get("base");
-                        type = ((Map<String, Object>)market).get("type");
+                        code = this.safeString(market, "base");
+                        type = this.safeString(market, "type");
                     }
                 }
             }
@@ -1978,7 +1978,7 @@ public class Deribit extends DeribitApi
             {
                 throw new ArgumentsRequired((this.id + " fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for")) ;
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
@@ -2089,8 +2089,8 @@ public class Deribit extends DeribitApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -4585,8 +4585,8 @@ public class Deribit extends DeribitApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             Integer maxEntriesPerRequest = 744; // seems exchange returns max 744 items per request
             String eachItemDuration = "1h";
@@ -4652,7 +4652,7 @@ public class Deribit extends DeribitApi
             List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
-                Object fr = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
+                Map<String, Object> fr = (Map<String, Object>) this.safeDict(result, i);
                 Map<String, Object> rate = (Map<String, Object>) this.parseFundingRate(fr, market);
                 ((List<Object>)rates).add(rate);
             }
@@ -4753,8 +4753,8 @@ public class Deribit extends DeribitApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchLiquidations", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchLiquidations", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {

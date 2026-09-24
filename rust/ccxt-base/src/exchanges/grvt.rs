@@ -1369,7 +1369,7 @@ impl GrvtCore {
         //     }]
         // }
         //
-        let mut currentBuilders: Value = results.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut currentBuilders: Value = self.safe_dict(results, Value::Int(0), &[]);
         let mut approvedBuilder: Value = self.safe_list_k(currentBuilders, "results", &[Value::from(vec![])]);
         let mut length: f64 = ((approvedBuilder.len() as i64) as f64);
         let mut found: bool = false;
@@ -1474,7 +1474,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             append_to_array(&mut promises, self.sign_in(&[]).await);
         }
         let mut results: Value = promise_all(&promises).await;
-        let mut response: Value = results.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut response: Value = self.safe_dict(results, Value::Int(0), &[]);
         let mut result: Value = self.safe_list_k(response, "result", &[Value::from(vec![])]);
         return self.parse_markets(result);
 
@@ -2141,7 +2141,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.load_markets(&[]).await;
         }
         let mut paginate: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_bool_and_params(params.clone(), Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&paginate) {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".into()), params.clone()]).await;
         }
@@ -2320,7 +2320,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: Value = Value::Int(0);
             let mut __for_first_711: bool = true;
             while { if !__for_first_711 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_711 = false; i.as_f64().unwrap_or(f64::NAN) < ((spotBalances.len() as i64) as f64) } {
-            let mut balance: Value = spotBalances.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut balance: Value = self.safe_dict(spotBalances.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut account: Value = self.account();
@@ -3331,7 +3331,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 }));
         self.load_markets_and_sign_in().await;
         let mut paginate: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_bool_and_params(params.clone(), Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&paginate) {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchMyTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
         }
@@ -3493,7 +3493,10 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut timestamp: Value = self.safe_integer_product_k(position.clone(), "event_time", Value::Float(0.000001), &[]);
         let mut sizeRaw: Value = self.safe_string_k(position.clone(), "size", &[]);
         let mut isLong: Value = (crate::precise::Precise::stringGe(&sizeRaw, &Value::Str("0".into())));
-        let mut side: Value = (if is_true(&isLong) { Value::Str("long".into()) } else { Value::Str("short".into()) });
+        let mut side: Value = Value::Str("short".into());
+        if is_true(&isLong) {
+            side = Value::Str("long".into());
+        }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
@@ -3727,7 +3730,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 }));
         self.load_markets_and_sign_in().await;
         let mut paginate: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingHistory".into()), Value::Str("paginate".into()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_bool_and_params(params.clone(), Value::Str("fetchFundingHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&paginate) {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchFundingHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), params.clone(), Value::Int(1000)]).await;
         }
@@ -4187,7 +4190,10 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 }), &[]);
         }
         let mut isMarket: Value = self.safe_bool_k(order.clone(), "is_market", &[]);
-        let mut orderType: Value = (if (isMarket.as_bool() == Some(true)) { Value::Str("market".into()) } else { Value::Str("limit".into()) });
+        let mut orderType: Value = Value::Str("limit".into());
+        if (isMarket.as_bool() == Some(true)) {
+            orderType = Value::Str("market".into());
+        }
         let mut isPostOnly: Value = self.safe_bool_k(order.clone(), "post_only", &[]);
         let mut isReduceOnly: Value = self.safe_bool_k(order.clone(), "reduce_only", &[]);
         let mut timeInForceRaw: Value = self.safe_string_k(order.clone(), "time_in_force", &[]);

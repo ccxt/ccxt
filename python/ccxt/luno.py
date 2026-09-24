@@ -501,7 +501,7 @@ class luno(Exchange, ImplicitAPI):
         code = self.safe_currency_code(id)
         networks = {}
         for i in range(0, len(rawCurrency)):
-            networkEntry = rawCurrency[i]
+            networkEntry = self.safe_dict(rawCurrency, i)
             networkId = self.safe_string(networkEntry, 'name')
             networkCode = self.network_id_to_code(networkId, code)
             if networkCode is not None:
@@ -698,7 +698,7 @@ class luno(Exchange, ImplicitAPI):
             'datetime': None,
         }
         for i in range(0, len(wallets)):
-            wallet = wallets[i]
+            wallet = self.safe_dict(wallets, i)
             currencyId = self.safe_string(wallet, 'asset')
             code = self.safe_currency_code(currencyId)
             reserved = self.safe_string(wallet, 'reserved')
@@ -1386,7 +1386,7 @@ class luno(Exchange, ImplicitAPI):
             account = self.safe_dict(accountsByCurrencyCode, code)
             if account is None:
                 raise ExchangeError(self.id + ' fetchLedger() could not find account id for ' + code)
-            id = account['id']
+            id = self.safe_string(account, 'id')
         if min_row is None and max_row is None:
             max_row = 0  # Default to most recent transactions
             min_row = -1000  # Maximum number of records supported
@@ -1571,7 +1571,7 @@ class luno(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "account_id": "string",

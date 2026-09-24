@@ -366,7 +366,7 @@ class coinbaseinternational extends Exchange {
 
     private function do_handle_portfolio_and_params(string $methodName, $params = array()) {
         $portfolio = null;
-        list($portfolio, $params) = $this->handle_option_and_params($params, $methodName, 'portfolio');
+        list($portfolio, $params) = $this->handle_option_string_and_params($params, $methodName, 'portfolio');
         if (($portfolio !== null) && ($portfolio !== '')) {
             return array( $portfolio, $params );
         }
@@ -376,7 +376,7 @@ class coinbaseinternational extends Exchange {
         }
         $accounts = Async\await($this->fetch_accounts());
         for ($i = 0; $i < count($accounts); $i++) {
-            $account = $accounts[$i];
+            $account = $this->safe_dict($accounts, $i);
             $info = $this->safe_dict($account, 'info', array());
             if ($this->safe_bool($info, 'is_default') === true) {
                 $portfolioId = $this->safe_string($info, 'portfolio_id');
@@ -496,7 +496,7 @@ class coinbaseinternational extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 10000));
         }
@@ -579,7 +579,7 @@ class coinbaseinternational extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         $maxEntriesPerRequest = 100;
         list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'maxEntriesPerRequest', $maxEntriesPerRequest);
         $pageKey = 'ccxtPageKey';
@@ -680,7 +680,7 @@ class coinbaseinternational extends Exchange {
             $market = $this->market($symbol);
         }
         $portfolios = null;
-        list($portfolios, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'portfolios');
+        list($portfolios, $params) = $this->handle_option_string_and_params($params, 'fetchFundingHistory', 'portfolios');
         if ($portfolios !== null) {
             $request['portfolios'] = $portfolios;
         }
@@ -697,7 +697,7 @@ class coinbaseinternational extends Exchange {
         return $this->parse_incomes($fundings, $market, $since, $limit);
     }
 
-    public function parse_income(mixed $income, ?array $market = null): array {
+    public function parse_income(array $income, ?array $market = null): array {
         //
         // {
         //     "amount":"0.0008",
@@ -765,7 +765,7 @@ class coinbaseinternational extends Exchange {
             $currency = $this->currency($code);
         }
         $portfolios = null;
-        list($portfolios, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'portfolios');
+        list($portfolios, $params) = $this->handle_option_string_and_params($params, 'fetchTransfers', 'portfolios');
         if ($portfolios !== null) {
             $request['portfolios'] = $portfolios;
         }
@@ -903,7 +903,7 @@ class coinbaseinternational extends Exchange {
     public function find_default_network(array $networks): array {
         $networksArray = $this->to_array($networks);
         for ($i = 0; $i < count($networksArray); $i++) {
-            $info = $networksArray[$i]['info'];
+            $info = $this->safe_dict($networksArray[$i], 'info');
             $is_default = $this->safe_bool($info, 'is_default', false);
             if ($is_default === true) {
                 return $networksArray[$i];
@@ -1053,7 +1053,7 @@ class coinbaseinternational extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = null;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDepositsWithdrawals', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchDepositsWithdrawals', 'paginate');
         $maxEntriesPerRequest = 100;
         list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', $maxEntriesPerRequest);
         $pageKey = 'ccxtPageKey';
@@ -1073,7 +1073,7 @@ class coinbaseinternational extends Exchange {
             $request['result_limit'] = $newLimit;
         }
         $portfolios = null;
-        list($portfolios, $params) = $this->handle_option_and_params($params, 'fetchDepositsWithdrawals', 'portfolios');
+        list($portfolios, $params) = $this->handle_option_string_and_params($params, 'fetchDepositsWithdrawals', 'portfolios');
         if ($portfolios !== null) {
             $request['portfolios'] = $portfolios;
         }
@@ -1680,7 +1680,7 @@ class coinbaseinternational extends Exchange {
             $rows = $instruments;
         }
         for ($i = 0; $i < count($rows); $i++) {
-            $instrument = $rows[$i];
+            $instrument = $this->safe_dict($rows, $i);
             $marketId = $this->safe_string($instrument, 'symbol');
             $symbol = $this->safe_symbol($marketId);
             $quote = $this->safe_dict($instrument, 'quote', array());
@@ -1822,7 +1822,7 @@ class coinbaseinternational extends Exchange {
             'info' => $response,
         );
         for ($i = 0; $i < count($response); $i++) {
-            $rawBalance = $response[$i];
+            $rawBalance = $this->safe_dict($response, $i);
             $currencyId = $this->safe_string($rawBalance, 'asset_name');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -2289,7 +2289,7 @@ class coinbaseinternational extends Exchange {
         $portfolio = null;
         list($portfolio, $params) = Async\await($this->handle_portfolio_and_params('fetchOpenOrders', $params));
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOpenOrders', 'paginate', false);
         $maxEntriesPerRequest = 100;
         list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'maxEntriesPerRequest', $maxEntriesPerRequest);
         $pageKey = 'ccxtPageKey';
@@ -2377,7 +2377,7 @@ class coinbaseinternational extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         $pageKey = 'ccxtPageKey';
         $maxEntriesPerRequest = 100;
         list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'maxEntriesPerRequest', $maxEntriesPerRequest);

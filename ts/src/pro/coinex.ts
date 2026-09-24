@@ -332,7 +332,7 @@ export default class coinex extends coinexRest {
         }
         const data = this.safeDict (message, 'data', {});
         const balances = this.safeList (data, 'balance_list', []);
-        const firstEntry = balances[0];
+        const firstEntry = this.safeDict (balances, 0);
         const updated = this.safeInteger (firstEntry, 'updated_at');
         const unrealizedPnl = this.safeString (firstEntry, 'unrealized_pnl');
         const isSpot = (updated !== undefined);
@@ -486,7 +486,10 @@ export default class coinex extends coinexRest {
         const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 'market');
         const isSpot = client.url.indexOf ('spot') > -1;
-        const defaultType = isSpot ? 'spot' : 'swap';
+        let defaultType: Str = 'swap';
+        if (isSpot) {
+            defaultType = 'spot';
+        }
         const market = this.safeMarket (marketId, undefined, undefined, defaultType);
         const symbol = market['symbol'];
         const messageHash = 'myTrades:' + symbol;
@@ -548,7 +551,10 @@ export default class coinex extends coinexRest {
         const trades = this.safeList (data, 'deal_list', []);
         const marketId = this.safeString (data, 'market');
         const isSpot = client.url.indexOf ('spot') > -1;
-        const defaultType = isSpot ? 'spot' : 'swap';
+        let defaultType: Str = 'swap';
+        if (isSpot) {
+            defaultType = 'spot';
+        }
         const market = this.safeMarket (marketId, undefined, undefined, defaultType);
         const symbol = market['symbol'];
         const messageHash = 'trades:' + symbol;
@@ -607,7 +613,10 @@ export default class coinex extends coinexRest {
         //
         const timestamp = this.safeInteger (trade, 'created_at');
         const isSpot = ('margin_market' in trade);
-        const defaultType = isSpot ? 'spot' : 'swap';
+        let defaultType: Str = 'swap';
+        if (isSpot) {
+            defaultType = 'spot';
+        }
         const marketId = this.safeString (trade, 'market');
         market = this.safeMarket (marketId, market, undefined, defaultType);
         let fee: Dict = {};
@@ -882,7 +891,10 @@ export default class coinex extends coinexRest {
         //     }
         //
         const isSpot = client.url.indexOf ('spot') > -1;
-        const defaultType = isSpot ? 'spot' : 'swap';
+        let defaultType: Str = 'swap';
+        if (isSpot) {
+            defaultType = 'spot';
+        }
         const data = this.safeDict (message, 'data', {});
         const depth = this.safeDict (data, 'depth', {});
         const marketId = this.safeString (data, 'market');
@@ -1203,7 +1215,10 @@ export default class coinex extends coinexRest {
         const marketId = this.safeString (order, 'market');
         const status = this.safeString (order, 'status');
         const isSpot = ('margin_market' in order);
-        const defaultType = isSpot ? 'spot' : 'swap';
+        let defaultType: Str = 'swap';
+        if (isSpot) {
+            defaultType = 'spot';
+        }
         market = this.safeMarket (marketId, market, undefined, defaultType);
         let fee: FeeString = undefined;
         const feeCost = this.omitZero (this.safeString2 (order, 'fee', 'quote_ccy_fee'));

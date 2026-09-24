@@ -628,7 +628,11 @@ public partial class blofin : ccxt.blofin
         }
         bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        string channel = ((trigger == true)) ? "orders-algo" : "orders";
+        string channel = "orders";
+        if ((trigger == true))
+        {
+            channel = "orders-algo";
+        }
         object orders = await this.watchMultipleWrapper(false, channel, "watchOrdersForSymbols", symbols, parameters);
         if (this.newUpdates)
         {
@@ -869,7 +873,11 @@ public partial class blofin : ccxt.blofin
 }};
         }
         Dictionary<string, object> request = this.getSubscriptionRequest(rawSubscriptions);
-        string privateOrPublic = isTrue(isPublic) ? "public" : "private";
+        string privateOrPublic = "private";
+        if (isTrue(isPublic))
+        {
+            privateOrPublic = "public";
+        }
         object url = getValue(getValue(getValue(((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null)), "ws"), marketType), privateOrPublic);
         return await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes);
     }

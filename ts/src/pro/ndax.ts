@@ -274,7 +274,7 @@ export default class ndax extends ndaxRest {
         //
         const updates: Dict = {};
         for (let i = 0; i < payload.length; i++) {
-            const ohlcv = payload[i];
+            const ohlcv = this.safeList (payload, i);
             const marketId = this.safeString (ohlcv, 8);
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
@@ -446,7 +446,7 @@ export default class ndax extends ndaxRest {
         let timestamp: Int = undefined;
         let nonce: Int = undefined;
         for (let i = 0; i < payload.length; i++) {
-            const bidask = payload[i];
+            const bidask = this.safeList (payload, i);
             if (timestamp === undefined) {
                 timestamp = this.safeInteger (bidask, 2);
             } else {

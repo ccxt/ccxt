@@ -1378,7 +1378,7 @@ class coinsph extends Exchange {
             'datetime' => null,
         );
         for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+            $balance = $this->safe_dict($balances, $i);
             $currencyId = $this->safe_string($balance, 'asset');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -1718,7 +1718,7 @@ class coinsph extends Exchange {
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer_2($order, 'time', 'transactTime');
-        $trades = $this->safe_value($order, 'fills');
+        $trades = $this->safe_list($order, 'fills');
         $triggerPrice = $this->safe_string($order, 'stopPrice');
         if (Precise::string_eq($triggerPrice, '0')) {
             $triggerPrice = null;
@@ -2228,7 +2228,7 @@ class coinsph extends Exchange {
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "coin": "ETH",

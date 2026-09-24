@@ -159,7 +159,7 @@ public partial class cryptocom : ccxt.cryptocom
         }
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             string currentTopic = (((("book" + ".") + ((market.ContainsKey("id") ? market["id"] : null))) + ".") + ((object)limitVar).ToString());
             string messageHash = ("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
@@ -405,7 +405,7 @@ public partial class cryptocom : ccxt.cryptocom
         List<object> topics = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             string currentTopic = (("trade" + ".") + ((market.ContainsKey("id") ? market["id"] : null)));
             topics.Add(currentTopic);
@@ -610,7 +610,7 @@ public partial class cryptocom : ccxt.cryptocom
             messageHashes.Add(("ticker." + marketId));
         }
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
-        object id = this.incrementingNonce();
+        Int64? id = this.incrementingNonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -777,7 +777,7 @@ public partial class cryptocom : ccxt.cryptocom
             topics.Add(("ticker." + marketId));
         }
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
-        object id = this.incrementingNonce();
+        Int64? id = this.incrementingNonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -924,7 +924,7 @@ public partial class cryptocom : ccxt.cryptocom
         List<object> data = ((List<object>)this.safeValue(message, "data"));
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            object tick = data[i];
+            IDictionary<string, object> tick = this.safeDict(data, i);
             IList<object> parsed = this.parseOHLCV(tick, market);
             callDynamically(stored, "append", new object[] {parsed});
         }
@@ -1043,7 +1043,7 @@ public partial class cryptocom : ccxt.cryptocom
         }
         await this.authenticate();
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"));
-        object id = this.incrementingNonce();
+        Int64? id = this.incrementingNonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -1246,7 +1246,7 @@ public partial class cryptocom : ccxt.cryptocom
         ((IDictionary<string,object>)this.balance)["info"] = data;
         for (int i = 0; i < positionBalances.Count; i++)
         {
-            object balance = positionBalances[i];
+            IDictionary<string, object> balance = this.safeDict(positionBalances, i);
             string? currencyId = this.safeString(balance, "instrument_name");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -1291,7 +1291,7 @@ public partial class cryptocom : ccxt.cryptocom
             { "method", "private/create-order" },
             { "params", parameters },
         };
-        object messageHash = this.incrementingNonce();
+        Int64? messageHash = this.incrementingNonce();
         return ccxt.BaseExchange.ToOrder(await this.watchPrivateRequest(messageHash, request));
     }
 
@@ -1322,7 +1322,7 @@ public partial class cryptocom : ccxt.cryptocom
             { "method", "private/amend-order" },
             { "params", parameters },
         };
-        object messageHash = this.incrementingNonce();
+        Int64? messageHash = this.incrementingNonce();
         return ccxt.BaseExchange.ToOrder(await this.watchPrivateRequest(messageHash, request));
     }
 
@@ -1369,7 +1369,7 @@ public partial class cryptocom : ccxt.cryptocom
             { "method", "private/cancel-order" },
             { "params", parameters },
         };
-        object messageHash = this.incrementingNonce();
+        Int64? messageHash = this.incrementingNonce();
         return ccxt.BaseExchange.ToOrder(await this.watchPrivateRequest(messageHash, request));
     }
 
@@ -1399,7 +1399,7 @@ public partial class cryptocom : ccxt.cryptocom
             market = this.market(symbol);
             ((IDictionary<string,object>)request["params"])["instrument_name"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        object messageHash = this.incrementingNonce();
+        Int64? messageHash = this.incrementingNonce();
         return ccxt.BaseExchange.ToOrderList(await this.watchPrivateRequest(messageHash, request));
     }
 
@@ -1420,7 +1420,7 @@ public partial class cryptocom : ccxt.cryptocom
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
-        object id = this.incrementingNonce();
+        Int64? id = this.incrementingNonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -1436,7 +1436,7 @@ public partial class cryptocom : ccxt.cryptocom
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
-        object id = this.incrementingNonce();
+        Int64? id = this.incrementingNonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -1453,17 +1453,17 @@ public partial class cryptocom : ccxt.cryptocom
         parameters ??= new Dictionary<string, object>();
         subExtend ??= new Dictionary<string, object>();
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
-        object id = this.incrementingNonce();
+        Int64? id = this.incrementingNonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
             { "params", new Dictionary<string, object>() {
                 { "channels", topics },
             } },
             { "nonce", id },
-            { "id", id.ToString() },
+            { "id", ((object)id).ToString() },
         };
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "id", id.ToString() },
+            { "id", ((object)id).ToString() },
             { "topic", topic },
             { "symbols", symbols },
             { "subMessageHashes", subMessageHashes },
@@ -1491,7 +1491,7 @@ public partial class cryptocom : ccxt.cryptocom
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"));
-        object id = this.incrementingNonce();
+        Int64? id = this.incrementingNonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {

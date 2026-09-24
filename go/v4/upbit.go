@@ -770,7 +770,7 @@ func (this *Upbit) ParseBalance(response any) any {
 		"datetime":  nil,
 	}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var balance map[string]any = MapTyped(GetValue(response, i))
+		var balance map[string]any = SafeMapTyped(response, i)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -953,7 +953,7 @@ func (this *Upbit) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 
 	var orderbooks map[string]any = MapTyped(PanicOnError((<-this.FetchOrderBooksAsync([]any{symbol}, limit, params))))
 
-	ch <- this.SafeValue(orderbooks, symbol)
+	ch <- this.SafeDict(orderbooks, symbol)
 	return nil
 }
 func (this *Upbit) ParseTicker(ticker any, optionalArgs ...any) any {
@@ -1168,7 +1168,7 @@ func (this *Upbit) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 
 	var tickers map[string]any = MapTyped(PanicOnError((<-this.FetchTickersAsync([]any{symbol}, params))))
 
-	ch <- this.SafeValue(tickers, symbol)
+	ch <- this.SafeDict(tickers, symbol)
 	return nil
 }
 func (this *Upbit) ParseTrade(trade any, optionalArgs ...any) any {
@@ -2388,7 +2388,7 @@ func (this *Upbit) ParseOrder(order any, optionalArgs ...any) any {
 		}
 		cost = "0"
 		for i := 0; i < numTrades; i++ {
-			var trade map[string]any = MapTyped(GetValue(trades, i))
+			var trade map[string]any = SafeMapTyped(trades, i)
 			cost = Precise.StringAdd(cost, this.SafeString(trade, "cost"))
 			if getFeesFromTrades {
 				var tradeFee map[string]any = SafeMapTyped(GetValue(trades, i), "fee")

@@ -749,8 +749,7 @@ impl CryptomusCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_600: bool = true;
             while { if !__for_first_600 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_600 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawCurrency.len() as i64) as f64) } {
-            let mut networkEntry: Value = get_value(&rawCurrency, &i);
-            let mut networkEntry: Value = get_value(&rawCurrency, &i);
+            let mut networkEntry: Value = self.safe_dict(rawCurrency.clone(), i.clone(), &[]);
             // set ID on first loop
             if (id == Value::Null) {
                 id = self.safe_string_k(networkEntry.clone(), "currency_code", &[]);
@@ -1090,8 +1089,7 @@ impl CryptomusCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_601: bool = true;
             while { if !__for_first_601 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_601 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&balance).as_f64().unwrap_or(f64::NAN) } {
-            let mut balanceEntry: Value = get_value(&balance, &i);
-            let mut balanceEntry: Value = get_value(&balance, &i);
+            let mut balanceEntry: Value = self.safe_dict(balance.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(balanceEntry.clone(), "ticker", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut account: Value = self.account();
@@ -1631,7 +1629,7 @@ impl CryptomusCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_604: bool = true;
             while { if !__for_first_604 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_604 = false; i.as_f64().unwrap_or(f64::NAN) < ((feeTiers.len() as i64) as f64) } {
-            let mut tier: Value = feeTiers.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut tier: Value = self.safe_dict(feeTiers.clone(), i.clone(), &[]);
             let mut turnover: Value = self.safe_number_k(tier.clone(), "from_turnover", &[]);
             let mut taker: Value = self.safe_string_k(tier.clone(), "taker_percent", &[]);
             let mut maker: Value = self.safe_string_k(tier, "maker_percent", &[]);

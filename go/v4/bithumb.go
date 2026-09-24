@@ -684,7 +684,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		for i := 0; i < len(quotes); i++ {
 			var quote string = quotes[i]
 			var quoteId any = quote
-			var response any = GetValue(results, i)
+			var response map[string]any = SafeMapTyped(results, i)
 			var data map[string]any = SafeMapTyped(response, "data")
 			var extension any = this.SafeDict(quoteCurrencies, quote, map[string]any{})
 			var currencyIds []string = ObjectKeys(data)
@@ -800,7 +800,7 @@ func (this *Bithumb) ParseBalance(response any) any {
 		}
 	} else {
 		for i := 0; i < GetArrayLength(response); i++ {
-			var entry map[string]any = MapTyped(GetValue(response, i))
+			var entry map[string]any = SafeMapTyped(response, i)
 			var account map[string]any = this.Account()
 			var currencyId *string = this.SafeString(entry, "currency")
 			var code *string = this.SafeCurrencyCode(currencyId)
@@ -927,12 +927,7 @@ func (this *Bithumb) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		var bids []any = []any{}
 		var asks []any = []any{}
 		for i := 0; i < len(orderBookUnits); i++ {
-			var entry map[string]any = MapTyped(func() any {
-				if i >= 0 && i < len(orderBookUnits) {
-					return DerefScalar(orderBookUnits[i])
-				}
-				return nil
-			}())
+			var entry map[string]any = SafeMapTyped(orderBookUnits, i)
 			bids = append(bids, map[string]any{
 				"price":    this.SafeString(entry, "bid_price"),
 				"quantity": this.SafeString(entry, "bid_size"),
@@ -1246,7 +1241,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 				response = GetValue(response, "data")
 			}
 			var expectedMarketId any = nil
-			var marketIdsChunk []any = SafeListTypedDefault(marketIdsChunks, i, []any{})
+			var marketIdsChunk []any = SafeListTyped(marketIdsChunks, i)
 			var firstMarketId *string = this.SafeString(marketIdsChunk, 0)
 			if (firstMarketId != nil) && (this.SafeString(marketIdsChunk, 1) == nil) {
 				expectedMarketId = firstMarketId
@@ -1318,7 +1313,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(responses)
 		for i := 0; i < len(quotes); i++ {
 			var quote string = GetValue(quotes, i).(string)
-			var response any = GetValue(responses, i)
+			var response map[string]any = SafeMapTyped(responses, i)
 			var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 			var timestamp *int64 = this.SafeInteger(data, "date")
 			var tickers any = this.Omit(data, "date")
@@ -1877,7 +1872,7 @@ func (this *Bithumb) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 	var ordersRequests []any = []any{}
 	var orderSymbols any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
+		var rawOrder map[string]any = SafeMapTyped(orders, i)
 		var symbol *string = this.SafeString(rawOrder, "symbol")
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " createOrders() requires each order to have a symbol"))
@@ -2286,7 +2281,7 @@ func (this *Bithumb) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 			//         ]
 			//     }
 			//
-			var orders []any = SafeListTypedDefault(response, "orders", []any{})
+			var orders []any = SafeListTyped(response, "orders")
 			data = this.SafeDict(orders, 0, map[string]any{})
 		} else {
 			var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_order_id")
@@ -2574,9 +2569,9 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) any {
 	var feeCost *float64 = this.SafeNumber(order, "reserved_fee")
 	var fee map[string]any = nil
 	if feeCost != nil {
-		var currency any = nil
+		var currency *string = nil
 		if market != nil {
-			currency = GetValue(market, "quote")
+			currency = this.SafeString(market, "quote")
 		}
 		fee = map[string]any{
 			"currency": currency,

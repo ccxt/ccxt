@@ -99,11 +99,11 @@ public partial class apex : ccxt.apex
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             string topic = ("recentlyTrade.H." + ((market != null && market.ContainsKey("id2") ? market["id2"] : null)));
             topics.Add(topic);
-            string messageHash = ("trade:" + (symbol));
+            string messageHash = ("trade:" + symbol);
             messageHashes.Add(messageHash);
         }
         object trades = await this.watchTopics(url, messageHashes, topics, parameters);
@@ -248,7 +248,7 @@ public partial class apex : ccxt.apex
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             if ((limitVar == null))
             {
@@ -256,7 +256,7 @@ public partial class apex : ccxt.apex
             }
             string topic = ((("orderBook" + ((object)limitVar).ToString()) + ".H.") + ((market != null && market.ContainsKey("id2") ? market["id2"] : null)));
             topics.Add(topic);
-            string messageHash = ("orderbook:" + (symbol));
+            string messageHash = ("orderbook:" + symbol);
             messageHashes.Add(messageHash);
         }
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchTopics(url, messageHashes, topics, parameters));
@@ -492,19 +492,19 @@ public partial class apex : ccxt.apex
         string? topic = this.safeString(message, "topic", "");
         string? updateType = this.safeString(message, "type", "");
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        object symbol = null;
+        string? symbol = null;
         Dictionary<string, object> parsed = this.parseTicker(data);
         if ((updateType == "snapshot"))
         {
             parsed = this.parseTicker(data);
-            symbol = GetValue(parsed, "symbol");
+            symbol = this.safeString(parsed, "symbol");
         } else if (updateType == "delta")
         {
             List<object> topicParts = topic.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
             int topicLength = topicParts.Count;
             string? marketId = this.safeString(topicParts, (topicLength - 1));
             Dictionary<string, object> market = this.safeMarket(marketId, null, null);
-            symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbol = this.safeString(market, "symbol");
             IDictionary<string, object> ticker = this.safeDict(this.tickers, symbol, new Dictionary<string, object>() {});
             IDictionary<string, object> rawTicker = this.safeDict(ticker, "info", new Dictionary<string, object>() {});
             Dictionary<string, object> merged = this.extend(rawTicker, data);
@@ -513,9 +513,9 @@ public partial class apex : ccxt.apex
         Int64? timestamp = this.safeIntegerProduct(message, "ts", 0.001);
         parsed["timestamp"] = timestamp;
         parsed["datetime"] = this.iso8601(timestamp);
-        ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = parsed;
-        string messageHash = ("ticker:" + (symbol));
-        client.resolve(getValue(this.tickers, ((string)symbol)), messageHash);
+        ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsed;
+        string messageHash = ("ticker:" + symbol);
+        client.resolve(getValue(this.tickers, symbol), messageHash);
     }
 
     /**
@@ -563,7 +563,7 @@ public partial class apex : ccxt.apex
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbolsAndTimeframes); i++)
         {
-            object data = getValue(symbolsAndTimeframes, i);
+            List<object> data = this.safeList(symbolsAndTimeframes, i);
             object symbolString = this.safeString(data, 0);
             Dictionary<string, object> market = this.market(symbolString);
             symbolString = (market != null && market.ContainsKey("id2") ? market["id2"] : null);
@@ -616,7 +616,11 @@ public partial class apex : ccxt.apex
         string? timeframe = this.findTimeframe(timeframeId);
         string? marketId = this.safeString(topicParts, (topicLength - 1));
         bool isSpot = ((string)client.url).IndexOf("spot", StringComparison.Ordinal) > -1;
-        string marketType = isSpot ? "spot" : "contract";
+        string marketType = "contract";
+        if (isSpot)
+        {
+            marketType = "spot";
+        }
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         if (!(inOp(this.ohlcvs, symbol)))

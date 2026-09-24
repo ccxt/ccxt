@@ -295,7 +295,7 @@ public partial class ndax : ccxt.ndax
         Dictionary<string, object> updates = new Dictionary<string, object>() {};
         for (int i = 0; i < payload.Count; i++)
         {
-            object ohlcv = payload[i];
+            List<object> ohlcv = this.safeList(payload, i);
             string? marketId = this.safeString(ohlcv, 8);
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -477,7 +477,7 @@ public partial class ndax : ccxt.ndax
         object nonce = null;
         for (int i = 0; i < payload.Count; i++)
         {
-            object bidask = payload[i];
+            List<object> bidask = this.safeList(payload, i);
             if (isEqual(timestamp, null))
             {
                 timestamp = this.safeInteger(bidask, 2);

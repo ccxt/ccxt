@@ -515,7 +515,7 @@ class bitso(Exchange, ImplicitAPI):
             takerFees = []
             makerFees = []
             for j in range(0, len(feeTiers)):
-                tier = feeTiers[j]
+                tier = self.safe_dict(feeTiers, j)
                 volume = self.safe_number(tier, 'volume')
                 takerFee = self.safe_number(tier, 'taker')
                 makerFee = self.safe_number(tier, 'maker')
@@ -653,7 +653,7 @@ class bitso(Exchange, ImplicitAPI):
         })
 
     def parse_balance(self, response: object) -> Balances:
-        payload = self.safe_value(response, 'payload', {})
+        payload = self.safe_dict(response, 'payload', {})
         balances = self.safe_list(payload, 'balances', [])
         result = {
             'info': response,
@@ -661,7 +661,7 @@ class bitso(Exchange, ImplicitAPI):
             'datetime': None,
         }
         for i in range(0, len(balances)):
-            balance = balances[i]
+            balance = self.safe_dict(balances, i)
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()

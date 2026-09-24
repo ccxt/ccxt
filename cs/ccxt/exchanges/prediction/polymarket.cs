@@ -1706,7 +1706,7 @@ public partial class polymarket : PredictionExchange
         Dictionary<string, object> buckets = new Dictionary<string, object>() {};
         for (int i = 0; i < (history?.Count ?? 0); i++)
         {
-            object item = history[i];
+            IDictionary<string, object> item = this.safeDict(history, i);
             Int64? t = this.safeInteger(item, "t");
             double? price = this.safeNumber(item, "p");
             if (((t == null)) || ((price == null)))
@@ -2020,12 +2020,27 @@ public partial class polymarket : PredictionExchange
         double? price = this.safeNumber(trade, "price");
         double? amount = this.safeNumber(trade, "size");
         string? rawSide = this.safeStringLower(trade, "side");
-        string? side = (rawSide == "buy" || rawSide == "sell") ? rawSide : null;
+        string? side = null;
+        if (rawSide == "buy" || rawSide == "sell")
+        {
+            side = rawSide;
+        }
         string? assetId = this.safeString2(trade, "asset", "asset_id");
-        object mkt = ((market != null)) ? market : this.safeOutcome(assetId);
+        object mkt = null;
+        if ((market != null))
+        {
+            mkt = market;
+        } else
+        {
+            mkt = this.safeOutcome(assetId);
+        }
         string? outcome = this.safeOutcomeSymbol(null, mkt);
         string? rawTakerOrMaker = this.safeStringLower(trade, "trader_side");
-        string? takerOrMaker = (rawTakerOrMaker == "taker" || rawTakerOrMaker == "maker") ? rawTakerOrMaker : null;
+        string? takerOrMaker = null;
+        if (rawTakerOrMaker == "taker" || rawTakerOrMaker == "maker")
+        {
+            takerOrMaker = rawTakerOrMaker;
+        }
         string? feeRateBps = this.safeString(trade, "fee_rate_bps");
         Dictionary<string, object> fee = null;
         if ((feeRateBps != null))
@@ -2428,7 +2443,7 @@ public partial class polymarket : PredictionExchange
         List<object> orderOutcomes = new List<object>() {};
         for (int i = 0; i < getArrayLength(orders); i++)
         {
-            object o = getValue(orders, i);
+            IDictionary<string, object> o = this.safeDict(orders, i);
             string? __oc = this.safeString(o, "outcome");
             if ((__oc != null))
             {
@@ -2441,12 +2456,12 @@ public partial class polymarket : PredictionExchange
         List<object> requests = new List<object>() {};
         for (int i = 0; i < getArrayLength(orders); i++)
         {
-            object o = getValue(orders, i);
+            IDictionary<string, object> o = this.safeDict(orders, i);
             IDictionary<string, object> orderParams = this.safeDict(o, "params", new Dictionary<string, object>() {});
             if ((this.safeString(orderParams, "salt") == null))
             {
                 // a distinct salt per order so two identical orders don't collide, within a batch or across calls
-                object orderSalt = this.incrementingNonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
+                Int64? orderSalt = this.incrementingNonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
                 orderParams = this.extend(orderParams, new Dictionary<string, object>() {
                     { "salt", this.numberToString(orderSalt) },
                 });
@@ -2544,7 +2559,7 @@ public partial class polymarket : PredictionExchange
         string eoa = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));
         string funder = this.ethChecksumAddress(this.safeString2(parameters, "funder", "maker", this.safeString(this.options, "funder", this.walletAddress)));
         // the salt defaults to a strictly-increasing millisecond value and the timestamp to the current time; both can be pinned via params for idempotency
-        object defaultSalt = this.incrementingNonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
+        Int64? defaultSalt = this.incrementingNonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
         string? salt = this.safeString(parameters, "salt", this.numberToString(defaultSalt));
         string? timestamp = this.safeString(parameters, "timestamp", this.numberToString(this.milliseconds()));
         // GTD (good-til-date) orders need a unix-seconds expiration; 0 means no expiry
@@ -2589,7 +2604,11 @@ public partial class polymarket : PredictionExchange
         // wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet (the EOA
         // still produces the signature and is checked on-chain as the wallet owner). Otherwise signer = EOA.
         string maker = funder;
-        string signer = ((signatureType == 3)) ? funder : eoa;
+        string signer = eoa;
+        if ((signatureType == 3))
+        {
+            signer = funder;
+        }
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "salt", salt },
             { "maker", maker },
@@ -2605,7 +2624,11 @@ public partial class polymarket : PredictionExchange
         };
         string? exchangeV2 = this.safeString(this.options, "exchangeAddress", "0xE111180000d2663C0091e4f400237545B87B996B");
         string? negRiskExchangeV2 = this.safeString(this.options, "negRiskExchangeAddress", "0xe2222d279d744050d28e00520010520000310F59");
-        string? exchangeAddress = ((negRisk == true)) ? negRiskExchangeV2 : exchangeV2;
+        string? exchangeAddress = exchangeV2;
+        if ((negRisk == true))
+        {
+            exchangeAddress = negRiskExchangeV2;
+        }
         string? domainVersion = this.safeString(this.options, "ctfExchangeVersion", "2");
         string signature = this.signClobOrder(message, exchangeAddress, domainVersion, signatureType);
         string? owner = this.safeString(this.options, "l2ApiKey", this.apiKey);
@@ -2879,7 +2902,11 @@ public partial class polymarket : PredictionExchange
         // fields, so report the cancellation outcome explicitly rather than parsing an empty order
         IDictionary<string, object> notCanceled = this.safeDict(response, "not_canceled", new Dictionary<string, object>() {});
         string? failureReason = this.safeString(notCanceled, id);
-        string status = ((failureReason == null)) ? "canceled" : "open";
+        string status = "open";
+        if ((failureReason == null))
+        {
+            status = "canceled";
+        }
         return ccxt.BaseExchange.ToPredictionOrder(this.safePredictionOrder(new Dictionary<string, object>() {             { "id", id },             { "status", status },             { "info", response },         }));
     }
 
@@ -3322,7 +3349,14 @@ public partial class polymarket : PredictionExchange
                     hasArrayParam = true;
                 }
             }
-            string querystring = hasArrayParam ? this.urlencodeWithArrayRepeat(query) : this.urlencode(query);
+            string? querystring = null;
+            if (hasArrayParam)
+            {
+                querystring = this.urlencodeWithArrayRepeat(query);
+            } else
+            {
+                querystring = this.urlencode(query);
+            }
             if (querystring != "")
             {
                 url = add(url, ("?" + querystring));
@@ -3379,7 +3413,14 @@ public partial class polymarket : PredictionExchange
                 string? secret = this.safeString(this.options, "l2Secret", this.secret);
                 string? passphrase = this.safeString(this.options, "l2Passphrase", this.password);
                 // POLY_ADDRESS is the api-key owner = the signer EOA (derived from the privateKey when present)
-                string address = ((this.privateKey != null)) ? this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey)) : this.walletAddress;
+                string? address = null;
+                if ((this.privateKey != null))
+                {
+                    address = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));
+                } else
+                {
+                    address = this.walletAddress;
+                }
                 string timestamp = this.seconds().ToString();
                 // the L2 HMAC signs only the request path (no query string), matching
                 // @polymarket/clob-client — query params are sent separately, not signed
@@ -3597,7 +3638,14 @@ public partial class polymarket : PredictionExchange
             return;
         }
         string? apiKey = ((this.apiKey != null)) ? this.apiKey : this.safeString(this.options, "l2ApiKey");
-        string? secret = ((this.secret != null)) ? this.secret : this.safeString(this.options, "l2Secret");
+        string? secret = null;
+        if ((this.secret != null))
+        {
+            secret = this.secret;
+        } else
+        {
+            secret = this.safeString(this.options, "l2Secret");
+        }
         string? passphrase = ((this.password != null)) ? this.password : this.safeString(this.options, "l2Passphrase");
         bool hasL2 = ((apiKey != null)) && ((secret != null)) && ((passphrase != null));
         if (hasL2)
@@ -3672,13 +3720,13 @@ public partial class polymarket : PredictionExchange
         List<object> bids = new List<object>() {};
         for (int i = 0; i < (rawBids?.Count ?? 0); i++)
         {
-            object b = rawBids[i];
+            IDictionary<string, object> b = this.safeDict(rawBids, i);
             bids.Add(new List<object> {this.safeNumber(b, "price"), this.safeNumber(b, "size")});
         }
         List<object> asks = new List<object>() {};
         for (int j = 0; j < (rawAsks?.Count ?? 0); j++)
         {
-            object a = rawAsks[j];
+            IDictionary<string, object> a = this.safeDict(rawAsks, j);
             asks.Add(new List<object> {this.safeNumber(a, "price"), this.safeNumber(a, "size")});
         }
         IDictionary<string, object> outcomeObj = this.safeOutcome(outcome);
@@ -3702,7 +3750,7 @@ public partial class polymarket : PredictionExchange
         Dictionary<string, object> updated = new Dictionary<string, object>() {};
         for (int i = 0; i < (changes?.Count ?? 0); i++)
         {
-            object change = changes[i];
+            IDictionary<string, object> change = this.safeDict(changes, i);
             string? tokenId = this.safeString(change, "asset_id");
             string? outcome = this.tokenIdToSymbol(tokenId);
             if (((outcome == null)) || !(inOp(this.orderbooks, outcome)))
@@ -3977,7 +4025,14 @@ public partial class polymarket : PredictionExchange
         // the user channel authenticates inside the subscribe frame, not via HMAC headers
         parameters ??= new Dictionary<string, object>();
         string? apiKey = ((this.apiKey != null)) ? this.apiKey : this.safeString(this.options, "l2ApiKey");
-        string? secret = ((this.secret != null)) ? this.secret : this.safeString(this.options, "l2Secret");
+        string? secret = null;
+        if ((this.secret != null))
+        {
+            secret = this.secret;
+        } else
+        {
+            secret = this.safeString(this.options, "l2Secret");
+        }
         string? passphrase = ((this.password != null)) ? this.password : this.safeString(this.options, "l2Passphrase");
         Dictionary<string, object> auth = new Dictionary<string, object>() {
             { "apiKey", apiKey },

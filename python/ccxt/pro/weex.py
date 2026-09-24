@@ -103,12 +103,16 @@ class weex(ccxt.async_support.weex):
             'params': channels,
         }
         subscription = self.extend(subscription, {'id': id})
-        type = 'contract' if isContract else 'spot'
+        type = 'spot'
+        if isContract:
+            type = 'contract'
         url = self.urls['api']['ws'][type] + '/public'
         return await self.watch_multiple(url, messageHashes, self.deep_extend(message, params), messageHashes, subscription)
 
     async def subscribe_private(self, messageHash: str, subscribeHash: str, channel: Str, isContract: bool = False, params: dict = {}, subscription: dict = {}):
-        type = 'contract' if isContract else 'spot'
+        type = 'spot'
+        if isContract:
+            type = 'contract'
         url = self.urls['api']['ws'][type] + '/private'
         self.authenticate(url)
         method = 'SUBSCRIBE'
@@ -131,7 +135,7 @@ class weex(ccxt.async_support.weex):
         timestamp = self.nonce()
         payload = str(timestamp) + '/v3/ws/private'
         signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
-        originalHeaders = self.options['ws']['options']['headers']
+        originalHeaders = self.safe_dict(self.options['ws']['options'], 'headers')
         userAgent = self.safe_string(originalHeaders, 'User-Agent', 'ccxt')
         extendedOptions = {
             'ws': {
@@ -321,7 +325,11 @@ class weex(ccxt.async_support.weex):
         #
         timestamp = self.safe_integer(ticker, 'C')
         close = self.safe_string(ticker, 'c')
-        symbol = None if (market is None) else market['symbol']
+        symbol = None
+        if market is None:
+            symbol = None
+        else:
+            symbol = market['symbol']
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -500,7 +508,11 @@ class weex(ccxt.async_support.weex):
         #     }
         #
         timestamp = self.safe_integer(trade, 'T')
-        symbol = None if (market is None) else market['symbol']
+        symbol = None
+        if market is None:
+            symbol = None
+        else:
+            symbol = market['symbol']
         isBuyerMaker = self.safe_bool(trade, 'm')  # m is the isBuyerMaker flag of the REST trades, true means the taker sold
         side = None
         takerOrMaker = None
@@ -575,7 +587,7 @@ class weex(ccxt.async_support.weex):
             market = self.market(symbolString)
             if market['type'] != firstMarket['type']:
                 raise BadRequest(self.id + ' ' + callerMethodName + ' market symbols must be of the same type')
-            symbolString = market['symbol']
+            symbolString = self.safe_string(market, 'symbol')
             unifiedTimeframe = self.safe_string(data, 1, '1')
             interval = self.safe_string(self.timeframes, unifiedTimeframe, unifiedTimeframe)
             channel = market['id'] + '@kline_' + interval + '_' + priceType
@@ -634,7 +646,7 @@ class weex(ccxt.async_support.weex):
             market = self.market(symbolString)
             if market['type'] != firstMarket['type']:
                 raise BadRequest(self.id + ' ' + callerMethodName + ' market symbols must be of the same type')
-            symbolString = market['symbol']
+            symbolString = self.safe_string(market, 'symbol')
             unifiedTimeframe = self.safe_string(data, 1, '1')
             interval = self.safe_string(self.timeframes, unifiedTimeframe, unifiedTimeframe)
             channel = market['id'] + '@kline_' + interval + '_' + priceType
@@ -981,7 +993,11 @@ class weex(ccxt.async_support.weex):
 
     def parse_ws_bid_ask(self, message: dict, market: Market = None) -> Ticker:
         timestamp = self.safe_integer(message, 'E')
-        symbol = None if (market is None) else market['symbol']
+        symbol = None
+        if market is None:
+            symbol = None
+        else:
+            symbol = market['symbol']
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1016,7 +1032,9 @@ class weex(ccxt.async_support.weex):
             symbol = market['symbol']
         marketType, params = self.handle_market_type_and_params('watchMyTrades', market, params)
         isContract = (marketType != 'spot')
-        messageHash = 'myContractTrades' if isContract else 'myTrades'
+        messageHash = 'myTrades'
+        if isContract:
+            messageHash = 'myContractTrades'
         subscriptionHash = messageHash
         if symbol is not None:
             messageHash += '::' + symbol
@@ -1043,7 +1061,9 @@ class weex(ccxt.async_support.weex):
         marketType = None
         marketType, params = self.handle_market_type_and_params('unWatchMyTrades', None, params)
         isContract = (marketType != 'spot')
-        subHash = 'myContractTrades' if isContract else 'myTrades'
+        subHash = 'myTrades'
+        if isContract:
+            subHash = 'myContractTrades'
         unSubHash = 'unsubscribe::' + subHash
         channel = 'fill'
         subscription = {
@@ -1160,9 +1180,9 @@ class weex(ccxt.async_support.weex):
             feeCurrency = self.safe_currency_code(commissionAsset)
             if marketType == 'spot':
                 if side == 'buy':
-                    feeCurrency = marketResolved['base']
+                    feeCurrency = self.safe_string(marketResolved, 'base')
                 else:
-                    feeCurrency = marketResolved['quote']
+                    feeCurrency = self.safe_string(marketResolved, 'quote')
             fee = {
                 'cost': commission,
                 'currency': feeCurrency,
@@ -1206,7 +1226,9 @@ class weex(ccxt.async_support.weex):
         marketType = None
         marketType, params = self.handle_market_type_and_params('watchOrders', market, params)
         isContract = (marketType != 'spot')
-        messageHash = 'contractOrders' if isContract else 'orders'
+        messageHash = 'orders'
+        if isContract:
+            messageHash = 'contractOrders'
         subscriptionHash = messageHash
         if symbol is not None:
             messageHash += '::' + symbol
@@ -1232,7 +1254,9 @@ class weex(ccxt.async_support.weex):
         marketType = None
         marketType, params = self.handle_market_type_and_params('unWatchOrders', None, params)
         isContract = (marketType != 'spot')
-        subHash = 'contractOrders' if isContract else 'orders'
+        subHash = 'orders'
+        if isContract:
+            subHash = 'contractOrders'
         unSubHash = 'unsubscribe::' + subHash
         channel = 'orders'
         subscription = {
@@ -1418,9 +1442,9 @@ class weex(ccxt.async_support.weex):
             feeCurrency = self.safe_currency_code(commissionAsset)
             if marketType == 'spot':
                 if side == 'buy':
-                    feeCurrency = marketResolved['base']
+                    feeCurrency = self.safe_string(marketResolved, 'base')
                 else:
-                    feeCurrency = marketResolved['quote']
+                    feeCurrency = self.safe_string(marketResolved, 'quote')
             fee = {
                 'cost': commission,
                 'currency': feeCurrency,
@@ -1478,7 +1502,9 @@ class weex(ccxt.async_support.weex):
         type = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params)
         isContract = (type != 'spot')
-        urlType = 'contract' if isContract else 'spot'
+        urlType = 'spot'
+        if isContract:
+            urlType = 'contract'
         url = self.urls['api']['ws'][urlType] + '/private'
         self.authenticate(url)
         client = self.client(url)

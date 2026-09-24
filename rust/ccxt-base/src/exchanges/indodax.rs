@@ -1145,7 +1145,7 @@ impl IndodaxCore {
         //
         let mut side: Value = Value::Null;
         if (matches!(&order, Value::Dict(__d) if __d.contains_key("type"))) {
-            side = order.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
+            side = self.safe_string_k(order.clone(), "type", &[]);
         }
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[Value::Str("open".into())]));
         let mut symbol: Value = Value::Null;
@@ -1466,7 +1466,7 @@ impl IndodaxCore {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".into()))));
         }
-        let mut side: Value = self.safe_value_k(params.clone(), "side", &[]);
+        let mut side: Value = self.safe_string_k(params.clone(), "side", &[]);
         if (side == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires an extra \"side\" param".into()))));
         }

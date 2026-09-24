@@ -576,8 +576,8 @@ public class Krakenfutures extends KrakenfuturesApi
                 String marketType = this.safeString(market, "type");
                 String type = null;
                 Boolean index = (((String)marketType).indexOf(" index") >= 0);
-                Object linear = null;
-                Object inverse = null;
+                Boolean linear = null;
+                Boolean inverse = null;
                 Long expiry = null;
                 if (!Boolean.TRUE.equals(index))
                 {
@@ -634,8 +634,8 @@ public class Krakenfutures extends KrakenfuturesApi
                 final Object finalSettleId = settleId;
                 final String finalType = type;
                 final Boolean finalSwap = swap;
-                final Object finalLinear = linear;
-                final Object finalInverse = inverse;
+                final Boolean finalLinear = linear;
+                final Boolean finalInverse = inverse;
                 final Long finalExpiry = expiry;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
@@ -1121,7 +1121,7 @@ public class Krakenfutures extends KrakenfuturesApi
         String takerFee = null;
         for (var i = 0; i < ((List<?>)tiers).size(); i++)
         {
-            Object tier = (tiers == null || i < 0 || i >= tiers.size() ? null : tiers.get(i));
+            Map<String, Object> tier = (Map<String, Object>) this.safeDict(tiers, i);
             String tierVolume = this.safeString(tier, "usdVolume");
             if ((java.util.Objects.equals(volume, null)) || Precise.stringGe(volume, tierVolume))
             {
@@ -1178,8 +1178,8 @@ public class Krakenfutures extends KrakenfuturesApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -1307,8 +1307,8 @@ public class Krakenfutures extends KrakenfuturesApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -1395,7 +1395,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 for (var i = 0; Helpers.isLessThan(i, length); i++)
                 {
                     Object index = Helpers.subtract((((long) length) - 1L), i);
-                    Object element = Helpers.GetValue(elements, index);
+                    Map<String, Object> element = (Map<String, Object>) this.safeDict(elements, index);
                     Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(element, "event", new HashMap<String, Object>() {{}});
                     Map<String, Object> executionContainer = (Map<String, Object>) this.safeDict(eventVar, "Execution", new HashMap<String, Object>() {{}});
                     Map<String, Object> rawTrade = (Map<String, Object>) this.safeDict(executionContainer, "execution", new HashMap<String, Object>() {{}});
@@ -1690,7 +1690,7 @@ public class Krakenfutures extends KrakenfuturesApi
         Boolean isTakeProfitTriggerOrder = !java.util.Objects.equals(takeProfitTriggerPrice, null);
         Boolean isStopLossOrTakeProfitTrigger = Boolean.TRUE.equals(isStopLossTriggerOrder) || Boolean.TRUE.equals(isTakeProfitTriggerOrder);
         String triggerSignal = this.safeString(parameters, "triggerSignal", "last");
-        Object reduceOnly = this.safeValue(parameters, "reduceOnly");
+        Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly");
         if (Boolean.TRUE.equals(isStopLossOrTakeProfitTrigger) || Boolean.TRUE.equals(isTriggerOrder))
         {
             ((Map<String, Object>)request).put("triggerSignal", triggerSignal);
@@ -1887,7 +1887,7 @@ public class Krakenfutures extends KrakenfuturesApi
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i);
                 String marketId = this.safeString(rawOrder, "symbol");
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
@@ -2485,7 +2485,7 @@ public class Krakenfutures extends KrakenfuturesApi
             List<Object> closedOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)allOrders).size(); i++)
             {
-                Object order = (allOrders == null || i < 0 || i >= allOrders.size() ? null : allOrders.get(i));
+                Map<String, Object> order = (Map<String, Object>) this.safeDict(allOrders, i);
                 Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(order, "event", new HashMap<String, Object>() {{}});
                 Map<String, Object> orderPlaced = (Map<String, Object>) this.safeDict2(eventVar, "OrderPlaced", "OrderTriggerActivated");
                 Map<String, Object> orderUpdated = (Map<String, Object>) this.safeDict(eventVar, "OrderUpdated");
@@ -2586,7 +2586,7 @@ public class Krakenfutures extends KrakenfuturesApi
             List<Object> canceledAndRejected = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)allOrders).size(); i++)
             {
-                Object order = (allOrders == null || i < 0 || i >= allOrders.size() ? null : allOrders.get(i));
+                Map<String, Object> order = (Map<String, Object>) this.safeDict(allOrders, i);
                 Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(order, "event", new HashMap<String, Object>() {{}});
                 Boolean isCancelledTriggerOrder = (eventVar.containsKey("OrderTriggerCancelled"));
                 Map<String, Object> orderPlaced = (Map<String, Object>) this.safeDict2(eventVar, "OrderPlaced", "OrderTriggerCancelled");
@@ -3144,7 +3144,7 @@ public class Krakenfutures extends KrakenfuturesApi
             String vwapSum = "0.0";
             for (var i = 0; i < ((List<?>)trades).size(); i++)
             {
-                Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
+                Map<String, Object> trade = (Map<String, Object>) this.safeDict(trades, i);
                 String tradeAmount = this.safeString(trade, "amount");
                 String tradePrice = this.safeString(trade, "price");
                 filled2 = ((String)Precise.stringAdd(filled2, tradeAmount));
@@ -3186,7 +3186,11 @@ public class Krakenfutures extends KrakenfuturesApi
         String cost = null;
         if ((!java.util.Objects.equals(filled, null)) && (!java.util.Objects.equals(market, null)))
         {
-            String whichPrice = (((!java.util.Objects.equals(average, null)))) ? average : price;
+            String whichPrice = price;
+            if (!java.util.Objects.equals(average, null))
+            {
+                whichPrice = average;
+            }
             if (!java.util.Objects.equals(whichPrice, null))
             {
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
@@ -3218,7 +3222,7 @@ public class Krakenfutures extends KrakenfuturesApi
         }
         final String finalId = id;
         final Object finalDetails = details;
-        final Object finalType = type;
+        final String finalType = type;
         final String finalTimeInForce = timeInForce;
         final String finalPrice = price;
         final String finalTriggerPrice = triggerPrice;
@@ -3547,7 +3551,7 @@ public class Krakenfutures extends KrakenfuturesApi
         return this.fetchFundingHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseIncome(Object income, Map<String, Object> market)
+    public Object parseIncome(Map<String, Object> income, Map<String, Object> market)
     {
         //
         //    {
@@ -3580,7 +3584,7 @@ public class Krakenfutures extends KrakenfuturesApi
             put( "amount", Krakenfutures.this.safeNumber(income, "realized_funding") );
         }};
     }
-    public Object parseIncome(Object income, Object... optionalArgs)
+    public Object parseIncome(Map<String, Object> income, Object... optionalArgs)
     {
         return this.parseIncome(income, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -3982,7 +3986,7 @@ public class Krakenfutures extends KrakenfuturesApi
             List<Object> fundingRates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)tickers).size(); i++)
             {
-                Object entry = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
+                Map<String, Object> entry = (Map<String, Object>) this.safeDict(tickers, i);
                 String entry_symbol = this.safeString(entry, "symbol");
                 if (!java.util.Objects.equals(marketIds, null))
                 {
@@ -4141,7 +4145,7 @@ public class Krakenfutures extends KrakenfuturesApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < Helpers.getArrayLength(rates); i++)
             {
-                Object item = Helpers.GetValue(rates, i);
+                Map<String, Object> item = (Map<String, Object>) this.safeDict(rates, i);
                 String datetime = this.safeString(item, "timestamp");
     final String finalSymbol = symbol;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{

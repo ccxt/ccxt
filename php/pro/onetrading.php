@@ -1020,7 +1020,7 @@ class onetrading extends \ccxt\async\onetrading {
             $datetime = $this->safe_string_2($update, 'time', 'timestamp');
             $previousOrderArray = $this->filter_by_array($this->orders, 'id', $orderId, false);
             $previousOrder = $this->safe_dict($previousOrderArray, 0, array());
-            $symbol = $previousOrder['symbol'];
+            $symbol = $this->safe_string($previousOrder, 'symbol');
             $filled = $this->safe_string($update, 'filled_amount');
             $status = $this->parse_ws_order_status($updateType);
             if ($updateType === 'ORDER_CLOSED' && Precise::string_eq($filled, '0')) {

@@ -700,7 +700,7 @@ public partial class btcmarkets : Exchange
         };
         for (int i = 0; i < getArrayLength(response); i++)
         {
-            object balance = getValue(response, i);
+            IDictionary<string, object> balance = this.safeDict(response, i);
             string? currencyId = this.safeString(balance, "assetName");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -974,7 +974,14 @@ public partial class btcmarkets : Exchange
         Int64? timestamp = this.parse8601(this.safeString(trade, "timestamp"));
         string? marketId = this.safeString(trade, "marketId");
         market = this.safeMarket(marketId, market, "-");
-        object feeCurrencyCode = (isEqual(getValue(market, "quote"), "AUD")) ? getValue(market, "quote") : getValue(market, "base");
+        object feeCurrencyCode = null;
+        if (isEqual(getValue(market, "quote"), "AUD"))
+        {
+            feeCurrencyCode = getValue(market, "quote");
+        } else
+        {
+            feeCurrencyCode = getValue(market, "base");
+        }
         string? side = this.safeString(trade, "side");
         if (side == "Bid")
         {
@@ -1248,18 +1255,18 @@ public partial class btcmarkets : Exchange
         takerOrMaker ??= "taker";
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);
-        object currency = null;
+        string? currency = null;
         string? cost = null;
         if ((((market.ContainsKey("quote") ? market["quote"] : null) as string) == "AUD"))
         {
-            currency = (market.ContainsKey("quote") ? market["quote"] : null);
+            currency = this.safeString(market, "quote");
             string? amountString = this.numberToString(amount);
             string? priceString = this.numberToString(price);
             string? otherUnitsAmount = Precise.stringMul(amountString, priceString);
             cost = this.costToPrecision(symbol, otherUnitsAmount);
         } else
         {
-            currency = (market.ContainsKey("base") ? market["base"] : null);
+            currency = this.safeString(market, "base");
             cost = this.amountToPrecision(symbol, amount);
         }
         object rate = this.safeValue(market, takerOrMaker);

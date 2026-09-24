@@ -1376,7 +1376,7 @@ export default class phemex extends Exchange {
         //         48759063370, // quote volume
         //     ]
         //
-        let baseVolume: Num;
+        let baseVolume: Num = undefined;
         if ((market !== undefined) && (market['spot'] === true)) {
             baseVolume = this.parseNumber (this.fromEv (this.safeString (ohlcv, 7), market));
         } else {
@@ -2062,7 +2062,7 @@ export default class phemex extends Exchange {
         const result: Dict = { 'info': response };
         const data = this.safeList (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
-            const balance = data[i];
+            const balance = this.safeDict (data, i);
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const currency = this.safeDict (this.currencies, code, {});
@@ -4720,7 +4720,7 @@ export default class phemex extends Exchange {
         const tiers: LeverageTier[] = [];
         let minNotional: Int = 0;
         for (let i = 0; i < riskLimits.length; i++) {
-            const tier = riskLimits[i];
+            const tier = this.safeDict (riskLimits, i);
             const maxNotional = this.safeInteger (tier, 'limit');
             const minNotionalResponse = minNotional; // java req
             tiers.push ({
@@ -5065,7 +5065,7 @@ export default class phemex extends Exchange {
             throw new BadRequest (this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, 100) as FundingRateHistory[];
         }

@@ -290,7 +290,9 @@ class aster(ccxt.async_support.aster):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            suffix = '@1s' if (use1sFreq is True) else ''
+            suffix = ''
+            if use1sFreq is True:
+                suffix = '@1s'
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@markPrice' + suffix)
             messageHashes.append('ticker:' + market['symbol'])
         newTicker = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
@@ -336,7 +338,9 @@ class aster(ccxt.async_support.aster):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            suffix = '@1s' if (use1sFreq is True) else ''
+            suffix = ''
+            if use1sFreq is True:
+                suffix = '@1s'
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@markPrice' + suffix)
             messageHashes.append('unsubscribe:ticker:' + market['symbol'])
         return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
@@ -527,7 +531,9 @@ class aster(ccxt.async_support.aster):
 
     def parse_ws_bid_ask(self, message: dict, market: Market = None) -> Ticker:
         timestamp = self.safe_integer(message, 'T')
-        bidAskSymbol = market['symbol'] if (market is not None) else None
+        bidAskSymbol = None
+        if market is not None:
+            bidAskSymbol = market['symbol']
         return self.safe_ticker({
             'symbol': bidAskSymbol,
             'timestamp': timestamp,
@@ -790,7 +796,11 @@ class aster(ccxt.async_support.aster):
             if (price is not None) and (amount is not None):
                 cost = Precise.string_mul(price, amount)
         marketId = self.safe_string(trade, 's')
-        defaultType = self.safe_string(self.options, 'defaultType', 'spot') if (market is None) else market['type']
+        defaultType = None
+        if market is None:
+            defaultType = self.safe_string(self.options, 'defaultType', 'spot')
+        else:
+            defaultType = market['type']
         symbol = self.safe_symbol(marketId, market, None, defaultType)
         side = self.safe_string_lower(trade, 'S')
         takerOrMaker = None
@@ -1052,14 +1062,18 @@ class aster(ccxt.async_support.aster):
             'params': subscriptionArgs,
         }
         for i in range(0, len(symbolsAndTimeframes)):
-            data = symbolsAndTimeframes[i]
+            data = self.safe_list(symbolsAndTimeframes, i)
             symbolString = self.safe_string(data, 0)
             if symbolString is None:
                 continue
             market = self.market(symbolString)
-            symbolString = market['symbol']
+            symbolString = self.safe_string(market, 'symbol')
             unfiedTimeframe = self.safe_string(data, 1)
-            timeframeId = None if (unfiedTimeframe is None) else self.safe_string(self.timeframes, unfiedTimeframe, unfiedTimeframe)
+            timeframeId = None
+            if unfiedTimeframe is None:
+                timeframeId = None
+            else:
+                timeframeId = self.safe_string(self.timeframes, unfiedTimeframe, unfiedTimeframe)
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@kline_' + timeframeId)
             messageHashes.append('ohlcv:' + market['symbol'] + ':' + unfiedTimeframe)
         symbol, timeframe, stored = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
@@ -1099,14 +1113,18 @@ class aster(ccxt.async_support.aster):
             'params': subscriptionArgs,
         }
         for i in range(0, len(symbolsAndTimeframes)):
-            data = symbolsAndTimeframes[i]
+            data = self.safe_list(symbolsAndTimeframes, i)
             symbolString = self.safe_string(data, 0)
             if symbolString is None:
                 continue
             market = self.market(symbolString)
-            symbolString = market['symbol']
+            symbolString = self.safe_string(market, 'symbol')
             unfiedTimeframe = self.safe_string(data, 1)
-            timeframeId = None if (unfiedTimeframe is None) else self.safe_string(self.timeframes, unfiedTimeframe, unfiedTimeframe)
+            timeframeId = None
+            if unfiedTimeframe is None:
+                timeframeId = None
+            else:
+                timeframeId = self.safe_string(self.timeframes, unfiedTimeframe, unfiedTimeframe)
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@kline_' + timeframeId)
             messageHashes.append('unsubscribe:ohlcv:' + market['symbol'] + ':' + unfiedTimeframe)
         return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
@@ -1640,7 +1658,9 @@ class aster(ccxt.async_support.aster):
         executionType = self.safe_string(message, 'x')
         if executionType == 'TRADE':
             isSwap = client.url.find('fstream') >= 0
-            type = 'swap' if isSwap else 'spot'
+            type = 'spot'
+            if isSwap:
+                type = 'swap'
             fakeMarket = self.safe_market_structure({'type': type})
             trade = self.parse_ws_trade(message, fakeMarket)
             orderId = self.safe_string(trade, 'order')

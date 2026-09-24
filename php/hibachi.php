@@ -977,7 +977,7 @@ class hibachi extends Exchange {
         $nonce = $this->incrementing_nonce();
         $requestOrders = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $symbol = $this->safe_string($rawOrder, 'symbol');
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
@@ -1083,7 +1083,7 @@ class hibachi extends Exchange {
         $nonce = $this->incrementing_nonce();
         $requestOrders = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $id = $this->safe_string($rawOrder, 'id');
             $symbol = $this->safe_string($rawOrder, 'symbol');
             $type = $this->safe_string($rawOrder, 'type');
@@ -1946,7 +1946,7 @@ class hibachi extends Exchange {
             $this->privateGetTradeAccountTradingHistory($this->extend($request, $params)),
         );
         $promises = $rawPromises;
-        $responseCapitalHistory = $promises[0];
+        $responseCapitalHistory = $this->safe_dict($promises, 0);
         //
         // {
         //     "transactions": [
@@ -2001,7 +2001,7 @@ class hibachi extends Exchange {
         // }
         //
         $rowsCapitalHistory = $this->safe_list($responseCapitalHistory, 'transactions', array());
-        $responseTradingHistory = $promises[1];
+        $responseTradingHistory = $this->safe_dict($promises, 1);
         //
         // {
         //     "tradingHistory": [

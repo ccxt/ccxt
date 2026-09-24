@@ -1178,7 +1178,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 market = (Map<String, Object>) this.market(symbol);
                 symbol = (String) ((Map<String, Object>)market).get("symbol");
-                type = ((Map<String, Object>)market).get("type");
+                type = this.safeString(market, "type");
                 subType = (((java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)))) ? "linear" : "inverse";
                 marketId = ((Map<String, Object>)market).get("lowercaseId");
             } else
@@ -1264,14 +1264,22 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         {
             marketCode = ((String)((Map<String, Object>)market).get("lowercaseId")).toLowerCase();
         }
-        Object baseId = (((!java.util.Objects.equals(market, null)))) ? ((Map<String, Object>)market).get("baseId") : null;
+        Object baseId = null;
+        if (!java.util.Objects.equals(market, null))
+        {
+            baseId = ((Map<String, Object>)market).get("baseId");
+        }
         String prefix = orderType;
         messageHash = prefix;
         if (java.util.Objects.equals(subType, "linear"))
         {
             // USDT Margined Contracts Example: LTC/USDT:USDT
             String marginMode = this.safeString(parameters, "margin", "cross");
-            String marginPrefix = (((java.util.Objects.equals(marginMode, "cross")))) ? (prefix + "_cross") : prefix;
+            String marginPrefix = prefix;
+            if (java.util.Objects.equals(marginMode, "cross"))
+            {
+                marginPrefix = (prefix + "_cross");
+            }
             messageHash = marginPrefix;
             if (!java.util.Objects.equals(marketCode, null))
             {
@@ -1313,7 +1321,14 @@ public class Htx extends io.github.ccxt.exchanges.Htx
 
     public Object getV5LinearChannelAndMessageHash(String topic, Map<String, Object> market, Map<String, Object> parameters)
     {
-        Object contractCode = (((!java.util.Objects.equals(market, null)))) ? ((Map<String, Object>)market).get("id") : this.safeString(parameters, "contract_code", "*");
+        Object contractCode = null;
+        if (!java.util.Objects.equals(market, null))
+        {
+            contractCode = ((Map<String, Object>)market).get("id");
+        } else
+        {
+            contractCode = this.safeString(parameters, "contract_code", "*");
+        }
         String channel = topic;
         String messageHash = topic;
         if ((!java.util.Objects.equals(contractCode, null)) && (!java.util.Objects.equals(contractCode, "*")))
@@ -1365,7 +1380,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 market = (Map<String, Object>) this.market(symbol);
                 symbol = (String) ((Map<String, Object>)market).get("symbol");
-                type = ((Map<String, Object>)market).get("type");
+                type = this.safeString(market, "type");
                 suffix = ((Map<String, Object>)market).get("lowercaseId");
                 subType = (((java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)))) ? "linear" : "inverse";
             } else
@@ -2037,7 +2052,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Object subType = null;
             if (!java.util.Objects.equals(market, null))
             {
-                type = ((Map<String, Object>)market).get("type");
+                type = this.safeString(market, "type");
                 subType = (((java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)))) ? "linear" : "inverse";
             } else
             {
@@ -2064,7 +2079,11 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Boolean isLinear = (java.util.Objects.equals(subType, "linear"));
             Object url = this.getUrlByMarketType(type, isLinear, true, false, isV5Linear);
             messageHash = Helpers.add((marginMode + ":positions"), messageHash);
-            String channel = (((java.util.Objects.equals(marginMode, "cross")))) ? "positions_cross.*" : "positions.*";
+            String channel = "positions.*";
+            if (java.util.Objects.equals(marginMode, "cross"))
+            {
+                channel = "positions_cross.*";
+            }
             if (Boolean.TRUE.equals(isV5Linear))
             {
                 Map<String, Object> v5Market = null;
@@ -2191,7 +2210,11 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         //
         Object url = client.url;
         String topic = this.safeString(message, "topic", "");
-        String defaultMarginMode = (((java.util.Objects.equals(topic, "positions_cross")))) ? "cross" : "isolated";
+        String defaultMarginMode = "isolated";
+        if (java.util.Objects.equals(topic, "positions_cross"))
+        {
+            defaultMarginMode = "cross";
+        }
         if (java.util.Objects.equals(this.positions, null))
         {
             this.positions = new HashMap<String, Object>() {{}};
@@ -2204,7 +2227,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         List<Object> rawPositions = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         if (this.isEmpty(rawPositions))
         {
-            List<Object> prefixes = new ArrayList<Object>(Arrays.asList("cross:positions", "isolated:positions"));
+            List<String> prefixes = new ArrayList<String>(Arrays.asList("cross:positions", "isolated:positions"));
             for (var i = 0; i < ((List<?>)prefixes).size(); i++)
             {
                 Object messageHashes = this.findMessageHashes(client, Helpers.GetValue(prefixes, i));
@@ -2252,7 +2275,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
                 String symbolsString = (String) Helpers.GetValue(parts, 1);
                 List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
-                Object positions = this.filterByArray(marginModePositions, "symbol", symbols, false);
+                List<Object> positions = (List<Object>) this.filterByArray(marginModePositions, "symbol", symbols, false);
                 if (!this.isEmpty(positions))
                 {
                     client.resolve(positions, messageHash);
@@ -2568,7 +2591,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 Integer detailsLength = ((List<?>)details).size();
                 for (var i = 0; Helpers.isLessThan(i, detailsLength); i++)
                 {
-                    Object detail = (details == null || i < 0 || i >= details.size() ? null : details.get(i));
+                    Map<String, Object> detail = (Map<String, Object>) this.safeDict(details, i);
                     String currencyId = this.safeString(detail, "currency");
                     String code = this.safeCurrencyCode((String) (currencyId));
                     if (java.util.Objects.equals(code, null))
@@ -2658,7 +2681,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                     // isolated margin
                     for (var i = 0; i < ((List<?>)data).size(); i++)
                     {
-                        Object isolatedBalance = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+                        Map<String, Object> isolatedBalance = (Map<String, Object>) this.safeDict(data, i);
                         Map<String, Object> account = (Map<String, Object>) this.account();
                         ((Map<String, Object>)account).put("free", this.safeString(isolatedBalance, "margin_balance", "margin_available"));
                         ((Map<String, Object>)account).put("used", this.safeString(isolatedBalance, "margin_frozen"));
@@ -2676,7 +2699,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 // inverse branch
                 for (var i = 0; i < ((List<?>)data).size(); i++)
                 {
-                    Object balance = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+                    Map<String, Object> balance = (Map<String, Object>) this.safeDict(data, i);
                     String currencyId = this.safeString(balance, "symbol");
                     String code = this.safeCurrencyCode((String) (currencyId));
                     Map<String, Object> account = (Map<String, Object>) this.account();

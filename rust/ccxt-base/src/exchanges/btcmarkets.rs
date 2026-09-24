@@ -1016,8 +1016,7 @@ impl BtcmarketsCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_445: bool = true;
             while { if !__for_first_445 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_445 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
-            let mut balance: Value = get_value(&response, &i);
-            let mut balance: Value = get_value(&response, &i);
+            let mut balance: Value = self.safe_dict(response.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "assetName", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut account: Value = self.account();
@@ -1294,7 +1293,12 @@ impl BtcmarketsCore {
         let mut timestamp: Value = self.parse8601(self.safe_string_k(trade.clone(), "timestamp", &[]));
         let mut marketId: Value = self.safe_string_k(trade.clone(), "marketId", &[]);
         market = self.safe_market(&[marketId, market.clone(), Value::Str("-".into())]);
-        let mut feeCurrencyCode: Value = (if (market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null).as_str() == Some("AUD")) { market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null) });
+        let mut feeCurrencyCode: Value = Value::Null;
+        if (market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null).as_str() == Some("AUD")) {
+            feeCurrencyCode = market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
+        }  else {
+            feeCurrencyCode = market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null);
+        }
         let mut side: Value = self.safe_string_k(trade.clone(), "side", &[]);
         if (side.as_str() == Some("Bid")) {
             side = Value::Str("buy".into());
@@ -1567,13 +1571,13 @@ impl BtcmarketsCore {
         let mut currency: Value = Value::Null;
         let mut cost: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null).as_str() == Some("AUD")) {
-            currency = market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
+            currency = self.safe_string_k(market.clone(), "quote", &[]);
             let mut amountString: Value = self.number_to_string(amount.clone());
             let mut priceString: Value = self.number_to_string(price);
             let mut otherUnitsAmount: Value = crate::precise::Precise::stringMul(&amountString, &priceString);
             cost = self.cost_to_precision(symbol.clone(), otherUnitsAmount);
         }  else {
-            currency = market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null);
+            currency = self.safe_string_k(market.clone(), "base", &[]);
             cost = self.amount_to_precision(symbol.clone(), amount);
         }
         let mut rate: Value = self.safe_value(market, takerOrMaker.clone(), &[]);

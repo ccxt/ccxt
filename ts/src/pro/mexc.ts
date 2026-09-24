@@ -335,7 +335,10 @@ export default class mexc extends mexcRest {
         const marketIdIsUndefined = marketId === undefined;
         const isSpot = marketIdIsUndefined ? channelStartsWithSpot : market['spot'];
         const spotPrefix = 'spot:';
-        const messageHashPrefix = (isSpot === true) ? spotPrefix : '';
+        let messageHashPrefix: Str = '';
+        if (isSpot === true) {
+            messageHashPrefix = spotPrefix;
+        }
         const topic = messageHashPrefix + 'ticker';
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
@@ -510,7 +513,10 @@ export default class mexc extends mexcRest {
         const unsubscribed = this.safeBool (params, 'unsubscribed', false);
         params = this.omit (params, [ 'unsubscribed' ]);
         const url = this.urls['api']['ws']['spot'];
-        const method = (unsubscribed === true) ? 'UNSUBSCRIPTION' : 'SUBSCRIPTION';
+        let method: Str = 'SUBSCRIPTION';
+        if (unsubscribed === true) {
+            method = 'UNSUBSCRIPTION';
+        }
         const request: Dict = {
             'method': method,
             'params': [ channel ],
@@ -818,7 +824,7 @@ export default class mexc extends mexcRest {
             return -1;
         }
         for (let i = 0; i < cache.length; i++) {
-            const delta = cache[i];
+            const delta = this.safeDict (cache, i);
             const deltaNonce = this.safeIntegerN (delta, [ 'r', 'version', 'fromVersion' ]);
             if (deltaNonce === undefined) {
                 continue;
@@ -1245,7 +1251,10 @@ export default class mexc extends mexcRest {
         const priceString = this.safeString2 (trade, 'p', 'price');
         const amountString = this.safeString2 (trade, 'v', 'quantity');
         const rawSide = this.safeString2 (trade, 'S', 'tradeType');
-        const side = (rawSide === '1') ? 'buy' : 'sell';
+        let side: Str = 'sell';
+        if (rawSide === '1') {
+            side = 'buy';
+        }
         const isMaker = this.safeInteger (trade, 'm');
         const feeAmount = this.safeString2 (trade, 'n', 'feeAmount');
         const feeCurrencyId = this.safeString2 (trade, 'N', 'feeCurrency');
@@ -1621,7 +1630,10 @@ export default class mexc extends mexcRest {
         //     }
         //
         const channel = this.safeString (message, 'channel');
-        const type = (channel === 'spot@private.account.v3.api.pb') ? 'spot' : 'swap';
+        let type: Str = 'swap';
+        if (channel === 'spot@private.account.v3.api.pb') {
+            type = 'spot';
+        }
         const messageHash = 'balance:' + type;
         const data = this.safeDictN (message, [ 'data', 'privateAccount' ]);
         const futuresTimestamp = this.safeInteger2 (message, 'ts', 'createTime');

@@ -818,8 +818,7 @@ impl LunoCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_921: bool = true;
             while { if !__for_first_921 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_921 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawCurrency.len() as i64) as f64) } {
-            let mut networkEntry: Value = get_value(&rawCurrency, &i);
-            let mut networkEntry: Value = get_value(&rawCurrency, &i);
+            let mut networkEntry: Value = self.safe_dict(rawCurrency.clone(), i.clone(), &[]);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "name", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             if (networkCode != Value::Null) {
@@ -1085,7 +1084,7 @@ impl LunoCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_924: bool = true;
             while { if !__for_first_924 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_924 = false; i.as_f64().unwrap_or(f64::NAN) < ((wallets.len() as i64) as f64) } {
-            let mut wallet: Value = wallets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut wallet: Value = self.safe_dict(wallets.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(wallet.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut reserved: Value = self.safe_string_k(wallet.clone(), "reserved", &[]);
@@ -1998,7 +1997,7 @@ impl LunoCore {
             if (account == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() could not find account id for ".into())).into()), code)));
             }
-            id = account.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
+            id = self.safe_string_k(account, "id", &[]);
         }
         if (min_row == Value::Null) && (max_row == Value::Null) {
             max_row = Value::Int(0); // Default to most recent transactions

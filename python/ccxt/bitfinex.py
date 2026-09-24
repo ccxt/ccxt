@@ -658,7 +658,7 @@ class bitfinex(Exchange, ImplicitAPI):
         markets = self.array_concat(spotMarketsInfo, futuresMarketsInfo)
         result = []
         for i in range(0, len(markets)):
-            pairObj = markets[i]
+            pairObj = self.safe_list(markets, i)
             id = self.safe_string_upper(pairObj, 0)
             market = self.safe_value(pairObj, 1, {})
             spot = True
@@ -871,7 +871,7 @@ class bitfinex(Exchange, ImplicitAPI):
         }
         indexedNetworks = {}
         for i in range(0, len(indexed['networks'])):
-            networkObj = indexed['networks'][i]
+            networkObj = self.safe_list(indexed['networks'], i)
             networkId = self.safe_string(networkObj, 0)
             valuesList = self.safe_list(networkObj, 1)
             networkName = self.safe_string(valuesList, 0)
@@ -993,7 +993,7 @@ class bitfinex(Exchange, ImplicitAPI):
         balances = self.to_array(response)
         result = {'info': response}
         for i in range(0, len(balances)):
-            balance = balances[i]
+            balance = self.safe_list(balances, i)
             account = self.account()
             interest = self.safe_string(balance, 3)
             if interest != '0':
@@ -1192,7 +1192,9 @@ class bitfinex(Exchange, ImplicitAPI):
             price = self.safe_number(order, priceIndex)
             signedAmount = self.safe_string(order, 2)
             amount = Precise.string_abs(signedAmount)
-            side = 'bids' if Precise.string_gt(signedAmount, '0') else 'asks'
+            side = 'asks'
+            if Precise.string_gt(signedAmount, '0'):
+                side = 'bids'
             result[side].append([price, self.parse_number(amount)])
         result['bids'] = self.sort_by(result['bids'], 0, True)
         result['asks'] = self.sort_by(result['asks'], 0)
@@ -1488,7 +1490,7 @@ class bitfinex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchTrades', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchTrades', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, params, 10000)
         market = self.market(symbol)
@@ -1539,7 +1541,7 @@ class bitfinex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 10000)
         market = self.market(symbol)
@@ -1638,7 +1640,9 @@ class bitfinex(Exchange, ImplicitAPI):
         remaining = Precise.string_abs(self.safe_string(orderList, 6))
         signedAmount = self.safe_string(orderList, 7)
         amount = Precise.string_abs(signedAmount)
-        side = 'sell' if Precise.string_lt(signedAmount, '0') else 'buy'
+        side = 'buy'
+        if Precise.string_lt(signedAmount, '0'):
+            side = 'sell'
         orderType = self.safe_string(orderList, 8)
         type = self.safe_string(self.safe_dict(self.options, 'exchangeTypes'), orderType)
         timeInForce = self.parse_time_in_force(orderType)
@@ -1868,7 +1872,7 @@ class bitfinex(Exchange, ImplicitAPI):
             self.load_markets()
         ordersRequests = []
         for i in range(0, len(orders)):
-            rawOrder = orders[i]
+            rawOrder = self.safe_dict(orders, i)
             symbol = self.safe_string(rawOrder, 'symbol')
             type = self.safe_string(rawOrder, 'type')
             side = self.safe_string(rawOrder, 'side')
@@ -2180,7 +2184,7 @@ class bitfinex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchClosedOrders', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchClosedOrders', symbol, since, limit, params)
         request = {}
@@ -2469,7 +2473,7 @@ class bitfinex(Exchange, ImplicitAPI):
             data = self.safe_list(transaction, 4, [])
             timestamp = self.safe_integer(transaction, 0)
             if currency is not None:
-                code = currency['code']
+                code = self.safe_string(currency, 'code')
             feeCost = self.safe_string(data, 8)
             if feeCost is not None:
                 feeCost = Precise.string_abs(feeCost)
@@ -3046,7 +3050,7 @@ class bitfinex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchLedger', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchLedger', code, since, limit, params, 2500)
         currency = None
@@ -3154,7 +3158,7 @@ class bitfinex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 5000)
         market = self.market(symbol)
@@ -3433,7 +3437,7 @@ class bitfinex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOpenInterestHistory', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOpenInterestHistory', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOpenInterestHistory', symbol, since, limit, '8h', params, 5000)
         market = self.market(symbol)
@@ -3566,7 +3570,7 @@ class bitfinex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchLiquidations', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchLiquidations', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchLiquidations', symbol, since, limit, '8h', params, 500)
         market = self.market(symbol)
@@ -3618,7 +3622,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #         ]
         #     ]
         #
-        entry = liquidation[0]
+        entry = self.safe_list(liquidation, 0)
         timestamp = self.safe_integer(entry, 2)
         marketId = self.safe_string(entry, 4)
         contracts = Precise.string_abs(self.safe_string(entry, 5))
@@ -3626,7 +3630,9 @@ class bitfinex(Exchange, ImplicitAPI):
         baseValue = Precise.string_mul(contracts, contractSize)
         price = self.safe_string(entry, 11)
         sideFlag = self.safe_integer(entry, 8)
-        side = 'buy' if (sideFlag == 1) else 'sell'
+        side = 'sell'
+        if sideFlag == 1:
+            side = 'buy'
         return self.safe_liquidation({
             'info': entry,
             'symbol': self.safe_symbol(marketId, market, None, 'contract'),
@@ -3682,7 +3688,9 @@ class bitfinex(Exchange, ImplicitAPI):
         #     ]
         #
         marginStatusRaw = data[0]
-        marginStatus = 'ok' if (marginStatusRaw == 1) else 'failed'
+        marginStatus = 'failed'
+        if marginStatusRaw == 1:
+            marginStatus = 'ok'
         return {
             'info': data,
             'symbol': self.safe_string(market, 'symbol'),

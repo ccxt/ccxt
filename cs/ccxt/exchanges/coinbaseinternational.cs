@@ -449,11 +449,11 @@ public partial class coinbaseinternational : Exchange
     public async virtual Task<object> handlePortfolioAndParams(object methodName, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object portfolio = null;
-        IList<object> portfolioparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "portfolio");
-        portfolio = portfolioparametersVariable[0];
+        string? portfolio = null;
+        IList<object> portfolioparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "portfolio");
+        portfolio = (string)portfolioparametersVariable[0];
         parameters = portfolioparametersVariable[1];
-        if (((portfolio != null)) && (!isEqual(portfolio, "")))
+        if (((portfolio != null)) && (portfolio != ""))
         {
             return new List<object>() {portfolio, parameters};
         }
@@ -465,7 +465,7 @@ public partial class coinbaseinternational : Exchange
         List<object> accounts = ccxt.BaseExchange.FromAccountList(await this.FetchAccounts());
         for (int i = 0; i < (accounts?.Count ?? 0); i++)
         {
-            IDictionary<string, object> account = ((IDictionary<string, object>)accounts[i]);
+            IDictionary<string, object> account = this.safeDict(accounts, i);
             IDictionary<string, object> info = this.safeDict(account, "info", new Dictionary<string, object>() {});
             if ((this.safeBool(info, "is_default") == true))
             {
@@ -593,8 +593,8 @@ public partial class coinbaseinternational : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -676,8 +676,8 @@ public partial class coinbaseinternational : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         object maxEntriesPerRequest = 100;
         IList<object> maxEntriesPerRequestparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "maxEntriesPerRequest", maxEntriesPerRequest);
@@ -784,9 +784,9 @@ public partial class coinbaseinternational : Exchange
         {
             market = this.market(symbol);
         }
-        object portfolios = null;
-        IList<object> portfoliosparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingHistory", "portfolios");
-        portfolios = portfoliosparametersVariable[0];
+        string? portfolios = null;
+        IList<object> portfoliosparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchFundingHistory", "portfolios");
+        portfolios = (string)portfoliosparametersVariable[0];
         parameters = portfoliosparametersVariable[1];
         if ((portfolios != null))
         {
@@ -876,9 +876,9 @@ public partial class coinbaseinternational : Exchange
         {
             currency = this.currency(code);
         }
-        object portfolios = null;
-        IList<object> portfoliosparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTransfers", "portfolios");
-        portfolios = portfoliosparametersVariable[0];
+        string? portfolios = null;
+        IList<object> portfoliosparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchTransfers", "portfolios");
+        portfolios = (string)portfoliosparametersVariable[0];
         parameters = portfoliosparametersVariable[1];
         if ((portfolios != null))
         {
@@ -1027,7 +1027,7 @@ public partial class coinbaseinternational : Exchange
         IList<object> networksArray = this.toArray(networks);
         for (int i = 0; i < (networksArray?.Count ?? 0); i++)
         {
-            object info = getValue(networksArray[i], "info");
+            IDictionary<string, object> info = this.safeDict(networksArray[i], "info");
             bool? is_default = this.safeBool(info, "is_default", false);
             if ((is_default == true))
             {
@@ -1181,16 +1181,16 @@ public partial class coinbaseinternational : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = null;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "paginate");
-        paginate = paginateparametersVariable[0];
+        bool? paginate = null;
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchDepositsWithdrawals", "paginate");
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         object maxEntriesPerRequest = 100;
         IList<object> maxEntriesPerRequestparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "maxEntriesPerRequest", maxEntriesPerRequest);
         maxEntriesPerRequest = maxEntriesPerRequestparametersVariable[0];
         parameters = maxEntriesPerRequestparametersVariable[1];
         string pageKey = "ccxtPageKey";
-        if (isEqual(paginate, true))
+        if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallIncremental("fetchDepositsWithdrawals", code, since, limit, parameters, pageKey, maxEntriesPerRequest));
         }
@@ -1208,9 +1208,9 @@ public partial class coinbaseinternational : Exchange
             object newLimit = mathMin(limit, 100);
             request["result_limit"] = newLimit;
         }
-        object portfolios = null;
-        IList<object> portfoliosparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "portfolios");
-        portfolios = portfoliosparametersVariable[0];
+        string? portfolios = null;
+        IList<object> portfoliosparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchDepositsWithdrawals", "portfolios");
+        portfolios = (string)portfoliosparametersVariable[0];
         parameters = portfoliosparametersVariable[1];
         if ((portfolios != null))
         {
@@ -1832,7 +1832,7 @@ public partial class coinbaseinternational : Exchange
         }
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            object instrument = rows[i];
+            IDictionary<string, object> instrument = this.safeDict(rows, i);
             string? marketId = this.safeString(instrument, "symbol");
             string? symbol = this.safeSymbol(marketId);
             IDictionary<string, object> quote = this.safeDict(instrument, "quote", new Dictionary<string, object>() {});
@@ -1977,7 +1977,7 @@ public partial class coinbaseinternational : Exchange
         };
         for (int i = 0; i < getArrayLength(response); i++)
         {
-            object rawBalance = getValue(response, i);
+            IDictionary<string, object> rawBalance = this.safeDict(response, i);
             string? currencyId = this.safeString(rawBalance, "asset_name");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -2464,8 +2464,8 @@ public partial class coinbaseinternational : Exchange
         portfolio = ((IList<object>)portfolioparametersVariable)[0];
         parameters = ((IList<object>)portfolioparametersVariable)[1];
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         object maxEntriesPerRequest = 100;
         IList<object> maxEntriesPerRequestparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOpenOrders", "maxEntriesPerRequest", maxEntriesPerRequest);
@@ -2560,8 +2560,8 @@ public partial class coinbaseinternational : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         string pageKey = "ccxtPageKey";
         object maxEntriesPerRequest = 100;

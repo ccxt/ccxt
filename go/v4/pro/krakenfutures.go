@@ -754,12 +754,12 @@ func (this *Krakenfutures) watchBalanceBody(ch chan any, optionalArgs ...any) an
 	}
 	var name string = "balances"
 	var messageHash any = name
-	var account any = nil
-	var accountparamsVariable []any = this.HandleOptionAndParams(params, "watchBalance", "account")
-	account = ccxt.GetValue(accountparamsVariable, 0)
+	var account *string = nil
+	var accountparamsVariable []any = this.HandleOptionStringAndParams(params, "watchBalance", "account")
+	account = ccxt.SafeStringPtr(ccxt.GetValue(accountparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(accountparamsVariable, 1))
 	if account != nil {
-		if (!ccxt.IsEqual(account, "futures")) && (!ccxt.IsEqual(account, "flex_futures")) {
+		if (account == nil || *account != "futures") && (account == nil || *account != "flex_futures") {
 			panic(ccxt.ArgumentsRequired(this.Id + " watchBalance account must be either 'futures' or 'flex_futures'"))
 		}
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", account))
@@ -1484,24 +1484,14 @@ func (this *Krakenfutures) HandleOrderBookSnapshot(client any, message map[strin
 		return
 	}
 	for i := 0; i < len(bids); i++ {
-		var bid map[string]any = ccxt.MapTyped(func() any {
-			if i >= 0 && i < len(bids) {
-				return ccxt.DerefScalar(bids[i])
-			}
-			return nil
-		}())
+		var bid map[string]any = ccxt.SafeMapTyped(bids, i)
 		var price *float64 = this.SafeNumber(bid, "price")
 		var qty *float64 = this.SafeNumber(bid, "qty")
 		var bidsSide any = ccxt.GetValue(orderbook, "bids")
 		bidsSide.(ccxt.IOrderBookSide).Store(price, qty)
 	}
 	for i := 0; i < len(asks); i++ {
-		var ask map[string]any = ccxt.MapTyped(func() any {
-			if i >= 0 && i < len(asks) {
-				return ccxt.DerefScalar(asks[i])
-			}
-			return nil
-		}())
+		var ask map[string]any = ccxt.SafeMapTyped(asks, i)
 		var price *float64 = this.SafeNumber(ask, "price")
 		var qty *float64 = this.SafeNumber(ask, "qty")
 		var asksSide any = ccxt.GetValue(orderbook, "asks")

@@ -1490,7 +1490,11 @@ public partial class bingx : Exchange
         {
             quantityPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision")));
         }
-        string type = ((settle != null)) ? "swap" : "spot";
+        string type = "spot";
+        if ((settle != null))
+        {
+            type = "swap";
+        }
         bool spot = type == "spot";
         bool swap = type == "swap";
         object symbol = add(add(bs, "/"), quote);
@@ -2356,8 +2360,8 @@ public partial class bingx : Exchange
             throw new NotSupported ((this.id + " fetchFundingRateHistory() is not supported for inverse swap markets")) ;
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -2450,8 +2454,8 @@ public partial class bingx : Exchange
             throw new NotSupported ((this.id + " fetchFundingHistory() is not supported for inverse swap markets")) ;
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -2958,7 +2962,11 @@ public partial class bingx : Exchange
         string? lastQty = this.safeString(ticker, "lastQty");
         // in spot markets, lastQty is not present
         // it's (bad, but) the only way we can check the tickers origin
-        string type = ((lastQty == null)) ? "spot" : "swap";
+        string type = "swap";
+        if ((lastQty == null))
+        {
+            type = "spot";
+        }
         market = this.safeMarket(marketId, market, null, type);
         string? symbol = ((string)getValue(market, "symbol"));
         string? open = this.safeString(ticker, "openPrice");
@@ -3155,7 +3163,7 @@ public partial class bingx : Exchange
         {
             for (int i = 0; i < (contractBalances?.Count ?? 0); i++)
             {
-                object balance = contractBalances[i];
+                IDictionary<string, object> balance = this.safeDict(contractBalances, i);
                 string? currencyId = this.safeString(balance, "asset");
                 if ((currencyId == null))
                 {
@@ -3175,7 +3183,7 @@ public partial class bingx : Exchange
         {
             for (int i = 0; i < (spotBalances?.Count ?? 0); i++)
             {
-                object balance = spotBalances[i];
+                IDictionary<string, object> balance = this.safeDict(spotBalances, i);
                 string? currencyId = this.safeString(balance, "asset");
                 string? code = this.safeCurrencyCode(currencyId);
                 Dictionary<string, object> account = this.account();
@@ -3588,7 +3596,11 @@ public partial class bingx : Exchange
         bool isTriggerOrder = (triggerPrice != null);
         bool isStopLossPriceOrder = (stopLossPrice != null);
         bool isTakeProfitPriceOrder = (takeProfitPrice != null);
-        string exchangeClientOrderId = isSpot ? "newClientOrderId" : "clientOrderID";
+        string exchangeClientOrderId = "clientOrderID";
+        if (isSpot)
+        {
+            exchangeClientOrderId = "newClientOrderId";
+        }
         string? clientOrderId = this.safeString2(parameters, exchangeClientOrderId, "clientOrderId");
         if ((clientOrderId != null))
         {
@@ -3646,7 +3658,11 @@ public partial class bingx : Exchange
                 }
             } else if (((stopLossPrice != null)) || ((takeProfitPrice != null)))
             {
-                string? stopTakePrice = ((stopLossPrice != null)) ? stopLossPrice : takeProfitPrice;
+                string? stopTakePrice = takeProfitPrice;
+                if ((stopLossPrice != null))
+                {
+                    stopTakePrice = stopLossPrice;
+                }
                 if (isEqual(type, "LIMIT"))
                 {
                     request["type"] = "TAKE_STOP_LIMIT";
@@ -4036,7 +4052,7 @@ public partial class bingx : Exchange
         List<object> marketIds = new List<object>() {};
         for (int i = 0; i < getArrayLength(orders); i++)
         {
-            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
+            IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol", "");
             string? type = this.safeString(rawOrder, "type");
             marketIds.Add(marketId);
@@ -4450,7 +4466,11 @@ public partial class bingx : Exchange
             order = newOrder;
         }
         string? positionSide = this.safeString2(order, "positionSide", "ps");
-        string marketType = ((positionSide == null)) ? "spot" : "swap";
+        string marketType = "swap";
+        if ((positionSide == null))
+        {
+            marketType = "spot";
+        }
         string? marketId = this.safeString2(order, "symbol", "s");
         if ((market == null))
         {
@@ -4852,7 +4872,11 @@ public partial class bingx : Exchange
         Dictionary<string, object> response = null;
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            string spotReqKey = areClientOrderIds ? "clientOrderIDs" : "orderIds";
+            string spotReqKey = "orderIds";
+            if (areClientOrderIds)
+            {
+                spotReqKey = "clientOrderIDs";
+            }
             request[(string)spotReqKey] = String.Join(",", parsedIds.ToArray());
             response = await this.spotV1PrivatePostTradeCancelOrders(this.extend(request, parameters));
         } else
@@ -5946,7 +5970,11 @@ public partial class bingx : Exchange
             }
         }
         string? rawType = this.safeString(transaction, "transferType");
-        string type = (rawType == "0") ? "deposit" : "withdrawal";
+        string type = "withdrawal";
+        if (rawType == "0")
+        {
+            type = "deposit";
+        }
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", id },
@@ -6301,7 +6329,11 @@ public partial class bingx : Exchange
             Int64 now = this.milliseconds();
             if ((since != null))
             {
-                string startTimeReq = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) ? "startTime" : "startTs";
+                string startTimeReq = "startTs";
+                if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+                {
+                    startTimeReq = "startTime";
+                }
                 request[(string)startTimeReq] = since;
             } else if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
             {
@@ -6311,7 +6343,11 @@ public partial class bingx : Exchange
             parameters = this.omit(parameters, "until");
             if ((until != null))
             {
-                string endTimeReq = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) ? "endTime" : "endTs";
+                string endTimeReq = "endTs";
+                if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+                {
+                    endTimeReq = "endTime";
+                }
                 request[(string)endTimeReq] = until;
             } else if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
             {
@@ -6364,7 +6400,7 @@ public partial class bingx : Exchange
             for (int i = 0; i < networksLength; i++)
             {
                 string? networkCode = ((string)getValue(networkCodes, i));
-                object network = getValue(networks, networkCode);
+                IDictionary<string, object> network = this.safeDict(networks, networkCode);
                 ((IDictionary<string,object>)((IDictionary<string,object>)result)["networks"])[(string)networkCode] = new Dictionary<string, object>() {
                     { "deposit", new Dictionary<string, object>() {
                         { "fee", null },
@@ -6409,7 +6445,7 @@ public partial class bingx : Exchange
             string? code = ((string)responseCodes[i]);
             if (((codes == null)) || (this.inArray(code, codes)))
             {
-                object entry = getValue(response, code);
+                IDictionary<string, object> entry = this.safeDict(response, code);
                 depositWithdrawFees[(string)code] = this.parseDepositWithdrawFee(entry);
             }
         }

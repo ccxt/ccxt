@@ -341,7 +341,9 @@ class coinone(Exchange, ImplicitAPI):
         code = self.safe_currency_code(id)
         isWithdrawEnabled = self.safe_string(rawCurrency, 'withdraw_status', '') == 'normal'
         isDepositEnabled = self.safe_string(rawCurrency, 'deposit_status', '') == 'normal'
-        type = 'crypto' if (code != 'KRW') else 'fiat'
+        type = 'fiat'
+        if code != 'KRW':
+            type = 'crypto'
         return self.safe_currency_structure({
             'id': id,
             'code': code,
@@ -483,7 +485,7 @@ class coinone(Exchange, ImplicitAPI):
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            balance = balances[currencyId]
+            balance = self.safe_dict(balances, currencyId)
             code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_string(balance, 'avail')
@@ -768,7 +770,11 @@ class coinone(Exchange, ImplicitAPI):
             feeCostString = Precise.string_abs(feeCostString)
             feeRateString = self.safe_string(trade, 'feeRate')
             feeRateString = Precise.string_abs(feeRateString)
-            feeCurrencyCode = market['quote'] if (side == 'sell') else market['base']
+            feeCurrencyCode = None
+            if side == 'sell':
+                feeCurrencyCode = market['quote']
+            else:
+                feeCurrencyCode = market['base']
             fee = {
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,
@@ -1008,7 +1014,9 @@ class coinone(Exchange, ImplicitAPI):
         fee = None
         feeCostString = self.safe_string(order, 'fee')
         if feeCostString is not None:
-            feeCurrencyCode = quote if (side == 'sell') else base
+            feeCurrencyCode = base
+            if side == 'sell':
+                feeCurrencyCode = quote
             fee = {
                 'cost': feeCostString,
                 'rate': self.safe_string_2(order, 'feeRate', 'fee_rate'),

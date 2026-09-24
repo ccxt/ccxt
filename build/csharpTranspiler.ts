@@ -9,6 +9,7 @@ import { MARKET_ROW_STRING_KEYS } from './csharp-local-types.js'
 // the positional core-argument type tables live in the classifier module so the pooled
 // workers' parameter-type hook (build/csharp-local-types.js) reads the same proof
 import { CORE_NUMERIC_ARGS, CORE_STRING_ARGS } from './csharp-local-types.js'
+import { PARAMETERS_ARG_TYPED_METHODS } from './csharp-local-types.js'
 import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js'
 import { platform } from 'process'
 import os from 'os'
@@ -1911,8 +1912,7 @@ const SIGNATURE_ARG_TYPES: Record<string, Record<number, string>> = {
 // override) is rewritten by the same pass. The two names below are the closed subset that has a
 // single venue: `isUTAEnabled` (BaseMethods + kucoin), `WatchPosition` (TradingMethods + pro/kucoin);
 // both have no body assignment a Dictionary cannot take and no call site passing a non-dict
-// argument (census: campaigns/cs-strict/tools/S43/flow.py on the b01e9230 tree).
-const PARAMETERS_ARG_TYPED_METHODS: string[] = [ 'WatchPosition', 'isUTAEnabled' ];
+// argument. The table lives in build/csharp-local-types.js so the classifier types the parameter too.
 
 
 

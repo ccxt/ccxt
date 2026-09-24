@@ -1433,7 +1433,7 @@ export default class backpack extends Exchange {
         for (let i = 0; i < balanceKeys.length; i++) {
             const id = balanceKeys[i];
             const code = this.safeCurrencyCode (id);
-            const balance = response[id];
+            const balance = this.safeDict (response, id);
             const account = this.account ();
             const locked = this.safeString (balance, 'locked');
             const staked = this.safeString (balance, 'staked');
@@ -1788,7 +1788,7 @@ export default class backpack extends Exchange {
         }
         const ordersRequests: List = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const marketId = this.safeString (rawOrder, 'symbol');
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
@@ -1818,7 +1818,10 @@ export default class backpack extends Exchange {
         };
         const triggerPrice = this.safeString (params, 'triggerPrice');
         const isTriggerOrder = triggerPrice !== undefined;
-        const quantityKey = isTriggerOrder ? 'triggerQuantity' : 'quantity';
+        let quantityKey: Str = 'quantity';
+        if (isTriggerOrder) {
+            quantityKey = 'triggerQuantity';
+        }
         // handle basic limit/market order types
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
@@ -1872,7 +1875,7 @@ export default class backpack extends Exchange {
             params = this.omit (params, 'stopLoss');
         }
         let selfTradePrevention: Str = undefined;
-        [ selfTradePrevention, params ] = this.handleOptionAndParams (params, 'createOrder', 'selfTradePrevention');
+        [ selfTradePrevention, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'selfTradePrevention');
         if (selfTradePrevention !== undefined) {
             if (selfTradePrevention === 'EXPIRE_MAKER') {
                 request['selfTradePrevention'] = 'RejectMaker';

@@ -551,7 +551,7 @@ public class Bitflyer extends BitflyerApi
         }};
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
-            Object balance = Helpers.GetValue(response, i);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i);
             String currencyId = this.safeString(balance, "currency_code");
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
@@ -772,13 +772,13 @@ public class Bitflyer extends BitflyerApi
                 side = null;
             }
         }
-        Object order = null;
+        String order = null;
         if (!java.util.Objects.equals(side, null))
         {
             String idInner = (side + "_child_order_acceptance_id");
             if (((Map<?, ?>)trade).containsKey(idInner))
             {
-                order = Helpers.GetValue(trade, idInner);
+                order = this.safeString(trade, idInner);
             }
         }
         if (java.util.Objects.equals(order, null))
@@ -791,7 +791,7 @@ public class Bitflyer extends BitflyerApi
         String id = this.safeString(trade, "id");
         market = (Map<String, Object>) (this.safeMarket(null, market));
         final Map<String, Object> finalMarket = market;
-        final Object finalOrder = order;
+        final String finalOrder = order;
         final String finalSide = side;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", id );
@@ -1010,7 +1010,7 @@ public class Bitflyer extends BitflyerApi
             {
                 (this.loadMarkets()).join();
             }
-            final Object finalSymbol = symbol;
+            final String finalSymbol = symbol;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "product_code", Bitflyer.this.marketId((String) (finalSymbol)) );
                 put( "child_order_acceptance_id", id );

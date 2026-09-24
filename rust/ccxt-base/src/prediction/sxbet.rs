@@ -1399,7 +1399,10 @@ impl SxbetCore {
         let mut saltHex: Value = Value::Str(format!("{}{}", Value::Str("0x".into()), saltHexPadded).into());
         let mut defaultExpirySeconds: Value = self.safe_integer_k(self.options.clone(), "defaultOrderExpirySeconds", &[Value::Int(86400)]);
         let mut expiry: Value = self.safe_integer_k(params.clone(), "expiry", &[self.sum(&[self.seconds(), defaultExpirySeconds])]);
-        let mut defaultTif: Value = (if (type_var.as_str() == Some("limit")) { Value::Str("GTC".into()) } else { Value::Str("IOC".into()) });
+        let mut defaultTif: Value = Value::Str("IOC".into());
+        if (type_var.as_str() == Some("limit")) {
+            defaultTif = Value::Str("GTC".into());
+        }
         let mut timeInForce: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[defaultTif]); timeInForce = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         // an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
@@ -1846,7 +1849,12 @@ impl SxbetCore {
         let mut orderId: Value = self.safe_string2(order.clone(), Value::Str("id".into()), Value::Str("orderId".into()), &[]);
         let mut marketHash: Value = self.safe_string_k(order.clone(), "marketHash", &[Value::Str("".into())]);
         let mut isBettingOutcomeOne: Value = self.safe_bool_k(order.clone(), "isBettingOutcomeOne", &[Value::Bool(true)]);
-        let mut outcomeId: Value = (if isBettingOutcomeOne.as_bool() == Some(true) { marketHash.clone() } else { (Value::Str(format!("{}{}", marketHash, Value::Str("-2".into())).into())) });
+        let mut outcomeId: Value = Value::Null;
+        if isBettingOutcomeOne.as_bool() == Some(true) {
+            outcomeId = marketHash.clone();
+        }  else {
+            outcomeId = (Value::Str(format!("{}{}", marketHash, Value::Str("-2".into())).into()));
+        }
         let mut outcomeObj: Value = self.safe_outcome(outcomeId.clone(), &[market]);
         let mut oneDenom: Value = Value::Str("100000000000000000000".into());
         let mut usdcDecimals: Value = Value::Str("1000000".into());
@@ -2175,7 +2183,12 @@ impl SxbetCore {
         //
         let mut marketHash: Value = self.safe_string_k(fill.clone(), "marketHash", &[Value::Str("".into())]);
         let mut isBettingOutcomeOne: Value = self.safe_bool_k(fill.clone(), "isBettingOutcomeOne", &[Value::Bool(true)]);
-        let mut outcomeId: Value = (if isBettingOutcomeOne.as_bool() == Some(true) { marketHash.clone() } else { (Value::Str(format!("{}{}", marketHash, Value::Str("-2".into())).into())) });
+        let mut outcomeId: Value = Value::Null;
+        if isBettingOutcomeOne.as_bool() == Some(true) {
+            outcomeId = marketHash.clone();
+        }  else {
+            outcomeId = (Value::Str(format!("{}{}", marketHash, Value::Str("-2".into())).into()));
+        }
         let mut outcomeObj: Value = self.safe_outcome(outcomeId.clone(), &[market.clone()]);
         let mut oneDenom: Value = Value::Str("100000000000000000000".into());
         let mut usdcDecimals: Value = Value::Str("1000000".into());
@@ -2257,7 +2270,7 @@ impl SxbetCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1462: bool = true;
             while { if !__for_first_1462 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1462 = false; i.as_f64().unwrap_or(f64::NAN) < balancesLength } {
-            let mut row: Value = balances.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut row: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
             let mut tokenAddress: Value = self.safe_string_lower_k(row.clone(), "tokenAddress", &[Value::Str("".into())]);
             // every sxbet market is denominated in the active base token, surfaced under 'USDC';
             // rows of any other token keep their contract address for the code
@@ -2373,7 +2386,12 @@ impl SxbetCore {
         //
         let mut marketHash: Value = self.safe_string_k(raw.clone(), "marketHash", &[Value::Str("".into())]);
         let mut isOutcomeOneMaxWin: Value = self.safe_bool_k(raw.clone(), "isOutcomeOneMaxWin", &[Value::Bool(true)]);
-        let mut outcomeId: Value = (if isOutcomeOneMaxWin.as_bool() == Some(true) { marketHash.clone() } else { (Value::Str(format!("{}{}", marketHash, Value::Str("-2".into())).into())) });
+        let mut outcomeId: Value = Value::Null;
+        if isOutcomeOneMaxWin.as_bool() == Some(true) {
+            outcomeId = marketHash.clone();
+        }  else {
+            outcomeId = (Value::Str(format!("{}{}", marketHash, Value::Str("-2".into())).into()));
+        }
         let mut outcomeObj: Value = self.safe_outcome(outcomeId.clone(), &[]);
         let mut oneDenom: Value = Value::Str("100000000000000000000".into());
         let mut usdcDecimals: Value = Value::Str("1000000".into());
@@ -2381,7 +2399,12 @@ impl SxbetCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut ownOdds: Value = (if isOutcomeOneMaxWin.as_bool() == Some(true) { self.safe_string_k(odds.clone(), "outcomeOne", &[]) } else { self.safe_string_k(odds, "outcomeTwo", &[]) });
+        let mut ownOdds: Value = Value::Null;
+        if isOutcomeOneMaxWin.as_bool() == Some(true) {
+            ownOdds = self.safe_string_k(odds.clone(), "outcomeOne", &[]);
+        }  else {
+            ownOdds = self.safe_string_k(odds, "outcomeTwo", &[]);
+        }
         let mut entryPrice: Value = (if (ownOdds != Value::Null) { self.parse_number(crate::precise::Precise::stringDiv(&ownOdds, &oneDenom), &[]) } else { Value::Null });
         let mut totalStake: Value = self.safe_string_k(raw.clone(), "totalStake", &[Value::Str("0".into())]);
         let mut pnl: Value = self.safe_string_k(raw.clone(), "pnl", &[]);
@@ -2497,7 +2520,12 @@ impl SxbetCore {
         //
         let mut marketHash: Value = self.safe_string_k(trade.clone(), "marketHash", &[Value::Str("".into())]);
         let mut isBettingOutcomeOne: Value = self.safe_bool_k(trade.clone(), "isBettingOutcomeOne", &[Value::Bool(true)]);
-        let mut outcomeId: Value = (if isBettingOutcomeOne.as_bool() == Some(true) { marketHash.clone() } else { (Value::Str(format!("{}{}", marketHash, Value::Str("-2".into())).into())) });
+        let mut outcomeId: Value = Value::Null;
+        if isBettingOutcomeOne.as_bool() == Some(true) {
+            outcomeId = marketHash.clone();
+        }  else {
+            outcomeId = (Value::Str(format!("{}{}", marketHash, Value::Str("-2".into())).into()));
+        }
         let mut outcomeObj: Value = self.safe_outcome(outcomeId.clone(), &[market]);
         let mut settlement: Value = self.safe_dict_k(trade.clone(), "settlement", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2523,7 +2551,10 @@ impl SxbetCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut labelKey: Value = (if (winner.as_f64() == Some(1.0)) { Value::Str("outcomeOneName".into()) } else { Value::Str("outcomeTwoName".into()) });
+            let mut labelKey: Value = Value::Str("outcomeTwoName".into());
+            if (winner.as_f64() == Some(1.0)) {
+                labelKey = Value::Str("outcomeOneName".into());
+            }
             resultLabel = self.safe_string(info, labelKey, &[self.number_to_string(winner)]);
         }
         let mut timestamp: Value = self.parse8601(self.safe_string_k(settlement, "settleDate", &[]));
@@ -2836,8 +2867,14 @@ impl SxbetCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut ownOdds: Value = (if (isOutcomeOne) { outcomeOneOdds.clone() } else { outcomeTwoOdds.clone() });
-        let mut oppositeOdds: Value = (if (isOutcomeOne) { outcomeTwoOdds } else { outcomeOneOdds });
+        let mut ownOdds: Value = outcomeTwoOdds.clone();
+        if isOutcomeOne {
+            ownOdds = outcomeOneOdds.clone();
+        }
+        let mut oppositeOdds: Value = outcomeOneOdds;
+        if isOutcomeOne {
+            oppositeOdds = outcomeTwoOdds;
+        }
         // percentageOdds is the maker's own implied probability * 1e20 (sx.bet protocol format);
         // the opposite side's best resting maker mirrors into this outcome's ask via 1 - p
         let mut oneDenom: Value = Value::Str("100000000000000000000".into());
@@ -2967,7 +3004,7 @@ impl SxbetCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1471: bool = true;
             while { if !__for_first_1471 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1471 = false; i.as_f64().unwrap_or(f64::NAN) < ownLevelsLength } {
-            let mut level: Value = ownLevels.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut level: Value = self.safe_dict(ownLevels.clone(), i.clone(), &[]);
             let mut percentageOdds: Value = self.safe_string_k(level.clone(), "percentageOdds", &[]);
             let mut size: Value = self.safe_string_k(level.clone(), "size", &[Value::Str("0".into())]);
             let mut price: Value = self.parse_number(crate::precise::Precise::stringDiv(&percentageOdds, &oneDenom), &[]);
@@ -2981,7 +3018,7 @@ impl SxbetCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1472: bool = true;
             while { if !__for_first_1472 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1472 = false; i.as_f64().unwrap_or(f64::NAN) < oppositeLevelsLength } {
-            let mut level: Value = oppositeLevels.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut level: Value = self.safe_dict(oppositeLevels.clone(), i.clone(), &[]);
             let mut percentageOdds: Value = self.safe_string_k(level.clone(), "percentageOdds", &[]);
             let mut size: Value = self.safe_string_k(level, "size", &[Value::Str("0".into())]);
             // the opposite side's resting stake mirrors into this outcome's ask - the price is the
@@ -3479,7 +3516,7 @@ impl SxbetCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1478: bool = true;
             while { if !__for_first_1478 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1478 = false; i.as_f64().unwrap_or(f64::NAN) < rowsLength } {
-            let mut entry: Value = rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = self.safe_dict(rows.clone(), i.clone(), &[]);
             let mut marketHash: Value = self.safe_string_k(entry.clone(), "marketHash", &[]);
             if (marketHash == Value::Null) {
                 continue;
@@ -3567,7 +3604,12 @@ impl SxbetCore {
     pub fn parse_sxbet_v3_public_trade(&self, mut trade: Value) -> Value {
         let mut marketHash: Value = self.safe_string_k(trade.clone(), "marketHash", &[Value::Str("".into())]);
         let mut isBettingOutcomeOne: Value = self.safe_bool_k(trade.clone(), "isBettingOutcomeOne", &[Value::Bool(true)]);
-        let mut outcomeId: Value = (if isBettingOutcomeOne.as_bool() == Some(true) { marketHash.clone() } else { (Value::Str(format!("{}{}", marketHash, Value::Str("-2".into())).into())) });
+        let mut outcomeId: Value = Value::Null;
+        if isBettingOutcomeOne.as_bool() == Some(true) {
+            outcomeId = marketHash.clone();
+        }  else {
+            outcomeId = (Value::Str(format!("{}{}", marketHash, Value::Str("-2".into())).into()));
+        }
         let mut outcomeObj: Value = self.safe_outcome(outcomeId.clone(), &[]);
         let mut oneDenom: Value = Value::Str("100000000000000000000".into());
         let mut usdcDecimals: Value = Value::Str("1000000".into());

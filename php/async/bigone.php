@@ -627,7 +627,7 @@ class bigone extends Exchange {
          */
         $promises = array( $this->publicGetAssetPairs($params), $this->contractPublicGetSymbols($params) );
         $promisesResult = Async\await(Promise\all($promises));
-        $response = $promisesResult[0];
+        $response = $this->safe_dict($promisesResult, 0);
         $contractResponse = $promisesResult[1];
         //
         //     {
@@ -852,7 +852,10 @@ class bigone extends Exchange {
         //        "openInterest": 1141372.0
         //    }
         //
-        $marketType = (is_array($ticker) && array_key_exists('asset_pair_name' ?? '', $ticker)) ? 'spot' : 'swap';
+        $marketType = 'swap';
+        if (is_array($ticker) && array_key_exists('asset_pair_name' ?? '', $ticker)) {
+            $marketType = 'spot';
+        }
         $marketId = $this->safe_string_2($ticker, 'asset_pair_name', 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '-', $marketType);
         $close = $this->safe_string_2($ticker, 'close', 'latestPrice');
@@ -1254,28 +1257,28 @@ class bigone extends Exchange {
         if ($takerOrMaker !== null) {
             if ($side === 'buy') {
                 if ($takerOrMaker === 'maker') {
-                    $makerCurrencyCode = $market['base'];
-                    $takerCurrencyCode = $market['quote'];
+                    $makerCurrencyCode = $this->safe_string($market, 'base');
+                    $takerCurrencyCode = $this->safe_string($market, 'quote');
                 } else {
-                    $makerCurrencyCode = $market['quote'];
-                    $takerCurrencyCode = $market['base'];
+                    $makerCurrencyCode = $this->safe_string($market, 'quote');
+                    $takerCurrencyCode = $this->safe_string($market, 'base');
                 }
             } else {
                 if ($takerOrMaker === 'maker') {
-                    $makerCurrencyCode = $market['quote'];
-                    $takerCurrencyCode = $market['base'];
+                    $makerCurrencyCode = $this->safe_string($market, 'quote');
+                    $takerCurrencyCode = $this->safe_string($market, 'base');
                 } else {
-                    $makerCurrencyCode = $market['base'];
-                    $takerCurrencyCode = $market['quote'];
+                    $makerCurrencyCode = $this->safe_string($market, 'base');
+                    $takerCurrencyCode = $this->safe_string($market, 'quote');
                 }
             }
         } elseif ($side === 'SELF_TRADING') {
             if ($takerSide === 'BID') {
-                $makerCurrencyCode = $market['quote'];
-                $takerCurrencyCode = $market['base'];
+                $makerCurrencyCode = $this->safe_string($market, 'quote');
+                $takerCurrencyCode = $this->safe_string($market, 'base');
             } elseif ($takerSide === 'ASK') {
-                $makerCurrencyCode = $market['base'];
-                $takerCurrencyCode = $market['quote'];
+                $makerCurrencyCode = $this->safe_string($market, 'base');
+                $takerCurrencyCode = $this->safe_string($market, 'quote');
             }
         }
         $makerFeeCost = $this->safe_string($trade, 'maker_fee');
@@ -1458,7 +1461,7 @@ class bigone extends Exchange {
         );
         $balances = $this->safe_list($response, 'data', array());
         for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+            $balance = $this->safe_dict($balances, $i);
             $symbol = $this->safe_string($balance, 'asset_symbol');
             $code = $this->safe_currency_code($symbol);
             $account = $this->account();
@@ -1650,7 +1653,10 @@ class bigone extends Exchange {
         }
         $market = $this->market($symbol);
         $isBuy = ($side === 'buy');
-        $requestSide = $isBuy ? 'BID' : 'ASK';
+        $requestSide = 'ASK';
+        if ($isBuy) {
+            $requestSide = 'BID';
+        }
         $uppercaseType = strtoupper($type);
         $isLimit = $uppercaseType === 'LIMIT';
         $exchangeSpecificParam = $this->safe_bool($params, 'post_only', false);
@@ -2204,7 +2210,10 @@ class bigone extends Exchange {
         $txid = $this->safe_string($transaction, 'txid');
         $address = $this->safe_string($transaction, 'target_address');
         $tag = $this->safe_string($transaction, 'memo');
-        $type = (is_array($transaction) && array_key_exists('customer_id' ?? '', $transaction)) ? 'withdrawal' : 'deposit';
+        $type = 'deposit';
+        if (is_array($transaction) && array_key_exists('customer_id' ?? '', $transaction)) {
+            $type = 'withdrawal';
+        }
         $internal = $this->safe_bool($transaction, 'is_internal');
         return array(
             'info' => $transaction,

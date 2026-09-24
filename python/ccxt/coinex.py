@@ -958,7 +958,9 @@ class coinex(Exchange, ImplicitAPI):
             quoteId = self.safe_string(entry, 'quote_ccy')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            settleId = 'USDT' if (subType == 'linear') else baseId
+            settleId = baseId
+            if subType == 'linear':
+                settleId = 'USDT'
             settle = self.safe_currency_code(settleId)
             symbol = base + '/' + quote + ':' + settle
             leveragesLength = len(leverages)
@@ -1377,7 +1379,7 @@ class coinex(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(trade, 'created_at')
         defaultType = self.safe_string(self.options, 'defaultType')
         if market is not None:
-            defaultType = market['type']
+            defaultType = self.safe_string(market, 'type')
         marketId = self.safe_string(trade, 'market')
         market = self.safe_market(marketId, market, None, defaultType)
         feeCostString = self.safe_string(trade, 'fee')
@@ -1711,7 +1713,7 @@ class coinex(Exchange, ImplicitAPI):
         result = {'info': response}
         balances = self.safe_list(response, 'data', [])
         for i in range(0, len(balances)):
-            entry = balances[i]
+            entry = self.safe_dict(balances, i)
             free = self.safe_dict(entry, 'available', {})
             used = self.safe_dict(entry, 'frozen', {})
             loan = self.safe_dict(entry, 'repaid', {})
@@ -1748,7 +1750,7 @@ class coinex(Exchange, ImplicitAPI):
         result = {'info': response}
         balances = self.safe_list(response, 'data', [])
         for i in range(0, len(balances)):
-            entry = balances[i]
+            entry = self.safe_dict(balances, i)
             currencyId = self.safe_string(entry, 'ccy')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -1781,7 +1783,7 @@ class coinex(Exchange, ImplicitAPI):
         result = {'info': response}
         balances = self.safe_list(response, 'data', [])
         for i in range(0, len(balances)):
-            entry = balances[i]
+            entry = self.safe_dict(balances, i)
             currencyId = self.safe_string(entry, 'ccy')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -1811,7 +1813,7 @@ class coinex(Exchange, ImplicitAPI):
         result = {'info': response}
         balances = self.safe_list(response, 'data', [])
         for i in range(0, len(balances)):
-            entry = balances[i]
+            entry = self.safe_dict(balances, i)
             currencyId = self.safe_string(entry, 'ccy')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -2077,12 +2079,14 @@ class coinex(Exchange, ImplicitAPI):
         orderType = self.safe_string_lower(order, 'market_type', defaultType)
         if orderType == 'futures':
             orderType = 'swap'
-        marketType = 'swap' if (orderType == 'swap') else 'spot'
+        marketType = 'spot'
+        if orderType == 'swap':
+            marketType = 'swap'
         market = self.safe_market(marketId, market, None, marketType)
         feeCurrencyId = self.safe_string(order, 'fee_ccy')
         feeCurrency = self.safe_currency_code(feeCurrencyId)
         if feeCurrency is None:
-            feeCurrency = market['quote']
+            feeCurrency = self.safe_string(market, 'quote')
         side = self.safe_string(order, 'side')
         if side == 'long':
             side = 'buy'
@@ -2487,7 +2491,7 @@ class coinex(Exchange, ImplicitAPI):
         isTriggerOrder = False
         isStopLossOrTakeProfitTrigger = False
         for i in range(0, len(orders)):
-            rawOrder = orders[i]
+            rawOrder = self.safe_dict(orders, i)
             marketId = self.safe_string(rawOrder, 'symbol')
             if symbol is None:
                 symbol = marketId
@@ -2825,7 +2829,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         results = []
         for i in range(0, len(data)):
-            entry = data[i]
+            entry = self.safe_dict(data, i)
             item = self.safe_dict(entry, 'data', {})
             order = self.parse_order(item, market)
             results.append(order)
@@ -2983,7 +2987,7 @@ class coinex(Exchange, ImplicitAPI):
         ordersRequests = []
         orderSymbols = []
         for i in range(0, len(orders)):
-            rawOrder = orders[i]
+            rawOrder = self.safe_dict(orders, i)
             marketId = self.safe_string(rawOrder, 'symbol')
             market = self.market(marketId)
             if marketId is not None:
@@ -3023,7 +3027,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(data)):
-            entry = data[i]
+            entry = self.safe_dict(data, i)
             code = self.safe_string(entry, 'code')
             message = self.safe_string(entry, 'message', '')
             if (code != '0') or ((message != 'Success') and (message != 'Succeeded') and (message.lower() != 'ok') and (data is None)):
@@ -3870,7 +3874,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_deposit_address(data, currency)
 
-    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "address": "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
@@ -4341,7 +4345,11 @@ class coinex(Exchange, ImplicitAPI):
             marketId = self.safe_string(info, 'market')
             market = self.safe_market(marketId, market, None, 'swap')
             maxNotional = self.safe_number(tier, 'amount')
-            curr = market['base'] if (market['linear'] is True) else market['quote']
+            curr = None
+            if market['linear'] is True:
+                curr = market['base']
+            else:
+                curr = market['quote']
             notional = minNotional
             tiers.append({
                 'tier': self.sum(i, 1),
@@ -4410,7 +4418,9 @@ class coinex(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'data', {})
         status = self.safe_string_lower(response, 'message')
-        type = 'reduce' if (addOrReduce == 'reduce') else 'add'
+        type = 'add'
+        if addOrReduce == 'reduce':
+            type = 'reduce'
         return self.extend(self.parse_margin_modification(data, market), {
             'type': type,
             'amount': self.parse_number(amount),
@@ -4822,7 +4832,7 @@ class coinex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 1000)
         market = self.market(symbol)
@@ -4930,7 +4940,9 @@ class coinex(Exchange, ImplicitAPI):
         currencyId = self.safe_string(transaction, 'ccy')
         code = self.safe_currency_code(currencyId, currency)
         timestamp = self.safe_integer(transaction, 'created_at')
-        type = 'withdrawal' if ('withdraw_id' in transaction) else 'deposit'
+        type = 'deposit'
+        if 'withdraw_id' in transaction:
+            type = 'withdrawal'
         networkId = self.safe_string(transaction, 'chain')
         feeCost = self.safe_string(transaction, 'tx_fee')
         transferMethod = self.safe_string_lower_2(transaction, 'withdraw_method', 'deposit_method')
@@ -5582,7 +5594,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         result = {}
         for i in range(0, len(data)):
-            item = data[i]
+            item = self.safe_dict(data, i)
             asset = self.safe_dict(item, 'asset', {})
             currencyId = self.safe_string(asset, 'ccy')
             if currencyId is None:
@@ -5638,7 +5650,7 @@ class coinex(Exchange, ImplicitAPI):
         chains = self.safe_list(fee, 'chains', [])
         asset = self.safe_dict(fee, 'asset', {})
         for i in range(0, len(chains)):
-            entry = chains[i]
+            entry = self.safe_dict(chains, i)
             isWithdrawEnabled = self.safe_bool(entry, 'withdraw_enabled')
             if isWithdrawEnabled is True:
                 result['withdraw']['fee'] = self.safe_number(entry, 'withdrawal_fee')

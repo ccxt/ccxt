@@ -1604,7 +1604,11 @@ public partial class aster : Exchange
         //
         string? id = this.safeString2(trade, "id", "a");
         string? marketId = this.safeString(trade, "symbol");
-        string marketType = ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("positionSide"))) ? "swap" : "spot";
+        string marketType = "spot";
+        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("positionSide")))
+        {
+            marketType = "swap";
+        }
         market = this.safeMarket(marketId, market, null, marketType);
         string? currencyId = this.safeString2(trade, "commissionAsset", "marginAsset");
         string? currencyCode = this.safeCurrencyCode(currencyId);
@@ -2469,7 +2473,7 @@ public partial class aster : Exchange
         };
         for (int i = 0; i < getArrayLength(response); i++)
         {
-            object balance = getValue(response, i);
+            IDictionary<string, object> balance = this.safeDict(response, i);
             string? currencyId = this.safeString(balance, "asset");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -2558,7 +2562,11 @@ public partial class aster : Exchange
     public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string strValue = isTrue(hedged) ? "true" : "false";
+        string strValue = "false";
+        if (isTrue(hedged))
+        {
+            strValue = "true";
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "dualSidePosition", strValue },
         };
@@ -2707,7 +2715,11 @@ public partial class aster : Exchange
         //
         object info = order;
         string? positionSide = this.safeString(order, "positionSide");
-        string defaultType = ((positionSide != null)) ? "swap" : "spot";
+        string defaultType = "spot";
+        if ((positionSide != null))
+        {
+            defaultType = "swap";
+        }
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market, null, defaultType);
         string? side = this.safeStringLower(order, "side");
@@ -3141,7 +3153,7 @@ public partial class aster : Exchange
         }
         for (int i = 0; i < getArrayLength(orders); i++)
         {
-            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
+            IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
             Dictionary<string, object> currentMarket = this.market(marketId);
             orderSymbols.Add((currentMarket != null && ((IDictionary<string, object>)currentMarket).ContainsKey("symbol") ? ((IDictionary<string, object>)currentMarket)["symbol"] : null));
@@ -3388,9 +3400,9 @@ public partial class aster : Exchange
         }
         if (timeInForceIsRequired && ((this.safeString(parameters, "timeInForce") == null)) && ((this.safeString(request, "timeInForce") == null)))
         {
-            object tif = null;
-            IList<object> tifparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "timeInForce");
-            tif = tifparametersVariable[0];
+            string? tif = null;
+            IList<object> tifparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce");
+            tif = (string)tifparametersVariable[0];
             parameters = tifparametersVariable[1];
             request["timeInForce"] = tif;
         }
@@ -4097,7 +4109,7 @@ public partial class aster : Exchange
         List<object> leverageBracket = this.safeList(leverageBrackets, symbol, new List<object>() {});
         string? notionalString = this.safeString2(position, "notional", "notionalValue");
         string? notionalStringAbs = Precise.stringAbs(notionalString);
-        object maintenanceMarginPercentageString = null;
+        string? maintenanceMarginPercentageString = null;
         for (int i = 0; i < leverageBracket.Count; i++)
         {
             object bracket = leverageBracket[i];
@@ -4105,7 +4117,7 @@ public partial class aster : Exchange
             {
                 break;
             }
-            maintenanceMarginPercentageString = getValue(bracket, 1);
+            maintenanceMarginPercentageString = this.safeString(bracket, 1);
         }
         double? notional = this.parseNumber(notionalStringAbs);
         string? contractsAbs = Precise.stringAbs(this.safeString(position, "positionAmt"));
@@ -4333,9 +4345,9 @@ public partial class aster : Exchange
     public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object defaultMethod = null;
-        IList<object> defaultMethodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchPositions", "method");
-        defaultMethod = defaultMethodparametersVariable[0];
+        string? defaultMethod = null;
+        IList<object> defaultMethodparametersVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchPositions", "method");
+        defaultMethod = (string)defaultMethodparametersVariable[0];
         parameters = defaultMethodparametersVariable[1];
         if ((defaultMethod == null))
         {
@@ -4348,15 +4360,15 @@ public partial class aster : Exchange
                 defaultMethod = "positionRisk";
             }
         }
-        if (isEqual(defaultMethod, "positionRisk"))
+        if (defaultMethod == "positionRisk")
         {
             return await this.FetchPositionsRisk(symbols, parameters);
-        } else if (isEqual(defaultMethod, "account"))
+        } else if (defaultMethod == "account")
         {
             return await this.FetchAccountPositions(symbols, parameters);
         } else
         {
-            throw new NotSupported ((((this.id + ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \"") + (defaultMethod)) + "\" is invalid, please choose between \"account\" and \"positionRisk\"")) ;
+            throw new NotSupported ((((this.id + ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \"") + defaultMethod) + "\" is invalid, please choose between \"account\" and \"positionRisk\"")) ;
         }
     }
 
@@ -4368,7 +4380,7 @@ public partial class aster : Exchange
         Dictionary<string, object> balances = new Dictionary<string, object>() {};
         for (int i = 0; i < assets.Count; i++)
         {
-            object entry = assets[i];
+            IDictionary<string, object> entry = this.safeDict(assets, i);
             string? currencyId = this.safeString(entry, "asset");
             string? code = this.safeCurrencyCode(currencyId);
             string? crossWalletBalance = this.safeString(entry, "crossWalletBalance");
@@ -4451,7 +4463,7 @@ public partial class aster : Exchange
         double? contracts = this.parseNumber(contractsStringAbs);
         IDictionary<string, object> leverageBrackets = this.safeDict(this.options, "leverageBrackets", new Dictionary<string, object>() {});
         List<object> leverageBracket = this.safeList(leverageBrackets, symbol, new List<object>() {});
-        object maintenanceMarginPercentageString = null;
+        string? maintenanceMarginPercentageString = null;
         for (int i = 0; i < leverageBracket.Count; i++)
         {
             object bracket = leverageBracket[i];
@@ -4459,7 +4471,7 @@ public partial class aster : Exchange
             {
                 break;
             }
-            maintenanceMarginPercentageString = getValue(bracket, 1);
+            maintenanceMarginPercentageString = this.safeString(bracket, 1);
         }
         double? maintenanceMarginPercentage = this.parseNumber(maintenanceMarginPercentageString);
         string? unrealizedPnlString = this.safeString(position, "unrealizedProfit");
@@ -4667,14 +4679,14 @@ public partial class aster : Exchange
             IList<object> entries = this.toArray(response);
             for (int i = 0; i < (entries?.Count ?? 0); i++)
             {
-                object entry = entries[i];
+                IDictionary<string, object> entry = this.safeDict(entries, i);
                 string? marketId = this.safeString(entry, "symbol");
                 string? symbol = this.safeSymbol(marketId, null, null, "contract");
                 List<object> brackets = this.safeList(entry, "brackets", new List<object>() {});
                 List<object> result = new List<object>() {};
                 for (int j = 0; j < brackets.Count; j++)
                 {
-                    object bracket = brackets[j];
+                    IDictionary<string, object> bracket = this.safeDict(brackets, j);
                     string? floorValue = this.safeString(bracket, "notionalFloor");
                     string? maintenanceMarginPercentage = this.safeString(bracket, "maintMarginRatio");
                     result.Add(new List<object>() {floorValue, maintenanceMarginPercentage});

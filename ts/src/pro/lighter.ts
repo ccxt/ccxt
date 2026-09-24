@@ -516,7 +516,10 @@ export default class lighter extends lighterRest {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'size');
         const isMakerAsk = this.safeBool (trade, 'is_maker_ask');
-        const side = (isMakerAsk === true) ? 'buy' : 'sell';
+        let side: Str = 'sell';
+        if (isMakerAsk === true) {
+            side = 'buy';
+        }
         return this.safeTrade ({
             'info': trade,
             'id': tradeId,
@@ -703,7 +706,12 @@ export default class lighter extends lighterRest {
         }
         let fee: FeeString = undefined;
         if (takerOrMaker !== undefined) {
-            const feeRateRaw = (takerOrMaker === 'maker') ? this.safeString (trade, 'maker_fee') : this.safeString (trade, 'taker_fee');
+            let feeRateRaw: Str = undefined;
+            if (takerOrMaker === 'maker') {
+                feeRateRaw = this.safeString (trade, 'maker_fee');
+            } else {
+                feeRateRaw = this.safeString (trade, 'taker_fee');
+            }
             const feeRate = (feeRateRaw !== undefined) ? Precise.stringDiv (feeRateRaw, '1000000') : '0';
             const feeAmount = Precise.stringMul (costString, feeRate);
             fee = {
@@ -889,7 +897,10 @@ export default class lighter extends lighterRest {
         //
         const timestamp = this.safeInteger (liquidation, 'timestamp');
         const isMakerAsk = this.safeBool (liquidation, 'is_maker_ask');
-        const side = (isMakerAsk === true) ? 'buy' : 'sell';
+        let side: Str = 'sell';
+        if (isMakerAsk === true) {
+            side = 'buy';
+        }
         const contracts = this.safeString (liquidation, 'size');
         const contractSize = this.safeString (market, 'contractSize');
         const price = this.safeString (liquidation, 'price');
@@ -1089,7 +1100,7 @@ export default class lighter extends lighterRest {
             const assetIds = Object.keys (assets);
             for (let i = 0; i < assetIds.length; i++) {
                 const assetId = assetIds[i];
-                const asset = assets[assetId];
+                const asset = this.safeDict (assets, assetId);
                 const codeId = this.safeString (asset, 'symbol');
                 const code = this.safeCurrencyCode (codeId);
                 const account = this.account ();

@@ -296,7 +296,10 @@ class bitbns extends Exchange {
             $costLimits = $this->safe_dict($marketLimits, 'cost', array());
             $usdt = ($quoteId === 'USDT');
             // INR markets don't need a _INR prefix
-            $uppercaseId = $usdt ? ($baseId . '_' . $quoteId) : $baseId;
+            $uppercaseId = $baseId;
+            if ($usdt) {
+                $uppercaseId = ($baseId . '_' . $quoteId);
+            }
             $result[] = array(
                 'id' => $id,
                 'uppercaseId' => $uppercaseId,
@@ -557,7 +560,7 @@ class bitbns extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_status(mixed $status) {
+    public function parse_status(?string $status) {
         $statuses = array(
             '-1' => 'cancelled',
             '0' => 'open',
@@ -839,7 +842,10 @@ class bitbns extends Exchange {
         $market = $this->market($symbol);
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
         $params = $this->omit($params, array( 'trigger', 'stop' ));
-        $quoteSide = ($market['quoteId'] === 'USDT') ? 'usdtListOpen' : 'listOpen';
+        $quoteSide = 'listOpen';
+        if ($market['quoteId'] === 'USDT') {
+            $quoteSide = 'usdtListOpen';
+        }
         $request = array(
             'symbol' => $market['uppercaseId'],
             'page' => 0,
@@ -1127,7 +1133,7 @@ class bitbns extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
-    public function parse_transaction_status_by_type(mixed $status, ?string $type = null) {
+    public function parse_transaction_status_by_type(?string $status, ?string $type = null) {
         $statusesByType = array(
             'deposit' => array(
                 '0' => 'pending',

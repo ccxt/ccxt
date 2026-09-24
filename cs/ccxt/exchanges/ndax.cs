@@ -723,7 +723,11 @@ public partial class ndax : Exchange
         string? id = this.safeString(rawCurrency, "ProductId");
         string? code = this.safeCurrencyCode(this.safeString(rawCurrency, "Product"));
         string? ProductType = this.safeString(rawCurrency, "ProductType");
-        string type = (ProductType == "NationalCurrency") ? "fiat" : "crypto";
+        string type = "crypto";
+        if (ProductType == "NationalCurrency")
+        {
+            type = "fiat";
+        }
         if (ProductType == "Unknown")
         {
             // such currency is just a blanket entry
@@ -1514,7 +1518,7 @@ public partial class ndax : Exchange
         };
         for (int i = 0; i < getArrayLength(response); i++)
         {
-            object balance = getValue(response, i);
+            IDictionary<string, object> balance = this.safeDict(response, i);
             string? currencyId = this.safeString(balance, "ProductId");
             if (((currencyId != null)) && ((this.currencies_by_id != null)) && (((currencyId != null) && ((IDictionary<string, object>)this.currencies_by_id).ContainsKey(currencyId))))
             {
@@ -2589,10 +2593,10 @@ public partial class ndax : Exchange
         List<object> parts = lastString.Split(new [] {"?memo="}, StringSplitOptions.None).ToList<object>();
         string? address = this.safeString(parts, 0);
         string? tag = this.safeString(parts, 1);
-        object code = null;
+        string? code = null;
         if ((currency != null))
         {
-            code = (currency != null && currency.ContainsKey("code") ? currency["code"] : null);
+            code = this.safeString(currency, "code");
         }
         this.checkAddress(address);
         return new Dictionary<string, object>() {

@@ -966,7 +966,7 @@ public partial class htx : ccxt.htx
         {
             await this.loadMarkets();
         }
-        object type = null;
+        string? type = null;
         object marketId = "*"; // wildcard
         IDictionary<string, object> market = null;
         object messageHash = null;
@@ -977,7 +977,7 @@ public partial class htx : ccxt.htx
         {
             market = this.market(symbolVar);
             symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            type = (market.ContainsKey("type") ? market["type"] : null);
+            type = this.safeString(market, "type");
             subType = ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) ? "linear" : "inverse";
             marketId = (market.ContainsKey("lowercaseId") ? market["lowercaseId"] : null);
         } else
@@ -989,10 +989,10 @@ public partial class htx : ccxt.htx
             parameters = this.omit(parameters, new List<object>() {"type", "subType"});
         }
         bool linear = (subType == "linear");
-        bool swap = (isEqual(type, "swap"));
-        bool future = (isEqual(type, "future"));
+        bool swap = (type == "swap");
+        bool future = (type == "future");
         bool isV5Linear = (linear && (swap || future));
-        if (isEqual(type, "spot"))
+        if (type == "spot")
         {
             string? mode = null;
             if ((mode == null))
@@ -1046,14 +1046,22 @@ public partial class htx : ccxt.htx
         {
             marketCode = ((string)(market != null && market.ContainsKey("lowercaseId") ? market["lowercaseId"] : null)).ToLower();
         }
-        object baseId = ((market != null)) ? (market != null && market.ContainsKey("baseId") ? market["baseId"] : null) : null;
+        object baseId = null;
+        if ((market != null))
+        {
+            baseId = (market != null && market.ContainsKey("baseId") ? market["baseId"] : null);
+        }
         object prefix = orderType;
         messageHash = prefix;
         if (isEqual(subType, "linear"))
         {
             // USDT Margined Contracts Example: LTC/USDT:USDT
             string? marginMode = this.safeString(parameters, "margin", "cross");
-            object marginPrefix = (marginMode == "cross") ? add(prefix, "_cross") : prefix;
+            object marginPrefix = prefix;
+            if (marginMode == "cross")
+            {
+                marginPrefix = add(prefix, "_cross");
+            }
             messageHash = marginPrefix;
             if ((marketCode != null))
             {
@@ -1092,7 +1100,14 @@ public partial class htx : ccxt.htx
     public virtual List<object> getV5LinearChannelAndMessageHash(object topic, IDictionary<string, object> market = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object contractCode = ((market != null)) ? (market != null && market.ContainsKey("id") ? market["id"] : null) : this.safeString(parameters, "contract_code", "*");
+        object contractCode = null;
+        if ((market != null))
+        {
+            contractCode = (market != null && market.ContainsKey("id") ? market["id"] : null);
+        } else
+        {
+            contractCode = this.safeString(parameters, "contract_code", "*");
+        }
         object channel = topic;
         object messageHash = topic;
         if (((contractCode != null)) && (!isEqual(contractCode, "*")))
@@ -1127,7 +1142,7 @@ public partial class htx : ccxt.htx
         {
             await this.loadMarkets();
         }
-        object type = null;
+        string? type = null;
         string? subType = null;
         IDictionary<string, object> market = null;
         object suffix = "*"; // wildcard
@@ -1135,7 +1150,7 @@ public partial class htx : ccxt.htx
         {
             market = this.market(symbolVar);
             symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            type = (market.ContainsKey("type") ? market["type"] : null);
+            type = this.safeString(market, "type");
             suffix = (market.ContainsKey("lowercaseId") ? market["lowercaseId"] : null);
             subType = ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) ? "linear" : "inverse";
         } else
@@ -1147,12 +1162,12 @@ public partial class htx : ccxt.htx
             parameters = this.omit(parameters, new List<object>() {"type", "subType"});
         }
         bool linear = (subType == "linear");
-        bool swap = (isEqual(type, "swap"));
-        bool future = (isEqual(type, "future"));
+        bool swap = (type == "swap");
+        bool future = (type == "future");
         bool isV5Linear = (linear && (swap || future));
         string? messageHash = null;
         string? channel = null;
-        if (isEqual(type, "spot"))
+        if (type == "spot")
         {
             messageHash = (("orders" + "#") + (suffix));
             channel = messageHash;
@@ -1762,18 +1777,18 @@ public partial class htx : ccxt.htx
             market = this.getMarketFromSymbols(symbols);
             messageHash = ("::" + String.Join(",", ((IList<object>)symbols).ToArray()));
         }
-        object type = null;
+        string? type = null;
         object subType = null;
         if ((market != null))
         {
-            type = (market.ContainsKey("type") ? market["type"] : null);
+            type = this.safeString(market, "type");
             subType = ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) ? "linear" : "inverse";
         } else
         {
             IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchPositions", market, parameters);
-            type = typeparametersVariable[0];
+            type = (string)typeparametersVariable[0];
             parameters = typeparametersVariable[1];
-            if (isEqual(type, "spot"))
+            if (type == "spot")
             {
                 type = "future";
             }
@@ -1787,13 +1802,17 @@ public partial class htx : ccxt.htx
         marginMode = marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
         bool linear = (isEqual(subType, "linear"));
-        bool swap = (isEqual(type, "swap"));
-        bool future = (isEqual(type, "future"));
+        bool swap = (type == "swap");
+        bool future = (type == "future");
         bool isV5Linear = (linear && (swap || future));
         bool isLinear = (isEqual(subType, "linear"));
         object url = this.getUrlByMarketType(type, isLinear, true, false, isV5Linear);
         messageHash = add(add(marginMode, ":positions"), messageHash);
-        string? channel = (isEqual(marginMode, "cross")) ? "positions_cross.*" : "positions.*";
+        string? channel = "positions.*";
+        if (isEqual(marginMode, "cross"))
+        {
+            channel = "positions_cross.*";
+        }
         if (isV5Linear)
         {
             IDictionary<string, object> v5Market = null;
@@ -1900,7 +1919,11 @@ public partial class htx : ccxt.htx
         //
         string url = client.url;
         string? topic = this.safeString(message, "topic", "");
-        string defaultMarginMode = (topic == "positions_cross") ? "cross" : "isolated";
+        string defaultMarginMode = "isolated";
+        if (topic == "positions_cross")
+        {
+            defaultMarginMode = "cross";
+        }
         if ((this.positions == null))
         {
             this.positions = new Dictionary<string, object>() {};
@@ -2256,7 +2279,7 @@ public partial class htx : ccxt.htx
                 int detailsLength = details.Count;
                 for (int i = 0; i < detailsLength; i++)
                 {
-                    object detail = getValue(details, i);
+                    IDictionary<string, object> detail = this.safeDict(details, i);
                     string? currencyId = this.safeString(detail, "currency");
                     string? code = this.safeCurrencyCode(currencyId);
                     if ((code == null))
@@ -2346,7 +2369,7 @@ public partial class htx : ccxt.htx
                     // isolated margin
                     for (int i = 0; i < data.Count; i++)
                     {
-                        object isolatedBalance = data[i];
+                        IDictionary<string, object> isolatedBalance = this.safeDict(data, i);
                         Dictionary<string, object> account = this.account();
                         account["free"] = this.safeString(isolatedBalance, "margin_balance", "margin_available");
                         account["used"] = this.safeString(isolatedBalance, "margin_frozen");
@@ -2364,7 +2387,7 @@ public partial class htx : ccxt.htx
                 // inverse branch
                 for (int i = 0; i < data.Count; i++)
                 {
-                    object balance = data[i];
+                    IDictionary<string, object> balance = this.safeDict(data, i);
                     string? currencyId = this.safeString(balance, "symbol");
                     string? code = this.safeCurrencyCode(currencyId);
                     Dictionary<string, object> account = this.account();

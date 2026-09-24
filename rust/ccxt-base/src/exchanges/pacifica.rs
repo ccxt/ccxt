@@ -1515,7 +1515,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1023: bool = true;
             while { if !__for_first_1023 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1023 = false; i.as_f64().unwrap_or(f64::NAN) < ((spotBalances.len() as i64) as f64) } {
-            let mut balance: Value = spotBalances.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut balance: Value = self.safe_dict(spotBalances.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "symbol", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut account: Value = self.account();
@@ -1592,7 +1592,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // }
         let mut isIsolated: Value = self.safe_bool_k(setting.clone(), "isolated", &[Value::Bool(false)]);
         let mut leverage: Value = self.safe_integer_k(setting.clone(), "leverage", &[]);
-        let mut marginMode: Value = (if (isIsolated.as_bool() == Some(true)) { Value::Str("isolated".into()) } else { Value::Str("cross".into()) });
+        let mut marginMode: Value = Value::Str("cross".into());
+        if (isIsolated.as_bool() == Some(true)) {
+            marginMode = Value::Str("isolated".into());
+        }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), setting);
@@ -1764,7 +1767,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         // }
         let mut isIsolated: Value = self.safe_bool_k(setting.clone(), "isolated", &[Value::Bool(false)]);
-        let mut marginMode: Value = (if (isIsolated.as_bool() == Some(true)) { Value::Str("isolated".into()) } else { Value::Str("cross".into()) });
+        let mut marginMode: Value = Value::Str("cross".into());
+        if (isIsolated.as_bool() == Some(true)) {
+            marginMode = Value::Str("isolated".into());
+        }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
@@ -2548,7 +2554,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1025: bool = true;
             while { if !__for_first_1025 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1025 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
-            let mut order: Value = orders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut order: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
             let mut symbol: Value = self.safe_string_k(order.clone(), "symbol", &[]);
             let mut side: Value = self.safe_string_k(order.clone(), "side", &[]);
             let mut price: Value = self.safe_string_k(order.clone(), "price", &[]);
@@ -2888,7 +2894,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // }
         //
         let mut success: Value = self.safe_bool_k(response.clone(), "success", &[Value::Bool(false)]);
-        let mut status: Value = (if (success.as_bool() == Some(true)) { Value::Str("canceled".into()) } else { Value::Str("closed".into()) });
+        let mut status: Value = Value::Str("closed".into());
+        if (success.as_bool() == Some(true)) {
+            status = Value::Str("canceled".into());
+        }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
@@ -4574,7 +4583,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut agentAddress: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createSubAccount".into()), Value::Str("agentAddress".into()), &[]); agentAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("createSubAccount".into()), Value::Str("agentAddress".into()), &[]); agentAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut originAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_origin_and_single_address(Value::Str("createSubAccount".into()), params.clone()); originAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (originAddress == Value::Null) {
@@ -4584,9 +4593,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("agent_wallet".into(), agentAddress); }
         }
         let mut subAccountAddress: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createSubAccount".into()), Value::Str("subAccountAddress".into()), &[]); subAccountAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("createSubAccount".into()), Value::Str("subAccountAddress".into()), &[]); subAccountAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut subAccountPrivateKey: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createSubAccount".into()), Value::Str("subAccountPrivateKey".into()), &[]); subAccountPrivateKey = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("createSubAccount".into()), Value::Str("subAccountPrivateKey".into()), &[]); subAccountPrivateKey = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (subAccountAddress == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createSubAccount() requires a \"subAccountAddress\"!".into()))));
         }
@@ -4820,7 +4829,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
-        let mut urlKey: Value = (if is_true(&(isTestnet)) { Value::Str("test".into()) } else { Value::Str("api".into()) });
+        let mut urlKey: Value = Value::Str("api".into());
+        if is_true(&isTestnet) {
+            urlKey = Value::Str("test".into());
+        }
         let mut host: Value = self.implode_hostname(get_value(&get_value(&self.urls, &urlKey), &api));
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", host, Value::Str("/api/".into())).into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
         params = self.omit(params.clone(), self.extract_params(path), &[]);
@@ -4964,7 +4976,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut agentAddress: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("postActionRequest".into()), Value::Str("agentAddress".into()), &[]); agentAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("postActionRequest".into()), Value::Str("agentAddress".into()), &[]); agentAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut originAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_origin_and_single_address(Value::Str("postActionRequest".into()), params.clone()); originAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (originAddress == Value::Null) {

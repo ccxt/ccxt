@@ -461,11 +461,26 @@ impl KrakenCore {
         let mut isTrailingLimitAmountOrder: bool = trailingLimitAmount != Value::Null;
         let mut isTrailingLimitPercentOrder: bool = trailingLimitPercent != Value::Null;
         let mut offset: Value = self.safe_string_k(params.clone(), "offset", &[Value::Str("".into())]); // can set this to - for minus
-        let mut trailingAmountString: Value = (if (trailingAmount != Value::Null) { Value::Str(format!("{}{}", offset, self.number_to_string(trailingAmount)).into()) } else { Value::Null });
-        let mut trailingPercentString: Value = (if (trailingPercent != Value::Null) { Value::Str(format!("{}{}", offset, self.number_to_string(trailingPercent)).into()) } else { Value::Null });
-        let mut trailingLimitAmountString: Value = (if (trailingLimitAmount != Value::Null) { Value::Str(format!("{}{}", offset, self.number_to_string(trailingLimitAmount)).into()) } else { Value::Null });
-        let mut trailingLimitPercentString: Value = (if (trailingLimitPercent != Value::Null) { Value::Str(format!("{}{}", offset, self.number_to_string(trailingLimitPercent)).into()) } else { Value::Null });
-        let mut priceType: Value = (if (isTrailingPercentOrder || isTrailingLimitPercentOrder) { Value::Str("pct".into()) } else { Value::Str("quote".into()) });
+        let mut trailingAmountString: Value = Value::Null;
+        if (trailingAmount != Value::Null) {
+            trailingAmountString = Value::Str(format!("{}{}", offset, self.number_to_string(trailingAmount)).into());
+        }
+        let mut trailingPercentString: Value = Value::Null;
+        if (trailingPercent != Value::Null) {
+            trailingPercentString = Value::Str(format!("{}{}", offset, self.number_to_string(trailingPercent)).into());
+        }
+        let mut trailingLimitAmountString: Value = Value::Null;
+        if (trailingLimitAmount != Value::Null) {
+            trailingLimitAmountString = Value::Str(format!("{}{}", offset, self.number_to_string(trailingLimitAmount)).into());
+        }
+        let mut trailingLimitPercentString: Value = Value::Null;
+        if (trailingLimitPercent != Value::Null) {
+            trailingLimitPercentString = Value::Str(format!("{}{}", offset, self.number_to_string(trailingLimitPercent)).into());
+        }
+        let mut priceType: Value = Value::Str("quote".into());
+        if isTrailingPercentOrder || isTrailingLimitPercentOrder {
+            priceType = Value::Str("pct".into());
+        }
         if (method.as_str() == Some("createOrderWs")) {
             let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[]);
             if (reduceOnly.as_bool() == Some(true)) {
@@ -891,7 +906,7 @@ impl KrakenCore {
         //     }
         //
         let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut ticker: Value = data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut ticker: Value = self.safe_dict(data, Value::Int(0), &[]);
         let mut symbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
         let mut messageHash: Value = self.get_message_hash(Value::Str("ticker".into()), &[Value::Null, symbol.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut vwap: Value = self.safe_string_k(ticker.clone(), "vwap", &[]);
@@ -950,7 +965,7 @@ impl KrakenCore {
         //     }
         //
         let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut trade: Value = data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut trade: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
         let mut symbol: Value = self.safe_string_k(trade, "symbol", &[]);
         let mut messageHash: Value = self.get_message_hash(Value::Str("trade".into()), &[Value::Null, symbol.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
@@ -997,7 +1012,7 @@ impl KrakenCore {
         //     }
         //
         let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut first: Value = data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
         let mut marketId: Value = self.safe_string_k(first.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId, &[]);
         if !(in_op(&self.ohlcvs, &symbol)) {
@@ -1024,7 +1039,7 @@ impl KrakenCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_409: bool = true;
             while { if !__for_first_409 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_409 = false; i.as_f64().unwrap_or(f64::NAN) < ohlcvsLength } {
-            let mut candle: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut candle: Value = self.safe_dict(data.clone(), i.clone(), &[]);
             let mut datetime: Value = self.safe_string_k(candle.clone(), "interval_begin", &[]);
             let mut timestamp: Value = self.parse8601(datetime);
             let mut parsed: Value = Value::from(vec![timestamp, self.safe_number_k(candle.clone(), "open", &[]), self.safe_number_k(candle.clone(), "high", &[]), self.safe_number_k(candle.clone(), "low", &[]), self.safe_number_k(candle.clone(), "close", &[]), self.safe_number_k(candle, "volume", &[])]);
@@ -1535,7 +1550,7 @@ impl KrakenCore {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_414: bool = true;
             while { if !__for_first_414 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_414 = false; j.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
-            let mut delta: Value = deltas.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut delta: Value = self.safe_dict(deltas.clone(), j.clone(), &[]);
             let mut price: Value = self.safe_number_k(delta.clone(), "price", &[]);
             let mut amount: Value = self.safe_number_k(delta, "qty", &[]);
             bookside.store(price, amount);
@@ -1804,7 +1819,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut symbol: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
         if (market != Value::Null) {
-            symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            symbol = self.safe_string_k(market, "symbol", &[]);
         }
         let mut fee: Value = Value::Null;
         if (matches!(&trade, Value::Dict(__d) if __d.contains_key("fees"))) {
@@ -1822,7 +1837,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut datetime: Value = self.safe_string_k(trade.clone(), "timestamp", &[]);
         let mut liquidityIndicator: Option<String> = self.safe_string_k(trade.clone(), "liquidity_ind", &[]).as_str().map(str::to_owned);
-        let mut takerOrMaker: Value = (if (liquidityIndicator.as_deref() == Some("t")) { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
+        let mut takerOrMaker: Value = Value::Str("maker".into());
+        if (liquidityIndicator.as_deref() == Some("t")) {
+            takerOrMaker = Value::Str("taker".into());
+        }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());

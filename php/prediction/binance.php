@@ -492,7 +492,7 @@ class binance extends Exchange {
             //
             $responseLength = count($response);
             for ($i = 0; $i < $responseLength; $i++) {
-                $rawTopic = $response[$i];
+                $rawTopic = $this->safe_dict($response, $i);
                 $topicId = $this->safe_string($rawTopic, 'marketTopicId');
                 if ($topicId !== null) {
                     $already = $this->safe_string($seen, $topicId);
@@ -667,7 +667,7 @@ class binance extends Exchange {
         $resolvedOutcomeRaw = null;
         $rawOutcomesLength = count($rawOutcomes);
         for ($oi = 0; $oi < $rawOutcomesLength; $oi++) {
-            $rawOutcome = $rawOutcomes[$oi];
+            $rawOutcome = $this->safe_dict($rawOutcomes, $oi);
             $label = $this->safe_string_upper($rawOutcome, 'name');
             $tokenId = $this->safe_string($rawOutcome, 'tokenId');
             $outcomeHandle = $marketSymbol . ':' . $label;
@@ -970,7 +970,7 @@ class binance extends Exchange {
         );
         $balances = $this->safe_list($response, 'items', array());
         for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+            $balance = $this->safe_dict($balances, $i);
             $accountType = $this->safe_string($balance, 'accountType');
             if ($accountType === $type) {
                 $free = $this->safe_string($balance, 'availableBalanceDisplay');
@@ -1100,7 +1100,7 @@ class binance extends Exchange {
          * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
          */
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOpenOrders', 'paginate', false);
         $maxEntriesPerRequest = null;
         list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'maxEntriesPerRequest', 100);
         $pageKey = 'ccxtPageKey';
@@ -1187,7 +1187,7 @@ class binance extends Exchange {
          * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
          */
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchOrders', 'paginate', false);
         $maxEntriesPerRequest = null;
         list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'maxEntriesPerRequest', 100);
         $pageKey = 'ccxtPageKey';
@@ -1462,7 +1462,7 @@ class binance extends Exchange {
          * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
          */
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         $maxEntriesPerRequest = null;
         list($maxEntriesPerRequest, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'maxEntriesPerRequest', 100);
         $pageKey = 'ccxtPageKey';
@@ -1951,7 +1951,7 @@ class binance extends Exchange {
         if ($failedOrdersLength > 0) {
             $failedDetails = '';
             for ($i = 0; $i < $failedOrdersLength; $i++) {
-                $failedOrder = $failedOrders[$i];
+                $failedOrder = $this->safe_dict($failedOrders, $i);
                 $failedOrderId = $this->safe_string($failedOrder, 'orderId');
                 $failedReason = $this->safe_string($failedOrder, 'reason');
                 if ($i > 0) {

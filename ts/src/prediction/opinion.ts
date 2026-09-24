@@ -603,7 +603,12 @@ export default class opinion extends Exchange {
         const eventId = this.safeString (rawEvent, 'marketId');
         const slug = this.safeString (rawEvent, 'slug');
         const title = this.safeString (rawEvent, 'marketTitle');
-        const eventHandle = (title !== undefined) ? this.shortenSlug (title) : this.shortenSlug (slug);
+        let eventHandle: Str = undefined;
+        if (title !== undefined) {
+            eventHandle = this.shortenSlug (title);
+        } else {
+            eventHandle = this.shortenSlug (slug);
+        }
         const rawChildren = this.safeList (rawEvent, 'childMarkets', []);
         const rawChildrenLength = rawChildren.length;
         const marketsList: any[] = [];
@@ -841,7 +846,7 @@ export default class opinion extends Exchange {
         const candles = [];
         const historyLength = history.length;
         for (let i = 0; i < historyLength; i++) {
-            const point = history[i];
+            const point = this.safeDict (history, i);
             const price = this.safeNumber (point, 'p');
             const timestamp = this.safeTimestamp (point, 't');
             if ((price !== undefined) && (timestamp !== undefined)) {
@@ -1428,7 +1433,7 @@ export default class opinion extends Exchange {
         const balances = this.safeList (data, 'balances', []);
         const balancesLength = balances.length;
         for (let i = 0; i < balancesLength; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict (balances, i);
             const code = this.safeString (balance, 'symbol', 'USDT');
             result[code] = {
                 'free': this.safeNumber (balance, 'availableBalance'),
@@ -1736,7 +1741,7 @@ export default class opinion extends Exchange {
         const marketKeys = Object.keys (this.markets);
         const marketKeysLength = marketKeys.length;
         for (let i = 0; i < marketKeysLength; i++) {
-            const market = this.markets[marketKeys[i]];
+            const market = this.safeDict (this.markets, marketKeys[i]);
             const info = this.safeDict (market, 'info', {});
             if (this.safeInteger (info, 'marketId') === marketId) {
                 const outcomes = this.safeList (market, 'outcomes', []);
@@ -2029,9 +2034,15 @@ export default class opinion extends Exchange {
         // unlike the REST order body (0 buy / 1 sell), the websocket channel uses 1 buy / 2 sell
         // per the docs and confirmed live
         const sideInt = this.safeInteger (message, 'side');
-        const side = (sideInt === 1) ? 'buy' : 'sell';
+        let side: Str = 'sell';
+        if (sideInt === 1) {
+            side = 'buy';
+        }
         const tradingMethod = this.safeInteger (message, 'tradingMethod');
-        const type = (tradingMethod === 1) ? 'market' : 'limit';
+        let type: Str = 'limit';
+        if (tradingMethod === 1) {
+            type = 'market';
+        }
         const order = this.safePredictionOrder ({
             'id': this.safeString (message, 'orderId'),
             'clientOrderId': undefined,

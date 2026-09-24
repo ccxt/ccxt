@@ -2546,13 +2546,13 @@ public class Lighter extends LighterApi
             List<Object> accounts = (List<Object>) this.safeList(response, "accounts", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)accounts).size(); i++)
             {
-                Object account = (accounts == null || i < 0 || i >= accounts.size() ? null : accounts.get(i));
+                Map<String, Object> account = (Map<String, Object>) this.safeDict(accounts, i);
                 if (java.util.Objects.equals(type, "spot"))
                 {
                     List<Object> assets = (List<Object>) this.safeList(account, "assets", new ArrayList<Object>(Arrays.asList()));
                     for (var j = 0; j < ((List<?>)assets).size(); j++)
                     {
-                        Object asset = (assets == null || j < 0 || j >= assets.size() ? null : assets.get(j));
+                        Map<String, Object> asset = (Map<String, Object>) this.safeDict(assets, j);
                         String codeId = this.safeString(asset, "symbol");
                         String code = this.safeCurrencyCode(codeId);
                         Object balance = this.safeDict(result, code, this.account());
@@ -2716,7 +2716,7 @@ public class Lighter extends LighterApi
             List<Object> accounts = (List<Object>) this.safeList(response, "accounts", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)accounts).size(); i++)
             {
-                Object account = (accounts == null || i < 0 || i >= accounts.size() ? null : accounts.get(i));
+                Map<String, Object> account = (Map<String, Object>) this.safeDict(accounts, i);
                 List<Object> positions = (List<Object>) this.safeList(account, "positions", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < ((List<?>)positions).size(); j++)
                 {
@@ -3278,7 +3278,7 @@ public class Lighter extends LighterApi
             put( "lastTradeTimestamp", null );
             put( "lastUpdateTimestamp", Lighter.this.safeTimestamp(order, "updated_at") );
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
-            put( "type", Lighter.this.parseOrderType(finalType) );
+            put( "type", Lighter.this.parseOrderType((String) (finalType)) );
             put( "timeInForce", Lighter.this.parseOrderTimeInForce(finalTif) );
             put( "postOnly", java.util.Objects.equals(finalTif, "post-only") );
             put( "reduceOnly", finalReduceOnly );
@@ -3325,7 +3325,7 @@ public class Lighter extends LighterApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public String parseOrderType(Object type)
+    public String parseOrderType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "limit", "limit" );
@@ -3516,8 +3516,8 @@ public class Lighter extends LighterApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -3663,16 +3663,16 @@ public class Lighter extends LighterApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, parameters, "cursor", "cursor", null, 50)).join();
             }
-            Object address = null;
-            List<Object> addressparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchDeposits", "address", "l1_address");
-            address = ((List<Object>) addressparametersVariable).get(0);
+            String address = null;
+            List<Object> addressparametersVariable = (List<Object>) this.handleOptionStringAndParams2(parameters, "fetchDeposits", "address", "l1_address");
+            address = (String) ((List<Object>) addressparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) addressparametersVariable).get(1);
             if (java.util.Objects.equals(address, null))
             {
@@ -3683,7 +3683,7 @@ public class Lighter extends LighterApi
             accountIndex = (Long) ((List<Object>) accountIndexparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) accountIndexparametersVariable).get(1);
             final Long finalAccountIndex = accountIndex;
-            final Object finalAddress = address;
+            final String finalAddress = address;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "account_index", finalAccountIndex );
                 put( "l1_address", finalAddress );
@@ -3769,8 +3769,8 @@ public class Lighter extends LighterApi
             String code = code3;
             Map<String, Object> parameters = parameters3;
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -4041,8 +4041,8 @@ public class Lighter extends LighterApi
                 (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
@@ -4252,9 +4252,9 @@ public class Lighter extends LighterApi
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
             }
-            Object marginMode = null;
-            List<Object> marginModeparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "setLeverage", "marginMode", "margin_mode");
-            marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+            String marginMode = null;
+            List<Object> marginModeparametersVariable = (List<Object>) this.handleOptionStringAndParams2(parameters, "setLeverage", "marginMode", "margin_mode");
+            marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
             if (java.util.Objects.equals(marginMode, null))
             {

@@ -1371,8 +1371,8 @@ public class Whitebit extends WhitebitApi
         List<String> depositWithdrawCodes = new ArrayList<String>(depositWithdrawFees.keySet());
         for (var i = 0; i < ((List<?>)depositWithdrawCodes).size(); i++)
         {
-            Object code = (depositWithdrawCodes == null || i < 0 || i >= depositWithdrawCodes.size() ? null : depositWithdrawCodes.get(i));
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            String code = (depositWithdrawCodes == null || i < 0 || i >= depositWithdrawCodes.size() ? null : depositWithdrawCodes.get(i));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             ((Map<String, Object>)depositWithdrawFees).put((String)code, this.assignDefaultDepositWithdrawFees((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), currency));
         }
         return depositWithdrawFees;
@@ -2046,7 +2046,7 @@ public class Whitebit extends WhitebitApi
                     List<String> marketIds = new ArrayList<String>(response.keySet());
                     for (var i = 0; i < ((List<?>)marketIds).size(); i++)
                     {
-                        Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+                        String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                         Map<String, Object> marketNew = (Map<String, Object>) this.safeMarket(marketId, null, "_");
                         List<Object> marketOrders = (List<Object>) this.safeList(response, marketId, new ArrayList<Object>(Arrays.asList()));
                         for (var j = 0; j < ((List<?>)marketOrders).size(); j++)
@@ -4219,7 +4219,7 @@ public class Whitebit extends WhitebitApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "account", new HashMap<String, Object>() {{}});
-            return this.parseDepositAddress(data, currency);
+            return this.parseDepositAddress((Map<String, Object>) (data), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -4239,7 +4239,7 @@ public class Whitebit extends WhitebitApi
         return this.createDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseDepositAddress(Object depositAddress, Map<String, Object> currency)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         //
         //     {
@@ -4255,7 +4255,7 @@ public class Whitebit extends WhitebitApi
             put( "tag", Whitebit.this.safeString(depositAddress, "memo") );
         }};
     }
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Object... optionalArgs)
     {
         return this.parseDepositAddress(depositAddress, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -4872,7 +4872,7 @@ public class Whitebit extends WhitebitApi
             //         }
             //     ]
             //
-            Object interest = this.parseBorrowInterests(response, market);
+            List<Object> interest = this.parseBorrowInterests(response, market);
             return this.filterByCurrencySinceLimit(interest, code, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(BorrowInterest::new).collect(Collectors.toList()));
 
@@ -5243,7 +5243,7 @@ public class Whitebit extends WhitebitApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < Helpers.getArrayLength(contracts); i++)
         {
-            Object contract = Helpers.GetValue(contracts, i);
+            Map<String, Object> contract = (Map<String, Object>) this.safeDict(contracts, i);
             ((List<Object>)result).add(this.parseFundingHistory(contract, market));
         }
         List<Object> sorted = this.sortBy(result, "timestamp");
@@ -5972,8 +5972,8 @@ public class Whitebit extends WhitebitApi
             }
             Integer maxLimit = 100;
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-            paginate = Boolean.TRUE.equals(((List<Object>) paginateparametersVariable).get(0));
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {

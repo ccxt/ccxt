@@ -307,7 +307,7 @@ func (this *Mudrex) HandleErrors(code any, reason any, url any, method any, head
 	}
 	var success *bool = this.SafeBool(response, "success", true)
 	if success == nil || *success != true {
-		var errors []any = SafeListTypedDefault(response, "errors", []any{})
+		var errors []any = SafeListTyped(response, "errors")
 		var first map[string]any = SafeMapTyped(errors, 0)
 		var text *string = this.SafeString(first, "text", this.Json(response))
 		var errCode *string = this.SafeString(first, "code")
@@ -1850,7 +1850,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var rows []any = []any{}
 	for i := 0; i < len(transactions); i++ {
-		var rebate any = nil
+		var rebate *string = nil
 		for j := 0; j < len(rebateKeys); j++ {
 			if IsEqual(func() any {
 				if j >= 0 && j < len(rebateKeys) {
@@ -1863,18 +1863,13 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 				}
 				return nil
 			}()) {
-				rebate = func() any {
-					if j >= 0 && j < len(rebateAmounts) {
-						return DerefScalar(rebateAmounts[j])
-					}
-					return nil
-				}()
+				rebate = this.SafeString(rebateAmounts, j)
 				// blank the consumed key so the next equal fill matches the next rebate, never the same one twice
 				AddElementToObject(rebateKeys, j, nil)
 				break
 			}
 		}
-		if rebate == nil {
+		if IsEqual(rebate, nil) {
 			rows = append(rows, func() any {
 				if i >= 0 && i < len(transactions) {
 					return DerefScalar(transactions[i])

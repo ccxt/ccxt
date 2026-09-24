@@ -1042,7 +1042,7 @@ export default class modetrade extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchFundingRateHistory', symbol, since, limit, params, 'page', 25) as FundingRateHistory[];
         }
@@ -1145,7 +1145,7 @@ export default class modetrade extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchFundingHistory', symbol, since, limit, params, 'page', 500) as FundingHistory[];
         }
@@ -1564,9 +1564,18 @@ export default class modetrade extends Exchange {
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower (params, 'timeInForce');
         const postOnly = this.isPostOnly (isMarket, undefined, params);
-        const orderQtyKey = isConditional ? 'quantity' : 'order_quantity';
-        const priceKey = isConditional ? 'price' : 'order_price';
-        const typeKey = isConditional ? 'type' : 'order_type';
+        let orderQtyKey: Str = 'order_quantity';
+        if (isConditional) {
+            orderQtyKey = 'quantity';
+        }
+        let priceKey: Str = 'order_price';
+        if (isConditional) {
+            priceKey = 'price';
+        }
+        let typeKey: Str = 'order_type';
+        if (isConditional) {
+            typeKey = 'type';
+        }
         request[typeKey] = orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if (!isConditional) {
             if (postOnly) {
@@ -1604,7 +1613,10 @@ export default class modetrade extends Exchange {
                 'child_orders': [],
             };
             const childOrders = outterOrder['child_orders'];
-            const closeSide = (orderSide === 'BUY') ? 'SELL' : 'BUY';
+            let closeSide: Str = 'BUY';
+            if (orderSide === 'BUY') {
+                closeSide = 'SELL';
+            }
             if (hasStopLoss) {
                 const stopLossPrice = this.safeNumber2 (stopLoss, 'triggerPrice', 'price', stopLoss);
                 const stopLossOrder: Dict = {
@@ -1723,7 +1735,7 @@ export default class modetrade extends Exchange {
         }
         const ordersRequests: List = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const marketId = this.safeString (rawOrder, 'symbol');
             if (marketId === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrders() requires a symbol for each order');
@@ -1800,8 +1812,14 @@ export default class modetrade extends Exchange {
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
         }
         const isConditional = (triggerPrice !== undefined) || (this.safeValue (params, 'childOrders') !== undefined);
-        const orderQtyKey = isConditional ? 'quantity' : 'order_quantity';
-        const priceKey = isConditional ? 'price' : 'order_price';
+        let orderQtyKey: Str = 'order_quantity';
+        if (isConditional) {
+            orderQtyKey = 'quantity';
+        }
+        let priceKey: Str = 'order_price';
+        if (isConditional) {
+            priceKey = 'price';
+        }
         if (price !== undefined) {
             request[priceKey] = this.priceToPrecision (symbol, price);
         }
@@ -2126,7 +2144,7 @@ export default class modetrade extends Exchange {
         let paginate = false;
         const isTrigger = this.safeBool2 (params, 'stop', 'trigger', false);
         const maxLimit = (isTrigger === true) ? 100 : 500;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchOrders', symbol, since, limit, params, 'page', maxLimit) as Order[];
         }
@@ -2312,7 +2330,7 @@ export default class modetrade extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, params, 'page', 500) as Trade[];
         }
@@ -2369,7 +2387,7 @@ export default class modetrade extends Exchange {
         };
         const balances = this.safeList (response, 'holding', []);
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict (balances, i);
             const code = this.safeCurrencyCode (this.safeString (balance, 'token'));
             const account = this.account ();
             account['total'] = this.safeString (balance, 'holding');

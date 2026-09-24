@@ -6,7 +6,7 @@ import Exchange from './abstract/whitebit.js';
 import { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, InvalidOrder, ArgumentsRequired, AuthenticationError, OrderNotFound, PermissionDenied, InsufficientFunds, BadRequest, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ Account, Balances, Bool, BorrowInterest, Conversion, Currency, CurrencyInterface, Currencies, DepositAddress, Dict, int, Int, FundingHistory, FundingRate, FundingRateHistory, FundingRates, List, Market, MarketType, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, Fee, FeeString, DepositWithdrawFees, Status, Endpoint } from './base/types.js';
+import type{ Account, Balances, Bool, BorrowInterest, Conversion, Currency, CurrencyInterface, Currencies, DepositAddress, Dict, int, Int, FundingHistory, FundingRate, FundingRateHistory, FundingRates, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, Fee, FeeString, DepositWithdrawFees, Status, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -519,7 +519,7 @@ export default class whitebit extends Exchange {
         const active = this.safeBool (market, 'tradesEnabled');
         const isCollateral = this.safeBool (market, 'isCollateral');
         const typeId = this.safeString (market, 'type');
-        let type: MarketType;
+        let type: Str = undefined;
         let settle: Str = undefined;
         let settleId: Str = undefined;
         let symbol = base + '/' + quote;
@@ -3676,7 +3676,7 @@ export default class whitebit extends Exchange {
         return this.parseFundingHistories (data, market, since, limit);
     }
 
-    parseFundingHistory (contract: Dict, market: Market = undefined) {
+    parseFundingHistory (contract: NullableDict, market: Market = undefined) {
         //
         //     {
         //         "market": "BTC_PERP",
@@ -3704,7 +3704,7 @@ export default class whitebit extends Exchange {
     parseFundingHistories (contracts: any, market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingHistory[] {
         const result: List = [];
         for (let i = 0; i < contracts.length; i++) {
-            const contract = contracts[i];
+            const contract = this.safeDict (contracts, i);
             result.push (this.parseFundingHistory (contract, market));
         }
         const sorted = this.sortBy (result, 'timestamp');
@@ -4219,7 +4219,7 @@ export default class whitebit extends Exchange {
         }
         const maxLimit = 100;
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, maxLimit) as FundingRateHistory[];
         }

@@ -790,7 +790,7 @@ func (this *Bitbank) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var candlestick []any = SafeListTypedDefault(data, "candlestick", []any{})
+	var candlestick []any = SafeListTyped(data, "candlestick")
 	var first map[string]any = SafeMapTyped(candlestick, 0)
 	var ohlcv []any = SafeListTypedDefault(first, "ohlcv", []any{})
 
@@ -806,12 +806,7 @@ func (this *Bitbank) ParseBalance(response any) any {
 	var data map[string]any = SafeMapTyped(response, "data")
 	var assets []any = SafeListTyped(data, "assets")
 	for i := 0; i < len(assets); i++ {
-		var balance map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(assets) {
-				return DerefScalar(assets[i])
-			}
-			return nil
-		}())
+		var balance map[string]any = SafeMapTyped(assets, i)
 		var currencyId *string = this.SafeString(balance, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -1242,7 +1237,7 @@ func (this *Bitbank) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 	PanicOnError(response)
 	var data map[string]any = SafeMapTyped(response, "data")
 	// Not sure about this if there could be more than one account...
-	var accounts []any = SafeListTypedDefault(data, "accounts", []any{})
+	var accounts []any = SafeListTyped(data, "accounts")
 	var firstAccount map[string]any = SafeMapTyped(accounts, 0)
 	var address *string = this.SafeString(firstAccount, "address")
 
@@ -1438,7 +1433,7 @@ func (this *Bitbank) HandleErrors(httpCode any, reason any, url any, method any,
 		return nil
 	}
 	var success *int64 = this.SafeInteger(response, "success")
-	var data any = this.SafeValue(response, "data")
+	var data map[string]any = SafeMapTyped(response, "data")
 	if ((success == nil) || (success != nil && *success == 0)) || (IsEqual(data, nil)) {
 		var errorMessages map[string]any = map[string]any{
 			"10000": "URL does not exist",

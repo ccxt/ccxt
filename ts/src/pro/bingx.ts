@@ -264,7 +264,10 @@ export default class bingx extends bingxRest {
         const marketId = this.safeString (data, 's');
         // const marketId = messageHash.split('@')[0];
         const isSwap = client.url.indexOf ('swap') >= 0;
-        const marketType = isSwap ? 'swap' : 'spot';
+        let marketType: Str = 'spot';
+        if (isSwap) {
+            marketType = 'swap';
+        }
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         // the Coin-M stream is a distinct endpoint, so it identifies an inverse
@@ -528,7 +531,10 @@ export default class bingx extends bingxRest {
         const rawHash = this.safeString (message, 'dataType', '');
         const marketId = rawHash.split ('@')[0];
         const isSwap = client.url.indexOf ('swap') >= 0;
-        const marketType = isSwap ? 'swap' : 'spot';
+        let marketType: Str = 'spot';
+        if (isSwap) {
+            marketType = 'swap';
+        }
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         const messageHash = 'trade::' + symbol;
@@ -715,14 +721,17 @@ export default class bingx extends bingxRest {
         const isAllEndpoint = (firstPart === 'all');
         const marketId = this.safeString (data, 'symbol', firstPart);
         const isSwap = client.url.indexOf ('swap') >= 0;
-        const marketType = isSwap ? 'swap' : 'spot';
+        let marketType: Str = 'spot';
+        if (isSwap) {
+            marketType = 'swap';
+        }
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
             // const limit = [ 5, 10, 20, 50, 100 ]
             const subscriptionHash = dataType;
-            const subscription = client.subscriptions[subscriptionHash];
+            const subscription = this.safeDict (client.subscriptions, subscriptionHash);
             // see handleOHLCV — subscription.limit may be missing for non-orderbook callers;
             // default to a reasonable depth instead of throwing NPE in the Java port.
             const limit = this.safeInteger (subscription, 'limit', 100);
@@ -765,7 +774,10 @@ export default class bingx extends bingxRest {
         // for linear swap, (T) is the opening time
         const isSpot = (this.safeBool (market, 'spot') === true);
         const isInverse = (this.safeBool (market, 'inverse') === true);
-        let timestamp = isSpot ? 't' : 'T';
+        let timestamp: Str = 'T';
+        if (isSpot) {
+            timestamp = 't';
+        }
         if (this.safeBool (market, 'swap') === true) {
             timestamp = isInverse ? 't' : 'T';
         }
@@ -850,7 +862,10 @@ export default class bingx extends bingxRest {
         const firstPart = parts[0];
         const isAllEndpoint = (firstPart === 'all');
         const marketId = this.safeString (message, 's', firstPart);
-        const marketType = isSwap ? 'swap' : 'spot';
+        let marketType: Str = 'spot';
+        if (isSwap) {
+            marketType = 'swap';
+        }
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         let candles: NullableList = undefined;
         if (isSwap) {
@@ -871,7 +886,7 @@ export default class bingx extends bingxRest {
         const unifiedTimeframe = this.findTimeframe (rawTimeframe, timeframes);
         if (this.safeValue (this.ohlcvs[symbol], rawTimeframe) === undefined) {
             const subscriptionHash = dataType;
-            const subscription = client.subscriptions[subscriptionHash];
+            const subscription = this.safeDict (client.subscriptions, subscriptionHash);
             // subscription.limit is only set when watchOHLCV registers the subscription;
             // when handleMessage routes a non-OHLCV-originated subscription here (or the
             // subscription dict was reset on reconnect), fall back to the OHLCVLimit option.
@@ -1012,10 +1027,16 @@ export default class bingx extends bingxRest {
         const isSpot = (type === 'spot');
         const spotHash = 'spot:private';
         const swapHash = 'swap:private';
-        const subscriptionHash = isSpot ? spotHash : swapHash;
+        let subscriptionHash: Str = swapHash;
+        if (isSpot) {
+            subscriptionHash = spotHash;
+        }
         const spotMessageHash = 'spot:order';
         const swapMessageHash = 'swap:order';
-        let messageHash = isSpot ? spotMessageHash : swapMessageHash;
+        let messageHash: Str = swapMessageHash;
+        if (isSpot) {
+            messageHash = spotMessageHash;
+        }
         if (market !== undefined) {
             messageHash += ':' + symbol;
         }
@@ -1077,10 +1098,16 @@ export default class bingx extends bingxRest {
         const isSpot = (type === 'spot');
         const spotHash = 'spot:private';
         const swapHash = 'swap:private';
-        const subscriptionHash = isSpot ? spotHash : swapHash;
+        let subscriptionHash: Str = swapHash;
+        if (isSpot) {
+            subscriptionHash = spotHash;
+        }
         const spotMessageHash = 'spot:mytrades';
         const swapMessageHash = 'swap:mytrades';
-        let messageHash = isSpot ? spotMessageHash : swapMessageHash;
+        let messageHash: Str = swapMessageHash;
+        if (isSpot) {
+            messageHash = spotMessageHash;
+        }
         if (market !== undefined) {
             messageHash += ':' + symbol;
         }
@@ -1136,8 +1163,14 @@ export default class bingx extends bingxRest {
         const swapSubHash = 'swap:private';
         const spotMessageHash = 'spot:balance';
         const swapMessageHash = 'swap:balance';
-        const messageHash = isSpot ? spotMessageHash : swapMessageHash;
-        const subscriptionHash = isSpot ? spotSubHash : swapSubHash;
+        let messageHash: Str = swapMessageHash;
+        if (isSpot) {
+            messageHash = spotMessageHash;
+        }
+        let subscriptionHash: Str = swapSubHash;
+        if (isSpot) {
+            subscriptionHash = spotSubHash;
+        }
         let request: NullableDict = undefined;
         let baseUrl: Str = undefined;
         const uuid = this.uuid ();
@@ -1657,7 +1690,10 @@ export default class bingx extends bingxRest {
         const symbol = parsedOrder['symbol'];
         const spotHash = 'spot:order';
         const swapHash = 'swap:order';
-        const messageHash = (isSpot) ? spotHash : swapHash;
+        let messageHash: Str = swapHash;
+        if (isSpot) {
+            messageHash = spotHash;
+        }
         client.resolve (stored, messageHash);
         client.resolve (stored, messageHash + ':' + symbol);
     }
@@ -1727,14 +1763,20 @@ export default class bingx extends bingxRest {
             cachedTrades = new ArrayCacheBySymbolById (limit);
             this.myTrades = cachedTrades;
         }
-        const type = isSpot ? 'spot' : 'swap';
+        let type: Str = 'swap';
+        if (isSpot) {
+            type = 'spot';
+        }
         const marketId = this.safeString (result, 's');
         const market = this.safeMarket (marketId, undefined, '-', type);
         const parsed = this.parseTrade (result, market);
         const symbol = parsed['symbol'];
         const spotHash = 'spot:mytrades';
         const swapHash = 'swap:mytrades';
-        const messageHash = isSpot ? spotHash : swapHash;
+        let messageHash: Str = swapHash;
+        if (isSpot) {
+            messageHash = spotHash;
+        }
         cachedTrades.append (parsed);
         client.resolve (cachedTrades, messageHash);
         client.resolve (cachedTrades, messageHash + ':' + symbol);
@@ -1782,7 +1824,10 @@ export default class bingx extends bingxRest {
         const timestamp = this.safeInteger2 (message, 'T', 'E');
         const spotUrl = this.safeString (this.urls['api']['ws'], 'spot');
         const isSpot = (spotUrl !== undefined) && (client.url.indexOf (spotUrl) === 0);
-        const type = isSpot ? 'spot' : 'swap';
+        let type: Str = 'swap';
+        if (isSpot) {
+            type = 'spot';
+        }
         if (!(type in this.balance)) {
             this.balance[type] = {};
         }
@@ -1806,11 +1851,18 @@ export default class bingx extends bingxRest {
     }
 
     override handleMessage (client: Client, message: any) {
+        // plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them
+        if (typeof message === 'string') {
+            if (message === 'Ping') {
+                this.spawn (this.pong, client, message);
+            }
+            return;
+        }
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
         // public subscriptions
-        if ((message === 'Ping') || ('ping' in message)) {
+        if ('ping' in message) {
             this.spawn (this.pong, client, message);
             return;
         }

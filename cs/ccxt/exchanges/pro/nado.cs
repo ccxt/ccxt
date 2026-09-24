@@ -256,14 +256,14 @@ public partial class nado : ccxt.nado
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             string messageHash = ("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
             markets.Add(market);
             messageHashes.Add(messageHash);
             if (!(inOp(this.orderbooks, (market.ContainsKey("symbol") ? market["symbol"] : null))))
             {
-                Dictionary<string, object> snapshot = ccxt.BaseExchange.FromOrderBook(await this.FetchOrderBook(((string)symbol),ccxt.BaseExchange.ToInt64Arg(limit)));
+                Dictionary<string, object> snapshot = ccxt.BaseExchange.FromOrderBook(await this.FetchOrderBook(symbol,ccxt.BaseExchange.ToInt64Arg(limit)));
                 ((IDictionary<string,object>)this.orderbooks)[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = this.orderBook(snapshot, limit);
             }
         }
@@ -359,7 +359,7 @@ public partial class nado : ccxt.nado
         List<object> subscriptionParams = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbolsAndTimeframes); i++)
         {
-            object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
+            List<object> symbolAndTimeframe = this.safeList(symbolsAndTimeframes, i);
             string? marketSymbol = this.safeString(symbolAndTimeframe, 0);
             string? timeframe = this.safeString(symbolAndTimeframe, 1, "1m");
             Dictionary<string, object> market = this.market(marketSymbol);
@@ -423,7 +423,7 @@ public partial class nado : ccxt.nado
         List<object> subscriptionParams = new List<object>() {};
         for (int i = 0; i < (symbolsAndTimeframes?.Count ?? 0); i++)
         {
-            object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
+            List<object> symbolAndTimeframe = this.safeList(symbolsAndTimeframes, i);
             string? marketSymbol = this.safeString(symbolAndTimeframe, 0);
             string? timeframe = this.safeString(symbolAndTimeframe, 1, "1m");
             Dictionary<string, object> market = this.market(marketSymbol);
@@ -1260,7 +1260,7 @@ public partial class nado : ccxt.nado
             { "sender", sender },
             { "expiration", this.numberToString(expiration) },
         };
-        object contracts = await this.queryContracts();
+        IDictionary<string, object> contracts = await this.queryContracts();
         string? chainId = this.safeString(contracts, "chain_id");
         string? endpointAddress = this.safeString(contracts, "endpoint_addr");
         if ((endpointAddress == null))
@@ -2011,7 +2011,7 @@ public partial class nado : ccxt.nado
         for (int i = 0; i < subscriptions.Count; i++)
         {
             string? unsubscribeHash = ((string)subscriptions[i]);
-            object subscription = getValue(client.subscriptions, unsubscribeHash);
+            IDictionary<string, object> subscription = this.safeDict(client.subscriptions, unsubscribeHash);
             string? subscriptionId = this.safeString(subscription, "id");
             if ((subscriptionId != id))
             {

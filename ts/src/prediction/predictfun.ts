@@ -672,7 +672,7 @@ export default class predictfun extends Exchange {
             const categories = this.safeList (data, 'categories', []) as any[];
             const categoriesLength = categories.length;
             for (let ci = 0; ci < categoriesLength; ci++) {
-                const category = categories[ci];
+                const category = this.safeDict (categories, ci);
                 const categorySlug = this.safeString (category, 'slug');
                 if (categorySlug === undefined) {
                     // nothing to key a duplicate on, keep the row rather than drop it
@@ -1123,7 +1123,10 @@ export default class predictfun extends Exchange {
         const topicSlug = this.safeString (rawMarket, 'categorySlug');
         // the same handle parseEvent () derives for the enclosing event - stamping it here is what
         // lets every outcome-addressed structure (order, ticker, trade, position) report an event
-        const eventHandle = (topicSlug !== undefined) ? this.shortenSlug (topicSlug) : undefined;
+        let eventHandle: Str = undefined;
+        if (topicSlug !== undefined) {
+            eventHandle = this.shortenSlug (topicSlug);
+        }
         const title = this.safeString (rawMarket, 'title', marketId);
         const topicMarkets = this.safeList (rawTopic, 'markets', []);
         const marketCount = topicMarkets.length;
@@ -1189,7 +1192,10 @@ export default class predictfun extends Exchange {
         }
         const resolvedOutcome = resolvedOutcomeRaw;
         const collateral = 'USDT';
-        const marketType = (rawOutcomesLength > 2) ? 'categorical' : 'binary';
+        let marketType: Str = 'binary';
+        if (rawOutcomesLength > 2) {
+            marketType = 'categorical';
+        }
         const createdDatetime = this.safeString (rawMarket, 'createdAt');
         return {
             'id': marketId,
@@ -1290,14 +1296,14 @@ export default class predictfun extends Exchange {
             const noBids = [];
             const noAsks = [];
             for (let i = 0; i < bids.length; i++) {
-                const bid = bids[i];
+                const bid = this.safeList (bids, i);
                 const bidPrice = this.safeString (bid, 0);
                 const bidSize = this.parseNumber (this.safeString (bid, 1));
                 const complementPrice = this.parseNumber (Precise.stringSub ('1', bidPrice));
                 noAsks.push ([ complementPrice, bidSize ]);
             }
             for (let i = 0; i < asks.length; i++) {
-                const ask = asks[i];
+                const ask = this.safeList (asks, i);
                 const askPrice = this.safeString (ask, 0);
                 const askSize = this.parseNumber (this.safeString (ask, 1));
                 const complementPrice = this.parseNumber (Precise.stringSub ('1', askPrice));
@@ -1588,7 +1594,7 @@ export default class predictfun extends Exchange {
         const flattenTrades: any[] = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            const entry = data[i];
+            const entry = this.safeDict (data, i);
             const taker = this.safeDict (entry, 'taker', {});
             const takerOutcome = this.safeDict (taker, 'outcome', {});
             const takerIndexSet = this.safeInteger (takerOutcome, 'indexSet');
@@ -1903,7 +1909,10 @@ export default class predictfun extends Exchange {
         if (tokenId === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() could not resolve the on chain token id of ' + outcome);
         }
-        const strategy = (type === 'market') ? 'MARKET' : 'LIMIT';
+        let strategy: Str = 'LIMIT';
+        if (type === 'market') {
+            strategy = 'MARKET';
+        }
         const isMarket = (strategy === 'MARKET');
         if ((!isMarket) && (price === undefined)) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a "price" argument for a limit order');
@@ -1922,7 +1931,7 @@ export default class predictfun extends Exchange {
         // reconfiguring the exchange - and so the key is taken out of params instead of riding
         // along into the request body
         let warnOnMarketOrderWithoutPrice: Bool = true;
-        [ warnOnMarketOrderWithoutPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'warnOnMarketOrderWithoutPrice', true);
+        [ warnOnMarketOrderWithoutPrice, params ] = this.handleOptionBoolAndParams (params, 'createOrder', 'warnOnMarketOrderWithoutPrice', true);
         if (price === undefined) {
             // a priceless limit order already threw above, so this is a market order
             if (warnOnMarketOrderWithoutPrice) {
@@ -3436,7 +3445,7 @@ export default class predictfun extends Exchange {
         const noAsks: any[] = [];
         const bidsLength = rawBids.length;
         for (let i = 0; i < bidsLength; i++) {
-            const bid = rawBids[i];
+            const bid = this.safeList (rawBids, i);
             const bidPrice = this.safeString (bid, 0);
             const bidSize = this.parseNumber (this.safeString (bid, 1));
             yesBids.push ([ this.parseNumber (bidPrice), bidSize ]);
@@ -3445,7 +3454,7 @@ export default class predictfun extends Exchange {
         }
         const asksLength = rawAsks.length;
         for (let i = 0; i < asksLength; i++) {
-            const ask = rawAsks[i];
+            const ask = this.safeList (rawAsks, i);
             const askPrice = this.safeString (ask, 0);
             const askSize = this.parseNumber (this.safeString (ask, 1));
             yesAsks.push ([ this.parseNumber (askPrice), askSize ]);
@@ -3454,7 +3463,7 @@ export default class predictfun extends Exchange {
         const outcomes = this.outcomesByMarketId (marketId);
         const outcomesLength = outcomes.length;
         for (let i = 0; i < outcomesLength; i++) {
-            const outcomeObj = outcomes[i];
+            const outcomeObj = this.safeDict (outcomes, i);
             const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
             const isYesOutcome = this.safeInteger (outcomeInfo, 'indexSet') === 1;
             const outcomeHandle = this.safeString (outcomeObj, 'outcome');
@@ -3620,7 +3629,10 @@ export default class predictfun extends Exchange {
         // undefined rather than guessed - a handle that does not match the one the rest of the api
         // reports is worse than none at all
         const topicSlug = this.safeString (details, 'categorySlug');
-        const eventHandle = (topicSlug !== undefined) ? this.shortenSlug (topicSlug) : undefined;
+        let eventHandle: Str = undefined;
+        if (topicSlug !== undefined) {
+            eventHandle = this.shortenSlug (topicSlug);
+        }
         const label = this.stripPriceFormatting (this.safeStringUpper (details, 'outcomeName'));
         return {
             'outcome': undefined,

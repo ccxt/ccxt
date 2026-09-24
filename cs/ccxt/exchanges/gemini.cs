@@ -699,7 +699,11 @@ public partial class gemini : Exchange
         string? code = this.safeCurrencyCode(id);
         string? fiatFlag = this.safeString(rawCurrency, 7);
         bool isFiat = ((fiatFlag != null)) && (fiatFlag != "");
-        string type = isFiat ? "fiat" : "crypto";
+        string type = "crypto";
+        if (isFiat)
+        {
+            type = "fiat";
+        }
         double? precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 5)));
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         string? networkId = this.safeString(rawCurrency, 9);
@@ -1113,7 +1117,11 @@ public partial class gemini : Exchange
             linear = true; // always linear
             inverse = false;
         }
-        string type = swap ? "swap" : "spot";
+        string type = "spot";
+        if (swap)
+        {
+            type = "swap";
+        }
         bool isSpot = !swap;
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
@@ -1542,7 +1550,7 @@ public partial class gemini : Exchange
         };
         for (int i = 0; i < getArrayLength(response); i++)
         {
-            object balance = getValue(response, i);
+            IDictionary<string, object> balance = this.safeDict(response, i);
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -1757,16 +1765,16 @@ public partial class gemini : Exchange
         }
         string? price = this.safeString(order, "price");
         string? average = this.safeString(order, "avg_execution_price");
-        object type = this.safeString(order, "type");
-        if (isEqual(type, "exchange limit"))
+        string? type = this.safeString(order, "type");
+        if (type == "exchange limit")
         {
             type = "limit";
-        } else if (isEqual(type, "market buy") || isEqual(type, "market sell"))
+        } else if (type == "market buy" || type == "market sell")
         {
             type = "market";
         } else
         {
-            type = getValue(order, "type");
+            type = this.safeString(order, "type");
         }
         object fee = null;
         string? marketId = this.safeString(order, "symbol");

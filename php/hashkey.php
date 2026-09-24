@@ -1081,7 +1081,12 @@ class hashkey extends Exchange {
             }
         }
         $tradingFees = $this->safe_dict($this->fees, 'trading');
-        $fees = $isSpot ? $this->safe_dict($tradingFees, 'spot') : $this->safe_dict($tradingFees, 'swap');
+        $fees = null;
+        if ($isSpot) {
+            $fees = $this->safe_dict($tradingFees, 'spot');
+        } else {
+            $fees = $this->safe_dict($tradingFees, 'swap');
+        }
         return $this->safe_market_structure(array(
             'id' => $marketId,
             'symbol' => $symbol,
@@ -1213,7 +1218,10 @@ class hashkey extends Exchange {
             }
         }
         $rawType = $this->safe_string($rawCurrency, 'tokenType');
-        $type = ($rawType === 'REAL_MONEY') ? 'fiat' : 'crypto';
+        $type = 'crypto';
+        if ($rawType === 'REAL_MONEY') {
+            $type = 'fiat';
+        }
         return $this->safe_currency_structure(array(
             'id' => $currencyId,
             'code' => $code,
@@ -1562,7 +1570,7 @@ class hashkey extends Exchange {
             $this->load_markets();
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, $methodName, 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, $methodName, 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 1000);
         }
@@ -1762,7 +1770,7 @@ class hashkey extends Exchange {
         return $this->parse_last_prices($response, $symbols);
     }
 
-    public function parse_last_price(mixed $entry, ?array $market = null): array {
+    public function parse_last_price(array $entry, ?array $market = null): array {
         $marketId = $this->safe_string($entry, 's');
         $market = $this->safe_market($marketId, $market);
         return array(
@@ -1857,7 +1865,7 @@ class hashkey extends Exchange {
         );
         $balances = $this->safe_list($balance, 'balances', array());
         for ($i = 0; $i < count($balances); $i++) {
-            $balanceEntry = $balances[$i];
+            $balanceEntry = $this->safe_dict($balances, $i);
             $currencyId = $this->safe_string($balanceEntry, 'asset');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -1940,7 +1948,7 @@ class hashkey extends Exchange {
         return $depositAddress;
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "canDeposit": true,
@@ -2404,12 +2412,12 @@ class hashkey extends Exchange {
         }
         $request['endTime'] = $until;
         $flowType = null;
-        list($flowType, $params) = $this->handle_option_and_params($params, $methodName, 'flowType');
+        list($flowType, $params) = $this->handle_option_string_and_params($params, $methodName, 'flowType');
         if ($flowType !== null) {
             $request['flowType'] = $this->encode_flow_type($flowType);
         }
         $accountType = null;
-        list($accountType, $params) = $this->handle_option_and_params($params, $methodName, 'accountType');
+        list($accountType, $params) = $this->handle_option_string_and_params($params, $methodName, 'accountType');
         if ($accountType !== null) {
             $request['accountType'] = $this->encode_account_type($accountType);
         }
@@ -2875,7 +2883,7 @@ class hashkey extends Exchange {
         }
         $ordersRequests = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $symbol = $this->safe_string($rawOrder, 'symbol');
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
@@ -2889,7 +2897,7 @@ class hashkey extends Exchange {
             }
             $ordersRequests[] = $orderRequest;
         }
-        $firstOrder = $ordersRequests[0];
+        $firstOrder = $this->safe_dict($ordersRequests, 0);
         $firstSymbol = $this->safe_string($firstOrder, 'symbol');
         $market = $this->market($firstSymbol);
         $request = array(

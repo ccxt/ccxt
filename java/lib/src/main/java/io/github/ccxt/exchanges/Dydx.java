@@ -1120,12 +1120,12 @@ public class Dydx extends DydxApi
 
     public Object handlePublicAddress(String methodName, Map<String, Object> parameters)
     {
-        Object userAux = null;
-        List<Object> userAuxparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "user");
-        userAux = ((List<Object>) userAuxparametersVariable).get(0);
+        String userAux = null;
+        List<Object> userAuxparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, (String) (methodName), "user");
+        userAux = (String) ((List<Object>) userAuxparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) userAuxparametersVariable).get(1);
         Object user = userAux;
-        List<Object> userparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, (String) (methodName), "address", (String) (userAux));
+        List<Object> userparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, (String) (methodName), "address", userAux);
         user = ((List<Object>) userparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) userparametersVariable).get(1);
         if ((!java.util.Objects.equals(user, null)) && (!java.util.Objects.equals(user, "")))
@@ -1917,7 +1917,7 @@ public class Dydx extends DydxApi
         final Object finalTimeInForceNumber = timeInForceNumber;
         final Integer finalClientMetadata = clientMetadata;
         final Integer finalConditionalType = conditionalType;
-        final Object finalConditionalOrderTriggerSubticks = conditionalOrderTriggerSubticks;
+        final String finalConditionalOrderTriggerSubticks = conditionalOrderTriggerSubticks;
         Map<String, Object> orderPayload = new HashMap<String, Object>() {{
             put( "order", new HashMap<String, Object>() {{
                 put( "orderId", new HashMap<String, Object>() {{
@@ -2458,7 +2458,7 @@ public class Dydx extends DydxApi
         Map<String, Object> sender = (Map<String, Object>) this.safeDict(item, "sender");
         Map<String, Object> recipient = (Map<String, Object>) this.safeDict(item, "recipient");
         final String finalDirection = direction;
-        final Object finalType = type;
+        final String finalType = type;
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "info", item );
             put( "id", Dydx.this.safeString(item, "id") );
@@ -2576,16 +2576,16 @@ public class Dydx extends DydxApi
             String defaultFeeDenom = this.safeString(this.options, "defaultFeeDenom");
             String defaultFeeMultiplier = this.safeString(this.options, "defaultFeeMultiplier");
             Map<String, Object> feeDenom = (Map<String, Object>) this.safeDict(this.options, "feeDenom", new HashMap<String, Object>() {{}});
-            Object gasPrice = null;
-            Object denom = null;
+            String gasPrice = null;
+            String denom = null;
             if (java.util.Objects.equals(defaultFeeDenom, "uusdc"))
             {
-                gasPrice = ((Map<String, Object>)feeDenom).get("USDC_GAS_PRICE");
-                denom = ((Map<String, Object>)feeDenom).get("USDC_DENOM");
+                gasPrice = this.safeString(feeDenom, "USDC_GAS_PRICE");
+                denom = this.safeString(feeDenom, "USDC_DENOM");
             } else
             {
-                gasPrice = ((Map<String, Object>)feeDenom).get("CHAINTOKEN_GAS_PRICE");
-                denom = ((Map<String, Object>)feeDenom).get("CHAINTOKEN_DENOM");
+                gasPrice = this.safeString(feeDenom, "CHAINTOKEN_GAS_PRICE");
+                denom = this.safeString(feeDenom, "CHAINTOKEN_DENOM");
             }
             Double gasLimit = Math.ceil(Double.parseDouble(Helpers.toString(this.parseToNumeric(Precise.stringMul(gasUsed, defaultFeeMultiplier)))));
             String feeAmount = Precise.stringMul(this.numberToString(gasLimit), gasPrice);
@@ -2598,7 +2598,7 @@ public class Dydx extends DydxApi
                 feeAmount = this.numberToString(Math.ceil(Double.parseDouble(Helpers.toString(this.parseToNumeric(feeAmount)))));
             }
             final String finalFeeAmount = feeAmount;
-            final Object finalDenom = denom;
+            final String finalDenom = denom;
             Map<String, Object> feeObj = new HashMap<String, Object>() {{
                 put( "amount", finalFeeAmount );
                 put( "denom", finalDenom );
@@ -3033,7 +3033,7 @@ public class Dydx extends DydxApi
             Object response = (this.fetchTransactionsHelper(code, since, limit, this.extend(parameters, new HashMap<String, Object>() {{
                 put( "methodName", "fetchWithdrawals" );
             }}))).join();
-            Object rows = this.filterBy(response, "type", "WITHDRAWAL");
+            List<Object> rows = this.filterBy(response, "type", "WITHDRAWAL");
             return this.parseTransactions(rows, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -3086,7 +3086,7 @@ public class Dydx extends DydxApi
             Object response = (this.fetchTransactionsHelper(code, since, limit, this.extend(parameters, new HashMap<String, Object>() {{
                 put( "methodName", "fetchDeposits" );
             }}))).join();
-            Object rows = this.filterBy(response, "type", "DEPOSIT");
+            List<Object> rows = this.filterBy(response, "type", "DEPOSIT");
             return this.parseTransactions(rows, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 

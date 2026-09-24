@@ -567,7 +567,10 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
                 'sell' => 'buy',
             ), $currentSide, $currentSide);
         }
-        $idKey = $isMaker ? 'maker_order_id' : 'taker_order_id';
+        $idKey = 'taker_order_id';
+        if ($isMaker) {
+            $idKey = 'maker_order_id';
+        }
         $parsed['order'] = $this->safe_string($trade, $idKey);
         $market = $this->market($parsed['symbol']);
         $feeCurrency = $market['quote'];
@@ -717,7 +720,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
                         $totalAmount = '0';
                         $trades = $previousOrder['trades'];
                         for ($i = 0; $i < count($trades); $i++) {
-                            $tradeEntry = $trades[$i];
+                            $tradeEntry = $this->safe_dict($trades, $i);
                             $totalCost = $this->safe_string($tradeEntry, 'cost', '0');
                             $totalAmount = $this->safe_string($tradeEntry, 'amount', '0');
                         }
@@ -973,7 +976,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
                 'buy' => 'bids',
             );
             for ($i = 0; $i < count($changes); $i++) {
-                $change = $changes[$i];
+                $change = $this->safe_list($changes, $i);
                 $key = $this->safe_string($change, 0);
                 $side = $this->safe_string($sides, $key);
                 $price = $this->safe_number($change, 1);

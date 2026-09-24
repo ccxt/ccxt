@@ -392,7 +392,7 @@ func (this *Binance) completeRawTopicsBody(ch chan any, rawTopics any) any {
 	var rawTopicsLength int = ccxt.GetArrayLength(rawTopics)
 	for i := 0; i < rawTopicsLength; i++ {
 		var rawTopic any = ccxt.GetValue(rawTopics, i)
-		var rawMarkets []any = ccxt.SafeListTypedDefault(rawTopic, "markets", []any{})
+		var rawMarkets []any = ccxt.SafeListTyped(rawTopic, "markets")
 		var rawMarketsLength int = len(rawMarkets)
 		var hasOutcomes bool = false
 		if rawMarketsLength > 0 {
@@ -608,7 +608,7 @@ func (this *Binance) fetchEventsByQueryBody(ch chan any, queries any, limit any,
 		//
 		var responseLength int = ccxt.GetArrayLength(response)
 		for i := 0; i < responseLength; i++ {
-			var rawTopic any = ccxt.GetValue(response, i)
+			var rawTopic any = this.SafeDict(response, i)
 			var topicId *string = this.SafeString(rawTopic, "marketTopicId")
 			if topicId != nil {
 				var already *string = this.SafeString(seen, topicId)
@@ -810,12 +810,7 @@ func (this *Binance) ParseTopicMarket(rawMarket any, rawTopic any) any {
 	var resolvedOutcomeRaw any = nil
 	var rawOutcomesLength int = len(rawOutcomes)
 	for oi := 0; oi < rawOutcomesLength; oi++ {
-		var rawOutcome map[string]any = ccxt.MapTyped(func() any {
-			if oi >= 0 && oi < len(rawOutcomes) {
-				return ccxt.DerefScalar(rawOutcomes[oi])
-			}
-			return nil
-		}())
+		var rawOutcome map[string]any = ccxt.SafeMapTyped(rawOutcomes, oi)
 		var label *string = this.SafeStringUpper(rawOutcome, "name")
 		var tokenId *string = this.SafeString(rawOutcome, "tokenId")
 		var outcomeHandle any = ccxt.Add(ccxt.Add(marketSymbol, ":"), label)
@@ -1180,12 +1175,7 @@ func (this *Binance) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var balances []any = ccxt.SafeListTyped(response, "items")
 	for i := 0; i < len(balances); i++ {
-		var balance map[string]any = ccxt.MapTyped(func() any {
-			if i >= 0 && i < len(balances) {
-				return ccxt.DerefScalar(balances[i])
-			}
-			return nil
-		}())
+		var balance map[string]any = ccxt.SafeMapTyped(balances, i)
 		var accountType *string = this.SafeString(balance, "accountType")
 		if ccxt.IsEqual(accountType, typeVar) {
 			var free *string = this.SafeString(balance, "availableBalanceDisplay")
@@ -1328,7 +1318,7 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOpenOrders", "paginate", false)
 	paginate = ccxt.GetValueBool(paginateparamsVariable, 0, false)
 	params = ccxt.MapTyped(ccxt.GetValue(paginateparamsVariable, 1))
 	var maxEntriesPerRequest any = nil
@@ -1439,7 +1429,7 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOrders", "paginate", false)
 	paginate = ccxt.GetValueBool(paginateparamsVariable, 0, false)
 	params = ccxt.MapTyped(ccxt.GetValue(paginateparamsVariable, 1))
 	var maxEntriesPerRequest any = nil
@@ -1774,7 +1764,7 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
 	paginate = ccxt.GetValueBool(paginateparamsVariable, 0, false)
 	params = ccxt.MapTyped(ccxt.GetValue(paginateparamsVariable, 1))
 	var maxEntriesPerRequest any = nil
@@ -1990,7 +1980,7 @@ func (this *Binance) fetchWalletBody(ch chan any, methodName any, optionalArgs .
 	//     ]
 	// }
 	//
-	var wallets any = this.SafeList(response, "wallets", []any{})
+	var wallets []any = ccxt.SafeListTyped(response, "wallets")
 	if walletAddress == nil {
 		cachedWallet = this.SafeDict(wallets, 0)
 		this.Options.Store("wallet", cachedWallet)
@@ -1998,11 +1988,21 @@ func (this *Binance) fetchWalletBody(ch chan any, methodName any, optionalArgs .
 		ch <- cachedWallet
 		return nil
 	}
-	var walletLength int = ccxt.GetArrayLength(wallets)
+	var walletLength int = len(wallets)
 	for i := 0; i < walletLength; i++ {
-		var w *string = this.SafeString(ccxt.GetValue(wallets, i), "walletAddress", "")
+		var w *string = this.SafeString(func() any {
+			if i >= 0 && i < len(wallets) {
+				return ccxt.DerefScalar(wallets[i])
+			}
+			return nil
+		}(), "walletAddress", "")
 		if ccxt.IsEqual(w, walletAddress) {
-			cachedWallet = ccxt.GetValue(wallets, i)
+			cachedWallet = func() any {
+				if i >= 0 && i < len(wallets) {
+					return ccxt.DerefScalar(wallets[i])
+				}
+				return nil
+			}()
 			break
 		}
 	}
@@ -2346,12 +2346,7 @@ func (this *Binance) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 	if failedOrdersLength > 0 {
 		var failedDetails any = ""
 		for i := 0; i < failedOrdersLength; i++ {
-			var failedOrder map[string]any = ccxt.MapTyped(func() any {
-				if i >= 0 && i < len(failedOrders) {
-					return ccxt.DerefScalar(failedOrders[i])
-				}
-				return nil
-			}())
+			var failedOrder map[string]any = ccxt.SafeMapTyped(failedOrders, i)
 			var failedOrderId *string = this.SafeString(failedOrder, "orderId")
 			var failedReason *string = this.SafeString(failedOrder, "reason")
 			if i > 0 {

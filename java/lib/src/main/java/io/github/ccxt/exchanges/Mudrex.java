@@ -2079,7 +2079,7 @@ public class Mudrex extends MudrexApi
             }
             // a REBATE row is a partial refund of one fill's TRANSACTION fee, matched by symbol, time and notional - each rebate is consumed once, so equal fills sharing a key net exactly one refund apiece
             List<Object> rebateKeys = new ArrayList<Object>(Arrays.asList());
-            List<Object> rebateAmounts = new ArrayList<Object>(Arrays.asList());
+            List<String> rebateAmounts = new ArrayList<String>(Arrays.asList());
             List<Object> transactions = new ArrayList<Object>(Arrays.asList());
             List<Object> transactionKeys = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)allRows).size(); i++)
@@ -2094,18 +2094,18 @@ public class Mudrex extends MudrexApi
                 } else if (java.util.Objects.equals(feeType, "REBATE"))
                 {
                     ((List<Object>)rebateKeys).add(pairKey);
-                    ((List<Object>)rebateAmounts).add(this.safeString(entry, "fee_amount", "0"));
+                    rebateAmounts.add(this.safeString(entry, "fee_amount", "0"));
                 }
             }
             List<Object> rows = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)transactions).size(); i++)
             {
-                Object rebate = null;
+                String rebate = null;
                 for (var j = 0; j < ((List<?>)rebateKeys).size(); j++)
                 {
                     if (java.util.Objects.equals((rebateKeys == null || j < 0 || j >= rebateKeys.size() ? null : rebateKeys.get(j)), (transactionKeys == null || i < 0 || i >= transactionKeys.size() ? null : transactionKeys.get(i))))
                     {
-                        rebate = (rebateAmounts == null || j < 0 || j >= rebateAmounts.size() ? null : rebateAmounts.get(j));
+                        rebate = this.safeString(rebateAmounts, j);
                         // blank the consumed key so the next equal fill matches the next rebate, never the same one twice
                         Helpers.addElementToObject(rebateKeys, j, null);
                         break;
@@ -2116,7 +2116,7 @@ public class Mudrex extends MudrexApi
                     ((List<Object>)rows).add((transactions == null || i < 0 || i >= transactions.size() ? null : transactions.get(i)));
                 } else
                 {
-    final Object finalRebate = rebate;
+    final String finalRebate = rebate;
                                     ((List<Object>)rows).add(this.extend((transactions == null || i < 0 || i >= transactions.size() ? null : transactions.get(i)), new HashMap<String, Object>() {{
                         put( "rebate_amount", finalRebate );
                     }}));

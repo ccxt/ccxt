@@ -309,7 +309,10 @@ export default class limitless extends Exchange {
         for (let i = 0; i < expandedRaw.length; i++) {
             const raw = expandedRaw[i];
             const groupId = this.safeStringN (raw, [ 'groupSlug', 'groupId' ], this.safeString (raw, 'slug'));
-            const eventKey = (groupId !== undefined && groupId !== '') ? this.shortenSlug (groupId) : undefined;
+            let eventKey: Str = undefined;
+            if (groupId !== undefined && groupId !== '') {
+                eventKey = this.shortenSlug (groupId);
+            }
             const m = this.parseMarket (raw);
             markets.push (m);
             if ((eventKey !== undefined) && (eventKey !== '')) {
@@ -836,7 +839,10 @@ export default class limitless extends Exchange {
         const endDate = this.safeString (event, 'deadline', this.safeString (event, 'expiresAt'));
         const title = this.safeString (event, 'title', groupId);
         const hasGroupId = (groupId !== undefined) && (groupId !== '');
-        const eventSlug = hasGroupId ? this.shortenSlug (groupId) : undefined;
+        let eventSlug: Str = undefined;
+        if (hasGroupId) {
+            eventSlug = this.shortenSlug (groupId);
+        }
         const hasEndDate = (endDate !== undefined) && (endDate !== '');
         const endTimestamp = hasEndDate ? this.parse8601 (endDate) : undefined;
         const markets: Market[] = [];
@@ -1313,8 +1319,14 @@ export default class limitless extends Exchange {
         const rawBids = this.safeList (response, 'bids', []);
         const rawAsks = this.safeList (response, 'asks', []);
         // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price with bids and asks swapped
-        const bidsSource = (isYes) ? rawBids : rawAsks;
-        const asksSource = (isYes) ? rawAsks : rawBids;
+        let bidsSource: List = rawAsks;
+        if (isYes) {
+            bidsSource = rawBids;
+        }
+        let asksSource: List = rawBids;
+        if (isYes) {
+            asksSource = rawAsks;
+        }
         const bids: any[] = [];
         const asks: any[] = [];
         for (let bi = 0; bi < bidsSource.length; bi++) {
@@ -1435,7 +1447,7 @@ export default class limitless extends Exchange {
         // timeframe-aligned candles (single points would carry unaligned timestamps)
         const pseudoTrades: Dict[] = [];
         for (let i = 0; i < history.length; i++) {
-            const point = history[i];
+            const point = this.safeDict (history, i);
             const pointPrice = this.safeNumber (point, 'price');
             let pointTs = this.safeInteger (point, 'timestamp');
             if (pointTs === undefined) {
@@ -1458,7 +1470,7 @@ export default class limitless extends Exchange {
         const candles: Dict = {};
         const bucketOrder: string[] = [];
         for (let i = 0; i < sorted.length; i++) {
-            const point = sorted[i];
+            const point = this.safeDict (sorted, i);
             const pTs = this.safeInteger (point, 'timestamp');
             const pPrice = this.safeNumber (point, 'price');
             if (pTs === undefined) {
@@ -1875,7 +1887,11 @@ export default class limitless extends Exchange {
         const rawSide = this.safeString (rawOrder, 'side');
         const side = this.parseOrderSide (rawSide);
         const price = this.safeString (rawOrder, 'price');
-        const amountKey = (side === 'buy') ? 'takerAmount' : 'makerAmount'; // todo check
+        // todo check
+        let amountKey: Str = 'makerAmount';
+        if (side === 'buy') {
+            amountKey = 'takerAmount';
+        }
         const amount = this.safeString (rawOrder, amountKey);
         const remaining = this.safeString (rawOrder, 'remainingSize');
         const datetime = this.safeString (rawOrder, 'createdAt');
@@ -2049,8 +2065,16 @@ export default class limitless extends Exchange {
         // smartWallet field can stay populated after switching to eoa, so key off the option here
         const tradeWalletOption = this.safeString (accountInfo, 'tradeWalletOption');
         const usesSmartWallet = (tradeWalletOption === 'smartWallet');
-        const walletFromAccount = (usesSmartWallet) ? this.safeString (accountInfo, 'smartWallet') : this.safeString (accountInfo, 'account');
-        let maker = (this.walletAddress !== '') ? this.walletAddress : walletFromAccount;
+        let walletFromAccount: Str = undefined;
+        if (usesSmartWallet) {
+            walletFromAccount = this.safeString (accountInfo, 'smartWallet');
+        } else {
+            walletFromAccount = this.safeString (accountInfo, 'account');
+        }
+        let maker: Str = walletFromAccount;
+        if (this.walletAddress !== '') {
+            maker = this.walletAddress;
+        }
         [ maker, params ] = this.handleOptionAndParams (params, 'createOrder', 'maker', maker);
         try {
             this.checkAddress (maker);
@@ -2126,7 +2150,7 @@ export default class limitless extends Exchange {
         const marketSymbol = this.safeString (outcomeObj, 'market');
         if (isMarket && (side === 'buy')) {
             let createMarketBuyOrderRequiresPrice = true;
-            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionBoolAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
             const cost = this.safeNumber (params, 'cost');
             params = this.omit (params, 'cost');
             if (createMarketBuyOrderRequiresPrice) {
@@ -2637,7 +2661,10 @@ export default class limitless extends Exchange {
             throw new ExchangeError (this.id + ' parsePredictionTrade() missing rawSide');
         }
         const sellIndex = rawSide.indexOf ('sell');
-        const side = (sellIndex >= 0) ? 'sell' : 'buy';
+        let side: Str = 'buy';
+        if (sellIndex >= 0) {
+            side = 'sell';
+        }
         let type: Str = undefined;
         let takerOrMaker: Str = undefined;
         if (rawSide === undefined) {
@@ -2656,7 +2683,10 @@ export default class limitless extends Exchange {
         const rawMarket = this.safeDict (trade, 'market', {});
         const slug = this.safeString (rawMarket, 'slug');
         const outcomeIndex = this.safeInteger (trade, 'outcomeIndex');
-        const label = (outcomeIndex === 0) ? 'yes' : 'no';
+        let label: Str = 'no';
+        if (outcomeIndex === 0) {
+            label = 'yes';
+        }
         const outcome = this.getOutcomeBySlugAndLabel (slug, label, market);
         const tradeOutcome = this.safeString (outcome, 'outcome');
         return this.safePredictionTrade ({
@@ -2967,7 +2997,10 @@ export default class limitless extends Exchange {
         for (let i = 0; i < rawMarketsLength; i++) {
             const raw = expandedMarkets[i];
             const groupId = this.safeStringN (raw, [ 'groupSlug', 'groupId' ], this.safeString (raw, 'slug'));
-            const eventKey = (groupId !== undefined && groupId !== '') ? this.shortenSlug (groupId) : undefined;
+            let eventKey: Str = undefined;
+            if (groupId !== undefined && groupId !== '') {
+                eventKey = this.shortenSlug (groupId);
+            }
             const m = this.parseMarket (raw);
             if (m === undefined) {
                 throw new ExchangeError (this.id + ' fetchEvents() missing m');
@@ -3076,7 +3109,7 @@ export default class limitless extends Exchange {
         const categoryIds: string[] = [];
         const categoriesLength = categories.length;
         for (let i = 0; i < categoriesLength; i++) {
-            const category = categories[i];
+            const category = this.safeDict (categories, i);
             const name = this.safeStringLower (category, 'name', '');
             const categoryId = this.safeString (category, 'id');
             let matched = false;

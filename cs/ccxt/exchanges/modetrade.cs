@@ -1344,8 +1344,8 @@ public partial class modetrade : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -1459,8 +1459,8 @@ public partial class modetrade : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -1762,7 +1762,7 @@ public partial class modetrade : Exchange
         string? remaining = Precise.stringSub(cost, filled);
         double? fee = this.safeNumber2(order, "total_fee", "totalFee");
         string? feeCurrency = this.safeString2(order, "fee_asset", "feeAsset");
-        object transactions = this.safeValue(order, "Transactions");
+        List<object> transactions = this.safeList(order, "Transactions");
         double? triggerPrice = this.safeNumber(order, "triggerPrice");
         double? takeProfitPrice = null;
         double? stopLossPrice = null;
@@ -1911,9 +1911,21 @@ public partial class modetrade : Exchange
         bool isMarket = orderType == "MARKET";
         string? timeInForce = this.safeStringLower(parameters, "timeInForce");
         bool postOnly = this.isPostOnly(isMarket, null, parameters);
-        string orderQtyKey = isConditional ? "quantity" : "order_quantity";
-        string priceKey = isConditional ? "price" : "order_price";
-        string typeKey = isConditional ? "type" : "order_type";
+        string orderQtyKey = "order_quantity";
+        if (isConditional)
+        {
+            orderQtyKey = "quantity";
+        }
+        string priceKey = "order_price";
+        if (isConditional)
+        {
+            priceKey = "price";
+        }
+        string typeKey = "order_type";
+        if (isConditional)
+        {
+            typeKey = "type";
+        }
         request[(string)typeKey] = orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if (!isConditional)
         {
@@ -1962,7 +1974,11 @@ public partial class modetrade : Exchange
                 { "child_orders", new List<object>() {} },
             };
             object childOrders = ((IDictionary<string,object>)outterOrder)["child_orders"];
-            string closeSide = (orderSide == "BUY") ? "SELL" : "BUY";
+            string closeSide = "BUY";
+            if (orderSide == "BUY")
+            {
+                closeSide = "SELL";
+            }
             if (hasStopLoss)
             {
                 double? stopLossPrice = this.safeNumber2(stopLoss, "triggerPrice", "price", stopLoss);
@@ -2065,7 +2081,7 @@ public partial class modetrade : Exchange
         List<object> ordersRequests = new List<object>() {};
         for (int i = 0; i < getArrayLength(orders); i++)
         {
-            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
+            IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
             if ((marketId == null))
             {
@@ -2148,8 +2164,16 @@ public partial class modetrade : Exchange
             request["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
         }
         bool isConditional = ((triggerPrice != null)) || (!isEqual(this.safeValue(parameters, "childOrders"), null));
-        string orderQtyKey = isConditional ? "quantity" : "order_quantity";
-        string priceKey = isConditional ? "price" : "order_price";
+        string orderQtyKey = "order_quantity";
+        if (isConditional)
+        {
+            orderQtyKey = "quantity";
+        }
+        string priceKey = "order_price";
+        if (isConditional)
+        {
+            priceKey = "price";
+        }
         if ((price != null))
         {
             request[(string)priceKey] = this.priceToPrecision(symbol, price);
@@ -2518,8 +2542,8 @@ public partial class modetrade : Exchange
         bool? paginate = false;
         bool? isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
         int maxLimit = ((isTrigger == true)) ? 100 : 500;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -2733,8 +2757,8 @@ public partial class modetrade : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -2801,7 +2825,7 @@ public partial class modetrade : Exchange
         List<object> balances = this.safeList(response, "holding", new List<object>() {});
         for (int i = 0; i < balances.Count; i++)
         {
-            object balance = balances[i];
+            IDictionary<string, object> balance = this.safeDict(balances, i);
             string? code = this.safeCurrencyCode(this.safeString(balance, "token"));
             Dictionary<string, object> account = this.account();
             account["total"] = this.safeString(balance, "holding");

@@ -1241,7 +1241,7 @@ class toobit(Exchange, ImplicitAPI):
             request['limit'] = limit
         response = []
         endpoint = None
-        endpoint, params = self.handle_option_and_params(params, 'fetchOHLCV', 'price')
+        endpoint, params = self.handle_option_string_and_params(params, 'fetchOHLCV', 'price')
         if endpoint == 'index':
             response = self.commonGetQuoteV1IndexKlines(self.extend(request, params))
             #
@@ -1436,7 +1436,7 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.parse_last_prices(response, symbols)
 
-    def parse_last_price(self, entry: object, market: Market = None) -> LastPrice:
+    def parse_last_price(self, entry: dict, market: Market = None) -> LastPrice:
         marketId = self.safe_string(entry, 's')
         market = self.safe_market(marketId, market)
         return {
@@ -1581,7 +1581,7 @@ class toobit(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params)
         if symbol is None:
@@ -1671,7 +1671,7 @@ class toobit(Exchange, ImplicitAPI):
         }
         balances = self.safe_list(response, 'balances', response)
         for i in range(0, len(balances)):
-            balance = balances[i]
+            balance = self.safe_dict(balances, i)
             code = self.safe_currency_code(self.safe_string(balance, 'asset'))
             account = self.account()
             account['free'] = self.safe_string_2(balance, 'free', 'availableBalance')
@@ -2817,7 +2817,7 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         address = self.safe_string(depositAddress, 'address')
         self.check_address(address)
         return {

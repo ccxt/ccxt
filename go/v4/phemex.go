@@ -2426,12 +2426,7 @@ func (this *Phemex) ParseSpotBalance(response any) any {
 	}
 	var data []any = SafeListTyped(response, "data")
 	for i := 0; i < len(data); i++ {
-		var balance map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(data) {
-				return DerefScalar(data[i])
-			}
-			return nil
-		}())
+		var balance map[string]any = SafeMapTyped(data, i)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var currency map[string]any = SafeMapTyped(this.Currencies, code)
@@ -3700,7 +3695,7 @@ func (this *Phemex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		}
 		order = this.SafeDict(data, 0, map[string]any{})
 	} else if GetValue(market, "spot") == true {
-		var rows []any = SafeListTypedDefault(data, "rows", []any{})
+		var rows []any = SafeListTyped(data, "rows")
 		var numRows int = len(rows)
 		if numRows < 1 {
 			if clientOrderId != nil {
@@ -4165,10 +4160,10 @@ func (this *Phemex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//
 	var data any = nil
 	if isUSDTSettled {
-		data = this.SafeValue(response, "data", []any{})
+		data = this.SafeList(response, "data", []any{})
 	} else {
 		data = this.SafeValue(response, "data", map[string]any{})
-		data = this.SafeValue(data, "rows", []any{})
+		data = this.SafeList(data, "rows", []any{})
 	}
 
 	ch <- this.ParseTrades(data, market, since, limit)
@@ -4543,25 +4538,25 @@ func (this *Phemex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var subType *string = nil
 	var code any = DerefScalar(this.SafeString2(params, "currency", "code", "USDT"))
 	params = MapTyped(this.Omit(params, []any{"currency", "code"}))
-	var settle any = nil
+	var settle *string = nil
 	var market map[string]any = nil
 	var firstSymbol *string = this.SafeString(symbols, 0)
 	if firstSymbol != nil {
 		market = this.Market(firstSymbol)
-		settle = GetValue(market, "settle")
+		settle = this.SafeString(market, "settle")
 		code = GetValue(market, "settle")
 	} else {
 		var settleparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchPositions", "settle", code)
-		settle = GetValue(settleparamsVariable, 0)
+		settle = SafeStringPtr(GetValue(settleparamsVariable, 0))
 		params = MapTyped(GetValue(settleparamsVariable, 1))
 	}
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchPositions", market, params)
 	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
-	var isUSDTSettled bool = (IsEqual(settle, "USDT"))
+	var isUSDTSettled bool = (settle != nil && *settle == "USDT")
 	if isUSDTSettled {
 		code = "USDT"
-	} else if IsEqual(settle, "BTC") {
+	} else if settle != nil && *settle == "BTC" {
 		code = "BTC"
 	} else if IsEqual(code, nil) {
 		code = func() string {
@@ -5539,7 +5534,7 @@ func (this *Phemex) ParseMarketLeverageTiers(info any, optionalArgs ...any) any 
 	var tiers []any = []any{}
 	var minNotional any = 0
 	for i := 0; i < GetArrayLength(riskLimits); i++ {
-		var tier any = GetValue(riskLimits, i)
+		var tier map[string]any = SafeMapTyped(riskLimits, i)
 		var maxNotional *int64 = this.SafeInteger(tier, "limit")
 		var minNotionalResponse any = minNotional // java req
 		tiers = append(tiers, map[string]any{
@@ -5975,7 +5970,7 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		panic(BadRequest(this.Id + " fetchFundingRateHistory() supports swap contracts only"))
 	}
 	var paginate bool = false
-	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
@@ -6547,25 +6542,25 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 	var subType *string = nil
 	var code any = DerefScalar(this.SafeString2(params, "currency", "code", "USDT"))
 	params = MapTyped(this.Omit(params, []any{"currency", "code"}))
-	var settle any = nil
+	var settle *string = nil
 	var market map[string]any = nil
 	var firstSymbol *string = this.SafeString(symbols, 0)
 	if firstSymbol != nil {
 		market = this.Market(firstSymbol)
-		settle = GetValue(market, "settle")
+		settle = this.SafeString(market, "settle")
 		code = GetValue(market, "settle")
 	} else {
 		var settleparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchPositionsADLRank", "settle", code)
-		settle = GetValue(settleparamsVariable, 0)
+		settle = SafeStringPtr(GetValue(settleparamsVariable, 0))
 		params = MapTyped(GetValue(settleparamsVariable, 1))
 	}
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchPositionsADLRank", market, params)
 	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
-	var isUSDTSettled bool = (IsEqual(settle, "USDT"))
+	var isUSDTSettled bool = (settle != nil && *settle == "USDT")
 	if isUSDTSettled {
 		code = "USDT"
-	} else if IsEqual(settle, "BTC") {
+	} else if settle != nil && *settle == "BTC" {
 		code = "BTC"
 	} else if IsEqual(code, nil) {
 		code = func() string {

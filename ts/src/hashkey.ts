@@ -1087,7 +1087,12 @@ export default class hashkey extends Exchange {
             }
         }
         const tradingFees = this.safeDict (this.fees, 'trading');
-        const fees = isSpot ? this.safeDict (tradingFees, 'spot') : this.safeDict (tradingFees, 'swap');
+        let fees: NullableDict = undefined;
+        if (isSpot) {
+            fees = this.safeDict (tradingFees, 'spot');
+        } else {
+            fees = this.safeDict (tradingFees, 'swap');
+        }
         return this.safeMarketStructure ({
             'id': marketId,
             'symbol': symbol,
@@ -1219,7 +1224,10 @@ export default class hashkey extends Exchange {
             }
         }
         const rawType = this.safeString (rawCurrency, 'tokenType');
-        const type = (rawType === 'REAL_MONEY') ? 'fiat' : 'crypto';
+        let type: Str = 'crypto';
+        if (rawType === 'REAL_MONEY') {
+            type = 'fiat';
+        }
         return this.safeCurrencyStructure ({
             'id': currencyId,
             'code': code,
@@ -1568,7 +1576,7 @@ export default class hashkey extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, methodName, 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, methodName, 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000) as OHLCV[];
         }
@@ -1863,7 +1871,7 @@ export default class hashkey extends Exchange {
         };
         const balances = this.safeList (balance, 'balances', []) as List;
         for (let i = 0; i < balances.length; i++) {
-            const balanceEntry = balances[i];
+            const balanceEntry = this.safeDict (balances, i);
             const currencyId = this.safeString (balanceEntry, 'asset');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -2410,12 +2418,12 @@ export default class hashkey extends Exchange {
         }
         request['endTime'] = until;
         let flowType: Str = undefined;
-        [ flowType, params ] = this.handleOptionAndParams (params, methodName, 'flowType');
+        [ flowType, params ] = this.handleOptionStringAndParams (params, methodName, 'flowType');
         if (flowType !== undefined) {
             request['flowType'] = this.encodeFlowType (flowType);
         }
         let accountType: Str = undefined;
-        [ accountType, params ] = this.handleOptionAndParams (params, methodName, 'accountType');
+        [ accountType, params ] = this.handleOptionStringAndParams (params, methodName, 'accountType');
         if (accountType !== undefined) {
             request['accountType'] = this.encodeAccountType (accountType);
         }
@@ -2887,7 +2895,7 @@ export default class hashkey extends Exchange {
         }
         const ordersRequests: List = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const symbol = this.safeString (rawOrder, 'symbol');
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
@@ -2901,7 +2909,7 @@ export default class hashkey extends Exchange {
             }
             ordersRequests.push (orderRequest);
         }
-        const firstOrder = ordersRequests[0];
+        const firstOrder = this.safeDict (ordersRequests, 0);
         const firstSymbol = this.safeString (firstOrder, 'symbol');
         const market = this.market (firstSymbol);
         const request: Dict = {

@@ -596,7 +596,7 @@ export default class coinbase extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchAccounts', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchAccounts', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchAccounts', undefined, undefined, undefined, params, 'next_starting_after', 'starting_after', undefined, 100);
         }
@@ -667,7 +667,7 @@ export default class coinbase extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchAccounts', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchAccounts', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchAccounts', undefined, undefined, undefined, params, 'cursor', 'cursor', undefined, 250);
         }
@@ -969,7 +969,7 @@ export default class coinbase extends Exchange {
      */
     override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         let currencyType: Str = undefined;
-        [ currencyType, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'currencyType');
+        [ currencyType, params ] = this.handleOptionStringAndParams (params, 'fetchWithdrawals', 'currencyType');
         if (currencyType === 'crypto') {
             const results = await this.fetchTransactionsWithMethod ('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params);
             return this.filterByArray (results, 'type', 'withdrawal', false);
@@ -992,7 +992,7 @@ export default class coinbase extends Exchange {
      */
     override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         let currencyType: Str = undefined;
-        [ currencyType, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'currencyType');
+        [ currencyType, params ] = this.handleOptionStringAndParams (params, 'fetchDeposits', 'currencyType');
         if (currencyType === 'crypto') {
             const results = await this.fetchTransactionsWithMethod ('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params);
             return this.filterByArray (results, 'type', 'deposit', false);
@@ -1412,7 +1412,10 @@ export default class coinbase extends Exchange {
         for (let i = 0; i < baseIds.length; i++) {
             const baseId = baseIds[i];
             const base = this.safeCurrencyCode (baseId);
-            const type = (baseId in dataById) ? 'fiat' : 'crypto';
+            let type: Str = 'crypto';
+            if (baseId in dataById) {
+                type = 'fiat';
+            }
             // https://github.com/ccxt/ccxt/issues/6066
             if (type === 'crypto') {
                 for (let j = 0; j < data.length; j++) {
@@ -2032,7 +2035,10 @@ export default class coinbase extends Exchange {
             if (code !== undefined) {
                 this.options['networksById'][code] = (name as string).toLowerCase ();
             }
-            const type = (assetId !== undefined) ? 'crypto' : 'fiat';
+            let type: Str = 'fiat';
+            if (assetId !== undefined) {
+                type = 'crypto';
+            }
             if (code !== undefined) {
                 result[code] = this.safeCurrencyStructure ({
                     'info': currency,
@@ -2448,7 +2454,7 @@ export default class coinbase extends Exchange {
         const v3Accounts = this.safeList (params, 'type', this.options['v3Accounts']);
         const result: Dict = { 'info': response };
         for (let b = 0; b < balances.length; b++) {
-            const balance = balances[b];
+            const balance = this.safeDict (balances, b);
             const type = this.safeString (balance, 'type');
             if (this.inArray (type, accounts)) {
                 const value = this.safeDict (balance, 'balance');
@@ -2624,7 +2630,7 @@ export default class coinbase extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchLedger', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchLedger', code, since, limit, params, 'next_starting_after', 'starting_after', undefined, 100) as LedgerEntry[];
         }
@@ -3111,7 +3117,12 @@ export default class coinbase extends Exchange {
         const isStopLoss = stopLossPrice !== undefined;
         const isTakeProfit = takeProfitPrice !== undefined;
         const timeInForce = this.safeString (params, 'timeInForce');
-        const postOnly = (timeInForce === 'PO') ? true : this.safeBool2 (params, 'postOnly', 'post_only', false);
+        let postOnly: Bool = undefined;
+        if (timeInForce === 'PO') {
+            postOnly = true;
+        } else {
+            postOnly = this.safeBool2 (params, 'postOnly', 'post_only', false);
+        }
         const endTime = this.safeString (params, 'end_time');
         let stopDirection = this.safeString (params, 'stop_direction');
         if (type === 'limit') {
@@ -3672,7 +3683,7 @@ export default class coinbase extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 1000) as Order[];
         }
@@ -3845,7 +3856,7 @@ export default class coinbase extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOpenOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchOpenOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100) as Order[];
         }
@@ -3870,7 +3881,7 @@ export default class coinbase extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchClosedOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchClosedOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 1000) as Order[];
         }
@@ -4071,7 +4082,7 @@ export default class coinbase extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, 'cursor', 'cursor', undefined, 250) as Trade[];
         }
@@ -4952,7 +4963,7 @@ export default class coinbase extends Exchange {
             response = await this.v3PrivateGetBrokerageCfmPositions (params);
         } else {
             let portfolio: Str = undefined;
-            [ portfolio, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'portfolio');
+            [ portfolio, params ] = this.handleOptionStringAndParams (params, 'fetchPositions', 'portfolio');
             if (portfolio === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchPositions() requires a "portfolio" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()');
             }
@@ -4994,7 +5005,7 @@ export default class coinbase extends Exchange {
             response = await this.v3PrivateGetBrokerageCfmPositionsProductId (this.extend (futureRequest, params));
         } else {
             let portfolio: Str = undefined;
-            [ portfolio, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'portfolio');
+            [ portfolio, params ] = this.handleOptionStringAndParams (params, 'fetchPositions', 'portfolio');
             if (portfolio === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchPosition() requires a "portfolio" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()');
             }
@@ -5107,7 +5118,10 @@ export default class coinbase extends Exchange {
         }
         const notionalObject = this.safeDict (position, 'position_notional', {});
         const positionSide = this.safeString (position, 'position_side');
-        const side = (positionSide === 'POSITION_SIDE_LONG') ? 'long' : 'short';
+        let side: Str = 'short';
+        if (positionSide === 'POSITION_SIDE_LONG') {
+            side = 'long';
+        }
         const unrealizedPNLObject = this.safeDict (position, 'unrealized_pnl', {});
         const liquidationPriceObject = this.safeDict (position, 'liquidation_price', {});
         const liquidationPrice = this.safeNumber (liquidationPriceObject, 'value');
@@ -5161,7 +5175,10 @@ export default class coinbase extends Exchange {
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
         const isSpot = (type === 'spot');
-        const productType = isSpot ? 'SPOT' : 'FUTURE';
+        let productType: Str = 'FUTURE';
+        if (isSpot) {
+            productType = 'SPOT';
+        }
         const request: Dict = {
             'product_type': productType,
         };
@@ -5231,7 +5248,7 @@ export default class coinbase extends Exchange {
     }
 
     parsePortfolioDetails (portfolioData: Dict) {
-        const breakdown = portfolioData['breakdown'];
+        const breakdown = this.safeDict (portfolioData, 'breakdown');
         const portfolioInfo = this.safeDict (breakdown, 'portfolio', {});
         const portfolioName = this.safeString (portfolioInfo, 'name', 'Unknown');
         const portfolioUuid = this.safeString (portfolioInfo, 'uuid', '');
@@ -5293,8 +5310,14 @@ export default class coinbase extends Exchange {
         }
         // eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
         const nonce = this.randomBytes (16);
-        const aud = useEddsa ? 'cdp_service' : 'retail_rest_api_proxy';
-        const iss = useEddsa ? 'cdp' : 'coinbase-cloud';
+        let aud: Str = 'retail_rest_api_proxy';
+        if (useEddsa) {
+            aud = 'cdp_service';
+        }
+        let iss: Str = 'coinbase-cloud';
+        if (useEddsa) {
+            iss = 'cdp';
+        }
         const request: Dict = {
             'aud': [ aud ],
             'iss': iss,
@@ -5328,7 +5351,10 @@ export default class coinbase extends Exchange {
         const version = api[0];
         const signed = api[1] === 'private';
         const isV3 = version === 'v3';
-        const pathPart = (isV3) ? 'api/v3' : 'v2';
+        let pathPart: Str = 'v2';
+        if (isV3) {
+            pathPart = 'api/v3';
+        }
         let fullPath = '/' + pathPart + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const savedPath = fullPath;

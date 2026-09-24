@@ -1100,7 +1100,11 @@ public partial class hyperliquid : ccxt.hyperliquid
         parameters = this.safeDict(unifiedResult, 1, parameters);
         string? dex = this.safeString(parameters, "dex");
         bool isSpot = ((type == "spot") || ((isUnifiedEnabled == true))) && ((dex == null));
-        string topic = ((isSpot == true)) ? "spotState" : "clearinghouseState";
+        string topic = "clearinghouseState";
+        if ((isSpot == true))
+        {
+            topic = "spotState";
+        }
         string messageHash = (topic + "::balance");
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
@@ -1158,7 +1162,11 @@ public partial class hyperliquid : ccxt.hyperliquid
         parameters = this.safeDict(unifiedResult, 1, parameters);
         string? dex = this.safeString(parameters, "dex");
         bool isSpot = ((type == "spot") || ((isUnifiedEnabled == true))) && ((dex == null));
-        string topic = ((isSpot == true)) ? "spotState" : "clearinghouseState";
+        string topic = "clearinghouseState";
+        if ((isSpot == true))
+        {
+            topic = "spotState";
+        }
         string messageHash = (("unsubscribe" + ":") + topic);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },

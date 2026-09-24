@@ -107,7 +107,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         return 'ping';
     }
 
-    public function handle_pong(Client $client, array $message): array {
+    public function handle_pong(Client $client, mixed $message) {
         $client->lastPong = $this->milliseconds();
         return $message;
     }
@@ -790,7 +790,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         // tick was rejected accepted the next coarser level
         $symbol = $this->safe_string($market, 'symbol');
         $aggregation = null;
-        list($aggregation, $params) = $this->handle_option_and_params($params, $methodName, 'aggregation');
+        list($aggregation, $params) = $this->handle_option_string_and_params($params, $methodName, 'aggregation');
         if ($aggregation === null) {
             $precision = $this->safe_dict($market, 'precision', array());
             $tickSize = $this->safe_number($precision, 'price');
@@ -858,7 +858,7 @@ class deepcoin extends \ccxt\async\deepcoin {
             'asks' => array(),
         );
         for ($i = 0; $i < count($entries); $i++) {
-            $entry = $entries[$i];
+            $entry = $this->safe_dict($entries, $i);
             $entryData = $this->safe_dict($entry, 'd', array());
             $side = $this->safe_string($entryData, 'D');
             $price = $this->safe_number($entryData, 'P');
@@ -1311,8 +1311,10 @@ class deepcoin extends \ccxt\async\deepcoin {
     }
 
     public function handle_message(Client $client, mixed $message) {
-        if ($message === 'pong') {
-            $this->handle_pong($client, $message);
+        if (gettype($message) === 'string') {
+            if ($message === 'pong') {
+                $this->handle_pong($client, $message);
+            }
         } else {
             $m = $this->safe_string($message, 'm');
             if (($m !== null) && ($m !== 'Success')) {

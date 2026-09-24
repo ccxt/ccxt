@@ -304,7 +304,9 @@ class bitbns(Exchange, ImplicitAPI):
             costLimits = self.safe_dict(marketLimits, 'cost', {})
             usdt = (quoteId == 'USDT')
             # INR markets don't need a _INR prefix
-            uppercaseId = (baseId + '_' + quoteId) if usdt else baseId
+            uppercaseId = baseId
+            if usdt:
+                uppercaseId = (baseId + '_' + quoteId)
             result.append({
                 'id': id,
                 'uppercaseId': uppercaseId,
@@ -550,7 +552,7 @@ class bitbns(Exchange, ImplicitAPI):
         # note that "Money" stands for INR - the only fiat in bitbns
         return self.parse_balance(response)
 
-    def parse_status(self, status: object):
+    def parse_status(self, status: Str):
         statuses = {
             '-1': 'cancelled',
             '0': 'open',
@@ -811,7 +813,9 @@ class bitbns(Exchange, ImplicitAPI):
         market = self.market(symbol)
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop')
         params = self.omit(params, ['trigger', 'stop'])
-        quoteSide = 'usdtListOpen' if (market['quoteId'] == 'USDT') else 'listOpen'
+        quoteSide = 'listOpen'
+        if market['quoteId'] == 'USDT':
+            quoteSide = 'usdtListOpen'
         request = {
             'symbol': market['uppercaseId'],
             'page': 0,
@@ -1080,7 +1084,7 @@ class bitbns(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def parse_transaction_status_by_type(self, status: object, type: Str = None):
+    def parse_transaction_status_by_type(self, status: Str, type: Str = None):
         statusesByType = {
             'deposit': {
                 '0': 'pending',

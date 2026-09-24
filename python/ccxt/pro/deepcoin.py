@@ -101,7 +101,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             # prevent automatic disconnects on private channel
         return 'ping'
 
-    def handle_pong(self, client: Client, message: dict) -> dict:
+    def handle_pong(self, client: Client, message: object):
         client.lastPong = self.milliseconds()
         return message
 
@@ -687,7 +687,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         # tick was rejected accepted the next coarser level
         symbol = self.safe_string(market, 'symbol')
         aggregation = None
-        aggregation, params = self.handle_option_and_params(params, methodName, 'aggregation')
+        aggregation, params = self.handle_option_string_and_params(params, methodName, 'aggregation')
         if aggregation is None:
             precision = self.safe_dict(market, 'precision', {})
             tickSize = self.safe_number(precision, 'price')
@@ -748,7 +748,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             'asks': [],
         }
         for i in range(0, len(entries)):
-            entry = entries[i]
+            entry = self.safe_dict(entries, i)
             entryData = self.safe_dict(entry, 'd', {})
             side = self.safe_string(entryData, 'D')
             price = self.safe_number(entryData, 'P')
@@ -1152,8 +1152,9 @@ class deepcoin(ccxt.async_support.deepcoin):
         return self.safe_string(modes, marginMode, marginMode)
 
     def handle_message(self, client: Client, message: object):
-        if message == 'pong':
-            self.handle_pong(client, message)
+        if isinstance(message, str):
+            if message == 'pong':
+                self.handle_pong(client, message)
         else:
             m = self.safe_string(message, 'm')
             if (m is not None) and (m != 'Success'):

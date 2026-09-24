@@ -759,8 +759,7 @@ impl BitflyerCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_339: bool = true;
             while { if !__for_first_339 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_339 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
-            let mut balance: Value = get_value(&response, &i);
-            let mut balance: Value = get_value(&response, &i);
+            let mut balance: Value = self.safe_dict(response.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency_code", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut account: Value = self.account();
@@ -931,7 +930,7 @@ impl BitflyerCore {
         if (side != Value::Null) {
             let mut idInner: Value = Value::Str(format!("{}{}", side, Value::Str("_child_order_acceptance_id".into())).into());
             if (in_op(&trade, &idInner)) {
-                order = trade.as_map().and_then(|__m| idInner.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                order = self.safe_string(trade.clone(), idInner.clone(), &[]);
             }
         }
         if (order == Value::Null) {

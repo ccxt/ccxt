@@ -1297,7 +1297,7 @@ class toobit extends Exchange {
         }
         $response = array();
         $endpoint = null;
-        list($endpoint, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'price');
+        list($endpoint, $params) = $this->handle_option_string_and_params($params, 'fetchOHLCV', 'price');
         if ($endpoint === 'index') {
             $response = Async\await($this->commonGetQuoteV1IndexKlines($this->extend($request, $params)));
             //
@@ -1516,7 +1516,7 @@ class toobit extends Exchange {
         return $this->parse_last_prices($response, $symbols);
     }
 
-    public function parse_last_price(mixed $entry, ?array $market = null): array {
+    public function parse_last_price(array $entry, ?array $market = null): array {
         $marketId = $this->safe_string($entry, 's');
         $market = $this->safe_market($marketId, $market);
         return array(
@@ -1687,7 +1687,7 @@ class toobit extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        list($paginate, $params) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params));
         }
@@ -1789,7 +1789,7 @@ class toobit extends Exchange {
         );
         $balances = $this->safe_list($response, 'balances', $response);
         for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+            $balance = $this->safe_dict($balances, $i);
             $code = $this->safe_currency_code($this->safe_string($balance, 'asset'));
             $account = $this->account();
             $account['free'] = $this->safe_string_2($balance, 'free', 'availableBalance');
@@ -3111,7 +3111,7 @@ class toobit extends Exchange {
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         $address = $this->safe_string($depositAddress, 'address');
         $this->check_address($address);
         return array(

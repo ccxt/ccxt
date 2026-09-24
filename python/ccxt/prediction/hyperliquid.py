@@ -228,8 +228,12 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         targetPrice = self.safe_string(desc, 'targetPrice')
         expiry = self.safe_string(desc, 'expiry', '')
         # Parse expiry: "20260503-0600" → "20260503"
-        expiryDate = expiry.split('-')[0] if (expiry != '') else ''
-        label = 'YES' if (side == 0) else 'NO'
+        expiryDate = ''
+        if expiry != '':
+            expiryDate = expiry.split('-')[0]
+        label = 'NO'
+        if side == 0:
+            label = 'YES'
         base = underlying.upper()
         if (targetPrice is not None) and (targetPrice != ''):
             base = base + '_ABOVE_' + targetPrice
@@ -251,7 +255,9 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         if (underlying is not None) and (underlying != ''):
             targetPrice = self.safe_string(desc, 'targetPrice')
             expiry = self.safe_string(desc, 'expiry', '')
-            expiryDate = expiry.split('-')[0] if (expiry != '') else ''
+            expiryDate = ''
+            if expiry != '':
+                expiryDate = expiry.split('-')[0]
             base = underlying.upper()
             if (targetPrice is not None) and (targetPrice != ''):
                 base = base + '_ABOVE_' + targetPrice
@@ -265,7 +271,9 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             if questionClass == 'pricebucket':
                 questionUnderlying = self.safe_string(questionDesc, 'underlying')
                 questionExpiry = self.safe_string(questionDesc, 'expiry', '')
-                expiryDate = questionExpiry.split('-')[0] if (questionExpiry != '') else ''
+                expiryDate = ''
+                if questionExpiry != '':
+                    expiryDate = questionExpiry.split('-')[0]
                 thresholdsRaw = self.safe_string(questionDesc, 'priceThresholds', '')
                 indexStr = self.safe_string(desc, 'index')
                 rawDescription = self.safe_string_lower(desc, 'description', '')
@@ -427,7 +435,9 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             expPartsLength = len(expParts)
             if expPartsLength >= 1 and len(expParts[0]) == 8:
                 ymd = expParts[0]
-                hm = expParts[1] if (expPartsLength >= 2) else '0000'
+                hm = '0000'
+                if expPartsLength >= 2:
+                    hm = expParts[1]
                 isoStr = ymd[0:4] + '-' + ymd[4:6] + '-' + ymd[6:8] + 'T' + hm[0:2] + ':' + hm[2:4] + ':00Z'
                 expiryMs = self.parse8601(isoStr)
                 expiryDatetime = isoStr
@@ -676,7 +686,9 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             mid = self.sum(bid, ask) / 2
         # day volume lives on the parent market's ctx; resolve it from the outcome's parent market
         parentSymbol = self.safe_string(mkt, 'market')
-        parentMarket = self.safe_market(parentSymbol) if (parentSymbol is not None) else None
+        parentMarket = None
+        if parentSymbol is not None:
+            parentMarket = self.safe_market(parentSymbol)
         ctx = self.safe_dict(self.safe_dict(parentMarket, 'info', {}), 'ctx', {}) if (parentMarket is not None) else {}
         dayVolume = self.safe_number(ctx, 'dayNtlVlm')
         return self.safe_prediction_ticker({
@@ -741,10 +753,10 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         bids = []
         asks = []
         for i in range(0, len(rawBids)):
-            entry = rawBids[i]
+            entry = self.safe_dict(rawBids, i)
             bids.append([self.safe_number(entry, 'px'), self.safe_number(entry, 'sz')])
         for i in range(0, len(rawAsks)):
-            entry = rawAsks[i]
+            entry = self.safe_dict(rawAsks, i)
             asks.append([self.safe_number(entry, 'px'), self.safe_number(entry, 'sz')])
         orderbook = self.parse_order_book({'bids': bids, 'asks': asks}, self.safe_string(outcomeObj, 'outcome', outcome), timestamp)
         return self.safe_prediction_order_book(orderbook, outcomeObj)
@@ -873,7 +885,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         }
         balances = self.safe_list(response, 'balances', [])
         for i in range(0, len(balances)):
-            balance = balances[i]
+            balance = self.safe_dict(balances, i)
             coin = self.safe_string(balance, 'coin')
             total = self.safe_string(balance, 'total')
             used = self.safe_string(balance, 'hold')
@@ -922,7 +934,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             self.publicPostInfo({'type': 'allMids'}),
         ]
         results = await asyncio.gather(*promises)
-        response = results[0]
+        response = self.safe_dict(results, 0)
         midsResponse = results[1]
         balances = self.safe_list(response, 'balances', [])
         allMids = {}
@@ -1069,7 +1081,9 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                 return self.safe_dict(self.outcomes_by_id, key, {})
         if ((self.markets is not None) and (outcomeInput in self.markets)) or ((self.markets_by_id is not None) and (outcomeInput in self.markets_by_id)):
             market = self.safe_market(outcomeInput)
-            sideHintOrDefault = sideHint if (sideHint is not None) else 'YES'
+            sideHintOrDefault = 'YES'
+            if sideHint is not None:
+                sideHintOrDefault = sideHint
             found = self.find_outcome_in_market(market, sideHintOrDefault)
             if len(found) > 0:
                 return found
@@ -1112,7 +1126,9 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         postOnly = self.safe_bool(params, 'postOnly', False)
         defaultSlippage = self.safe_string(self.options, 'defaultSlippage', '0.05')
         slippage = self.safe_string(params, 'slippage', defaultSlippage)
-        defaultTif = 'Ioc' if isMarket else 'Gtc'
+        defaultTif = 'Gtc'
+        if isMarket:
+            defaultTif = 'Ioc'
         if postOnly is True:
             defaultTif = 'Alo'
         tif = self.capitalize(self.safe_string_lower(params, 'timeInForce', defaultTif))  # eslint-disable-line
@@ -1144,7 +1160,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         if clientOrderId is not None:
             orderObj['c'] = clientOrderId
         vaultAddress = None
-        vaultAddress, params = self.handle_option_and_params(params, 'createOrder', 'vaultAddress')
+        vaultAddress, params = self.handle_option_string_and_params(params, 'createOrder', 'vaultAddress')
         vaultAddress = self.format_vault_address(vaultAddress)
         orderAction = {
             'type': 'order',
@@ -1261,7 +1277,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                 cancelReq.append({'a': assetId, 'o': self.parse_to_numeric(ids[i])})
         cancelAction['cancels'] = cancelReq
         vaultAddress = None
-        vaultAddress, params = self.handle_option_and_params(params, 'cancelOrders', 'vaultAddress')
+        vaultAddress, params = self.handle_option_string_and_params(params, 'cancelOrders', 'vaultAddress')
         vaultAddress = self.format_vault_address(vaultAddress)
         signature = self.sign_l1_action(cancelAction, nonce, vaultAddress)
         request = {
@@ -1324,7 +1340,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         userAddress: Str
         userAddress, params = self.handle_public_address('fetchOpenOrders', params)
         method: Str
-        method, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'method', 'frontendOpenOrders')
+        method, params = self.handle_option_string_and_params(params, 'fetchOpenOrders', 'method', 'frontendOpenOrders')
         request = {'type': method, 'user': userAddress}
         response = await self.publicPostInfo(self.extend(request, params))
         ordersWithStatus = []
@@ -1456,9 +1472,13 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         coin = self.safe_string(entry, 'coin')
         outcomeObj = self.safe_outcome(coin, market)
         marketSymbol = self.safe_string(outcomeObj, 'outcome')
-        resolvedMarket = self.safe_market(marketSymbol, market) if (marketSymbol is not None and marketSymbol != '') else market
+        resolvedMarket = market
+        if marketSymbol is not None and marketSymbol != '':
+            resolvedMarket = self.safe_market(marketSymbol, market)
         sideRaw = self.safe_string(entry, 'side')
-        side = 'buy' if (sideRaw == 'B') else 'sell'
+        side = 'sell'
+        if sideRaw == 'B':
+            side = 'buy'
         totalAmount = self.safe_string(entry, 'origSz')
         remaining = self.safe_string(entry, 'sz')
         filled = None
@@ -1639,9 +1659,13 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         coin = self.safe_string(trade, 'coin')
         outcomeObj = self.safe_outcome(coin, market)
         marketSymbol = self.safe_string(outcomeObj, 'outcome')
-        resolvedMarket = self.safe_market(marketSymbol, market) if (marketSymbol is not None and marketSymbol != '') else market
+        resolvedMarket = market
+        if marketSymbol is not None and marketSymbol != '':
+            resolvedMarket = self.safe_market(marketSymbol, market)
         rawSide = self.safe_string(trade, 'side')
-        side = 'buy' if (rawSide == 'B') else 'sell'
+        side = 'sell'
+        if rawSide == 'B':
+            side = 'buy'
         fee = self.safe_number(trade, 'fee')
         feeCurrency = self.safe_string(trade, 'feeToken', 'USDC')
         outcomeSymbol = self.safe_string(outcomeObj, 'outcome')
@@ -1652,7 +1676,9 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         if (price is not None) and (amount is not None):
             cost = self.parse_number(Precise.string_mul(price, amount))
         crossed = (self.safe_bool(trade, 'crossed') is True)
-        takerOrMaker = 'taker' if crossed else 'maker'
+        takerOrMaker = 'maker'
+        if crossed:
+            takerOrMaker = 'taker'
         return self.safe_prediction_trade({
             'id': self.safe_string(trade, 'tid'),
             'info': trade,
@@ -1774,7 +1800,9 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             partsLength = len(parts)
             if partsLength >= 1 and len(parts[0]) == 8:
                 ymd = parts[0]
-                hm = parts[1] if (partsLength >= 2) else '0000'
+                hm = '0000'
+                if partsLength >= 2:
+                    hm = parts[1]
                 isoStr = ymd[0:4] + '-' + ymd[4:6] + '-' + ymd[6:8] + 'T' + hm[0:2] + ':' + hm[2:4] + ':00Z'
                 expiryMs = self.parse8601(isoStr)
                 expiryDatetime = isoStr
@@ -1853,7 +1881,9 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
     def construct_phantom_agent(self, hash: object, isTestnet=True) -> dict:
-        source = 'b' if isTestnet else 'a'
+        source = 'a'
+        if isTestnet:
+            source = 'b'
         return {
             'source': source,
             'connectionId': hash,
@@ -1972,7 +2002,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
 
     def handle_public_address(self, methodName: str, params: dict) -> object:
         userAux = None
-        userAux, params = self.handle_option_and_params_2(params, methodName, 'user', 'subAccountAddress')
+        userAux, params = self.handle_option_string_and_params_2(params, methodName, 'user', 'subAccountAddress')
         user = userAux
         user, params = self.handle_option_and_params(params, methodName, 'address', userAux)
         if user is not None and user != '':

@@ -609,7 +609,7 @@ public partial class bitso : Exchange
             List<object> makerFees = new List<object>() {};
             for (int j = 0; j < feeTiers.Count; j++)
             {
-                object tier = feeTiers[j];
+                IDictionary<string, object> tier = this.safeDict(feeTiers, j);
                 double? volume = this.safeNumber(tier, "volume");
                 double? takerFee = this.safeNumber(tier, "taker");
                 double? makerFee = this.safeNumber(tier, "maker");
@@ -758,7 +758,7 @@ public partial class bitso : Exchange
 
     public override Dictionary<string, object> parseBalance(object response)
     {
-        object payload = this.safeValue(response, "payload", new Dictionary<string, object>() {});
+        IDictionary<string, object> payload = this.safeDict(response, "payload", new Dictionary<string, object>() {});
         List<object> balances = this.safeList(payload, "balances", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
@@ -767,7 +767,7 @@ public partial class bitso : Exchange
         };
         for (int i = 0; i < balances.Count; i++)
         {
-            object balance = balances[i];
+            IDictionary<string, object> balance = this.safeDict(balances, i);
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();

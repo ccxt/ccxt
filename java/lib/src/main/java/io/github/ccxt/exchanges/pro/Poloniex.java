@@ -194,7 +194,11 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             Object name = name3;
             Object messageHash = messageHash3;
             List<String> symbols = symbols3;
-            String publicOrPrivate = ((Helpers.isTrue(isPrivate))) ? "private" : "public";
+            String publicOrPrivate = "public";
+            if (Helpers.isTrue(isPrivate))
+            {
+                publicOrPrivate = "private";
+            }
             String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), publicOrPrivate);
             final Object finalName = name;
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
@@ -1075,7 +1079,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object item = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+            Map<String, Object> item = (Map<String, Object>) this.safeDict(data, i);
             String marketId = this.safeString(item, "symbol");
             if (!java.util.Objects.equals(marketId, null))
             {
@@ -1516,7 +1520,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
-            Object tickers = this.filterByArray(newTickers, "symbol", symbols);
+            Map<String, Object> tickers = (Map<String, Object>) this.filterByArray(newTickers, "symbol", symbols);
             if (!this.isEmpty(tickers))
             {
                 client.resolve(tickers, messageHash);
@@ -1581,7 +1585,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         Boolean update = java.util.Objects.equals(type, "update");
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object item = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+            Map<String, Object> item = (Map<String, Object>) this.safeDict(data, i);
             String marketId = this.safeString(item, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             String symbol = (String) ((Map<String, Object>)market).get("symbol");

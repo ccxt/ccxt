@@ -1452,7 +1452,11 @@ public partial class coinex : Exchange
             string? quoteId = this.safeString(entry, "quote_ccy");
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
-            string? settleId = (subType == "linear") ? "USDT" : baseId;
+            string? settleId = baseId;
+            if (subType == "linear")
+            {
+                settleId = "USDT";
+            }
             string? settle = this.safeCurrencyCode(settleId);
             string? symbol = ((string)add(add(add(add(bs, "/"), quote), ":"), settle));
             int leveragesLength = leverages.Count;
@@ -1859,10 +1863,10 @@ public partial class coinex : Exchange
         //     }
         //
         Int64? timestamp = this.safeInteger(trade, "created_at");
-        object defaultType = this.safeString(this.options, "defaultType");
+        string? defaultType = this.safeString(this.options, "defaultType");
         if ((market != null))
         {
-            defaultType = getValue(market, "type");
+            defaultType = this.safeString(market, "type");
         }
         string? marketId = this.safeString(trade, "market");
         market = this.safeMarket(marketId, market, null, defaultType);
@@ -2163,7 +2167,7 @@ public partial class coinex : Exchange
         List<object> balances = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < balances.Count; i++)
         {
-            object entry = balances[i];
+            IDictionary<string, object> entry = this.safeDict(balances, i);
             IDictionary<string, object> free = this.safeDict(entry, "available", new Dictionary<string, object>() {});
             IDictionary<string, object> used = this.safeDict(entry, "frozen", new Dictionary<string, object>() {});
             IDictionary<string, object> loan = this.safeDict(entry, "repaid", new Dictionary<string, object>() {});
@@ -2211,7 +2215,7 @@ public partial class coinex : Exchange
         List<object> balances = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < balances.Count; i++)
         {
-            object entry = balances[i];
+            IDictionary<string, object> entry = this.safeDict(balances, i);
             string? currencyId = this.safeString(entry, "ccy");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -2255,7 +2259,7 @@ public partial class coinex : Exchange
         List<object> balances = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < balances.Count; i++)
         {
-            object entry = balances[i];
+            IDictionary<string, object> entry = this.safeDict(balances, i);
             string? currencyId = this.safeString(entry, "ccy");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -2296,7 +2300,7 @@ public partial class coinex : Exchange
         List<object> balances = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < balances.Count; i++)
         {
-            object entry = balances[i];
+            IDictionary<string, object> entry = this.safeDict(balances, i);
             string? currencyId = this.safeString(entry, "ccy");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -2585,13 +2589,17 @@ public partial class coinex : Exchange
         {
             orderType = "swap";
         }
-        string marketType = (orderType == "swap") ? "swap" : "spot";
+        string marketType = "spot";
+        if (orderType == "swap")
+        {
+            marketType = "swap";
+        }
         market = this.safeMarket(marketId, market, null, marketType);
         string? feeCurrencyId = this.safeString(order, "fee_ccy");
-        object feeCurrency = this.safeCurrencyCode(feeCurrencyId);
+        string? feeCurrency = this.safeCurrencyCode(feeCurrencyId);
         if ((feeCurrency == null))
         {
-            feeCurrency = getValue(market, "quote");
+            feeCurrency = this.safeString(market, "quote");
         }
         string? side = this.safeString(order, "side");
         if (side == "long")
@@ -2912,7 +2920,7 @@ public partial class coinex : Exchange
         bool isStopLossOrTakeProfitTrigger = false;
         for (int i = 0; i < getArrayLength(orders); i++)
         {
-            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
+            IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
             if ((symbol == null))
             {
@@ -3079,7 +3087,7 @@ public partial class coinex : Exchange
         List<object> results = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = this.safeDict(data, i);
             IDictionary<string, object> item = this.safeDict(entry, "data", new Dictionary<string, object>() {});
             Dictionary<string, object> order = this.parseOrder(item, market);
             results.Add(order);
@@ -3196,7 +3204,7 @@ public partial class coinex : Exchange
         IList<object> orderSymbols = new List<object>() {};
         for (int i = 0; i < getArrayLength(orders); i++)
         {
-            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
+            IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
             Dictionary<string, object> market = this.market(marketId);
             if ((marketId != null))
@@ -3252,7 +3260,7 @@ public partial class coinex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = getValue(data, i);
+            IDictionary<string, object> entry = this.safeDict(data, i);
             string? code = this.safeString(entry, "code");
             string? message = this.safeString(entry, "message", "");
             if ((code != "0") || ((message != "Success") && (message != "Succeeded") && ((message.ToLower() != "ok")) && ((data == null))))
@@ -4211,7 +4219,14 @@ public partial class coinex : Exchange
             string? marketId = this.safeString(info, "market");
             market = this.safeMarket(marketId, market, null, "swap");
             double? maxNotional = this.safeNumber(tier, "amount");
-            object curr = (isEqual((market != null && market.ContainsKey("linear") ? market["linear"] : null), true)) ? (market != null && market.ContainsKey("base") ? market["base"] : null) : (market != null && market.ContainsKey("quote") ? market["quote"] : null);
+            object curr = null;
+            if (isEqual((market != null && market.ContainsKey("linear") ? market["linear"] : null), true))
+            {
+                curr = (market != null && market.ContainsKey("base") ? market["base"] : null);
+            } else
+            {
+                curr = (market != null && market.ContainsKey("quote") ? market["quote"] : null);
+            }
             object notional = minNotional;
             tiers.Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },
@@ -4288,7 +4303,11 @@ public partial class coinex : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? status = this.safeStringLower(response, "message");
-        string type = (isEqual(addOrReduce, "reduce")) ? "reduce" : "add";
+        string type = "add";
+        if (isEqual(addOrReduce, "reduce"))
+        {
+            type = "reduce";
+        }
         return this.extend(this.parseMarginModification(data, market), new Dictionary<string, object>() {
             { "type", type },
             { "amount", this.parseNumber(amount) },
@@ -4769,8 +4788,8 @@ public partial class coinex : Exchange
             await this.loadMarkets();
         }
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -4903,7 +4922,11 @@ public partial class coinex : Exchange
         string? currencyId = this.safeString(transaction, "ccy");
         string? code = this.safeCurrencyCode(currencyId, currency);
         Int64? timestamp = this.safeInteger(transaction, "created_at");
-        string type = ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("withdraw_id"))) ? "withdrawal" : "deposit";
+        string type = "deposit";
+        if ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("withdraw_id")))
+        {
+            type = "withdrawal";
+        }
         string? networkId = this.safeString(transaction, "chain");
         string? feeCost = this.safeString(transaction, "tx_fee");
         string? transferMethod = this.safeStringLower2(transaction, "withdraw_method", "deposit_method");
@@ -5652,7 +5675,7 @@ public partial class coinex : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object item = data[i];
+            IDictionary<string, object> item = this.safeDict(data, i);
             IDictionary<string, object> asset = this.safeDict(item, "asset", new Dictionary<string, object>() {});
             string? currencyId = this.safeString(asset, "ccy");
             if ((currencyId == null))
@@ -5718,7 +5741,7 @@ public partial class coinex : Exchange
         IDictionary<string, object> asset = this.safeDict(fee, "asset", new Dictionary<string, object>() {});
         for (int i = 0; i < chains.Count; i++)
         {
-            object entry = chains[i];
+            IDictionary<string, object> entry = this.safeDict(chains, i);
             bool? isWithdrawEnabled = this.safeBool(entry, "withdraw_enabled");
             if ((isWithdrawEnabled == true))
             {

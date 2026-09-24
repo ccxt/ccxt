@@ -1493,7 +1493,11 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             parameters = (Map<String, Object>) this.safeDict(unifiedResult, 1, parameters);
             String dex = this.safeString(parameters, "dex");
             Boolean isSpot = ((java.util.Objects.equals(type, "spot")) || (java.util.Objects.equals(isUnifiedEnabled, true))) && (java.util.Objects.equals(dex, null));
-            String topic = (((java.util.Objects.equals(isSpot, true)))) ? "spotState" : "clearinghouseState";
+            String topic = "clearinghouseState";
+            if (java.util.Objects.equals(isSpot, true))
+            {
+                topic = "spotState";
+            }
             String messageHash = (topic + "::balance");
             String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
             final String finalTopic = topic;
@@ -1570,13 +1574,18 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             parameters = this.safeDict(unifiedResult, 1, parameters);
             String dex = this.safeString(parameters, "dex");
             Boolean isSpot = ((java.util.Objects.equals(type, "spot")) || (java.util.Objects.equals(isUnifiedEnabled, true))) && (java.util.Objects.equals(dex, null));
-            String topic = (((java.util.Objects.equals(isSpot, true)))) ? "spotState" : "clearinghouseState";
+            String topic = "clearinghouseState";
+            if (java.util.Objects.equals(isSpot, true))
+            {
+                topic = "spotState";
+            }
             String messageHash = (("unsubscribe" + ":") + topic);
+            final String finalTopic = topic;
             final Object finalUserAddress = userAddress;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
                 put( "subscription", new HashMap<String, Object>() {{
-                    put( "type", topic );
+                    put( "type", finalTopic );
                     put( "user", finalUserAddress );
                 }} );
             }};
@@ -1887,7 +1896,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 continue;
             }
             List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
-            Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
+            List<Object> positions = (List<Object>) this.filterByArray(newPositions, "symbol", symbols, false);
             if (!this.isEmpty(positions))
             {
                 client.resolve(positions, messageHash);

@@ -985,7 +985,10 @@ impl BlofinCore {
         }
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         params = self.omit(params.clone(), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
-        let mut channel: Value = (if (trigger.as_bool() == Some(true)) { Value::Str("orders-algo".into()) } else { Value::Str("orders".into()) });
+        let mut channel: Value = Value::Str("orders".into());
+        if (trigger.as_bool() == Some(true)) {
+            channel = Value::Str("orders-algo".into());
+        }
         let mut orders: Value = self.watch_multiple_wrapper(Value::Bool(false), channel, Value::Str("watchOrdersForSymbols".into()), &[symbols, params]).await;
         if is_true(&self.newUpdates) {
             let mut first: Value = self.safe_dict(orders.clone(), Value::Int(0), &[]);
@@ -1251,7 +1254,10 @@ impl BlofinCore {
 })]);
         }
         let mut request: Value = self.get_subscription_request(rawSubscriptions);
-        let mut privateOrPublic: Value = (if is_true(&isPublic) { Value::Str("public".into()) } else { Value::Str("private".into()) });
+        let mut privateOrPublic: Value = Value::Str("private".into());
+        if is_true(&isPublic) {
+            privateOrPublic = Value::Str("public".into());
+        }
         let mut url: Value = get_value(&get_value(&(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null)).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &marketType), &privateOrPublic);
         let __ws_arg_3 = self.deep_extend(request, &[params]);
         return self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_3, messageHashes.clone()]).await;

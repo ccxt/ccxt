@@ -405,7 +405,7 @@ class independentreserve(Exchange, ImplicitAPI):
     def parse_balance(self, response: object) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
-            balance = response[i]
+            balance = self.safe_dict(response, i)
             currencyId = self.safe_string(balance, 'CurrencyCode')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -583,7 +583,7 @@ class independentreserve(Exchange, ImplicitAPI):
         elif market is not None:
             symbol = market['symbol']
             base = market['base']
-            quote = market['quote']
+            quote = self.safe_string(market, 'quote')
         orderType = self.safe_string_2(order, 'Type', 'OrderType')
         side = None
         if orderType is not None:
@@ -942,7 +942,7 @@ class independentreserve(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response)
 
-    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         #
         #    {
         #        Tag: '3307446684',

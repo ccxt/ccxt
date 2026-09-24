@@ -1731,12 +1731,7 @@ func (this *Coinsph) ParseBalance(response any) any {
 		"datetime":  nil,
 	}
 	for i := 0; i < len(balances); i++ {
-		var balance map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(balances) {
-				return DerefScalar(balances[i])
-			}
-			return nil
-		}())
+		var balance map[string]any = SafeMapTyped(balances, i)
 		var currencyId *string = this.SafeString(balance, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -2179,7 +2174,7 @@ func (this *Coinsph) ParseOrder(order any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(order, "symbol")
 	market = MapTyped(this.SafeMarket(marketId, market))
 	var timestamp *int64 = this.SafeInteger2(order, "time", "transactTime")
-	var trades any = this.SafeValue(order, "fills")
+	var trades []any = SafeListTyped(order, "fills")
 	var triggerPrice *string = this.SafeString(order, "stopPrice")
 	if Precise.StringEq(triggerPrice, "0") {
 		triggerPrice = nil

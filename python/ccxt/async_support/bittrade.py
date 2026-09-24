@@ -1409,7 +1409,11 @@ class bittrade(Exchange, ImplicitAPI):
         feeCost = self.safe_string_2(order, 'filled-fees', 'field-fees')  # typo in their API, filled fees
         fee = None
         if feeCost is not None:
-            feeCurrency = market['quote'] if (side == 'sell') else market['base']
+            feeCurrency = None
+            if side == 'sell':
+                feeCurrency = market['quote']
+            else:
+                feeCurrency = market['base']
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
@@ -1702,7 +1706,7 @@ class bittrade(Exchange, ImplicitAPI):
             }),
         ]
 
-    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "currency": "usdt",

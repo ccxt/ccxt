@@ -1358,7 +1358,7 @@ impl OnetradingCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            symbol = previousOrder.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            symbol = self.safe_string_k(previousOrder, "symbol", &[]);
             let mut filled: Value = self.safe_string_k(update.clone(), "filled_amount", &[]);
             let mut status: Value = self.parse_ws_order_status(updateType.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
             if (updateType.as_str() == Some("ORDER_CLOSED")) && is_true(&crate::precise::Precise::stringEq(&filled, &Value::Str("0".into()))) {

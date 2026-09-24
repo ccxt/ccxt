@@ -1584,12 +1584,7 @@ func (this *Blockchaincom) fetchBalanceBody(ch chan any, optionalArgs ...any) an
 		"info": response,
 	}
 	for i := 0; i < len(balances); i++ {
-		var entry map[string]any = MapTyped(func() any {
-			if i >= 0 && i < len(balances) {
-				return DerefScalar(balances[i])
-			}
-			return nil
-		}())
+		var entry map[string]any = SafeMapTyped(balances, i)
 		var currencyId *string = this.SafeString(entry, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()

@@ -495,7 +495,7 @@ class luno extends Exchange {
         $code = $this->safe_currency_code($id);
         $networks = array();
         for ($i = 0; $i < count($rawCurrency); $i++) {
-            $networkEntry = $rawCurrency[$i];
+            $networkEntry = $this->safe_dict($rawCurrency, $i);
             $networkId = $this->safe_string($networkEntry, 'name');
             $networkCode = $this->network_id_to_code($networkId, $code);
             if ($networkCode !== null) {
@@ -709,7 +709,7 @@ class luno extends Exchange {
             'datetime' => null,
         );
         for ($i = 0; $i < count($wallets); $i++) {
-            $wallet = $wallets[$i];
+            $wallet = $this->safe_dict($wallets, $i);
             $currencyId = $this->safe_string($wallet, 'asset');
             $code = $this->safe_currency_code($currencyId);
             $reserved = $this->safe_string($wallet, 'reserved');
@@ -1527,7 +1527,7 @@ class luno extends Exchange {
             if ($account === null) {
                 throw new ExchangeError($this->id . ' fetchLedger() could not find $account $id for ' . $code);
             }
-            $id = $account['id'];
+            $id = $this->safe_string($account, 'id');
         }
         if ($min_row === null && $max_row === null) {
             $max_row = 0; // Default to most recent transactions
@@ -1736,7 +1736,7 @@ class luno extends Exchange {
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "account_id": "string",

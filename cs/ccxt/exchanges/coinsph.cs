@@ -1569,7 +1569,7 @@ public partial class coinsph : Exchange
         };
         for (int i = 0; i < balances.Count; i++)
         {
-            object balance = balances[i];
+            IDictionary<string, object> balance = this.safeDict(balances, i);
             string? currencyId = this.safeString(balance, "asset");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -1955,7 +1955,7 @@ public partial class coinsph : Exchange
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger2(order, "time", "transactTime");
-        object trades = this.safeValue(order, "fills");
+        List<object> trades = this.safeList(order, "fills");
         string? triggerPrice = this.safeString(order, "stopPrice");
         if (Precise.stringEq(triggerPrice, "0"))
         {

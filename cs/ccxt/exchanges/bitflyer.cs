@@ -492,7 +492,7 @@ public partial class bitflyer : Exchange
         };
         for (int i = 0; i < getArrayLength(response); i++)
         {
-            object balance = getValue(response, i);
+            IDictionary<string, object> balance = this.safeDict(response, i);
             string? currencyId = this.safeString(balance, "currency_code");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -658,13 +658,13 @@ public partial class bitflyer : Exchange
                 side = null;
             }
         }
-        object order = null;
+        string? order = null;
         if ((side != null))
         {
             string idInner = (side + "_child_order_acceptance_id");
             if (inOp(trade, idInner))
             {
-                order = getValue(trade, idInner);
+                order = this.safeString(trade, idInner);
             }
         }
         if ((order == null))

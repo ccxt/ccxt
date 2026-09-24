@@ -437,7 +437,7 @@ func (this *P2b) HandleTrade(client any, message map[string]any) any {
 	//        "id": null
 	//    }
 	//
-	var data []any = ccxt.SafeListTypedDefault(message, "params", []any{})
+	var data []any = ccxt.SafeListTyped(message, "params")
 	var trades any = this.SafeList(data, 1)
 	var marketId *string = this.SafeString(data, 0)
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
@@ -490,7 +490,7 @@ func (this *P2b) HandleTicker(client any, message map[string]any) any {
 	//        "id": null
 	//    }
 	//
-	var data []any = ccxt.SafeListTypedDefault(message, "params", []any{})
+	var data []any = ccxt.SafeListTyped(message, "params")
 	var marketId *string = this.SafeString(data, 0)
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var method *string = this.SafeString(message, "method")
@@ -533,7 +533,7 @@ func (this *P2b) HandleOrderBook(client any, message map[string]any) {
 	//        "id": null
 	//    }
 	//
-	var params []any = ccxt.SafeListTypedDefault(message, "params", []any{})
+	var params []any = ccxt.SafeListTyped(message, "params")
 	var isFullUpdate *bool = this.SafeBool(params, 0, false)
 	var data map[string]any = ccxt.SafeMapTyped(params, 1)
 	var asks []any = ccxt.SafeListTyped(data, "asks")

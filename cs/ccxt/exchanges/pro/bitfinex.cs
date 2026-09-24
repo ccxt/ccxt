@@ -558,7 +558,11 @@ public partial class bitfinex : ccxt.bitfinex
         //
         int numFields = getArrayLength(trade);
         bool isPublic = numFields <= 8;
-        object marketId = (!isPublic) ? this.safeString(trade, 1) : null;
+        object marketId = null;
+        if (!isPublic)
+        {
+            marketId = this.safeString(trade, 1);
+        }
         market = this.safeMarket(marketId, market);
         int createdKey = isPublic ? 1 : 2;
         int priceKey = isPublic ? 3 : 5;
@@ -575,7 +579,11 @@ public partial class bitfinex : ccxt.bitfinex
                 type = "market";
             }
         }
-        string? orderId = (!isPublic) ? this.safeString(trade, 3) : null;
+        string? orderId = null;
+        if (!isPublic)
+        {
+            orderId = this.safeString(trade, 3);
+        }
         string? id = this.safeString(trade, 0);
         Int64? timestamp = this.safeInteger(trade, createdKey);
         string? price = this.safeString(trade, priceKey);
@@ -796,7 +804,7 @@ public partial class bitfinex : ccxt.bitfinex
                 object deltas = getValue(message, 1);
                 for (int i = 0; i < getArrayLength(deltas); i++)
                 {
-                    object delta = getValue(deltas, i);
+                    List<object> delta = this.safeList(deltas, i);
                     object amount = this.safeNumber(delta, 2);
                     if (isEqual(amount, null))
                     {
@@ -1140,8 +1148,8 @@ public partial class bitfinex : ccxt.bitfinex
         if ((authenticated == null))
         {
             // the auth nonce shares the increasing-nonce requirement (and the counter) with REST requests signed by the same key
-            object nonce = this.incrementingNonce();
-            string payload = ("AUTH" + nonce.ToString());
+            Int64? nonce = this.incrementingNonce();
+            string payload = ("AUTH" + ((object)nonce).ToString());
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384, "hex");
             string eventVar = "auth";
             Dictionary<string, object> request = new Dictionary<string, object>() {

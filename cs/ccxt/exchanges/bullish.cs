@@ -1135,8 +1135,8 @@ public partial class bullish : Exchange
         }
         int maxLimit = 100;
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -1208,8 +1208,8 @@ public partial class bullish : Exchange
         } else
         {
             bool? paginate = false;
-            IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-            paginate = isTrue(paginateparametersVariable[0]);
+            IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+            paginate = (bool?)paginateparametersVariable[0];
             parameters = paginateparametersVariable[1];
             if ((paginate == true))
             {
@@ -1573,8 +1573,8 @@ public partial class bullish : Exchange
         Dictionary<string, object> market = this.market(symbol);
         int maxLimit = 100;
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -1654,8 +1654,8 @@ public partial class bullish : Exchange
         }
         int maxLimit = 100;
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {
@@ -2585,7 +2585,7 @@ public partial class bullish : Exchange
             IList<object> accounts = this.toArray(response);
             for (int i = 0; i < (accounts?.Count ?? 0); i++)
             {
-                object account = accounts[i];
+                IDictionary<string, object> account = this.safeDict(accounts, i);
                 string? name = this.safeString(account, "tradingAccountName");
                 if (name == "Primary Account")
                 {
@@ -2856,7 +2856,7 @@ public partial class bullish : Exchange
         };
         for (int i = 0; i < getArrayLength(response); i++)
         {
-            object balance = getValue(response, i);
+            IDictionary<string, object> balance = this.safeDict(response, i);
             string? symbol = this.safeString(balance, "assetSymbol");
             string? code = this.safeCurrencyCode(symbol);
             Dictionary<string, object> account = this.account();
@@ -3001,8 +3001,8 @@ public partial class bullish : Exchange
         object tradingAccountId = await this.loadAccount(parameters);
         int maxLimit = 100;
         bool? paginate = false;
-        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
-        paginate = isTrue(paginateparametersVariable[0]);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         if ((paginate == true))
         {

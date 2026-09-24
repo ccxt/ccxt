@@ -761,7 +761,11 @@ public class Gemini extends GeminiApi
         String code = this.safeCurrencyCode(id);
         String fiatFlag = this.safeString(rawCurrency, 7);
         Boolean isFiat = (!java.util.Objects.equals(fiatFlag, null)) && (!java.util.Objects.equals(fiatFlag, ""));
-        String type = ((Boolean.TRUE.equals(isFiat))) ? "fiat" : "crypto";
+        String type = "crypto";
+        if (Boolean.TRUE.equals(isFiat))
+        {
+            type = "fiat";
+        }
         Double precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 5)));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         String networkId = this.safeString(rawCurrency, 9);
@@ -795,6 +799,7 @@ public class Gemini extends GeminiApi
 }});
             }
         }
+        final String finalType = type;
         return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", rawCurrency );
             put( "id", id );
@@ -804,7 +809,7 @@ public class Gemini extends GeminiApi
             put( "deposit", null );
             put( "withdraw", null );
             put( "fee", null );
-            put( "type", type );
+            put( "type", finalType );
             put( "precision", precision );
             put( "limits", new HashMap<String, Object>() {{
                 put( "deposit", new HashMap<String, Object>() {{
@@ -1219,7 +1224,11 @@ public class Gemini extends GeminiApi
             linear = true; // always linear
             inverse = false;
         }
-        String type = ((Boolean.TRUE.equals(swap))) ? "swap" : "spot";
+        String type = "spot";
+        if (Boolean.TRUE.equals(swap))
+        {
+            type = "swap";
+        }
         Boolean isSpot = !Boolean.TRUE.equals(swap);
         final Object finalMarketId = marketId;
         final String finalSymbol = symbol;
@@ -1227,6 +1236,7 @@ public class Gemini extends GeminiApi
         final Object finalBaseId = baseId;
         final Object finalQuoteId = quoteId;
         final Object finalSettleId = settleId;
+        final String finalType = type;
         final Boolean finalSwap = swap;
         final Object finalStatus = status;
         final Boolean finalLinear = linear;
@@ -1244,7 +1254,7 @@ public class Gemini extends GeminiApi
             put( "baseId", finalBaseId );
             put( "quoteId", finalQuoteId );
             put( "settleId", finalSettleId );
-            put( "type", type );
+            put( "type", finalType );
             put( "spot", isSpot );
             put( "margin", false );
             put( "swap", finalSwap );
@@ -1778,7 +1788,7 @@ public class Gemini extends GeminiApi
         }};
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
-            Object balance = Helpers.GetValue(response, i);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i);
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
@@ -2025,7 +2035,7 @@ public class Gemini extends GeminiApi
         }
         String price = this.safeString(order, "price");
         String average = this.safeString(order, "avg_execution_price");
-        Object type = this.safeString(order, "type");
+        String type = this.safeString(order, "type");
         if (java.util.Objects.equals(type, "exchange limit"))
         {
             type = "limit";
@@ -2034,7 +2044,7 @@ public class Gemini extends GeminiApi
             type = "market";
         } else
         {
-            type = ((Map<String, Object>)order).get("type");
+            type = this.safeString(order, "type");
         }
         Object fee = null;
         String marketId = this.safeString(order, "symbol");
@@ -2061,7 +2071,7 @@ public class Gemini extends GeminiApi
             }
         }
         final String finalStatus = status;
-        final Object finalType = type;
+        final String finalType = type;
         final String finalTimeInForce = timeInForce;
         final Boolean finalPostOnly = postOnly;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
@@ -2711,7 +2721,7 @@ public class Gemini extends GeminiApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseDepositAddress(Object depositAddress, Map<String, Object> currency)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         //
         //      {
@@ -2730,7 +2740,7 @@ public class Gemini extends GeminiApi
             put( "info", depositAddress );
         }};
     }
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Object... optionalArgs)
     {
         return this.parseDepositAddress(depositAddress, Helpers.getArgMap(optionalArgs, 0, null));
     }

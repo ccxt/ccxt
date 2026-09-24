@@ -567,7 +567,7 @@ public class Luno extends LunoApi
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)rawCurrency).size(); i++)
         {
-            Object networkEntry = Helpers.GetValue(rawCurrency, i);
+            Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(rawCurrency, i);
             String networkId = this.safeString(networkEntry, "name");
             String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
@@ -668,12 +668,12 @@ public class Luno extends LunoApi
                 // rates below are read from Luno's own Help Centre fee article for the ZAR
                 // market; markets quoted in other fiat currencies are left on the
                 // exchange-wide default until their schedules are verified the same way.
-                List<Object> fiats = new ArrayList<Object>(Arrays.asList("ZAR"));
+                List<String> fiats = new ArrayList<String>(Arrays.asList("ZAR"));
                 // live-but-unverified counters, kept on the exchange-wide default; the market
                 // list is geo-filtered so this is a superset of any one region's view, and
                 // ZARU is Luno's tokenized rand ("ZAR Universal"), not fiat, but equally unverified
-                List<Object> unverifiedQuotes = new ArrayList<Object>(Arrays.asList("MYR", "NGN", "IDR", "KES", "UGX", "AUD", "GBP", "EUR", "USD", "ZARU"));
-                List<Object> stablecoins = new ArrayList<Object>(Arrays.asList("USDT", "USDC"));
+                List<String> unverifiedQuotes = new ArrayList<String>(Arrays.asList("MYR", "NGN", "IDR", "KES", "UGX", "AUD", "GBP", "EUR", "USD", "ZARU"));
+                List<String> stablecoins = new ArrayList<String>(Arrays.asList("USDT", "USDC"));
                 Double taker = null;
                 Double maker = null;
                 if (this.inArray(quote, fiats))
@@ -823,7 +823,7 @@ public class Luno extends LunoApi
         }};
         for (var i = 0; i < ((List<?>)wallets).size(); i++)
         {
-            Object wallet = (wallets == null || i < 0 || i >= wallets.size() ? null : wallets.get(i));
+            Map<String, Object> wallet = (Map<String, Object>) this.safeDict(wallets, i);
             String currencyId = this.safeString(wallet, "asset");
             String code = this.safeCurrencyCode(currencyId);
             String reserved = this.safeString(wallet, "reserved");
@@ -1960,7 +1960,7 @@ public class Luno extends LunoApi
             }
             (this.loadAccounts()).join();
             Map<String, Object> currency = null;
-            Object id = this.safeString(parameters, "id"); // account id
+            String id = this.safeString(parameters, "id"); // account id
             Object min_row = this.safeValue(parameters, "min_row");
             Object max_row = this.safeValue(parameters, "max_row");
             if (java.util.Objects.equals(id, null))
@@ -1976,7 +1976,7 @@ public class Luno extends LunoApi
                 {
                     throw new ExchangeError(((this.id + " fetchLedger() could not find account id for ") + code)) ;
                 }
-                id = ((Map<String, Object>)account).get("id");
+                id = this.safeString(account, "id");
             }
             if (java.util.Objects.equals(min_row, null) && java.util.Objects.equals(max_row, null))
             {
@@ -2000,7 +2000,7 @@ public class Luno extends LunoApi
             {
                 throw new ExchangeError((this.id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000")) ;
             }
-            final Object finalId = id;
+            final String finalId = id;
             final Object finalMin_row = min_row;
             final Object finalMax_row = max_row;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2181,7 +2181,7 @@ public class Luno extends LunoApi
             //         "total_unconfirmed": "string"
             //     }
             //
-            return this.parseDepositAddress(response, currency);
+            return this.parseDepositAddress((Map<String, Object>) (response), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -2247,7 +2247,7 @@ public class Luno extends LunoApi
             //         "total_unconfirmed": "string"
             //     }
             //
-            return this.parseDepositAddress(response, currency);
+            return this.parseDepositAddress((Map<String, Object>) (response), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -2267,7 +2267,7 @@ public class Luno extends LunoApi
         return this.fetchDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseDepositAddress(Object depositAddress, Map<String, Object> currency)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         //
         //     {
@@ -2299,7 +2299,7 @@ public class Luno extends LunoApi
             put( "tag", Luno.this.safeString(depositAddress, "name") );
         }};
     }
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Object... optionalArgs)
     {
         return this.parseDepositAddress(depositAddress, Helpers.getArgMap(optionalArgs, 0, null));
     }

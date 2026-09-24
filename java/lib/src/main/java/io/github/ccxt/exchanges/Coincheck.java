@@ -427,10 +427,10 @@ public class Coincheck extends CoincheckApi
             //
             List<Object> exchangeStatuses = (List<Object>) this.safeList(response, "exchange_status", new ArrayList<Object>(Arrays.asList()));
             String status = "ok";
-            Object updated = null;
+            Long updated = null;
             for (var i = 0; i < ((List<?>)exchangeStatuses).size(); i++)
             {
-                Object exchangeStatus = (exchangeStatuses == null || i < 0 || i >= exchangeStatuses.size() ? null : exchangeStatuses.get(i));
+                Map<String, Object> exchangeStatus = (Map<String, Object>) this.safeDict(exchangeStatuses, i);
                 String rawStatus = this.safeString(exchangeStatus, "status");
                 if (java.util.Objects.equals(updated, null))
                 {
@@ -442,7 +442,7 @@ public class Coincheck extends CoincheckApi
                 }
             }
             final String finalStatus = status;
-            final Object finalUpdated = updated;
+            final Long finalUpdated = updated;
             return new HashMap<String, Object>() {{
                 put( "status", finalStatus );
                 put( "updated", finalUpdated );

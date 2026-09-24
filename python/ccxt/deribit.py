@@ -1061,7 +1061,7 @@ class deribit(Exchange, ImplicitAPI):
         else:
             summaries = [balance]
         for i in range(0, len(summaries)):
-            data = summaries[i]
+            data = self.safe_dict(summaries, i)
             currencyId = self.safe_string(data, 'currency')
             currencyCode = self.safe_currency_code(currencyId)
             account = self.account()
@@ -1374,8 +1374,8 @@ class deribit(Exchange, ImplicitAPI):
                 if code is not None and code != market['base']:
                     raise BadRequest(self.id + ' fetchTickers the base currency must be the same for all symbols, self endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency')
                 if code is None:
-                    code = market['base']
-                    type = market['type']
+                    code = self.safe_string(market, 'base')
+                    type = self.safe_string(market, 'type')
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for')
         currency = self.currency(code)
@@ -1450,7 +1450,7 @@ class deribit(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 5000)
         market = self.market(symbol)
@@ -3154,7 +3154,7 @@ class deribit(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         maxEntriesPerRequest = 744  # seems exchange returns max 744 items per request
         eachItemDuration = '1h'
         if paginate:
@@ -3203,7 +3203,7 @@ class deribit(Exchange, ImplicitAPI):
         rates = []
         result = self.safe_list(response, 'result', [])
         for i in range(0, len(result)):
-            fr = result[i]
+            fr = self.safe_dict(result, i)
             rate = self.parse_funding_rate(fr, market)
             rates.append(rate)
         return self.filter_by_symbol_since_limit(rates, symbol, since, limit)
@@ -3267,7 +3267,7 @@ class deribit(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchLiquidations', 'paginate')
+        paginate, params = self.handle_option_bool_and_params(params, 'fetchLiquidations', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchLiquidations', symbol, since, limit, params, 'continuation', 'continuation', None)
         market = self.market(symbol)

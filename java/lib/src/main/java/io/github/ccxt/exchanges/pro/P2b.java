@@ -356,12 +356,12 @@ public class P2b extends io.github.ccxt.exchanges.P2b
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false, true, true);
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             if (!java.util.Objects.equals(symbols, null))
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    ((List<Object>)messageHashes).add(("deals::" + (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
+                    messageHashes.add(("deals::" + (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
                 }
             }
             List<Object> marketIds = this.marketIds(symbols);

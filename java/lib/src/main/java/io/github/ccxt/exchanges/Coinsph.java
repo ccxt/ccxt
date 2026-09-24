@@ -1855,7 +1855,7 @@ public class Coinsph extends CoinsphApi
         }};
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i);
             String currencyId = this.safeString(balance, "asset");
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
@@ -2363,7 +2363,7 @@ public class Coinsph extends CoinsphApi
         String marketId = this.safeString(order, "symbol");
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
         Long timestamp = (Long) this.safeInteger2(order, "time", "transactTime");
-        Object trades = this.safeValue(order, "fills");
+        List<Object> trades = (List<Object>) this.safeList(order, "fills");
         String triggerPrice = this.safeString(order, "stopPrice");
         if (Precise.stringEq(triggerPrice, "0"))
         {
@@ -3050,7 +3050,7 @@ public class Coinsph extends CoinsphApi
             //         "addressTag": ""
             //     }
             //
-            return this.parseDepositAddress(response, currency);
+            return this.parseDepositAddress((Map<String, Object>) (response), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -3069,7 +3069,7 @@ public class Coinsph extends CoinsphApi
         return this.fetchDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object parseDepositAddress(Object depositAddress, Map<String, Object> currency)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         //
         //     {
@@ -3088,7 +3088,7 @@ public class Coinsph extends CoinsphApi
             put( "tag", Coinsph.this.safeString(depositAddress, "addressTag") );
         }};
     }
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Object... optionalArgs)
     {
         return this.parseDepositAddress(depositAddress, Helpers.getArgMap(optionalArgs, 0, null));
     }

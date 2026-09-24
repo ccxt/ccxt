@@ -1152,7 +1152,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' fetchBalance() could not find the "' + accountName + '" account')
         result = {'info': response}
         for i in range(0, len(balances)):
-            entry = balances[i]
+            entry = self.safe_dict(balances, i)
             currencyId = self.safe_string(entry, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()

@@ -813,7 +813,7 @@ class htx(ccxt.async_support.htx):
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
-            type = market['type']
+            type = self.safe_string(market, 'type')
             subType = 'linear' if (market['linear'] is True) else 'inverse'
             marketId = market['lowercaseId']
         else:
@@ -865,13 +865,17 @@ class htx(ccxt.async_support.htx):
         marketCode = None
         if (market is not None) and (market['lowercaseId'] is not None):
             marketCode = market['lowercaseId'].lower()
-        baseId = market['baseId'] if (market is not None) else None
+        baseId = None
+        if market is not None:
+            baseId = market['baseId']
         prefix = orderType
         messageHash = prefix
         if subType == 'linear':
             # USDT Margined Contracts Example: LTC/USDT:USDT
             marginMode = self.safe_string(params, 'margin', 'cross')
-            marginPrefix = prefix + '_cross' if (marginMode == 'cross') else prefix
+            marginPrefix = prefix
+            if marginMode == 'cross':
+                marginPrefix = prefix + '_cross'
             messageHash = marginPrefix
             if marketCode is not None:
                 messageHash += '.' + marketCode
@@ -895,7 +899,11 @@ class htx(ccxt.async_support.htx):
         return [channel, messageHash]
 
     def get_v5_linear_channel_and_message_hash(self, topic: Str, market: Market = None, params: dict = {}):
-        contractCode = market['id'] if (market is not None) else self.safe_string(params, 'contract_code', '*')
+        contractCode = None
+        if market is not None:
+            contractCode = market['id']
+        else:
+            contractCode = self.safe_string(params, 'contract_code', '*')
         channel = topic
         messageHash = topic
         if (contractCode is not None) and (contractCode != '*'):
@@ -928,7 +936,7 @@ class htx(ccxt.async_support.htx):
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
-            type = market['type']
+            type = self.safe_string(market, 'type')
             suffix = market['lowercaseId']
             subType = 'linear' if (market['linear'] is True) else 'inverse'
         else:
@@ -1506,7 +1514,7 @@ class htx(ccxt.async_support.htx):
         type = None
         subType = None
         if market is not None:
-            type = market['type']
+            type = self.safe_string(market, 'type')
             subType = 'linear' if (market['linear'] is True) else 'inverse'
         else:
             type, params = self.handle_market_type_and_params('watchPositions', market, params)
@@ -1523,7 +1531,9 @@ class htx(ccxt.async_support.htx):
         isLinear = (subType == 'linear')
         url = self.get_url_by_market_type(type, isLinear, True, False, isV5Linear)
         messageHash = marginMode + ':positions' + messageHash
-        channel = 'positions_cross.*' if (marginMode == 'cross') else 'positions.*'
+        channel = 'positions.*'
+        if marginMode == 'cross':
+            channel = 'positions_cross.*'
         if isV5Linear:
             v5Market = None
             if (symbols is not None) and (len(symbols) == 1):
@@ -1622,7 +1632,9 @@ class htx(ccxt.async_support.htx):
         #
         url = client.url
         topic = self.safe_string(message, 'topic', '')
-        defaultMarginMode = 'cross' if (topic == 'positions_cross') else 'isolated'
+        defaultMarginMode = 'isolated'
+        if topic == 'positions_cross':
+            defaultMarginMode = 'cross'
         if self.positions is None:
             self.positions = {}
         clientPositions = self.safe_dict(self.positions, url)
@@ -1911,7 +1923,7 @@ class htx(ccxt.async_support.htx):
                 details = self.safe_list(accountData, 'details', [])
                 detailsLength = len(details)
                 for i in range(0, detailsLength):
-                    detail = details[i]
+                    detail = self.safe_dict(details, i)
                     currencyId = self.safe_string(detail, 'currency')
                     code = self.safe_currency_code(currencyId)
                     if code is None:
@@ -1982,7 +1994,7 @@ class htx(ccxt.async_support.htx):
                 else:
                     # isolated margin
                     for i in range(0, len(data)):
-                        isolatedBalance = data[i]
+                        isolatedBalance = self.safe_dict(data, i)
                         account = self.account()
                         account['free'] = self.safe_string(isolatedBalance, 'margin_balance', 'margin_available')
                         account['used'] = self.safe_string(isolatedBalance, 'margin_frozen')
@@ -1994,7 +2006,7 @@ class htx(ccxt.async_support.htx):
             else:
                 # inverse branch
                 for i in range(0, len(data)):
-                    balance = data[i]
+                    balance = self.safe_dict(data, i)
                     currencyId = self.safe_string(balance, 'symbol')
                     code = self.safe_currency_code(currencyId)
                     account = self.account()

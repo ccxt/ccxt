@@ -388,7 +388,7 @@ export default class foxbit extends Exchange {
         const type = this.safeStringLower (rawCurrency, 'type');
         const parsedNetworks: Dict = {};
         for (let j = 0; j < networks.length; j++) {
-            const network = networks[j];
+            const network = this.safeDict (networks, j);
             const networkId = this.safeString (network, 'code');
             const networkCode = this.networkIdToCode (networkId, code);
             const networkWithdrawInfo = this.safeDict (network, 'withdraw_info');
@@ -852,7 +852,7 @@ export default class foxbit extends Exchange {
             'info': response,
         };
         for (let i = 0; i < accounts.length; i++) {
-            const account = accounts[i];
+            const account = this.safeDict (accounts, i);
             const currencyId = this.safeString (account, 'currency_symbol');
             const currencyCode = this.safeCurrencyCode (currencyId);
             const total = this.safeString (account, 'balance');
@@ -1742,11 +1742,11 @@ export default class foxbit extends Exchange {
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         const marketId = this.safeString (ticker, 'market_symbol');
         const symbol = this.safeSymbol (marketId, market, undefined, 'spot');
-        const rolling_24h = ticker['rolling_24h'];
+        const rolling_24h = this.safeDict (ticker, 'rolling_24h');
         const best = this.safeDict (ticker, 'best');
         const bestAsk = this.safeDict (best, 'ask');
         const bestBid = this.safeDict (best, 'bid');
-        const lastTrade = ticker['last_trade'];
+        const lastTrade = this.safeDict (ticker, 'last_trade');
         const lastPrice = this.safeString (lastTrade, 'price');
         return this.safeTicker ({
             'symbol': symbol,

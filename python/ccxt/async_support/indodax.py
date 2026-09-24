@@ -796,7 +796,7 @@ class indodax(Exchange, ImplicitAPI):
         #
         side = None
         if 'type' in order:
-            side = order['type']
+            side = self.safe_string(order, 'type')
         status = self.parse_order_status(self.safe_string(order, 'status', 'open'))
         symbol = None
         cost = None
@@ -1011,7 +1011,7 @@ class indodax(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-        side = self.safe_value(params, 'side')
+        side = self.safe_string(params, 'side')
         if side is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires an extra "side" param')
         if self.markets is None:
