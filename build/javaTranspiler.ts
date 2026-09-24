@@ -311,7 +311,9 @@ function retypeMentionContextsOk (code: string, name: string, token: string | un
         if (callee !== undefined && RETYPE_AUDITED_CALLEES.test (callee)) continue;
         const adjacentPlus = /\+\s*$/.test (pre) || /^\s*\+/.test (code.slice (m.index + name.length));
         if (adjacentPlus && /"/.test (line)) continue;
-        const cast = pre.match (/\(([\w$.<>, ]+)\)\s*$/);
+        // `(T) name` or the printer's parenthesised `(T) (name)`
+        const wrapped = /^\s*\)/.test (code.slice (m.index + name.length));
+        const cast = pre.match (/\(([\w$.<>, ]+)\)\s*$/) ?? (wrapped ? pre.match (/\(([\w$.<>, ]+)\)\s*\(\s*$/) : null);
         if (cast !== null && (cast[1].trim () === (token ?? '') || cast[1].trim () === 'Object' || cast[1].trim () === 'java.lang.Object')) continue;
         return false;
     }
