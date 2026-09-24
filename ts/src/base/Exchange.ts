@@ -6440,7 +6440,9 @@ export class BaseExchange {
             await this.throttle (cost);
         }
         const retries = 0;
-        const [ retriesMaxRetriesOnFailure, paramsMaxRetriesOnFailure ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailure', retries);
+        // implicit endpoints may pass a list body as params: keep it an untyped box
+        const requestParams: object = params;
+        const [ retriesMaxRetriesOnFailure, paramsMaxRetriesOnFailure ] = this.handleOptionAndParams (requestParams, path, 'maxRetriesOnFailure', retries);
         const retryDelay = 0;
         const [ retryDelayMaxRetriesOnFailureDelay, paramsMaxRetriesOnFailureDelay ] = this.handleOptionAndParams (paramsMaxRetriesOnFailure, path, 'maxRetriesOnFailureDelay', retryDelay);
         const fetchDataCacheEnabled = this.fetchHistoryCacheSize > 0;

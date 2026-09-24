@@ -12307,6 +12307,11 @@ function element1ParamsBinding (csharp, element) {
     let signature;
     try {
         signature = csharp.getChecker ().getResolvedSignature (call)?.declaration;
+        // element 1 is (a copy of) the params argument: only a statically Dict argument proves a dict box
+        const argType = call.arguments?.[0] && csharp.getChecker ().getTypeAtLocation (call.arguments[0]);
+        if (argType === undefined || (argType.flags & (ts.TypeFlags.Any | ts.TypeFlags.NonPrimitive | ts.TypeFlags.Unknown)) !== 0) {
+            return false;
+        }
     } catch (e) {
         return false;
     }
