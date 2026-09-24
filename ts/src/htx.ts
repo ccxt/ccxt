@@ -2938,10 +2938,10 @@ export default class htx extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         let result: List = [];
         for (let i = 0; i < data.length; i++) {
-            const trades = this.safeList (data[i], 'data', []);
+            const trades: Dict[] = this.safeList (data[i], 'data', []);
             for (let j = 0; j < trades.length; j++) {
                 const trade = this.parseTrade (trades[j], market);
                 result.push (trade);
@@ -8956,7 +8956,7 @@ export default class htx extends Exchange {
                 'datetime': this.iso8601 (timestamp),
             }) as OpenInterest;
         }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const openInterest = this.parseOpenInterest (data[0], market);
         openInterest['timestamp'] = timestamp;
         openInterest['datetime'] = this.iso8601 (timestamp);

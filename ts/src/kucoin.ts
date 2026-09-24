@@ -8317,7 +8317,7 @@ export default class kucoin extends Exchange {
                 }
             }
         } else {
-            const data = this.safeList (response, 'data', []);
+            const data: Dict[] = this.safeList (response, 'data', []);
             for (let i = 0; i < data.length; i++) {
                 const balance = data[i];
                 const balanceType = this.safeString (balance, 'type');

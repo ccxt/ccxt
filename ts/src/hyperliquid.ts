@@ -3848,7 +3848,7 @@ export default class hyperliquid extends Exchange {
         //         "withdrawable": "100.0"
         //     }
         //
-        const data = this.safeList (response, 'assetPositions', []);
+        const data: Dict[] = this.safeList (response, 'assetPositions', []);
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
             result.push (this.parsePosition (data[i]));
@@ -5064,7 +5064,7 @@ export default class hyperliquid extends Exchange {
         } else {
             const responsePayload = this.safeDict (response, 'response', {});
             const data = this.safeDict (responsePayload, 'data', {});
-            const statuses = this.safeList (data, 'statuses', []);
+            const statuses: Dict[] = this.safeList (data, 'statuses', []);
             for (let i = 0; i < statuses.length; i++) {
                 message = this.safeString (statuses[i], 'error');
                 if (message !== undefined) {

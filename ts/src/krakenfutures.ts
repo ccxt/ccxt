@@ -1817,7 +1817,7 @@ export default class krakenfutures extends Exchange {
         } else {
             response = await this.historyGetOrders (this.extend (request, params));
         }
-        const allOrders = this.safeList (response, 'elements', []);
+        const allOrders: Dict[] = this.safeList (response, 'elements', []);
         const closedOrders: Dict[] = [];
         for (let i = 0; i < allOrders.length; i++) {
             const order = allOrders[i];
@@ -1878,7 +1878,7 @@ export default class krakenfutures extends Exchange {
         } else {
             response = await this.historyGetOrders (this.extend (request, params));
         }
-        const allOrders = this.safeList (response, 'elements', []);
+        const allOrders: Dict[] = this.safeList (response, 'elements', []);
         const canceledAndRejected: Dict[] = [];
         for (let i = 0; i < allOrders.length; i++) {
             const order = allOrders[i];
@@ -3301,7 +3301,7 @@ export default class krakenfutures extends Exchange {
         //        "serverTime": "2026-09-17T18:14:37.761Z"
         //    }
         //
-        const elements = this.safeList (response, 'elements', []);
+        const elements: Dict[] = this.safeList (response, 'elements', []);
         const updates: List = [];
         for (let i = 0; i < elements.length; i++) {
             const event = this.safeDict (elements[i], 'event', {});

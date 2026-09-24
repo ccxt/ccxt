@@ -1697,7 +1697,7 @@ export default class delta extends Exchange {
     }
 
     override parseBalance (response: any): Balances {
-        const balances = this.safeList (response, 'result', []);
+        const balances: Dict[] = this.safeList (response, 'result', []);
         const result: Dict = { 'info': response };
         const currenciesByNumericId = this.safeDict (this.options, 'currenciesByNumericId', {});
         for (let i = 0; i < balances.length; i++) {

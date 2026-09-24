@@ -6581,7 +6581,7 @@ export default class bybit extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type: any) {
+    parseLedgerEntryType (type: Str) {
         const types: Dict = {
             'Deposit': 'transaction',
             'Withdraw': 'transaction',

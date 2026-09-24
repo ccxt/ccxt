@@ -3781,7 +3781,7 @@ export default class hitbtc extends Exchange {
         //         ]
         //    }
         //
-        const networks = this.safeList (fee, 'networks', []);
+        const networks: Dict[] = this.safeList (fee, 'networks', []);
         const result = this.depositWithdrawFee (fee);
         for (let j = 0; j < networks.length; j++) {
             const networkEntry = networks[j];
