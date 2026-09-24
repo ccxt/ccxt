@@ -381,7 +381,7 @@ class deribit(ccxt.async_support.deribit):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         interval = None
-        interval, params = self.handle_option_and_params(params, 'watchTradesForSymbols', 'interval', '100ms')
+        interval, params = self.handle_option_string_and_params(params, 'watchTradesForSymbols', 'interval', '100ms')
         if interval == 'raw':
             await self.authenticate()
         trades = await self.watch_multiple_wrapper('trades', interval, symbols, params)
@@ -542,7 +542,7 @@ class deribit(ccxt.async_support.deribit):
         :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         interval = None
-        interval, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'interval', '100ms')
+        interval, params = self.handle_option_string_and_params(params, 'watchOrderBookForSymbols', 'interval', '100ms')
         if interval == 'raw':
             await self.authenticate()
         descriptor = ''
@@ -550,7 +550,7 @@ class deribit(ccxt.async_support.deribit):
         useDepthEndpoint, params = self.handle_option_bool_and_params(params, 'watchOrderBookForSymbols', 'useDepthEndpoint', False)
         if useDepthEndpoint:
             depth = None
-            depth, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'depth', '20')
+            depth, params = self.handle_option_string_and_params(params, 'watchOrderBookForSymbols', 'depth', '20')
             group = None
             group, params = self.handle_option_string_and_params(params, 'watchOrderBookForSymbols', 'group', 'none')
             descriptor = group + '.' + depth + '.' + interval

@@ -1299,7 +1299,7 @@ class bullish(Exchange, ImplicitAPI):
 
     async def safe_deterministic_call(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, timeframe: Str = None, params: dict = {}):
         maxRetries = None
-        maxRetries, params = self.handle_option_and_params(params, method, 'maxRetries', 3)
+        maxRetries, params = self.handle_option_integer_and_params(params, method, 'maxRetries', 3)
         if (method != 'fetchOHLCV') and (method != 'fetchFundingRateHistory') and (method != 'fetchTrades'):
             raise NotSupported(self.id + ' safeDeterministicCall() does not support the ' + method + ' method')
         errors = 0
@@ -2178,7 +2178,7 @@ class bullish(Exchange, ImplicitAPI):
 
     async def load_account(self, params: dict = {}) -> str:
         tradingAccountId = None
-        tradingAccountId, params = self.handle_option_and_params(params, 'loadAccount', 'tradingAccountId')
+        tradingAccountId, params = self.handle_option_string_and_params(params, 'loadAccount', 'tradingAccountId')
         if tradingAccountId is None:
             response = await self.privateGetV1AccountsTradingAccounts(params)
             accounts = self.to_array(response)

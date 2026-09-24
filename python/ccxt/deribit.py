@@ -1496,7 +1496,7 @@ class deribit(Exchange, ImplicitAPI):
         #         "testnet": false
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         ohlcvs = self.convert_trading_view_to_ohlcv(result, 'ticks', 'open', 'high', 'low', 'close', 'volume', True)
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 

@@ -1282,7 +1282,7 @@ class dydx(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' createOrderRequest() requires a side argument')
         orderSide = side.upper()
         subaccountId = 0
-        subaccountId, params = self.handle_option_and_params(params, 'createOrder', 'subAccountId', subaccountId)
+        subaccountId, params = self.handle_option_integer_and_params(params, 'createOrder', 'subAccountId', subaccountId)
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         stopLossPrice = self.safe_value(params, 'stopLossPrice', triggerPrice)
         takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
@@ -1341,7 +1341,7 @@ class dydx(Exchange, ImplicitAPI):
         goodTillBlock = self.safe_integer(params, 'goodTillBlock')
         goodTillBlockTime = None
         goodTillBlockTimeInSeconds = 2592000
-        goodTillBlockTimeInSeconds, params = self.handle_option_and_params(params, 'createOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds)  # default is 30 days
+        goodTillBlockTimeInSeconds, params = self.handle_option_integer_and_params(params, 'createOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds)  # default is 30 days
         if orderFlag == 0:
             if goodTillBlock is None:
                 # short term order
@@ -1443,7 +1443,7 @@ class dydx(Exchange, ImplicitAPI):
         :param bool [params.postOnly]: True or False whether the order is post-only
         :param bool [params.reduceOnly]: True or False whether the order is reduce-only
         :param float [params.goodTillBlock]: expired block number for the order, required for market order and non limit GTT order, default value is latestBlockHeight + 20
-        :param float [params.goodTillBlockTimeInSeconds]: expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
+        :param int [params.goodTillBlockTimeInSeconds]: expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -1496,7 +1496,7 @@ class dydx(Exchange, ImplicitAPI):
         :param boolean [params.trigger]: whether the order is a trigger/algo order
         :param float [params.orderFlags]: default is 64, orderFlags for the order, market order and non limit GTT order is 0, limit GTT order is 64 and conditional order is 32
         :param float [params.goodTillBlock]: expired block number for the order, required for market order and non limit GTT order(orderFlags = 0), default value is latestBlockHeight + 20
-        :param float [params.goodTillBlockTimeInSeconds]: expired time elapsed for the order, required for limit GTT order and conditional(orderFlagss > 0), default value is 30 days
+        :param int [params.goodTillBlockTimeInSeconds]: expired time elapsed for the order, required for limit GTT order and conditional(orderFlagss > 0), default value is 30 days
         :param int [params.subAccountId]: sub account id, default is 0
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -1515,12 +1515,12 @@ class dydx(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.')
         goodTillBlock = self.safe_integer(params, 'goodTillBlock')
         goodTillBlockTimeInSeconds = 2592000
-        goodTillBlockTimeInSeconds, params = self.handle_option_and_params(params, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds)  # default is 30 days
+        goodTillBlockTimeInSeconds, params = self.handle_option_integer_and_params(params, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds)  # default is 30 days
         goodTillBlockTime = None
         defaultOrderFlags = 32 if (isTrigger is True) else 64
         orderFlags = self.safe_integer(params, 'orderFlags', defaultOrderFlags)
         subAccountId = 0
-        subAccountId, params = self.handle_option_and_params(params, 'cancelOrder', 'subAccountId', subAccountId)
+        subAccountId, params = self.handle_option_integer_and_params(params, 'cancelOrder', 'subAccountId', subAccountId)
         params = self.omit(params, ['clientOrderId', 'orderFlags', 'goodTillBlock', 'goodTillBlockTime', 'goodTillBlockTimeInSeconds', 'subaccountId', 'clientId'])
         if orderFlags != 0 and orderFlags != 64 and orderFlags != 32:
             raise InvalidOrder(self.id + ' invalid orderFlags, allowed values are (0, 64, 32).')
@@ -1595,7 +1595,7 @@ class dydx(Exchange, ImplicitAPI):
         if clientOrderIds is None:
             raise NotSupported(self.id + ' cancelOrders only support clientOrderIds.')
         subAccountId = 0
-        subAccountId, params = self.handle_option_and_params(params, 'cancelOrders', 'subAccountId', subAccountId)
+        subAccountId, params = self.handle_option_integer_and_params(params, 'cancelOrders', 'subAccountId', subAccountId)
         goodTillBlock = self.safe_integer(params, 'goodTillBlock')
         if goodTillBlock is None:
             latestBlockHeight = await self.fetch_latest_block_height()
@@ -2272,7 +2272,7 @@ class dydx(Exchange, ImplicitAPI):
         userAddress = None
         userAddress, params = self.handle_public_address('fetchBalance', params)
         subaccountNumber = None
-        subaccountNumber, params = self.handle_option_and_params(params, 'fetchBalance', 'subaccountNumber', 0)
+        subaccountNumber, params = self.handle_option_integer_and_params(params, 'fetchBalance', 'subaccountNumber', 0)
         request = {
             'address': userAddress,
             'subaccountNumber': subaccountNumber,

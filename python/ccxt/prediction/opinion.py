@@ -1643,7 +1643,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         orderbook.reset(snapshot)
         self.orderbooks[sym] = orderbook
 
-    def handle_order_book(self, client: object, message: object):
+    def handle_order_book(self, client: object, message: dict):
         #
         #     {
         #         "marketId": 2764,
@@ -1690,7 +1690,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         messageHash = 'ticker::' + sym
         return await self.subscribe_opinion_channel(messageHash, 'market.last.price', marketId)
 
-    def handle_ticker(self, client: object, message: object):
+    def handle_ticker(self, client: object, message: dict):
         #
         #     {
         #         "tokenId": "19120407572139442221452465677574895365338028945317996490376653704877573103648",
@@ -1740,7 +1740,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         trades = await self.subscribe_opinion_channel(messageHash, 'market.last.trade', marketId)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: object, message: object):
+    def handle_trades(self, client: object, message: dict):
         #
         #     {
         #         "tokenId": "19120407572139442221452465677574895365338028945317996490376653704877573103648",
@@ -1827,7 +1827,7 @@ class opinion(PredictionExchange, ImplicitAPI):
             return 'rejected'
         return None
 
-    def handle_order(self, client: object, message: object):
+    def handle_order(self, client: object, message: dict):
         #
         #     {
         #         "orderUpdateType": "orderConfirm",
@@ -1914,7 +1914,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         sym = self.safe_outcome_symbol(outcome, outcomeObj)
         return self.filter_by_value_since_limit(trades, 'outcome', sym, since, limit, 'timestamp', True)
 
-    def handle_my_trade(self, client: object, message: object):
+    def handle_my_trade(self, client: object, message: dict):
         #
         #     {
         #         "orderId": "3c7af25f-e21f-11f0-9714-0a58a9feac02",

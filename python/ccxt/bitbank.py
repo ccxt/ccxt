@@ -821,7 +821,7 @@ class bitbank(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data')
         return self.parse_order(data)
 
     def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:

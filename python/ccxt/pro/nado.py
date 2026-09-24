@@ -994,7 +994,7 @@ class nado(ccxt.async_support.nado):
                 return await future
             return authenticated
         recvWindow = None
-        recvWindow, params = self.handle_option_and_params(params, 'authenticate', 'recvWindow', 5000)
+        recvWindow, params = self.handle_option_integer_and_params(params, 'authenticate', 'recvWindow', 5000)
         subaccount = None
         subaccount, params = self.handle_option_string_and_params(params, 'authenticate', 'subaccount', 'default')
         id = self.request_id()

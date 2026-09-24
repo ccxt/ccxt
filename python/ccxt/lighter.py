@@ -403,7 +403,7 @@ class lighter(Exchange, ImplicitAPI):
         if signer is not None:
             return signer
         libraryPath = None
-        libraryPath, params = self.handle_option_and_params(params, 'loadAccount', 'libraryPath')
+        libraryPath, params = self.handle_option_string_and_params(params, 'loadAccount', 'libraryPath')
         lighterPrivateKeyIsSet = (privateKey is not None) and (privateKey != '')
         if lighterPrivateKeyIsSet and (libraryPath is not None) and (apiKeyIndex is not None) and (accountIndex is not None):
             # load lighter library, and create lighter client
@@ -719,7 +719,7 @@ class lighter(Exchange, ImplicitAPI):
         apiKeyIndex, params = self.handle_api_key_index(params, 'createOrder', 'apiKeyIndex', 'api_key_index')
         accountIndex, params = self.handle_option_and_params_2(params, 'createOrder', 'accountIndex', 'account_index')
         nonce, params = self.handle_option_and_params(params, 'createOrder', 'nonce')
-        orderExpiry, params = self.handle_option_and_params(params, 'createOrder', 'orderExpiry', 0)
+        orderExpiry, params = self.handle_option_integer_and_params(params, 'createOrder', 'orderExpiry', 0)
         if nonce is not None:
             request['nonce'] = nonce
         request['api_key_index'] = apiKeyIndex
@@ -852,7 +852,7 @@ class lighter(Exchange, ImplicitAPI):
         params['accountIndex'] = accountIndex
         market = self.market(symbol)
         groupingType = None
-        groupingType, params = self.handle_option_and_params(params, method, 'groupingType', 3)  # default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
+        groupingType, params = self.handle_option_integer_and_params(params, method, 'groupingType', 3)  # default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         orderRequests = self.create_order_request(symbol, type, side, amount, price, params)
         totalOrderRequests = len(orderRequests)
         apiKeyIndex = None
@@ -2748,7 +2748,7 @@ class lighter(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = min(limit, 100)
         until = None
-        until, params = self.handle_option_and_params_2(params, 'fetchMyTrades', 'until', 'from')
+        until, params = self.handle_option_integer_and_params_2(params, 'fetchMyTrades', 'until', 'from')
         if until is not None:
             request['from'] = until
         market = None

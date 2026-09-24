@@ -328,7 +328,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         market = self.safe_market(marketId)
         symbol = market['symbol']
         messageHash = 'trades:' + symbol
-        data = self.safe_value(message, 'data')
+        data = self.safe_dict(message, 'data')
         trade = self.parse_ws_trade(data, market)
         tradesArray = self.safe_value(self.trades, symbol)
         if tradesArray is None:
@@ -840,7 +840,7 @@ class bitstamp(ccxt.async_support.bitstamp):
                 method = methods[key]
                 method(client, message)
 
-    def handle_error_message(self, client: Client, message: object) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> Bool:
         # {
         #     "event": "bts:error",
         #     "channel": '',

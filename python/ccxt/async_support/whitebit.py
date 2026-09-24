@@ -1493,7 +1493,7 @@ class whitebit(Exchange, ImplicitAPI):
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchTickers', None, params)
         method = None
-        method, params = self.handle_option_and_params(params, 'fetchTickers', 'method', method)
+        method, params = self.handle_option_string_and_params(params, 'fetchTickers', 'method', method)
         if method is None:
             # if the user did not specify a method, choose it based on market type and symbols
             if onlyContractSymbols or (marketType == 'swap'):

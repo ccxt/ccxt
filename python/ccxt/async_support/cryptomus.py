@@ -552,7 +552,7 @@ class cryptomus(Exchange, ImplicitAPI):
             'currencyPair': market['id'],
         }
         level = 0
-        level, params = self.handle_option_and_params(params, 'fetchOrderBook', 'level', level)
+        level, params = self.handle_option_integer_and_params(params, 'fetchOrderBook', 'level', level)
         request['level'] = level
         response = await self.publicGetV1ExchangeMarketOrderBookCurrencyPair(self.extend(request, params))
         #

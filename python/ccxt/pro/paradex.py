@@ -563,7 +563,7 @@ class paradex(ccxt.async_support.paradex):
             if errorCode is not None:
                 feedback = self.id + ' ' + self.json(error)
                 self.throw_exactly_matched_exception(self.exceptions['exact'], '-32600', feedback)
-                messageString = self.safe_value(error, 'message')
+                messageString = self.safe_string(error, 'message')
                 if messageString is not None:
                     self.throw_broadly_matched_exception(self.exceptions['broad'], messageString, feedback)
             return False

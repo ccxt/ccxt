@@ -794,7 +794,7 @@ class bitso(Exchange, ImplicitAPI):
             'book': market['id'],
         }
         response = await self.publicGetTicker(self.extend(request, params))
-        ticker = self.safe_value(response, 'payload')
+        ticker = self.safe_dict(response, 'payload')
         #
         #     {
         #         "success":true,

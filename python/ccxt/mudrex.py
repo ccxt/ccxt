@@ -1173,7 +1173,7 @@ class mudrex(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         maxCalls = None
-        maxCalls, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginationCalls', 10)
+        maxCalls, params = self.handle_option_integer_and_params(params, 'fetchMyTrades', 'paginationCalls', 10)
         pageSize = 0
         if limit is not None:
             # every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied

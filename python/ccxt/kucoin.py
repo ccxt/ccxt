@@ -3329,7 +3329,7 @@ class kucoin(Exchange, ImplicitAPI):
         else:
             request['tradeType'] = 'FUTURES'
         priceType = None
-        priceType, params = self.handle_option_and_params(params, 'fetchOHLCV', 'price', priceType)
+        priceType, params = self.handle_option_string_and_params(params, 'fetchOHLCV', 'price', priceType)
         if priceType is not None:
             priceTypes = {
                 'mark': 'mark-price',

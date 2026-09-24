@@ -1342,7 +1342,7 @@ class deepcoin(Exchange, ImplicitAPI):
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         userId = None
-        userId, params = self.handle_option_and_params(params, 'transfer', 'userId')
+        userId, params = self.handle_option_string_and_params(params, 'transfer', 'userId')
         userId = userId if (userId is not None and userId != '') else self.safe_string(params, 'uid')
         if userId is None:
             raise ArgumentsRequired(self.id + ' transfer() requires a userId parameter')
