@@ -4268,7 +4268,18 @@ function handleTypedBindingReadType (printer, identifier) {
         || declaration.name?.escapedText !== identifier.escapedText) {
         return undefined;
     }
-    const type = HANDLE_TYPED_BINDINGS.get (declaration);
+    let type = HANDLE_TYPED_BINDINGS.get (declaration);
+    const pattern = declaration.parent;
+    if (type === undefined && ts.isBindingElement (declaration) && ts.isArrayBindingPattern (pattern)
+        && ts.isVariableDeclaration (pattern.parent) && isHandleOrVenueTupleCallee (pattern.parent.initializer)) {
+        // a binding printed later: the same proof handleRetypeBindingPatternBlock applies
+        const t = handleElementType (printer, pattern.parent.initializer, pattern.elements.indexOf (declaration));
+        const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+        if (t !== undefined && handleTupleIsSafeToNarrow (printer, enclosingFunction (declaration), declaration.name,
+            declaration.name.escapedText, t, isProFile)) {
+            type = t;
+        }
+    }
     return (type === 'String' || type === 'Boolean') ? type : undefined;
 }
 
