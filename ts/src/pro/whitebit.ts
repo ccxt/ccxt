@@ -775,7 +775,7 @@ export default class whitebit extends whitebitRest {
         return await this.watchPrivate (messageHash, method, [], params);
     }
 
-    setBalanceCache (client: Client, type: any, subscriptionHash: any) {
+    setBalanceCache (client: Client, type: Str, subscriptionHash: any) {
         if (subscriptionHash in client.subscriptions) {
             return;
         }
